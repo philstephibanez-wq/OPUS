@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ASAP\Application;
 
-use ASAP\Controller\ControllerDispatcher;
+use ASAP\CONTROLLER\ControllerDispatcher;
 use ASAP\Http\Request;
 use ASAP\Http\Response;
 use ASAP\Renderer\HtmlRenderer;
@@ -19,22 +19,22 @@ use ASAP\Template\TwigTemplateRenderer;
  * PUBLIC APPLICATION KERNEL
  *
  * Role:
- *   Orchestrate the minimal ASAP PHP 8 request pipeline.
+ *   Orchestrate the ASAP PHP 8 request pipeline.
  *
  * Responsibility:
  *   Site resolution, FSM guard, ACL guard, route matching, controller dispatch
  *   and response return.
  *
+ * Legacy alignment:
+ *   The dispatcher belongs to `ASAP\CONTROLLER`, matching the original ASAP
+ *   namespace/domain naming.
+ *
  * Contract:
  *   The Application orchestrates only. It does not read content, render templates
  *   directly, decide ACL rules itself, or silently compensate missing configuration.
  *
- * Pipeline:
- *   REQUEST -> SiteResolver -> FSM Guard -> ACL Guard -> Router -> Dispatcher
- *   -> Controller -> Renderer -> RESPONSE.
- *
  * Since:
- *   P112D4B
+ *   P112D4C
  */
 final class Application
 {
@@ -42,13 +42,6 @@ final class Application
     {
     }
 
-    /**
-     * PUBLIC ENTRY POINT
-     *
-     * @param Request $request Normalized request.
-     *
-     * @return Response Controller response.
-     */
     public function run(Request $request): Response
     {
         $site = (new SiteResolver($this->paths->sitesRoot))->resolve($request);

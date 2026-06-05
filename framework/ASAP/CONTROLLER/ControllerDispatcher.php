@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Controller;
+namespace ASAP\CONTROLLER;
 
 use ASAP\Application\ApplicationPaths;
 use ASAP\Http\Request;
@@ -11,11 +11,12 @@ use ASAP\Renderer\HtmlRenderer;
 use ASAP\Renderer\ViewModel;
 use ASAP\Routing\RouteMatch;
 use ASAP\Template\TemplateRendererInterface;
+use ASAP\VIEW\Html;
 use ReflectionClass;
 use ReflectionNamedType;
 
 /**
- * PUBLIC DISPATCHER
+ * PUBLIC LEGACY-ALIGNED DISPATCHER
  *
  * Role:
  *   Instantiate controllers and execute matched actions.
@@ -23,12 +24,15 @@ use ReflectionNamedType;
  * Responsibility:
  *   Convert controller results into HTTP responses through official renderers.
  *
+ * Legacy alignment:
+ *   Lives in `ASAP\CONTROLLER`, matching the original framework domain.
+ *
  * Contract:
  *   Dispatcher does not route, does not authorize, does not read content and
  *   does not render templates directly.
  *
  * Since:
- *   P112D4B
+ *   P112D4C
  */
 final class ControllerDispatcher
 {
@@ -39,14 +43,6 @@ final class ControllerDispatcher
     ) {
     }
 
-    /**
-     * PUBLIC API
-     *
-     * @param Request $request Normalized request.
-     * @param RouteMatch $match Matched route.
-     *
-     * @return Response HTTP response.
-     */
     public function dispatch(Request $request, RouteMatch $match): Response
     {
         $controller = $this->createController($match->controllerClass);
@@ -61,6 +57,10 @@ final class ControllerDispatcher
             return $result;
         }
 
+        if ($result instanceof Html) {
+            return $result->toResponse($this->templateRenderer);
+        }
+
         if ($result instanceof ViewModel) {
             return $this->htmlRenderer->render($result);
         }
@@ -68,9 +68,6 @@ final class ControllerDispatcher
         throw ControllerException::because('ASAP_CONTROLLER_RESULT_INVALID', $match->controllerClass . '::' . $match->action);
     }
 
-    /**
-     * @return object
-     */
     private function createController(string $controllerClass): object
     {
         if (!class_exists($controllerClass)) {

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Controller;
+namespace ASAP\CONTROLLER;
 
 use RuntimeException;
 
 /**
- * PUBLIC EXCEPTION
+ * PUBLIC LEGACY-ALIGNED EXCEPTION
  *
  * Role:
  *   Represent explicit controller/dispatcher contract failures.
@@ -16,7 +16,7 @@ use RuntimeException;
  *   No controller fallback, no implicit action, no silent response coercion.
  *
  * Since:
- *   P112D4B
+ *   P112D4C
  */
 final class ControllerException extends RuntimeException
 {
