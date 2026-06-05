@@ -19,9 +19,14 @@ namespace ASAP\TEMPLATE;
  *
  * Since:
  *   P112D4C
+ *
+ * Legacy compatibility:
+ *   P112P1 restores loadTemplate().
  */
 interface Adapter
 {
+    public function loadTemplate(string $template): string;
+
     /**
      * @param array<string,mixed> $data Prepared template data.
      */

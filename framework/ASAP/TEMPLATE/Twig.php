@@ -18,11 +18,19 @@ use ASAP\Template\TwigTemplateRenderer;
  *
  * Since:
  *   P112D4C
+ *
+ * Legacy compatibility:
+ *   P112P1 implements Adapter::loadTemplate().
  */
 final class Twig implements Adapter
 {
     public function __construct(private readonly TwigTemplateRenderer $renderer)
     {
+    }
+
+    public function loadTemplate(string $template): string
+    {
+        return $this->render($template, []);
     }
 
     public function render(string $template, array $data = []): string

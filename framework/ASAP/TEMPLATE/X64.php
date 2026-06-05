@@ -5,26 +5,20 @@ declare(strict_types=1);
 namespace ASAP\TEMPLATE;
 
 /**
- * PUBLIC LEGACY-ALIGNED SMARTY ADAPTER PLACEHOLDER
+ * PUBLIC LEGACY COMPATIBILITY SHIM
  *
  * Role:
- *   Preserve the original ASAP `TEMPLATE\Smarty` adapter name.
- *
- * Responsibility:
- *   Make the Smarty dependency boundary explicit while preserving safe legacy
- *   assignment methods.
+ *   Restore the legacy `ASAP_TEMPLATE_X64` surface as an explicit compatibility
+ *   adapter.
  *
  * Contract:
- *   This adapter fails clearly on rendering until a licensed/installed Smarty
- *   runtime is wired contractually. No silent Twig substitution.
+ *   Same contract as Smarty: assignment is stored, rendering fails explicitly
+ *   until a real X64 runtime is contractually wired.
  *
  * Since:
- *   P112D4C
- *
- * Legacy compatibility:
- *   P112P1 restores assign/assignAll/parse/loadTemplate.
+ *   P112P1
  */
-final class Smarty implements Adapter
+final class X64 implements Adapter
 {
     /** @var array<string,mixed> */
     private array $data = [];
@@ -58,6 +52,6 @@ final class Smarty implements Adapter
 
     public function render(string $template, array $data = []): string
     {
-        throw TemplateException::because('ASAP_TEMPLATE_SMARTY_RUNTIME_NOT_CONFIGURED', $template);
+        throw TemplateException::because('ASAP_TEMPLATE_X64_RUNTIME_NOT_CONFIGURED', $template);
     }
 }

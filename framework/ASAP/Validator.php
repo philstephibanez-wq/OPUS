@@ -24,6 +24,16 @@ namespace ASAP;
  */
 final class Validator
 {
+    /**
+     * Legacy-compatible public constructor.
+     *
+     * The validator remains stateless; instance construction is accepted for
+     * old ASAP code that created `new ASAP_Validator()`.
+     */
+    public function __construct()
+    {
+    }
+
     /** @return string[] */
     public static function getMessages(): array
     {
@@ -308,6 +318,11 @@ final class Validator
     public static function isValidSearch(mixed $value): bool
     {
         return is_string($value) && preg_match('/[<>]/', $value) !== 1;
+    }
+
+    public static function isPasswd(mixed $value): bool
+    {
+        return is_string($value) && strlen($value) >= 5 && preg_match('/[\r\n]/', $value) !== 1;
     }
 
     public static function isValide(mixed $value = true): bool
