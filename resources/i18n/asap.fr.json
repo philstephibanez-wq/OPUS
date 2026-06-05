@@ -3,7 +3,13 @@
   "messages": {
     "asap.title": "ASAP Framework",
     "asap.reference": "Livre de référence ASAP",
-    "asap.portage": "Portage PHP 8"
+    "asap.portage": "Portage PHP 8",
+    "asap.renderer": "Moteur de rendu",
+    "asap.controller": "Contrôleur et dispatcher",
+    "asap.forms": "Formulaires",
+    "asap.helpers": "Helpers",
+    "asap.url": "URLs",
+    "asap.menu": "Menu"
   },
   "plurals": {
     "asap.class_count": {

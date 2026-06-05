@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace ASAP\Application;
 
-use ASAP\Contract\ContractException;
+use ASAP\Controller\ControllerDispatcher;
 use ASAP\Http\Request;
 use ASAP\Http\Response;
+use ASAP\Renderer\HtmlRenderer;
 use ASAP\Routing\Router;
 use ASAP\Security\AclGuard;
 use ASAP\Security\FsmGuard;
@@ -28,8 +29,12 @@ use ASAP\Template\TwigTemplateRenderer;
  *   The Application orchestrates only. It does not read content, render templates
  *   directly, decide ACL rules itself, or silently compensate missing configuration.
  *
+ * Pipeline:
+ *   REQUEST -> SiteResolver -> FSM Guard -> ACL Guard -> Router -> Dispatcher
+ *   -> Controller -> Renderer -> RESPONSE.
+ *
  * Since:
- *   P112D2
+ *   P112D4B
  */
 final class Application
 {
@@ -55,26 +60,9 @@ final class Application
         $router = Router::fromXml($site->routesFile);
         $match = $router->match($request, $site);
 
-        $renderer = new TwigTemplateRenderer($this->paths->templatesRoot, $this->paths->cacheRoot);
-        $controllerClass = $match->controllerClass;
+        $templateRenderer = new TwigTemplateRenderer($this->paths->templatesRoot, $this->paths->cacheRoot);
+        $htmlRenderer = new HtmlRenderer($templateRenderer);
 
-        if (!class_exists($controllerClass)) {
-            throw ContractException::because('ASAP_CONTROLLER_CLASS_MISSING', $controllerClass);
-        }
-
-        $controller = new $controllerClass($this->paths, $renderer);
-        $method = $match->action;
-
-        if (!is_callable([$controller, $method])) {
-            throw ContractException::because('ASAP_CONTROLLER_ACTION_MISSING', $controllerClass . '::' . $method);
-        }
-
-        $response = $controller->$method($request, $match->params);
-
-        if (!$response instanceof Response) {
-            throw ContractException::because('ASAP_CONTROLLER_RESPONSE_INVALID', $controllerClass . '::' . $method);
-        }
-
-        return $response;
+        return (new ControllerDispatcher($this->paths, $templateRenderer, $htmlRenderer))->dispatch($request, $match);
     }
 }
