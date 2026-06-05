@@ -1,0 +1,15 @@
+{
+  "locale": "ru",
+  "messages": {
+    "asap.title": "ASAP Framework",
+    "asap.reference": "Справочник ASAP",
+    "asap.portage": "Порт PHP 8"
+  },
+  "plurals": {
+    "asap.class_count": {
+      "one": "{count} перенесённый класс",
+      "few": "{count} перенесённых класса",
+      "many": "{count} перенесённых классов"
+    }
+  }
+}

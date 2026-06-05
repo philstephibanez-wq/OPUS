@@ -1,0 +1,14 @@
+{
+  "locale": "es",
+  "messages": {
+    "asap.title": "Framework ASAP",
+    "asap.reference": "Libro de referencia ASAP",
+    "asap.portage": "Migración PHP 8"
+  },
+  "plurals": {
+    "asap.class_count": {
+      "one": "{count} clase migrada",
+      "other": "{count} clases migradas"
+    }
+  }
+}

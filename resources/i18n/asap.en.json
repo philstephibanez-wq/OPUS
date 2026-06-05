@@ -1,0 +1,14 @@
+{
+  "locale": "en",
+  "messages": {
+    "asap.title": "ASAP Framework",
+    "asap.reference": "ASAP Reference Book",
+    "asap.portage": "PHP 8 port"
+  },
+  "plurals": {
+    "asap.class_count": {
+      "one": "{count} ported class",
+      "other": "{count} ported classes"
+    }
+  }
+}
