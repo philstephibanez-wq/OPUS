@@ -18,9 +18,21 @@ namespace ASAP;
  *
  * Since:
  *   P112D4C
+ *
+ * Legacy compatibility:
+ *   P112O restores constructor loading and getConfig().
  */
 final class ConfigLoader
 {
+    private ?Configuration $config = null;
+
+    public function __construct(?string $file = null)
+    {
+        if ($file !== null) {
+            $this->config = $this->load($file);
+        }
+    }
+
     public function load(string $file): Configuration
     {
         if (!is_file($file)) {
@@ -50,5 +62,18 @@ final class ConfigLoader
         }
 
         throw Exception::because('ASAP_CONFIG_FORMAT_UNSUPPORTED', $file);
+    }
+
+    public function getConfig(?string $file = null): Configuration
+    {
+        if ($file !== null) {
+            $this->config = $this->load($file);
+        }
+
+        if (!$this->config instanceof Configuration) {
+            throw Exception::because('ASAP_CONFIG_NOT_LOADED');
+        }
+
+        return $this->config;
     }
 }

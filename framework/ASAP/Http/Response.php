@@ -20,6 +20,9 @@ use ASAP\Contract\ContractException;
  *
  * Since:
  *   P112D1
+ *
+ * Legacy compatibility:
+ *   P112O restores static html()/json() constructors.
  */
 final class Response
 {
@@ -38,11 +41,21 @@ final class Response
         }
     }
 
-    /**
-     * PUBLIC EMITTER
-     *
-     * @return void
-     */
+    public static function html(string $body, int $status = 200): self
+    {
+        return new self($body, $status, ['Content-Type' => 'text/html; charset=utf-8']);
+    }
+
+    /** @param mixed $data JSON-serializable data. */
+    public static function json(mixed $data, int $status = 200): self
+    {
+        return new self(
+            json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+            $status,
+            ['Content-Type' => 'application/json; charset=utf-8']
+        );
+    }
+
     public function send(): void
     {
         http_response_code($this->status);

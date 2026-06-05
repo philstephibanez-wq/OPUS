@@ -32,13 +32,6 @@ final class TranslationCatalog
     ) {
     }
 
-    /**
-     * PUBLIC API
-     *
-     * @param string $key Message key.
-     *
-     * @return string Message template.
-     */
     public function message(string $key): string
     {
         if (!array_key_exists($key, $this->messages)) {
@@ -48,14 +41,6 @@ final class TranslationCatalog
         return $this->messages[$key];
     }
 
-    /**
-     * PUBLIC API
-     *
-     * @param string $key Plural key.
-     * @param string $category Plural category.
-     *
-     * @return string Plural template.
-     */
     public function plural(string $key, string $category): string
     {
         if (!array_key_exists($key, $this->plurals)) {
@@ -73,5 +58,27 @@ final class TranslationCatalog
         }
 
         throw TranslationException::because('ASAP_I18N_PLURAL_FORM_MISSING', $this->locale->toString() . '::' . $key . '::' . $category);
+    }
+
+    /** @return array<string,string> */
+    public function messages(): array
+    {
+        return $this->messages;
+    }
+
+    /** @return array<string,array<string,string>> */
+    public function plurals(): array
+    {
+        return $this->plurals;
+    }
+
+    /** @return array{locale:string,messages:array<string,string>,plurals:array<string,array<string,string>>} */
+    public function toArray(): array
+    {
+        return [
+            'locale' => $this->locale->toString(),
+            'messages' => $this->messages,
+            'plurals' => $this->plurals,
+        ];
     }
 }

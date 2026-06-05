@@ -23,25 +23,54 @@ use ASAP\I18N\Plural\SpanishPluralRule;
  *
  * Since:
  *   P112D4C
+ *
+ * Legacy compatibility:
+ *   P112O restores safe aliases: t(), dictionary(), getDictionary(), loadDictionary().
  */
 final class I18n
 {
+    /** @var array<string,self> */
+    private static array $instances = [];
+
     private Translator $translator;
+    private TranslationCatalog $catalog;
+    private string $catalogRoot;
+    private string $locale;
 
     public function __construct(string $catalogRoot, string $locale)
     {
-        $locale = strtolower(str_replace('_', '-', trim($locale)));
-        $catalog = rtrim($catalogRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'asap.' . $locale . '.json';
+        $this->catalogRoot = rtrim($catalogRoot, DIRECTORY_SEPARATOR);
+        $this->locale = strtolower(str_replace('_', '-', trim($locale)));
+        $this->catalog = $this->loadCatalog($this->catalogRoot, $this->locale);
+        $this->translator = new Translator($this->catalog, $this->pluralRule($this->locale));
+    }
 
-        $rule = match ($locale) {
-            'fr' => new FrenchPluralRule(),
-            'en' => new EnglishPluralRule(),
-            'es' => new SpanishPluralRule(),
-            'ru' => new RussianPluralRule(),
-            default => throw TranslationException::because('ASAP_I18N_PLURAL_RULE_MISSING', $locale),
-        };
+    public static function getInstance(string $catalogRoot, string $locale): self
+    {
+        $key = rtrim(str_replace('\\', '/', $catalogRoot), '/') . '::' . strtolower(str_replace('_', '-', trim($locale)));
 
-        $this->translator = new Translator((new JsonTranslationCatalogLoader())->load($catalog), $rule);
+        if (!isset(self::$instances[$key])) {
+            self::$instances[$key] = new self($catalogRoot, $locale);
+        }
+
+        return self::$instances[$key];
+    }
+
+    /** @return string[] */
+    public function getAvalaibleLanguages(): array
+    {
+        $files = glob($this->catalogRoot . DIRECTORY_SEPARATOR . 'asap.*.json') ?: [];
+        $languages = [];
+
+        foreach ($files as $file) {
+            if (preg_match('/asap\.([a-z]{2}(?:-[a-z]{2})?)\.json$/i', basename($file), $m) === 1) {
+                $languages[] = strtolower($m[1]);
+            }
+        }
+
+        sort($languages);
+
+        return $languages;
     }
 
     /**
@@ -55,8 +84,56 @@ final class I18n
     /**
      * @param array<string,string|int|float> $params
      */
+    public function t(string $key, array $params = []): string
+    {
+        return $this->translate($key, $params);
+    }
+
+    /**
+     * @param array<string,string|int|float> $params
+     */
     public function plural(string $key, int $count, array $params = []): string
     {
         return $this->translator->plural($key, $count, $params);
+    }
+
+    /** @return array{locale:string,messages:array<string,string>,plurals:array<string,array<string,string>>} */
+    public function dictionary(): array
+    {
+        return $this->catalog->toArray();
+    }
+
+    /** @return array{locale:string,messages:array<string,string>,plurals:array<string,array<string,string>>} */
+    public function getDictionary(): array
+    {
+        return $this->dictionary();
+    }
+
+    public function loadDictionary(?string $locale = null): self
+    {
+        $nextLocale = $locale === null ? $this->locale : strtolower(str_replace('_', '-', trim($locale)));
+        $this->locale = $nextLocale;
+        $this->catalog = $this->loadCatalog($this->catalogRoot, $this->locale);
+        $this->translator = new Translator($this->catalog, $this->pluralRule($this->locale));
+
+        return $this;
+    }
+
+    private function loadCatalog(string $catalogRoot, string $locale): TranslationCatalog
+    {
+        $catalog = rtrim($catalogRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'asap.' . $locale . '.json';
+
+        return (new JsonTranslationCatalogLoader())->load($catalog);
+    }
+
+    private function pluralRule(string $locale): PluralRuleInterface
+    {
+        return match ($locale) {
+            'fr' => new FrenchPluralRule(),
+            'en' => new EnglishPluralRule(),
+            'es' => new SpanishPluralRule(),
+            'ru' => new RussianPluralRule(),
+            default => throw TranslationException::because('ASAP_I18N_PLURAL_RULE_MISSING', $locale),
+        };
     }
 }
