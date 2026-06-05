@@ -1,4 +1,4 @@
-/vendor/
+﻿/vendor/
 /composer.lock
 /.phpdoc/
 /.phpdoc-cache/
@@ -29,3 +29,16 @@ Thumbs.db
 *.sqlite-shm
 *.sqlite-journal
 # END MAESTRO_WORKSPACE P112Q2I0_ASAP_GITHUB_BOOTSTRAP
+
+# BEGIN MAESTRO_WORKSPACE P112Q2I0 ASAP_RUNTIME_VAR_IGNORE
+/var/cache/
+/var/github/
+/var/logs/
+/var/tmp/
+/var/sessions/
+/var/lstsa/runs/
+/var/lstsa/archives/
+/var/lstsa/reports/
+/var/lstsa/quarantine/
+# END MAESTRO_WORKSPACE P112Q2I0 ASAP_RUNTIME_VAR_IGNORE
+
