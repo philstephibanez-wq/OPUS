@@ -19,6 +19,9 @@ namespace ASAP\Url;
  *
  * Since:
  *   P112D4E
+ *
+ * Deepened:
+ *   P112D4F
  */
 final class Url
 {
@@ -42,5 +45,34 @@ final class Url
         }
 
         return $url;
+    }
+
+    /**
+     * @param array<string,string|int|float|bool> $query
+     */
+    public function asset(string $path, array $query = []): string
+    {
+        return $this->to('/assets' . $this->normalizePath($path), $query);
+    }
+
+    /**
+     * @param array<string,string|int|float|bool> $query
+     */
+    public function route(string $slug, array $query = []): string
+    {
+        if (trim($slug) === '') {
+            throw new \InvalidArgumentException('ASAP_URL_ROUTE_SLUG_EMPTY');
+        }
+
+        return $this->to('/' . ltrim($slug, '/'), $query);
+    }
+
+    private function normalizePath(string $path): string
+    {
+        if (trim($path) === '') {
+            throw new \InvalidArgumentException('ASAP_URL_PATH_EMPTY');
+        }
+
+        return '/' . ltrim($path, '/');
     }
 }

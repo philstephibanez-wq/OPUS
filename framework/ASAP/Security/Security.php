@@ -19,6 +19,9 @@ namespace ASAP\Security;
  *
  * Since:
  *   P112D4E
+ *
+ * Deepened:
+ *   P112D4F
  */
 final class Security
 {
@@ -40,5 +43,22 @@ final class Security
         }
 
         return new self(false, $reason);
+    }
+
+    public function isAllowed(): bool
+    {
+        return $this->allowed;
+    }
+
+    public function isDenied(): bool
+    {
+        return !$this->allowed;
+    }
+
+    public function assertAllowed(): void
+    {
+        if (!$this->allowed) {
+            throw new \RuntimeException('ASAP_SECURITY_DENIED: ' . $this->reason);
+        }
     }
 }
