@@ -1,0 +1,7 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ASAP Reference Book — ACL</title><link rel="stylesheet" href="../assets/css/asap-reference.css"></head>
+<body><header class="asap-ref-header"><p class="asap-ref-kicker">ASAP Framework</p><h1>ACL</h1></header>
+<main class="asap-ref-layout"><nav class="asap-ref-nav"><a class="asap-ref-nav__item" href="../index.html">Accueil</a><a class="asap-ref-nav__item" href="architecture.html">Architecture</a><a class="asap-ref-nav__item" href="fsm.html">FSM</a><a class="asap-ref-nav__item asap-ref-nav__item--active" href="acl.html">ACL</a></nav>
+<section class="asap-ref-content"><h2>Responsabilité</h2><p>L’ACL décide qui peut faire quoi sur quelle ressource, dans un contexte validé.</p><h2>Interdits</h2><ul><li>Ne gère pas l’état global du site.</li><li>Ne route pas.</li><li>Ne rend pas.</li><li>N’autorise jamais silencieusement.</li></ul><h2>Flux</h2><pre><code>RequestContext -&gt; SiteContext -&gt; SiteState depuis FSM -&gt; ACL Guard -&gt; Allowed ?</code></pre></section></main>
+<script src="../assets/js/asap-reference.js"></script></body></html>

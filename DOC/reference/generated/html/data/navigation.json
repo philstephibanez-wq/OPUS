@@ -1,0 +1,26 @@
+{
+  "title": "ASAP Reference Book",
+  "version": "P112C5",
+  "items": [
+    {
+      "label": "Accueil",
+      "href": "index.html"
+    },
+    {
+      "label": "Architecture",
+      "href": "pages/architecture.html"
+    },
+    {
+      "label": "FSM",
+      "href": "pages/fsm.html"
+    },
+    {
+      "label": "ACL",
+      "href": "pages/acl.html"
+    }
+  ],
+  "contract": {
+    "doc": "NO DOC CONTRACT, NO PATCH",
+    "html": "NO HTML REFERENCE OUTPUT, NO DOC GENERATION VALIDATION"
+  }
+}

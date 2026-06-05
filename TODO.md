@@ -1,13 +1,10 @@
-# TODO — P112C3
+# TODO — P112C5
 
-## Prochain palier recommandé
+## Prochain palier
+P112C6 : générateur documenté pour produire/rafraîchir le HTML depuis Markdown/PHPDoc/Mermaid.
 
-P112C4 doit ajouter les smoke checks PHP sans dépendance Composer obligatoire.
-
-## À faire plus tard
-
-- Générateur Mermaid FSM depuis transitions.
-- Tests unitaires complets.
-- Intégration SiteStateGuard.
-- Intégration ACL Guard.
-- Génération Reference Book HTML via phpDocumentor + rendu ASAP.
+## Plus tard
+- Intégration phpDocumentor.
+- Export Mermaid.
+- Recherche locale.
+- Rendu par ASAP via site de documentation.

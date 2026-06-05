@@ -1,34 +1,10 @@
-# P112C3 — ASAP FSM + ACL PHP Skeleton
+# P112C5 — ASAP Reference Book HTML Skeleton
 
 ## Rôle
-
-Ce patch ajoute uniquement le squelette PHP 8+ documenté du socle FSM + ACL d’ASAP.
+Ajoute le squelette HTML navigable du Reference Book ASAP.
 
 ## Contrat
-
-- Aucun portage massif PHP5.
-- Aucune copie brute depuis l’ASAP original.
-- Aucun GraphViz runtime.
-- Aucun fallback silencieux.
-- Aucun vendor.
-- Aucun cache.
-- APIs publiques documentées façon phpDocumentor.
-- Reference Book cible HTML : `DOC/reference/generated/html/`.
-
-## Installation
-
-Extraire le contenu du ZIP à la racine du dépôt :
-
-```text
-H:\UwAmp\www\_packages\ASAP
-```
-
-Puis vérifier et committer.
-
-## Fichiers ajoutés
-
-Voir `MANIFEST.md`.
-
-## Rollback
-
-Supprimer les fichiers listés dans `MANIFEST.md`, puis revenir au commit précédent.
+- Sortie HTML officielle : `DOC/reference/generated/html/`
+- Sources documentaires séparées : PHPDoc, Markdown, Mermaid
+- Aucun mélange HTML généré / code source framework
+- Aucun vendor, aucun cache, aucun fallback silencieux

@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ASAP Reference Book — FSM</title><link rel="stylesheet" href="../assets/css/asap-reference.css"></head>
+<body><header class="asap-ref-header"><p class="asap-ref-kicker">ASAP Framework</p><h1>FSM</h1></header>
+<main class="asap-ref-layout"><nav class="asap-ref-nav"><a class="asap-ref-nav__item" href="../index.html">Accueil</a><a class="asap-ref-nav__item" href="architecture.html">Architecture</a><a class="asap-ref-nav__item asap-ref-nav__item--active" href="fsm.html">FSM</a><a class="asap-ref-nav__item" href="acl.html">ACL</a></nav>
+<section class="asap-ref-content"><h2>Responsabilité</h2><p>La FSM possède uniquement les états, signaux, transitions, actions déclarées et mémoire d’état.</p><h2>Interdits</h2><ul><li>Ne gère pas les droits.</li><li>Ne route pas.</li><li>Ne rend pas.</li><li>Ne dépend pas de GraphViz.</li><li>Ne fallback jamais silencieusement.</li></ul><h2>Mermaid source</h2><pre><code>stateDiagram-v2
+    [*] --&gt; SITE_OPEN
+    SITE_OPEN --&gt; SITE_LOCKDOWN: CONFIRMED_ATTACK</code></pre></section></main>
+<script src="../assets/js/asap-reference.js"></script></body></html>

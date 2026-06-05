@@ -1,24 +1,13 @@
-# MANIFEST — P112C3
+# MANIFEST — P112C5
 
-- `framework/ASAP/FSM/StateMachineException.php`
-- `framework/ASAP/FSM/StateActionInterface.php`
-- `framework/ASAP/FSM/StateDefinition.php`
-- `framework/ASAP/FSM/SignalDefinition.php`
-- `framework/ASAP/FSM/TransitionDefinition.php`
-- `framework/ASAP/FSM/TransitionResult.php`
-- `framework/ASAP/FSM/StateMemory.php`
-- `framework/ASAP/FSM/StateMachine.php`
-- `framework/ASAP/ACL/AccessControlException.php`
-- `framework/ASAP/ACL/AccessDeniedException.php`
-- `framework/ASAP/ACL/AccessConditionInterface.php`
-- `framework/ASAP/ACL/RoleDefinition.php`
-- `framework/ASAP/ACL/ResourceDefinition.php`
-- `framework/ASAP/ACL/PrivilegeDefinition.php`
-- `framework/ASAP/ACL/AccessContext.php`
-- `framework/ASAP/ACL/AccessRule.php`
-- `framework/ASAP/ACL/AccessDecision.php`
-- `framework/ASAP/ACL/AccessControl.php`
-- `DOC/P112C3_ASAP_FSM_ACL_PHP_SKELETON.md`
+- `DOC/P112C5_ASAP_REFERENCE_BOOK_HTML_SKELETON.md`
+- `DOC/reference/generated/html/index.html`
+- `DOC/reference/generated/html/pages/architecture.html`
+- `DOC/reference/generated/html/pages/fsm.html`
+- `DOC/reference/generated/html/pages/acl.html`
+- `DOC/reference/generated/html/assets/css/asap-reference.css`
+- `DOC/reference/generated/html/assets/js/asap-reference.js`
+- `DOC/reference/generated/html/data/navigation.json`
 - `PATCH.md`
 - `CHANGELOG.md`
 - `TODO.md`
