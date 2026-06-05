@@ -1,17 +1,27 @@
-# PATCH â€” P112Q2I0 ASAP GitHub Bootstrap
+# PATCH â€” P112Q2I1 ASAP Site Multi-DB and LSTSA Contract
 
 ## Role
-Prepare `H:\ASAP` for publication as a private GitHub repository before implementing LSTSA.
+Add the first ASAP contract layer for site multi-database declarations and LSTSA.
 
 ## Added
-- GitHub bootstrap contract: `DOC/P112Q2I0_ASAP_GITHUB_BOOTSTRAP.md`
-- Automation check wrapper: `tools/automation/p112q2i0_asap_github_bootstrap_check.cmd`
-- Automation push wrapper: `tools/automation/p112q2i0_asap_github_push_origin.cmd`
-- `.gitignore` marked block for secrets, runtime data, temporary files, logs and future LSTSA archives/reports.
+- `ASAP\Database\DatabaseConnectionsConfig`
+- `ASAP\Database\DatabaseMultiConfigLoader`
+- `ASAP\LSTSA\LstsaException`
+- `ASAP\LSTSA\LstsaFieldConstraint`
+- `ASAP\LSTSA\LstsaFieldMapping`
+- `ASAP\LSTSA\LstsaDefinition`
+- `ASAP\LSTSA\LstsaConfigLoader`
+- `ASAP\LSTSA\LstsaReport`
+- `ASAP\LSTSA\LstsaArchiveWriter`
+- LSTSA smoke recipe and automation check.
+
+## Contract
+LSTSA means Load / Secure / Transform / Store / Archive.
+Input and output field constraints include type, required, length, byte size, enum, regex and numeric bounds.
+Reports are JSON + Markdown and archive writing is append-only.
 
 ## Not done here
-- No remote repository is created by this patch unless the separate create-and-push script is launched and GitHub CLI is available.
-- No LSTSA engine code is added in this palier.
+No long runner is started from Apache. The runner/scheduler must be introduced in the next palier.
 
-## Next palier
-`P112Q2I1_ASAP_SITE_MULTI_DB_AND_LSTSA_CONTRACT`
+## Next
+`P112Q2I2_ASAP_LSTSA_RUNNER_SCHEDULER_FOUNDATION`
