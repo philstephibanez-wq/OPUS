@@ -1,10 +1,10 @@
-# CHANGELOG — P112C5
+﻿# CHANGELOG â€” P112C5
 
-## Ajouté
+## AjoutÃ©
 - Squelette HTML navigable du Reference Book ASAP.
 - Pages HTML : accueil, architecture, FSM, ACL.
-- CSS/JS dédiés à la documentation générée.
-- Navigation JSON séparée.
+- CSS/JS dÃ©diÃ©s Ã  la documentation gÃ©nÃ©rÃ©e.
+- Navigation JSON sÃ©parÃ©e.
 
 ## P112Q2I0_ASAP_GITHUB_BOOTSTRAP
 - Prepared ASAP for private GitHub publication.
@@ -17,3 +17,13 @@
 - Added field constraints with type, length and byte validation.
 - Added append-only JSON/Markdown report archive writer.
 - Added automation smoke recipe.
+
+<!-- BEGIN MAESTRO_WORKSPACE P112Q2I2_ASAP_LSTSA_RUNNER_SCHEDULER_BASELINE -->
+## P112Q2I2_ASAP_LSTSA_RUNNER_SCHEDULER_BASELINE
+
+- Ajout du runner CLI LSTSA baseline hors requÃªte HTTP.
+- Ajout du scheduler baseline pour crÃ©er une demande de run LSTSA.
+- Ajout queue/locks/heartbeats fichier sous `var/lstsa/` hors Git.
+- Ajout recette smoke test avec rapport JSON/MD append-only.
+<!-- END MAESTRO_WORKSPACE P112Q2I2_ASAP_LSTSA_RUNNER_SCHEDULER_BASELINE -->
+

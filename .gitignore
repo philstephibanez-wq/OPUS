@@ -1,4 +1,4 @@
-/vendor/
+﻿/vendor/
 /composer.lock
 /.phpdoc/
 /.phpdoc-cache/
@@ -53,3 +53,10 @@ Thumbs.db
 *.sqlite-shm
 *.sqlite-journal
 # END MAESTRO_WORKSPACE P112Q2I1_ASAP_LSTSA_RUNTIME_IGNORE
+
+# BEGIN MAESTRO_WORKSPACE P112Q2I2 ASAP_LSTSA_RUNTIME_QUEUE_IGNORE
+/var/lstsa/queue/
+/var/lstsa/locks/
+/var/lstsa/heartbeats/
+# END MAESTRO_WORKSPACE P112Q2I2 ASAP_LSTSA_RUNTIME_QUEUE_IGNORE
+

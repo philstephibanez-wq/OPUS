@@ -1,4 +1,4 @@
-# PATCH â€” P112Q2I1 ASAP Site Multi-DB and LSTSA Contract
+﻿# PATCH Ã¢â‚¬â€ P112Q2I1 ASAP Site Multi-DB and LSTSA Contract
 
 ## Role
 Add the first ASAP contract layer for site multi-database declarations and LSTSA.
@@ -25,3 +25,15 @@ No long runner is started from Apache. The runner/scheduler must be introduced i
 
 ## Next
 `P112Q2I2_ASAP_LSTSA_RUNNER_SCHEDULER_FOUNDATION`
+
+<!-- BEGIN MAESTRO_WORKSPACE P112Q2I2_ASAP_LSTSA_RUNNER_SCHEDULER_BASELINE -->
+## P112Q2I2_ASAP_LSTSA_RUNNER_SCHEDULER_BASELINE
+
+- CrÃ©e `ASAP\LSTSA\LstsaRunStatus`.
+- CrÃ©e `ASAP\LSTSA\LstsaRunStore`.
+- CrÃ©e `ASAP\LSTSA\LstsaScheduler`.
+- CrÃ©e `ASAP\LSTSA\LstsaRunner`.
+- CrÃ©e `bin/asap-lstsa-runner.cmd` et `bin/asap-lstsa-scheduler.cmd`.
+- Ajoute ignores runtime queue/locks/heartbeats.
+<!-- END MAESTRO_WORKSPACE P112Q2I2_ASAP_LSTSA_RUNNER_SCHEDULER_BASELINE -->
+
