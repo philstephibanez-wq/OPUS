@@ -66,9 +66,15 @@ final class Router
 
             $defaults = [];
 
-            if ($routeNode->defaults instanceof SimpleXMLElement) {
+            if (isset($routeNode->defaults)) {
                 foreach ($routeNode->defaults->param as $param) {
-                    $defaults[(string) $param['name']] = (string) $param;
+                    $paramName = trim((string) ($param['name'] ?? ''));
+
+                    if ($paramName === '') {
+                        throw ContractException::because('ASAP_ROUTE_DEFAULT_PARAM_NAME_EMPTY', (string) ($routeNode['name'] ?? ''));
+                    }
+
+                    $defaults[$paramName] = (string) $param;
                 }
             }
 
