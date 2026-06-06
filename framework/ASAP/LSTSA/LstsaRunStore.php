@@ -52,10 +52,12 @@ final class LstsaRunStore
                 'transformed' => 0,
                 'stored' => 0,
                 'archived' => 0,
+                'checkpoints' => 0,
                 'rejected' => 0,
                 'errors' => 0,
             ],
             'payload' => $payload,
+            'artifacts' => [],
             'report_json' => null,
             'report_md' => null,
             'error' => null,
@@ -94,6 +96,7 @@ final class LstsaRunStore
             $run['started_at'] = $now;
             $run['updated_at'] = $now;
             $run['current_step'] = 'ACQUIRED';
+            $run['artifacts'] = is_array($run['artifacts'] ?? null) ? $run['artifacts'] : [];
 
             $this->writeRun($run);
             $this->heartbeat($run, 'ACQUIRED');
@@ -129,6 +132,69 @@ final class LstsaRunStore
         $this->writeRun($run);
     }
 
+    public function writeCheckpoint(array &$run, int $batchIndex, array $payload): string
+    {
+        if ($batchIndex < 1) {
+            throw new \InvalidArgumentException('Invalid LSTSA checkpoint batch index');
+        }
+
+        $path = $this->artifactPath($run, 'checkpoints', 'batch_' . str_pad((string)$batchIndex, 4, '0', STR_PAD_LEFT) . '.json');
+        if (file_exists($path)) {
+            throw new \RuntimeException('LSTSA checkpoint append-only violation: ' . $path);
+        }
+
+        $payload['run_id'] = $run['run_id'];
+        $payload['lstsa_id'] = $run['lstsa_id'];
+        $payload['batch_index'] = $batchIndex;
+        $payload['created_at'] = $this->now();
+
+        $this->writeJson($path, $payload);
+        $this->registerArtifact($run, 'checkpoints', $path);
+        $run['counts']['checkpoints'] = count($run['artifacts']['checkpoints']);
+        $this->writeRun($run);
+
+        return $path;
+    }
+
+    public function writeArchivePayload(array &$run, string $suffix, array $payload): string
+    {
+        $path = $this->artifactPath($run, 'archives', $suffix);
+        if (file_exists($path)) {
+            throw new \RuntimeException('LSTSA archive append-only violation: ' . $path);
+        }
+
+        $this->writeJson($path, [
+            'run_id' => $run['run_id'],
+            'lstsa_id' => $run['lstsa_id'],
+            'created_at' => $this->now(),
+            'payload' => $payload,
+        ]);
+        $this->registerArtifact($run, 'archives', $path);
+        $run['counts']['archived'] = count($run['artifacts']['archives']);
+        $this->writeRun($run);
+
+        return $path;
+    }
+
+    public function writeQuarantinePayload(array &$run, string $suffix, array $payload): string
+    {
+        $path = $this->artifactPath($run, 'quarantine', $suffix);
+        if (file_exists($path)) {
+            throw new \RuntimeException('LSTSA quarantine append-only violation: ' . $path);
+        }
+
+        $this->writeJson($path, [
+            'run_id' => $run['run_id'],
+            'lstsa_id' => $run['lstsa_id'],
+            'created_at' => $this->now(),
+            'payload' => $payload,
+        ]);
+        $this->registerArtifact($run, 'quarantine', $path);
+        $this->writeRun($run);
+
+        return $path;
+    }
+
     public function finish(array &$run, string $status, array $summary = []): array
     {
         LstsaRunStatus::assertValid($status);
@@ -141,6 +207,14 @@ final class LstsaRunStore
         foreach (($summary['counts'] ?? []) as $name => $value) {
             if (array_key_exists($name, $run['counts'])) {
                 $run['counts'][$name] = (int)$value;
+            }
+        }
+
+        if (isset($summary['artifacts']) && is_array($summary['artifacts'])) {
+            foreach ($summary['artifacts'] as $kind => $paths) {
+                foreach ((array)$paths as $path) {
+                    $this->registerArtifact($run, (string)$kind, (string)$path);
+                }
             }
         }
 
@@ -207,6 +281,7 @@ final class LstsaRunStore
 
         $this->assertCleanId((string)$run['run_id'], 'run_id');
         LstsaRunStatus::assertValid((string)$run['status']);
+        $run['artifacts'] = is_array($run['artifacts'] ?? null) ? $run['artifacts'] : [];
 
         $this->writeJson($this->runPath((string)$run['run_id']), $run);
     }
@@ -216,7 +291,7 @@ final class LstsaRunStore
         $runId = (string)$run['run_id'];
         $this->assertCleanId($runId, 'run_id');
 
-        $safeLstsaId = preg_replace('/[^A-Za-z0-9_.-]/', '_', (string)$run['lstsa_id']);
+        $safeLstsaId = $this->safeSegment((string)$run['lstsa_id']);
         $dir = $this->reportsDir() . DIRECTORY_SEPARATOR . $safeLstsaId;
 
         if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
@@ -239,6 +314,7 @@ final class LstsaRunStore
             'limits' => $run['limits'] ?? [],
             'counts' => $run['counts'] ?? [],
             'payload' => $run['payload'] ?? [],
+            'artifacts' => $run['artifacts'] ?? [],
             'error' => $run['error'] ?? null,
         ];
 
@@ -259,6 +335,14 @@ final class LstsaRunStore
         $md[] = '';
         foreach (($run['counts'] ?? []) as $name => $value) {
             $md[] = '- ' . $name . ': `' . $value . '`';
+        }
+        $md[] = '';
+        $md[] = '## Artifacts';
+        $md[] = '';
+        foreach (($run['artifacts'] ?? []) as $kind => $paths) {
+            foreach ((array)$paths as $path) {
+                $md[] = '- ' . $kind . ': `' . $path . '`';
+            }
         }
         $md[] = '';
 
@@ -285,6 +369,7 @@ final class LstsaRunStore
             $this->reportsDir(),
             $this->archivesDir(),
             $this->quarantineDir(),
+            $this->checkpointsDir(),
         ] as $dir) {
             if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
                 throw new \RuntimeException('Cannot create LSTSA runtime directory: ' . $dir);
@@ -322,6 +407,11 @@ final class LstsaRunStore
         return $this->lstsaRoot . DIRECTORY_SEPARATOR . 'quarantine';
     }
 
+    private function checkpointsDir(): string
+    {
+        return $this->lstsaRoot . DIRECTORY_SEPARATOR . 'checkpoints';
+    }
+
     private function runPath(string $runId): string
     {
         return $this->queueDir() . DIRECTORY_SEPARATOR . $runId . '.json';
@@ -337,6 +427,40 @@ final class LstsaRunStore
         return $this->heartbeatsDir() . DIRECTORY_SEPARATOR . $runId . '.json';
     }
 
+    private function artifactPath(array $run, string $kind, string $suffix): string
+    {
+        $this->assertCleanId((string)$run['run_id'], 'run_id');
+        $safeLstsaId = $this->safeSegment((string)$run['lstsa_id']);
+        $safeSuffix = $this->safeSuffix($suffix);
+
+        $baseDir = match ($kind) {
+            'archives' => $this->archivesDir(),
+            'quarantine' => $this->quarantineDir(),
+            'checkpoints' => $this->checkpointsDir(),
+            default => throw new \InvalidArgumentException('Unknown LSTSA artifact kind: ' . $kind),
+        };
+
+        $dir = $baseDir . DIRECTORY_SEPARATOR . $safeLstsaId;
+        if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
+            throw new \RuntimeException('Cannot create LSTSA artifact directory: ' . $dir);
+        }
+
+        return $dir . DIRECTORY_SEPARATOR . (string)$run['run_id'] . '_' . $safeSuffix;
+    }
+
+    private function registerArtifact(array &$run, string $kind, string $path): void
+    {
+        if (!isset($run['artifacts']) || !is_array($run['artifacts'])) {
+            $run['artifacts'] = [];
+        }
+        if (!isset($run['artifacts'][$kind]) || !is_array($run['artifacts'][$kind])) {
+            $run['artifacts'][$kind] = [];
+        }
+        if (!in_array($path, $run['artifacts'][$kind], true)) {
+            $run['artifacts'][$kind][] = $path;
+        }
+    }
+
     private function releaseLock(string $runId): void
     {
         $path = $this->lockPath($runId);
@@ -347,7 +471,7 @@ final class LstsaRunStore
 
     private function buildRunId(string $lstsaId): string
     {
-        $safe = preg_replace('/[^A-Za-z0-9_.-]/', '_', $lstsaId);
+        $safe = $this->safeSegment($lstsaId);
         return $safe . '_' . gmdate('Ymd_His') . '_' . bin2hex(random_bytes(4));
     }
 
@@ -356,6 +480,26 @@ final class LstsaRunStore
         if ($value === '' || !preg_match('/^[A-Za-z0-9_.-]+$/', $value)) {
             throw new \InvalidArgumentException('Invalid ' . $name . ': ' . $value);
         }
+    }
+
+    private function safeSegment(string $value): string
+    {
+        $safe = preg_replace('/[^A-Za-z0-9_.-]/', '_', $value) ?? '';
+        $safe = trim($safe, '._-');
+        if ($safe === '') {
+            throw new \InvalidArgumentException('Invalid LSTSA path segment');
+        }
+        return $safe;
+    }
+
+    private function safeSuffix(string $suffix): string
+    {
+        $safe = preg_replace('/[^A-Za-z0-9_.-]/', '_', $suffix) ?? '';
+        $safe = trim($safe, '._-');
+        if ($safe === '' || !str_ends_with($safe, '.json')) {
+            throw new \InvalidArgumentException('Invalid LSTSA artifact suffix: ' . $suffix);
+        }
+        return $safe;
     }
 
     private function now(): string

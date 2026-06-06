@@ -17,8 +17,15 @@ $scheduler = new LstsaScheduler($store);
 
 if ($action === 'enqueue-smoke') {
     $run = $scheduler->enqueueSmokeRun();
-    echo 'P112Q2I2_SCHEDULED_RUN_ID=' . $run['run_id'] . PHP_EOL;
-    echo 'P112Q2I2_SCHEDULED_STATUS=' . $run['status'] . PHP_EOL;
+    echo 'P112Q2I3_SCHEDULED_RUN_ID=' . $run['run_id'] . PHP_EOL;
+    echo 'P112Q2I3_SCHEDULED_STATUS=' . $run['status'] . PHP_EOL;
+    exit(0);
+}
+
+if ($action === 'enqueue-memory-batch-smoke') {
+    $run = $scheduler->enqueueMemoryBatchSmokeRun();
+    echo 'P112Q2I3_SCHEDULED_RUN_ID=' . $run['run_id'] . PHP_EOL;
+    echo 'P112Q2I3_SCHEDULED_STATUS=' . $run['status'] . PHP_EOL;
     exit(0);
 }
 

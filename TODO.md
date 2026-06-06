@@ -24,3 +24,15 @@
 - [ ] P112Q2I3 : brancher le runner sur les dÃ©finitions LSTSA rÃ©elles et les providers multi-BDD.
 <!-- END MAESTRO_WORKSPACE P112Q2I2_ASAP_LSTSA_RUNNER_SCHEDULER_BASELINE -->
 
+<!-- BEGIN MAESTRO_WORKSPACE P112Q2I3_ASAP_LSTSA_BATCH_CHECKPOINT_EXECUTOR -->
+## P112Q2I3_ASAP_LSTSA_BATCH_CHECKPOINT_EXECUTOR
+
+- [x] ExÃ©cution batch hors HTTP.
+- [x] Checkpoint par batch.
+- [x] Secure input avant transform.
+- [x] Secure output aprÃ¨s transform.
+- [x] Archive append-only runtime.
+- [x] Quarantine runtime.
+- [ ] P112Q2I4 : store rÃ©el via providers multi-BDD.
+<!-- END MAESTRO_WORKSPACE P112Q2I3_ASAP_LSTSA_BATCH_CHECKPOINT_EXECUTOR -->
+

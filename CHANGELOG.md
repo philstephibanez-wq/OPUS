@@ -27,3 +27,13 @@
 - Ajout recette smoke test avec rapport JSON/MD append-only.
 <!-- END MAESTRO_WORKSPACE P112Q2I2_ASAP_LSTSA_RUNNER_SCHEDULER_BASELINE -->
 
+<!-- BEGIN MAESTRO_WORKSPACE P112Q2I3_ASAP_LSTSA_BATCH_CHECKPOINT_EXECUTOR -->
+## P112Q2I3_ASAP_LSTSA_BATCH_CHECKPOINT_EXECUTOR
+
+- Ajout du premier exÃ©cuteur LSTSA batch/checkpoint.
+- Validation stricte input puis output aprÃ¨s transformation.
+- Quarantine runtime pour lignes rejetÃ©es.
+- Archives runtime append-only pour lignes stockÃ©es.
+- Rapports JSON/MD enrichis avec artifacts.
+<!-- END MAESTRO_WORKSPACE P112Q2I3_ASAP_LSTSA_BATCH_CHECKPOINT_EXECUTOR -->
+

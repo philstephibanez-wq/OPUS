@@ -3,8 +3,14 @@ declare(strict_types=1);
 
 $root = dirname(__DIR__, 2);
 
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaException.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaFieldConstraint.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaFieldMapping.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaDefinition.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaConfigLoader.php';
 require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaRunStatus.php';
 require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaRunStore.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaBatchExecutor.php';
 require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaRunner.php';
 
 use ASAP\LSTSA\LstsaRunStore;
@@ -23,12 +29,12 @@ $runner = new LstsaRunner($store);
 $run = $runner->runOnce($runnerId);
 
 if ($run === null) {
-    echo 'P112Q2I2_RUNNER_NO_PENDING_RUN' . PHP_EOL;
+    echo 'P112Q2I3_RUNNER_NO_PENDING_RUN' . PHP_EOL;
     exit(0);
 }
 
-echo 'P112Q2I2_RUN_ID=' . $run['run_id'] . PHP_EOL;
-echo 'P112Q2I2_RUN_STATUS=' . $run['status'] . PHP_EOL;
-echo 'P112Q2I2_RUN_REPORT_JSON=' . $run['report_json'] . PHP_EOL;
-echo 'P112Q2I2_RUN_REPORT_MD=' . $run['report_md'] . PHP_EOL;
+echo 'P112Q2I3_RUN_ID=' . $run['run_id'] . PHP_EOL;
+echo 'P112Q2I3_RUN_STATUS=' . $run['status'] . PHP_EOL;
+echo 'P112Q2I3_RUN_REPORT_JSON=' . $run['report_json'] . PHP_EOL;
+echo 'P112Q2I3_RUN_REPORT_MD=' . $run['report_md'] . PHP_EOL;
 exit(0);

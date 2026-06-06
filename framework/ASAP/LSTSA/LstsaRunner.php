@@ -23,12 +23,21 @@ final class LstsaRunner
         $maxRunSeconds = (int)($run['limits']['max_run_seconds'] ?? 300);
 
         try {
+            if (($run['payload']['mode'] ?? null) === 'memory_batch') {
+                $result = (new LstsaBatchExecutor($this->store))->execute($run, $started);
+                return $this->store->finish($run, (string)$result['status'], [
+                    'counts' => $result['counts'] ?? [],
+                    'artifacts' => $result['artifacts'] ?? [],
+                ]);
+            }
+
             $counts = [
                 'loaded' => 0,
                 'accepted' => 0,
                 'transformed' => 0,
                 'stored' => 0,
                 'archived' => 0,
+                'checkpoints' => 0,
                 'rejected' => 0,
                 'errors' => 0,
             ];

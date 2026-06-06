@@ -37,3 +37,13 @@ No long runner is started from Apache. The runner/scheduler must be introduced i
 - Ajoute ignores runtime queue/locks/heartbeats.
 <!-- END MAESTRO_WORKSPACE P112Q2I2_ASAP_LSTSA_RUNNER_SCHEDULER_BASELINE -->
 
+<!-- BEGIN MAESTRO_WORKSPACE P112Q2I3_ASAP_LSTSA_BATCH_CHECKPOINT_EXECUTOR -->
+## P112Q2I3_ASAP_LSTSA_BATCH_CHECKPOINT_EXECUTOR
+
+- Ajoute `ASAP\\LSTSA\\LstsaBatchExecutor`.
+- Ã‰tend `ASAP\\LSTSA\\LstsaRunStore` avec checkpoints/archives/quarantine.
+- Ã‰tend `ASAP\\LSTSA\\LstsaRunner` pour `mode=memory_batch`.
+- Ã‰tend `ASAP\\LSTSA\\LstsaScheduler` avec `enqueueMemoryBatchSmokeRun()`.
+- Met Ã  jour les scripts CLI LSTSA.
+<!-- END MAESTRO_WORKSPACE P112Q2I3_ASAP_LSTSA_BATCH_CHECKPOINT_EXECUTOR -->
+
