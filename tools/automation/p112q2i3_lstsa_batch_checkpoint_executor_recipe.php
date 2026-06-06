@@ -3,21 +3,21 @@ declare(strict_types=1);
 
 $root = dirname(__DIR__, 2);
 
-require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaException.php';
-require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaFieldConstraint.php';
-require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaFieldMapping.php';
-require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaDefinition.php';
-require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaConfigLoader.php';
-require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaRunStatus.php';
-require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaRunStore.php';
-require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaScheduler.php';
-require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaBatchExecutor.php';
-require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaRunner.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Lstsa' . DIRECTORY_SEPARATOR . 'LstsaException.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Lstsa' . DIRECTORY_SEPARATOR . 'LstsaFieldConstraint.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Lstsa' . DIRECTORY_SEPARATOR . 'LstsaFieldMapping.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Lstsa' . DIRECTORY_SEPARATOR . 'LstsaDefinition.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Lstsa' . DIRECTORY_SEPARATOR . 'LstsaConfigLoader.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Lstsa' . DIRECTORY_SEPARATOR . 'LstsaRunStatus.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Lstsa' . DIRECTORY_SEPARATOR . 'LstsaRunStore.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Lstsa' . DIRECTORY_SEPARATOR . 'LstsaScheduler.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Lstsa' . DIRECTORY_SEPARATOR . 'LstsaBatchExecutor.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Lstsa' . DIRECTORY_SEPARATOR . 'LstsaRunner.php';
 
-use ASAP\LSTSA\LstsaRunStatus;
-use ASAP\LSTSA\LstsaRunStore;
-use ASAP\LSTSA\LstsaScheduler;
-use ASAP\LSTSA\LstsaRunner;
+use ASAP\Lstsa\LstsaRunStatus;
+use ASAP\Lstsa\LstsaRunStore;
+use ASAP\Lstsa\LstsaScheduler;
+use ASAP\Lstsa\LstsaRunner;
 
 function p112q2i3_fail(string $message): void
 {
@@ -94,5 +94,5 @@ foreach (array_merge($finished['artifacts']['checkpoints'], $finished['artifacts
     }
 }
 
-echo 'P112Q2I3_LSTSA_BATCH_CHECKPOINT_EXECUTOR_RECIPE_OK' . PHP_EOL;
+echo 'P112Q2I3_Lstsa_BATCH_CHECKPOINT_EXECUTOR_RECIPE_OK' . PHP_EOL;
 exit(0);

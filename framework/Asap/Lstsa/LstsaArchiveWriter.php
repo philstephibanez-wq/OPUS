@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace ASAP\LSTSA;
+namespace ASAP\Lstsa;
 
 /**
- * PUBLIC LSTSA ARCHIVE WRITER
+ * PUBLIC Lstsa ARCHIVE WRITER
  *
  * Role:
  *   Write append-only JSON and Markdown reports for one run.
@@ -18,11 +18,11 @@ final class LstsaArchiveWriter
     public function writeReport(LstsaReport $report, string $directory): array
     {
         if (trim($directory) === '') {
-            throw LstsaException::because('ASAP_LSTSA_ARCHIVE_DIRECTORY_EMPTY');
+            throw LstsaException::because('ASAP_Lstsa_ARCHIVE_DIRECTORY_EMPTY');
         }
 
         if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
-            throw LstsaException::because('ASAP_LSTSA_ARCHIVE_DIRECTORY_CREATE_FAILED', $directory);
+            throw LstsaException::because('ASAP_Lstsa_ARCHIVE_DIRECTORY_CREATE_FAILED', $directory);
         }
 
         $base = $this->safeName($report->runId());
@@ -31,7 +31,7 @@ final class LstsaArchiveWriter
 
         foreach ([$jsonPath, $mdPath] as $path) {
             if (file_exists($path)) {
-                throw LstsaException::because('ASAP_LSTSA_ARCHIVE_APPEND_ONLY_VIOLATION', $path);
+                throw LstsaException::because('ASAP_Lstsa_ARCHIVE_APPEND_ONLY_VIOLATION', $path);
             }
         }
 
@@ -44,7 +44,7 @@ final class LstsaArchiveWriter
     private function writeFile(string $path, string $content): void
     {
         if (file_put_contents($path, $content, LOCK_EX) === false) {
-            throw LstsaException::because('ASAP_LSTSA_ARCHIVE_WRITE_FAILED', $path);
+            throw LstsaException::because('ASAP_Lstsa_ARCHIVE_WRITE_FAILED', $path);
         }
     }
 
@@ -54,7 +54,7 @@ final class LstsaArchiveWriter
         $safe = trim($safe, '._-');
 
         if ($safe === '') {
-            throw LstsaException::because('ASAP_LSTSA_ARCHIVE_RUN_ID_INVALID', $name);
+            throw LstsaException::because('ASAP_Lstsa_ARCHIVE_RUN_ID_INVALID', $name);
         }
 
         return $safe;

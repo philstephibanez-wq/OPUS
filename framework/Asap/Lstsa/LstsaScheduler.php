@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace ASAP\LSTSA;
+namespace ASAP\Lstsa;
 
 final class LstsaScheduler
 {
@@ -97,7 +97,7 @@ XML;
             'stale_after_seconds',
         ] as $key) {
             if ($payload[$key] < 1) {
-                throw new \InvalidArgumentException('Invalid LSTSA scheduling limit: ' . $key);
+                throw new \InvalidArgumentException('Invalid Lstsa scheduling limit: ' . $key);
             }
         }
 

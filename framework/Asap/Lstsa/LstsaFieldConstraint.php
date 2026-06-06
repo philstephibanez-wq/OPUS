@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace ASAP\LSTSA;
+namespace ASAP\Lstsa;
 
 use SimpleXMLElement;
 
 /**
- * PUBLIC LSTSA FIELD CONSTRAINT
+ * PUBLIC Lstsa FIELD CONSTRAINT
  *
  * Role:
- *   Describe and validate a declared field at an LSTSA boundary.
+ *   Describe and validate a declared field at an Lstsa boundary.
  *
  * Contract:
  *   Input and output constraints are explicit. Length and byte size are first
@@ -35,16 +35,16 @@ final class LstsaFieldConstraint
         public readonly array $enum = []
     ) {
         if (!preg_match('/^[a-zA-Z][a-zA-Z0-9_.-]*$/', $this->name)) {
-            throw LstsaException::because('ASAP_LSTSA_FIELD_NAME_INVALID', $this->name);
+            throw LstsaException::because('ASAP_Lstsa_FIELD_NAME_INVALID', $this->name);
         }
 
         if (!in_array($this->type, self::supportedTypes(), true)) {
-            throw LstsaException::because('ASAP_LSTSA_FIELD_TYPE_UNSUPPORTED', $this->type);
+            throw LstsaException::because('ASAP_Lstsa_FIELD_TYPE_UNSUPPORTED', $this->type);
         }
 
         foreach (['minLength' => $this->minLength, 'maxLength' => $this->maxLength, 'exactLength' => $this->exactLength, 'maxBytes' => $this->maxBytes] as $label => $value) {
             if ($value !== null && $value < 0) {
-                throw LstsaException::because('ASAP_LSTSA_FIELD_CONSTRAINT_NEGATIVE', $this->name . '.' . $label);
+                throw LstsaException::because('ASAP_Lstsa_FIELD_CONSTRAINT_NEGATIVE', $this->name . '.' . $label);
             }
         }
     }
@@ -92,14 +92,14 @@ final class LstsaFieldConstraint
 
         if ($value === null || $value === '') {
             if ($this->required) {
-                $errors[] = $phase . ':' . $this->name . ':ASAP_LSTSA_FIELD_REQUIRED';
+                $errors[] = $phase . ':' . $this->name . ':ASAP_Lstsa_FIELD_REQUIRED';
             }
 
             return $errors;
         }
 
         if (!$this->matchesType($value)) {
-            $errors[] = $phase . ':' . $this->name . ':ASAP_LSTSA_FIELD_TYPE_INVALID';
+            $errors[] = $phase . ':' . $this->name . ':ASAP_Lstsa_FIELD_TYPE_INVALID';
             return $errors;
         }
 
@@ -109,37 +109,37 @@ final class LstsaFieldConstraint
         $bytes = strlen($asString);
 
         if ($this->exactLength !== null && $length !== $this->exactLength) {
-            $errors[] = $phase . ':' . $this->name . ':ASAP_LSTSA_FIELD_EXACT_LENGTH_INVALID';
+            $errors[] = $phase . ':' . $this->name . ':ASAP_Lstsa_FIELD_EXACT_LENGTH_INVALID';
         }
 
         if ($this->minLength !== null && $length < $this->minLength) {
-            $errors[] = $phase . ':' . $this->name . ':ASAP_LSTSA_FIELD_MIN_LENGTH_INVALID';
+            $errors[] = $phase . ':' . $this->name . ':ASAP_Lstsa_FIELD_MIN_LENGTH_INVALID';
         }
 
         if ($this->maxLength !== null && $length > $this->maxLength) {
-            $errors[] = $phase . ':' . $this->name . ':ASAP_LSTSA_FIELD_MAX_LENGTH_INVALID';
+            $errors[] = $phase . ':' . $this->name . ':ASAP_Lstsa_FIELD_MAX_LENGTH_INVALID';
         }
 
         if ($this->maxBytes !== null && $bytes > $this->maxBytes) {
-            $errors[] = $phase . ':' . $this->name . ':ASAP_LSTSA_FIELD_MAX_BYTES_INVALID';
+            $errors[] = $phase . ':' . $this->name . ':ASAP_Lstsa_FIELD_MAX_BYTES_INVALID';
         }
 
         if (($this->min !== null || $this->max !== null) && is_numeric($value)) {
             $number = (float) $value;
             if ($this->min !== null && $number < $this->min) {
-                $errors[] = $phase . ':' . $this->name . ':ASAP_LSTSA_FIELD_MIN_INVALID';
+                $errors[] = $phase . ':' . $this->name . ':ASAP_Lstsa_FIELD_MIN_INVALID';
             }
             if ($this->max !== null && $number > $this->max) {
-                $errors[] = $phase . ':' . $this->name . ':ASAP_LSTSA_FIELD_MAX_INVALID';
+                $errors[] = $phase . ':' . $this->name . ':ASAP_Lstsa_FIELD_MAX_INVALID';
             }
         }
 
         if ($this->regex !== null && @preg_match($this->regex, $asString) !== 1) {
-            $errors[] = $phase . ':' . $this->name . ':ASAP_LSTSA_FIELD_REGEX_INVALID';
+            $errors[] = $phase . ':' . $this->name . ':ASAP_Lstsa_FIELD_REGEX_INVALID';
         }
 
         if ($this->enum !== [] && !in_array($asString, $this->enum, true)) {
-            $errors[] = $phase . ':' . $this->name . ':ASAP_LSTSA_FIELD_ENUM_INVALID';
+            $errors[] = $phase . ':' . $this->name . ':ASAP_Lstsa_FIELD_ENUM_INVALID';
         }
 
         return $errors;

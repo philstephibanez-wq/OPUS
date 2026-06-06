@@ -6,7 +6,7 @@ P112Q2F audits the remaining framework cleanliness issues after directory naming
 
 It checks:
 
-- PHP files directly under `framework/ASAP`;
+- PHP files directly under `framework/Asap`;
 - empty or quasi-empty framework directories;
 - directories with no PHP classes;
 - semantic duplicate candidates such as `Render` vs `Renderer`;
@@ -16,9 +16,9 @@ It checks:
 
 The target framework layout is:
 
-`framework/ASAP/<Domain>/<ClassName>.php`
+`framework/Asap/<Domain>/<ClassName>.php`
 
-Direct PHP files under `framework/ASAP` are not accepted as the final layout.
+Direct PHP files under `framework/Asap` are not accepted as the final layout.
 
 Empty decorative directories are not accepted.
 

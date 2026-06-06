@@ -7,7 +7,7 @@ declare(strict_types=1);
  *
  * This migration removes the dirty final layout:
  *
- * - no PHP file directly under framework/ASAP;
+ * - no PHP file directly under framework/Asap;
  * - no decorative Render directory next to Renderer;
  * - root compatibility classes moved into explicit domains;
  * - no fallback root file is kept.
@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 $asapRoot = 'H:\\ASAP';
 $refBookRoot = 'H:\\ASAP_REF_BOOK';
-$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP';
+$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
 
 if (!is_dir($asapRoot)) {
     fwrite(STDERR, "ASAP_ROOT_MISSING\n");
@@ -183,7 +183,7 @@ function shouldSkipReferencePath(string $path): bool
         || str_contains($normalized, '/var/cache/')
         || str_contains($normalized, '/var/reports/')
         || str_contains($normalized, '/node_modules/')
-        || str_contains($normalized, '/framework/ASAP/')
+        || str_contains($normalized, '/framework/Asap/')
         || str_contains(strtolower($normalized), '/tools/migration/p112q2g_')
         || str_contains($normalized, '/DOC/P112Q2G_')
         || str_contains($normalized, '/content/markdown/root-namespace-and-render-cleanup.md');
@@ -334,25 +334,25 @@ echo 'MOVED Singleton.class.php -> Compatibility/LegacySingleton.php' . PHP_EOL;
 removeRenderDirectory($frameworkRoot);
 
 $simpleReplacements = [
-    'framework/ASAP/Acl.php' => 'framework/ASAP/Acl/Acl.php',
-    'framework/ASAP/Bootstrap.php' => 'framework/ASAP/Core/Bootstrap.php',
-    'framework/ASAP/ConfigLoader.php' => 'framework/ASAP/Config/ConfigLoader.php',
-    'framework/ASAP/Configuration.php' => 'framework/ASAP/Config/Configuration.php',
-    'framework/ASAP/Debug.php' => 'framework/ASAP/Debug/Debug.php',
-    'framework/ASAP/Exception.php' => 'framework/ASAP/Exception/Exception.php',
-    'framework/ASAP/Fsm.php' => 'framework/ASAP/Fsm/Fsm.php',
-    'framework/ASAP/Kernel.php' => 'framework/ASAP/Core/Kernel.php',
-    'framework/ASAP/Package.php' => 'framework/ASAP/Package/Package.php',
-    'framework/ASAP/PackageRepository.php' => 'framework/ASAP/Package/PackageRepository.php',
-    'framework/ASAP/Response.php' => 'framework/ASAP/Response/ResponseFacade.php',
-    'framework/ASAP/SimpleXMLElementExtended.php' => 'framework/ASAP/Compatibility/SimpleXMLElementExtended.php',
-    'framework/ASAP/SimpleXMLElementExtended.class.php' => 'framework/ASAP/Compatibility/LegacySimpleXMLElementExtended.php',
-    'framework/ASAP/Singleton.php' => 'framework/ASAP/Compatibility/Singleton.php',
-    'framework/ASAP/Singleton.class.php' => 'framework/ASAP/Compatibility/LegacySingleton.php',
-    'framework/ASAP/Support.php' => 'framework/ASAP/Support/Support.php',
-    'framework/ASAP/Validator.php' => 'framework/ASAP/Validation/Validator.php',
-    'framework/ASAP/View.php' => 'framework/ASAP/View/View.php',
-    'framework/ASAP/Render' => 'framework/ASAP/Renderer',
+    'framework/Asap/Acl.php' => 'framework/Asap/Acl/Acl.php',
+    'framework/Asap/Bootstrap.php' => 'framework/Asap/Core/Bootstrap.php',
+    'framework/Asap/ConfigLoader.php' => 'framework/Asap/Config/ConfigLoader.php',
+    'framework/Asap/Configuration.php' => 'framework/Asap/Config/Configuration.php',
+    'framework/Asap/Debug.php' => 'framework/Asap/Debug/Debug.php',
+    'framework/Asap/Exception.php' => 'framework/Asap/Exception/Exception.php',
+    'framework/Asap/Fsm.php' => 'framework/Asap/Fsm/Fsm.php',
+    'framework/Asap/Kernel.php' => 'framework/Asap/Core/Kernel.php',
+    'framework/Asap/Package.php' => 'framework/Asap/Package/Package.php',
+    'framework/Asap/PackageRepository.php' => 'framework/Asap/Package/PackageRepository.php',
+    'framework/Asap/Response.php' => 'framework/Asap/Response/ResponseFacade.php',
+    'framework/Asap/SimpleXMLElementExtended.php' => 'framework/Asap/Compatibility/SimpleXMLElementExtended.php',
+    'framework/Asap/SimpleXMLElementExtended.class.php' => 'framework/Asap/Compatibility/LegacySimpleXMLElementExtended.php',
+    'framework/Asap/Singleton.php' => 'framework/Asap/Compatibility/Singleton.php',
+    'framework/Asap/Singleton.class.php' => 'framework/Asap/Compatibility/LegacySingleton.php',
+    'framework/Asap/Support.php' => 'framework/Asap/Support/Support.php',
+    'framework/Asap/Validator.php' => 'framework/Asap/Validation/Validator.php',
+    'framework/Asap/View.php' => 'framework/Asap/View/View.php',
+    'framework/Asap/Render' => 'framework/Asap/Renderer',
     'ASAP\\Render' => 'ASAP\\Renderer',
     'ASAP\\\\Render' => 'ASAP\\\\Renderer',
 ];

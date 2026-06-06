@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace ASAP\LSTSA;
+namespace ASAP\Lstsa;
 
 final class LstsaRunner
 {
@@ -77,7 +77,7 @@ final class LstsaRunner
     private function step(array &$run, string $step, array $counts, float $started, int $maxRunSeconds): void
     {
         if ((microtime(true) - $started) > $maxRunSeconds) {
-            throw new LstsaRunnerTimeoutException('LSTSA max_run_seconds exceeded for run: ' . $run['run_id']);
+            throw new LstsaRunnerTimeoutException('Lstsa max_run_seconds exceeded for run: ' . $run['run_id']);
         }
 
         $this->store->heartbeat($run, $step, $counts);

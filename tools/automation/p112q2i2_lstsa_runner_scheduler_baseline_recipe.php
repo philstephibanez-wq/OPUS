@@ -3,15 +3,15 @@ declare(strict_types=1);
 
 $root = dirname(__DIR__, 2);
 
-require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaRunStatus.php';
-require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaRunStore.php';
-require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaScheduler.php';
-require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaRunner.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Lstsa' . DIRECTORY_SEPARATOR . 'LstsaRunStatus.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Lstsa' . DIRECTORY_SEPARATOR . 'LstsaRunStore.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Lstsa' . DIRECTORY_SEPARATOR . 'LstsaScheduler.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Lstsa' . DIRECTORY_SEPARATOR . 'LstsaRunner.php';
 
-use ASAP\LSTSA\LstsaRunStatus;
-use ASAP\LSTSA\LstsaRunStore;
-use ASAP\LSTSA\LstsaScheduler;
-use ASAP\LSTSA\LstsaRunner;
+use ASAP\Lstsa\LstsaRunStatus;
+use ASAP\Lstsa\LstsaRunStore;
+use ASAP\Lstsa\LstsaScheduler;
+use ASAP\Lstsa\LstsaRunner;
 
 $store = new LstsaRunStore($root);
 $scheduler = new LstsaScheduler($store);
@@ -63,5 +63,5 @@ if (($finished['counts']['archived'] ?? 0) !== 1) {
     exit(1);
 }
 
-echo 'P112Q2I2_LSTSA_RUNNER_SCHEDULER_BASELINE_RECIPE_OK' . PHP_EOL;
+echo 'P112Q2I2_Lstsa_RUNNER_SCHEDULER_BASELINE_RECIPE_OK' . PHP_EOL;
 exit(0);

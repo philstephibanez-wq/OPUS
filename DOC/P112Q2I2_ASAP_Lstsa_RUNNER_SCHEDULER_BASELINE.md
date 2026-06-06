@@ -1,14 +1,14 @@
-# P112Q2I2 — ASAP LSTSA Runner / Scheduler baseline
+# P112Q2I2 — ASAP Lstsa Runner / Scheduler baseline
 
 ## Objectif
 
-Ce palier ajoute le socle d'exécution LSTSA hors requête HTTP.
+Ce palier ajoute le socle d'exécution Lstsa hors requête HTTP.
 
 Le site ASAP peut déclencher et consulter des runs, mais les transformations longues ne doivent pas dépendre d'Apache, du navigateur, ni du timeout PHP web.
 
 ## Contrat
 
-LSTSA signifie :
+Lstsa signifie :
 
 ```text
 Load
@@ -23,10 +23,10 @@ Archive
 ## Fichiers ajoutés
 
 ```text
-framework/ASAP/LSTSA/LstsaRunStatus.php
-framework/ASAP/LSTSA/LstsaRunStore.php
-framework/ASAP/LSTSA/LstsaScheduler.php
-framework/ASAP/LSTSA/LstsaRunner.php
+framework/Asap/Lstsa/LstsaRunStatus.php
+framework/Asap/Lstsa/LstsaRunStore.php
+framework/Asap/Lstsa/LstsaScheduler.php
+framework/Asap/Lstsa/LstsaRunner.php
 tools/automation/asap_lstsa_scheduler.php
 tools/automation/asap_lstsa_runner.php
 tools/automation/p112q2i2_lstsa_runner_scheduler_baseline_recipe.php
@@ -72,7 +72,7 @@ Il valide :
 schedule -> queue -> lock -> run -> heartbeat -> report
 ```
 
-La connexion aux définitions LSTSA réelles et aux providers multi-BDD est prévue en P112Q2I3.
+La connexion aux définitions Lstsa réelles et aux providers multi-BDD est prévue en P112Q2I3.
 
 ## Commandes
 

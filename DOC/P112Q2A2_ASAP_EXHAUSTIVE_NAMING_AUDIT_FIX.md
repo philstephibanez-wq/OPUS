@@ -14,7 +14,7 @@ P112Q2A2 adds an exhaustive audit.
 
 It scans every directory under:
 
-`H:\ASAP\framework\ASAP`
+`H:\ASAP\framework/Asap`
 
 It reports:
 

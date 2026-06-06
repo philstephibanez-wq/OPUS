@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace ASAP\LSTSA;
+namespace ASAP\Lstsa;
 
 final class LstsaRunStore
 {
@@ -135,12 +135,12 @@ final class LstsaRunStore
     public function writeCheckpoint(array &$run, int $batchIndex, array $payload): string
     {
         if ($batchIndex < 1) {
-            throw new \InvalidArgumentException('Invalid LSTSA checkpoint batch index');
+            throw new \InvalidArgumentException('Invalid Lstsa checkpoint batch index');
         }
 
         $path = $this->artifactPath($run, 'checkpoints', 'batch_' . str_pad((string)$batchIndex, 4, '0', STR_PAD_LEFT) . '.json');
         if (file_exists($path)) {
-            throw new \RuntimeException('LSTSA checkpoint append-only violation: ' . $path);
+            throw new \RuntimeException('Lstsa checkpoint append-only violation: ' . $path);
         }
 
         $payload['run_id'] = $run['run_id'];
@@ -160,7 +160,7 @@ final class LstsaRunStore
     {
         $path = $this->artifactPath($run, 'archives', $suffix);
         if (file_exists($path)) {
-            throw new \RuntimeException('LSTSA archive append-only violation: ' . $path);
+            throw new \RuntimeException('Lstsa archive append-only violation: ' . $path);
         }
 
         $this->writeJson($path, [
@@ -180,7 +180,7 @@ final class LstsaRunStore
     {
         $path = $this->artifactPath($run, 'quarantine', $suffix);
         if (file_exists($path)) {
-            throw new \RuntimeException('LSTSA quarantine append-only violation: ' . $path);
+            throw new \RuntimeException('Lstsa quarantine append-only violation: ' . $path);
         }
 
         $this->writeJson($path, [
@@ -259,12 +259,12 @@ final class LstsaRunStore
         $path = $this->runPath($runId);
 
         if (!is_file($path)) {
-            throw new \RuntimeException('LSTSA run not found: ' . $runId);
+            throw new \RuntimeException('Lstsa run not found: ' . $runId);
         }
 
         $run = $this->readJson($path);
         if (!is_array($run)) {
-            throw new \RuntimeException('Invalid LSTSA run JSON: ' . $runId);
+            throw new \RuntimeException('Invalid Lstsa run JSON: ' . $runId);
         }
 
         return $run;
@@ -295,7 +295,7 @@ final class LstsaRunStore
         $dir = $this->reportsDir() . DIRECTORY_SEPARATOR . $safeLstsaId;
 
         if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
-            throw new \RuntimeException('Cannot create LSTSA report directory: ' . $dir);
+            throw new \RuntimeException('Cannot create Lstsa report directory: ' . $dir);
         }
 
         $jsonPath = $dir . DIRECTORY_SEPARATOR . $runId . '.json';
@@ -321,7 +321,7 @@ final class LstsaRunStore
         $this->writeJson($jsonPath, $report);
 
         $md = [];
-        $md[] = '# LSTSA run report';
+        $md[] = '# Lstsa run report';
         $md[] = '';
         $md[] = '- run_id: `' . $run['run_id'] . '`';
         $md[] = '- lstsa_id: `' . $run['lstsa_id'] . '`';
@@ -372,7 +372,7 @@ final class LstsaRunStore
             $this->checkpointsDir(),
         ] as $dir) {
             if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
-                throw new \RuntimeException('Cannot create LSTSA runtime directory: ' . $dir);
+                throw new \RuntimeException('Cannot create Lstsa runtime directory: ' . $dir);
             }
         }
     }
@@ -437,12 +437,12 @@ final class LstsaRunStore
             'archives' => $this->archivesDir(),
             'quarantine' => $this->quarantineDir(),
             'checkpoints' => $this->checkpointsDir(),
-            default => throw new \InvalidArgumentException('Unknown LSTSA artifact kind: ' . $kind),
+            default => throw new \InvalidArgumentException('Unknown Lstsa artifact kind: ' . $kind),
         };
 
         $dir = $baseDir . DIRECTORY_SEPARATOR . $safeLstsaId;
         if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
-            throw new \RuntimeException('Cannot create LSTSA artifact directory: ' . $dir);
+            throw new \RuntimeException('Cannot create Lstsa artifact directory: ' . $dir);
         }
 
         return $dir . DIRECTORY_SEPARATOR . (string)$run['run_id'] . '_' . $safeSuffix;
@@ -487,7 +487,7 @@ final class LstsaRunStore
         $safe = preg_replace('/[^A-Za-z0-9_.-]/', '_', $value) ?? '';
         $safe = trim($safe, '._-');
         if ($safe === '') {
-            throw new \InvalidArgumentException('Invalid LSTSA path segment');
+            throw new \InvalidArgumentException('Invalid Lstsa path segment');
         }
         return $safe;
     }
@@ -497,7 +497,7 @@ final class LstsaRunStore
         $safe = preg_replace('/[^A-Za-z0-9_.-]/', '_', $suffix) ?? '';
         $safe = trim($safe, '._-');
         if ($safe === '' || !str_ends_with($safe, '.json')) {
-            throw new \InvalidArgumentException('Invalid LSTSA artifact suffix: ' . $suffix);
+            throw new \InvalidArgumentException('Invalid Lstsa artifact suffix: ' . $suffix);
         }
         return $safe;
     }

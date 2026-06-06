@@ -19,7 +19,7 @@ declare(strict_types=1);
 
 $asapRoot = 'H:\\ASAP';
 $refBookRoot = 'H:\\ASAP_REF_BOOK';
-$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP';
+$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
 
 if (!is_dir($asapRoot)) {
     fwrite(STDERR, "ASAP_ROOT_MISSING\n");
@@ -211,7 +211,7 @@ $replacements = [
     'use ASAP\\BDD' => 'use ASAP\\Database',
     'ASAP\\BDD' => 'ASAP\\Database',
     'ASAP\\\\BDD' => 'ASAP\\\\Database',
-    'framework/ASAP/BDD' => 'framework/ASAP/Database',
+    'framework/Asap/BDD' => 'framework/Asap/Database',
     'framework\\ASAP\\BDD' => 'framework\\ASAP\\Database',
     'framework\\\\ASAP\\\\BDD' => 'framework\\\\ASAP\\\\Database',
     'ASAP/BDD' => 'ASAP/Database',

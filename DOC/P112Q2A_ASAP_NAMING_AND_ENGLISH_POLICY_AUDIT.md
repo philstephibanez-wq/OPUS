@@ -16,7 +16,7 @@ It checks:
 
 ASAP uses the following target policy:
 
-`framework/ASAP/<NamespaceSegment>/<ClassName>.php`
+`framework/Asap/<NamespaceSegment>/<ClassName>.php`
 
 Directory segments are PascalCase and aligned with PHP namespaces.
 

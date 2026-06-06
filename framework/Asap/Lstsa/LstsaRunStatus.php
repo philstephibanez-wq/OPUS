@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace ASAP\LSTSA;
+namespace ASAP\Lstsa;
 
 final class LstsaRunStatus
 {
@@ -35,7 +35,7 @@ final class LstsaRunStatus
     public static function assertValid(string $status): void
     {
         if (!in_array($status, self::all(), true)) {
-            throw new \InvalidArgumentException('Unknown LSTSA run status: ' . $status);
+            throw new \InvalidArgumentException('Unknown Lstsa run status: ' . $status);
         }
     }
 

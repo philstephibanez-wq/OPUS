@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace ASAP\LSTSA;
+namespace ASAP\Lstsa;
 
 use ASAP\Database\DatabaseConnectionsConfig;
 
 /**
- * PUBLIC LSTSA DEFINITION
+ * PUBLIC Lstsa DEFINITION
  *
  * Role:
  *   Hold one Load / Secure / Transform / Store / Archive contract.
@@ -37,24 +37,24 @@ final class LstsaDefinition
     ) {
         foreach ([$this->id, $this->version, $this->loadConnection, $this->loadTable, $this->storeConnection, $this->storeTable, $this->storeMode, $this->archiveMode, $this->archivePath] as $value) {
             if (trim($value) === '') {
-                throw LstsaException::because('ASAP_LSTSA_DEFINITION_VALUE_EMPTY', $this->id);
+                throw LstsaException::because('ASAP_Lstsa_DEFINITION_VALUE_EMPTY', $this->id);
             }
         }
 
         if (!preg_match('/^[a-zA-Z][a-zA-Z0-9_.-]*$/', $this->id)) {
-            throw LstsaException::because('ASAP_LSTSA_ID_INVALID', $this->id);
+            throw LstsaException::because('ASAP_Lstsa_ID_INVALID', $this->id);
         }
 
         if ($this->loadFields === []) {
-            throw LstsaException::because('ASAP_LSTSA_LOAD_FIELDS_EMPTY', $this->id);
+            throw LstsaException::because('ASAP_Lstsa_LOAD_FIELDS_EMPTY', $this->id);
         }
 
         if ($this->mappings === []) {
-            throw LstsaException::because('ASAP_LSTSA_MAPPINGS_EMPTY', $this->id);
+            throw LstsaException::because('ASAP_Lstsa_MAPPINGS_EMPTY', $this->id);
         }
 
         if ($this->archiveMode !== 'append_only') {
-            throw LstsaException::because('ASAP_LSTSA_ARCHIVE_MODE_UNSUPPORTED', $this->archiveMode);
+            throw LstsaException::because('ASAP_Lstsa_ARCHIVE_MODE_UNSUPPORTED', $this->archiveMode);
         }
     }
 
@@ -83,12 +83,12 @@ final class LstsaDefinition
     {
         foreach ([$this->loadConnection, $this->storeConnection] as $name) {
             if (!$connections->has($name)) {
-                throw LstsaException::because('ASAP_LSTSA_DATABASE_CONNECTION_MISSING', $name);
+                throw LstsaException::because('ASAP_Lstsa_DATABASE_CONNECTION_MISSING', $name);
             }
         }
 
         if ($this->archiveConnection !== null && !$connections->has($this->archiveConnection)) {
-            throw LstsaException::because('ASAP_LSTSA_ARCHIVE_CONNECTION_MISSING', $this->archiveConnection);
+            throw LstsaException::because('ASAP_Lstsa_ARCHIVE_CONNECTION_MISSING', $this->archiveConnection);
         }
     }
 }

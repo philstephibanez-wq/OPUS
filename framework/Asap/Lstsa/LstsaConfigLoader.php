@@ -2,28 +2,28 @@
 
 declare(strict_types=1);
 
-namespace ASAP\LSTSA;
+namespace ASAP\Lstsa;
 
 use SimpleXMLElement;
 
 /**
- * PUBLIC LSTSA CONFIG LOADER
+ * PUBLIC Lstsa CONFIG LOADER
  *
  * Role:
- *   Load one declarative LSTSA contract from XML.
+ *   Load one declarative Lstsa contract from XML.
  */
 final class LstsaConfigLoader
 {
     public function loadXmlFile(string $file): LstsaDefinition
     {
         if (!is_file($file)) {
-            throw LstsaException::because('ASAP_LSTSA_CONFIG_FILE_MISSING', $file);
+            throw LstsaException::because('ASAP_Lstsa_CONFIG_FILE_MISSING', $file);
         }
 
         $xml = simplexml_load_file($file);
 
         if (!$xml instanceof SimpleXMLElement) {
-            throw LstsaException::because('ASAP_LSTSA_CONFIG_XML_INVALID', $file);
+            throw LstsaException::because('ASAP_Lstsa_CONFIG_XML_INVALID', $file);
         }
 
         return $this->fromXml($xml, $file);
@@ -32,7 +32,7 @@ final class LstsaConfigLoader
     public function fromXml(SimpleXMLElement $xml, string $source = '<memory>'): LstsaDefinition
     {
         if (strtolower($xml->getName()) !== 'lstsa') {
-            throw LstsaException::because('ASAP_LSTSA_CONFIG_ROOT_INVALID', $xml->getName());
+            throw LstsaException::because('ASAP_Lstsa_CONFIG_ROOT_INVALID', $xml->getName());
         }
 
         $id = $this->requiredAttr($xml, 'id', $source);
@@ -49,7 +49,7 @@ final class LstsaConfigLoader
             }
             $field = LstsaFieldConstraint::fromXml($fieldXml, 'name');
             if (array_key_exists($field->name, $loadFields)) {
-                throw LstsaException::because('ASAP_LSTSA_LOAD_FIELD_DUPLICATE', $field->name);
+                throw LstsaException::because('ASAP_Lstsa_LOAD_FIELD_DUPLICATE', $field->name);
             }
             $loadFields[$field->name] = $field;
         }
@@ -57,7 +57,7 @@ final class LstsaConfigLoader
         $mappings = [];
         $transform = $xml->transform[0] ?? null;
         if (!$transform instanceof SimpleXMLElement) {
-            throw LstsaException::because('ASAP_LSTSA_TRANSFORM_NODE_MISSING', $source);
+            throw LstsaException::because('ASAP_Lstsa_TRANSFORM_NODE_MISSING', $source);
         }
 
         foreach ($transform->field as $fieldXml) {
@@ -66,7 +66,7 @@ final class LstsaConfigLoader
             }
             $mapping = LstsaFieldMapping::fromXml($fieldXml);
             if (array_key_exists($mapping->target, $mappings)) {
-                throw LstsaException::because('ASAP_LSTSA_TARGET_FIELD_DUPLICATE', $mapping->target);
+                throw LstsaException::because('ASAP_Lstsa_TARGET_FIELD_DUPLICATE', $mapping->target);
             }
             $mappings[$mapping->target] = $mapping;
         }
@@ -107,7 +107,7 @@ final class LstsaConfigLoader
     {
         $child = $xml->{$name}[0] ?? null;
         if (!$child instanceof SimpleXMLElement) {
-            throw LstsaException::because('ASAP_LSTSA_CONFIG_NODE_MISSING', $source . '#' . $name);
+            throw LstsaException::because('ASAP_Lstsa_CONFIG_NODE_MISSING', $source . '#' . $name);
         }
 
         return $child;
@@ -117,7 +117,7 @@ final class LstsaConfigLoader
     {
         $value = trim((string) ($xml[$name] ?? ''));
         if ($value === '') {
-            throw LstsaException::because('ASAP_LSTSA_CONFIG_ATTRIBUTE_MISSING', $source . '@' . $name);
+            throw LstsaException::because('ASAP_Lstsa_CONFIG_ATTRIBUTE_MISSING', $source . '@' . $name);
         }
 
         return $value;

@@ -22,7 +22,7 @@ declare(strict_types=1);
 
 $asapRoot = 'H:\\ASAP';
 $refBookRoot = 'H:\\ASAP_REF_BOOK';
-$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP';
+$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
 
 if (!is_dir($asapRoot)) {
     fwrite(STDERR, "ASAP_ROOT_MISSING\n");
@@ -247,7 +247,7 @@ foreach ($renames as $from => $to) {
     $replacements['ASAP\\' . $from] = 'ASAP\\' . $to;
     $replacements['ASAP\\\\' . $from] = 'ASAP\\\\' . $to;
 
-    $replacements['framework/ASAP/' . $from] = 'framework/ASAP/' . $to;
+    $replacements['framework/Asap/' . $from] = 'framework/Asap/' . $to;
     $replacements['framework\\ASAP\\' . $from] = 'framework\\ASAP\\' . $to;
     $replacements['framework\\\\ASAP\\\\' . $from] = 'framework\\\\ASAP\\\\' . $to;
 

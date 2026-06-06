@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace ASAP\LSTSA;
+namespace ASAP\Lstsa;
 
 /**
- * PUBLIC LSTSA REPORT CATALOG
+ * PUBLIC Lstsa REPORT CATALOG
  *
- * @role Builds a readable append-only catalog of LSTSA runs, reports, archives,
+ * @role Builds a readable append-only catalog of Lstsa runs, reports, archives,
  *       quarantine files and checkpoints.
  * @visibility public framework service
  * @contract Runtime outputs are read from var/lstsa and summarized without
@@ -24,7 +24,7 @@ final class LstsaReportCatalog
     {
         $root = rtrim($projectRoot, DIRECTORY_SEPARATOR);
         if ($root === '' || !is_dir($root)) {
-            throw new \RuntimeException('Invalid ASAP project root for LSTSA catalog: ' . $projectRoot);
+            throw new \RuntimeException('Invalid ASAP project root for Lstsa catalog: ' . $projectRoot);
         }
 
         $this->projectRoot = $root;
@@ -38,7 +38,7 @@ final class LstsaReportCatalog
     public function build(int $limit = 50): array
     {
         if ($limit < 1) {
-            throw new \InvalidArgumentException('LSTSA catalog limit must be >= 1');
+            throw new \InvalidArgumentException('Lstsa catalog limit must be >= 1');
         }
 
         $runs = $this->readRuns();
@@ -65,7 +65,7 @@ final class LstsaReportCatalog
         }
 
         return [
-            'schema' => 'ASAP_LSTSA_REPORT_CATALOG_V1',
+            'schema' => 'ASAP_Lstsa_REPORT_CATALOG_V1',
             'generated_at' => gmdate('c'),
             'project_root' => $this->projectRoot,
             'lstsa_root' => $this->lstsaRoot,
@@ -86,7 +86,7 @@ final class LstsaReportCatalog
         $dir = $this->lstsaRoot . DIRECTORY_SEPARATOR . 'reports' . DIRECTORY_SEPARATOR . '_index';
 
         if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
-            throw new \RuntimeException('Cannot create LSTSA report catalog directory: ' . $dir);
+            throw new \RuntimeException('Cannot create Lstsa report catalog directory: ' . $dir);
         }
 
         $base = 'lstsa_report_catalog_' . gmdate('Ymd_His') . '_' . bin2hex(random_bytes(4));
@@ -95,7 +95,7 @@ final class LstsaReportCatalog
 
         foreach ([$jsonPath, $mdPath] as $path) {
             if (file_exists($path)) {
-                throw new \RuntimeException('LSTSA report catalog append-only violation: ' . $path);
+                throw new \RuntimeException('Lstsa report catalog append-only violation: ' . $path);
             }
         }
 
@@ -191,7 +191,7 @@ final class LstsaReportCatalog
     private function toMarkdown(array $index): string
     {
         $lines = [];
-        $lines[] = '# LSTSA report catalog';
+        $lines[] = '# Lstsa report catalog';
         $lines[] = '';
         $lines[] = '- generated_at: `' . (string)$index['generated_at'] . '`';
         $lines[] = '- total_runs: `' . (string)$index['total_runs'] . '`';
@@ -203,7 +203,7 @@ final class LstsaReportCatalog
             $lines[] = '- ' . (string)$status . ': `' . (string)$count . '`';
         }
         $lines[] = '';
-        $lines[] = '## LSTSA counts';
+        $lines[] = '## Lstsa counts';
         $lines[] = '';
         foreach (($index['lstsa_counts'] ?? []) as $lstsaId => $count) {
             $lines[] = '- ' . (string)$lstsaId . ': `' . (string)$count . '`';
@@ -249,7 +249,7 @@ final class LstsaReportCatalog
     {
         $raw = file_get_contents($path);
         if ($raw === false) {
-            throw new \RuntimeException('Cannot read LSTSA catalog JSON source: ' . $path);
+            throw new \RuntimeException('Cannot read Lstsa catalog JSON source: ' . $path);
         }
 
         return json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
@@ -262,7 +262,7 @@ final class LstsaReportCatalog
     {
         $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         if ($json === false) {
-            throw new \RuntimeException('Cannot encode LSTSA report catalog JSON');
+            throw new \RuntimeException('Cannot encode Lstsa report catalog JSON');
         }
 
         $this->writeText($path, $json . PHP_EOL);
@@ -272,11 +272,11 @@ final class LstsaReportCatalog
     {
         $dir = dirname($path);
         if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
-            throw new \RuntimeException('Cannot create LSTSA report catalog directory: ' . $dir);
+            throw new \RuntimeException('Cannot create Lstsa report catalog directory: ' . $dir);
         }
 
         if (file_put_contents($path, $content, LOCK_EX) === false) {
-            throw new \RuntimeException('Cannot write LSTSA report catalog file: ' . $path);
+            throw new \RuntimeException('Cannot write Lstsa report catalog file: ' . $path);
         }
     }
 }

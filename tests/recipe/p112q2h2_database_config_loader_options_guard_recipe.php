@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 $root = 'H:\\ASAP';
-$framework = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP';
+$framework = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
 
 if (!is_dir($framework)) {
     throw new RuntimeException('ASAP_FRAMEWORK_ROOT_MISSING');

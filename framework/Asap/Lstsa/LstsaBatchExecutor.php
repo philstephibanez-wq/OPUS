@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace ASAP\LSTSA;
+namespace ASAP\Lstsa;
 
 use SimpleXMLElement;
 
@@ -18,23 +18,23 @@ final class LstsaBatchExecutor
     {
         $payload = $run['payload'] ?? [];
         if (!is_array($payload)) {
-            throw new \RuntimeException('LSTSA payload must be an array');
+            throw new \RuntimeException('Lstsa payload must be an array');
         }
 
         $definitionXml = (string)($payload['definition_xml'] ?? '');
         if (trim($definitionXml) === '') {
-            throw new \RuntimeException('LSTSA memory_batch payload missing definition_xml');
+            throw new \RuntimeException('Lstsa memory_batch payload missing definition_xml');
         }
 
         $xml = \simplexml_load_string($definitionXml);
         if (!$xml instanceof SimpleXMLElement) {
-            throw new \RuntimeException('LSTSA memory_batch definition XML invalid');
+            throw new \RuntimeException('Lstsa memory_batch definition XML invalid');
         }
 
         $definition = (new LstsaConfigLoader())->fromXml($xml, (string)$run['run_id']);
         $rows = $payload['rows'] ?? [];
         if (!is_array($rows)) {
-            throw new \RuntimeException('LSTSA memory_batch rows must be an array');
+            throw new \RuntimeException('Lstsa memory_batch rows must be an array');
         }
 
         $batchSize = max(1, (int)($run['limits']['max_rows_per_batch'] ?? 1000));
@@ -62,7 +62,7 @@ final class LstsaBatchExecutor
             foreach ($batchRows as $offset => $row) {
                 $this->assertRunTime($startedAt, $maxRunSeconds, (string)$run['run_id']);
                 if ((microtime(true) - $batchStarted) > $maxBatchSeconds) {
-                    throw new LstsaRunnerTimeoutException('LSTSA max_batch_seconds exceeded for run: ' . $run['run_id']);
+                    throw new LstsaRunnerTimeoutException('Lstsa max_batch_seconds exceeded for run: ' . $run['run_id']);
                 }
 
                 $counts['loaded']++;
@@ -71,7 +71,7 @@ final class LstsaBatchExecutor
                 if (!is_array($row)) {
                     $counts['rejected']++;
                     $counts['errors']++;
-                    $rejectedRows[] = $this->rejection($absoluteIndex, $row, ['SECURE_INPUT:ROW:ASAP_LSTSA_ROW_NOT_ARRAY']);
+                    $rejectedRows[] = $this->rejection($absoluteIndex, $row, ['SECURE_INPUT:ROW:ASAP_Lstsa_ROW_NOT_ARRAY']);
                     continue;
                 }
 
@@ -146,7 +146,7 @@ final class LstsaBatchExecutor
 
         foreach (array_keys($row) as $fieldName) {
             if (!array_key_exists((string)$fieldName, $definition->loadFields())) {
-                $errors[] = 'SECURE_INPUT:' . (string)$fieldName . ':ASAP_LSTSA_FIELD_UNKNOWN';
+                $errors[] = 'SECURE_INPUT:' . (string)$fieldName . ':ASAP_Lstsa_FIELD_UNKNOWN';
             }
         }
 
@@ -178,7 +178,7 @@ final class LstsaBatchExecutor
             'lower' => is_scalar($value) ? strtolower((string)$value) : $value,
             'upper' => is_scalar($value) ? strtoupper((string)$value) : $value,
             'status_to_bool' => $this->statusToBool($value),
-            default => throw new \RuntimeException('ASAP_LSTSA_TRANSFORM_NOT_ALLOWLISTED: ' . $transform),
+            default => throw new \RuntimeException('ASAP_Lstsa_TRANSFORM_NOT_ALLOWLISTED: ' . $transform),
         };
     }
 
@@ -215,7 +215,7 @@ final class LstsaBatchExecutor
     private function assertRunTime(float $startedAt, int $maxRunSeconds, string $runId): void
     {
         if ((microtime(true) - $startedAt) > $maxRunSeconds) {
-            throw new LstsaRunnerTimeoutException('LSTSA max_run_seconds exceeded for run: ' . $runId);
+            throw new LstsaRunnerTimeoutException('Lstsa max_run_seconds exceeded for run: ' . $runId);
         }
     }
 }

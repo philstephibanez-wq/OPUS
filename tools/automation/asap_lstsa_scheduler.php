@@ -3,12 +3,12 @@ declare(strict_types=1);
 
 $root = dirname(__DIR__, 2);
 
-require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaRunStatus.php';
-require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaRunStore.php';
-require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . 'LSTSA' . DIRECTORY_SEPARATOR . 'LstsaScheduler.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Lstsa' . DIRECTORY_SEPARATOR . 'LstsaRunStatus.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Lstsa' . DIRECTORY_SEPARATOR . 'LstsaRunStore.php';
+require_once $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Lstsa' . DIRECTORY_SEPARATOR . 'LstsaScheduler.php';
 
-use ASAP\LSTSA\LstsaRunStore;
-use ASAP\LSTSA\LstsaScheduler;
+use ASAP\Lstsa\LstsaRunStore;
+use ASAP\Lstsa\LstsaScheduler;
 
 $action = $argv[1] ?? 'enqueue-smoke';
 
@@ -36,5 +36,5 @@ if ($action === 'list-pending') {
     exit(0);
 }
 
-fwrite(STDERR, 'Unknown LSTSA scheduler action: ' . $action . PHP_EOL);
+fwrite(STDERR, 'Unknown Lstsa scheduler action: ' . $action . PHP_EOL);
 exit(1);

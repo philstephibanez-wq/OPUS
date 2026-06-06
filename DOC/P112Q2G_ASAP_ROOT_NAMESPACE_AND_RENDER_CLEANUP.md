@@ -6,7 +6,7 @@ P112Q2G cleans the final framework layout issue reported by P112Q2F.
 
 ## Decisions
 
-- `framework/ASAP/*.php` is no longer accepted.
+- `framework/Asap/*.php` is no longer accepted.
 - Root compatibility classes move into explicit domains.
 - The decorative `Render` directory is removed.
 - `Renderer` remains the official rendering domain.
@@ -31,7 +31,7 @@ P112Q2G cleans the final framework layout issue reported by P112Q2F.
 
 ## Contract
 
-- No root PHP file remains under `framework/ASAP`.
+- No root PHP file remains under `framework/Asap`.
 - No `Render` directory remains.
 - No hidden fallback path is created.
 - Prior naming recipes are rerun as regression checks.

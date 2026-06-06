@@ -1,21 +1,21 @@
-# P112Q2I3_ASAP_LSTSA_BATCH_CHECKPOINT_EXECUTOR
+# P112Q2I3_ASAP_Lstsa_BATCH_CHECKPOINT_EXECUTOR
 
 ## Objectif
 
-Ajouter le premier exécuteur LSTSA en batch avec checkpoints, contrôles input/output, quarantine et rapports/archives runtime append-only, sans faire tourner un traitement long dans Apache ou dans une requête HTTP.
+Ajouter le premier exécuteur Lstsa en batch avec checkpoints, contrôles input/output, quarantine et rapports/archives runtime append-only, sans faire tourner un traitement long dans Apache ou dans une requête HTTP.
 
 ## Périmètre
 
-- Extension de `ASAP\LSTSA\LstsaRunStore` avec artifacts runtime : checkpoints, archives, quarantine.
-- Ajout de `ASAP\LSTSA\LstsaBatchExecutor`.
-- Extension de `ASAP\LSTSA\LstsaRunner` pour traiter les runs `mode=memory_batch`.
-- Extension de `ASAP\LSTSA\LstsaScheduler` avec une recette smoke batch.
+- Extension de `ASAP\Lstsa\LstsaRunStore` avec artifacts runtime : checkpoints, archives, quarantine.
+- Ajout de `ASAP\Lstsa\LstsaBatchExecutor`.
+- Extension de `ASAP\Lstsa\LstsaRunner` pour traiter les runs `mode=memory_batch`.
+- Extension de `ASAP\Lstsa\LstsaScheduler` avec une recette smoke batch.
 - Mise à jour des scripts CLI scheduler/runner.
 - Recette automatique `p112q2i3_lstsa_batch_checkpoint_executor_recipe.php`.
 
 ## Contrat validé
 
-Un run LSTSA batch doit :
+Un run Lstsa batch doit :
 
 1. Charger un lot de lignes.
 2. Valider les champs source déclarés.
@@ -36,4 +36,4 @@ Un run LSTSA batch doit :
 
 ## Prochain palier prévu
 
-`P112Q2I4_ASAP_LSTSA_DB_STORE_PROVIDER` : brancher le store sur les providers multi-BDD, avec transaction, insert/append/update/upsert contractuels.
+`P112Q2I4_ASAP_Lstsa_DB_STORE_PROVIDER` : brancher le store sur les providers multi-BDD, avec transaction, insert/append/update/upsert contractuels.

@@ -8,7 +8,7 @@ It renames the French technical abbreviation `BDD` to the pure English domain na
 
 ## Scope
 
-- `framework/ASAP/BDD` -> `framework/ASAP/Database`
+- `framework/Asap/BDD` -> `framework/Asap/Database`
 - `ASAP\BDD` -> `ASAP\Database`
 
 ## Why it was isolated

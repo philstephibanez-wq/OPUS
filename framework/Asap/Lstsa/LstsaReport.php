@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace ASAP\LSTSA;
+namespace ASAP\Lstsa;
 
 /**
- * PUBLIC LSTSA REPORT
+ * PUBLIC Lstsa REPORT
  *
  * Role:
- *   Describe one LSTSA run in a stable, archivable format.
+ *   Describe one Lstsa run in a stable, archivable format.
  */
 final class LstsaReport
 {
@@ -37,7 +37,7 @@ final class LstsaReport
     ) {
         foreach ([$this->lstsaId, $this->lstsaVersion, $this->runId, $this->startedAt, $this->configHash] as $value) {
             if (trim($value) === '') {
-                throw LstsaException::because('ASAP_LSTSA_REPORT_VALUE_EMPTY');
+                throw LstsaException::because('ASAP_Lstsa_REPORT_VALUE_EMPTY');
             }
         }
     }
@@ -56,11 +56,11 @@ final class LstsaReport
     public function addCounter(string $name, int $value): void
     {
         if (!array_key_exists($name, $this->counters)) {
-            throw LstsaException::because('ASAP_LSTSA_REPORT_COUNTER_UNKNOWN', $name);
+            throw LstsaException::because('ASAP_Lstsa_REPORT_COUNTER_UNKNOWN', $name);
         }
 
         if ($value < 0) {
-            throw LstsaException::because('ASAP_LSTSA_REPORT_COUNTER_NEGATIVE', $name);
+            throw LstsaException::because('ASAP_Lstsa_REPORT_COUNTER_NEGATIVE', $name);
         }
 
         $this->counters[$name] += $value;
@@ -78,7 +78,7 @@ final class LstsaReport
     {
         $allowed = ['OK', 'PARTIAL', 'FAILED', 'REJECTED', 'QUARANTINED', 'CANCELLED', 'TIMEOUT_EXCEEDED'];
         if (!in_array($status, $allowed, true)) {
-            throw LstsaException::because('ASAP_LSTSA_REPORT_STATUS_INVALID', $status);
+            throw LstsaException::because('ASAP_Lstsa_REPORT_STATUS_INVALID', $status);
         }
 
         $this->status = $status;
@@ -110,7 +110,7 @@ final class LstsaReport
     {
         $json = json_encode($this->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if ($json === false) {
-            throw LstsaException::because('ASAP_LSTSA_REPORT_JSON_ENCODE_FAILED');
+            throw LstsaException::because('ASAP_Lstsa_REPORT_JSON_ENCODE_FAILED');
         }
 
         return $json . "\n";
@@ -119,7 +119,7 @@ final class LstsaReport
     public function toMarkdown(): string
     {
         $lines = [];
-        $lines[] = '# LSTSA run report';
+        $lines[] = '# Lstsa run report';
         $lines[] = '';
         foreach ($this->toArray() as $key => $value) {
             if (is_array($value)) {

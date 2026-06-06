@@ -14,7 +14,7 @@ It is outside the Q2D migration contract and contains a pre-existing strict-type
 
 The Q2D recipe now lints only:
 
-- `framework/ASAP`
+- `framework/Asap`
 - `tests/recipe`
 - `tests/fixtures`
 

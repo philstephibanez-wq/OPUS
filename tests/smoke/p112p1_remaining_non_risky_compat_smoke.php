@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../framework/ASAP/Exception/Exception.php';
-require_once __DIR__ . '/../../framework/ASAP/Contract/ContractException.php';
-require_once __DIR__ . '/../../framework/ASAP/Config/Configuration.php';
-require_once __DIR__ . '/../../framework/ASAP/Debug/Debug.php';
-require_once __DIR__ . '/../../framework/ASAP/Validation/Validator.php';
-require_once __DIR__ . '/../../framework/ASAP/Acl/Acl.php';
-require_once __DIR__ . '/../../framework/ASAP/Fsm/Fsm.php';
-require_once __DIR__ . '/../../framework/ASAP/Template/TemplateException.php';
-require_once __DIR__ . '/../../framework/ASAP/Template/Adapter.php';
-require_once __DIR__ . '/../../framework/ASAP/Template/Smarty.php';
-require_once __DIR__ . '/../../framework/ASAP/Template/X64.php';
-require_once __DIR__ . '/../../framework/ASAP/Template/TemplateRendererInterface.php';
-require_once __DIR__ . '/../../framework/ASAP/View/View.php';
-require_once __DIR__ . '/../../framework/ASAP/Link/Link.php';
+require_once __DIR__ . '/../../framework/Asap/Exception/Exception.php';
+require_once __DIR__ . '/../../framework/Asap/Contract/ContractException.php';
+require_once __DIR__ . '/../../framework/Asap/Config/Configuration.php';
+require_once __DIR__ . '/../../framework/Asap/Debug/Debug.php';
+require_once __DIR__ . '/../../framework/Asap/Validation/Validator.php';
+require_once __DIR__ . '/../../framework/Asap/Acl/Acl.php';
+require_once __DIR__ . '/../../framework/Asap/Fsm/Fsm.php';
+require_once __DIR__ . '/../../framework/Asap/Template/TemplateException.php';
+require_once __DIR__ . '/../../framework/Asap/Template/Adapter.php';
+require_once __DIR__ . '/../../framework/Asap/Template/Smarty.php';
+require_once __DIR__ . '/../../framework/Asap/Template/X64.php';
+require_once __DIR__ . '/../../framework/Asap/Template/TemplateRendererInterface.php';
+require_once __DIR__ . '/../../framework/Asap/View/View.php';
+require_once __DIR__ . '/../../framework/Asap/Link/Link.php';
 
 use ASAP\Acl\Acl;
 use ASAP\Config\Configuration;

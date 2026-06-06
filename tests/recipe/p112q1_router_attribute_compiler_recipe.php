@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../framework/ASAP/Contract/ContractException.php';
-require_once __DIR__ . '/../../framework/ASAP/Routing/RouteCompilerException.php';
-require_once __DIR__ . '/../../framework/ASAP/Routing/RouteDefinition.php';
-require_once __DIR__ . '/../../framework/ASAP/Routing/Route.php';
-require_once __DIR__ . '/../../framework/ASAP/Routing/ClassIndex.php';
-require_once __DIR__ . '/../../framework/ASAP/Routing/AttributeRouteProvider.php';
-require_once __DIR__ . '/../../framework/ASAP/Routing/RouteManifestCompiler.php';
+require_once __DIR__ . '/../../framework/Asap/Contract/ContractException.php';
+require_once __DIR__ . '/../../framework/Asap/Routing/RouteCompilerException.php';
+require_once __DIR__ . '/../../framework/Asap/Routing/RouteDefinition.php';
+require_once __DIR__ . '/../../framework/Asap/Routing/Route.php';
+require_once __DIR__ . '/../../framework/Asap/Routing/ClassIndex.php';
+require_once __DIR__ . '/../../framework/Asap/Routing/AttributeRouteProvider.php';
+require_once __DIR__ . '/../../framework/Asap/Routing/RouteManifestCompiler.php';
 require_once __DIR__ . '/../fixtures/P112Q1/DemoRouteController.php';
 require_once __DIR__ . '/../fixtures/P112Q1/DuplicateRouteController.php';
 
@@ -36,10 +36,10 @@ $asapRoot = dirname(__DIR__, 2);
 $refBookRoot = 'H:\\ASAP_REF_BOOK';
 
 $requiredFiles = [
-    $asapRoot . '/framework/ASAP/Routing/Route.php',
-    $asapRoot . '/framework/ASAP/Routing/ClassIndex.php',
-    $asapRoot . '/framework/ASAP/Routing/AttributeRouteProvider.php',
-    $asapRoot . '/framework/ASAP/Routing/RouteManifestCompiler.php',
+    $asapRoot . '/framework/Asap/Routing/Route.php',
+    $asapRoot . '/framework/Asap/Routing/ClassIndex.php',
+    $asapRoot . '/framework/Asap/Routing/AttributeRouteProvider.php',
+    $asapRoot . '/framework/Asap/Routing/RouteManifestCompiler.php',
     $asapRoot . '/DOC/ROUTER_ATTRIBUTE_COMPILER.md',
     $asapRoot . '/DOC/P112Q1_ASAP_ROUTER_ATTRIBUTE_COMPILER_CONTRACT.md',
     $refBookRoot . '/content/markdown/router-attribute-compiler.md',

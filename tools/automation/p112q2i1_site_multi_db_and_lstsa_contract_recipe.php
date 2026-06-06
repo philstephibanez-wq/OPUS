@@ -15,7 +15,7 @@ if (is_file($autoload)) {
         }
 
         $relative = substr($class, strlen($prefix));
-        $file = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP' . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $relative) . '.php';
+        $file = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $relative) . '.php';
         if (is_file($file)) {
             require $file;
         }
@@ -23,9 +23,9 @@ if (is_file($autoload)) {
 }
 
 use ASAP\Database\DatabaseMultiConfigLoader;
-use ASAP\LSTSA\LstsaArchiveWriter;
-use ASAP\LSTSA\LstsaConfigLoader;
-use ASAP\LSTSA\LstsaReport;
+use ASAP\Lstsa\LstsaArchiveWriter;
+use ASAP\Lstsa\LstsaConfigLoader;
+use ASAP\Lstsa\LstsaReport;
 
 function p112q2i1_assert(bool $condition, string $message): void
 {
@@ -67,21 +67,21 @@ $lstsaXmlText = <<<'XML'
 XML;
 
 $lstsaXml = simplexml_load_string($lstsaXmlText);
-$definition = (new LstsaConfigLoader())->fromXml($lstsaXml, 'P112Q2I1_LSTSA');
+$definition = (new LstsaConfigLoader())->fromXml($lstsaXml, 'P112Q2I1_Lstsa');
 $definition->assertConnections($connections);
 
-p112q2i1_assert($definition->id() === 'user_email_sync', 'P112Q2I1_LSTSA_ID_INVALID');
-p112q2i1_assert($definition->archiveMode() === 'append_only', 'P112Q2I1_LSTSA_ARCHIVE_MODE_INVALID');
-p112q2i1_assert(isset($definition->loadFields()['email']), 'P112Q2I1_LSTSA_EMAIL_FIELD_MISSING');
-p112q2i1_assert(isset($definition->mappings()['email']), 'P112Q2I1_LSTSA_EMAIL_MAPPING_MISSING');
-p112q2i1_assert(($definition->runtime()['max_run_seconds'] ?? 0) === 3600, 'P112Q2I1_LSTSA_RUNTIME_INVALID');
+p112q2i1_assert($definition->id() === 'user_email_sync', 'P112Q2I1_Lstsa_ID_INVALID');
+p112q2i1_assert($definition->archiveMode() === 'append_only', 'P112Q2I1_Lstsa_ARCHIVE_MODE_INVALID');
+p112q2i1_assert(isset($definition->loadFields()['email']), 'P112Q2I1_Lstsa_EMAIL_FIELD_MISSING');
+p112q2i1_assert(isset($definition->mappings()['email']), 'P112Q2I1_Lstsa_EMAIL_MAPPING_MISSING');
+p112q2i1_assert(($definition->runtime()['max_run_seconds'] ?? 0) === 3600, 'P112Q2I1_Lstsa_RUNTIME_INVALID');
 
 $emailErrors = $definition->loadFields()['email']->validate('valid@example.org', 'SECURE_INPUT');
-p112q2i1_assert($emailErrors === [], 'P112Q2I1_LSTSA_EMAIL_VALIDATION_UNEXPECTED_ERROR');
+p112q2i1_assert($emailErrors === [], 'P112Q2I1_Lstsa_EMAIL_VALIDATION_UNEXPECTED_ERROR');
 
 $tooLong = str_repeat('a', 260) . '@example.org';
 $tooLongErrors = $definition->loadFields()['email']->validate($tooLong, 'SECURE_INPUT');
-p112q2i1_assert($tooLongErrors !== [], 'P112Q2I1_LSTSA_LENGTH_VALIDATION_MISSING');
+p112q2i1_assert($tooLongErrors !== [], 'P112Q2I1_Lstsa_LENGTH_VALIDATION_MISSING');
 
 $runId = 'P112Q2I1_SMOKE_' . gmdate('Ymd_His');
 $report = LstsaReport::create($definition->id(), $definition->version(), $runId, $lstsaXmlText);
@@ -94,11 +94,11 @@ $report->finish('OK');
 
 $reportDir = $root . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'lstsa' . DIRECTORY_SEPARATOR . 'reports' . DIRECTORY_SEPARATOR . 'p112q2i1_contract_smoke';
 $paths = (new LstsaArchiveWriter())->writeReport($report, $reportDir);
-p112q2i1_assert(is_file($paths['json']), 'P112Q2I1_LSTSA_JSON_REPORT_MISSING');
-p112q2i1_assert(is_file($paths['markdown']), 'P112Q2I1_LSTSA_MARKDOWN_REPORT_MISSING');
+p112q2i1_assert(is_file($paths['json']), 'P112Q2I1_Lstsa_JSON_REPORT_MISSING');
+p112q2i1_assert(is_file($paths['markdown']), 'P112Q2I1_Lstsa_MARKDOWN_REPORT_MISSING');
 
 echo 'P112Q2I1_MULTI_DB_CONNECTIONS=' . implode(',', $connections->names()) . PHP_EOL;
-echo 'P112Q2I1_LSTSA_ID=' . $definition->id() . PHP_EOL;
+echo 'P112Q2I1_Lstsa_ID=' . $definition->id() . PHP_EOL;
 echo 'P112Q2I1_REPORT_JSON=' . $paths['json'] . PHP_EOL;
 echo 'P112Q2I1_REPORT_MD=' . $paths['markdown'] . PHP_EOL;
-echo 'P112Q2I1_SITE_MULTI_DB_AND_LSTSA_CONTRACT_RECIPE_OK' . PHP_EOL;
+echo 'P112Q2I1_SITE_MULTI_DB_AND_Lstsa_CONTRACT_RECIPE_OK' . PHP_EOL;

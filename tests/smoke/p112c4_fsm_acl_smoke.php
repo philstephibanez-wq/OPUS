@@ -23,24 +23,24 @@ declare(strict_types=1);
  *   P112C4
  */
 
-require_once __DIR__ . '/../../framework/ASAP/Fsm/StateMachineException.php';
-require_once __DIR__ . '/../../framework/ASAP/Fsm/StateActionInterface.php';
-require_once __DIR__ . '/../../framework/ASAP/Fsm/StateDefinition.php';
-require_once __DIR__ . '/../../framework/ASAP/Fsm/SignalDefinition.php';
-require_once __DIR__ . '/../../framework/ASAP/Fsm/TransitionDefinition.php';
-require_once __DIR__ . '/../../framework/ASAP/Fsm/TransitionResult.php';
-require_once __DIR__ . '/../../framework/ASAP/Fsm/StateMemory.php';
-require_once __DIR__ . '/../../framework/ASAP/Fsm/StateMachine.php';
-require_once __DIR__ . '/../../framework/ASAP/Acl/AccessControlException.php';
-require_once __DIR__ . '/../../framework/ASAP/Acl/AccessDeniedException.php';
-require_once __DIR__ . '/../../framework/ASAP/Acl/AccessConditionInterface.php';
-require_once __DIR__ . '/../../framework/ASAP/Acl/RoleDefinition.php';
-require_once __DIR__ . '/../../framework/ASAP/Acl/ResourceDefinition.php';
-require_once __DIR__ . '/../../framework/ASAP/Acl/PrivilegeDefinition.php';
-require_once __DIR__ . '/../../framework/ASAP/Acl/AccessContext.php';
-require_once __DIR__ . '/../../framework/ASAP/Acl/AccessRule.php';
-require_once __DIR__ . '/../../framework/ASAP/Acl/AccessDecision.php';
-require_once __DIR__ . '/../../framework/ASAP/Acl/AccessControl.php';
+require_once __DIR__ . '/../../framework/Asap/Fsm/StateMachineException.php';
+require_once __DIR__ . '/../../framework/Asap/Fsm/StateActionInterface.php';
+require_once __DIR__ . '/../../framework/Asap/Fsm/StateDefinition.php';
+require_once __DIR__ . '/../../framework/Asap/Fsm/SignalDefinition.php';
+require_once __DIR__ . '/../../framework/Asap/Fsm/TransitionDefinition.php';
+require_once __DIR__ . '/../../framework/Asap/Fsm/TransitionResult.php';
+require_once __DIR__ . '/../../framework/Asap/Fsm/StateMemory.php';
+require_once __DIR__ . '/../../framework/Asap/Fsm/StateMachine.php';
+require_once __DIR__ . '/../../framework/Asap/Acl/AccessControlException.php';
+require_once __DIR__ . '/../../framework/Asap/Acl/AccessDeniedException.php';
+require_once __DIR__ . '/../../framework/Asap/Acl/AccessConditionInterface.php';
+require_once __DIR__ . '/../../framework/Asap/Acl/RoleDefinition.php';
+require_once __DIR__ . '/../../framework/Asap/Acl/ResourceDefinition.php';
+require_once __DIR__ . '/../../framework/Asap/Acl/PrivilegeDefinition.php';
+require_once __DIR__ . '/../../framework/Asap/Acl/AccessContext.php';
+require_once __DIR__ . '/../../framework/Asap/Acl/AccessRule.php';
+require_once __DIR__ . '/../../framework/Asap/Acl/AccessDecision.php';
+require_once __DIR__ . '/../../framework/Asap/Acl/AccessControl.php';
 
 use ASAP\Fsm\StateDefinition;
 use ASAP\Fsm\TransitionDefinition;

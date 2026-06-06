@@ -8,7 +8,7 @@ declare(strict_types=1);
  * Audit-only.
  *
  * It inspects:
- * - direct PHP files under framework/ASAP;
+ * - direct PHP files under framework/Asap;
  * - direct framework directories with no PHP classes;
  * - empty/quasi-empty directories;
  * - semantic duplicate candidates such as Render vs Renderer;
@@ -19,7 +19,7 @@ declare(strict_types=1);
 
 $asapRoot = 'H:\\ASAP';
 $refBookRoot = 'H:\\ASAP_REF_BOOK';
-$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP';
+$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
 $reportRoot = $refBookRoot . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'reports';
 
 if (!is_dir($asapRoot)) {
@@ -73,7 +73,7 @@ $rootFilePlan = [
 
 $orphanDirectoryPlan = [
     'Render' => ['REMOVE_OR_MERGE_REVIEW', 'Renderer', 'Render is ambiguous and conflicts semantically with Renderer. Remove if empty, or move useful content to Renderer.'],
-    'resources' => ['RESOURCE_POLICY_REVIEW', 'Resources', 'Lowercase resource directory. Decide whether it is framework resource storage or should move out of framework/ASAP.'],
+    'resources' => ['RESOURCE_POLICY_REVIEW', 'Resources', 'Lowercase resource directory. Decide whether it is framework resource storage or should move out of framework/Asap.'],
 ];
 
 function normalizedPath(string $path): string
@@ -323,7 +323,7 @@ foreach ($entries as $entry) {
 
         $rootRows[] = [
             'file' => $entry,
-            'relative_path' => 'framework/ASAP/' . $entry,
+            'relative_path' => 'framework/Asap/' . $entry,
             'namespace' => $info['namespace'],
             'symbols' => implode(' | ', $info['symbols']),
             'fqcn' => implode(' | ', $fqcnList),
@@ -334,7 +334,7 @@ foreach ($entries as $entry) {
             'note' => $plan[3],
         ];
 
-        $tokens = ['framework/ASAP/' . $entry, 'framework\\ASAP\\' . $entry, 'framework\\\\ASAP\\\\' . $entry];
+        $tokens = ['framework/Asap/' . $entry, 'framework\\ASAP\\' . $entry, 'framework\\\\ASAP\\\\' . $entry];
 
         foreach ($info['symbols'] as $symbol) {
             $tokens[] = $symbol;
@@ -372,7 +372,7 @@ foreach ($entries as $entry) {
 
         $directoryRows[] = [
             'directory' => $entry,
-            'relative_path' => 'framework/ASAP/' . $entry,
+            'relative_path' => 'framework/Asap/' . $entry,
             'total_files' => (string) $stats['total_files'],
             'php_files' => (string) $stats['php_files'],
             'gitkeep_files' => (string) $stats['gitkeep_files'],
@@ -385,7 +385,7 @@ foreach ($entries as $entry) {
 
         if ($classification !== 'DOMAIN_DIRECTORY_PRESENT') {
             $tokens = [
-                'framework/ASAP/' . $entry,
+                'framework/Asap/' . $entry,
                 'framework\\ASAP\\' . $entry,
                 'framework\\\\ASAP\\\\' . $entry,
                 'ASAP/' . $entry,
@@ -474,7 +474,7 @@ $md[] = '- Usage rows: `' . count($usageRows) . '`';
 $md[] = '';
 $md[] = '## Root file policy';
 $md[] = '';
-$md[] = '`framework/ASAP/*.php` is not accepted as a final framework layout.';
+$md[] = '`framework/Asap/*.php` is not accepted as a final framework layout.';
 $md[] = '';
 $md[] = 'Every PHP framework class must live in a clear domain directory.';
 $md[] = '';

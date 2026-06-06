@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 $asapRoot = 'H:\\ASAP';
 $refBookRoot = 'H:\\ASAP_REF_BOOK';
-$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP';
+$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
 
 if (!is_dir($frameworkRoot)) {
     throw new RuntimeException('ASAP_FRAMEWORK_ROOT_MISSING');
@@ -146,9 +146,9 @@ $forbidden = [
     'ASAP\\\\' . $upperHelper,
     'ASAP\\\\' . $upperMenu,
     'ASAP\\\\' . $upperTemplate,
-    'framework/ASAP/' . $upperHelper,
-    'framework/ASAP/' . $upperMenu,
-    'framework/ASAP/' . $upperTemplate,
+    'framework/Asap/' . $upperHelper,
+    'framework/Asap/' . $upperMenu,
+    'framework/Asap/' . $upperTemplate,
     'framework\\ASAP\\' . $upperHelper,
     'framework\\ASAP\\' . $upperMenu,
     'framework\\ASAP\\' . $upperTemplate,

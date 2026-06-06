@@ -17,7 +17,7 @@ declare(strict_types=1);
  */
 
 $workspaceRoot = 'H:\\ASAP';
-$frameworkRoot = $workspaceRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP';
+$frameworkRoot = $workspaceRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
 $reportRoot = 'H:\\ASAP_REF_BOOK\\var\\reports';
 
 if (!is_dir($workspaceRoot)) {
@@ -289,7 +289,7 @@ $md[] = '- English/franglais findings: `' . $summary['language_findings'] . '`';
 $md[] = '';
 $md[] = '## Directory policy';
 $md[] = '';
-$md[] = '`framework/ASAP/<NamespaceSegment>/<ClassName>.php`';
+$md[] = '`framework/Asap/<NamespaceSegment>/<ClassName>.php`';
 $md[] = '';
 $md[] = 'Directory segments must be PascalCase and aligned with PHP namespace segments.';
 $md[] = '';

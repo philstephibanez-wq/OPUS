@@ -1,12 +1,12 @@
-# P112Q2I4_ASAP_LSTSA_REPORTS_ARCHIVES_CATALOG
+# P112Q2I4_ASAP_Lstsa_REPORTS_ARCHIVES_CATALOG
 
 ## Objectif
 
-Consolider la couche de consultation des rapports et archives LSTSA sans exécuter de travail long dans Apache.
+Consolider la couche de consultation des rapports et archives Lstsa sans exécuter de travail long dans Apache.
 
 ## Contrat
 
-- Le concept métier reste écrit `LSTSA` dans les docs, rapports et messages utilisateur.
+- Le concept métier reste écrit `Lstsa` dans les docs, rapports et messages utilisateur.
 - Les symboles PHP restent alignés avec la convention ASAP : `LstsaReportCatalog`, `LstsaRunner`, `LstsaScheduler`.
 - Le catalogue lit les runs existants sous `var/lstsa/queue`.
 - Le catalogue vérifie la présence des rapports JSON/MD, archives, quarantaines et checkpoints déclarés.
@@ -15,7 +15,7 @@ Consolider la couche de consultation des rapports et archives LSTSA sans exécut
 
 ## Fichiers ajoutés
 
-- `framework/ASAP/LSTSA/LstsaReportCatalog.php`
+- `framework/Asap/Lstsa/LstsaReportCatalog.php`
 - `tools/automation/asap_lstsa_reports.php`
 - `bin/asap-lstsa-reports.cmd`
 - `tools/automation/p112q2i4_lstsa_reports_archives_catalog_recipe.php`
@@ -23,7 +23,7 @@ Consolider la couche de consultation des rapports et archives LSTSA sans exécut
 
 ## Validation
 
-La recette crée un run LSTSA memory batch, l'exécute via runner CLI, génère un catalogue, puis vérifie :
+La recette crée un run Lstsa memory batch, l'exécute via runner CLI, génère un catalogue, puis vérifie :
 
 - rapport JSON présent,
 - rapport Markdown présent,
@@ -34,4 +34,4 @@ La recette crée un run LSTSA memory batch, l'exécute via runner CLI, génère 
 
 ## Prochain palier
 
-P112Q2I5 : préparer une exposition lisible côté Reference Book / backoffice sans lancer les traitements LSTSA dans le cycle HTTP.
+P112Q2I5 : préparer une exposition lisible côté Reference Book / backoffice sans lancer les traitements Lstsa dans le cycle HTTP.

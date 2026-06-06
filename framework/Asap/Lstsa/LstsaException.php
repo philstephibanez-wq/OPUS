@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace ASAP\LSTSA;
+namespace ASAP\Lstsa;
 
 use RuntimeException;
 
 /**
- * PUBLIC LSTSA EXCEPTION
+ * PUBLIC Lstsa EXCEPTION
  *
  * Role:
  *   Carry explicit Load/Secure/Transform/Store/Archive contract failures.

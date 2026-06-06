@@ -10,7 +10,7 @@
   },
   "autoload": {
     "psr-4": {
-      "ASAP\\": "framework/ASAP/"
+      "ASAP\\": "framework/Asap/"
     }
   }
 }

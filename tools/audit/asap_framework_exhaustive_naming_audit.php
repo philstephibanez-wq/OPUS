@@ -9,12 +9,12 @@ declare(strict_types=1);
  *
  * It fixes the P112Q2A blind spot: the first audit used a limited directory
  * mapping and a too-permissive PascalCase detector. This version inspects every
- * directory segment under framework/ASAP and compares it with the proposed
+ * directory segment under framework/Asap and compares it with the proposed
  * modern namespace/directory policy.
  */
 
 $workspaceRoot = 'H:\\ASAP';
-$frameworkRoot = $workspaceRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'ASAP';
+$frameworkRoot = $workspaceRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
 $reportRoot = 'H:\\ASAP_REF_BOOK\\var\\reports';
 
 if (!is_dir($workspaceRoot)) {
