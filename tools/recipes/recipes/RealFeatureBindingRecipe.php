@@ -23,6 +23,11 @@ use ASAP\Recipe\RecipeInterface;
  *   This recipe intentionally fails if ASAP_REF_BOOK, UwAmp HTTP, Mailpit, or
  *   legacy URLs are unavailable. A sandbox-only success is not accepted as a
  *   global anti-regression proof.
+ *
+ * Diagnostics:
+ *   Each real HTTP check writes a diagnostic JSON artifact and the raw response
+ *   body under the recipe runtime directory. No future 500 may fail as an opaque
+ *   status-only error.
  */
 final class RealFeatureBindingRecipe implements RecipeInterface
 {
@@ -36,19 +41,22 @@ final class RealFeatureBindingRecipe implements RecipeInterface
     {
         $refBookRoot = $this->refBookRoot($context);
         $baseUrl = $this->refBookBaseUrl();
+        $diagnosticsDir = $this->diagnosticsDir($context);
 
         $this->assertRefBookFiles($context, $refBookRoot);
-        $this->assertLegacyHttpPages($context, $baseUrl);
-        $this->assertHistoricalMailpitRecipe($context, $baseUrl);
+        $this->assertLegacyHttpPages($context, $baseUrl, $diagnosticsDir);
+        $this->assertHistoricalMailpitRecipe($context, $baseUrl, $diagnosticsDir);
 
-        $reportPath = $this->writeBindingReport($context, $refBookRoot, $baseUrl);
+        $reportPath = $this->writeBindingReport($context, $refBookRoot, $baseUrl, $diagnosticsDir);
         $context->diagnostic('ASAP_REAL_FEATURE_BINDING_REPORT=' . $reportPath);
+        $context->diagnostic('ASAP_REAL_FEATURE_BINDING_DIAGNOSTICS_DIR=' . $diagnosticsDir);
 
         return [
             'ASAP_REAL_REFBOOK_ROOT_OK',
             'ASAP_REAL_REFBOOK_HTTP_OK',
             'ASAP_REAL_REFBOOK_LEGACY_PAGES_OK',
             'ASAP_REAL_REFBOOK_MAIL_RECIPE_OK',
+            'ASAP_REAL_FEATURE_BINDING_DIAGNOSTICS_OK',
             'ASAP_REAL_FEATURE_BINDING_OK',
         ];
     }
@@ -73,6 +81,16 @@ final class RealFeatureBindingRecipe implements RecipeInterface
         return rtrim((string)(getenv('ASAP_RECIPE_MAILPIT_HTTP') ?: 'http://127.0.0.1:8025'), '/');
     }
 
+    private function diagnosticsDir(RecipeContext $context): string
+    {
+        $dir = $context->runtimePath() . DIRECTORY_SEPARATOR . 'real_feature_binding' . DIRECTORY_SEPARATOR . 'diagnostics';
+        if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
+            throw RecipeAssertionFailedException::because('ASAP_REAL_FEATURE_BINDING_DIAGNOSTICS_DIR_FAILED', $dir);
+        }
+
+        return $dir;
+    }
+
     private function assertRefBookFiles(RecipeContext $context, string $refBookRoot): void
     {
         $context->assert(is_dir($refBookRoot), 'ASAP_REAL_REFBOOK_ROOT_MISSING', $refBookRoot);
@@ -87,12 +105,24 @@ final class RealFeatureBindingRecipe implements RecipeInterface
         }
     }
 
-    private function assertLegacyHttpPages(RecipeContext $context, string $baseUrl): void
+    private function assertLegacyHttpPages(RecipeContext $context, string $baseUrl, string $diagnosticsDir): void
     {
         foreach ($this->legacyHttpPages() as $label => $path) {
-            $response = $this->http($baseUrl . $path);
-            $context->assert($response['status'] === 200, 'ASAP_REAL_REFBOOK_HTTP_PAGE_FAILED', $label . ' :: ' . $baseUrl . $path . ' :: ' . (string)$response['status']);
-            $context->assert($response['body'] !== '', 'ASAP_REAL_REFBOOK_HTTP_PAGE_EMPTY', $label . ' :: ' . $baseUrl . $path);
+            $url = $baseUrl . $path;
+            $response = $this->http($url);
+            $diagnostic = $this->writeHttpDiagnostic($diagnosticsDir, 'http_' . $label, $url, $response);
+            $context->diagnostic('ASAP_REAL_REFBOOK_HTTP_DIAGNOSTIC=' . $diagnostic);
+
+            $context->assert(
+                $response['status'] === 200,
+                'ASAP_REAL_REFBOOK_HTTP_PAGE_FAILED',
+                $label . ' :: ' . $url . ' :: ' . (string)$response['status'] . ' :: diagnostic=' . $diagnostic . ' :: excerpt=' . $this->bodyExcerpt($response['body'])
+            );
+            $context->assert(
+                $response['body'] !== '',
+                'ASAP_REAL_REFBOOK_HTTP_PAGE_EMPTY',
+                $label . ' :: ' . $url . ' :: diagnostic=' . $diagnostic
+            );
         }
     }
 
@@ -108,14 +138,25 @@ final class RealFeatureBindingRecipe implements RecipeInterface
         ];
     }
 
-    private function assertHistoricalMailpitRecipe(RecipeContext $context, string $baseUrl): void
+    private function assertHistoricalMailpitRecipe(RecipeContext $context, string $baseUrl, string $diagnosticsDir): void
     {
         $before = $this->mailpitCount();
         foreach (['one', 'two', 'three'] as $scenario) {
             $url = $baseUrl . '/asap-mail-recipe.php?scenario=' . rawurlencode($scenario) . '&transport=mailpit_smtp';
             $response = $this->http($url, 12.0);
-            $context->assert($response['status'] === 200, 'ASAP_REAL_REFBOOK_MAIL_RECIPE_HTTP_FAILED', $scenario . ' :: ' . (string)$response['status'] . ' :: ' . $response['body']);
-            $context->assert(str_contains($response['body'], 'MAIL') || str_contains($response['body'], 'mail') || str_contains($response['body'], 'OK'), 'ASAP_REAL_REFBOOK_MAIL_RECIPE_MARKER_MISSING', $scenario);
+            $diagnostic = $this->writeHttpDiagnostic($diagnosticsDir, 'mailpit_recipe_' . $scenario, $url, $response);
+            $context->diagnostic('ASAP_REAL_REFBOOK_MAIL_DIAGNOSTIC=' . $diagnostic);
+
+            $context->assert(
+                $response['status'] === 200,
+                'ASAP_REAL_REFBOOK_MAIL_RECIPE_HTTP_FAILED',
+                $scenario . ' :: ' . (string)$response['status'] . ' :: diagnostic=' . $diagnostic . ' :: excerpt=' . $this->bodyExcerpt($response['body'])
+            );
+            $context->assert(
+                str_contains($response['body'], 'MAIL') || str_contains($response['body'], 'mail') || str_contains($response['body'], 'OK'),
+                'ASAP_REAL_REFBOOK_MAIL_RECIPE_MARKER_MISSING',
+                $scenario . ' :: diagnostic=' . $diagnostic
+            );
         }
 
         $deadline = microtime(true) + 12.0;
@@ -130,7 +171,7 @@ final class RealFeatureBindingRecipe implements RecipeInterface
         throw RecipeAssertionFailedException::because('ASAP_REAL_REFBOOK_MAILPIT_COUNT_NOT_INCREASED', 'before=' . (string)$before . ' after=' . (string)($after ?? -1));
     }
 
-    /** @return array{status:int,body:string} */
+    /** @return array{status:int,body:string,headers:array<int,string>} */
     private function http(string $url, float $timeoutSeconds = 5.0): array
     {
         $context = stream_context_create(['http' => ['method' => 'GET', 'ignore_errors' => true, 'timeout' => $timeoutSeconds]]);
@@ -144,7 +185,45 @@ final class RealFeatureBindingRecipe implements RecipeInterface
             }
         }
 
-        return ['status' => $status, 'body' => is_string($body) ? $body : ''];
+        return [
+            'status' => $status,
+            'body' => is_string($body) ? $body : '',
+            'headers' => array_values($headers),
+        ];
+    }
+
+    /**
+     * @param array{status:int,body:string,headers:array<int,string>} $response
+     */
+    private function writeHttpDiagnostic(string $diagnosticsDir, string $label, string $url, array $response): string
+    {
+        $safeLabel = preg_replace('/[^a-zA-Z0-9_.-]+/', '_', $label) ?: 'http';
+        $bodyFile = $diagnosticsDir . DIRECTORY_SEPARATOR . $safeLabel . '.body.txt';
+        $jsonFile = $diagnosticsDir . DIRECTORY_SEPARATOR . $safeLabel . '.json';
+
+        file_put_contents($bodyFile, $response['body']);
+        file_put_contents($jsonFile, json_encode([
+            'schema' => 'ASAP_REAL_HTTP_DIAGNOSTIC_V1',
+            'label' => $label,
+            'url' => $url,
+            'status' => $response['status'],
+            'headers' => $response['headers'],
+            'body_file' => $bodyFile,
+            'body_bytes' => strlen($response['body']),
+            'body_excerpt' => $this->bodyExcerpt($response['body']),
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+
+        return $jsonFile;
+    }
+
+    private function bodyExcerpt(string $body): string
+    {
+        $text = trim((string)preg_replace('/\s+/', ' ', strip_tags($body)));
+        if ($text === '') {
+            $text = trim((string)preg_replace('/\s+/', ' ', $body));
+        }
+
+        return substr($text, 0, 700);
     }
 
     private function mailpitCount(): int
@@ -180,7 +259,7 @@ final class RealFeatureBindingRecipe implements RecipeInterface
         return $decoded;
     }
 
-    private function writeBindingReport(RecipeContext $context, string $refBookRoot, string $baseUrl): string
+    private function writeBindingReport(RecipeContext $context, string $refBookRoot, string $baseUrl, string $diagnosticsDir): string
     {
         $dir = $context->runtimePath() . DIRECTORY_SEPARATOR . 'real_feature_binding';
         if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
@@ -193,6 +272,7 @@ final class RealFeatureBindingRecipe implements RecipeInterface
             'base_url' => $baseUrl,
             'legacy_pages' => $this->legacyHttpPages(),
             'mailpit_http' => $this->mailpitHttpBase(),
+            'diagnostics_dir' => $diagnosticsDir,
             'status' => 'OK',
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 

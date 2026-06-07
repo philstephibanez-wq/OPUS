@@ -27,3 +27,7 @@ Restaurer un contrat officiel d'autoload/cache ASAP après les renommages `ASAP`
 php tools\autoload\asap_autoload_cache_build.php --root=H:\ASAP --assert
 php tools\recipes\asap_autoload_cache_recipe.php
 ```
+
+## Terminologie
+
+Le cache autoloader est le class index officiel ASAP pour les recettes et les contrôles runtime.

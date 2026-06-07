@@ -103,3 +103,7 @@
 
 - Après validation, relancer P112Q2K pour diagnostiquer la panne réelle `ASAP_REF_BOOK` avec un autoload/cache propre.
 
+## P112Q2L_ASAP_REAL_REFBOOK_HTTP_DIAGNOSTICS
+
+- Après validation, conserver les diagnostics HTTP comme contrat de recette réelle pour les futures évolutions RefBook.
+

@@ -103,3 +103,9 @@
 - Génération du cache `var/cache/asap/autoload/asap_classmap.php`.
 - Recette `ASAP_AUTOLOADER_CACHE_OK`.
 
+## P112Q2L_ASAP_REAL_REFBOOK_HTTP_DIAGNOSTICS
+
+- Ajout d'artefacts diagnostic HTTP pour la recette réelle `ASAP_REF_BOOK`.
+- Chaque page testée écrit un JSON et un corps brut dans `var/recipes/.../real_feature_binding/diagnostics`.
+- La recette globale expose `ASAP_REAL_FEATURE_BINDING_DIAGNOSTICS_OK`.
+

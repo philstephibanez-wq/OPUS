@@ -158,3 +158,7 @@ ASAP_GLOBAL_RECIPE_OK
 
 Stage-only. Ajoute `AutoloadCache`, `ClassMapBuilder`, recette dédiée, manifest anti-régression, et runner de test sans PowerShell encodé.
 
+## P112Q2L_ASAP_REAL_REFBOOK_HTTP_DIAGNOSTICS
+
+Stage-only. Rend les erreurs HTTP réelles observables au lieu d'un simple statut 500 opaque.
+

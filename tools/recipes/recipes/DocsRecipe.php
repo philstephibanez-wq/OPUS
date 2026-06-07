@@ -24,6 +24,8 @@ final class DocsRecipe implements RecipeInterface
             'DOC/P112Q2J3_ASAP_RECIPE_LIVE_MOVIE_DASHBOARD.md',
             'DOC/P112Q2J4_ASAP_REAL_MAILPIT_LIVE_RECIPE.md',
             'DOC/P112Q2K_ASAP_REAL_FEATURES_RECIPE_BINDING.md',
+            'DOC/P112Q2K1_ASAP_AUTOLOADER_CACHE_CONTRACT.md',
+            'DOC/P112Q2L_ASAP_REAL_REFBOOK_HTTP_DIAGNOSTICS.md',
         ] as $file) {
             $context->assertFile($file);
         }
@@ -33,6 +35,8 @@ final class DocsRecipe implements RecipeInterface
         $movieDoc = file_get_contents($context->path('DOC/P112Q2J3_ASAP_RECIPE_LIVE_MOVIE_DASHBOARD.md')) ?: '';
         $mailpitDoc = file_get_contents($context->path('DOC/P112Q2J4_ASAP_REAL_MAILPIT_LIVE_RECIPE.md')) ?: '';
         $realFeaturesDoc = file_get_contents($context->path('DOC/P112Q2K_ASAP_REAL_FEATURES_RECIPE_BINDING.md')) ?: '';
+        $autoloadCacheDoc = file_get_contents($context->path('DOC/P112Q2K1_ASAP_AUTOLOADER_CACHE_CONTRACT.md')) ?: '';
+        $realDiagnosticsDoc = file_get_contents($context->path('DOC/P112Q2L_ASAP_REAL_REFBOOK_HTTP_DIAGNOSTICS.md')) ?: '';
         $context->assert(str_contains($readme, 'NO DOC CONTRACT, NO PATCH'), 'ASAP_DOC_CONTRACT_MARKER_MISSING');
         foreach (['technical recipes', 'life robot', 'manifest', 'ASAP_GLOBAL_RECIPE_OK'] as $needle) {
             $context->assert(str_contains($suiteDoc, $needle), 'ASAP_Q2J_DOC_SECTION_MISSING', $needle);
@@ -48,6 +52,12 @@ final class DocsRecipe implements RecipeInterface
         }
         foreach (['ASAP_REF_BOOK', 'real feature binding', 'asap-mail-recipe.php', 'auto-recipe', 'ASAP_REAL_FEATURE_BINDING_OK'] as $needle) {
             $context->assert(str_contains($realFeaturesDoc, $needle), 'ASAP_Q2K_DOC_SECTION_MISSING', $needle);
+        }
+        foreach (['ASAP_AUTOLOADER_CACHE_OK', 'class index', 'var/cache/asap/autoload'] as $needle) {
+            $context->assert(str_contains($autoloadCacheDoc, $needle), 'ASAP_Q2K1_DOC_SECTION_MISSING', $needle);
+        }
+        foreach (['ASAP_REAL_FEATURE_BINDING_DIAGNOSTICS_OK', 'diagnostic JSON', 'body excerpt', 'opaque 500'] as $needle) {
+            $context->assert(str_contains($realDiagnosticsDoc, $needle), 'ASAP_Q2L_DOC_SECTION_MISSING', $needle);
         }
 
         return ['ASAP_DOCS_OK'];
