@@ -18,6 +18,20 @@ namespace ASAP\Fsm;
  *   Memory keys must be explicit non-empty strings. No implicit serialization fallback.
  *
  * @package ASAP\Fsm
+ /**
+ * ASAP_REFBOOK:
+ *   domain: FSM
+ *   role: Official memory holder for current FSM state.
+ *   contract:
+ *     - stores current state only through explicit API
+ *     - does not decide transitions
+ *     - does not silently invent default states
+ *   examples:
+ *     - fsm-basic-transition
+ *   diagrams:
+ *     - fsm-runtime
+ * END_ASAP_REFBOOK
+ */
  */
 final class StateMemory
 {

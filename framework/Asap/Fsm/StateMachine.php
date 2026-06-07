@@ -18,6 +18,20 @@ namespace ASAP\Fsm;
  *   No fallback state. No implicit transition. No GraphViz dependency. No destructor persistence.
  *
  * @package ASAP\Fsm
+ /**
+ * ASAP_REFBOOK:
+ *   domain: FSM
+ *   role: Runtime executor that evaluates signals, guards and transitions.
+ *   contract:
+ *     - owns transition execution only
+ *     - does not persist state outside the official memory contract
+ *     - returns explicit transition results
+ *   examples:
+ *     - fsm-basic-transition
+ *   diagrams:
+ *     - fsm-runtime
+ * END_ASAP_REFBOOK
+ */
  */
 final class StateMachine
 {

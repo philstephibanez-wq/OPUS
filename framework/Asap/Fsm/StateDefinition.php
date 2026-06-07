@@ -18,6 +18,20 @@ namespace ASAP\Fsm;
  *   State identifiers must be explicit non-empty strings.
  *
  * @package ASAP\Fsm
+ /**
+ * ASAP_REFBOOK:
+ *   domain: FSM
+ *   role: Immutable definition of one FSM state.
+ *   contract:
+ *     - describes state metadata only
+ *     - does not execute transitions
+ *     - is consumed by the StateMachine runtime
+ *   examples:
+ *     - fsm-definition
+ *   diagrams:
+ *     - fsm-runtime
+ * END_ASAP_REFBOOK
+ */
  */
 final class StateDefinition
 {

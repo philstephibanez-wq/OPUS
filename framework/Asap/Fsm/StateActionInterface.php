@@ -18,6 +18,20 @@ namespace ASAP\Fsm;
  *   Actions are declared objects. No arbitrary function name fallback is allowed.
  *
  * @package ASAP\Fsm
+ /**
+ * ASAP_REFBOOK:
+ *   domain: FSM
+ *   role: Contract for state or transition actions executed by the FSM runtime.
+ *   contract:
+ *     - defines the callable boundary for actions
+ *     - does not own transition selection
+ *     - must expose explicit action failures
+ *   examples:
+ *     - fsm-action
+ *   diagrams:
+ *     - fsm-runtime
+ * END_ASAP_REFBOOK
+ */
  */
 interface StateActionInterface
 {

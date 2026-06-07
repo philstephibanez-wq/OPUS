@@ -18,6 +18,20 @@ namespace ASAP\Fsm;
  *   A transition is valid only when all identifiers are explicit.
  *
  * @package ASAP\Fsm
+ /**
+ * ASAP_REFBOOK:
+ *   domain: FSM
+ *   role: Immutable definition of a transition between two states.
+ *   contract:
+ *     - declares source state, signal and target state
+ *     - does not execute side effects directly
+ *     - is selected by the StateMachine runtime
+ *   examples:
+ *     - fsm-basic-transition
+ *   diagrams:
+ *     - fsm-runtime
+ * END_ASAP_REFBOOK
+ */
  */
 final class TransitionDefinition
 {

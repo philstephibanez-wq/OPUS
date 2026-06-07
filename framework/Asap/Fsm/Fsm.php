@@ -15,6 +15,20 @@ namespace ASAP\Fsm;
  *
  * Since:
  *   P112P1
+ /**
+ * ASAP_REFBOOK:
+ *   domain: FSM
+ *   role: Public facade for ASAP finite-state workflow services.
+ *   contract:
+ *     - keeps FSM access behind an explicit framework API
+ *     - does not render UI or execute unrelated business logic
+ *     - must fail explicitly when FSM contracts are invalid
+ *   examples:
+ *     - fsm-basic-transition
+ *   diagrams:
+ *     - fsm-runtime
+ * END_ASAP_REFBOOK
+ */
  */
 final class Fsm
 {

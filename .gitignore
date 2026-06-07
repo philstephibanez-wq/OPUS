@@ -79,3 +79,4 @@ Thumbs.db
 /var/cache/asap/autoload/
 
 /var/audit/
+/var/generated/

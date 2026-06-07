@@ -18,6 +18,20 @@ namespace ASAP\Fsm;
  *   Signal identifiers must be explicit non-empty strings.
  *
  * @package ASAP\Fsm
+ /**
+ * ASAP_REFBOOK:
+ *   domain: FSM
+ *   role: Immutable definition of a signal accepted by an FSM.
+ *   contract:
+ *     - describes signal identity and metadata only
+ *     - does not mutate state
+ *     - is validated before transition execution
+ *   examples:
+ *     - fsm-definition
+ *   diagrams:
+ *     - fsm-runtime
+ * END_ASAP_REFBOOK
+ */
  */
 final class SignalDefinition
 {
