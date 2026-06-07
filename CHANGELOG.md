@@ -89,3 +89,17 @@
 - Added Mailpit availability, send, receive and content assertions to the global ASAP recipe.
 - Added real Mailpit markers to the visible live recipe dashboard.
 
+
+## P112Q2K_ASAP_REAL_FEATURES_RECIPE_BINDING
+
+- Added a mandatory real feature binding recipe for ASAP_REF_BOOK.
+- Added HTTP checks for historical ASAP pages: `/`, `/auto-recipe`, `/panther-browser-testing`, `/total-apache-recipe`, `/asap-ui-functional-target.html`.
+- Added historical Mailpit recipe checks through `asap-mail-recipe.php?scenario=one|two|three&transport=mailpit_smtp`.
+- Registered real feature binding in the global feature manifest and recipe manifest.
+
+## P112Q2K1_ASAP_AUTOLOADER_CACHE_CONTRACT
+
+- Ajout du contrat officiel `ASAP\Autoload`.
+- Génération du cache `var/cache/asap/autoload/asap_classmap.php`.
+- Recette `ASAP_AUTOLOADER_CACHE_OK`.
+

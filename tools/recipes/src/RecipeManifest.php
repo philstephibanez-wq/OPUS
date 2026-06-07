@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ASAP\Recipe;
 
 use ASAP\Recipe\Recipes\AclRecipe;
+use ASAP\Recipe\Recipes\AutoloadCacheRecipe;
 use ASAP\Recipe\Recipes\CoreAutoloadRecipe;
 use ASAP\Recipe\Recipes\DatabaseRecipe;
 use ASAP\Recipe\Recipes\DocsRecipe;
@@ -17,6 +18,7 @@ use ASAP\Recipe\Recipes\MailRecipe;
 use ASAP\Recipe\Recipes\NamingRecipe;
 use ASAP\Recipe\Recipes\PhpLintRecipe;
 use ASAP\Recipe\Recipes\PreflightRecipe;
+use ASAP\Recipe\Recipes\RealFeatureBindingRecipe;
 use ASAP\Recipe\Recipes\RoutingRecipe;
 use ASAP\Recipe\Recipes\TemplateRecipe;
 use ASAP\Recipe\Life\Scenarios\AclAccessLifecycleScenario;
@@ -61,6 +63,8 @@ final class RecipeManifest
             new PhpLintRecipe(),
             new DocsRecipe(),
             new FeatureManifestRecipe(),
+            new AutoloadCacheRecipe(),
+            new RealFeatureBindingRecipe(),
             new CoreAutoloadRecipe(),
             new DatabaseRecipe(),
             new FsmRecipe(),

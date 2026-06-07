@@ -92,3 +92,14 @@
 - Keep Mailpit ports configurable by environment variables for future non-default setups.
 - Extend visible dashboard with screenshots/Panther only after legacy browser recipe inventory is restored.
 
+
+## P112Q2K follow-up
+
+- Keep real feature URL list synchronized with the ASAP_REF_BOOK historical pages.
+- Add screenshot/Panther verification only after the real feature binding remains stable.
+- Do not validate future visual recipes without real feature binding passing first.
+
+## P112Q2K1_ASAP_AUTOLOADER_CACHE_CONTRACT
+
+- Après validation, relancer P112Q2K pour diagnostiquer la panne réelle `ASAP_REF_BOOK` avec un autoload/cache propre.
+

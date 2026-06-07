@@ -137,3 +137,24 @@ ASAP_GLOBAL_RECIPE_OK
 - Modified `tools/recipes/life/scenarios/HttpMailLifeRobotScenario.php` to use Mailpit SMTP/API instead of a fake JSON inbox.
 - Updated docs and feature manifest for real Mailpit life recipe coverage.
 
+
+## P112Q2K_ASAP_REAL_FEATURES_RECIPE_BINDING
+
+### Scope
+
+- Add `ASAP\Recipe\Recipes\RealFeatureBindingRecipe`.
+- Register the recipe in `RecipeManifest` after feature manifest validation.
+- Register `real_features_recipe_binding` in `tools/recipes/manifest/asap_feature_manifest.php`.
+- Extend docs validation to require the P112Q2K contract.
+
+### Contract
+
+- No sandbox-only success is accepted as a complete ASAP anti-regression proof.
+- The recipe checks the real `ASAP_REF_BOOK` root and real UwAmp HTTP endpoints.
+- The recipe checks the historical Mailpit mail recipe and verifies Mailpit message count growth.
+- Missing real routes or missing Mailpit produce explicit failures.
+
+## P112Q2K1_ASAP_AUTOLOADER_CACHE_CONTRACT
+
+Stage-only. Ajoute `AutoloadCache`, `ClassMapBuilder`, recette dédiée, manifest anti-régression, et runner de test sans PowerShell encodé.
+

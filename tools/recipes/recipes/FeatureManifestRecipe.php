@@ -42,7 +42,7 @@ final class FeatureManifestRecipe implements RecipeInterface
             }
         }
 
-        foreach (['core_autoload', 'database_multi_provider', 'fsm', 'acl', 'i18n', 'routing', 'template', 'mail', 'real_mailpit_life_recipe', 'lstsar', 'live_movie_dashboard', 'global_recipe_suite'] as $requiredId) {
+        foreach (['autoload_cache', 'core_autoload', 'database_multi_provider', 'fsm', 'acl', 'i18n', 'routing', 'template', 'mail', 'real_mailpit_life_recipe', 'real_features_recipe_binding', 'lstsar', 'live_movie_dashboard', 'global_recipe_suite'] as $requiredId) {
             $context->assert(isset($ids[$requiredId]), 'ASAP_FEATURE_MANIFEST_REQUIRED_ID_MISSING', $requiredId);
         }
 

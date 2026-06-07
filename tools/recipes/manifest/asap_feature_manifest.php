@@ -4,6 +4,14 @@ declare(strict_types=1);
 
 return [
     [
+        'id' => 'autoload_cache',
+        'label' => 'Official ASAP autoloader classmap cache',
+        'technical_recipe' => 'autoload_cache',
+        'life_recipe' => 'life_http_mail_robot',
+        'docs' => ['DOC/P112Q2K1_ASAP_AUTOLOADER_CACHE_CONTRACT.md'],
+        'paths' => ['framework/Asap/Autoload', 'tools/autoload/asap_autoload_cache_build.php', 'tools/recipes/recipes/AutoloadCacheRecipe.php'],
+    ],
+    [
         'id' => 'core_autoload',
         'label' => 'ASAP core autoload and HTTP primitives',
         'technical_recipe' => 'core_autoload',
@@ -90,6 +98,15 @@ return [
         'life_recipe' => 'life_http_mail_robot',
         'docs' => ['DOC/P112Q2J3_ASAP_RECIPE_LIVE_MOVIE_DASHBOARD.md', 'DOC/P112Q2J4_ASAP_REAL_MAILPIT_LIVE_RECIPE.md'],
         'paths' => ['tools/recipes/life/scenarios/HttpMailLifeRobotScenario.php', 'tools/recipes/RUN_ASAP_FULL_RECIPE_VISIBLE_BROWSER.cmd'],
+    ],
+
+    [
+        'id' => 'real_features_recipe_binding',
+        'label' => 'Real ASAP_REF_BOOK feature binding and historical recipe anti-regression',
+        'technical_recipe' => 'real_feature_binding',
+        'life_recipe' => 'life_http_mail_robot',
+        'docs' => ['DOC/P112Q2K_ASAP_REAL_FEATURES_RECIPE_BINDING.md'],
+        'paths' => ['tools/recipes/recipes/RealFeatureBindingRecipe.php', 'tools/recipes/manifest/asap_feature_manifest.php'],
     ],
     [
         'id' => 'global_recipe_suite',

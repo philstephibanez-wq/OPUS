@@ -77,7 +77,8 @@ final class SiteResolver
 
         $databaseFile = null;
 
-        if ($databaseElement instanceof SimpleXMLElement && count($databaseElement->attributes()) > 0) {
+        $databaseAttributes = $databaseElement instanceof SimpleXMLElement ? $databaseElement->attributes() : null;
+        if ($databaseAttributes instanceof SimpleXMLElement && count($databaseAttributes) > 0) {
             $databaseFileName = trim((string) ($databaseElement['file'] ?? ''));
 
             if ($databaseFileName === '') {

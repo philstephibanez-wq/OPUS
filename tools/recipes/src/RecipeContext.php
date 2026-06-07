@@ -82,24 +82,30 @@ final class RecipeContext
         return $path;
     }
 
-    /** PUBLIC API: register the ASAP PSR-4 autoloader for recipe checks. */
+    /** PUBLIC API: register the official ASAP classmap-cache autoloader for recipe checks. */
     public function registerAsapAutoload(): void
     {
         $root = $this->rootPath;
-        spl_autoload_register(static function (string $class) use ($root): void {
-            $prefix = 'ASAP\\';
-            if (!str_starts_with($class, $prefix)) {
-                return;
+        $autoloadCache = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap'
+            . DIRECTORY_SEPARATOR . 'Autoload' . DIRECTORY_SEPARATOR . 'AutoloadCache.php';
+        $classMapBuilder = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap'
+            . DIRECTORY_SEPARATOR . 'Autoload' . DIRECTORY_SEPARATOR . 'ClassMapBuilder.php';
+
+        if (is_file($autoloadCache) && is_file($classMapBuilder)) {
+            require_once $classMapBuilder;
+            require_once $autoloadCache;
+
+            $cacheFile = \ASAP\Autoload\AutoloadCache::defaultCacheFile($root);
+            if (!is_file($cacheFile)) {
+                $builder = new \ASAP\Autoload\ClassMapBuilder();
+                $builder->write($builder->build($root), $cacheFile);
             }
 
-            $relative = substr($class, strlen($prefix));
-            $path = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR
-                . str_replace('\\', DIRECTORY_SEPARATOR, $relative) . '.php';
+            (new \ASAP\Autoload\AutoloadCache($root, $cacheFile))->register();
+            return;
+        }
 
-            if (is_file($path)) {
-                require_once $path;
-            }
-        });
+        throw RecipeAssertionFailedException::because('ASAP_AUTOLOADER_CACHE_RUNTIME_MISSING', $autoloadCache);
     }
 
     /**
