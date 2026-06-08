@@ -1,7 +1,7 @@
 {
     "id": "P112Q3B2_ASAP_SECURE_LIFE_ROBOTIZED_RECIPE",
     "status": "OK",
-    "generated_at": "2026-06-08T16:46:44+00:00",
+    "generated_at": "2026-06-08T17:49:39+00:00",
     "matrix_ok": true,
     "scenarios": [
         {
@@ -269,15 +269,13 @@
         }
     ],
     "mail": {
-        "status": "DELIVERED_TO_MAILPIT",
-        "reason": "SMTP_ACCEPTED_BY_LOCAL_MAILPIT",
-        "required": true,
-        "mode": "smtp",
-        "host": "127.0.0.1",
-        "port": 1025,
-        "to": "philstephibanez@gamil.com",
+        "status": "EML_WRITTEN",
+        "reason": "MAIL_EML_WRITTEN_NOT_SENT",
+        "required": false,
+        "mode": "eml",
+        "to": "smoke@example.invalid",
         "from": "asap-recipes@localhost",
-        "smtp_data_response": "250 2.0.0 Ok: queued as 2YAXATL2T0qG5tterpNSa5"
+        "eml_path": "H:\\ASAP/var/reports/p112q3b2/p112q3b2_secure_life_robotized_recipe.eml"
     },
     "panther": {
         "status": "SKIPPED",

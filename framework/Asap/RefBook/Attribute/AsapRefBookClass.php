@@ -1,0 +1,90 @@
+<?php
+
+declare(strict_types=1);
+
+namespace ASAP\RefBook\Attribute;
+
+use Attribute;
+
+/**
+ * PUBLIC RefBook class metadata attribute.
+ *
+ * Role:
+ *   Declares functional documentation metadata that PHP Reflection cannot infer
+ *   from the source signature alone.
+ *
+ * Contract:
+ *   - never repeats technical data that Reflection owns;
+ *   - describes domain, role, responsibility and functional contract;
+ *   - remains machine-readable for ASAP_REF_BOOK snapshot/API generation;
+ *   - contains only immutable constructor data.
+ */
+#[Attribute(Attribute::TARGET_CLASS)]
+final class AsapRefBookClass
+{
+    private string $domain;
+    private string $role;
+    private string $responsibility;
+    private string $visibility;
+
+    /** @var array<int,string> */
+    private array $contracts;
+
+    /** @var array<int,string> */
+    private array $examples;
+
+    /** @var array<int,string> */
+    private array $diagrams;
+    private string $introducedIn;
+
+    /**
+     * PUBLIC metadata constructor.
+     *
+     * @param string $domain Functional ASAP domain, for example FSM, ACL, Router or RefBook.
+     * @param string $role Short functional role displayed by the Reference Book.
+     * @param string $responsibility Precise business responsibility of the class.
+     * @param string $visibility Contractual visibility: public-api, internal or private.
+     * @param array<int,string> $contracts Business contract rules and invariants.
+     * @param array<int,string> $examples Stable example identifiers consumed by ASAP_REF_BOOK.
+     * @param array<int,string> $diagrams Stable diagram identifiers consumed by ASAP_REF_BOOK.
+     * @param string $introducedIn Optional delivery or version marker.
+     */
+    public function __construct(
+        string $domain,
+        string $role,
+        string $responsibility,
+        string $visibility = 'public-api',
+        array $contracts = [],
+        array $examples = [],
+        array $diagrams = [],
+        string $introducedIn = ''
+    ) {
+        $this->domain = $domain;
+        $this->role = $role;
+        $this->responsibility = $responsibility;
+        $this->visibility = $visibility;
+        $this->contracts = $contracts;
+        $this->examples = $examples;
+        $this->diagrams = $diagrams;
+        $this->introducedIn = $introducedIn;
+    }
+
+    /**
+     * PUBLIC exporter used by the Reflection scanner.
+     *
+     * @return array<string,mixed> Machine-readable RefBook class metadata.
+     */
+    public function toArray(): array
+    {
+        return [
+            'domain' => $this->domain,
+            'role' => $this->role,
+            'responsibility' => $this->responsibility,
+            'visibility' => $this->visibility,
+            'contracts' => $this->contracts,
+            'examples' => $this->examples,
+            'diagrams' => $this->diagrams,
+            'introduced_in' => $this->introducedIn,
+        ];
+    }
+}

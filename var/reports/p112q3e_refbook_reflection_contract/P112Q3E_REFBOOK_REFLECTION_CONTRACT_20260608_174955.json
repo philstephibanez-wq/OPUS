@@ -1,0 +1,5147 @@
+{
+    "palier": "P112Q3E",
+    "strict": true,
+    "snapshot_schema_version": "asap-refbook-snapshot/v1",
+    "summary": {
+        "classes": 198,
+        "public_methods": 535,
+        "class_metadata_missing": 198,
+        "method_metadata_missing": 535,
+        "load_errors": 0,
+        "violations": 733
+    },
+    "violations": [
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Acl\\AccessConditionInterface",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\AccessConditionInterface",
+            "method": "allows",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Acl\\AccessContext",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\AccessContext",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\AccessContext",
+            "method": "get",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\AccessContext",
+            "method": "has",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Acl\\AccessControl",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\AccessControl",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\AccessControl",
+            "method": "decide",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Acl\\AccessControlException",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\AccessControlException",
+            "method": "contract",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Acl\\AccessDecision",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\AccessDecision",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\AccessDecision",
+            "method": "allowed",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\AccessDecision",
+            "method": "reason",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Acl\\AccessDeniedException",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Acl\\AccessRule",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\AccessRule",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\AccessRule",
+            "method": "allows",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\AccessRule",
+            "method": "condition",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\AccessRule",
+            "method": "key",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Acl\\Acl",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\Acl",
+            "method": "canView",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Acl\\PrivilegeDefinition",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\PrivilegeDefinition",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\PrivilegeDefinition",
+            "method": "id",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Acl\\ResourceDefinition",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\ResourceDefinition",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\ResourceDefinition",
+            "method": "id",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Acl\\RoleDefinition",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\RoleDefinition",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Acl\\RoleDefinition",
+            "method": "id",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Action\\Action",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Action\\Action",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Application\\Application",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Application\\Application",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Application\\Application",
+            "method": "run",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Application\\ApplicationFacade",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Application\\ApplicationFacade",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Application\\ApplicationFacade",
+            "method": "run",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Application\\ApplicationPaths",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Application\\ApplicationPaths",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Asset\\Asset",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Asset\\Asset",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Asset\\Asset",
+            "method": "css",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Asset\\Asset",
+            "method": "image",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Asset\\Asset",
+            "method": "isCss",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Asset\\Asset",
+            "method": "isImage",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Asset\\Asset",
+            "method": "isJs",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Asset\\Asset",
+            "method": "js",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Asset\\AssetDefinition",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Asset\\AssetDefinition",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Asset\\AssetRegistry",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Asset\\AssetRegistry",
+            "method": "add",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Asset\\AssetRegistry",
+            "method": "byType",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Autoload\\AutoloadCache",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Autoload\\AutoloadCache",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Autoload\\AutoloadCache",
+            "method": "defaultCacheFile",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Autoload\\AutoloadCache",
+            "method": "load",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Autoload\\AutoloadCache",
+            "method": "register",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Autoload\\ClassMapBuilder",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Autoload\\ClassMapBuilder",
+            "method": "build",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Autoload\\ClassMapBuilder",
+            "method": "write",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Cache\\Cache",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Cache\\Cache",
+            "method": "all",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Cache\\Cache",
+            "method": "clear",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Cache\\Cache",
+            "method": "count",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Cache\\Cache",
+            "method": "get",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Cache\\Cache",
+            "method": "getOrDefault",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Cache\\Cache",
+            "method": "has",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Cache\\Cache",
+            "method": "remove",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Cache\\Cache",
+            "method": "set",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Compatibility\\SimpleXMLElementExtended",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Compatibility\\SimpleXMLElementExtended",
+            "method": "getAttribute",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Compatibility\\SimpleXMLElementExtended",
+            "method": "getAttributeCount",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Compatibility\\SimpleXMLElementExtended",
+            "method": "getAttributeNames",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Compatibility\\SimpleXMLElementExtended",
+            "method": "getAttributesArray",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Compatibility\\SimpleXMLElementExtended",
+            "method": "getChildrenCount",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Compatibility\\Singleton",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Compatibility\\Singleton",
+            "method": "__call",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Compatibility\\Singleton",
+            "method": "getInstance",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Config\\ConfigBag",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\ConfigBag",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\ConfigBag",
+            "method": "boolean",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\ConfigBag",
+            "method": "integer",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\ConfigBag",
+            "method": "string",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Config\\ConfigException",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\ConfigException",
+            "method": "because",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Config\\ConfigLoader",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\ConfigLoader",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\ConfigLoader",
+            "method": "getConfig",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\ConfigLoader",
+            "method": "load",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Config\\Configuration",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\Configuration",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\Configuration",
+            "method": "all",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\Configuration",
+            "method": "get",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\Configuration",
+            "method": "getDatabase",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\Configuration",
+            "method": "getEnv",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\Configuration",
+            "method": "getRoutes",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\Configuration",
+            "method": "get_browser",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\Configuration",
+            "method": "get_os",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\Configuration",
+            "method": "has",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\Configuration",
+            "method": "set",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\Configuration",
+            "method": "setEnv",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Config\\XmlConfigReader",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Config\\XmlConfigReader",
+            "method": "read",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Contract\\ContractException",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Contract\\ContractException",
+            "method": "because",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Controller\\AbstractController",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Controller\\Controller",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Controller\\Controller",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Controller\\ControllerDispatcher",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Controller\\ControllerDispatcher",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Controller\\ControllerDispatcher",
+            "method": "dispatch",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Controller\\ControllerException",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Controller\\ControllerException",
+            "method": "because",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Controller\\ControllerInterface",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Cookie\\Cookie",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Cookie\\Cookie",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Core\\Bootstrap",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Core\\Bootstrap",
+            "method": "run",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Core\\Kernel",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Core\\Kernel",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Core\\Kernel",
+            "method": "apiUrl",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Core\\Kernel",
+            "method": "assetUrl",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Core\\Kernel",
+            "method": "getPackage",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Core\\Kernel",
+            "method": "handle",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Core\\Kernel",
+            "method": "packageUrl",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Core\\Kernel",
+            "method": "pageUrl",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Core\\Kernel",
+            "method": "rootDir",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Css\\Css",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Css\\Css",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Database\\Database",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\Database",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\Database",
+            "method": "pdo",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Database\\DatabaseConfigLoader",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseConfigLoader",
+            "method": "fromXml",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseConfigLoader",
+            "method": "loadXmlFile",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Database\\DatabaseConnectionConfig",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseConnectionConfig",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseConnectionConfig",
+            "method": "normalizedProvider",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseConnectionConfig",
+            "method": "optionalParameter",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseConnectionConfig",
+            "method": "parameter",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Database\\DatabaseConnectionsConfig",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseConnectionsConfig",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseConnectionsConfig",
+            "method": "all",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseConnectionsConfig",
+            "method": "assertValidName",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseConnectionsConfig",
+            "method": "count",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseConnectionsConfig",
+            "method": "default",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseConnectionsConfig",
+            "method": "defaultName",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseConnectionsConfig",
+            "method": "get",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseConnectionsConfig",
+            "method": "has",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseConnectionsConfig",
+            "method": "names",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Database\\DatabaseDsnFactory",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseDsnFactory",
+            "method": "build",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Database\\DatabaseException",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseException",
+            "method": "because",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Database\\DatabaseMultiConfigLoader",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseMultiConfigLoader",
+            "method": "fromXml",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseMultiConfigLoader",
+            "method": "loadXmlFile",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Database\\DatabaseProvider",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseProvider",
+            "method": "assertSupported",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseProvider",
+            "method": "normalize",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseProvider",
+            "method": "pdoDriver",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\DatabaseProvider",
+            "method": "supported",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Database\\Mysql",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\Mysql",
+            "method": "connect",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Database\\Odbc",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\Odbc",
+            "method": "connect",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Database\\Oracle",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\Oracle",
+            "method": "connect",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Database\\PdoDatabaseConnector",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\PdoDatabaseConnector",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\PdoDatabaseConnector",
+            "method": "connect",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Database\\Postgresql",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\Postgresql",
+            "method": "connect",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Database\\SqlServer",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\SqlServer",
+            "method": "connect",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Database\\Sqlite",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Database\\Sqlite",
+            "method": "connect",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Date\\Date",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Date\\Date",
+            "method": "now",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Date\\Date",
+            "method": "parse",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Debug\\Debug",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Debug\\Debug",
+            "method": "add",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Debug\\Debug",
+            "method": "addClasses",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Debug\\Debug",
+            "method": "addDump",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Debug\\Debug",
+            "method": "dump",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Debug\\Debug",
+            "method": "get",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Debug\\Debug",
+            "method": "setDebug",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Directory\\Directory",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Directory\\Directory",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Directory\\Directory",
+            "method": "files",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Documentation\\MarkdownHtmlRenderer",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Documentation\\MarkdownHtmlRenderer",
+            "method": "render",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Documentation\\MarkdownPage",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Documentation\\MarkdownPage",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Documentation\\MarkdownPageRepository",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Documentation\\MarkdownPageRepository",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Documentation\\MarkdownPageRepository",
+            "method": "get",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Event\\Event",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Event\\Event",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Exception\\Exception",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Exception\\Exception",
+            "method": "because",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\File\\File",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\File\\File",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\File\\File",
+            "method": "read",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Form\\FormDefinition",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Form\\FormDefinition",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Form\\FormDefinition",
+            "method": "fields",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Form\\FormError",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Form\\FormError",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Form\\FormException",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Form\\FormException",
+            "method": "because",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Form\\FormField",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Form\\FormField",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Form\\FormValidationResult",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Form\\FormValidationResult",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Form\\FormValidationResult",
+            "method": "isValid",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Form\\FormValidator",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Form\\FormValidator",
+            "method": "validate",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Form\\SubmittedForm",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Form\\SubmittedForm",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Form\\SubmittedForm",
+            "method": "value",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Fsm\\Fsm",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\Fsm",
+            "method": "demoFlow",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Fsm\\SignalDefinition",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\SignalDefinition",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\SignalDefinition",
+            "method": "id",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Fsm\\StateActionInterface",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\StateActionInterface",
+            "method": "execute",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Fsm\\StateDefinition",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\StateDefinition",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\StateDefinition",
+            "method": "id",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\StateDefinition",
+            "method": "label",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Fsm\\StateMachine",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\StateMachine",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\StateMachine",
+            "method": "apply",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\StateMachine",
+            "method": "currentState",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\StateMachine",
+            "method": "memory",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Fsm\\StateMachineException",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\StateMachineException",
+            "method": "contract",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Fsm\\StateMemory",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\StateMemory",
+            "method": "export",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\StateMemory",
+            "method": "get",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\StateMemory",
+            "method": "set",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Fsm\\TransitionDefinition",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\TransitionDefinition",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\TransitionDefinition",
+            "method": "action",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\TransitionDefinition",
+            "method": "fromState",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\TransitionDefinition",
+            "method": "key",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\TransitionDefinition",
+            "method": "signal",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\TransitionDefinition",
+            "method": "toState",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Fsm\\TransitionResult",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\TransitionResult",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\TransitionResult",
+            "method": "fromState",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\TransitionResult",
+            "method": "signal",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Fsm\\TransitionResult",
+            "method": "toState",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Ftp\\Ftp",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Ftp\\Ftp",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Ftp\\Ftp",
+            "method": "host",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Helper\\Helper",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Helper\\Helper",
+            "method": "escape",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Helper\\Helper",
+            "method": "slug",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Helper\\HtmlHelper",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Helper\\HtmlHelper",
+            "method": "attributes",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Helper\\HtmlHelper",
+            "method": "escape",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Helper\\TextHelper",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Helper\\TextHelper",
+            "method": "slug",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Http\\Request",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Http\\Request",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Http\\Request",
+            "method": "fromGlobals",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Http\\Response",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Http\\Response",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Http\\Response",
+            "method": "html",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Http\\Response",
+            "method": "json",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Http\\Response",
+            "method": "send",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\I18n\\I18n",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\I18n",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\I18n",
+            "method": "dictionary",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\I18n",
+            "method": "getAvalaibleLanguages",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\I18n",
+            "method": "getDictionary",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\I18n",
+            "method": "getInstance",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\I18n",
+            "method": "loadDictionary",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\I18n",
+            "method": "plural",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\I18n",
+            "method": "t",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\I18n",
+            "method": "translate",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\I18n\\JsonTranslationCatalogLoader",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\JsonTranslationCatalogLoader",
+            "method": "load",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\I18n\\LocaleCode",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\LocaleCode",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\LocaleCode",
+            "method": "toString",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\I18n\\PluralRuleInterface",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\PluralRuleInterface",
+            "method": "select",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\I18n\\Plural\\EnglishPluralRule",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\Plural\\EnglishPluralRule",
+            "method": "select",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\I18n\\Plural\\FrenchPluralRule",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\Plural\\FrenchPluralRule",
+            "method": "select",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\I18n\\Plural\\RussianPluralRule",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\Plural\\RussianPluralRule",
+            "method": "select",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\I18n\\Plural\\SpanishPluralRule",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\Plural\\SpanishPluralRule",
+            "method": "select",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\I18n\\TranslationCatalog",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\TranslationCatalog",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\TranslationCatalog",
+            "method": "message",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\TranslationCatalog",
+            "method": "messages",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\TranslationCatalog",
+            "method": "plural",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\TranslationCatalog",
+            "method": "plurals",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\TranslationCatalog",
+            "method": "toArray",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\I18n\\TranslationException",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\TranslationException",
+            "method": "because",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\I18n\\Translator",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\Translator",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\Translator",
+            "method": "plural",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\I18n\\Translator",
+            "method": "translate",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Javascript\\Javascript",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Javascript\\Javascript",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Json\\Json",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Json\\Json",
+            "method": "decode",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Json\\Json",
+            "method": "encode",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Json\\Json",
+            "method": "pretty",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Json\\Json",
+            "method": "readFile",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Json\\Json",
+            "method": "writeFile",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Language\\Language",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Language\\Language",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Link\\Link",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Link\\Link",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Link\\Link",
+            "method": "__toString",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Link\\Link",
+            "method": "changeClass",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Link\\Link",
+            "method": "changeId",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Link\\Link",
+            "method": "getBlock",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Link\\Link",
+            "method": "getMode",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Log\\Log",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Log\\Log",
+            "method": "add",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Log\\Log",
+            "method": "entries",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Log\\Log",
+            "method": "error",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Log\\Log",
+            "method": "info",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Log\\Log",
+            "method": "messages",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Log\\Log",
+            "method": "records",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Log\\Log",
+            "method": "warning",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaArchivePhase",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaArchivePhase",
+            "method": "execute",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaArchiveWriter",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaArchiveWriter",
+            "method": "writeReport",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaBatchExecutor",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaBatchExecutor",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaBatchExecutor",
+            "method": "execute",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaConfigLoader",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaConfigLoader",
+            "method": "fromXml",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaConfigLoader",
+            "method": "loadXmlFile",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaDatabaseStagingExecutor",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaDatabaseStagingExecutor",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaDatabaseStagingExecutor",
+            "method": "execute",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaDefinition",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaDefinition",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaDefinition",
+            "method": "archiveConnection",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaDefinition",
+            "method": "archiveMode",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaDefinition",
+            "method": "archivePath",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaDefinition",
+            "method": "archiveTable",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaDefinition",
+            "method": "assertConnections",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaDefinition",
+            "method": "id",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaDefinition",
+            "method": "loadConnection",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaDefinition",
+            "method": "loadFields",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaDefinition",
+            "method": "loadTable",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaDefinition",
+            "method": "mappings",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaDefinition",
+            "method": "runtime",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaDefinition",
+            "method": "storeConnection",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaDefinition",
+            "method": "storeMode",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaDefinition",
+            "method": "storeTable",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaDefinition",
+            "method": "version",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaException",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaException",
+            "method": "because",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaFieldConstraint",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaFieldConstraint",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaFieldConstraint",
+            "method": "fromXml",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaFieldConstraint",
+            "method": "supportedTypes",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaFieldConstraint",
+            "method": "validate",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaFieldMapping",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaFieldMapping",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaFieldMapping",
+            "method": "fromXml",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaFsmController",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaFsmController",
+            "method": "apply",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaFsmSignal",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaFsmState",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaFsmState",
+            "method": "all",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaIdentifier",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaIdentifier",
+            "method": "quote",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaIdentifier",
+            "method": "stageTable",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaLoadPhase",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaLoadPhase",
+            "method": "execute",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaPhaseInterface",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaPhaseInterface",
+            "method": "execute",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaPipelineContext",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaPipelineContext",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaPipelineContext",
+            "method": "reject",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaReport",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaReport",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaReport",
+            "method": "addCounter",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaReport",
+            "method": "addMessage",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaReport",
+            "method": "create",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaReport",
+            "method": "finish",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaReport",
+            "method": "runId",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaReport",
+            "method": "toArray",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaReport",
+            "method": "toJson",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaReport",
+            "method": "toMarkdown",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaReportCatalog",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaReportCatalog",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaReportCatalog",
+            "method": "build",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaReportCatalog",
+            "method": "writeIndex",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaReportPhase",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaReportPhase",
+            "method": "execute",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaRunStatus",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaRunStatus",
+            "method": "all",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaRunStatus",
+            "method": "assertValid",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaRunStatus",
+            "method": "isFinal",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaRunStore",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaRunStore",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaRunStore",
+            "method": "acquirePendingRun",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaRunStore",
+            "method": "createRun",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaRunStore",
+            "method": "finish",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaRunStore",
+            "method": "heartbeat",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaRunStore",
+            "method": "listRunsByStatus",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaRunStore",
+            "method": "projectRoot",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaRunStore",
+            "method": "readRun",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaRunStore",
+            "method": "writeArchivePayload",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaRunStore",
+            "method": "writeCheckpoint",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaRunStore",
+            "method": "writeEventPayload",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaRunStore",
+            "method": "writeQuarantinePayload",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaRunStore",
+            "method": "writeReport",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaRunStore",
+            "method": "writeRun",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaRunner",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaRunner",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaRunner",
+            "method": "runOnce",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaRunnerTimeoutException",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaScheduler",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaScheduler",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaScheduler",
+            "method": "enqueue",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaScheduler",
+            "method": "enqueueDatabaseStagingSmokeRun",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaScheduler",
+            "method": "enqueueMemoryBatchSmokeRun",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaScheduler",
+            "method": "enqueueSmokeRun",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaSecureInputPhase",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaSecureInputPhase",
+            "method": "execute",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaSecureOutputPhase",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaSecureOutputPhase",
+            "method": "execute",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaStorePhase",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaStorePhase",
+            "method": "execute",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Lstsa\\LstsaTransformPhase",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Lstsa\\LstsaTransformPhase",
+            "method": "execute",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Mail\\Mail",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Mail\\Mail",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Mail\\PhpMailer",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Mail\\PhpMailer",
+            "method": "send",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Menu\\Menu",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Menu\\Menu",
+            "method": "add",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Menu\\Menu",
+            "method": "items",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Menu\\MenuException",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Menu\\MenuException",
+            "method": "because",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Menu\\MenuItem",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Menu\\MenuItem",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Menu\\MenuTree",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Menu\\MenuTree",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Menu\\MenuTree",
+            "method": "toArray",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Model\\Model",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Model\\Model",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Model\\Model",
+            "method": "all",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Model\\Model",
+            "method": "get",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Model\\Model",
+            "method": "set",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Module\\Module",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Module\\Module",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Module\\Module",
+            "method": "isEnabled",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Module\\Module",
+            "method": "option",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Module\\ModuleDefinition",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Module\\ModuleDefinition",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Module\\ModuleRegistry",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Module\\ModuleRegistry",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Module\\ModuleRegistry",
+            "method": "getEnabled",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Package\\Package",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Package\\Package",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Package\\Package",
+            "method": "content",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Package\\Package",
+            "method": "hasLanguage",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Package\\Package",
+            "method": "id",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Package\\Package",
+            "method": "rootDir",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Package\\Package",
+            "method": "routes",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Package\\PackageRepository",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Package\\PackageRepository",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Package\\PackageRepository",
+            "method": "all",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Package\\PackageRepository",
+            "method": "get",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Package\\PackageRepository",
+            "method": "resolve",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\RefBook\\Attribute\\AsapRefBookClass",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\Attribute\\AsapRefBookClass",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\Attribute\\AsapRefBookClass",
+            "method": "toArray",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\RefBook\\Attribute\\AsapRefBookMethod",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\Attribute\\AsapRefBookMethod",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\Attribute\\AsapRefBookMethod",
+            "method": "toArray",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\RefBook\\Contract\\RefBookInspectableInterface",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\Contract\\RefBookInspectableInterface",
+            "method": "refBookDomain",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\RefBook\\Model\\RefBookClassEntry",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\Model\\RefBookClassEntry",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\Model\\RefBookClassEntry",
+            "method": "hasMetadata",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\Model\\RefBookClassEntry",
+            "method": "methods",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\Model\\RefBookClassEntry",
+            "method": "name",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\Model\\RefBookClassEntry",
+            "method": "toArray",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\RefBook\\Model\\RefBookMethodEntry",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\Model\\RefBookMethodEntry",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\Model\\RefBookMethodEntry",
+            "method": "hasMetadata",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\Model\\RefBookMethodEntry",
+            "method": "name",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\Model\\RefBookMethodEntry",
+            "method": "toArray",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\RefBook\\Model\\RefBookScanResult",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\Model\\RefBookScanResult",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\Model\\RefBookScanResult",
+            "method": "classes",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\Model\\RefBookScanResult",
+            "method": "loadErrors",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\Model\\RefBookScanResult",
+            "method": "summary",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\Model\\RefBookScanResult",
+            "method": "toArray",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\RefBook\\RefBookContractValidator",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\RefBookContractValidator",
+            "method": "validate",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\RefBook\\RefBookReflectionScanner",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\RefBookReflectionScanner",
+            "method": "scan",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\RefBook\\RefBookSnapshotBuilder",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\RefBook\\RefBookSnapshotBuilder",
+            "method": "build",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Renderer\\HtmlRenderer",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Renderer\\HtmlRenderer",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Renderer\\HtmlRenderer",
+            "method": "render",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Renderer\\JsonRenderer",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Renderer\\JsonRenderer",
+            "method": "render",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Renderer\\RenderException",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Renderer\\RenderException",
+            "method": "because",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Renderer\\RendererInterface",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Renderer\\RendererInterface",
+            "method": "render",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Renderer\\ViewModel",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Renderer\\ViewModel",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Request\\Request",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Request\\Request",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Request\\Request",
+            "method": "toHttpRequest",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Response\\Response",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Response\\Response",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Response\\Response",
+            "method": "toHttpResponse",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Response\\ResponseFacade",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Response\\ResponseFacade",
+            "method": "html",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Response\\ResponseFacade",
+            "method": "json",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Rest\\Rest",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Rest\\Rest",
+            "method": "json",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Router\\Route",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Router\\Route",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Router\\Router",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Router\\Router",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Router\\Router",
+            "method": "add",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Router\\Router",
+            "method": "all",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Router\\Router",
+            "method": "byName",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Router\\Router",
+            "method": "hasName",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Router\\Router",
+            "method": "hasPath",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Router\\Router",
+            "method": "match",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Routing\\AttributeRouteProvider",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\AttributeRouteProvider",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\AttributeRouteProvider",
+            "method": "routes",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Routing\\ClassIndex",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\ClassIndex",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\ClassIndex",
+            "method": "classes",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\ClassIndex",
+            "method": "classesInNamespace",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\ClassIndex",
+            "method": "fromComposerClassMap",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\ClassIndex",
+            "method": "pathForClass",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Routing\\Route",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\Route",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\Route",
+            "method": "normalizedMethods",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Routing\\RouteCompilerException",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\RouteCompilerException",
+            "method": "because",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Routing\\RouteDefinition",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\RouteDefinition",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\RouteDefinition",
+            "method": "normalizedMethods",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\RouteDefinition",
+            "method": "toManifestRow",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Routing\\RouteManifestCompiler",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\RouteManifestCompiler",
+            "method": "compile",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\RouteManifestCompiler",
+            "method": "loadPhpManifest",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\RouteManifestCompiler",
+            "method": "writePhpManifest",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Routing\\RouteMatch",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\RouteMatch",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Routing\\Router",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\Router",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\Router",
+            "method": "fromXml",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Routing\\Router",
+            "method": "match",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Security\\AclGuard",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Security\\AclGuard",
+            "method": "assertAllowed",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Security\\FsmGuard",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Security\\FsmGuard",
+            "method": "assertAllowed",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Security\\SecureDispatchDecision",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Security\\SecureDispatchDecision",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Security\\SecureDispatchGate",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Security\\SecureDispatchGate",
+            "method": "assertAllowed",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Security\\Security",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Security\\Security",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Security\\Security",
+            "method": "allow",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Security\\Security",
+            "method": "assertAllowed",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Security\\Security",
+            "method": "deny",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Security\\Security",
+            "method": "isAllowed",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Security\\Security",
+            "method": "isDenied",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Security\\SiteSecurityPolicy",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Security\\SiteSecurityPolicy",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Security\\SiteSecurityPolicyLoader",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Security\\SiteSecurityPolicyLoader",
+            "method": "load",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Session\\Session",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Session\\Session",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Session\\Session",
+            "method": "all",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Session\\Session",
+            "method": "clear",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Session\\Session",
+            "method": "get",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Session\\Session",
+            "method": "getOrDefault",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Session\\Session",
+            "method": "has",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Session\\Session",
+            "method": "remove",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Session\\Session",
+            "method": "set",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Site\\SiteDefinition",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Site\\SiteDefinition",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Site\\SiteDefinition",
+            "method": "hasDatabase",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Site\\SiteDefinition",
+            "method": "requireDatabaseFile",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Site\\SiteResolver",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Site\\SiteResolver",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Site\\SiteResolver",
+            "method": "resolve",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Smtp\\Smtp",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Smtp\\Smtp",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Support\\Support",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Support\\Support",
+            "method": "e",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Support\\Support",
+            "method": "normalizePath",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Support\\Support",
+            "method": "startsWith",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Support\\Support",
+            "method": "trimSlashes",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Template\\Adapter",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Template\\Adapter",
+            "method": "loadTemplate",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Template\\Adapter",
+            "method": "render",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Template\\Smarty",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Template\\Smarty",
+            "method": "assign",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Template\\Smarty",
+            "method": "assignAll",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Template\\Smarty",
+            "method": "loadTemplate",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Template\\Smarty",
+            "method": "parse",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Template\\Smarty",
+            "method": "render",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Template\\TemplateException",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Template\\TemplateException",
+            "method": "because",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Template\\TemplateRendererInterface",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Template\\TemplateRendererInterface",
+            "method": "render",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Template\\Twig",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Template\\Twig",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Template\\Twig",
+            "method": "loadTemplate",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Template\\Twig",
+            "method": "render",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Template\\TwigTemplateRenderer",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Template\\TwigTemplateRenderer",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Template\\TwigTemplateRenderer",
+            "method": "render",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Template\\X64",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Template\\X64",
+            "method": "assign",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Template\\X64",
+            "method": "assignAll",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Template\\X64",
+            "method": "loadTemplate",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Template\\X64",
+            "method": "parse",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Template\\X64",
+            "method": "render",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Theme\\ThemeDefinition",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Theme\\ThemeDefinition",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Url\\Url",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Url\\Url",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Url\\Url",
+            "method": "__toString",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Url\\Url",
+            "method": "asset",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Url\\Url",
+            "method": "getAnchor",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Url\\Url",
+            "method": "getArguments",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Url\\Url",
+            "method": "getHost",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Url\\Url",
+            "method": "getPath",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Url\\Url",
+            "method": "getProtocol",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Url\\Url",
+            "method": "route",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Url\\Url",
+            "method": "setAnchor",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Url\\Url",
+            "method": "setArguments",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Url\\Url",
+            "method": "setHost",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Url\\Url",
+            "method": "setPath",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Url\\Url",
+            "method": "setProtocol",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Url\\Url",
+            "method": "to",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Url\\UrlException",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Url\\UrlException",
+            "method": "because",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Url\\UrlGenerator",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Url\\UrlGenerator",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Url\\UrlGenerator",
+            "method": "path",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "email",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "getMessages",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "integer",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isAbsoluteUrl",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isAddress",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isBirthDate",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isBool",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isBoolean",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isCityName",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isCleanHtml",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isColor",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isCountryName",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isDate",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isEan13",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isEmail",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isFileName",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isFloat",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isGenderIsoCode",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isGenderName",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isGenericName",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isIcoFile",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isImgFile",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isInt",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isLanguageIsoCode",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isLinkRewrite",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isLoadedObject",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isMailName",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isMailSubject",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isMd5",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isName",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isNullOrUnsignedInt",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isOptFloat",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isPasswd",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isPhoneNumber",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isPostCode",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isProtocol",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isSha1",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isStateIsoCode",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isString",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isSubDomainName",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isUnsignedFloat",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isUnsignedInt",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isUrl",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isValidSearch",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "isValide",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "is_false",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "is_true",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Validation\\Validator",
+            "method": "notEmpty",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\View\\Html",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\View\\Html",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\View\\Html",
+            "method": "toResponse",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\View\\View",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\View\\View",
+            "method": "__construct",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\View\\View",
+            "method": "render",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\View\\ViewException",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\View\\ViewException",
+            "method": "because",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP\\Xml\\Xml",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Xml\\Xml",
+            "method": "fromFile",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "method",
+            "symbol": "ASAP\\Xml\\Xml",
+            "method": "fromString",
+            "code": "METHOD_METADATA_MISSING",
+            "message": "AsapRefBookMethod metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP_SimpleXMLElementExtended",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        },
+        {
+            "scope": "class",
+            "symbol": "ASAP_Singleton",
+            "method": "",
+            "code": "CLASS_METADATA_MISSING",
+            "message": "AsapRefBookClass metadata is missing."
+        }
+    ],
+    "snapshot_path": "H:\\ASAP\\var\\refbook\\snapshot.latest.json"
+}

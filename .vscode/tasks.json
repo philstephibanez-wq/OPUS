@@ -129,6 +129,78 @@
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "ASAP · Smoke P112Q3D RefBook Tag Contract",
+      "type": "shell",
+      "command": "tools/smoke/run_p112q3d_refbook_tag_contract_smoke.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ASAP · Quality P112Q3D RefBook Tag Audit",
+      "type": "shell",
+      "command": "tools/quality/run_p112q3d_refbook_tag_contract_audit.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ASAP · Test P112Q3D RefBook Tag Contract Strict",
+      "type": "shell",
+      "command": "tests/Contract/run_refbook_tag_contract_test.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ASAP · Unit P112Q3E RefBook Reflection Contract",
+      "type": "shell",
+      "command": "tests/Contract/run_refbook_reflection_contract_test.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ASAP · Smoke P112Q3E RefBook Reflection Contract",
+      "type": "shell",
+      "command": "tools/smoke/run_p112q3e_refbook_reflection_contract_smoke.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ASAP · RefBook P112Q3E Reflection Audit",
+      "type": "shell",
+      "command": "tools/refbook/run_p112q3e_refbook_reflection_contract_audit.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ASAP · Recipe Global Regression",
+      "type": "shell",
+      "command": "tools/recipes/run_asap_global_regression_recipe.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ASAP · Delivery P112Q3E RefBook Reflection Contract",
+      "type": "shell",
+      "command": "tools/recipes/run_p112q3e_delivery_recipe.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
     }
   ]
 }
