@@ -80,3 +80,9 @@ Thumbs.db
 
 /var/audit/
 /var/generated/
+
+# ASAP generated runtime reports and snapshots
+/var/refbook/
+/var/reports/
+/cd
+/type
