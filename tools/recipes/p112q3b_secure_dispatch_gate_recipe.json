@@ -1,0 +1,22 @@
+{
+  "id": "P112Q3B_ASAP_SECURE_DISPATCH_GATE_PANTHER_RECIPE",
+  "scope": "ASAP framework",
+  "type": "browser-life-recipe",
+  "contract": {
+    "secure_by_design": true,
+    "default_deny": true,
+    "no_silent_fallback": true,
+    "controller_dispatch_requires_secure_gate": true,
+    "panther_required_when_env_ASAP_P112Q3B_PANTHER_REQUIRED_is_1": true
+  },
+  "inputs": {
+    "ASAP_P112Q3B_PANTHER_URL": "HTTP URL to open with Panther",
+    "ASAP_P112Q3B_EXPECT_TEXT": "Optional text expected in the rendered page",
+    "ASAP_P112Q3B_PANTHER_REQUIRED": "Set to 1 to fail when Panther or URL is missing"
+  },
+  "outputs": {
+    "json_report": "var/reports/p112q3b/p112q3b_secure_dispatch_gate_panther_recipe.json",
+    "markdown_report": "var/reports/p112q3b/p112q3b_secure_dispatch_gate_panther_recipe.md",
+    "screenshot": "var/reports/p112q3b/p112q3b_secure_dispatch_gate_panther_recipe.png when Panther runs successfully"
+  }
+}

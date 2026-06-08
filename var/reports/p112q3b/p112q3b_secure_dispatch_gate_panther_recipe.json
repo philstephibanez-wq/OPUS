@@ -1,0 +1,15 @@
+{
+    "id": "P112Q3B_ASAP_SECURE_DISPATCH_GATE_PANTHER_RECIPE",
+    "status": "SKIPPED",
+    "reason": "PANTHER_AUTOLOAD_NOT_FOUND",
+    "generated_at": "2026-06-08T16:12:37+00:00",
+    "autoload_path": "H:\\ASAP/vendor/autoload.php",
+    "autoload_source": "default-root-vendor",
+    "autoload_loaded": false,
+    "panther_client_class": "Symfony\\Component\\Panther\\Client",
+    "panther_client_available": false,
+    "url": "http://127.0.0.1/ASAP_REF_BOOK/?lang=fr",
+    "required": false,
+    "expected_autoload": "H:\\ASAP/vendor/autoload.php",
+    "hint": "Set ASAP_P112Q3B_PANTHER_AUTOLOAD to the Composer autoload.php that contains symfony/panther."
+}

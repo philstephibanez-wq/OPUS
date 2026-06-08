@@ -1,0 +1,85 @@
+To: smoke@example.invalid
+From: asap-recipes@localhost
+Subject: ASAP P112Q3B2 secure life recipe report
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>P112Q3B2 · ASAP Secure Life Recipe</title>
+  <style>
+    :root { color-scheme: dark; --bg:#07111f; --panel:#0e1b2d; --line:#26384f; --text:#eaf2ff; --muted:#9fb1ca; --ok:#4ade80; --fail:#fb7185; --accent:#60a5fa; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Segoe UI, Arial, sans-serif; background:linear-gradient(135deg,#07111f,#101f34); color:var(--text); }
+    header { padding:22px 28px; border-bottom:1px solid var(--line); background:rgba(14,27,45,.92); position:sticky; top:0; }
+    .kicker { color:var(--accent); text-transform:uppercase; letter-spacing:.12em; font-size:12px; font-weight:700; }
+    h1 { margin:.25rem 0 .35rem; font-size:30px; }
+    .meta { color:var(--muted); }
+    main { padding:24px 28px; max-width:1180px; margin:0 auto; }
+    .badges { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .badge { border:1px solid var(--line); border-radius:999px; padding:8px 12px; background:#0b1626; font-weight:700; }
+    .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin:22px 0; }
+    .user-card { border:1px solid var(--line); border-radius:18px; padding:18px; background:var(--panel); display:flex; gap:14px; align-items:flex-start; box-shadow:0 12px 36px rgba(0,0,0,.25); }
+    .avatar { width:42px; height:42px; border-radius:999px; display:grid; place-items:center; background:#1d4ed8; font-weight:800; }
+    h2 { margin:0 0 8px; font-size:18px; }
+    p { color:var(--muted); margin:7px 0; }
+    table { width:100%; border-collapse:collapse; overflow:hidden; border-radius:16px; background:var(--panel); border:1px solid var(--line); }
+    th, td { text-align:left; padding:12px 14px; border-bottom:1px solid var(--line); vertical-align:top; }
+    th { color:#cfe0ff; background:#101f34; }
+    tr.ok td:last-child { color:var(--ok); font-weight:800; }
+    tr.fail td:last-child { color:var(--fail); font-weight:800; }
+    code { color:#bfdbfe; }
+    .panel { border:1px solid var(--line); border-radius:18px; padding:18px; background:rgba(14,27,45,.9); margin-top:22px; }
+    @media (max-width: 900px) { .grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<header>
+  <div class="kicker">ASAP secure by design · robotized evolutive recipe</div>
+  <h1>FSM + ACL + Navigation · 3 utilisateurs · FR / ES / EN</h1>
+  <div class="meta">Généré le 2026-06-08T16:36:17+00:00</div>
+  <div class="badges">
+    <span class="badge">Mail: EML_WRITTEN</span>
+    <span class="badge">Panther: SKIPPED</span>
+    <span class="badge">Default deny observable</span>
+  </div>
+</header>
+<main>
+  <section class="grid"><article class="user-card"><div class="avatar">G</div><div><h2>Invité · FR</h2><p>lecture publique uniquement</p><p><code>/asap-secure-life/fr/public</code></p></div></article>
+<article class="user-card"><div class="avatar">E</div><div><h2>Éditeur · ES</h2><p>édition autorisée, administration refusée</p><p><code>/asap-secure-life/es/editor</code></p></div></article>
+<article class="user-card"><div class="avatar">A</div><div><h2>Administrateur · EN</h2><p>administration complète</p><p><code>/asap-secure-life/en/admin</code></p></div></article>
+</section>
+  <section class="panel">
+    <h2>Matrice runtime réelle</h2>
+    <p>Chaque ligne passe par le Router ASAP, le SecureDispatchGate, la FSM et l'ACL.</p>
+    <table>
+      <thead><tr><th>User</th><th>Lang</th><th>Route</th><th>Attendu</th><th>Observé</th><th>Résultat</th></tr></thead>
+      <tbody><tr class="ok"><td>Invité</td><td>FR</td><td><code>/asap-secure-life/fr/public</code></td><td>ALLOWED</td><td>ALLOWED</td><td>OK</td></tr>
+<tr class="ok"><td>Éditeur</td><td>ES</td><td><code>/asap-secure-life/es/editor</code></td><td>ALLOWED</td><td>ALLOWED</td><td>OK</td></tr>
+<tr class="ok"><td>Administrateur</td><td>EN</td><td><code>/asap-secure-life/en/admin</code></td><td>ALLOWED</td><td>ALLOWED</td><td>OK</td></tr>
+<tr class="ok"><td>Invité</td><td>FR</td><td><code>/asap-secure-life/en/admin</code></td><td>DENIED</td><td>DENIED</td><td>OK</td></tr>
+<tr class="ok"><td>Éditeur</td><td>ES</td><td><code>/asap-secure-life/en/admin</code></td><td>DENIED</td><td>DENIED</td><td>OK</td></tr>
+</tbody>
+    </table>
+  </section>
+</main>
+</body>
+</html>
+
+<!-- MARKDOWN FALLBACK -->
+# P112Q3B2 — ASAP Secure Life Robotized Recipe
+
+- Generated at: `2026-06-08T16:36:17+00:00`
+- Mail status: `EML_WRITTEN`
+- Panther status: `SKIPPED`
+
+| User | Lang | Route | Expected | Observed | Result |
+|---|---:|---|---|---|---|
+| guest | FR | `/asap-secure-life/fr/public` | ALLOWED | ALLOWED | OK |
+| editor | ES | `/asap-secure-life/es/editor` | ALLOWED | ALLOWED | OK |
+| admin | EN | `/asap-secure-life/en/admin` | ALLOWED | ALLOWED | OK |
+| guest | FR | `/asap-secure-life/en/admin` | DENIED | DENIED | OK |
+| editor | ES | `/asap-secure-life/en/admin` | DENIED | DENIED | OK |

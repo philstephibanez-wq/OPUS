@@ -19,8 +19,10 @@ use SimpleXMLElement;
  *     - must not rely on silent fallback behavior
  *   examples:
  *     - routing-overview
+ *     - secure-dispatch-gate
  *   diagrams:
  *     - routing-runtime
+ *     - secure-dispatch-runtime
  * END_ASAP_REFBOOK
  */
 /**
@@ -37,6 +39,11 @@ use SimpleXMLElement;
  *
  * Since:
  *   P112D1
+ *
+ * Extended:
+ *   P112Q3B hydrates explicit route-level ACL/FSM metadata used by SecureDispatchGate.
+ *   P112Q3B4 enforces explicit HTTP methods before secure dispatch, so form POST
+ *   contracts cannot be reached through an implicit GET fallback.
  */
 final class Router
 {
@@ -97,7 +104,15 @@ final class Router
                 (string) $routeNode['path'],
                 (string) $target['controllerClass'],
                 (string) $target['action'],
-                $defaults
+                $defaults,
+                self::parseMethods(self::firstAttribute($routeNode, ['methods', 'method'])),
+                self::firstAttribute($routeNode, ['host']),
+                self::firstAttribute($routeNode, ['locale', 'lang']),
+                self::firstAttribute($routeNode, ['format']) ?? 'html',
+                self::readAclMetadata($routeNode),
+                self::readFsmGuardMetadata($routeNode),
+                self::parsePriority(self::firstAttribute($routeNode, ['priority'])),
+                self::firstAttribute($routeNode, ['source']) ?? 'explicit'
             );
         }
 
@@ -115,18 +130,38 @@ final class Router
     public function match(Request $request, SiteDefinition $site): RouteMatch
     {
         $localPath = $this->toLocalPath($request->path, $site->basePath);
+        $requestMethod = strtoupper(trim($request->method));
+        $methodMismatches = [];
 
         foreach ($this->routes as $route) {
             $params = $this->matchRoute($route, $localPath);
 
-            if ($params !== null) {
-                return new RouteMatch(
-                    $route->name,
-                    $route->controllerClass,
-                    $route->action,
-                    array_merge($route->defaults, $params)
-                );
+            if ($params === null) {
+                continue;
             }
+
+            $allowedMethods = $route->normalizedMethods();
+
+            if (!in_array($requestMethod, $allowedMethods, true)) {
+                $methodMismatches[] = $route->name . '[' . implode(',', $allowedMethods) . ']';
+                continue;
+            }
+
+            return new RouteMatch(
+                $route->name,
+                $route->controllerClass,
+                $route->action,
+                array_merge($route->defaults, $params),
+                $route->acl,
+                $route->fsmGuard
+            );
+        }
+
+        if ($methodMismatches !== []) {
+            throw ContractException::because(
+                'ASAP_ROUTE_METHOD_NOT_ALLOWED',
+                $requestMethod . ' ' . $localPath . ' allowed-routes=' . implode('|', $methodMismatches)
+            );
         }
 
         throw ContractException::because('ASAP_ROUTE_NOT_FOUND', $localPath);
@@ -167,5 +202,175 @@ final class Router
         }
 
         return null;
+    }
+
+    /**
+     * INTERNAL XML HELPER
+     *
+     * Role:
+     *   Return the first non-empty attribute value among declared attribute names.
+     *
+     * @param SimpleXMLElement $node XML node.
+     * @param string[] $names Accepted attribute names.
+     *
+     * @return string|null Trimmed value, or null when not declared.
+     */
+    private static function firstAttribute(SimpleXMLElement $node, array $names): ?string
+    {
+        $accepted = array_flip($names);
+
+        foreach ($node->attributes() as $name => $value) {
+            if (isset($accepted[$name])) {
+                $candidate = trim((string) $value);
+
+                return $candidate === '' ? null : $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * INTERNAL XML HELPER
+     *
+     * @param string|null $rawMethods Comma/pipe/space separated method list.
+     *
+     * @return string[] Explicit normalized HTTP methods.
+     */
+    private static function parseMethods(?string $rawMethods): array
+    {
+        if ($rawMethods === null) {
+            return ['GET'];
+        }
+
+        $methods = preg_split('/[|,\s]+/', strtoupper($rawMethods)) ?: [];
+        $methods = array_values(array_unique(array_filter(array_map('trim', $methods))));
+        sort($methods);
+
+        if ($methods === []) {
+            throw ContractException::because('ASAP_ROUTE_METHODS_EMPTY');
+        }
+
+        return $methods;
+    }
+
+    /**
+     * INTERNAL XML HELPER
+     *
+     * @param string|null $rawPriority Route priority value.
+     *
+     * @return int Normalized priority.
+     */
+    private static function parsePriority(?string $rawPriority): int
+    {
+        if ($rawPriority === null) {
+            return 0;
+        }
+
+        if (preg_match('/^-?\d+$/', $rawPriority) !== 1) {
+            throw ContractException::because('ASAP_ROUTE_PRIORITY_INVALID', $rawPriority);
+        }
+
+        return (int) $rawPriority;
+    }
+
+    /**
+     * INTERNAL XML HELPER
+     *
+     * Role:
+     *   Read route ACL metadata from the official route XML contract.
+     *
+     * Supported declarations:
+     *   - `<route acl="resource:privilege">`
+     *   - `<route acl="role:resource:privilege">`
+     *   - `<route><security acl="resource:privilege" /></route>`
+     *   - `<route><acl resource="page" privilege="read" /></route>`
+     *
+     * @return string|null ACL metadata, or null when the site global policy remains authoritative.
+     */
+    private static function readAclMetadata(SimpleXMLElement $routeNode): ?string
+    {
+        $direct = self::firstAttribute($routeNode, ['acl', 'access']);
+
+        if ($direct !== null) {
+            return $direct;
+        }
+
+        if (isset($routeNode->security)) {
+            $securityValue = self::firstAttribute($routeNode->security, ['acl', 'access']);
+
+            if ($securityValue !== null) {
+                return $securityValue;
+            }
+        }
+
+        if (!isset($routeNode->acl)) {
+            return null;
+        }
+
+        $aclNode = $routeNode->acl;
+        $inline = trim((string) $aclNode);
+
+        if ($inline !== '') {
+            return $inline;
+        }
+
+        $resource = self::firstAttribute($aclNode, ['resource']);
+        $privilege = self::firstAttribute($aclNode, ['privilege']);
+        $role = self::firstAttribute($aclNode, ['role']);
+
+        if ($resource === null || $privilege === null) {
+            throw ContractException::because('ASAP_ROUTE_ACL_METADATA_INVALID', (string) ($routeNode['name'] ?? ''));
+        }
+
+        return $role === null ? $resource . ':' . $privilege : $role . ':' . $resource . ':' . $privilege;
+    }
+
+    /**
+     * INTERNAL XML HELPER
+     *
+     * Role:
+     *   Read route FSM signal metadata from the official route XML contract.
+     *
+     * Supported declarations:
+     *   - `<route fsmGuard="ROUTE_HOME">`
+     *   - `<route fsm_guard="ROUTE_HOME">`
+     *   - `<route><security fsmGuard="ROUTE_HOME" /></route>`
+     *   - `<route><fsm signal="ROUTE_HOME" /></route>`
+     *
+     * @return string|null Route FSM signal, or null when the site global policy signal remains authoritative.
+     */
+    private static function readFsmGuardMetadata(SimpleXMLElement $routeNode): ?string
+    {
+        $direct = self::firstAttribute($routeNode, ['fsmGuard', 'fsm_guard', 'fsm']);
+
+        if ($direct !== null) {
+            return $direct;
+        }
+
+        if (isset($routeNode->security)) {
+            $securityValue = self::firstAttribute($routeNode->security, ['fsmGuard', 'fsm_guard', 'fsm', 'signal']);
+
+            if ($securityValue !== null) {
+                return $securityValue;
+            }
+        }
+
+        if (!isset($routeNode->fsm)) {
+            return null;
+        }
+
+        $signal = self::firstAttribute($routeNode->fsm, ['signal', 'guard']);
+
+        if ($signal === null) {
+            $inline = trim((string) $routeNode->fsm);
+            $signal = $inline === '' ? null : $inline;
+        }
+
+        if ($signal === null) {
+            throw ContractException::because('ASAP_ROUTE_FSM_METADATA_INVALID', (string) ($routeNode['name'] ?? ''));
+        }
+
+        return $signal;
     }
 }

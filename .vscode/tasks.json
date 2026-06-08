@@ -1,0 +1,107 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "ASAP · Smoke P112Q3B Secure Dispatch Gate",
+      "type": "shell",
+      "command": "php",
+      "args": [
+        "tools/smoke/p112q3b_secure_dispatch_gate_smoke.php"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ASAP · Recipe P112Q3B Panther",
+      "type": "shell",
+      "command": "php",
+      "args": [
+        "tools/recipes/p112q3b_secure_dispatch_gate_panther_recipe.php"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "ASAP_P112Q3B_PANTHER_URL": "http://127.0.0.1/ASAP_REF_BOOK/?lang=fr",
+          "ASAP_P112Q3B_EXPECT_TEXT": "ASAP"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ASAP · Recipe P112Q3B Panther Required",
+      "type": "shell",
+      "command": "php",
+      "args": [
+        "tools/recipes/p112q3b_secure_dispatch_gate_panther_recipe.php"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "ASAP_P112Q3B_PANTHER_URL": "http://127.0.0.1/ASAP_REF_BOOK/?lang=fr",
+          "ASAP_P112Q3B_EXPECT_TEXT": "ASAP",
+          "ASAP_P112Q3B_PANTHER_REQUIRED": "1"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ASAP · Smoke P112Q3B2 Secure Life Robotized",
+      "type": "shell",
+      "command": "php",
+      "args": [
+        "tools/smoke/p112q3b2_secure_life_robotized_recipe_smoke.php"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ASAP · Recipe P112Q3B2 Secure Life Robotized",
+      "type": "shell",
+      "command": "tools/recipes/run_p112q3b2_secure_life_robotized_recipe.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ASAP · Recipe P112Q3B2 Secure Life Mailpit",
+      "type": "shell",
+      "command": "tools/recipes/run_p112q3b2_secure_life_robotized_recipe_mailpit.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ASAP · Smoke P112Q3B3 Recipe Final Status",
+      "type": "shell",
+      "command": "tools/smoke/run_p112q3b3_recipe_final_status_smoke.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ASAP · Smoke P112Q3B4 Email Safe Forms",
+      "type": "shell",
+      "command": "tools/smoke/run_p112q3b4_email_safe_forms_smoke.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ASAP · Recipe P112Q3B4 Secure Life Mailpit + Forms",
+      "type": "shell",
+      "command": "tools/recipes/run_p112q3b2_secure_life_robotized_recipe_mailpit.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

@@ -9,8 +9,7 @@ use ASAP\Http\Request;
 use ASAP\Http\Response;
 use ASAP\Renderer\HtmlRenderer;
 use ASAP\Routing\Router;
-use ASAP\Security\AclGuard;
-use ASAP\Security\FsmGuard;
+use ASAP\Security\SecureDispatchGate;
 use ASAP\Security\SiteSecurityPolicyLoader;
 use ASAP\Site\SiteResolver;
 use ASAP\Template\TwigTemplateRenderer;
@@ -25,8 +24,10 @@ use ASAP\Template\TwigTemplateRenderer;
  *     - must not rely on silent fallback behavior
  *   examples:
  *     - application-overview
+ *     - secure-dispatch-gate
  *   diagrams:
  *     - application-runtime
+ *     - secure-dispatch-runtime
  * END_ASAP_REFBOOK
  */
 /**
@@ -36,8 +37,8 @@ use ASAP\Template\TwigTemplateRenderer;
  *   Orchestrate the ASAP PHP 8 request pipeline.
  *
  * Responsibility:
- *   Site resolution, FSM guard, ACL guard, route matching, controller dispatch
- *   and response return.
+ *   Site resolution, route candidate resolution, secure dispatch gate validation,
+ *   controller dispatch and response return.
  *
  * Legacy alignment:
  *   The dispatcher belongs to `ASAP\Controller`, matching the original ASAP
@@ -46,9 +47,14 @@ use ASAP\Template\TwigTemplateRenderer;
  * Contract:
  *   The Application orchestrates only. It does not read content, render templates
  *   directly, decide ACL rules itself, or silently compensate missing configuration.
+ *   No controller/action dispatch is allowed before SecureDispatchGate validates
+ *   the route-aware FSM and ACL contracts.
  *
  * Since:
  *   P112D4C
+ *
+ * Extended:
+ *   P112Q3B routes requests through SecureDispatchGate before controller dispatch.
  */
 final class Application
 {
@@ -56,16 +62,33 @@ final class Application
     {
     }
 
+    /**
+     * PUBLIC API
+     *
+     * Role:
+     *   Execute one HTTP request through the official secure-by-design ASAP pipeline.
+     *
+     * @param Request $request Normalized HTTP request.
+     *
+     * @return Response Controller response produced only after secure gate approval.
+     *
+     * Side effects:
+     *   Instantiates the route matcher, security policy loader, secure gate and renderer
+     *   services needed for the request lifecycle.
+     *
+     * Contract:
+     *   The route candidate must be known before authorization, and controller dispatch
+     *   must remain impossible before SecureDispatchGate succeeds.
+     */
     public function run(Request $request): Response
     {
         $site = (new SiteResolver($this->paths->sitesRoot))->resolve($request);
         $securityPolicy = (new SiteSecurityPolicyLoader())->load($site->securityFile);
 
-        $fsmState = (new FsmGuard())->assertAllowed($request, $securityPolicy);
-        (new AclGuard())->assertAllowed($request, $securityPolicy, $fsmState);
-
         $router = Router::fromXml($site->routesFile);
         $match = $router->match($request, $site);
+
+        (new SecureDispatchGate())->assertAllowed($request, $securityPolicy, $match);
 
         $templateRenderer = new TwigTemplateRenderer($this->paths->templatesRoot, $this->paths->cacheRoot);
         $htmlRenderer = new HtmlRenderer($templateRenderer);
