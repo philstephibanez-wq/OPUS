@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace ASAP\Acl;
 
+use ASAP\RefBook\Attribute\AsapRefBookClass;
+use ASAP\RefBook\Attribute\AsapRefBookMethod;
+use ASAP\RefBook\Contract\RefBookInspectableInterface;
+
 /*
  * ASAP_REFBOOK:
  *   domain: ACL
@@ -31,8 +35,50 @@ namespace ASAP\Acl;
  * Since:
  *   P112P1
  */
-final class Acl
+#[AsapRefBookClass(
+    domain: 'ACL',
+    role: 'Expose the legacy top-level ACL compatibility surface',
+    responsibility: 'Keep a minimal public ACL facade available while directing real authorization decisions to AccessControl.',
+    contracts: [
+        'This compatibility shim must not replace AccessControl as the ACL engine.',
+        'No implicit permission is granted by the facade.',
+        'The facade remains documented so ASAP_REF_BOOK does not hide legacy public surface.',
+    ],
+    examples: ['acl-overview'],
+    diagrams: ['acl-runtime'],
+    introducedIn: 'P112Q3E2'
+)]
+final class Acl implements RefBookInspectableInterface
 {
+    #[AsapRefBookMethod(
+        role: 'Expose the RefBook domain for the ACL compatibility facade',
+        behavior: 'Returns the stable RefBook domain used by scanners, snapshots and ASAP_REF_BOOK renderers.',
+        preconditions: ['none'],
+        postconditions: ['The returned domain is ACL.'],
+        sideEffects: ['none'],
+        errors: ['none'],
+        testRefs: ['tests/Contract/RefBookAclMetadataContractTest.php'],
+        examples: ['acl-refbook-domain'],
+        diagrams: ['acl-runtime'],
+        introducedIn: 'P112Q3E2'
+    )]
+    public static function refBookDomain(): string
+    {
+        return 'ACL';
+    }
+
+    #[AsapRefBookMethod(
+        role: 'Return the explicit compatibility view permission flag',
+        behavior: 'Returns the provided boolean value without performing authorization logic or inferring permissions.',
+        preconditions: ['The caller provides the explicit allowed flag, defaulting to false.'],
+        postconditions: ['The returned value equals the provided allowed flag.'],
+        sideEffects: ['none'],
+        errors: ['none'],
+        testRefs: ['tests/Contract/RefBookAclMetadataContractTest.php'],
+        examples: ['acl-overview'],
+        diagrams: ['acl-runtime'],
+        introducedIn: 'P112Q3E2'
+    )]
     public function canView(bool $allowed = false): bool
     {
         return $allowed;

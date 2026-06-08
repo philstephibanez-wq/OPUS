@@ -237,6 +237,42 @@
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "ASAP · Unit P112Q3E2 ACL RefBook Metadata",
+      "type": "shell",
+      "command": "tests/Contract/run_refbook_acl_metadata_contract_test.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ASAP · Smoke P112Q3E2 ACL RefBook Metadata",
+      "type": "shell",
+      "command": "tools/smoke/run_p112q3e2_refbook_acl_metadata_smoke.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ASAP · RefBook P112Q3E2 ACL Metadata Strict",
+      "type": "shell",
+      "command": "tools/refbook/run_p112q3e2_refbook_acl_metadata_strict.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "ASAP · Delivery P112Q3E2 ACL RefBook Metadata",
+      "type": "shell",
+      "command": "tools/recipes/run_p112q3e2_delivery_recipe.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
     }
   ]
 }

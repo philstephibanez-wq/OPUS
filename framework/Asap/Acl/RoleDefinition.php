@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
-
 namespace ASAP\Acl;
+
+use ASAP\RefBook\Attribute\AsapRefBookClass;
+use ASAP\RefBook\Attribute\AsapRefBookMethod;
+use ASAP\RefBook\Contract\RefBookInspectableInterface;
 
 /*
  * ASAP_REFBOOK:
@@ -33,9 +36,39 @@ namespace ASAP\Acl;
  *
  * @package ASAP\Acl
  */
-final class RoleDefinition
+#[AsapRefBookClass(
+    domain: 'ACL',
+    role: 'Define one declared ACL role',
+    responsibility: 'Carry the stable role identifier used by AccessControl declarations and rule lookup.',
+    contracts: [
+        'The role identifier is non-empty after trimming.',
+        'The object is immutable after construction.',
+        'The definition does not decide access by itself.',
+    ],
+    examples: ['acl-overview'],
+    diagrams: ['acl-runtime'],
+    introducedIn: 'P112Q3E2'
+)]
+final class RoleDefinition implements RefBookInspectableInterface
 {
     private string $id;
+
+    #[AsapRefBookMethod(
+        role: 'Expose the RefBook domain for ACL role definitions',
+        behavior: 'Returns the stable RefBook domain used by scanners, snapshots and ASAP_REF_BOOK renderers.',
+        preconditions: ['none'],
+        postconditions: ['The returned domain is ACL.'],
+        sideEffects: ['none'],
+        errors: ['none'],
+        testRefs: ['tests/Contract/RefBookAclMetadataContractTest.php'],
+        examples: ['acl-refbook-domain'],
+        diagrams: ['acl-runtime'],
+        introducedIn: 'P112Q3E2'
+    )]
+    public static function refBookDomain(): string
+    {
+        return 'ACL';
+    }
 
     /**
      * PUBLIC API
@@ -44,6 +77,18 @@ final class RoleDefinition
      *
      * @throws AccessControlException When the role identifier is empty.
      */
+    #[AsapRefBookMethod(
+        role: 'Create an immutable ACL role definition',
+        behavior: 'Normalizes the role identifier, validates that it is not empty and stores it for ACL declaration lookup.',
+        preconditions: ['The provided role identifier must not be empty after trimming.'],
+        postconditions: ['The role identifier is stable and non-empty.'],
+        sideEffects: ['none'],
+        errors: ['ACL_ROLE_UNKNOWN'],
+        testRefs: ['tests/Contract/RefBookAclMetadataContractTest.php'],
+        examples: ['acl-overview'],
+        diagrams: ['acl-runtime'],
+        introducedIn: 'P112Q3E2'
+    )]
     public function __construct(string $id)
     {
         $id = trim($id);
@@ -60,6 +105,18 @@ final class RoleDefinition
      *
      * @return string Stable role identifier.
      */
+    #[AsapRefBookMethod(
+        role: 'Return the stable ACL role identifier',
+        behavior: 'Exposes the validated identifier used by AccessControl declarations and rule lookup.',
+        preconditions: ['The definition has been constructed with a valid identifier.'],
+        postconditions: ['The returned identifier is non-empty and unchanged.'],
+        sideEffects: ['none'],
+        errors: ['none'],
+        testRefs: ['tests/Contract/RefBookAclMetadataContractTest.php'],
+        examples: ['acl-overview'],
+        diagrams: ['acl-runtime'],
+        introducedIn: 'P112Q3E2'
+    )]
     public function id(): string
     {
         return $this->id;

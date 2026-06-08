@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions
 cd /d "%~dp0..\.."
-php "tools\recipes\asap_global_regression_recipe.php"
+php "tests\Contract\RefBookAclMetadataContractTest.php"
 set "EXITCODE=%ERRORLEVEL%"
 echo.
 echo ExitCode=%EXITCODE%

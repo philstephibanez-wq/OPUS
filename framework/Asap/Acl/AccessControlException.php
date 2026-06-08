@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-
 namespace ASAP\Acl;
 
+use ASAP\RefBook\Attribute\AsapRefBookClass;
+use ASAP\RefBook\Attribute\AsapRefBookMethod;
+use ASAP\RefBook\Contract\RefBookInspectableInterface;
 use RuntimeException;
 
 /*
@@ -35,7 +37,20 @@ use RuntimeException;
  *
  * @package ASAP\Acl
  */
-class AccessControlException extends RuntimeException
+#[AsapRefBookClass(
+    domain: 'ACL',
+    role: 'Represent explicit ACL contract and authorization failures',
+    responsibility: 'Provide stable ACL error codes and messages for authorization failures, contract failures and invalid contexts.',
+    contracts: [
+        'ACL failures use stable code prefixes.',
+        'Unknown declarations fail explicitly.',
+        'Access is never allowed implicitly after an ACL exception.',
+    ],
+    examples: ['acl-error'],
+    diagrams: ['acl-runtime'],
+    introducedIn: 'P112Q3E2'
+)]
+class AccessControlException extends RuntimeException implements RefBookInspectableInterface
 {
     public const ROLE_UNKNOWN = 'ACL_ROLE_UNKNOWN';
     public const RESOURCE_UNKNOWN = 'ACL_RESOURCE_UNKNOWN';
@@ -45,6 +60,23 @@ class AccessControlException extends RuntimeException
     public const CONTEXT_INVALID = 'ACL_CONTEXT_INVALID';
     public const CONTRACT_FAILED = 'ACL_CONTRACT_FAILED';
 
+    #[AsapRefBookMethod(
+        role: 'Expose the RefBook domain for ACL exceptions',
+        behavior: 'Returns the stable RefBook domain used by scanners, snapshots and ASAP_REF_BOOK renderers.',
+        preconditions: ['none'],
+        postconditions: ['The returned domain is ACL.'],
+        sideEffects: ['none'],
+        errors: ['none'],
+        testRefs: ['tests/Contract/RefBookAclMetadataContractTest.php'],
+        examples: ['acl-refbook-domain'],
+        diagrams: ['acl-runtime'],
+        introducedIn: 'P112Q3E2'
+    )]
+    public static function refBookDomain(): string
+    {
+        return 'ACL';
+    }
+
     /**
      * PUBLIC API
      *
@@ -53,6 +85,18 @@ class AccessControlException extends RuntimeException
      *
      * @return static
      */
+    #[AsapRefBookMethod(
+        role: 'Create an ACL exception with a stable contract code',
+        behavior: 'Builds an exception whose message begins with the stable ACL error code followed by a human-readable detail.',
+        preconditions: ['The code name is a stable ACL error code.', 'The detail describes the explicit failure.'],
+        postconditions: ['The returned exception keeps the stable code as message prefix.'],
+        sideEffects: ['none'],
+        errors: ['none'],
+        testRefs: ['tests/Contract/RefBookAclMetadataContractTest.php'],
+        examples: ['acl-error'],
+        diagrams: ['acl-runtime'],
+        introducedIn: 'P112Q3E2'
+    )]
     public static function contract(string $codeName, string $detail): static
     {
         return new static($codeName . ': ' . $detail);

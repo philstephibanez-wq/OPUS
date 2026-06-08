@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-
 namespace ASAP\Acl;
+
+use ASAP\RefBook\Attribute\AsapRefBookClass;
 
 /*
  * ASAP_REFBOOK:
@@ -33,6 +34,19 @@ namespace ASAP\Acl;
  *
  * @package ASAP\Acl
  */
+#[AsapRefBookClass(
+    domain: 'ACL',
+    role: 'Represent an explicit access-denied condition',
+    responsibility: 'Distinguish authorization denial from generic ACL contract failures while preserving the ACL exception hierarchy.',
+    contracts: [
+        'Access denial must be explicit and inspectable.',
+        'Denied access must never be converted to an implicit allow.',
+        'The exception remains part of the ACL domain and inherited ACL error contract.',
+    ],
+    examples: ['acl-error'],
+    diagrams: ['acl-runtime'],
+    introducedIn: 'P112Q3E2A'
+)]
 final class AccessDeniedException extends AccessControlException
 {
 }

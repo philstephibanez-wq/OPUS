@@ -1,9 +1,15 @@
-# P112Q3E1B MANIFEST
+# P112Q3E2A_ASAP_REFBOOK_ACL_LIVE_SYMBOL_FIX
 
-## Files
+Target root: `H:\ASAP`
 
-- tests/Contract/run_refbook_fsm_metadata_contract_test.cmd
-- DOC/P112Q3E1B_ASAP_REFBOOK_FSM_UNIT_WRAPPER_OBSERVABILITY_FIX.md
-- DOC/P112Q3E1B_PATCH.md
-- DOC/P112Q3E1B_CHANGELOG.md
-- DOC/P112Q3E1B_TODO.md
+Files:
+
+- `framework/Asap/Acl/AccessDeniedException.php`
+- `framework/Asap/Acl/Acl.php`
+- `tests/Contract/RefBookAclMetadataContractTest.php`
+- `DOC/P112Q3E2A_ASAP_REFBOOK_ACL_LIVE_SYMBOL_FIX.md`
+- `DOC/P112Q3E2A_CHANGELOG.md`
+- `DOC/P112Q3E2A_PATCH.md`
+- `DOC/P112Q3E2A_TODO.md`
+
+No generated `var/` artifact is included.
