@@ -1,0 +1,6 @@
+flowchart LR
+    A[Globals] --> B[Request::fromGlobals]
+    B --> C[Application]
+    C --> D[Controller result]
+    D --> E[Response]
+    E --> F[send headers/body]

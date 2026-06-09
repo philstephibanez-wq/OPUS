@@ -1,0 +1,8 @@
+flowchart TD
+    A[RouteMatch] --> B{ACL metadata}
+    B -- present --> C[ACL decision]
+    B -- absent --> D[FSM guard check]
+    C -- denied --> E[ASAP_ACCESS_DENIED]
+    C -- allowed --> D
+    D -- invalid --> F[ASAP_FSM_GUARD_DENIED]
+    D -- valid --> G[Controller action]

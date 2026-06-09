@@ -1,0 +1,6 @@
+flowchart LR
+    A[Request context] --> B[AccessContext]
+    B --> C[AccessControl]
+    C --> D{AccessDecision}
+    D -- allowed --> E[Continue dispatch]
+    D -- denied --> F[ASAP_ACCESS_DENIED]
