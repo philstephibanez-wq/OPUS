@@ -1,0 +1,3 @@
+- Review generated candidate translations.
+- Merge validated entries into `ASAP\RefBook\I18n\RefBookDocumentationI18nCatalog`.
+- Re-run RefBook P114D2 smoke after catalog coverage improves.
