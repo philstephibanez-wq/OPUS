@@ -1,2 +1,0 @@
-- Continue with a larger FSM catalog batch after visual validation.
-- Re-run RefBook P114D2 smoke and browser check after this ASAP catalog update.
