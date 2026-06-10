@@ -1,88 +1,46 @@
-﻿/vendor/
+# ASAP repository ignore rules
+#
+# ASAP is a reusable PHP framework. The repository must not track generated
+# dependencies, local secrets, runtime state, reports, caches, temporary files,
+# or machine-specific artifacts.
+
+# Dependencies
+/vendor/
 /composer.lock
+
+# Local environment / secrets
+/.env
+/.env.*
+!/.env.example
+*.local.php
+*.secret.php
+
+# Documentation and tooling caches
 /.phpdoc/
 /.phpdoc-cache/
 /.cache/
 /tmp/
-/var/cache/
-/var/logs/
-*.local.php
-*.secret.php
+
+# Runtime state
+/var/*
+!/var/.gitkeep
+
+# SQLite runtime sidecars
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite-journal
+
+# Generic generated / temporary artifacts
 *.tmp
+*.temp
 *.bak
+*.backup
+*.orig
+*.rej
+*.patch
+*.diff
 *.log
+
+# OS / editor noise
 .DS_Store
 Thumbs.db
-
-# BEGIN MAESTRO_WORKSPACE P112Q2I0_ASAP_GITHUB_BOOTSTRAP
-/.env
-/.env.*
-!/.env.example
-/var/tmp/
-/var/spool/
-/var/runtime/
-/var/lstsa/runs/
-/var/lstsa/archives/
-/var/lstsa/reports/
-/var/lstsa/quarantine/
-*.sqlite-wal
-*.sqlite-shm
-*.sqlite-journal
-# END MAESTRO_WORKSPACE P112Q2I0_ASAP_GITHUB_BOOTSTRAP
-
-# BEGIN MAESTRO_WORKSPACE P112Q2I0 ASAP_RUNTIME_VAR_IGNORE
-/var/cache/
-/var/github/
-/var/logs/
-/var/tmp/
-/var/sessions/
-/var/lstsa/runs/
-/var/lstsa/archives/
-/var/lstsa/reports/
-/var/lstsa/quarantine/
-# END MAESTRO_WORKSPACE P112Q2I0 ASAP_RUNTIME_VAR_IGNORE
-
-
-# BEGIN MAESTRO_WORKSPACE P112Q2I1_ASAP_Lstsa_RUNTIME_IGNORE
-/var/lstsa/runs/
-/var/lstsa/archives/
-/var/lstsa/reports/
-/var/lstsa/quarantine/
-/var/tmp/
-*.sqlite-wal
-*.sqlite-shm
-*.sqlite-journal
-# END MAESTRO_WORKSPACE P112Q2I1_ASAP_Lstsa_RUNTIME_IGNORE
-
-# BEGIN MAESTRO_WORKSPACE P112Q2I2 ASAP_Lstsa_RUNTIME_QUEUE_IGNORE
-/var/lstsa/queue/
-/var/lstsa/locks/
-/var/lstsa/heartbeats/
-# END MAESTRO_WORKSPACE P112Q2I2 ASAP_Lstsa_RUNTIME_QUEUE_IGNORE
-
-# BEGIN MAESTRO_WORKSPACE P112Q2I3 ASAP_Lstsa_CHECKPOINTS_IGNORE
-/var/lstsa/checkpoints/
-# END MAESTRO_WORKSPACE P112Q2I3 ASAP_Lstsa_CHECKPOINTS_IGNORE
-
-# BEGIN MAESTRO_WORKSPACE P112Q2I4 ASAP_Lstsa_REPORT_CATALOG_IGNORE
-/var/lstsa/reports/_index/
-# END MAESTRO_WORKSPACE P112Q2I4 ASAP_Lstsa_REPORT_CATALOG_IGNORE
-# BEGIN MAESTRO_WORKSPACE P112Q2I5 ASAP_Lstsa_FSM_BACKGROUND_STAGING_IGNORE
-/var/lstsa/events/
-/var/lstsa/p112q2i5/
-# END MAESTRO_WORKSPACE P112Q2I5 ASAP_Lstsa_FSM_BACKGROUND_STAGING_IGNORE
-
-# BEGIN MAESTRO_WORKSPACE P112Q2J ASAP_GLOBAL_RECIPE_RUNTIME_IGNORE
-/var/recipes/
-# END MAESTRO_WORKSPACE P112Q2J ASAP_GLOBAL_RECIPE_RUNTIME_IGNORE
-
-/var/cache/asap/autoload/
-
-/var/audit/
-/var/generated/
-
-# ASAP generated runtime reports and snapshots
-/var/refbook/
-/var/reports/
-/cd
-/type
