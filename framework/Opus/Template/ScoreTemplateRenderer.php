@@ -113,9 +113,9 @@ final class ScoreTemplateRenderer implements TemplateRendererInterface
      */
     private function renderSource(string $source, array $data, string $template, array $stack): string
     {
-        $source = $this->processIncludes($source, $data, $template, $stack);
-        $source = $this->processForeach($source, $data, $template, $stack);
         $source = $this->processIf($source, $data, $template, $stack);
+        $source = $this->processForeach($source, $data, $template, $stack);
+        $source = $this->processIncludes($source, $data, $template, $stack);
         $source = $this->processVariables($source, $data, $template, $stack);
         $this->assertNoUnknownScoreDirective($source, $template, $stack);
         $this->assertNoUnknownVariableSyntax($source, $template, $stack);
