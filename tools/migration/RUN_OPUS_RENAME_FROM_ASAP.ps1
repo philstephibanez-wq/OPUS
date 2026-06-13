@@ -20,6 +20,27 @@ function Get-ItemParentPath($Item) {
     return $Item.DirectoryName
 }
 
+function Read-TextStrict([string]$Path) {
+    if (-not (Test-Path -LiteralPath $Path)) {
+        Fail ('RENAMING_CONTRACT_FAILED: text file not found: ' + $Path)
+    }
+
+    $text = [System.IO.File]::ReadAllText($Path)
+    if ($null -eq $text) {
+        return ''
+    }
+    return $text
+}
+
+function Write-TextUtf8NoBom([string]$Path, [string]$Content) {
+    if ($null -eq $Content) {
+        $Content = ''
+    }
+
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($Path, $Content, $utf8NoBom)
+}
+
 $Root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 Set-Location $Root
 
@@ -115,7 +136,7 @@ $files = Get-ChildItem -LiteralPath $Root -Recurse -File -Force |
 
 foreach ($file in $files) {
     $path = $file.FullName
-    $raw = Get-Content -LiteralPath $path -Raw
+    $raw = Read-TextStrict $path
     $updated = $raw
 
     $updated = $updated.Replace('logandplay/asap', 'logandplay/opus')
@@ -142,18 +163,24 @@ foreach ($file in $files) {
     $updated = $updated.Replace('Asap', 'Opus')
 
     if ($updated -ne $raw) {
-        Set-Content -LiteralPath $path -Value $updated -NoNewline -Encoding UTF8
+        Write-TextUtf8NoBom $path $updated
     }
 }
 
 Write-Host 'STEP 4/4 Normalize composer.json identity'
 $composerPath = Join-Path $Root 'composer.json'
-$composer = Get-Content -LiteralPath $composerPath -Raw | ConvertFrom-Json
+$composerText = Read-TextStrict $composerPath
+$composerText = $composerText.TrimStart([char]0xFEFF)
+if ([string]::IsNullOrWhiteSpace($composerText)) {
+    Fail 'RENAMING_CONTRACT_FAILED: composer.json is empty after migration interruption. Restore composer.json from git before rerunning.'
+}
+$composer = $composerText | ConvertFrom-Json
 $composer.name = 'logandplay/opus'
 $composer.description = 'Opus 8.1.0 "Berlioz" PHP 8 framework core'
 $composer.version = '8.1.0'
 $composer.autoload.'psr-4' = [ordered]@{ 'Opus\' = 'framework/Opus/' }
-($composer | ConvertTo-Json -Depth 20) + "`n" | Set-Content -LiteralPath $composerPath -Encoding UTF8
+$normalizedComposer = ($composer | ConvertTo-Json -Depth 20) + "`n"
+Write-TextUtf8NoBom $composerPath $normalizedComposer
 
 Write-Host 'OPUS_RENAME_APPLY_OK'
 Write-Host 'Next required checks:'
