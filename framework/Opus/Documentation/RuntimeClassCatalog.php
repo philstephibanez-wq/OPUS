@@ -99,13 +99,13 @@ final class RuntimeClassCatalog
             return $this->all();
         }
 
-        $needle = mb_strtolower($query);
+        $needle = strtolower($query);
 
         return array_values(array_filter(
             $this->all(),
-            static fn(RuntimeClassInfo $class): bool => str_contains(mb_strtolower($class->name()), $needle)
-                || str_contains(mb_strtolower($class->domain()), $needle)
-                || str_contains(mb_strtolower($class->type()), $needle)
+            static fn(RuntimeClassInfo $class): bool => str_contains(strtolower($class->name()), $needle)
+                || str_contains(strtolower($class->domain()), $needle)
+                || str_contains(strtolower($class->type()), $needle)
         ));
     }
 
