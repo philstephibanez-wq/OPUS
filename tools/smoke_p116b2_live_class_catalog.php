@@ -28,6 +28,28 @@ foreach ($forbiddenTemplateFiles as $relativePath) {
     }
 }
 
+$forbiddenRuntimeReferences = [
+    'framework/Opus/Application/Application.php' => ['TwigTemplateRenderer', 'Symfony'],
+    'framework/Opus/Application/ApplicationPaths.php' => ['/var/cache/twig', 'Symfony'],
+    'tools/recipes/recipes/TemplateRecipe.php' => ['TwigTemplateRenderer::class', 'Adapter::class', 'Smarty::class', 'X64::class'],
+];
+
+foreach ($forbiddenRuntimeReferences as $relativePath => $needles) {
+    $absolutePath = $projectRoot . '/' . $relativePath;
+    if (!is_file($absolutePath)) {
+        fwrite(STDERR, 'P116B2_RUNTIME_REFERENCE_FILE_MISSING=' . $relativePath . PHP_EOL);
+        exit(1);
+    }
+
+    $source = (string) file_get_contents($absolutePath);
+    foreach ($needles as $needle) {
+        if (str_contains($source, $needle)) {
+            fwrite(STDERR, 'P116B2_FORBIDDEN_RUNTIME_REFERENCE=' . $relativePath . ' :: ' . $needle . PHP_EOL);
+            exit(1);
+        }
+    }
+}
+
 require_once $projectRoot . '/vendor/autoload.php';
 
 use Opus\Documentation\RuntimeClassCatalog;
@@ -110,3 +132,4 @@ echo 'P116B2_LIVE_CLASS_CATALOG_SMOKE_OK' . PHP_EOL;
 echo 'live_classes=' . count($classes) . PHP_EOL;
 echo 'diagnostics=0' . PHP_EOL;
 echo 'composer_forbidden_dependencies=0' . PHP_EOL;
+echo 'runtime_legacy_template_references=0' . PHP_EOL;
