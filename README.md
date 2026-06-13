@@ -12,7 +12,7 @@ Opus fournit le socle framework générique :
 - FSM
 - ACL
 - Controller / Action
-- Template adapters
+- ScoreTemplate rendering
 - Renderers
 - I18N
 - REST contracts
@@ -30,6 +30,12 @@ Opus ne contient pas :
 - secret
 - vendor committé
 - cache runtime
+
+## ScoreTemplate
+
+ScoreTemplate est le moteur de templating natif cible d'Opus. Les templates `.score` représentent uniquement des ViewModels validés : pas de PHP, pas de service, pas de base de données, pas de fallback vers Twig, Smarty, x64 ou un adapter legacy.
+
+Twig peut rester temporairement présent pour migration applicative, mais la cible framework est ScoreTemplate.
 
 ## Documentation
 
