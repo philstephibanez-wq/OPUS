@@ -48,6 +48,8 @@ $html = $renderer->render('main.score', [
     'publishedAt' => '2026-06-14',
 ]);
 
+$normalizedHtml = str_replace(["\r\n", "\r"], "\n", $html);
+
 $expectedFragments = [
     'Hello &lt;Steve&gt; <strong>raw</strong>',
     'ADMIN',
@@ -56,13 +58,13 @@ $expectedFragments = [
     '<span>1/2 first=CELLO fallback</span>',
     '<span>2/2 second=VIOLIN set</span>LAST',
     '2026-06-14',
-    "\n2\n",
+    "\n2",
 ];
 
 foreach ($expectedFragments as $fragment) {
-    if (!str_contains($html, $fragment)) {
+    if (!str_contains($normalizedHtml, $fragment)) {
         fwrite(STDERR, 'P116B3_SCORE_TEMPLATE_FRAGMENT_MISSING=' . $fragment . PHP_EOL);
-        fwrite(STDERR, $html . PHP_EOL);
+        fwrite(STDERR, $normalizedHtml . PHP_EOL);
         exit(1);
     }
 }
