@@ -7,7 +7,7 @@ set "SMOKE=%ASAP%\tests\smoke\p112o_safe_medium_compat_shims_smoke.php"
 
 echo P112O_SAFE_MEDIUM_COMPAT_SMOKE_START
 
-if not exist "%ASAP%" goto asap_missing
+if not exist "%ASAP%" goto opus_missing
 if not exist "%PHP%" goto php_missing
 if not exist "%SMOKE%" goto smoke_missing
 
@@ -16,8 +16,8 @@ if not exist "%SMOKE%" goto smoke_missing
 echo P112O_SAFE_MEDIUM_COMPAT_SMOKE_OK
 exit /b 0
 
-:asap_missing
-echo ASAP_ROOT_MISSING
+:opus_missing
+echo OPUS_ROOT_MISSING
 exit /b 1
 
 :php_missing

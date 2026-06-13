@@ -9,13 +9,13 @@ if (is_file($autoload)) {
     require $autoload;
 } else {
     spl_autoload_register(static function (string $class) use ($root): void {
-        $prefix = 'ASAP\\';
+        $prefix = 'Opus\\';
         if (!str_starts_with($class, $prefix)) {
             return;
         }
 
         $relative = substr($class, strlen($prefix));
-        $file = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $relative) . '.php';
+        $file = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $relative) . '.php';
         if (is_file($file)) {
             require $file;
         }

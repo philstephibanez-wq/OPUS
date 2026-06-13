@@ -2,14 +2,14 @@
 declare(strict_types=1);
 
 /*
- * ASAP RefBook example: FSM RefBook domain marker.
+ * Opus RefBook example: FSM RefBook domain marker.
  *
  * Purpose:
  *   Show how FSM classes describe their domain for documentation extraction.
  */
 
 /*
- * ASAP_REFBOOK:
+ * OPUS_REFBOOK:
  *   domain: FSM
  *   role: Class StateMachine belongs to the FSM framework domain.
  *   contract:
@@ -23,5 +23,5 @@ declare(strict_types=1);
  *     - fsm-error
  *   diagrams:
  *     - fsm-runtime
- * END_ASAP_REFBOOK
+ * END_OPUS_REFBOOK
  */

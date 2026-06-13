@@ -7,7 +7,7 @@ declare(strict_types=1);
  *
  * Role:
  *   Run the P112Q3B secure dispatch gate browser-life recipe through Panther when
- *   Panther is explicitly available in the local ASAP installation.
+ *   Panther is explicitly available in the local Opus installation.
  *
  * Responsibility:
  *   Open a declared local HTTP URL, verify that the page renders, optionally verify
@@ -15,9 +15,9 @@ declare(strict_types=1);
  *
  * Reads:
  *   - vendor/autoload.php when present
- *   - optional ASAP_P112Q3B_PANTHER_AUTOLOAD when Panther lives outside H:\ASAP
- *   - environment variables ASAP_P112Q3B_PANTHER_URL,
- *     ASAP_P112Q3B_EXPECT_TEXT and ASAP_P112Q3B_PANTHER_REQUIRED
+ *   - optional OPUS_P112Q3B_PANTHER_AUTOLOAD when Panther lives outside H:\ASAP
+ *   - environment variables OPUS_P112Q3B_PANTHER_URL,
+ *     OPUS_P112Q3B_EXPECT_TEXT and OPUS_P112Q3B_PANTHER_REQUIRED
  *
  * Writes:
  *   - var/reports/p112q3b/p112q3b_secure_dispatch_gate_panther_recipe.json
@@ -27,20 +27,20 @@ declare(strict_types=1);
  * Contract:
  *   No fake browser success. Missing Panther or missing URL is reported as an
  *   explicit SKIPPED status by default, or as FAILED when
- *   ASAP_P112Q3B_PANTHER_REQUIRED=1. No dependency is installed automatically.
+ *   OPUS_P112Q3B_PANTHER_REQUIRED=1. No dependency is installed automatically.
  */
 
 $root = dirname(__DIR__, 2);
 $defaultVendorAutoload = $root . '/vendor/autoload.php';
-$explicitVendorAutoload = trim((string) getenv('ASAP_P112Q3B_PANTHER_AUTOLOAD'));
+$explicitVendorAutoload = trim((string) getenv('OPUS_P112Q3B_PANTHER_AUTOLOAD'));
 $vendorAutoload = $explicitVendorAutoload !== '' ? $explicitVendorAutoload : $defaultVendorAutoload;
 $reportDir = $root . '/var/reports/p112q3b';
 $jsonReport = $reportDir . '/p112q3b_secure_dispatch_gate_panther_recipe.json';
 $markdownReport = $reportDir . '/p112q3b_secure_dispatch_gate_panther_recipe.md';
 $screenshot = $reportDir . '/p112q3b_secure_dispatch_gate_panther_recipe.png';
-$required = getenv('ASAP_P112Q3B_PANTHER_REQUIRED') === '1';
-$url = trim((string) getenv('ASAP_P112Q3B_PANTHER_URL'));
-$expectedText = trim((string) getenv('ASAP_P112Q3B_EXPECT_TEXT'));
+$required = getenv('OPUS_P112Q3B_PANTHER_REQUIRED') === '1';
+$url = trim((string) getenv('OPUS_P112Q3B_PANTHER_URL'));
+$expectedText = trim((string) getenv('OPUS_P112Q3B_EXPECT_TEXT'));
 $autoloadLoaded = false;
 $autoloadSource = $explicitVendorAutoload !== '' ? 'explicit-env' : 'default-root-vendor';
 
@@ -67,7 +67,7 @@ function p112q3b_recipe_finish(string $status, string $reason, array $data = [],
     global $jsonReport, $markdownReport, $vendorAutoload, $autoloadLoaded, $autoloadSource;
 
     $payload = array_merge([
-        'id' => 'P112Q3B_ASAP_SECURE_DISPATCH_GATE_PANTHER_RECIPE',
+        'id' => 'P112Q3B_OPUS_SECURE_DISPATCH_GATE_PANTHER_RECIPE',
         'status' => $status,
         'reason' => $reason,
         'generated_at' => gmdate('c'),
@@ -101,7 +101,7 @@ function p112q3b_recipe_finish(string $status, string $reason, array $data = [],
 if ($url === '') {
     p112q3b_recipe_finish(
         $required ? 'FAILED' : 'SKIPPED',
-        'ASAP_P112Q3B_PANTHER_URL_MISSING',
+        'OPUS_P112Q3B_PANTHER_URL_MISSING',
         ['required' => $required],
         $required
     );
@@ -115,7 +115,7 @@ if (!$autoloadLoaded) {
             'url' => $url,
             'required' => $required,
             'expected_autoload' => $vendorAutoload,
-            'hint' => 'Set ASAP_P112Q3B_PANTHER_AUTOLOAD to the Composer autoload.php that contains symfony/panther.',
+            'hint' => 'Set OPUS_P112Q3B_PANTHER_AUTOLOAD to the Composer autoload.php that contains symfony/panther.',
         ],
         $required
     );

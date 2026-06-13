@@ -12,12 +12,12 @@ declare(strict_types=1);
  */
 $root = dirname(__DIR__, 2);
 $files = [
-    'framework/Asap/RefBook/Attribute/AsapRefBookClass.php',
-    'framework/Asap/RefBook/Attribute/AsapRefBookMethod.php',
-    'framework/Asap/RefBook/Contract/RefBookInspectableInterface.php',
-    'framework/Asap/RefBook/RefBookReflectionScanner.php',
-    'framework/Asap/RefBook/RefBookContractValidator.php',
-    'framework/Asap/RefBook/RefBookSnapshotBuilder.php',
+    'framework/Opus/RefBook/Attribute/OpusRefBookClass.php',
+    'framework/Opus/RefBook/Attribute/OpusRefBookMethod.php',
+    'framework/Opus/RefBook/Contract/RefBookInspectableInterface.php',
+    'framework/Opus/RefBook/RefBookReflectionScanner.php',
+    'framework/Opus/RefBook/RefBookContractValidator.php',
+    'framework/Opus/RefBook/RefBookSnapshotBuilder.php',
     'tests/Contract/RefBookReflectionContractTest.php',
     'tools/refbook/p112q3e_refbook_reflection_contract.php',
 ];
@@ -37,7 +37,7 @@ foreach ($files as $relative) {
     }
 }
 
-$scannerContent = file_get_contents($root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'RefBook' . DIRECTORY_SEPARATOR . 'RefBookReflectionScanner.php');
+$scannerContent = file_get_contents($root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'RefBook' . DIRECTORY_SEPARATOR . 'RefBookReflectionScanner.php');
 $toolContent = file_get_contents($root . DIRECTORY_SEPARATOR . 'tools' . DIRECTORY_SEPARATOR . 'refbook' . DIRECTORY_SEPARATOR . 'p112q3e_refbook_reflection_contract.php');
 if (!is_string($scannerContent) || !is_string($toolContent)) {
     fwrite(STDERR, 'P112Q3E_SMOKE_FAILED: FILE_READ_FAILED' . PHP_EOL);
@@ -46,8 +46,8 @@ if (!is_string($scannerContent) || !is_string($toolContent)) {
 
 $markers = [
     'never guesses signatures',
-    'AsapRefBookClass',
-    'AsapRefBookMethod',
+    'OpusRefBookClass',
+    'OpusRefBookMethod',
     'RefBookSnapshotBuilder',
     'P112Q3E_REFBOOK_REFLECTION_CONTRACT_AUDIT_OK',
     'P112Q3E_REFBOOK_REFLECTION_CONTRACT_STRICT_FAILED',

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * P112Q2C — Mixed namespace directory reconciliation.
+ * P112Q2C â€” Mixed namespace directory reconciliation.
  *
  * This migration handles only the P112Q2A2 directories classified as:
  *
@@ -23,21 +23,21 @@ declare(strict_types=1);
  */
 
 $asapRoot = 'H:\\ASAP';
-$refBookRoot = 'H:\\ASAP_REF_BOOK';
-$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
+$refBookRoot = 'H:\\OPUS_REF_BOOK';
+$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus';
 
 if (!is_dir($asapRoot)) {
-    fwrite(STDERR, "ASAP_ROOT_MISSING\n");
+    fwrite(STDERR, "OPUS_ROOT_MISSING\n");
     exit(1);
 }
 
 if (!is_dir($refBookRoot)) {
-    fwrite(STDERR, "ASAP_REF_BOOK_ROOT_MISSING\n");
+    fwrite(STDERR, "OPUS_REF_BOOK_ROOT_MISSING\n");
     exit(1);
 }
 
 if (!is_dir($frameworkRoot)) {
-    fwrite(STDERR, "ASAP_FRAMEWORK_ROOT_MISSING\n");
+    fwrite(STDERR, "OPUS_FRAMEWORK_ROOT_MISSING\n");
     exit(1);
 }
 
@@ -219,14 +219,14 @@ foreach ($renames as $from => $to) {
 $replacements = [];
 
 foreach ($renames as $from => $to) {
-    $replacements['namespace ASAP\\' . $from] = 'namespace ASAP\\' . $to;
-    $replacements['use ASAP\\' . $from] = 'use ASAP\\' . $to;
-    $replacements['ASAP\\' . $from] = 'ASAP\\' . $to;
-    $replacements['ASAP\\\\' . $from] = 'ASAP\\\\' . $to;
+    $replacements['namespace Opus\\' . $from] = 'namespace Opus\\' . $to;
+    $replacements['use Opus\\' . $from] = 'use Opus\\' . $to;
+    $replacements['Opus\\' . $from] = 'Opus\\' . $to;
+    $replacements['Opus\\\\' . $from] = 'Opus\\\\' . $to;
 
-    $replacements['framework/Asap/' . $from] = 'framework/Asap/' . $to;
-    $replacements['framework\\ASAP\\' . $from] = 'framework\\ASAP\\' . $to;
-    $replacements['framework\\\\ASAP\\\\' . $from] = 'framework\\\\ASAP\\\\' . $to;
+    $replacements['framework/Opus/' . $from] = 'framework/Opus/' . $to;
+    $replacements['framework\\Opus\\' . $from] = 'framework\\Opus\\' . $to;
+    $replacements['framework\\\\Opus\\\\' . $from] = 'framework\\\\Opus\\\\' . $to;
 
     $replacements['ASAP/' . $from] = 'ASAP/' . $to;
     $replacements['/' . $from . '/'] = '/' . $to . '/';

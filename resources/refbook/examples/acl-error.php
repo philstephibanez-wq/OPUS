@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /*
- * ASAP RefBook example: ACL error.
+ * Opus RefBook example: ACL error.
  *
  * Purpose:
  *   Demonstrate the expected behavior when ACL denies access.
@@ -19,7 +19,7 @@ $context = new AccessContext(
 
 try {
     throw AccessControlException::because(
-        'ASAP_ACCESS_DENIED',
+        'OPUS_ACCESS_DENIED',
         $context->role() . ':' . $context->resource() . ':' . $context->privilege()
     );
 } catch (AccessControlException $exception) {

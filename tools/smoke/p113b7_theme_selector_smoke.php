@@ -6,7 +6,7 @@ declare(strict_types=1);
  *
  * Role:
  *   Validate the P113B7 RefBook theme selector patch without requiring UwAmp,
- *   Apache or ASAP runtime bootstrap.
+ *   Apache or Opus runtime bootstrap.
  *
  * Reads:
  *   - RefBook Twig layout and page templates.
@@ -78,7 +78,7 @@ try {
     fwrite(STDERR, 'P113B7_THEME_UNSUPPORTED_NOT_THROWN' . PHP_EOL);
     exit(1);
 } catch (RuntimeException $exception) {
-    if (!str_contains($exception->getMessage(), 'ASAP_REFBOOK_THEME_UNSUPPORTED=unknown')) {
+    if (!str_contains($exception->getMessage(), 'OPUS_REFBOOK_THEME_UNSUPPORTED=unknown')) {
         fwrite(STDERR, 'P113B7_THEME_UNSUPPORTED_ERROR_INVALID=' . $exception->getMessage() . PHP_EOL);
         exit(1);
     }

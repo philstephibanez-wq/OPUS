@@ -5,8 +5,8 @@ declare(strict_types=1);
  * P114D3 RefBook documentation I18N missing source extractor.
  *
  * Contract:
- * - scans ASAP RefBook source metadata through the official snapshot provider;
- * - compares source documentation strings against the ASAP I18N catalog;
+ * - scans Opus RefBook source metadata through the official snapshot provider;
+ * - compares source documentation strings against the Opus I18N catalog;
  * - writes candidate translation files for human review;
  * - never mutates the official catalog automatically.
  */
@@ -27,13 +27,13 @@ if (is_file($vendor)) {
 }
 
 spl_autoload_register(static function (string $class) use ($root): void {
-    $prefix = 'ASAP\\';
+    $prefix = 'Opus\\';
     if (!str_starts_with($class, $prefix)) {
         return;
     }
 
     $relative = substr($class, strlen($prefix));
-    $file = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $relative) . '.php';
+    $file = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $relative) . '.php';
 
     if (is_file($file)) {
         require_once $file;
@@ -158,7 +158,7 @@ function p114d3_candidate_catalog(array $missing, array $languages): array
 /** @param array<string,array<string,string>> $candidate */
 function p114d3_php_array_file(array $candidate): string
 {
-    return "<?php\n\ndeclare(strict_types=1);\n\n/**\n * P114D3 generated candidate catalog.\n *\n * Review manually before merging entries into ASAP\\RefBook\\I18n\\RefBookDocumentationI18nCatalog.\n */\nreturn " . var_export($candidate, true) . ";\n";
+    return "<?php\n\ndeclare(strict_types=1);\n\n/**\n * P114D3 generated candidate catalog.\n *\n * Review manually before merging entries into Opus\\RefBook\\I18n\\RefBookDocumentationI18nCatalog.\n */\nreturn " . var_export($candidate, true) . ";\n";
 }
 
 if (!class_exists(RefBookRestSnapshotProvider::class)) {
@@ -241,7 +241,7 @@ $summaryPath = $outputRoot . DIRECTORY_SEPARATOR . 'refbook_doc_i18n_summary.txt
 $report = [
     'schema' => 'P114D3_REFBOOK_DOC_I18N_MISSING_SOURCE_TEXTS_V1',
     'generated_at' => gmdate('c'),
-    'asap_root' => $root,
+    'opus_root' => $root,
     'languages' => $languages,
     'class_count' => $classCount,
     'method_count' => $methodCount,
@@ -255,7 +255,7 @@ file_put_contents($candidatePath, p114d3_php_array_file($candidate));
 
 $summary = [
     'P114D3_REFBOOK_DOC_I18N_MISSING_EXTRACTOR_OK',
-    'ASAP_ROOT=' . $root,
+    'OPUS_ROOT=' . $root,
     'LANGUAGES=' . implode(',', $languages),
     'CLASS_COUNT=' . (string) $classCount,
     'METHOD_COUNT=' . (string) $methodCount,

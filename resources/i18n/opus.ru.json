@@ -1,0 +1,21 @@
+{
+  "locale": "ru",
+  "messages": {
+    "opus.title": "Opus Framework",
+    "opus.reference": "Ð¡Ð¿Ñ€Ð°Ð²Ð¾Ñ‡Ð½Ð¸Ðº ASAP",
+    "opus.portage": "ÐŸÐ¾Ñ€Ñ‚ PHP 8",
+    "opus.renderer": "ÐœÐµÑ…Ð°Ð½Ð¸Ð·Ð¼ Ñ€ÐµÐ½Ð´ÐµÑ€Ð¸Ð½Ð³Ð°",
+    "opus.controller": "ÐšÐ¾Ð½Ñ‚Ñ€Ð¾Ð»Ð»ÐµÑ€ Ð¸ Ð´Ð¸ÑÐ¿ÐµÑ‚Ñ‡ÐµÑ€",
+    "opus.forms": "Ð¤Ð¾Ñ€Ð¼Ñ‹",
+    "opus.helpers": "ÐŸÐ¾Ð¼Ð¾Ñ‰Ð½Ð¸ÐºÐ¸",
+    "opus.url": "URL",
+    "opus.menu": "ÐœÐµÐ½ÑŽ"
+  },
+  "plurals": {
+    "opus.class_count": {
+      "one": "{count} Ð¿ÐµÑ€ÐµÐ½ÐµÑÑ‘Ð½Ð½Ñ‹Ð¹ ÐºÐ»Ð°ÑÑ",
+      "few": "{count} Ð¿ÐµÑ€ÐµÐ½ÐµÑÑ‘Ð½Ð½Ñ‹Ñ… ÐºÐ»Ð°ÑÑÐ°",
+      "many": "{count} Ð¿ÐµÑ€ÐµÐ½ÐµÑÑ‘Ð½Ð½Ñ‹Ñ… ÐºÐ»Ð°ÑÑÐ¾Ð²"
+    }
+  }
+}

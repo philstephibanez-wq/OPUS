@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-$frameworkRoot = 'H:\\ASAP\\framework\\ASAP';
+$frameworkRoot = 'H:\\Opus\\framework\\ASAP';
 
 if (!is_dir($frameworkRoot)) {
-    throw new RuntimeException('ASAP_FRAMEWORK_ROOT_MISSING');
+    throw new RuntimeException('OPUS_FRAMEWORK_ROOT_MISSING');
 }
 
 function exactDirectorySegmentsRecipe(string $parent): array

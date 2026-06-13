@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe;
+namespace Opus\Recipe;
 
 use JsonException;
 
@@ -10,7 +10,7 @@ use JsonException;
  * PUBLIC SERVICE
  *
  * Role:
- *   Write ASAP global recipe reports.
+ *   Write Opus global recipe reports.
  *
  * Responsibility:
  *   Persist JSON and Markdown summaries for each recipe run under ignored
@@ -34,14 +34,14 @@ final class RecipeReport
         $status = $this->status($results);
         $dir = $context->runtimePath() . DIRECTORY_SEPARATOR . 'reports';
         if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
-            throw RecipeAssertionFailedException::because('ASAP_RECIPE_REPORT_DIR_CREATE_FAILED', $dir);
+            throw RecipeAssertionFailedException::because('OPUS_RECIPE_REPORT_DIR_CREATE_FAILED', $dir);
         }
 
         $jsonPath = $dir . DIRECTORY_SEPARATOR . $context->runId() . '.json';
         $mdPath = $dir . DIRECTORY_SEPARATOR . $context->runId() . '.md';
 
         $payload = [
-            'suite' => 'ASAP_GLOBAL_RECIPE_SUITE',
+            'suite' => 'OPUS_GLOBAL_RECIPE_SUITE',
             'run_id' => $context->runId(),
             'status' => $status,
             'results' => array_map(static fn (RecipeResult $result): array => $result->toArray(), $results),
@@ -50,10 +50,10 @@ final class RecipeReport
         try {
             file_put_contents($jsonPath, json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
         } catch (JsonException $exception) {
-            throw RecipeAssertionFailedException::because('ASAP_RECIPE_JSON_REPORT_FAILED', $exception->getMessage());
+            throw RecipeAssertionFailedException::because('OPUS_RECIPE_JSON_REPORT_FAILED', $exception->getMessage());
         }
 
-        $lines = ['# ASAP Global Recipe Report', '', '- Run: `' . $context->runId() . '`', '- Status: `' . $status . '`', ''];
+        $lines = ['# Opus Global Recipe Report', '', '- Run: `' . $context->runId() . '`', '- Status: `' . $status . '`', ''];
         foreach ($results as $result) {
             $lines[] = '## ' . $result->name . ' — ' . $result->status;
             $lines[] = '';

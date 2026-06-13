@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /*
- * ASAP RefBook example: FSM basic transition.
+ * Opus RefBook example: FSM basic transition.
  *
  * Purpose:
  *   Apply one explicit signal and read the resulting state.
@@ -16,7 +16,7 @@ $memory = new StateMemory('DRAFT');
 $result = $fsm->apply($memory, 'VALIDATE');
 
 if ($result->fromState() !== 'DRAFT' || $result->toState() !== 'VALIDATED') {
-    throw new RuntimeException('ASAP_FSM_TRANSITION_UNEXPECTED');
+    throw new RuntimeException('OPUS_FSM_TRANSITION_UNEXPECTED');
 }
 
 $memory->set($result->toState());

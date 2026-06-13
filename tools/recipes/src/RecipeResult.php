@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe;
+namespace Opus\Recipe;
 
 /**
  * PUBLIC VALUE OBJECT

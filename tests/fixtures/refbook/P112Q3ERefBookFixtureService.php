@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Tests\Fixtures\RefBook;
+namespace Opus\Tests\Fixtures\RefBook;
 
-use ASAP\RefBook\Attribute\AsapRefBookClass;
-use ASAP\RefBook\Attribute\AsapRefBookMethod;
+use ASAP\RefBook\Attribute\OpusRefBookClass;
+use ASAP\RefBook\Attribute\OpusRefBookMethod;
 use ASAP\RefBook\Contract\RefBookInspectableInterface;
 
-#[AsapRefBookClass(
+#[OpusRefBookClass(
     domain: 'RefBookFixture',
     role: 'Provide a deterministic fixture for RefBook Reflection tests',
     responsibility: 'Expose typed public methods decorated with functional metadata',
@@ -27,7 +27,7 @@ final class P112Q3ERefBookFixtureService implements RefBookInspectableInterface
         return 'RefBookFixture';
     }
 
-    #[AsapRefBookMethod(
+    #[OpusRefBookMethod(
         role: 'Build a display label from an identifier and locale',
         behavior: 'Combines the identifier and locale into a deterministic label for scanner assertions.',
         preconditions: ['Identifier is non-empty', 'Locale is a supported fixture language'],

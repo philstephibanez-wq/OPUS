@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe\Recipes;
+namespace Opus\Recipe\Recipes;
 
 use ASAP\Recipe\RecipeContext;
 use ASAP\Recipe\RecipeInterface;
@@ -19,15 +19,15 @@ final class FsmRecipe implements RecipeInterface
             [new \ASAP\Fsm\TransitionDefinition('DRAFT', 'SUBMIT', 'REVIEW'), new \ASAP\Fsm\TransitionDefinition('REVIEW', 'APPROVE', 'PUBLISHED')],
             'DRAFT'
         );
-        $context->assert($fsm->currentState() === 'DRAFT', 'ASAP_FSM_INITIAL_STATE_INVALID');
-        $context->assert($fsm->apply('SUBMIT')->toState() === 'REVIEW', 'ASAP_FSM_SUBMIT_TRANSITION_INVALID');
+        $context->assert($fsm->currentState() === 'DRAFT', 'OPUS_FSM_INITIAL_STATE_INVALID');
+        $context->assert($fsm->apply('SUBMIT')->toState() === 'REVIEW', 'OPUS_FSM_SUBMIT_TRANSITION_INVALID');
         try {
             $fsm->apply('SUBMIT');
-            $context->assert(false, 'ASAP_FSM_FORBIDDEN_TRANSITION_DID_NOT_FAIL');
+            $context->assert(false, 'OPUS_FSM_FORBIDDEN_TRANSITION_DID_NOT_FAIL');
         } catch (\ASAP\Fsm\StateMachineException) {
         }
-        $context->assert($fsm->apply('APPROVE')->toState() === 'PUBLISHED', 'ASAP_FSM_APPROVE_TRANSITION_INVALID');
+        $context->assert($fsm->apply('APPROVE')->toState() === 'PUBLISHED', 'OPUS_FSM_APPROVE_TRANSITION_INVALID');
 
-        return ['ASAP_FSM_OK'];
+        return ['OPUS_FSM_OK'];
     }
 }

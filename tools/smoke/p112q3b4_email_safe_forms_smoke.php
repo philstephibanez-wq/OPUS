@@ -21,7 +21,7 @@ declare(strict_types=1);
 
 $root = dirname(__DIR__, 2);
 $recipe = $root . '/tools/recipes/p112q3b2_secure_life_robotized_recipe.php';
-$router = $root . '/framework/Asap/Routing/Router.php';
+$router = $root . '/framework/Opus/Routing/Router.php';
 
 foreach ([$recipe, $router] as $file) {
     if (!is_file($file)) {
@@ -58,7 +58,7 @@ foreach ($requiredRecipeMarkers as $marker) {
 }
 
 $requiredRouterMarkers = [
-    'ASAP_ROUTE_METHOD_NOT_ALLOWED',
+    'OPUS_ROUTE_METHOD_NOT_ALLOWED',
     '$requestMethod = strtoupper(trim($request->method));',
     '$methodMismatches = [];',
     '$route->normalizedMethods()',

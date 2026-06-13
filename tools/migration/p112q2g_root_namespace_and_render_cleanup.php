@@ -3,71 +3,71 @@
 declare(strict_types=1);
 
 /**
- * P112Q2G — Root namespace and Render cleanup.
+ * P112Q2G â€” Root namespace and Render cleanup.
  *
  * This migration removes the dirty final layout:
  *
- * - no PHP file directly under framework/Asap;
+ * - no PHP file directly under framework/Opus;
  * - no decorative Render directory next to Renderer;
  * - root compatibility classes moved into explicit domains;
  * - no fallback root file is kept.
  */
 
 $asapRoot = 'H:\\ASAP';
-$refBookRoot = 'H:\\ASAP_REF_BOOK';
-$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
+$refBookRoot = 'H:\\OPUS_REF_BOOK';
+$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus';
 
 if (!is_dir($asapRoot)) {
-    fwrite(STDERR, "ASAP_ROOT_MISSING\n");
+    fwrite(STDERR, "OPUS_ROOT_MISSING\n");
     exit(1);
 }
 
 if (!is_dir($refBookRoot)) {
-    fwrite(STDERR, "ASAP_REF_BOOK_ROOT_MISSING\n");
+    fwrite(STDERR, "OPUS_REF_BOOK_ROOT_MISSING\n");
     exit(1);
 }
 
 if (!is_dir($frameworkRoot)) {
-    fwrite(STDERR, "ASAP_FRAMEWORK_ROOT_MISSING\n");
+    fwrite(STDERR, "OPUS_FRAMEWORK_ROOT_MISSING\n");
     exit(1);
 }
 
 $moves = [
-    'Acl.php' => ['Acl/Acl.php', 'ASAP\\Acl', null, []],
-    'Bootstrap.php' => ['Core/Bootstrap.php', 'ASAP\\Core', null, [
-        'Exception::because' => '\\ASAP\\Exception\\Exception::because',
+    'Acl.php' => ['Acl/Acl.php', 'Opus\\Acl', null, []],
+    'Bootstrap.php' => ['Core/Bootstrap.php', 'Opus\\Core', null, [
+        'Exception::because' => '\\Opus\\Exception\\Exception::because',
     ]],
-    'ConfigLoader.php' => ['Config/ConfigLoader.php', 'ASAP\\Config', null, [
-        'Exception::because' => '\\ASAP\\Exception\\Exception::because',
+    'ConfigLoader.php' => ['Config/ConfigLoader.php', 'Opus\\Config', null, [
+        'Exception::because' => '\\Opus\\Exception\\Exception::because',
     ]],
-    'Configuration.php' => ['Config/Configuration.php', 'ASAP\\Config', null, [
-        'Exception::because' => '\\ASAP\\Exception\\Exception::because',
+    'Configuration.php' => ['Config/Configuration.php', 'Opus\\Config', null, [
+        'Exception::because' => '\\Opus\\Exception\\Exception::because',
     ]],
-    'Debug.php' => ['Debug/Debug.php', 'ASAP\\Debug', null, []],
-    'Exception.php' => ['Exception/Exception.php', 'ASAP\\Exception', null, []],
-    'Fsm.php' => ['Fsm/Fsm.php', 'ASAP\\Fsm', null, []],
-    'Kernel.php' => ['Core/Kernel.php', 'ASAP\\Core', null, [
-        'private readonly PackageRepository $packages = new PackageRepository()' => 'private readonly \\ASAP\\Package\\PackageRepository $packages = new \\ASAP\\Package\\PackageRepository()',
-        'public function getPackage(string $id): Package' => 'public function getPackage(string $id): \\ASAP\\Package\\Package',
-        'Exception::because' => '\\ASAP\\Exception\\Exception::because',
+    'Debug.php' => ['Debug/Debug.php', 'Opus\\Debug', null, []],
+    'Exception.php' => ['Exception/Exception.php', 'Opus\\Exception', null, []],
+    'Fsm.php' => ['Fsm/Fsm.php', 'Opus\\Fsm', null, []],
+    'Kernel.php' => ['Core/Kernel.php', 'Opus\\Core', null, [
+        'private readonly PackageRepository $packages = new PackageRepository()' => 'private readonly \\Opus\\Package\\PackageRepository $packages = new \\Opus\\Package\\PackageRepository()',
+        'public function getPackage(string $id): Package' => 'public function getPackage(string $id): \\Opus\\Package\\Package',
+        'Exception::because' => '\\Opus\\Exception\\Exception::because',
     ]],
-    'Package.php' => ['Package/Package.php', 'ASAP\\Package', null, [
-        'Exception::because' => '\\ASAP\\Exception\\Exception::because',
+    'Package.php' => ['Package/Package.php', 'Opus\\Package', null, [
+        'Exception::because' => '\\Opus\\Exception\\Exception::because',
     ]],
-    'PackageRepository.php' => ['Package/PackageRepository.php', 'ASAP\\Package', null, [
-        'Exception::because' => '\\ASAP\\Exception\\Exception::because',
+    'PackageRepository.php' => ['Package/PackageRepository.php', 'Opus\\Package', null, [
+        'Exception::because' => '\\Opus\\Exception\\Exception::because',
     ]],
-    'Response.php' => ['Response/ResponseFacade.php', 'ASAP\\Response', ['Response', 'ResponseFacade'], []],
-    'SimpleXMLElementExtended.php' => ['Compatibility/SimpleXMLElementExtended.php', 'ASAP\\Compatibility', null, []],
-    'Singleton.php' => ['Compatibility/Singleton.php', 'ASAP\\Compatibility', null, [
-        'Exception::because' => '\\ASAP\\Exception\\Exception::because',
+    'Response.php' => ['Response/ResponseFacade.php', 'Opus\\Response', ['Response', 'ResponseFacade'], []],
+    'SimpleXMLElementExtended.php' => ['Compatibility/SimpleXMLElementExtended.php', 'Opus\\Compatibility', null, []],
+    'Singleton.php' => ['Compatibility/Singleton.php', 'Opus\\Compatibility', null, [
+        'Exception::because' => '\\Opus\\Exception\\Exception::because',
     ]],
-    'Support.php' => ['Support/Support.php', 'ASAP\\Support', null, [
-        'Exception::because' => '\\ASAP\\Exception\\Exception::because',
+    'Support.php' => ['Support/Support.php', 'Opus\\Support', null, [
+        'Exception::because' => '\\Opus\\Exception\\Exception::because',
     ]],
-    'Validator.php' => ['Validation/Validator.php', 'ASAP\\Validation', null, []],
-    'View.php' => ['View/View.php', 'ASAP\\View', null, [
-        'Exception::because' => '\\ASAP\\Exception\\Exception::because',
+    'Validator.php' => ['Validation/Validator.php', 'Opus\\Validation', null, []],
+    'View.php' => ['View/View.php', 'Opus\\View', null, [
+        'Exception::because' => '\\Opus\\Exception\\Exception::because',
     ]],
 ];
 
@@ -183,7 +183,7 @@ function shouldSkipReferencePath(string $path): bool
         || str_contains($normalized, '/var/cache/')
         || str_contains($normalized, '/var/reports/')
         || str_contains($normalized, '/node_modules/')
-        || str_contains($normalized, '/framework/Asap/')
+        || str_contains($normalized, '/framework/Opus/')
         || str_contains(strtolower($normalized), '/tools/migration/p112q2g_')
         || str_contains($normalized, '/DOC/P112Q2G_')
         || str_contains($normalized, '/content/markdown/root-namespace-and-render-cleanup.md');
@@ -292,8 +292,8 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/SimpleXMLElementExtended.php';
 
-if (!class_exists('ASAP_SimpleXMLElementExtended', false)) {
-    class ASAP_SimpleXMLElementExtended extends \ASAP\Compatibility\SimpleXMLElementExtended
+if (!class_exists('OPUS_SimpleXMLElementExtended', false)) {
+    class OPUS_SimpleXMLElementExtended extends \ASAP\Compatibility\SimpleXMLElementExtended
     {
     }
 }
@@ -311,8 +311,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/../Exception/Exception.php';
 require_once __DIR__ . '/Singleton.php';
 
-if (!class_exists('ASAP_Singleton', false)) {
-    class ASAP_Singleton extends \ASAP\Compatibility\Singleton
+if (!class_exists('OPUS_Singleton', false)) {
+    class OPUS_Singleton extends \ASAP\Compatibility\Singleton
     {
     }
 }
@@ -334,27 +334,27 @@ echo 'MOVED Singleton.class.php -> Compatibility/LegacySingleton.php' . PHP_EOL;
 removeRenderDirectory($frameworkRoot);
 
 $simpleReplacements = [
-    'framework/Asap/Acl.php' => 'framework/Asap/Acl/Acl.php',
-    'framework/Asap/Bootstrap.php' => 'framework/Asap/Core/Bootstrap.php',
-    'framework/Asap/ConfigLoader.php' => 'framework/Asap/Config/ConfigLoader.php',
-    'framework/Asap/Configuration.php' => 'framework/Asap/Config/Configuration.php',
-    'framework/Asap/Debug.php' => 'framework/Asap/Debug/Debug.php',
-    'framework/Asap/Exception.php' => 'framework/Asap/Exception/Exception.php',
-    'framework/Asap/Fsm.php' => 'framework/Asap/Fsm/Fsm.php',
-    'framework/Asap/Kernel.php' => 'framework/Asap/Core/Kernel.php',
-    'framework/Asap/Package.php' => 'framework/Asap/Package/Package.php',
-    'framework/Asap/PackageRepository.php' => 'framework/Asap/Package/PackageRepository.php',
-    'framework/Asap/Response.php' => 'framework/Asap/Response/ResponseFacade.php',
-    'framework/Asap/SimpleXMLElementExtended.php' => 'framework/Asap/Compatibility/SimpleXMLElementExtended.php',
-    'framework/Asap/SimpleXMLElementExtended.class.php' => 'framework/Asap/Compatibility/LegacySimpleXMLElementExtended.php',
-    'framework/Asap/Singleton.php' => 'framework/Asap/Compatibility/Singleton.php',
-    'framework/Asap/Singleton.class.php' => 'framework/Asap/Compatibility/LegacySingleton.php',
-    'framework/Asap/Support.php' => 'framework/Asap/Support/Support.php',
-    'framework/Asap/Validator.php' => 'framework/Asap/Validation/Validator.php',
-    'framework/Asap/View.php' => 'framework/Asap/View/View.php',
-    'framework/Asap/Render' => 'framework/Asap/Renderer',
-    'ASAP\\Render' => 'ASAP\\Renderer',
-    'ASAP\\\\Render' => 'ASAP\\\\Renderer',
+    'framework/Opus/Acl.php' => 'framework/Opus/Acl/Acl.php',
+    'framework/Opus/Bootstrap.php' => 'framework/Opus/Core/Bootstrap.php',
+    'framework/Opus/ConfigLoader.php' => 'framework/Opus/Config/ConfigLoader.php',
+    'framework/Opus/Configuration.php' => 'framework/Opus/Config/Configuration.php',
+    'framework/Opus/Debug.php' => 'framework/Opus/Debug/Debug.php',
+    'framework/Opus/Exception.php' => 'framework/Opus/Exception/Exception.php',
+    'framework/Opus/Fsm.php' => 'framework/Opus/Fsm/Fsm.php',
+    'framework/Opus/Kernel.php' => 'framework/Opus/Core/Kernel.php',
+    'framework/Opus/Package.php' => 'framework/Opus/Package/Package.php',
+    'framework/Opus/PackageRepository.php' => 'framework/Opus/Package/PackageRepository.php',
+    'framework/Opus/Response.php' => 'framework/Opus/Response/ResponseFacade.php',
+    'framework/Opus/SimpleXMLElementExtended.php' => 'framework/Opus/Compatibility/SimpleXMLElementExtended.php',
+    'framework/Opus/SimpleXMLElementExtended.class.php' => 'framework/Opus/Compatibility/LegacySimpleXMLElementExtended.php',
+    'framework/Opus/Singleton.php' => 'framework/Opus/Compatibility/Singleton.php',
+    'framework/Opus/Singleton.class.php' => 'framework/Opus/Compatibility/LegacySingleton.php',
+    'framework/Opus/Support.php' => 'framework/Opus/Support/Support.php',
+    'framework/Opus/Validator.php' => 'framework/Opus/Validation/Validator.php',
+    'framework/Opus/View.php' => 'framework/Opus/View/View.php',
+    'framework/Opus/Render' => 'framework/Opus/Renderer',
+    'Opus\\Render' => 'Opus\\Renderer',
+    'Opus\\\\Render' => 'Opus\\\\Renderer',
 ];
 
 $fqcnMap = [
@@ -379,8 +379,8 @@ $fqcnMap = [
 $regexReplacements = [];
 
 foreach ($fqcnMap as $old => $new) {
-    $regexReplacements['/(?<![A-Za-z0-9_\\\\])ASAP\\\\' . preg_quote($old, '/') . '(?!\\\\|[A-Za-z0-9_])/'] = 'ASAP\\' . $new;
-    $regexReplacements['/(?<![A-Za-z0-9_\\\\])ASAP\\\\\\\\' . preg_quote($old, '/') . '(?!\\\\\\\\|[A-Za-z0-9_])/'] = 'ASAP\\\\' . str_replace('\\', '\\\\', $new);
+    $regexReplacements['/(?<![A-Za-z0-9_\\\\])Opus\\\\' . preg_quote($old, '/') . '(?!\\\\|[A-Za-z0-9_])/'] = 'Opus\\' . $new;
+    $regexReplacements['/(?<![A-Za-z0-9_\\\\])Opus\\\\\\\\' . preg_quote($old, '/') . '(?!\\\\\\\\|[A-Za-z0-9_])/'] = 'Opus\\\\' . str_replace('\\', '\\\\', $new);
 }
 
 $changedFiles = replaceOutsideFramework([$asapRoot, $refBookRoot], $simpleReplacements, $regexReplacements);

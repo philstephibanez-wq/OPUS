@@ -1,6 +1,6 @@
-﻿# ASAP Skeleton
+# Opus Skeleton
 
-Squelette minimal d’application ASAP.
+Squelette minimal d’application Opus.
 
 Ce dossier n’est pas une application métier.
-Il sert de modèle propre pour créer un site ASAP.
+Il sert de modèle propre pour créer un site Opus.

@@ -12,15 +12,15 @@ declare(strict_types=1);
  */
 $root = dirname(__DIR__, 2);
 $required = [
-    'framework/Asap/RefBook/Attribute/AsapRefBookClass.php',
-    'framework/Asap/RefBook/Attribute/AsapRefBookMethod.php',
-    'framework/Asap/RefBook/Contract/RefBookInspectableInterface.php',
-    'framework/Asap/RefBook/Model/RefBookMethodEntry.php',
-    'framework/Asap/RefBook/Model/RefBookClassEntry.php',
-    'framework/Asap/RefBook/Model/RefBookScanResult.php',
-    'framework/Asap/RefBook/RefBookReflectionScanner.php',
-    'framework/Asap/RefBook/RefBookContractValidator.php',
-    'framework/Asap/RefBook/RefBookSnapshotBuilder.php',
+    'framework/Opus/RefBook/Attribute/OpusRefBookClass.php',
+    'framework/Opus/RefBook/Attribute/OpusRefBookMethod.php',
+    'framework/Opus/RefBook/Contract/RefBookInspectableInterface.php',
+    'framework/Opus/RefBook/Model/RefBookMethodEntry.php',
+    'framework/Opus/RefBook/Model/RefBookClassEntry.php',
+    'framework/Opus/RefBook/Model/RefBookScanResult.php',
+    'framework/Opus/RefBook/RefBookReflectionScanner.php',
+    'framework/Opus/RefBook/RefBookContractValidator.php',
+    'framework/Opus/RefBook/RefBookSnapshotBuilder.php',
 ];
 
 foreach ($required as $relative) {
@@ -34,7 +34,7 @@ foreach ($required as $relative) {
 
 $fixtureRoot = $root . DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR . 'fixtures' . DIRECTORY_SEPARATOR . 'refbook';
 $scanner = new ASAP\RefBook\RefBookReflectionScanner();
-$result = $scanner->scan($fixtureRoot, 'ASAP\\Tests\\Fixtures\\RefBook');
+$result = $scanner->scan($fixtureRoot, 'Opus\\Tests\\Fixtures\\RefBook');
 $validator = new ASAP\RefBook\RefBookContractValidator();
 $validation = $validator->validate($result);
 $builder = new ASAP\RefBook\RefBookSnapshotBuilder();
@@ -47,7 +47,7 @@ assertEquals(1, $snapshot['summary']['method_metadata_missing'], 'Static interfa
 assertEquals(1, $validation['summary']['violations'], 'Exactly one fixture method metadata violation is expected.');
 
 $class = $snapshot['classes'][0];
-assertEquals('ASAP\\Tests\\Fixtures\\RefBook\\P112Q3ERefBookFixtureService', $class['name'], 'Unexpected fixture class name.');
+assertEquals('Opus\\Tests\\Fixtures\\RefBook\\P112Q3ERefBookFixtureService', $class['name'], 'Unexpected fixture class name.');
 assertEquals(true, $class['implements_refbook_inspectable'], 'Fixture must implement RefBookInspectableInterface.');
 assertEquals('RefBookFixture', $class['metadata']['domain'], 'Class functional domain not extracted.');
 
@@ -58,7 +58,7 @@ assertEquals('fr', $buildLabel['parameters'][1]['default'], 'Default value must 
 assertEquals('string', $buildLabel['return_type'], 'Return type must come from Reflection.');
 assertEquals('Build a display label from an identifier and locale', $buildLabel['metadata']['role'], 'Method functional role not extracted.');
 assertEquals('P112Q3E', $buildLabel['metadata']['introduced_in'], 'Method delivery marker not extracted.');
-assertEquals('asap-refbook-snapshot/v1', $snapshot['schema_version'], 'Snapshot schema version mismatch.');
+assertEquals('opus-refbook-snapshot/v1', $snapshot['schema_version'], 'Snapshot schema version mismatch.');
 
 echo 'P112Q3E_REFBOOK_REFLECTION_CONTRACT_UNIT_OK' . PHP_EOL;
 exit(0);

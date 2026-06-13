@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Tests\Fixtures\P112Q1;
+namespace Opus\Tests\Fixtures\P112Q1;
 
 use ASAP\Routing\Route;
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe\Life;
+namespace Opus\Recipe\Life;
 
 /**
  * PUBLIC CONTRACT
@@ -11,7 +11,7 @@ namespace ASAP\Recipe\Life;
  *   Define one robotized life scenario.
  *
  * Responsibility:
- *   Declare the actor and ordered steps used to simulate a real ASAP flow.
+ *   Declare the actor and ordered steps used to simulate a real Opus flow.
  *
  * Contract:
  *   Life scenarios are registered in the global manifest and therefore evolve

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe\Life\Scenarios;
+namespace Opus\Recipe\Life\Scenarios;
 
 use ASAP\Recipe\Life\LifeScenarioRunner;
 use ASAP\Recipe\Life\RobotActor;
@@ -30,8 +30,8 @@ final class I18nLifecycleScenario implements RecipeInterface, RobotScenario
             ];
             foreach ($catalogs as $locale => [$rule, $hello, $plural]) {
                 $translator = new \ASAP\I18n\Translator(new \ASAP\I18n\TranslationCatalog(new \ASAP\I18n\LocaleCode($locale), ['hello' => explode(' ', $hello)[0] . ' {name}'], ['items' => ['one' => '{count} item', 'other' => $locale === 'fr' ? '{count} éléments' : ($locale === 'es' ? '{count} elementos' : '{count} items')]]), $rule);
-                $context->assert($translator->translate('hello', ['name' => 'Ada']) === $hello, 'ASAP_LIFE_I18N_TRANSLATION_FAILED', $locale);
-                $context->assert($translator->plural('items', 2) === $plural, 'ASAP_LIFE_I18N_PLURAL_FAILED', $locale);
+                $context->assert($translator->translate('hello', ['name' => 'Ada']) === $hello, 'OPUS_LIFE_I18N_TRANSLATION_FAILED', $locale);
+                $context->assert($translator->plural('items', 2) === $plural, 'OPUS_LIFE_I18N_PLURAL_FAILED', $locale);
             }
         })];
     }

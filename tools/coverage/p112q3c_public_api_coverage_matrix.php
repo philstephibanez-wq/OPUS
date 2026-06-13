@@ -7,7 +7,7 @@ declare(strict_types=1);
  *
  * Public CLI tool.
  * Role:
- *   Scan the local ASAP framework sources and build an observable matrix of
+ *   Scan the local Opus framework sources and build an observable matrix of
  *   public classes/interfaces/traits and public methods versus available test,
  *   smoke and recipe references.
  *
@@ -44,7 +44,7 @@ final class P112Q3CPublicApiCoverageMatrix
     public function __construct(string $root)
     {
         $this->root = rtrim($root, DIRECTORY_SEPARATOR);
-        $this->frameworkRoot = $this->root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
+        $this->frameworkRoot = $this->root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus';
         $this->reportRoot = $this->root . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'reports' . DIRECTORY_SEPARATOR . 'p112q3c_public_api_coverage';
     }
 
@@ -55,7 +55,7 @@ final class P112Q3CPublicApiCoverageMatrix
      */
     public function run(): int
     {
-        $this->assertDirectory($this->frameworkRoot, 'ASAP_FRAMEWORK_ROOT_MISSING');
+        $this->assertDirectory($this->frameworkRoot, 'OPUS_FRAMEWORK_ROOT_MISSING');
 
         $this->symbols = $this->scanFrameworkSymbols();
         $this->unitCorpus = $this->loadCorpus([$this->root . DIRECTORY_SEPARATOR . 'tests']);
@@ -155,7 +155,7 @@ final class P112Q3CPublicApiCoverageMatrix
                 'file' => $relative,
                 'domain' => $this->domainFromPath($relative),
                 'line' => is_array($token) ? (int) $token[2] : 0,
-                'refbook_tag' => str_contains($source, 'ASAP_REFBOOK:'),
+                'refbook_tag' => str_contains($source, 'OPUS_REFBOOK:'),
                 'public_methods' => $methods,
             ];
 
@@ -377,7 +377,7 @@ final class P112Q3CPublicApiCoverageMatrix
     private function renderMarkdown(array $summary): string
     {
         $out = [];
-        $out[] = '# P112Q3C — ASAP Public API Coverage Matrix';
+        $out[] = '# P112Q3C â€” Opus Public API Coverage Matrix';
         $out[] = '';
         $out[] = 'Generated at: `' . (string) $summary['generated_at'] . '`';
         $out[] = '';
@@ -438,7 +438,7 @@ final class P112Q3CPublicApiCoverageMatrix
 
         return '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>P112Q3C Public API Coverage Matrix</title>'
             . '<style>body{font-family:Arial,sans-serif;background:#0b1220;color:#eef4ff;margin:0;padding:24px}h1{margin:0 0 8px}.muted{color:#9fb2d8}.cards{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0}.card{border:1px solid #263957;border-radius:14px;padding:14px 18px;background:#101b2d}.card strong{display:block;font-size:26px}table{border-collapse:collapse;width:100%;background:#101b2d;border-radius:12px;overflow:hidden}th,td{border-bottom:1px solid #263957;padding:9px 10px;text-align:left;font-size:13px}th{background:#17243a}.ok td:first-child{color:#4ade80}.warn td:first-child{color:#facc15}.miss td:first-child{color:#fb7185}code{color:#fde68a}.note{border-left:4px solid #60a5fa;padding:10px 14px;background:#0f1a2c}</style></head><body>'
-            . '<h1>P112Q3C — ASAP Public API Coverage Matrix</h1><p class="muted">Generated at ' . $this->h((string) $summary['generated_at']) . '</p>'
+            . '<h1>P112Q3C â€” Opus Public API Coverage Matrix</h1><p class="muted">Generated at ' . $this->h((string) $summary['generated_at']) . '</p>'
             . '<div class="note">Coverage candidates are detected from local source references. This is not a proof that every behavior has an executed unit assertion.</div>'
             . '<div class="cards"><div class="card"><span>Symbols</span><strong>' . $this->h((string) $summary['symbols']) . '</strong></div><div class="card"><span>Public methods</span><strong>' . $this->h((string) $summary['public_methods']) . '</strong></div><div class="card"><span>Unit candidates</span><strong>' . $this->h((string) $summary['unit_candidate']) . '</strong></div><div class="card"><span>Integration only</span><strong>' . $this->h((string) $summary['integration_only']) . '</strong></div><div class="card"><span>Missing test reference</span><strong>' . $this->h((string) $summary['missing_test_reference']) . '</strong></div></div>'
             . '<table><thead><tr><th>Status</th><th>Domain</th><th>Symbol</th><th>Method</th><th>Unit</th><th>Smoke</th><th>Recipe</th><th>File</th></tr></thead><tbody>' . $rows . '</tbody></table>'
@@ -640,7 +640,7 @@ final class P112Q3CPublicApiCoverageMatrix
     {
         $normalized = str_replace('\\', '/', $relativePath);
         $parts = explode('/', $normalized);
-        $index = array_search('Asap', $parts, true);
+        $index = array_search('Opus', $parts, true);
         if ($index === false || !isset($parts[$index + 1])) {
             return 'UNKNOWN';
         }
@@ -684,7 +684,7 @@ final class P112Q3CPublicApiCoverageMatrix
 
     private function isStrictMode(): bool
     {
-        return (string) getenv('ASAP_P112Q3C_STRICT') === '1';
+        return (string) getenv('OPUS_P112Q3C_STRICT') === '1';
     }
 
     private function h(string $value): string

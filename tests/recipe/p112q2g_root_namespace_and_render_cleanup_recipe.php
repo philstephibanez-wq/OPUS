@@ -7,10 +7,10 @@ declare(strict_types=1);
  */
 
 $asapRoot = 'H:\\ASAP';
-$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
+$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus';
 
 if (!is_dir($frameworkRoot)) {
-    throw new RuntimeException('ASAP_FRAMEWORK_ROOT_MISSING');
+    throw new RuntimeException('OPUS_FRAMEWORK_ROOT_MISSING');
 }
 
 function assertNoRootPhpFiles(string $frameworkRoot): void
@@ -178,8 +178,8 @@ $classes = [
     \ASAP\Validation\Validator::class,
     \ASAP\Compatibility\SimpleXMLElementExtended::class,
     \ASAP\Compatibility\Singleton::class,
-    'ASAP_SimpleXMLElementExtended',
-    'ASAP_Singleton',
+    'OPUS_SimpleXMLElementExtended',
+    'OPUS_Singleton',
 ];
 
 foreach ($classes as $class) {

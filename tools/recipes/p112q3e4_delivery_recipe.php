@@ -15,7 +15,7 @@ $steps = [
     ['id' => 'P112Q3E4_UNIT', 'command' => ['php', 'tests/Contract/RefBookHttpMetadataContractTest.php']],
     ['id' => 'P112Q3E4_SMOKE', 'command' => ['php', 'tools/smoke/p112q3e4_refbook_http_metadata_smoke.php']],
     ['id' => 'P112Q3E4_AUDIT_STRICT', 'command' => ['php', 'tools/refbook/p112q3e4_refbook_http_metadata_audit.php', '--strict']],
-    ['id' => 'ASAP_GLOBAL_REGRESSION_RECIPE', 'command' => ['php', 'tools/recipes/asap_global_regression_recipe.php']],
+    ['id' => 'OPUS_GLOBAL_REGRESSION_RECIPE', 'command' => ['php', 'tools/recipes/opus_global_regression_recipe.php']],
 ];
 
 $results = [];
@@ -87,7 +87,7 @@ function writeText(string $path, string $content): void
 function buildMarkdown(array $report): string
 {
     $lines = ['# P112Q3E4 Delivery Recipe', '', 'Status: **' . $report['summary']['status'] . '**', '', '## Steps', ''];
-    foreach ($report['steps'] as $step) { $lines[] = '- ' . $step['status'] . ' — ' . $step['id'] . ' — ExitCode=' . (string) $step['exit_code']; }
+    foreach ($report['steps'] as $step) { $lines[] = '- ' . $step['status'] . ' â€” ' . $step['id'] . ' â€” ExitCode=' . (string) $step['exit_code']; }
     return implode(PHP_EOL, $lines) . PHP_EOL;
 }
 

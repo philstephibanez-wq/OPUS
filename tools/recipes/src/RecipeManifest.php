@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe;
+namespace Opus\Recipe;
 
 use ASAP\Recipe\Recipes\AclRecipe;
 use ASAP\Recipe\Recipes\AutoloadCacheRecipe;
@@ -35,7 +35,7 @@ use ASAP\Recipe\Life\Scenarios\PublicSiteLifecycleScenario;
  * PUBLIC MANIFEST
  *
  * Role:
- *   Declare the global ASAP recipe suite order.
+ *   Declare the global Opus recipe suite order.
  *
  * Contract:
  *   This is the single registry for the global recipe suite. No implicit test

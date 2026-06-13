@@ -7,7 +7,7 @@ declare(strict_types=1);
  *
  * Public CLI recipe.
  * Role:
- *   Run the feature unit test, feature smoke, RefBook audit and ASAP global
+ *   Run the feature unit test, feature smoke, RefBook audit and Opus global
  *   anti-regression recipe required by the workspace delivery gate.
  */
 $root = dirname(__DIR__, 2);
@@ -15,7 +15,7 @@ $steps = [
     ['id' => 'P112Q3E_UNIT_OR_CONTRACT_TEST', 'command' => ['php', 'tests/Contract/RefBookReflectionContractTest.php']],
     ['id' => 'P112Q3E_FEATURE_SMOKE', 'command' => ['php', 'tools/smoke/p112q3e_refbook_reflection_contract_smoke.php']],
     ['id' => 'P112Q3E_REFBOOK_AUDIT', 'command' => ['php', 'tools/refbook/p112q3e_refbook_reflection_contract.php']],
-    ['id' => 'ASAP_GLOBAL_REGRESSION_RECIPE', 'command' => ['php', 'tools/recipes/asap_global_regression_recipe.php']],
+    ['id' => 'OPUS_GLOBAL_REGRESSION_RECIPE', 'command' => ['php', 'tools/recipes/opus_global_regression_recipe.php']],
 ];
 $failed = false;
 foreach ($steps as $step) {

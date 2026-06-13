@@ -13,11 +13,11 @@ declare(strict_types=1);
  */
 
 $asapRoot = 'H:\\ASAP';
-$refBookRoot = 'H:\\ASAP_REF_BOOK';
-$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
+$refBookRoot = 'H:\\OPUS_REF_BOOK';
+$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus';
 
 if (!is_dir($frameworkRoot)) {
-    throw new RuntimeException('ASAP_FRAMEWORK_ROOT_MISSING');
+    throw new RuntimeException('OPUS_FRAMEWORK_ROOT_MISSING');
 }
 
 $renames = [
@@ -202,7 +202,7 @@ $forbidden = [];
 foreach (array_keys($renames) as $old) {
     $forbidden[] = 'ASAP' . '\\' . $old;
     $forbidden[] = 'ASAP' . '\\\\' . $old;
-    $forbidden[] = 'framework/Asap/' . $old;
+    $forbidden[] = 'framework/Opus/' . $old;
     $forbidden[] = 'framework' . '\\' . 'ASAP' . '\\' . $old;
     $forbidden[] = 'framework' . '\\\\' . 'ASAP' . '\\\\' . $old;
 }

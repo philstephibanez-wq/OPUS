@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /*
- * ASAP RefBook example: FSM error.
+ * Opus RefBook example: FSM error.
  *
  * Purpose:
  *   Demonstrate the expected explicit failure on an invalid signal.

@@ -3,14 +3,14 @@
  * PUBLIC SCRIPT
  *
  * Role:
- *   Static audit smoke for ASAP P112Q3A secure-by-design baseline.
+ *   Static audit smoke for Opus P112Q3A secure-by-design baseline.
  *
  * Responsibility:
  *   Read selected framework files and verify that the current baseline exposes
  *   the expected FSM/ACL/security/routing anchors before P112Q3B.
  *
  * Arguments:
- *   None. Run from the ASAP repository root.
+ *   None. Run from the Opus repository root.
  *
  * Return:
  *   Exit code 0 when the audited baseline is coherent.
@@ -22,7 +22,7 @@
  *   None. The script is read-only.
  *
  * Contract:
- *   This smoke does not validate runtime behavior and does not modify ASAP.
+ *   This smoke does not validate runtime behavior and does not modify Opus.
  *   It detects current secure-by-design anchors and reports known P112Q3B gaps.
  */
 declare(strict_types=1);
@@ -32,15 +32,15 @@ $errors = [];
 $warnings = [];
 
 $files = [
-    'application' => 'framework/Asap/Application/Application.php',
-    'fsm_guard' => 'framework/Asap/Security/FsmGuard.php',
-    'acl_guard' => 'framework/Asap/Security/AclGuard.php',
-    'policy_loader' => 'framework/Asap/Security/SiteSecurityPolicyLoader.php',
-    'state_machine' => 'framework/Asap/Fsm/StateMachine.php',
-    'access_control' => 'framework/Asap/Acl/AccessControl.php',
-    'router' => 'framework/Asap/Routing/Router.php',
-    'route_definition' => 'framework/Asap/Routing/RouteDefinition.php',
-    'route_match' => 'framework/Asap/Routing/RouteMatch.php',
+    'application' => 'framework/Opus/Application/Application.php',
+    'fsm_guard' => 'framework/Opus/Security/FsmGuard.php',
+    'acl_guard' => 'framework/Opus/Security/AclGuard.php',
+    'policy_loader' => 'framework/Opus/Security/SiteSecurityPolicyLoader.php',
+    'state_machine' => 'framework/Opus/Fsm/StateMachine.php',
+    'access_control' => 'framework/Opus/Acl/AccessControl.php',
+    'router' => 'framework/Opus/Routing/Router.php',
+    'route_definition' => 'framework/Opus/Routing/RouteDefinition.php',
+    'route_match' => 'framework/Opus/Routing/RouteMatch.php',
 ];
 
 $contents = [];
@@ -81,9 +81,9 @@ $requires = [
         'ACCESS_DENIED',
     ],
     'policy_loader' => [
-        'ASAP_SITE_SECURITY_FILE_MISSING',
-        'ASAP_SITE_SECURITY_FSM_MISSING',
-        'ASAP_SITE_SECURITY_ACL_MISSING',
+        'OPUS_SITE_SECURITY_FILE_MISSING',
+        'OPUS_SITE_SECURITY_FSM_MISSING',
+        'OPUS_SITE_SECURITY_ACL_MISSING',
         'TransitionDefinition',
         'AccessRule',
     ],
@@ -98,8 +98,8 @@ $requires = [
         'No explicit rule',
     ],
     'router' => [
-        'ASAP_ROUTE_NOT_FOUND',
-        'ASAP_REQUEST_OUTSIDE_SITE_BASE_PATH',
+        'OPUS_ROUTE_NOT_FOUND',
+        'OPUS_REQUEST_OUTSIDE_SITE_BASE_PATH',
         'RouteDefinition',
     ],
     'route_definition' => [

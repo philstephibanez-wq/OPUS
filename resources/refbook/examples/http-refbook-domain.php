@@ -2,11 +2,11 @@
 declare(strict_types=1);
 
 /*
- * ASAP RefBook example: HTTP RefBook domain marker.
+ * Opus RefBook example: HTTP RefBook domain marker.
  */
 
 /*
- * ASAP_REFBOOK:
+ * OPUS_REFBOOK:
  *   domain: HTTP
  *   role: Request and Response classes define the HTTP boundary.
  *   contract:
@@ -21,5 +21,5 @@ declare(strict_types=1);
  *     - response-send
  *   diagrams:
  *     - http-runtime
- * END_ASAP_REFBOOK
+ * END_OPUS_REFBOOK
  */

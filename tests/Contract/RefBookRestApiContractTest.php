@@ -6,18 +6,18 @@ declare(strict_types=1);
  * P113D1 RefBook REST API contract unit test.
  *
  * Role:
- *   Prove that ASAP exposes a read-only REST JSON boundary for ASAP_REF_BOOK,
+ *   Prove that Opus exposes a read-only REST JSON boundary for OPUS_REF_BOOK,
  *   including code examples and the framework FSM Mermaid diagram.
  */
 $root = dirname(__DIR__, 2);
 
 spl_autoload_register(static function (string $class) use ($root): void {
-    $prefix = 'ASAP\\';
+    $prefix = 'Opus\\';
     if (!str_starts_with($class, $prefix)) {
         return;
     }
     $relative = substr($class, strlen($prefix));
-    $path = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $relative) . '.php';
+    $path = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $relative) . '.php';
     if (is_file($path)) {
         require_once $path;
     }
@@ -28,8 +28,8 @@ $assets = new ASAP\RefBook\Api\RefBookDocumentationAssetRepository($root . DIREC
 $api = new ASAP\RefBook\Api\RefBookRestApi($provider, $assets);
 
 $snapshot = $provider->snapshot();
-assertEquals('asap-refbook-snapshot/v1', $snapshot['schema_version'] ?? null, 'Snapshot schema version mismatch.');
-assertEquals('asap-refbook-rest/v1', $snapshot['api']['version'] ?? null, 'REST API version mismatch.');
+assertEquals('opus-refbook-snapshot/v1', $snapshot['schema_version'] ?? null, 'Snapshot schema version mismatch.');
+assertEquals('opus-refbook-rest/v1', $snapshot['api']['version'] ?? null, 'REST API version mismatch.');
 assertTrue((int) ($snapshot['summary']['classes'] ?? 0) > 0, 'Snapshot must expose framework classes.');
 assertTrue(count($snapshot['domains'] ?? []) > 0, 'Snapshot must expose domains.');
 assertAssetExists($snapshot, 'examples', 'refbook-rest-api-client');
@@ -46,18 +46,18 @@ $diagram = decodeJsonResponse($api->handle(new ASAP\Http\Request('/api/refbook/d
 assertContains('stateDiagram-v2', $diagram['diagram']['content'] ?? '', 'FSM diagram must be Mermaid stateDiagram-v2.');
 
 $classPayload = decodeJsonResponse($api->handle(new ASAP\Http\Request('/api/refbook/classes/ASAP%5CHttp%5CRequest', 'GET')), 200);
-assertEquals('ASAP\\Http\\Request', $classPayload['class']['name'] ?? null, 'Class endpoint must expose ASAP\\Http\\Request.');
+assertEquals('Opus\\Http\\Request', $classPayload['class']['name'] ?? null, 'Class endpoint must expose Opus\\Http\\Request.');
 
 $missing = decodeJsonResponse($api->handle(new ASAP\Http\Request('/api/refbook/examples/does-not-exist', 'GET')), 404);
-assertEquals('ASAP_REFBOOK_REST_ASSET_NOT_FOUND', $missing['error']['code'] ?? null, 'Missing example must be explicit 404.');
+assertEquals('OPUS_REFBOOK_REST_ASSET_NOT_FOUND', $missing['error']['code'] ?? null, 'Missing example must be explicit 404.');
 
 $methodDenied = decodeJsonResponse($api->handle(new ASAP\Http\Request('/api/refbook/snapshot', 'POST')), 405);
-assertEquals('ASAP_REFBOOK_REST_METHOD_NOT_ALLOWED', $methodDenied['error']['code'] ?? null, 'POST must be rejected.');
+assertEquals('OPUS_REFBOOK_REST_METHOD_NOT_ALLOWED', $methodDenied['error']['code'] ?? null, 'POST must be rejected.');
 
 echo 'P113D1_REFBOOK_REST_API_CONTRACT_UNIT_OK' . PHP_EOL;
 exit(0);
 
-function decodeJsonResponse(ASAP\Http\Response $response, int $expectedStatus): array
+function decodeJsonResponse(Opus\Http\Response $response, int $expectedStatus): array
 {
     assertEquals($expectedStatus, $response->status, 'Unexpected HTTP status.');
     $payload = json_decode($response->body, true);

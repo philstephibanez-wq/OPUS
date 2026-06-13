@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace ASAPRefBook\Reference\Controller;
+namespace OpusRefBook\Reference\Controller;
 
 use ASAP\Http\Request;
 use ASAP\Renderer\ViewModel;
@@ -77,7 +77,7 @@ final class HomeController extends AbstractRefBookController
         }
 
         return $this->view('pages/home.twig', [
-            'title' => (string) ($this->content()->module()['title'] ?? 'ASAP Reference Book'),
+            'title' => (string) ($this->content()->module()['title'] ?? 'Opus Reference Book'),
             'overview' => $this->catalog()->overview(),
             'homeCards' => $this->content()->homeCards(),
             'guides' => $this->content()->guides(),

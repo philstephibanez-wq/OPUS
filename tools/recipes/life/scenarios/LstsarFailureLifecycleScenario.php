@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe\Life\Scenarios;
+namespace Opus\Recipe\Life\Scenarios;
 
 use ASAP\Recipe\Life\LifeScenarioRunner;
 use ASAP\Recipe\Life\RobotActor;
@@ -34,14 +34,14 @@ final class LstsarFailureLifecycleScenario implements RecipeInterface, RobotScen
             $scheduler = new \ASAP\Lstsa\LstsaScheduler($store);
             $scheduler->enqueueDatabaseStagingSmokeRun($sourceDb, $targetDb);
             $failed = (new \ASAP\Lstsa\LstsaRunner($store))->runOnce('life_lstsar_failure_runner');
-            $context->assert(is_array($failed) && $failed['status'] === \ASAP\Lstsa\LstsaRunStatus::FAILED, 'ASAP_LIFE_LSTSAR_FAILURE_NOT_FAILED');
+            $context->assert(is_array($failed) && $failed['status'] === \ASAP\Lstsa\LstsaRunStatus::FAILED, 'OPUS_LIFE_LSTSAR_FAILURE_NOT_FAILED');
             if (is_file($targetDb)) {
                 $target = new \PDO('sqlite:' . $targetDb, null, null, [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]);
                 $tables = $target->query("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")->fetchAll(\PDO::FETCH_COLUMN);
-                $context->assert($tables === [], 'ASAP_LIFE_LSTSAR_FAILURE_FINAL_TABLE_CREATED');
+                $context->assert($tables === [], 'OPUS_LIFE_LSTSAR_FAILURE_FINAL_TABLE_CREATED');
             }
             $events = $failed['artifacts']['events'] ?? [];
-            $context->assert(is_array($events) && isset($events[0]) && is_file((string)$events[0]), 'ASAP_LIFE_LSTSAR_FAIL_EVENT_MISSING');
+            $context->assert(is_array($events) && isset($events[0]) && is_file((string)$events[0]), 'OPUS_LIFE_LSTSAR_FAIL_EVENT_MISSING');
         })];
     }
 }

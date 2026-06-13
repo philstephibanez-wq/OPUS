@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "ASAP · Smoke P112Q3B Secure Dispatch Gate",
+      "label": "Opus Â· Smoke P112Q3B Secure Dispatch Gate",
       "type": "shell",
       "command": "php",
       "args": [
@@ -14,7 +14,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Recipe P112Q3B Panther",
+      "label": "Opus Â· Recipe P112Q3B Panther",
       "type": "shell",
       "command": "php",
       "args": [
@@ -23,14 +23,14 @@
       "options": {
         "cwd": "${workspaceFolder}",
         "env": {
-          "ASAP_P112Q3B_PANTHER_URL": "http://127.0.0.1/ASAP_REF_BOOK/?lang=fr",
-          "ASAP_P112Q3B_EXPECT_TEXT": "ASAP"
+          "OPUS_P112Q3B_PANTHER_URL": "http://127.0.0.1/OPUS_REF_BOOK/?lang=fr",
+          "OPUS_P112Q3B_EXPECT_TEXT": "ASAP"
         }
       },
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Recipe P112Q3B Panther Required",
+      "label": "Opus Â· Recipe P112Q3B Panther Required",
       "type": "shell",
       "command": "php",
       "args": [
@@ -39,15 +39,15 @@
       "options": {
         "cwd": "${workspaceFolder}",
         "env": {
-          "ASAP_P112Q3B_PANTHER_URL": "http://127.0.0.1/ASAP_REF_BOOK/?lang=fr",
-          "ASAP_P112Q3B_EXPECT_TEXT": "ASAP",
-          "ASAP_P112Q3B_PANTHER_REQUIRED": "1"
+          "OPUS_P112Q3B_PANTHER_URL": "http://127.0.0.1/OPUS_REF_BOOK/?lang=fr",
+          "OPUS_P112Q3B_EXPECT_TEXT": "ASAP",
+          "OPUS_P112Q3B_PANTHER_REQUIRED": "1"
         }
       },
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Smoke P112Q3B2 Secure Life Robotized",
+      "label": "Opus Â· Smoke P112Q3B2 Secure Life Robotized",
       "type": "shell",
       "command": "php",
       "args": [
@@ -59,7 +59,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Recipe P112Q3B2 Secure Life Robotized",
+      "label": "Opus Â· Recipe P112Q3B2 Secure Life Robotized",
       "type": "shell",
       "command": "tools/recipes/run_p112q3b2_secure_life_robotized_recipe.cmd",
       "options": {
@@ -68,7 +68,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Recipe P112Q3B2 Secure Life Mailpit",
+      "label": "Opus Â· Recipe P112Q3B2 Secure Life Mailpit",
       "type": "shell",
       "command": "tools/recipes/run_p112q3b2_secure_life_robotized_recipe_mailpit.cmd",
       "options": {
@@ -77,7 +77,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Smoke P112Q3B3 Recipe Final Status",
+      "label": "Opus Â· Smoke P112Q3B3 Recipe Final Status",
       "type": "shell",
       "command": "tools/smoke/run_p112q3b3_recipe_final_status_smoke.cmd",
       "options": {
@@ -86,7 +86,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Smoke P112Q3B4 Email Safe Forms",
+      "label": "Opus Â· Smoke P112Q3B4 Email Safe Forms",
       "type": "shell",
       "command": "tools/smoke/run_p112q3b4_email_safe_forms_smoke.cmd",
       "options": {
@@ -95,7 +95,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Recipe P112Q3B4 Secure Life Mailpit + Forms",
+      "label": "Opus Â· Recipe P112Q3B4 Secure Life Mailpit + Forms",
       "type": "shell",
       "command": "tools/recipes/run_p112q3b2_secure_life_robotized_recipe_mailpit.cmd",
       "options": {
@@ -104,7 +104,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Smoke P112Q3C Public API Coverage Matrix",
+      "label": "Opus Â· Smoke P112Q3C Public API Coverage Matrix",
       "type": "shell",
       "command": "tools/smoke/run_p112q3c_public_api_coverage_matrix_smoke.cmd",
       "options": {
@@ -113,7 +113,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Coverage P112Q3C Public API Matrix",
+      "label": "Opus Â· Coverage P112Q3C Public API Matrix",
       "type": "shell",
       "command": "tools/coverage/run_p112q3c_public_api_coverage_matrix.cmd",
       "options": {
@@ -122,7 +122,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Coverage P112Q3C Strict No Missing Unit",
+      "label": "Opus Â· Coverage P112Q3C Strict No Missing Unit",
       "type": "shell",
       "command": "tools/coverage/run_p112q3c_public_api_coverage_matrix_strict.cmd",
       "options": {
@@ -131,7 +131,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Smoke P112Q3D RefBook Tag Contract",
+      "label": "Opus Â· Smoke P112Q3D RefBook Tag Contract",
       "type": "shell",
       "command": "tools/smoke/run_p112q3d_refbook_tag_contract_smoke.cmd",
       "options": {
@@ -140,7 +140,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Quality P112Q3D RefBook Tag Audit",
+      "label": "Opus Â· Quality P112Q3D RefBook Tag Audit",
       "type": "shell",
       "command": "tools/quality/run_p112q3d_refbook_tag_contract_audit.cmd",
       "options": {
@@ -149,7 +149,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Test P112Q3D RefBook Tag Contract Strict",
+      "label": "Opus Â· Test P112Q3D RefBook Tag Contract Strict",
       "type": "shell",
       "command": "tests/Contract/run_refbook_tag_contract_test.cmd",
       "options": {
@@ -158,7 +158,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Unit P112Q3E RefBook Reflection Contract",
+      "label": "Opus Â· Unit P112Q3E RefBook Reflection Contract",
       "type": "shell",
       "command": "tests/Contract/run_refbook_reflection_contract_test.cmd",
       "options": {
@@ -167,7 +167,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Smoke P112Q3E RefBook Reflection Contract",
+      "label": "Opus Â· Smoke P112Q3E RefBook Reflection Contract",
       "type": "shell",
       "command": "tools/smoke/run_p112q3e_refbook_reflection_contract_smoke.cmd",
       "options": {
@@ -176,7 +176,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · RefBook P112Q3E Reflection Audit",
+      "label": "Opus Â· RefBook P112Q3E Reflection Audit",
       "type": "shell",
       "command": "tools/refbook/run_p112q3e_refbook_reflection_contract_audit.cmd",
       "options": {
@@ -185,16 +185,16 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Recipe Global Regression",
+      "label": "Opus Â· Recipe Global Regression",
       "type": "shell",
-      "command": "tools/recipes/run_asap_global_regression_recipe.cmd",
+      "command": "tools/recipes/run_opus_global_regression_recipe.cmd",
       "options": {
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Delivery P112Q3E RefBook Reflection Contract",
+      "label": "Opus Â· Delivery P112Q3E RefBook Reflection Contract",
       "type": "shell",
       "command": "tools/recipes/run_p112q3e_delivery_recipe.cmd",
       "options": {
@@ -203,7 +203,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Unit P112Q3E1 FSM RefBook Metadata",
+      "label": "Opus Â· Unit P112Q3E1 FSM RefBook Metadata",
       "type": "shell",
       "command": "tests/Contract/run_refbook_fsm_metadata_contract_test.cmd",
       "options": {
@@ -212,7 +212,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Smoke P112Q3E1 FSM RefBook Metadata",
+      "label": "Opus Â· Smoke P112Q3E1 FSM RefBook Metadata",
       "type": "shell",
       "command": "tools/smoke/run_p112q3e1_refbook_fsm_metadata_smoke.cmd",
       "options": {
@@ -221,7 +221,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · RefBook P112Q3E1 FSM Metadata Strict",
+      "label": "Opus Â· RefBook P112Q3E1 FSM Metadata Strict",
       "type": "shell",
       "command": "tools/refbook/run_p112q3e1_refbook_fsm_metadata_strict.cmd",
       "options": {
@@ -230,7 +230,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Delivery P112Q3E1 FSM RefBook Metadata",
+      "label": "Opus Â· Delivery P112Q3E1 FSM RefBook Metadata",
       "type": "shell",
       "command": "tools/recipes/run_p112q3e1_delivery_recipe.cmd",
       "options": {
@@ -239,7 +239,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Unit P112Q3E2 ACL RefBook Metadata",
+      "label": "Opus Â· Unit P112Q3E2 ACL RefBook Metadata",
       "type": "shell",
       "command": "tests/Contract/run_refbook_acl_metadata_contract_test.cmd",
       "options": {
@@ -248,7 +248,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Smoke P112Q3E2 ACL RefBook Metadata",
+      "label": "Opus Â· Smoke P112Q3E2 ACL RefBook Metadata",
       "type": "shell",
       "command": "tools/smoke/run_p112q3e2_refbook_acl_metadata_smoke.cmd",
       "options": {
@@ -257,7 +257,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · RefBook P112Q3E2 ACL Metadata Strict",
+      "label": "Opus Â· RefBook P112Q3E2 ACL Metadata Strict",
       "type": "shell",
       "command": "tools/refbook/run_p112q3e2_refbook_acl_metadata_strict.cmd",
       "options": {
@@ -266,7 +266,7 @@
       "problemMatcher": []
     },
     {
-      "label": "ASAP · Delivery P112Q3E2 ACL RefBook Metadata",
+      "label": "Opus Â· Delivery P112Q3E2 ACL RefBook Metadata",
       "type": "shell",
       "command": "tools/recipes/run_p112q3e2_delivery_recipe.cmd",
       "options": {

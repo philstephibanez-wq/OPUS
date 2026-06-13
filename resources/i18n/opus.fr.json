@@ -1,0 +1,20 @@
+{
+  "locale": "fr",
+  "messages": {
+    "opus.title": "Opus Framework",
+    "opus.reference": "Livre de rÃ©fÃ©rence ASAP",
+    "opus.portage": "Portage PHP 8",
+    "opus.renderer": "Moteur de rendu",
+    "opus.controller": "ContrÃ´leur et dispatcher",
+    "opus.forms": "Formulaires",
+    "opus.helpers": "Helpers",
+    "opus.url": "URLs",
+    "opus.menu": "Menu"
+  },
+  "plurals": {
+    "opus.class_count": {
+      "one": "{count} classe portÃ©e",
+      "other": "{count} classes portÃ©es"
+    }
+  }
+}

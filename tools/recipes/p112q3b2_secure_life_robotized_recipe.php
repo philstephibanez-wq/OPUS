@@ -9,13 +9,13 @@ declare(strict_types=1);
  *   Run the visible secure-by-design life recipe requested for P112Q3B2.
  *
  * Responsibility:
- *   Execute a real ASAP FSM + ACL decision matrix for three different users,
+ *   Execute a real Opus FSM + ACL decision matrix for three different users,
  *   produce JSON/Markdown/HTML reports, attempt to send the report by e-mail,
  *   and optionally verify a browser page through Panther when available.
  *
  * Reads:
- *   - framework/Asap/* classes through the local ASAP PSR-4 autoloader fallback
- *   - optional vendor/autoload.php or ASAP_P112Q3B2_PANTHER_AUTOLOAD
+ *   - framework/Opus/* classes through the local Opus PSR-4 autoloader fallback
+ *   - optional vendor/autoload.php or OPUS_P112Q3B2_PANTHER_AUTOLOAD
  *   - environment variables documented in DOC/P112Q3B2_*.md
  *
  * Writes:
@@ -29,7 +29,7 @@ declare(strict_types=1);
  * Contract:
  *   No fake success. Browser, Panther and mail are reported separately. The core
  *   secure decision matrix must pass or the recipe fails. Mail is allowed to fail
- *   only when ASAP_P112Q3B2_MAIL_REQUIRED is not set to 1.
+ *   only when OPUS_P112Q3B2_MAIL_REQUIRED is not set to 1.
  */
 
 use ASAP\Acl\AccessRule;
@@ -61,22 +61,22 @@ if (!is_dir($reportDir) && !mkdir($reportDir, 0777, true) && !is_dir($reportDir)
 }
 
 spl_autoload_register(static function (string $class) use ($root): void {
-    $prefix = 'ASAP\\';
+    $prefix = 'Opus\\';
 
     if (!str_starts_with($class, $prefix)) {
         return;
     }
 
     $relative = substr($class, strlen($prefix));
-    $path = $root . '/framework/Asap/' . str_replace('\\', '/', $relative) . '.php';
+    $path = $root . '/framework/Opus/' . str_replace('\\', '/', $relative) . '.php';
 
     if (is_file($path)) {
         require_once $path;
     }
 });
 
-$explicitPantherAutoload = trim((string) getenv('ASAP_P112Q3B2_PANTHER_AUTOLOAD'));
-$explicitVendorRoot = trim((string) getenv('ASAP_VENDOR_ROOT'));
+$explicitPantherAutoload = trim((string) getenv('OPUS_P112Q3B2_PANTHER_AUTOLOAD'));
+$explicitVendorRoot = trim((string) getenv('OPUS_VENDOR_ROOT'));
 $autoloadCandidates = [];
 
 if ($explicitPantherAutoload !== '') {
@@ -90,7 +90,7 @@ if ($explicitVendorRoot !== '') {
 
 $autoloadCandidates[] = $root . '/vendor/autoload.php';
 $autoloadCandidates[] = $root . '/tools/vendor/autoload.php';
-$autoloadCandidates[] = dirname($root) . '/ASAP_REF_BOOK/vendor/autoload.php';
+$autoloadCandidates[] = dirname($root) . '/OPUS_REF_BOOK/vendor/autoload.php';
 $autoloadCandidates[] = dirname($root) . '/vendor/autoload.php';
 
 $autoloadCandidates = array_values(array_unique(array_filter($autoloadCandidates, static fn (string $path): bool => trim($path) !== '')));
@@ -243,7 +243,7 @@ function p112q3b2_scenarios(): array
             'kind' => 'navigation',
             'method' => 'GET',
             'user' => 'guest',
-            'label' => 'Invité',
+            'label' => 'InvitÃ©',
             'language' => 'fr',
             'route_path' => '/fr/public',
             'route_name' => 'public_fr',
@@ -254,12 +254,12 @@ function p112q3b2_scenarios(): array
             'kind' => 'navigation',
             'method' => 'GET',
             'user' => 'editor',
-            'label' => 'Éditeur',
+            'label' => 'Ã‰diteur',
             'language' => 'es',
             'route_path' => '/es/editor',
             'route_name' => 'editor_es',
             'expect_allowed' => true,
-            'expected_rights' => 'édition autorisée, administration refusée',
+            'expected_rights' => 'Ã©dition autorisÃ©e, administration refusÃ©e',
         ],
         [
             'kind' => 'navigation',
@@ -270,40 +270,40 @@ function p112q3b2_scenarios(): array
             'route_path' => '/en/admin',
             'route_name' => 'admin_en',
             'expect_allowed' => true,
-            'expected_rights' => 'administration complète',
+            'expected_rights' => 'administration complÃ¨te',
         ],
         [
             'kind' => 'navigation',
             'method' => 'GET',
             'user' => 'guest',
-            'label' => 'Invité',
+            'label' => 'InvitÃ©',
             'language' => 'fr',
             'route_path' => '/en/admin',
             'route_name' => 'admin_en',
             'expect_allowed' => false,
-            'expected_rights' => 'administration refusée',
+            'expected_rights' => 'administration refusÃ©e',
         ],
         [
             'kind' => 'navigation',
             'method' => 'GET',
             'user' => 'editor',
-            'label' => 'Éditeur',
+            'label' => 'Ã‰diteur',
             'language' => 'es',
             'route_path' => '/en/admin',
             'route_name' => 'admin_en',
             'expect_allowed' => false,
-            'expected_rights' => 'administration refusée',
+            'expected_rights' => 'administration refusÃ©e',
         ],
         [
             'kind' => 'form',
             'method' => 'POST',
             'user' => 'guest',
-            'label' => 'Invité',
+            'label' => 'InvitÃ©',
             'language' => 'fr',
             'route_path' => '/fr/contact',
             'route_name' => 'form_public_fr',
             'expect_allowed' => true,
-            'expected_rights' => 'formulaire public autorisé',
+            'expected_rights' => 'formulaire public autorisÃ©',
             'form_title' => 'Contact public',
             'form_field' => 'message',
             'form_value' => 'Bonjour ASAP',
@@ -312,15 +312,15 @@ function p112q3b2_scenarios(): array
             'kind' => 'form',
             'method' => 'POST',
             'user' => 'editor',
-            'label' => 'Éditeur',
+            'label' => 'Ã‰diteur',
             'language' => 'es',
             'route_path' => '/es/editor/form',
             'route_name' => 'form_editor_es',
             'expect_allowed' => true,
-            'expected_rights' => 'formulaire éditeur autorisé',
+            'expected_rights' => 'formulaire Ã©diteur autorisÃ©',
             'form_title' => 'Formulario editor',
             'form_field' => 'note',
-            'form_value' => 'Edición segura',
+            'form_value' => 'EdiciÃ³n segura',
         ],
         [
             'kind' => 'form',
@@ -331,7 +331,7 @@ function p112q3b2_scenarios(): array
             'route_path' => '/en/admin/settings',
             'route_name' => 'form_admin_en',
             'expect_allowed' => true,
-            'expected_rights' => 'formulaire admin autorisé',
+            'expected_rights' => 'formulaire admin autorisÃ©',
             'form_title' => 'Admin settings',
             'form_field' => 'setting',
             'form_value' => 'secure-by-design',
@@ -340,12 +340,12 @@ function p112q3b2_scenarios(): array
             'kind' => 'form',
             'method' => 'POST',
             'user' => 'guest',
-            'label' => 'Invité',
+            'label' => 'InvitÃ©',
             'language' => 'fr',
             'route_path' => '/en/admin/settings',
             'route_name' => 'form_admin_en',
             'expect_allowed' => false,
-            'expected_rights' => 'formulaire admin refusé',
+            'expected_rights' => 'formulaire admin refusÃ©',
             'form_title' => 'Admin settings denied',
             'form_field' => 'setting',
             'form_value' => 'denied',
@@ -354,12 +354,12 @@ function p112q3b2_scenarios(): array
             'kind' => 'form',
             'method' => 'POST',
             'user' => 'editor',
-            'label' => 'Éditeur',
+            'label' => 'Ã‰diteur',
             'language' => 'es',
             'route_path' => '/en/admin/settings',
             'route_name' => 'form_admin_en',
             'expect_allowed' => false,
-            'expected_rights' => 'formulaire admin refusé',
+            'expected_rights' => 'formulaire admin refusÃ©',
             'form_title' => 'Admin settings denied',
             'form_field' => 'setting',
             'form_value' => 'denied',
@@ -368,7 +368,7 @@ function p112q3b2_scenarios(): array
             'kind' => 'form',
             'method' => 'GET',
             'user' => 'guest',
-            'label' => 'Invité',
+            'label' => 'InvitÃ©',
             'language' => 'fr',
             'route_path' => '/fr/contact',
             'route_name' => 'form_public_fr',
@@ -387,7 +387,7 @@ function p112q3b2_scenarios(): array
  */
 function p112q3b2_run_matrix(string $root): array
 {
-    $tmpRoot = sys_get_temp_dir() . '/asap_p112q3b2_' . bin2hex(random_bytes(4));
+    $tmpRoot = sys_get_temp_dir() . '/opus_p112q3b2_' . bin2hex(random_bytes(4));
 
     if (!mkdir($tmpRoot, 0777, true) && !is_dir($tmpRoot)) {
         p112q3b2_fail('P112Q3B2_TEMP_DIR_CREATE_FAILED', $tmpRoot);
@@ -401,13 +401,13 @@ function p112q3b2_run_matrix(string $root): array
     $results = [];
 
     try {
-        $site = new SiteDefinition('p112q3b2', '/asap-secure-life', $routesFile, $securityFile);
+        $site = new SiteDefinition('p112q3b2', '/opus-secure-life', $routesFile, $securityFile);
         $router = Router::fromXml($routesFile);
         $gate = new SecureDispatchGate();
 
         foreach (p112q3b2_scenarios() as $scenario) {
             $requestMethod = strtoupper((string) ($scenario['method'] ?? 'GET'));
-            $request = new Request('/asap-secure-life' . $scenario['route_path'], $requestMethod);
+            $request = new Request('/opus-secure-life' . $scenario['route_path'], $requestMethod);
             $policy = p112q3b2_policy_for_role((string) $scenario['user']);
             $allowed = false;
             $reason = 'UNSET';
@@ -505,7 +505,7 @@ function p112q3b2_build_html_report(array $results, array $mailStatus, array $pa
             && (bool) $result['expect_allowed'] === true) {
             $cards .= '<article class="user-card">'
                 . '<div class="avatar">' . htmlspecialchars(strtoupper(substr((string) $result['user'], 0, 1)), ENT_QUOTES, 'UTF-8') . '</div>'
-                . '<div><h2>' . htmlspecialchars((string) $result['label'], ENT_QUOTES, 'UTF-8') . ' · ' . htmlspecialchars(strtoupper((string) $result['language']), ENT_QUOTES, 'UTF-8') . '</h2>'
+                . '<div><h2>' . htmlspecialchars((string) $result['label'], ENT_QUOTES, 'UTF-8') . ' Â· ' . htmlspecialchars(strtoupper((string) $result['language']), ENT_QUOTES, 'UTF-8') . '</h2>'
                 . '<p>' . htmlspecialchars((string) $result['expected_rights'], ENT_QUOTES, 'UTF-8') . '</p>'
                 . '<p><code>' . htmlspecialchars((string) $result['request_path'], ENT_QUOTES, 'UTF-8') . '</code></p></div>'
                 . '</article>' . PHP_EOL;
@@ -518,12 +518,12 @@ function p112q3b2_build_html_report(array $results, array $mailStatus, array $pa
             $action = htmlspecialchars((string) $result['request_path'], ENT_QUOTES, 'UTF-8');
             $lang = htmlspecialchars(strtoupper((string) $result['language']), ENT_QUOTES, 'UTF-8');
             $formCards .= '<article class="form-card">'
-                . '<h2>' . $title . ' · ' . $lang . '</h2>'
-                . '<form method="post" action="' . $action . '" onsubmit="event.preventDefault(); this.querySelector(\'.form-result\').textContent=\'Soumission simulée OK · test serveur déjà validé par la recette\';">'
+                . '<h2>' . $title . ' Â· ' . $lang . '</h2>'
+                . '<form method="post" action="' . $action . '" onsubmit="event.preventDefault(); this.querySelector(\'.form-result\').textContent=\'Soumission simulÃ©e OK Â· test serveur dÃ©jÃ  validÃ© par la recette\';">'
                 . '<label>' . $field . '<input name="' . $field . '" value="' . $value . '"></label>'
-                . '<input type="hidden" name="asap_recipe" value="P112Q3B4">'
+                . '<input type="hidden" name="opus_recipe" value="P112Q3B4">'
                 . '<button type="submit">Tester le formulaire</button>'
-                . '<p class="form-result">POST testé côté recette via Router + SecureDispatchGate + FSM + ACL.</p>'
+                . '<p class="form-result">POST testÃ© cÃ´tÃ© recette via Router + SecureDispatchGate + FSM + ACL.</p>'
                 . '</form>'
                 . '<p><code>POST ' . $action . '</code></p>'
                 . '</article>' . PHP_EOL;
@@ -539,7 +539,7 @@ function p112q3b2_build_html_report(array $results, array $mailStatus, array $pa
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>P112Q3B2 · ASAP Secure Life Recipe</title>
+  <title>P112Q3B2 Â· Opus Secure Life Recipe</title>
   <style>
     :root { color-scheme: dark; --bg:#07111f; --panel:#0e1b2d; --line:#26384f; --text:#eaf2ff; --muted:#9fb1ca; --ok:#4ade80; --fail:#fb7185; --accent:#60a5fa; }
     * { box-sizing: border-box; }
@@ -573,9 +573,9 @@ function p112q3b2_build_html_report(array $results, array $mailStatus, array $pa
 </head>
 <body>
 <header>
-  <div class="kicker">ASAP secure by design · robotized evolutive recipe</div>
-  <h1>FSM + ACL + Navigation + Formulaires · 3 utilisateurs · FR / ES / EN</h1>
-  <div class="meta">Généré le {$generatedAt}</div>
+  <div class="kicker">Opus secure by design Â· robotized evolutive recipe</div>
+  <h1>FSM + ACL + Navigation + Formulaires Â· 3 utilisateurs Â· FR / ES / EN</h1>
+  <div class="meta">GÃ©nÃ©rÃ© le {$generatedAt}</div>
   <div class="badges">
     <span class="badge">Mail: {$mailBadge}</span>
     <span class="badge">Panther: {$pantherBadge}</span>
@@ -586,15 +586,15 @@ function p112q3b2_build_html_report(array $results, array $mailStatus, array $pa
 <main>
   <section class="grid">{$cards}</section>
   <section class="panel">
-    <h2>Formulaires testés</h2>
-    <p>Les formulaires visibles ci-dessous sont aussi testés côté recette avec des requêtes POST réelles, une route explicite, une transition FSM et une règle ACL.</p>
+    <h2>Formulaires testÃ©s</h2>
+    <p>Les formulaires visibles ci-dessous sont aussi testÃ©s cÃ´tÃ© recette avec des requÃªtes POST rÃ©elles, une route explicite, une transition FSM et une rÃ¨gle ACL.</p>
     <div class="grid">{$formCards}</div>
   </section>
   <section class="panel">
-    <h2>Matrice runtime réelle</h2>
-    <p>Chaque ligne passe par le Router ASAP, le SecureDispatchGate, la FSM et l'ACL. Les formulaires POST vérifient aussi l'absence de fallback GET implicite.</p>
+    <h2>Matrice runtime rÃ©elle</h2>
+    <p>Chaque ligne passe par le Router Opus, le SecureDispatchGate, la FSM et l'ACL. Les formulaires POST vÃ©rifient aussi l'absence de fallback GET implicite.</p>
     <table>
-      <thead><tr><th>User</th><th>Lang</th><th>Méthode</th><th>Type</th><th>Route</th><th>Attendu</th><th>Observé</th><th>Résultat</th></tr></thead>
+      <thead><tr><th>User</th><th>Lang</th><th>MÃ©thode</th><th>Type</th><th>Route</th><th>Attendu</th><th>ObservÃ©</th><th>RÃ©sultat</th></tr></thead>
       <tbody>{$rows}</tbody>
     </table>
   </section>
@@ -610,7 +610,7 @@ HTML;
  */
 function p112q3b2_build_markdown(array $results, array $mailStatus, array $pantherStatus): string
 {
-    $md = '# P112Q3B2 — ASAP Secure Life Robotized Recipe' . PHP_EOL . PHP_EOL;
+    $md = '# P112Q3B2 â€” Opus Secure Life Robotized Recipe' . PHP_EOL . PHP_EOL;
     $md .= '- Generated at: `' . gmdate('c') . '`' . PHP_EOL;
     $md .= '- Mail status: `' . (string) ($mailStatus['status'] ?? 'UNKNOWN') . '`' . PHP_EOL;
     $md .= '- Panther status: `' . (string) ($pantherStatus['status'] ?? 'UNKNOWN') . '`' . PHP_EOL . PHP_EOL;
@@ -671,18 +671,18 @@ function p112q3b2_build_email_safe_html_report(array $results, array $mailStatus
     }
 
     return '<!doctype html>'
-        . '<html><head><meta charset="utf-8"><title>ASAP secure life recipe report</title></head>'
+        . '<html><head><meta charset="utf-8"><title>Opus secure life recipe report</title></head>'
         . '<body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;color:#111827;">'
         . '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding:18px;">'
         . '<table width="760" cellpadding="0" cellspacing="0" border="0" style="max-width:760px;width:100%;border:1px solid #d9e2f3;">'
         . '<tr><td bgcolor="#0f2342" style="padding:20px;color:#ffffff;">'
-        . '<div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#93c5fd;font-weight:bold;">ASAP secure by design · robotized evolutive recipe</div>'
+        . '<div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#93c5fd;font-weight:bold;">Opus secure by design Â· robotized evolutive recipe</div>'
         . '<h1 style="margin:8px 0 6px;font-size:26px;line-height:32px;color:#ffffff;">FSM + ACL + Navigation + Formulaires</h1>'
-        . '<div style="font-size:14px;color:#cbd5e1;">3 utilisateurs · FR / ES / EN · généré le ' . $generatedAt . '</div>'
+        . '<div style="font-size:14px;color:#cbd5e1;">3 utilisateurs Â· FR / ES / EN Â· gÃ©nÃ©rÃ© le ' . $generatedAt . '</div>'
         . '</td></tr>'
         . '<tr><td style="padding:16px;">'
         . '<p><strong>Mail:</strong> ' . $mailBadge . ' &nbsp; <strong>Panther:</strong> ' . $pantherBadge . ' &nbsp; <strong>Default deny:</strong> observable &nbsp; <strong>POST forms:</strong> tested</p>'
-        . '<p>Ce mail utilise un template séparé, compatible e-mail, distinct du rapport navigateur complet.</p>'
+        . '<p>Ce mail utilise un template sÃ©parÃ©, compatible e-mail, distinct du rapport navigateur complet.</p>'
         . '<table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #d9e2f3;">'
         . '<tr bgcolor="#edf3ff">'
         . '<th style="padding:8px;">User</th><th style="padding:8px;">Lang</th><th style="padding:8px;">Method</th><th style="padding:8px;">Type</th><th style="padding:8px;">Route</th><th style="padding:8px;">Expected</th><th style="padding:8px;">Observed</th><th style="padding:8px;">Result</th>'
@@ -704,8 +704,8 @@ function p112q3b2_build_email_safe_html_report(array $results, array $mailStatus
  */
 function p112q3b2_success_mail_status(string $mode, string $to, string $from): array
 {
-    $host = trim((string) getenv('ASAP_P112Q3B2_SMTP_HOST'));
-    $port = (int) (getenv('ASAP_P112Q3B2_SMTP_PORT') ?: 1025);
+    $host = trim((string) getenv('OPUS_P112Q3B2_SMTP_HOST'));
+    $port = (int) (getenv('OPUS_P112Q3B2_SMTP_PORT') ?: 1025);
 
     if ($host === '') {
         $host = '127.0.0.1';
@@ -715,7 +715,7 @@ function p112q3b2_success_mail_status(string $mode, string $to, string $from): a
         return [
             'status' => 'DELIVERED_TO_MAILPIT',
             'reason' => 'SMTP_ACCEPTED_BY_LOCAL_MAILPIT',
-            'required' => getenv('ASAP_P112Q3B2_MAIL_REQUIRED') === '1',
+            'required' => getenv('OPUS_P112Q3B2_MAIL_REQUIRED') === '1',
             'mode' => $mode,
             'host' => $host,
             'port' => $port,
@@ -728,7 +728,7 @@ function p112q3b2_success_mail_status(string $mode, string $to, string $from): a
         return [
             'status' => 'SENT',
             'reason' => 'SMTP_ACCEPTED',
-            'required' => getenv('ASAP_P112Q3B2_MAIL_REQUIRED') === '1',
+            'required' => getenv('OPUS_P112Q3B2_MAIL_REQUIRED') === '1',
             'mode' => $mode,
             'host' => $host,
             'port' => $port,
@@ -741,7 +741,7 @@ function p112q3b2_success_mail_status(string $mode, string $to, string $from): a
         return [
             'status' => 'SENT',
             'reason' => 'PHP_MAIL_ACCEPTED',
-            'required' => getenv('ASAP_P112Q3B2_MAIL_REQUIRED') === '1',
+            'required' => getenv('OPUS_P112Q3B2_MAIL_REQUIRED') === '1',
             'mode' => $mode,
             'to' => $to,
             'from' => $from,
@@ -751,7 +751,7 @@ function p112q3b2_success_mail_status(string $mode, string $to, string $from): a
     return [
         'status' => 'EML_WRITTEN',
         'reason' => 'MAIL_EML_WRITTEN_NOT_SENT',
-        'required' => getenv('ASAP_P112Q3B2_MAIL_REQUIRED') === '1',
+        'required' => getenv('OPUS_P112Q3B2_MAIL_REQUIRED') === '1',
         'mode' => $mode,
         'to' => $to,
         'from' => $from,
@@ -767,13 +767,13 @@ function p112q3b2_send_mail(string $subject, array $results, array $pantherStatu
 {
     global $emlReport;
 
-    $to = trim((string) getenv('ASAP_P112Q3B2_REPORT_EMAIL_TO'));
-    $from = trim((string) getenv('ASAP_P112Q3B2_REPORT_EMAIL_FROM'));
-    $mode = strtolower(trim((string) getenv('ASAP_P112Q3B2_MAIL_MODE')));
-    $required = getenv('ASAP_P112Q3B2_MAIL_REQUIRED') === '1';
+    $to = trim((string) getenv('OPUS_P112Q3B2_REPORT_EMAIL_TO'));
+    $from = trim((string) getenv('OPUS_P112Q3B2_REPORT_EMAIL_FROM'));
+    $mode = strtolower(trim((string) getenv('OPUS_P112Q3B2_MAIL_MODE')));
+    $required = getenv('OPUS_P112Q3B2_MAIL_REQUIRED') === '1';
 
     if ($from === '') {
-        $from = 'asap-recipes@localhost';
+        $from = 'opus-recipes@localhost';
     }
 
     if ($mode === '') {
@@ -846,8 +846,8 @@ function p112q3b2_send_mail(string $subject, array $results, array $pantherStatu
  */
 function p112q3b2_send_smtp(string $to, string $from, string $subject, string $htmlBody, bool $required, array $visibleSuccessStatus): array
 {
-    $host = trim((string) getenv('ASAP_P112Q3B2_SMTP_HOST'));
-    $port = (int) (getenv('ASAP_P112Q3B2_SMTP_PORT') ?: 1025);
+    $host = trim((string) getenv('OPUS_P112Q3B2_SMTP_HOST'));
+    $port = (int) (getenv('OPUS_P112Q3B2_SMTP_PORT') ?: 1025);
 
     if ($host === '') {
         $host = '127.0.0.1';
@@ -914,9 +914,9 @@ function p112q3b2_panther_check(string $defaultUrl): array
 {
     global $autoloadLoaded, $vendorAutoload, $autoloadTried, $pantherScreenshot;
 
-    $required = getenv('ASAP_P112Q3B2_PANTHER_REQUIRED') === '1';
-    $url = trim((string) getenv('ASAP_P112Q3B2_PANTHER_URL'));
-    $expectedText = trim((string) getenv('ASAP_P112Q3B2_PANTHER_EXPECT_TEXT'));
+    $required = getenv('OPUS_P112Q3B2_PANTHER_REQUIRED') === '1';
+    $url = trim((string) getenv('OPUS_P112Q3B2_PANTHER_URL'));
+    $expectedText = trim((string) getenv('OPUS_P112Q3B2_PANTHER_EXPECT_TEXT'));
 
     if ($url === '') {
         $url = $defaultUrl;
@@ -989,7 +989,7 @@ $initialMailStatus = ['status' => 'NOT_SENT_YET', 'reason' => 'MAIL_STATUS_COMPU
 file_put_contents($htmlReport, p112q3b2_build_html_report($results, $initialMailStatus, ['status' => 'NOT_RUN_YET', 'reason' => 'PANTHER_AFTER_HTML_BUILD']));
 
 $pantherStatus = p112q3b2_panther_check('file:///' . str_replace('\\', '/', $htmlReport));
-$mailStatus = p112q3b2_send_mail('ASAP P112Q3B2 secure life recipe report', $results, $pantherStatus);
+$mailStatus = p112q3b2_send_mail('Opus P112Q3B2 secure life recipe report', $results, $pantherStatus);
 $html = p112q3b2_build_html_report($results, $mailStatus, $pantherStatus);
 $emailHtml = p112q3b2_build_email_safe_html_report($results, $mailStatus, $pantherStatus);
 $markdown = p112q3b2_build_markdown($results, $mailStatus, $pantherStatus);
@@ -999,7 +999,7 @@ file_put_contents($emailHtmlReport, $emailHtml);
 file_put_contents($markdownReport, $markdown);
 
 $payload = [
-    'id' => 'P112Q3B2_ASAP_SECURE_LIFE_ROBOTIZED_RECIPE',
+    'id' => 'P112Q3B2_OPUS_SECURE_LIFE_ROBOTIZED_RECIPE',
     'status' => 'OK',
     'generated_at' => gmdate('c'),
     'matrix_ok' => $matrixOk,
@@ -1018,8 +1018,8 @@ $payload = [
 
 file_put_contents($jsonReport, json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
 
-$mailRequired = getenv('ASAP_P112Q3B2_MAIL_REQUIRED') === '1';
-$pantherRequired = getenv('ASAP_P112Q3B2_PANTHER_REQUIRED') === '1';
+$mailRequired = getenv('OPUS_P112Q3B2_MAIL_REQUIRED') === '1';
+$pantherRequired = getenv('OPUS_P112Q3B2_PANTHER_REQUIRED') === '1';
 $mailOk = in_array((string) $mailStatus['status'], ['SENT', 'DELIVERED_TO_MAILPIT', 'EML_WRITTEN'], true);
 $pantherOk = (string) ($pantherStatus['status'] ?? '') === 'OK';
 

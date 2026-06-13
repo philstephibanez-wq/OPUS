@@ -11,11 +11,11 @@ declare(strict_types=1);
  */
 
 $asapRoot = 'H:\\ASAP';
-$refBookRoot = 'H:\\ASAP_REF_BOOK';
-$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
+$refBookRoot = 'H:\\OPUS_REF_BOOK';
+$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus';
 
 if (!is_dir($frameworkRoot)) {
-    throw new RuntimeException('ASAP_FRAMEWORK_ROOT_MISSING');
+    throw new RuntimeException('OPUS_FRAMEWORK_ROOT_MISSING');
 }
 
 function exactDirectorySegmentsRecipe(string $parent): array
@@ -167,7 +167,7 @@ assertExactDirectoryState($frameworkRoot, $legacy, 'Database');
 $forbidden = [
     'ASAP' . '\\' . $legacy,
     'ASAP' . '\\\\' . $legacy,
-    'framework/Asap/' . $legacy,
+    'framework/Opus/' . $legacy,
     'framework' . '\\' . 'ASAP' . '\\' . $legacy,
     'framework' . '\\\\' . 'ASAP' . '\\\\' . $legacy,
     '/' . $legacy . '/',
@@ -182,11 +182,11 @@ require_once $frameworkRoot . '/Database/Database.php';
 require_once $frameworkRoot . '/Database/Mysql.php';
 
 if (!class_exists(\ASAP\Database\Database::class)) {
-    throw new RuntimeException('ASAP_DATABASE_DATABASE_CLASS_NOT_LOADABLE');
+    throw new RuntimeException('OPUS_DATABASE_DATABASE_CLASS_NOT_LOADABLE');
 }
 
 if (!class_exists(\ASAP\Database\Mysql::class)) {
-    throw new RuntimeException('ASAP_DATABASE_MYSQL_CLASS_NOT_LOADABLE');
+    throw new RuntimeException('OPUS_DATABASE_MYSQL_CLASS_NOT_LOADABLE');
 }
 
 echo 'PASS DATABASE_CLASSES_LOADABLE' . PHP_EOL;

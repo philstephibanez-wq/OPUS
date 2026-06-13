@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace ASAPRefBook\Reference\Controller;
+namespace OpusRefBook\Reference\Controller;
 
 use ASAP\Http\Request;
 use ASAP\Renderer\ViewModel;

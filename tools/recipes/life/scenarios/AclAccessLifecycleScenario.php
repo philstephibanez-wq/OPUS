@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe\Life\Scenarios;
+namespace Opus\Recipe\Life\Scenarios;
 
 use ASAP\Recipe\Life\LifeScenarioRunner;
 use ASAP\Recipe\Life\RobotActor;
@@ -29,10 +29,10 @@ final class AclAccessLifecycleScenario implements RecipeInterface, RobotScenario
                 [new \ASAP\Acl\PrivilegeDefinition('view')],
                 [new \ASAP\Acl\AccessRule('anonymous', 'public', 'view', true), new \ASAP\Acl\AccessRule('admin', 'admin', 'view', true), new \ASAP\Acl\AccessRule('denied', 'admin', 'view', false)]
             );
-            $context->assert($acl->decide('anonymous', 'public', 'view')->allowed(), 'ASAP_LIFE_ACL_PUBLIC_DENIED');
-            $context->assert(!$acl->decide('anonymous', 'admin', 'view')->allowed(), 'ASAP_LIFE_ACL_ANONYMOUS_ADMIN_ALLOWED');
-            $context->assert($acl->decide('admin', 'admin', 'view')->allowed(), 'ASAP_LIFE_ACL_ADMIN_DENIED');
-            $context->assert(!$acl->decide('denied', 'admin', 'view')->allowed(), 'ASAP_LIFE_ACL_DENIED_ALLOWED');
+            $context->assert($acl->decide('anonymous', 'public', 'view')->allowed(), 'OPUS_LIFE_ACL_PUBLIC_DENIED');
+            $context->assert(!$acl->decide('anonymous', 'admin', 'view')->allowed(), 'OPUS_LIFE_ACL_ANONYMOUS_ADMIN_ALLOWED');
+            $context->assert($acl->decide('admin', 'admin', 'view')->allowed(), 'OPUS_LIFE_ACL_ADMIN_DENIED');
+            $context->assert(!$acl->decide('denied', 'admin', 'view')->allowed(), 'OPUS_LIFE_ACL_DENIED_ALLOWED');
         })];
     }
 }

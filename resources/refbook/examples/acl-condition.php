@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /*
- * ASAP RefBook example: ACL condition.
+ * Opus RefBook example: ACL condition.
  *
  * Purpose:
  *   Show how a rule can stay explicit while accepting a contextual condition.
@@ -28,5 +28,5 @@ $context = new AccessContext(
 );
 
 if (!$rule->allows($context)) {
-    throw new RuntimeException('ASAP_ACL_CONDITION_DENIED');
+    throw new RuntimeException('OPUS_ACL_CONDITION_DENIED');
 }

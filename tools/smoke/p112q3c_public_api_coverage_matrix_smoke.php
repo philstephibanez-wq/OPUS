@@ -35,7 +35,7 @@ $requiredMarkers = [
     'INTEGRATION_ONLY',
     'MISSING_TEST_REFERENCE',
     'p112q3c_public_api_coverage',
-    'ASAP_P112Q3C_STRICT',
+    'OPUS_P112Q3C_STRICT',
 ];
 
 foreach ($requiredMarkers as $marker) {

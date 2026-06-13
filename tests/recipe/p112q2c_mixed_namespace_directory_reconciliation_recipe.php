@@ -14,11 +14,11 @@ declare(strict_types=1);
  */
 
 $asapRoot = 'H:\\ASAP';
-$refBookRoot = 'H:\\ASAP_REF_BOOK';
-$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
+$refBookRoot = 'H:\\OPUS_REF_BOOK';
+$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus';
 
 if (!is_dir($frameworkRoot)) {
-    throw new RuntimeException('ASAP_FRAMEWORK_ROOT_MISSING');
+    throw new RuntimeException('OPUS_FRAMEWORK_ROOT_MISSING');
 }
 
 $renames = [
@@ -140,18 +140,18 @@ $upperMenu = 'ME' . 'NU';
 $upperTemplate = 'TEMP' . 'LATE';
 
 $forbidden = [
-    'ASAP\\' . $upperHelper,
-    'ASAP\\' . $upperMenu,
-    'ASAP\\' . $upperTemplate,
-    'ASAP\\\\' . $upperHelper,
-    'ASAP\\\\' . $upperMenu,
-    'ASAP\\\\' . $upperTemplate,
-    'framework/Asap/' . $upperHelper,
-    'framework/Asap/' . $upperMenu,
-    'framework/Asap/' . $upperTemplate,
-    'framework\\ASAP\\' . $upperHelper,
-    'framework\\ASAP\\' . $upperMenu,
-    'framework\\ASAP\\' . $upperTemplate,
+    'Opus\\' . $upperHelper,
+    'Opus\\' . $upperMenu,
+    'Opus\\' . $upperTemplate,
+    'Opus\\\\' . $upperHelper,
+    'Opus\\\\' . $upperMenu,
+    'Opus\\\\' . $upperTemplate,
+    'framework/Opus/' . $upperHelper,
+    'framework/Opus/' . $upperMenu,
+    'framework/Opus/' . $upperTemplate,
+    'framework\\Opus\\' . $upperHelper,
+    'framework\\Opus\\' . $upperMenu,
+    'framework\\Opus\\' . $upperTemplate,
 ];
 
 assertNoRuntimeToken([$asapRoot, $refBookRoot], $forbidden);

@@ -11,17 +11,17 @@ declare(strict_types=1);
  *   domain (FSM) is fully covered by Reflection-backed RefBook metadata.
  */
 $root = dirname(__DIR__, 2);
-$strict = in_array('--strict', $argv, true) || getenv('ASAP_P112Q3E1_STRICT') === '1';
+$strict = in_array('--strict', $argv, true) || getenv('OPUS_P112Q3E1_STRICT') === '1';
 requireRefBookCore($root);
 
-$fsmRoot = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Fsm';
+$fsmRoot = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Fsm';
 $reportRoot = $root . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'reports' . DIRECTORY_SEPARATOR . 'p112q3e1_refbook_fsm_metadata';
 $snapshotRoot = $root . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'refbook';
 ensureDirectory($reportRoot);
 ensureDirectory($snapshotRoot);
 
 $scanner = new ASAP\RefBook\RefBookReflectionScanner();
-$result = $scanner->scan($fsmRoot, 'ASAP\\Fsm');
+$result = $scanner->scan($fsmRoot, 'Opus\\Fsm');
 $validator = new ASAP\RefBook\RefBookContractValidator();
 $validation = $validator->validate($result);
 $builder = new ASAP\RefBook\RefBookSnapshotBuilder();
@@ -74,15 +74,15 @@ exit(0);
 function requireRefBookCore(string $root): void
 {
     $files = [
-        'framework/Asap/RefBook/Attribute/AsapRefBookClass.php',
-        'framework/Asap/RefBook/Attribute/AsapRefBookMethod.php',
-        'framework/Asap/RefBook/Contract/RefBookInspectableInterface.php',
-        'framework/Asap/RefBook/Model/RefBookMethodEntry.php',
-        'framework/Asap/RefBook/Model/RefBookClassEntry.php',
-        'framework/Asap/RefBook/Model/RefBookScanResult.php',
-        'framework/Asap/RefBook/RefBookReflectionScanner.php',
-        'framework/Asap/RefBook/RefBookContractValidator.php',
-        'framework/Asap/RefBook/RefBookSnapshotBuilder.php',
+        'framework/Opus/RefBook/Attribute/OpusRefBookClass.php',
+        'framework/Opus/RefBook/Attribute/OpusRefBookMethod.php',
+        'framework/Opus/RefBook/Contract/RefBookInspectableInterface.php',
+        'framework/Opus/RefBook/Model/RefBookMethodEntry.php',
+        'framework/Opus/RefBook/Model/RefBookClassEntry.php',
+        'framework/Opus/RefBook/Model/RefBookScanResult.php',
+        'framework/Opus/RefBook/RefBookReflectionScanner.php',
+        'framework/Opus/RefBook/RefBookContractValidator.php',
+        'framework/Opus/RefBook/RefBookSnapshotBuilder.php',
     ];
     foreach ($files as $relative) {
         $path = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);

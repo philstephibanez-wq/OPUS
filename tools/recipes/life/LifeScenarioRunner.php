@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe\Life;
+namespace Opus\Recipe\Life;
 
 use ASAP\Recipe\RecipeContext;
 
@@ -10,7 +10,7 @@ use ASAP\Recipe\RecipeContext;
  * PUBLIC SERVICE
  *
  * Role:
- *   Execute robotized ASAP life scenarios.
+ *   Execute robotized Opus life scenarios.
  *
  * Responsibility:
  *   Create isolated robot sessions, run each scenario step in order and return
@@ -18,7 +18,7 @@ use ASAP\Recipe\RecipeContext;
  *
  * Contract:
  *   The runner never starts HTTP servers or browsers. It simulates life through
- *   official ASAP objects and background CLIs only.
+ *   official Opus objects and background CLIs only.
  */
 final class LifeScenarioRunner
 {
@@ -34,6 +34,6 @@ final class LifeScenarioRunner
             $step->run($context, $session);
         }
 
-        return ['ASAP_LIFE_' . strtoupper($scenario->scenarioName()) . '_OK'];
+        return ['OPUS_LIFE_' . strtoupper($scenario->scenarioName()) . '_OK'];
     }
 }

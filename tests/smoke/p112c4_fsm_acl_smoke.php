@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 declare(strict_types=1);
 
@@ -6,7 +6,7 @@ declare(strict_types=1);
  * INTERNAL SMOKE CHECK
  *
  * Role:
- *   Validate the first modern ASAP FSM + ACL PHP skeleton.
+ *   Validate the first modern Opus FSM + ACL PHP skeleton.
  *
  * Responsibility:
  *   Loads the documented PHP classes, verifies one allowed FSM transition,
@@ -23,24 +23,24 @@ declare(strict_types=1);
  *   P112C4
  */
 
-require_once __DIR__ . '/../../framework/Asap/Fsm/StateMachineException.php';
-require_once __DIR__ . '/../../framework/Asap/Fsm/StateActionInterface.php';
-require_once __DIR__ . '/../../framework/Asap/Fsm/StateDefinition.php';
-require_once __DIR__ . '/../../framework/Asap/Fsm/SignalDefinition.php';
-require_once __DIR__ . '/../../framework/Asap/Fsm/TransitionDefinition.php';
-require_once __DIR__ . '/../../framework/Asap/Fsm/TransitionResult.php';
-require_once __DIR__ . '/../../framework/Asap/Fsm/StateMemory.php';
-require_once __DIR__ . '/../../framework/Asap/Fsm/StateMachine.php';
-require_once __DIR__ . '/../../framework/Asap/Acl/AccessControlException.php';
-require_once __DIR__ . '/../../framework/Asap/Acl/AccessDeniedException.php';
-require_once __DIR__ . '/../../framework/Asap/Acl/AccessConditionInterface.php';
-require_once __DIR__ . '/../../framework/Asap/Acl/RoleDefinition.php';
-require_once __DIR__ . '/../../framework/Asap/Acl/ResourceDefinition.php';
-require_once __DIR__ . '/../../framework/Asap/Acl/PrivilegeDefinition.php';
-require_once __DIR__ . '/../../framework/Asap/Acl/AccessContext.php';
-require_once __DIR__ . '/../../framework/Asap/Acl/AccessRule.php';
-require_once __DIR__ . '/../../framework/Asap/Acl/AccessDecision.php';
-require_once __DIR__ . '/../../framework/Asap/Acl/AccessControl.php';
+require_once __DIR__ . '/../../framework/Opus/Fsm/StateMachineException.php';
+require_once __DIR__ . '/../../framework/Opus/Fsm/StateActionInterface.php';
+require_once __DIR__ . '/../../framework/Opus/Fsm/StateDefinition.php';
+require_once __DIR__ . '/../../framework/Opus/Fsm/SignalDefinition.php';
+require_once __DIR__ . '/../../framework/Opus/Fsm/TransitionDefinition.php';
+require_once __DIR__ . '/../../framework/Opus/Fsm/TransitionResult.php';
+require_once __DIR__ . '/../../framework/Opus/Fsm/StateMemory.php';
+require_once __DIR__ . '/../../framework/Opus/Fsm/StateMachine.php';
+require_once __DIR__ . '/../../framework/Opus/Acl/AccessControlException.php';
+require_once __DIR__ . '/../../framework/Opus/Acl/AccessDeniedException.php';
+require_once __DIR__ . '/../../framework/Opus/Acl/AccessConditionInterface.php';
+require_once __DIR__ . '/../../framework/Opus/Acl/RoleDefinition.php';
+require_once __DIR__ . '/../../framework/Opus/Acl/ResourceDefinition.php';
+require_once __DIR__ . '/../../framework/Opus/Acl/PrivilegeDefinition.php';
+require_once __DIR__ . '/../../framework/Opus/Acl/AccessContext.php';
+require_once __DIR__ . '/../../framework/Opus/Acl/AccessRule.php';
+require_once __DIR__ . '/../../framework/Opus/Acl/AccessDecision.php';
+require_once __DIR__ . '/../../framework/Opus/Acl/AccessControl.php';
 
 use ASAP\Fsm\StateDefinition;
 use ASAP\Fsm\TransitionDefinition;
@@ -108,4 +108,4 @@ assertTrue(!$denied->allowed(), 'ACL public write denied');
 
 echo 'P112C4 FSM smoke OK' . PHP_EOL;
 echo 'P112C4 ACL smoke OK' . PHP_EOL;
-echo 'P112C4 ASAP smoke checks OK' . PHP_EOL;
+echo 'P112C4 Opus smoke checks OK' . PHP_EOL;

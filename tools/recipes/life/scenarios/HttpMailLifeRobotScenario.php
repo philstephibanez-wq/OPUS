@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe\Life\Scenarios;
+namespace Opus\Recipe\Life\Scenarios;
 
 use ASAP\Recipe\RecipeAssertionFailedException;
 use ASAP\Recipe\RecipeContext;
@@ -64,15 +64,15 @@ final class HttpMailLifeRobotScenario implements RecipeInterface
         }
 
         return [
-            'ASAP_HTTP_DASHBOARD_VISIBLE_OK',
-            'ASAP_HTTP_PUBLIC_ROUTES_OK',
-            'ASAP_HTTP_ACL_OK',
-            'ASAP_HTTP_FORM_OK',
-            'ASAP_MAILPIT_OK',
-            'ASAP_MAIL_ROBOT_OK',
-            'ASAP_LIFE_HTTP_LSTSAR_OK',
-            'ASAP_LIVE_MOVIE_DASHBOARD_OK',
-            'ASAP_LIFE_HTTP_MAIL_ROBOT_OK',
+            'OPUS_HTTP_DASHBOARD_VISIBLE_OK',
+            'OPUS_HTTP_PUBLIC_ROUTES_OK',
+            'OPUS_HTTP_ACL_OK',
+            'OPUS_HTTP_FORM_OK',
+            'OPUS_MAILPIT_OK',
+            'OPUS_MAIL_ROBOT_OK',
+            'OPUS_LIFE_HTTP_LSTSAR_OK',
+            'OPUS_LIVE_MOVIE_DASHBOARD_OK',
+            'OPUS_LIFE_HTTP_MAIL_ROBOT_OK',
         ];
     }
 
@@ -81,7 +81,7 @@ final class HttpMailLifeRobotScenario implements RecipeInterface
         foreach (['public', 'http', 'mail', 'dashboard', 'reports'] as $dir) {
             $path = $sandbox . DIRECTORY_SEPARATOR . $dir;
             if (!is_dir($path) && !mkdir($path, 0775, true) && !is_dir($path)) {
-                throw RecipeAssertionFailedException::because('ASAP_HTTP_MAIL_ROBOT_DIR_CREATE_FAILED', $path);
+                throw RecipeAssertionFailedException::because('OPUS_HTTP_MAIL_ROBOT_DIR_CREATE_FAILED', $path);
             }
         }
 
@@ -102,8 +102,8 @@ XML);
         file_put_contents($sandbox . DIRECTORY_SEPARATOR . 'http' . DIRECTORY_SEPARATOR . 'transcript.jsonl', '');
         file_put_contents($sandbox . DIRECTORY_SEPARATOR . 'mail' . DIRECTORY_SEPARATOR . 'inbox.jsonl', '');
         file_put_contents($sandbox . DIRECTORY_SEPARATOR . 'dashboard' . DIRECTORY_SEPARATOR . 'state.json', json_encode([
-            'marker' => 'ASAP_RECIPE_DASHBOARD_RICH_OK',
-            'movie_marker' => 'ASAP_LIVE_MOVIE_DASHBOARD_OK',
+            'marker' => 'OPUS_RECIPE_DASHBOARD_RICH_OK',
+            'movie_marker' => 'OPUS_LIVE_MOVIE_DASHBOARD_OK',
             'run_id' => $context->runId(),
             'status' => 'RUNNING',
             'current_actor' => 'RecipeDirectorRobot',
@@ -149,7 +149,7 @@ XML);
             }
         }
 
-        throw RecipeAssertionFailedException::because('ASAP_HTTP_MAIL_ROBOT_SERVER_START_FAILED', $stderr);
+        throw RecipeAssertionFailedException::because('OPUS_HTTP_MAIL_ROBOT_SERVER_START_FAILED', $stderr);
     }
 
     private function waitForServer(string $baseUrl): void
@@ -157,79 +157,79 @@ XML);
         $deadline = microtime(true) + 10.0;
         do {
             $response = $this->request($baseUrl . '/health');
-            if ($response['status'] === 200 && str_contains($response['body'], 'ASAP_HTTP_MAIL_ROBOT_HEALTH_OK')) {
+            if ($response['status'] === 200 && str_contains($response['body'], 'OPUS_HTTP_MAIL_ROBOT_HEALTH_OK')) {
                 return;
             }
             usleep(150000);
         } while (microtime(true) < $deadline);
-        throw RecipeAssertionFailedException::because('ASAP_HTTP_MAIL_ROBOT_HEALTH_TIMEOUT', $baseUrl);
+        throw RecipeAssertionFailedException::because('OPUS_HTTP_MAIL_ROBOT_HEALTH_TIMEOUT', $baseUrl);
     }
 
     private function assertDashboard(RecipeContext $context, string $dashboardUrl): void
     {
         $response = $this->request($dashboardUrl);
-        $context->assert($response['status'] === 200, 'ASAP_HTTP_DASHBOARD_STATUS_INVALID', (string)$response['status']);
-        foreach (['ASAP_RECIPE_DASHBOARD_RICH_OK', 'ASAP_LIVE_MOVIE_DASHBOARD_OK', 'Robot actors', 'HTTP transcript', 'MailRobot', 'ASAP_REAL_MAILPIT_SMTP_OK', 'LSTSAR', 'Scenario matrix', 'Live timeline'] as $needle) {
-            $context->assert(str_contains($response['body'], $needle), 'ASAP_HTTP_DASHBOARD_CONTENT_MISSING', $needle);
+        $context->assert($response['status'] === 200, 'OPUS_HTTP_DASHBOARD_STATUS_INVALID', (string)$response['status']);
+        foreach (['OPUS_RECIPE_DASHBOARD_RICH_OK', 'OPUS_LIVE_MOVIE_DASHBOARD_OK', 'Robot actors', 'HTTP transcript', 'MailRobot', 'OPUS_REAL_MAILPIT_SMTP_OK', 'LSTSAR', 'Scenario matrix', 'Live timeline'] as $needle) {
+            $context->assert(str_contains($response['body'], $needle), 'OPUS_HTTP_DASHBOARD_CONTENT_MISSING', $needle);
         }
     }
 
     private function assertPublicPages(RecipeContext $context, string $baseUrl): void
     {
-        $expected = ['fr' => 'Livre de référence ASAP', 'en' => 'ASAP Reference Book', 'es' => 'Libro de referencia ASAP'];
+        $expected = ['fr' => 'Livre de référence ASAP', 'en' => 'Opus Reference Book', 'es' => 'Libro de referencia ASAP'];
         foreach (self::LOCALES as $locale) {
             $response = $this->request($baseUrl . '/' . $locale . '/public');
-            $context->assert($response['status'] === 200, 'ASAP_HTTP_PUBLIC_STATUS_INVALID', $locale . ':' . (string)$response['status']);
-            $context->assert(str_contains($response['body'], 'data-locale="' . $locale . '"'), 'ASAP_HTTP_PUBLIC_LOCALE_MISSING', $locale);
-            $context->assert(str_contains($response['body'], $expected[$locale]), 'ASAP_HTTP_PUBLIC_I18N_MISSING', $locale);
+            $context->assert($response['status'] === 200, 'OPUS_HTTP_PUBLIC_STATUS_INVALID', $locale . ':' . (string)$response['status']);
+            $context->assert(str_contains($response['body'], 'data-locale="' . $locale . '"'), 'OPUS_HTTP_PUBLIC_LOCALE_MISSING', $locale);
+            $context->assert(str_contains($response['body'], $expected[$locale]), 'OPUS_HTTP_PUBLIC_I18N_MISSING', $locale);
         }
     }
 
     private function assertAclPages(RecipeContext $context, string $baseUrl): void
     {
         $anonymous = $this->request($baseUrl . '/fr/admin');
-        $context->assert($anonymous['status'] === 403, 'ASAP_HTTP_ACL_ANONYMOUS_ADMIN_NOT_FORBIDDEN', (string)$anonymous['status']);
+        $context->assert($anonymous['status'] === 403, 'OPUS_HTTP_ACL_ANONYMOUS_ADMIN_NOT_FORBIDDEN', (string)$anonymous['status']);
         $denied = $this->request($baseUrl . '/fr/admin', 'GET', ['X-ASAP-Role' => 'denied']);
-        $context->assert($denied['status'] === 403, 'ASAP_HTTP_ACL_DENIED_ADMIN_NOT_FORBIDDEN', (string)$denied['status']);
+        $context->assert($denied['status'] === 403, 'OPUS_HTTP_ACL_DENIED_ADMIN_NOT_FORBIDDEN', (string)$denied['status']);
         $admin = $this->request($baseUrl . '/fr/admin', 'GET', ['X-ASAP-Role' => 'admin']);
-        $context->assert($admin['status'] === 200, 'ASAP_HTTP_ACL_ADMIN_NOT_ALLOWED', (string)$admin['status']);
-        $context->assert(str_contains($admin['body'], 'data-role="admin"'), 'ASAP_HTTP_ACL_ADMIN_ROLE_MISSING');
+        $context->assert($admin['status'] === 200, 'OPUS_HTTP_ACL_ADMIN_NOT_ALLOWED', (string)$admin['status']);
+        $context->assert(str_contains($admin['body'], 'data-role="admin"'), 'OPUS_HTTP_ACL_ADMIN_ROLE_MISSING');
     }
 
     private function assertForms(RecipeContext $context, string $baseUrl): void
     {
         $valid = $this->request($baseUrl . '/fr/form-submit', 'POST', ['X-ASAP-Role' => 'admin'], 'name=Alice&email=alice%40example.org');
-        $context->assert($valid['status'] === 200, 'ASAP_HTTP_FORM_VALID_STATUS_INVALID', (string)$valid['status']);
-        $context->assert(str_contains($valid['body'], 'ASAP_FORM_VALID_OK'), 'ASAP_HTTP_FORM_VALID_MARKER_MISSING');
+        $context->assert($valid['status'] === 200, 'OPUS_HTTP_FORM_VALID_STATUS_INVALID', (string)$valid['status']);
+        $context->assert(str_contains($valid['body'], 'OPUS_FORM_VALID_OK'), 'OPUS_HTTP_FORM_VALID_MARKER_MISSING');
         $invalid = $this->request($baseUrl . '/fr/form-submit', 'POST', ['X-ASAP-Role' => 'admin'], 'name=&email=bad-address');
-        $context->assert($invalid['status'] === 422, 'ASAP_HTTP_FORM_INVALID_STATUS_INVALID', (string)$invalid['status']);
-        $context->assert(str_contains($invalid['body'], 'ASAP_FORM_INVALID_OK'), 'ASAP_HTTP_FORM_INVALID_MARKER_MISSING');
+        $context->assert($invalid['status'] === 422, 'OPUS_HTTP_FORM_INVALID_STATUS_INVALID', (string)$invalid['status']);
+        $context->assert(str_contains($invalid['body'], 'OPUS_FORM_INVALID_OK'), 'OPUS_HTTP_FORM_INVALID_MARKER_MISSING');
     }
 
     private function assertMailLifecycle(RecipeContext $context, string $baseUrl, string $sandbox): void
     {
-        $subject = 'ASAP Recipe Mail ' . $context->runId();
-        $body = 'ASAP_MAIL_BODY_OK ' . $context->runId();
+        $subject = 'Opus Recipe Mail ' . $context->runId();
+        $body = 'OPUS_MAIL_BODY_OK ' . $context->runId();
         $post = http_build_query(['to' => 'robot@example.org', 'subject' => $subject, 'body' => $body], '', '&', PHP_QUERY_RFC3986);
         $send = $this->request($baseUrl . '/fr/mail-send', 'POST', ['X-ASAP-Role' => 'admin'], $post);
-        $context->assert($send['status'] === 202, 'ASAP_MAIL_SEND_STATUS_INVALID', (string)$send['status'] . ' :: ' . $send['body']);
-        $context->assert(str_contains($send['body'], 'ASAP_MAIL_SEND_OK'), 'ASAP_MAIL_SEND_MARKER_MISSING');
+        $context->assert($send['status'] === 202, 'OPUS_MAIL_SEND_STATUS_INVALID', (string)$send['status'] . ' :: ' . $send['body']);
+        $context->assert(str_contains($send['body'], 'OPUS_MAIL_SEND_OK'), 'OPUS_MAIL_SEND_MARKER_MISSING');
 
         $deadline = microtime(true) + 10.0;
         $inbox = ['status' => 0, 'body' => ''];
         do {
             $inbox = $this->request($baseUrl . '/fr/mail-inbox?subject=' . rawurlencode($subject), 'GET', ['X-ASAP-Role' => 'admin']);
-            if ($inbox['status'] === 200 && str_contains($inbox['body'], 'ASAP_MAILPIT_RECEIVED_OK')) {
+            if ($inbox['status'] === 200 && str_contains($inbox['body'], 'OPUS_MAILPIT_RECEIVED_OK')) {
                 break;
             }
             usleep(250000);
         } while (microtime(true) < $deadline);
 
-        $context->assert($inbox['status'] === 200, 'ASAP_MAIL_INBOX_STATUS_INVALID', (string)$inbox['status'] . ' :: ' . $inbox['body']);
-        foreach (['ASAP_MAILPIT_RECEIVED_OK', 'robot@example.org', $subject, $body] as $needle) {
-            $context->assert(str_contains($inbox['body'], $needle), 'ASAP_MAILPIT_CONTENT_MISSING', $needle);
+        $context->assert($inbox['status'] === 200, 'OPUS_MAIL_INBOX_STATUS_INVALID', (string)$inbox['status'] . ' :: ' . $inbox['body']);
+        foreach (['OPUS_MAILPIT_RECEIVED_OK', 'robot@example.org', $subject, $body] as $needle) {
+            $context->assert(str_contains($inbox['body'], $needle), 'OPUS_MAILPIT_CONTENT_MISSING', $needle);
         }
-        $context->assert(is_file($sandbox . DIRECTORY_SEPARATOR . 'mail' . DIRECTORY_SEPARATOR . 'inbox.jsonl'), 'ASAP_MAILPIT_INBOX_ARTIFACT_MISSING');
+        $context->assert(is_file($sandbox . DIRECTORY_SEPARATOR . 'mail' . DIRECTORY_SEPARATOR . 'inbox.jsonl'), 'OPUS_MAILPIT_INBOX_ARTIFACT_MISSING');
     }
 
     private function assertLstsarLifecycle(RecipeContext $context, string $baseUrl): void
@@ -237,36 +237,36 @@ XML);
         $started = microtime(true);
         $scheduled = $this->request($baseUrl . '/fr/lstsar-schedule', 'POST', ['X-ASAP-Role' => 'admin'], 'schedule=1');
         $elapsed = microtime(true) - $started;
-        $context->assert($scheduled['status'] === 202, 'ASAP_HTTP_LSTSAR_SCHEDULE_STATUS_INVALID', (string)$scheduled['status']);
-        $context->assert($elapsed < 2.0, 'ASAP_HTTP_LSTSAR_SCHEDULE_BLOCKED', number_format($elapsed, 4, '.', '') . 's');
+        $context->assert($scheduled['status'] === 202, 'OPUS_HTTP_LSTSAR_SCHEDULE_STATUS_INVALID', (string)$scheduled['status']);
+        $context->assert($elapsed < 2.0, 'OPUS_HTTP_LSTSAR_SCHEDULE_BLOCKED', number_format($elapsed, 4, '.', '') . 's');
         $payload = json_decode($scheduled['body'], true);
-        $context->assert(is_array($payload), 'ASAP_HTTP_LSTSAR_SCHEDULE_JSON_INVALID');
-        $context->assert(($payload['status'] ?? null) === \ASAP\Lstsa\LstsaRunStatus::PENDING, 'ASAP_HTTP_LSTSAR_NOT_PENDING');
+        $context->assert(is_array($payload), 'OPUS_HTTP_LSTSAR_SCHEDULE_JSON_INVALID');
+        $context->assert(($payload['status'] ?? null) === \ASAP\Lstsa\LstsaRunStatus::PENDING, 'OPUS_HTTP_LSTSAR_NOT_PENDING');
         $runId = (string)($payload['run_id'] ?? '');
         $targetDb = (string)($payload['target_db'] ?? '');
-        $context->assert($runId !== '' && $targetDb !== '', 'ASAP_HTTP_LSTSAR_PAYLOAD_INCOMPLETE');
+        $context->assert($runId !== '' && $targetDb !== '', 'OPUS_HTTP_LSTSAR_PAYLOAD_INCOMPLETE');
 
         $store = new \ASAP\Lstsa\LstsaRunStore($context->rootPath());
         $done = (new \ASAP\Lstsa\LstsaRunner($store))->runOnce('http_mail_life_robot_background_runner');
-        $context->assert(is_array($done) && ($done['run_id'] ?? null) === $runId, 'ASAP_HTTP_LSTSAR_RUN_ID_MISMATCH');
-        $context->assert(($done['status'] ?? null) === \ASAP\Lstsa\LstsaRunStatus::DONE, 'ASAP_HTTP_LSTSAR_NOT_DONE');
+        $context->assert(is_array($done) && ($done['run_id'] ?? null) === $runId, 'OPUS_HTTP_LSTSAR_RUN_ID_MISMATCH');
+        $context->assert(($done['status'] ?? null) === \ASAP\Lstsa\LstsaRunStatus::DONE, 'OPUS_HTTP_LSTSAR_NOT_DONE');
 
         $status = $this->request($baseUrl . '/fr/lstsar-status?run_id=' . rawurlencode($runId), 'GET', ['X-ASAP-Role' => 'admin']);
-        $context->assert($status['status'] === 200, 'ASAP_HTTP_LSTSAR_STATUS_HTTP_INVALID', (string)$status['status']);
+        $context->assert($status['status'] === 200, 'OPUS_HTTP_LSTSAR_STATUS_HTTP_INVALID', (string)$status['status']);
         $statusPayload = json_decode($status['body'], true);
-        $context->assert(is_array($statusPayload) && ($statusPayload['status'] ?? null) === \ASAP\Lstsa\LstsaRunStatus::DONE, 'ASAP_HTTP_LSTSAR_STATUS_NOT_DONE');
+        $context->assert(is_array($statusPayload) && ($statusPayload['status'] ?? null) === \ASAP\Lstsa\LstsaRunStatus::DONE, 'OPUS_HTTP_LSTSAR_STATUS_NOT_DONE');
         $target = new \PDO('sqlite:' . $targetDb, null, null, [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]);
         $count = (int)$target->query('SELECT COUNT(*) FROM users')->fetchColumn();
-        $context->assert($count === 2, 'ASAP_HTTP_LSTSAR_TARGET_ROW_COUNT_INVALID', (string)$count);
+        $context->assert($count === 2, 'OPUS_HTTP_LSTSAR_TARGET_ROW_COUNT_INVALID', (string)$count);
     }
 
     private function assertArtifacts(RecipeContext $context, string $sandbox): void
     {
         foreach (['http/transcript.jsonl', 'mail/inbox.jsonl', 'dashboard/state.json'] as $relative) {
             $path = $sandbox . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);
-            $context->assert(is_file($path) && filesize($path) > 0, 'ASAP_HTTP_MAIL_LIFE_ARTIFACT_MISSING_OR_EMPTY', $relative);
+            $context->assert(is_file($path) && filesize($path) > 0, 'OPUS_HTTP_MAIL_LIFE_ARTIFACT_MISSING_OR_EMPTY', $relative);
         }
-        file_put_contents($sandbox . DIRECTORY_SEPARATOR . 'reports' . DIRECTORY_SEPARATOR . 'http_mail_life_summary.md', '# HTTP Mail Life Robot' . PHP_EOL . PHP_EOL . 'ASAP_LIVE_MOVIE_DASHBOARD_OK' . PHP_EOL . 'ASAP_LIFE_HTTP_MAIL_ROBOT_OK' . PHP_EOL);
+        file_put_contents($sandbox . DIRECTORY_SEPARATOR . 'reports' . DIRECTORY_SEPARATOR . 'http_mail_life_summary.md', '# HTTP Mail Life Robot' . PHP_EOL . PHP_EOL . 'OPUS_LIVE_MOVIE_DASHBOARD_OK' . PHP_EOL . 'OPUS_LIFE_HTTP_MAIL_ROBOT_OK' . PHP_EOL);
         $context->diagnostic('HTTP_MAIL_LIFE_SANDBOX=' . $sandbox);
     }
 
@@ -296,7 +296,7 @@ XML);
             }
         }
         file_put_contents($statePath, json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-        if ((string)getenv('ASAP_RECIPE_OPEN_BROWSER') === '1') {
+        if ((string)getenv('OPUS_RECIPE_OPEN_BROWSER') === '1') {
             usleep(850000);
         }
     }
@@ -316,10 +316,10 @@ XML);
 
     private function holdBrowserForMovieIfRequested(): void
     {
-        if ((string)getenv('ASAP_RECIPE_OPEN_BROWSER') !== '1') {
+        if ((string)getenv('OPUS_RECIPE_OPEN_BROWSER') !== '1') {
             return;
         }
-        sleep((int)((string)getenv('ASAP_RECIPE_BROWSER_FINAL_HOLD_SECONDS') ?: '8'));
+        sleep((int)((string)getenv('OPUS_RECIPE_BROWSER_FINAL_HOLD_SECONDS') ?: '8'));
     }
 
     /** @return array{status:int,body:string,headers:string[]} */
@@ -347,12 +347,12 @@ XML);
 
     private function openBrowserIfRequested(string $url): void
     {
-        if ((string)getenv('ASAP_RECIPE_OPEN_BROWSER') !== '1') {
+        if ((string)getenv('OPUS_RECIPE_OPEN_BROWSER') !== '1') {
             return;
         }
         if (PHP_OS_FAMILY === 'Windows') {
             @pclose(@popen('start "" ' . escapeshellarg($url), 'r'));
-            sleep((int)((string)getenv('ASAP_RECIPE_BROWSER_HOLD_SECONDS') ?: '1'));
+            sleep((int)((string)getenv('OPUS_RECIPE_BROWSER_HOLD_SECONDS') ?: '1'));
             return;
         }
         $opener = trim((string)@shell_exec('command -v xdg-open 2>/dev/null'));
@@ -394,10 +394,10 @@ $projectRoot = __PROJECT_ROOT__;
 $sandbox = __SANDBOX__;
 
 spl_autoload_register(static function (string $class) use ($projectRoot): void {
-    $prefix = 'ASAP\\';
+    $prefix = 'Opus\\';
     if (!str_starts_with($class, $prefix)) { return; }
     $relative = substr($class, strlen($prefix));
-    $path = $projectRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $relative) . '.php';
+    $path = $projectRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $relative) . '.php';
     if (is_file($path)) { require_once $path; }
 });
 
@@ -415,14 +415,14 @@ function robot_update_state(string $event, array $data = []): void {
     $state['events'][] = ['event' => $event, 'at' => date('c'), 'data' => $data];
     file_put_contents($path, json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 }
-function robot_role(): string { return strtolower((string)($_SERVER['HTTP_X_ASAP_ROLE'] ?? 'anonymous')); }
+function robot_role(): string { return strtolower((string)($_SERVER['HTTP_X_OPUS_ROLE'] ?? 'anonymous')); }
 function robot_request_log(string $route, int $status, array $extra = []): void {
     robot_jsonl('http/transcript.jsonl', array_merge(['route' => $route, 'method' => $_SERVER['REQUEST_METHOD'] ?? 'GET', 'uri' => $_SERVER['REQUEST_URI'] ?? '/', 'role' => robot_role(), 'status' => $status, 'at' => date('c')], $extra));
     robot_update_state('http:' . $route, ['status' => $status] + $extra);
 }
-function robot_mailpit_http_base(): string { return rtrim((string)(getenv('ASAP_RECIPE_MAILPIT_HTTP') ?: 'http://127.0.0.1:8025'), '/'); }
-function robot_mailpit_smtp_host(): string { return (string)(getenv('ASAP_RECIPE_MAILPIT_SMTP_HOST') ?: '127.0.0.1'); }
-function robot_mailpit_smtp_port(): int { return (int)((string)(getenv('ASAP_RECIPE_MAILPIT_SMTP_PORT') ?: '1025')); }
+function robot_mailpit_http_base(): string { return rtrim((string)(getenv('OPUS_RECIPE_MAILPIT_HTTP') ?: 'http://127.0.0.1:8025'), '/'); }
+function robot_mailpit_smtp_host(): string { return (string)(getenv('OPUS_RECIPE_MAILPIT_SMTP_HOST') ?: '127.0.0.1'); }
+function robot_mailpit_smtp_port(): int { return (int)((string)(getenv('OPUS_RECIPE_MAILPIT_SMTP_PORT') ?: '1025')); }
 function robot_http_json(string $url): array {
     $body = @file_get_contents($url);
     if (!is_string($body)) { return ['ok' => false, 'error' => 'HTTP_READ_FAILED', 'url' => $url]; }
@@ -431,7 +431,7 @@ function robot_http_json(string $url): array {
 }
 function robot_smtp_expect($socket, string $expected, string $step): void {
     $line = fgets($socket, 4096);
-    if (!is_string($line) || !str_starts_with($line, $expected)) { throw new RuntimeException('ASAP_MAILPIT_SMTP_UNEXPECTED_' . $step . '=' . trim((string)$line)); }
+    if (!is_string($line) || !str_starts_with($line, $expected)) { throw new RuntimeException('OPUS_MAILPIT_SMTP_UNEXPECTED_' . $step . '=' . trim((string)$line)); }
 }
 function robot_smtp_cmd($socket, string $command, string $expected, string $step): void {
     fwrite($socket, $command . "\r\n");
@@ -440,14 +440,14 @@ function robot_smtp_cmd($socket, string $command, string $expected, string $step
 function robot_mailpit_smtp_send(string $to, string $subject, string $body): void {
     $host = robot_mailpit_smtp_host(); $port = robot_mailpit_smtp_port();
     $socket = @fsockopen($host, $port, $errno, $errstr, 5.0);
-    if (!is_resource($socket)) { throw new RuntimeException('ASAP_MAILPIT_SMTP_CONNECT_FAILED=' . $host . ':' . $port . ' :: ' . $errstr); }
+    if (!is_resource($socket)) { throw new RuntimeException('OPUS_MAILPIT_SMTP_CONNECT_FAILED=' . $host . ':' . $port . ' :: ' . $errstr); }
     stream_set_timeout($socket, 5);
     robot_smtp_expect($socket, '220', 'BANNER');
-    robot_smtp_cmd($socket, 'HELO asap-recipe.local', '250', 'HELO');
-    robot_smtp_cmd($socket, 'MAIL FROM:<asap-recipe@example.org>', '250', 'MAIL_FROM');
+    robot_smtp_cmd($socket, 'HELO opus-recipe.local', '250', 'HELO');
+    robot_smtp_cmd($socket, 'MAIL FROM:<opus-recipe@example.org>', '250', 'MAIL_FROM');
     robot_smtp_cmd($socket, 'RCPT TO:<' . $to . '>', '250', 'RCPT_TO');
     robot_smtp_cmd($socket, 'DATA', '354', 'DATA');
-    $message = "From: ASAP Recipe <asap-recipe@example.org>\r\n"
+    $message = "From: Opus Recipe <opus-recipe@example.org>\r\n"
         . 'To: <' . $to . ">\r\n"
         . 'Subject: ' . $subject . "\r\n"
         . "MIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n"
@@ -479,11 +479,11 @@ function robot_mailpit_find_subject(string $subject): ?array {
 
 try {
     $request = \ASAP\Http\Request::fromGlobals();
-    if ($request->path === '/health') { robot_send(\ASAP\Http\Response::json(['ok' => true, 'marker' => 'ASAP_HTTP_MAIL_ROBOT_HEALTH_OK'])); return; }
+    if ($request->path === '/health') { robot_send(\ASAP\Http\Response::json(['ok' => true, 'marker' => 'OPUS_HTTP_MAIL_ROBOT_HEALTH_OK'])); return; }
 
     $parts = explode('/', trim($request->path, '/'));
     $locale = strtolower((string)($parts[0] ?? ''));
-    if (!in_array($locale, ['fr', 'en', 'es'], true)) { robot_send(\ASAP\Http\Response::html('ASAP_HTTP_MAIL_ROBOT_LOCALE_NOT_FOUND', 404)); return; }
+    if (!in_array($locale, ['fr', 'en', 'es'], true)) { robot_send(\ASAP\Http\Response::html('OPUS_HTTP_MAIL_ROBOT_LOCALE_NOT_FOUND', 404)); return; }
 
     $site = new \ASAP\Site\SiteDefinition('recipe_' . $locale, '/' . $locale, robot_path('routes.xml'), robot_path('security.xml'));
     $match = \ASAP\Routing\Router::fromXml(robot_path('routes.xml'))->match($request, $site);
@@ -506,7 +506,7 @@ try {
     );
     $resource = match ($match->name) { 'dashboard', 'state', 'public' => 'public', 'admin' => 'admin', 'form_submit' => 'form', 'mail_send', 'mail_inbox' => 'mail', default => 'lstsa' };
     $privilege = match ($match->name) { 'form_submit' => 'submit', 'mail_send' => 'send', 'mail_inbox', 'admin', 'dashboard', 'state', 'public' => 'view', 'lstsar_schedule' => 'schedule', default => 'status' };
-    if (!$acl->decide($role, $resource, $privilege)->allowed()) { robot_request_log($match->name, 403); robot_send(\ASAP\Http\Response::html('ASAP_HTTP_ROBOT_FORBIDDEN', 403)); return; }
+    if (!$acl->decide($role, $resource, $privilege)->allowed()) { robot_request_log($match->name, 403); robot_send(\ASAP\Http\Response::html('OPUS_HTTP_ROBOT_FORBIDDEN', 403)); return; }
 
     if ($match->name === 'dashboard') {
         $state = is_file(robot_path('dashboard/state.json')) ? (string)file_get_contents(robot_path('dashboard/state.json')) : '{}';
@@ -516,7 +516,7 @@ try {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ASAP Global Life Recipe Movie</title>
+<title>Opus Global Life Recipe Movie</title>
 <style>
 :root{--bg:#08111f;--panel:#0f172a;--line:#334155;--text:#e5e7eb;--muted:#94a3b8;--ok:#86efac;--run:#60a5fa;--warn:#facc15;--fail:#fb7185}
 *{box-sizing:border-box}body{font-family:Arial,sans-serif;background:radial-gradient(circle at top left,#1e3a8a 0,#08111f 36%,#020617 100%);color:var(--text);margin:0;overflow-x:hidden}
@@ -538,14 +538,14 @@ setInterval(refresh,350);window.onload=refresh;
 </head>
 <body>
 <div class="scan"></div>
-<header><h1>ASAP Global Life Recipe Movie Dashboard</h1><p><strong class="marker">ASAP_RECIPE_DASHBOARD_RICH_OK</strong> · <strong class="marker">ASAP_LIVE_MOVIE_DASHBOARD_OK</strong> <span id="ticker" class="ticker">●</span></p></header>
+<header><h1>Opus Global Life Recipe Movie Dashboard</h1><p><strong class="marker">OPUS_RECIPE_DASHBOARD_RICH_OK</strong> · <strong class="marker">OPUS_LIVE_MOVIE_DASHBOARD_OK</strong> <span id="ticker" class="ticker">●</span></p></header>
 <section class="grid">
 <div class="card"><h2>Live director</h2><p>Actor: <span id="actor" class="actor">RecipeDirectorRobot</span></p><p>Action: <span id="action" class="action">BOOTSTRAP</span></p><div class="progress"><div id="bar" class="bar"></div></div><p>Progress: <strong id="progressText">0%</strong></p></div>
 <div class="card"><h2>Robot actors</h2><span class="pill">AnonymousVisitor</span><span class="pill">AdminUser</span><span class="pill">DeniedUser</span><span class="pill">MailRobot</span><span class="pill">SchedulerRobot</span><span class="pill">BackgroundRunnerRobot</span><span class="pill">MaintenanceRobot</span></div>
 <div class="card"><h2>Scenario matrix</h2><ul><li>HTTP public FR/EN/ES</li><li>ACL anonymous/admin/denied</li><li>Form valid/invalid POST</li><li>MailRobot send/receive</li><li>LSTSAR schedule/background/status</li></ul></div>
 <div class="card"><h2>Live timeline</h2><div id="timeline"></div></div>
 <div class="card"><h2>HTTP transcript</h2><div id="httpLog" class="log">waiting...</div></div>
-<div class="card"><h2>MailRobot / Mailpit réel</h2><p><strong class="marker">ASAP_REAL_MAILPIT_SMTP_OK</strong></p><p>SMTP <code>127.0.0.1:1025</code> · API <code>127.0.0.1:8025</code></p><div id="mailLog" class="log">waiting...</div></div>
+<div class="card"><h2>MailRobot / Mailpit réel</h2><p><strong class="marker">OPUS_REAL_MAILPIT_SMTP_OK</strong></p><p>SMTP <code>127.0.0.1:1025</code> · API <code>127.0.0.1:8025</code></p><div id="mailLog" class="log">waiting...</div></div>
 <div class="card"><h2>LSTSAR</h2><p>Queue through HTTP, execution by background runner only.</p><p class="ok">Queue → Pending → Runner → Done/Fail visible in event stream.</p></div>
 <div class="card"><h2>Event stream</h2><div id="eventLog" class="log">waiting...</div></div>
 <div class="card full"><h2>Raw live state</h2><pre id="raw" class="log">__STATE__</pre></div>
@@ -572,8 +572,8 @@ HTML;
 
     if ($match->name === 'public' || $match->name === 'admin') {
         $i18n = new \ASAP\I18n\I18n($projectRoot . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'i18n', $locale);
-        $title = $i18n->translate('asap.reference');
-        $html = '<!doctype html><html lang="' . htmlspecialchars($locale) . '"><body><main data-route="' . htmlspecialchars($match->name) . '" data-locale="' . htmlspecialchars($locale) . '" data-role="' . htmlspecialchars($role) . '"><h1>' . htmlspecialchars($title) . '</h1><p>ASAP_HTTP_REAL_PAGE_OK</p></main></body></html>';
+        $title = $i18n->translate('opus.reference');
+        $html = '<!doctype html><html lang="' . htmlspecialchars($locale) . '"><body><main data-route="' . htmlspecialchars($match->name) . '" data-locale="' . htmlspecialchars($locale) . '" data-role="' . htmlspecialchars($role) . '"><h1>' . htmlspecialchars($title) . '</h1><p>OPUS_HTTP_REAL_PAGE_OK</p></main></body></html>';
         robot_request_log($match->name, 200, ['locale' => $locale, 'role' => $role]); robot_send(\ASAP\Http\Response::html($html)); return;
     }
 
@@ -581,24 +581,24 @@ HTML;
         parse_str((string)file_get_contents('php://input'), $input);
         $definition = new \ASAP\Form\FormDefinition('recipe_contact', [new \ASAP\Form\FormField('name', 'text', true), new \ASAP\Form\FormField('email', 'email', true)]);
         $result = (new \ASAP\Form\FormValidator())->validate(new \ASAP\Form\SubmittedForm($definition, array_map('strval', $input)));
-        if (!$result->isValid()) { robot_request_log('form_submit', 422); robot_send(\ASAP\Http\Response::json(['ok' => false, 'marker' => 'ASAP_FORM_INVALID_OK'], 422)); return; }
-        robot_request_log('form_submit', 200); robot_send(\ASAP\Http\Response::json(['ok' => true, 'marker' => 'ASAP_FORM_VALID_OK'])); return;
+        if (!$result->isValid()) { robot_request_log('form_submit', 422); robot_send(\ASAP\Http\Response::json(['ok' => false, 'marker' => 'OPUS_FORM_INVALID_OK'], 422)); return; }
+        robot_request_log('form_submit', 200); robot_send(\ASAP\Http\Response::json(['ok' => true, 'marker' => 'OPUS_FORM_VALID_OK'])); return;
     }
 
     if ($match->name === 'mail_send') {
         parse_str((string)file_get_contents('php://input'), $input);
         $mail = new \ASAP\Mail\Mail((string)($input['to'] ?? ''), (string)($input['subject'] ?? ''), (string)($input['body'] ?? ''));
         robot_mailpit_smtp_send($mail->to, $mail->subject, $mail->body);
-        robot_jsonl('mail/inbox.jsonl', ['transport' => 'mailpit_smtp', 'to' => $mail->to, 'subject' => $mail->subject, 'body' => $mail->body, 'sent_at' => date('c'), 'marker' => 'ASAP_REAL_MAILPIT_SMTP_OK']);
-        robot_request_log('mail_send', 202, ['transport' => 'mailpit_smtp', 'to' => $mail->to, 'subject' => $mail->subject]); robot_send(\ASAP\Http\Response::json(['ok' => true, 'marker' => 'ASAP_MAIL_SEND_OK', 'transport' => 'mailpit_smtp'], 202)); return;
+        robot_jsonl('mail/inbox.jsonl', ['transport' => 'mailpit_smtp', 'to' => $mail->to, 'subject' => $mail->subject, 'body' => $mail->body, 'sent_at' => date('c'), 'marker' => 'OPUS_REAL_MAILPIT_SMTP_OK']);
+        robot_request_log('mail_send', 202, ['transport' => 'mailpit_smtp', 'to' => $mail->to, 'subject' => $mail->subject]); robot_send(\ASAP\Http\Response::json(['ok' => true, 'marker' => 'OPUS_MAIL_SEND_OK', 'transport' => 'mailpit_smtp'], 202)); return;
     }
 
     if ($match->name === 'mail_inbox') {
         $subject = (string)($_GET['subject'] ?? '');
         $found = $subject !== '' ? robot_mailpit_find_subject($subject) : null;
-        if ($subject !== '' && $found === null) { robot_request_log('mail_inbox', 404, ['subject' => $subject]); robot_send(\ASAP\Http\Response::json(['ok' => false, 'marker' => 'ASAP_MAILPIT_NOT_RECEIVED_YET', 'subject' => $subject], 404)); return; }
-        if ($found !== null) { robot_jsonl('mail/inbox.jsonl', ['transport' => 'mailpit_api', 'subject' => $subject, 'received_at' => date('c'), 'marker' => 'ASAP_MAILPIT_RECEIVED_OK']); }
-        robot_request_log('mail_inbox', 200, ['subject' => $subject, 'transport' => 'mailpit_api']); robot_send(\ASAP\Http\Response::json(['ok' => true, 'marker' => 'ASAP_MAILPIT_RECEIVED_OK', 'message' => $found, 'mailpit_messages' => robot_mailpit_messages()])); return;
+        if ($subject !== '' && $found === null) { robot_request_log('mail_inbox', 404, ['subject' => $subject]); robot_send(\ASAP\Http\Response::json(['ok' => false, 'marker' => 'OPUS_MAILPIT_NOT_RECEIVED_YET', 'subject' => $subject], 404)); return; }
+        if ($found !== null) { robot_jsonl('mail/inbox.jsonl', ['transport' => 'mailpit_api', 'subject' => $subject, 'received_at' => date('c'), 'marker' => 'OPUS_MAILPIT_RECEIVED_OK']); }
+        robot_request_log('mail_inbox', 200, ['subject' => $subject, 'transport' => 'mailpit_api']); robot_send(\ASAP\Http\Response::json(['ok' => true, 'marker' => 'OPUS_MAILPIT_RECEIVED_OK', 'message' => $found, 'mailpit_messages' => robot_mailpit_messages()])); return;
     }
 
     if ($match->name === 'lstsar_schedule') {
@@ -614,12 +614,12 @@ HTML;
 
     if ($match->name === 'lstsar_status') {
         $runId = (string)($_GET['run_id'] ?? '');
-        if ($runId === '' || preg_match('/^[A-Za-z0-9_.-]+$/', $runId) !== 1) { robot_send(\ASAP\Http\Response::json(['ok' => false, 'error' => 'ASAP_RUN_ID_INVALID'], 400)); return; }
+        if ($runId === '' || preg_match('/^[A-Za-z0-9_.-]+$/', $runId) !== 1) { robot_send(\ASAP\Http\Response::json(['ok' => false, 'error' => 'OPUS_RUN_ID_INVALID'], 400)); return; }
         $run = (new \ASAP\Lstsa\LstsaRunStore($projectRoot))->readRun($runId);
         robot_request_log('lstsar_status', 200, ['run_id' => $runId, 'status' => $run['status']]); robot_send(\ASAP\Http\Response::json(['ok' => true, 'run_id' => $run['run_id'], 'status' => $run['status'], 'current_step' => $run['current_step']])); return;
     }
 
-    robot_send(\ASAP\Http\Response::html('ASAP_HTTP_MAIL_ROBOT_ROUTE_UNHANDLED', 500));
+    robot_send(\ASAP\Http\Response::html('OPUS_HTTP_MAIL_ROBOT_ROUTE_UNHANDLED', 500));
 } catch (\Throwable $exception) {
     robot_jsonl('http/transcript.jsonl', ['route' => 'exception', 'status' => 500, 'error' => $exception->getMessage(), 'at' => date('c')]);
     robot_send(\ASAP\Http\Response::json(['ok' => false, 'error' => $exception->getMessage()], 500));

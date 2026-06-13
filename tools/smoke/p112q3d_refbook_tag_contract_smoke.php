@@ -31,9 +31,9 @@ if (!is_string($content) || !is_string($testContent)) {
 $requiredMarkers = [
     'P112Q3D_REFBOOK_TAG_CONTRACT_AUDIT_OK',
     'P112Q3D_REFBOOK_TAG_CONTRACT_STRICT_FAILED',
-    'ASAP_P112Q3D_STRICT',
-    'ASAP_REFBOOK:',
-    'END_ASAP_REFBOOK',
+    'OPUS_P112Q3D_STRICT',
+    'OPUS_REFBOOK:',
+    'END_OPUS_REFBOOK',
     'p112q3d_refbook_tag_contract',
     'Class-level tags and method-level tags are separate',
 ];

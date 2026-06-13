@@ -7,23 +7,23 @@ declare(strict_types=1);
  *
  * Public CLI contract test.
  * Role:
- *   Prove that the ASAP HTTP domain is fully covered by the Reflection +
+ *   Prove that the Opus HTTP domain is fully covered by the Reflection +
  *   Attributes RefBook contract and still fails request boundaries explicitly.
  */
 $root = dirname(__DIR__, 2);
 requireRefBookCore($root);
 requireHttpRuntime($root);
 
-$httpRoot = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Http';
+$httpRoot = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Http';
 $scanner = new ASAP\RefBook\RefBookReflectionScanner();
-$result = $scanner->scan($httpRoot, 'ASAP\\Http');
+$result = $scanner->scan($httpRoot, 'Opus\\Http');
 $validator = new ASAP\RefBook\RefBookContractValidator();
 $validation = $validator->validate($result);
 $summary = $validation['summary'];
 
 assertSame(0, $summary['load_errors'], 'HTTP scan must not have load errors.');
-assertSame(0, $summary['class_metadata_missing'], 'Every HTTP class must expose AsapRefBookClass metadata.');
-assertSame(0, $summary['method_metadata_missing'], 'Every HTTP public method must expose AsapRefBookMethod metadata.');
+assertSame(0, $summary['class_metadata_missing'], 'Every HTTP class must expose OpusRefBookClass metadata.');
+assertSame(0, $summary['method_metadata_missing'], 'Every HTTP public method must expose OpusRefBookMethod metadata.');
 assertSame(0, $summary['violations'], 'HTTP RefBook contract must have zero violations.');
 assertSame(2, $summary['classes'], 'Expected Request and Response HTTP symbols in the fourth critical domain baseline.');
 assertSame(7, $summary['public_methods'], 'Expected seven HTTP public methods after Request inspectable provider and Response live-symbol coverage.');
@@ -49,35 +49,35 @@ foreach ($result->classes() as $class) {
     }
 }
 
-assertHasClass($classes, 'ASAP\\Http\\Request');
-assertHasClass($classes, 'ASAP\\Http\\Response');
-assertSame(true, $classes['ASAP\\Http\\Request']['implements_refbook_inspectable'], 'Request must opt in to RefBookInspectableInterface.');
+assertHasClass($classes, 'Opus\\Http\\Request');
+assertHasClass($classes, 'Opus\\Http\\Response');
+assertSame(true, $classes['Opus\\Http\\Request']['implements_refbook_inspectable'], 'Request must opt in to RefBookInspectableInterface.');
 
-$requestClass = $classes['ASAP\\Http\\Request'];
+$requestClass = $classes['Opus\\Http\\Request'];
 $constructor = findMethod($requestClass['methods'], '__construct');
 assertSame('string', $constructor['parameters'][0]['type'] ?? null, 'Request::__construct path parameter type must come from Reflection.');
 assertSame('string', $constructor['parameters'][1]['type'] ?? null, 'Request::__construct method parameter type must come from Reflection.');
-assertContains('ASAP_REQUEST_PATH_INVALID', $constructor['metadata']['errors'] ?? [], 'Request::__construct must declare invalid path error.');
+assertContains('OPUS_REQUEST_PATH_INVALID', $constructor['metadata']['errors'] ?? [], 'Request::__construct must declare invalid path error.');
 
 $refBookDomain = findMethod($requestClass['methods'], 'refBookDomain');
 assertSame('string', $refBookDomain['return_type'], 'Request::refBookDomain return type must come from Reflection.');
 
 $fromGlobals = findMethod($requestClass['methods'], 'fromGlobals');
-assertSame('ASAP\\Http\\Request', $fromGlobals['return_type'], 'Request::fromGlobals return type must come from Reflection scanner normalization.');
-assertContains('ASAP_REQUEST_URI_INVALID', $fromGlobals['metadata']['errors'] ?? [], 'Request::fromGlobals must declare invalid URI error.');
+assertSame('Opus\\Http\\Request', $fromGlobals['return_type'], 'Request::fromGlobals return type must come from Reflection scanner normalization.');
+assertContains('OPUS_REQUEST_URI_INVALID', $fromGlobals['metadata']['errors'] ?? [], 'Request::fromGlobals must declare invalid URI error.');
 
-$responseClass = $classes['ASAP\\Http\\Response'];
+$responseClass = $classes['Opus\\Http\\Response'];
 $responseConstructor = findMethod($responseClass['methods'], '__construct');
 assertSame('string', $responseConstructor['parameters'][0]['type'] ?? null, 'Response::__construct body parameter type must come from Reflection.');
 assertSame('int', $responseConstructor['parameters'][1]['type'] ?? null, 'Response::__construct status parameter type must come from Reflection.');
-assertContains('ASAP_RESPONSE_STATUS_INVALID', $responseConstructor['metadata']['errors'] ?? [], 'Response::__construct must declare invalid status error.');
+assertContains('OPUS_RESPONSE_STATUS_INVALID', $responseConstructor['metadata']['errors'] ?? [], 'Response::__construct must declare invalid status error.');
 
 $htmlFactory = findMethod($responseClass['methods'], 'html');
-assertSame('ASAP\\Http\\Response', $htmlFactory['return_type'], 'Response::html return type must come from Reflection scanner normalization.');
-assertContains('ASAP_RESPONSE_STATUS_INVALID', $htmlFactory['metadata']['errors'] ?? [], 'Response::html must declare invalid status error.');
+assertSame('Opus\\Http\\Response', $htmlFactory['return_type'], 'Response::html return type must come from Reflection scanner normalization.');
+assertContains('OPUS_RESPONSE_STATUS_INVALID', $htmlFactory['metadata']['errors'] ?? [], 'Response::html must declare invalid status error.');
 
 $jsonFactory = findMethod($responseClass['methods'], 'json');
-assertSame('ASAP\\Http\\Response', $jsonFactory['return_type'], 'Response::json return type must come from Reflection scanner normalization.');
+assertSame('Opus\\Http\\Response', $jsonFactory['return_type'], 'Response::json return type must come from Reflection scanner normalization.');
 assertContains('JSON_THROW_ON_ERROR', $jsonFactory['metadata']['errors'] ?? [], 'Response::json must declare JSON serialization error.');
 
 $sendMethod = findMethod($responseClass['methods'], 'send');
@@ -91,15 +91,15 @@ assertSame('post', $request->method, 'HTTP runtime sanity: method mismatch.');
 try {
     new ASAP\Http\Request('demo', 'GET');
     fail('HTTP runtime sanity: invalid path must fail explicitly.');
-} catch (ASAP\Contract\ContractException $exception) {
-    assertContains('ASAP_REQUEST_PATH_INVALID', $exception->getMessage(), 'HTTP runtime sanity: invalid path code mismatch.');
+} catch (Opus\Contract\ContractException $exception) {
+    assertContains('OPUS_REQUEST_PATH_INVALID', $exception->getMessage(), 'HTTP runtime sanity: invalid path code mismatch.');
 }
 
 try {
     new ASAP\Http\Request('/demo', '');
     fail('HTTP runtime sanity: empty method must fail explicitly.');
-} catch (ASAP\Contract\ContractException $exception) {
-    assertContains('ASAP_REQUEST_METHOD_EMPTY', $exception->getMessage(), 'HTTP runtime sanity: empty method code mismatch.');
+} catch (Opus\Contract\ContractException $exception) {
+    assertContains('OPUS_REQUEST_METHOD_EMPTY', $exception->getMessage(), 'HTTP runtime sanity: empty method code mismatch.');
 }
 
 $response = new ASAP\Http\Response('ok', 201, ['Content-Type' => 'text/plain']);
@@ -117,8 +117,8 @@ assertSame('application/json; charset=utf-8', $jsonResponse->headers['Content-Ty
 try {
     new ASAP\Http\Response('bad', 99);
     fail('HTTP runtime sanity: invalid response status must fail explicitly.');
-} catch (ASAP\Contract\ContractException $exception) {
-    assertContains('ASAP_RESPONSE_STATUS_INVALID', $exception->getMessage(), 'HTTP runtime sanity: invalid status code mismatch.');
+} catch (Opus\Contract\ContractException $exception) {
+    assertContains('OPUS_RESPONSE_STATUS_INVALID', $exception->getMessage(), 'HTTP runtime sanity: invalid status code mismatch.');
 }
 
 $oldServer = $_SERVER;
@@ -138,15 +138,15 @@ exit(0);
 function requireRefBookCore(string $root): void
 {
     $files = [
-        'framework/Asap/RefBook/Attribute/AsapRefBookClass.php',
-        'framework/Asap/RefBook/Attribute/AsapRefBookMethod.php',
-        'framework/Asap/RefBook/Contract/RefBookInspectableInterface.php',
-        'framework/Asap/RefBook/Model/RefBookMethodEntry.php',
-        'framework/Asap/RefBook/Model/RefBookClassEntry.php',
-        'framework/Asap/RefBook/Model/RefBookScanResult.php',
-        'framework/Asap/RefBook/RefBookReflectionScanner.php',
-        'framework/Asap/RefBook/RefBookContractValidator.php',
-        'framework/Asap/RefBook/RefBookSnapshotBuilder.php',
+        'framework/Opus/RefBook/Attribute/OpusRefBookClass.php',
+        'framework/Opus/RefBook/Attribute/OpusRefBookMethod.php',
+        'framework/Opus/RefBook/Contract/RefBookInspectableInterface.php',
+        'framework/Opus/RefBook/Model/RefBookMethodEntry.php',
+        'framework/Opus/RefBook/Model/RefBookClassEntry.php',
+        'framework/Opus/RefBook/Model/RefBookScanResult.php',
+        'framework/Opus/RefBook/RefBookReflectionScanner.php',
+        'framework/Opus/RefBook/RefBookContractValidator.php',
+        'framework/Opus/RefBook/RefBookSnapshotBuilder.php',
     ];
     foreach ($files as $relative) {
         $path = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);
@@ -161,9 +161,9 @@ function requireRefBookCore(string $root): void
 function requireHttpRuntime(string $root): void
 {
     $files = [
-        'framework/Asap/Contract/ContractException.php',
-        'framework/Asap/Http/Request.php',
-        'framework/Asap/Http/Response.php',
+        'framework/Opus/Contract/ContractException.php',
+        'framework/Opus/Http/Request.php',
+        'framework/Opus/Http/Response.php',
     ];
     foreach ($files as $relative) {
         $path = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);

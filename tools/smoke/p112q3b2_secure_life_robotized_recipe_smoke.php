@@ -46,10 +46,10 @@ $command = escapeshellarg(PHP_BINARY)
     . ' ' . escapeshellarg($recipe);
 
 $env = [
-    'ASAP_P112Q3B2_MAIL_MODE=eml',
-    'ASAP_P112Q3B2_MAIL_REQUIRED=0',
-    'ASAP_P112Q3B2_REPORT_EMAIL_TO=smoke@example.invalid',
-    'ASAP_P112Q3B2_PANTHER_REQUIRED=0',
+    'OPUS_P112Q3B2_MAIL_MODE=eml',
+    'OPUS_P112Q3B2_MAIL_REQUIRED=0',
+    'OPUS_P112Q3B2_REPORT_EMAIL_TO=smoke@example.invalid',
+    'OPUS_P112Q3B2_PANTHER_REQUIRED=0',
 ];
 
 if (PHP_OS_FAMILY === 'Windows') {
@@ -71,7 +71,7 @@ $json = file_get_contents($jsonReport);
 $html = file_get_contents($htmlReport);
 $md = file_get_contents($markdownReport);
 
-p112q3b2_smoke_assert(is_string($json) && str_contains($json, 'P112Q3B2_ASAP_SECURE_LIFE_ROBOTIZED_RECIPE'), 'P112Q3B2_JSON_ID_MISSING');
+p112q3b2_smoke_assert(is_string($json) && str_contains($json, 'P112Q3B2_OPUS_SECURE_LIFE_ROBOTIZED_RECIPE'), 'P112Q3B2_JSON_ID_MISSING');
 p112q3b2_smoke_assert(is_string($html) && str_contains($html, '3 utilisateurs'), 'P112Q3B2_HTML_TITLE_MARKER_MISSING');
 p112q3b2_smoke_assert(is_string($html) && str_contains($html, 'Invité'), 'P112Q3B2_HTML_GUEST_MISSING');
 p112q3b2_smoke_assert(is_string($html) && str_contains($html, 'Éditeur'), 'P112Q3B2_HTML_EDITOR_MISSING');

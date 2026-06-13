@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe\Recipes;
+namespace Opus\Recipe\Recipes;
 
 use ASAP\Recipe\RecipeContext;
 use ASAP\Recipe\RecipeInterface;
@@ -20,16 +20,16 @@ final class AclRecipe implements RecipeInterface
             [new \ASAP\Acl\PrivilegeDefinition('view')],
             [new \ASAP\Acl\AccessRule('anonymous', 'public', 'view', true), new \ASAP\Acl\AccessRule('admin', 'admin', 'view', true), new \ASAP\Acl\AccessRule('denied', 'admin', 'view', false)]
         );
-        $context->assert($acl->decide('anonymous', 'public', 'view')->allowed(), 'ASAP_ACL_PUBLIC_ACCESS_DENIED');
-        $context->assert($acl->decide('admin', 'admin', 'view')->allowed(), 'ASAP_ACL_ADMIN_ACCESS_DENIED');
-        $context->assert(!$acl->decide('denied', 'admin', 'view')->allowed(), 'ASAP_ACL_DENIED_USER_ALLOWED');
-        $context->assert(!$acl->decide('anonymous', 'admin', 'view')->allowed(), 'ASAP_ACL_IMPLICIT_ALLOW_DETECTED');
+        $context->assert($acl->decide('anonymous', 'public', 'view')->allowed(), 'OPUS_ACL_PUBLIC_ACCESS_DENIED');
+        $context->assert($acl->decide('admin', 'admin', 'view')->allowed(), 'OPUS_ACL_ADMIN_ACCESS_DENIED');
+        $context->assert(!$acl->decide('denied', 'admin', 'view')->allowed(), 'OPUS_ACL_DENIED_USER_ALLOWED');
+        $context->assert(!$acl->decide('anonymous', 'admin', 'view')->allowed(), 'OPUS_ACL_IMPLICIT_ALLOW_DETECTED');
         try {
             $acl->decide('ghost', 'public', 'view');
-            $context->assert(false, 'ASAP_ACL_UNKNOWN_ROLE_DID_NOT_FAIL');
+            $context->assert(false, 'OPUS_ACL_UNKNOWN_ROLE_DID_NOT_FAIL');
         } catch (\ASAP\Acl\AccessControlException) {
         }
 
-        return ['ASAP_ACL_OK'];
+        return ['OPUS_ACL_OK'];
     }
 }

@@ -10,8 +10,8 @@ declare(strict_types=1);
  *   Make the Reference Book tagging rule executable from the test layer.
  *
  * Contract:
- *   Every public ASAP class/interface/trait/enum and every public method must
- *   have its own `ASAP_REFBOOK` block. This test is intentionally strict and
+ *   Every public Opus class/interface/trait/enum and every public method must
+ *   have its own `OPUS_REFBOOK` block. This test is intentionally strict and
  *   fails until missing method-level tags are completed.
  */
 $root = dirname(__DIR__, 2);

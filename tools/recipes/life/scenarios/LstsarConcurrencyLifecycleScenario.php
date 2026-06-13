@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe\Life\Scenarios;
+namespace Opus\Recipe\Life\Scenarios;
 
 use ASAP\Recipe\Life\LifeScenarioRunner;
 use ASAP\Recipe\Life\RobotActor;
@@ -36,10 +36,10 @@ final class LstsarConcurrencyLifecycleScenario implements RecipeInterface, Robot
             $runnerB = new \ASAP\Lstsa\LstsaRunner($store);
             $first = $runnerA->runOnce('life_runner_a');
             $second = $runnerB->runOnce('life_runner_b');
-            $context->assert(is_array($first) && $first['status'] === \ASAP\Lstsa\LstsaRunStatus::DONE, 'ASAP_LIFE_LSTSAR_CONCURRENCY_FIRST_NOT_DONE');
-            $context->assert($second === null, 'ASAP_LIFE_LSTSAR_CONCURRENCY_DOUBLE_RUN_DETECTED');
+            $context->assert(is_array($first) && $first['status'] === \ASAP\Lstsa\LstsaRunStatus::DONE, 'OPUS_LIFE_LSTSAR_CONCURRENCY_FIRST_NOT_DONE');
+            $context->assert($second === null, 'OPUS_LIFE_LSTSAR_CONCURRENCY_DOUBLE_RUN_DETECTED');
             $target = new \PDO('sqlite:' . $targetDb, null, null, [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]);
-            $context->assert((int)$target->query('SELECT COUNT(*) FROM users')->fetchColumn() === 1, 'ASAP_LIFE_LSTSAR_CONCURRENCY_DOUBLE_COMMIT_DETECTED');
+            $context->assert((int)$target->query('SELECT COUNT(*) FROM users')->fetchColumn() === 1, 'OPUS_LIFE_LSTSAR_CONCURRENCY_DOUBLE_COMMIT_DETECTED');
         })];
     }
 }

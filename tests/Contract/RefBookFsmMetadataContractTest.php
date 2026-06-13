@@ -7,23 +7,23 @@ declare(strict_types=1);
  *
  * Public CLI contract test.
  * Role:
- *   Prove that the first critical ASAP domain (FSM) is fully covered by the
+ *   Prove that the first critical Opus domain (FSM) is fully covered by the
  *   Reflection + Attributes RefBook contract before extending the model to the
  *   rest of the framework.
  */
 $root = dirname(__DIR__, 2);
 requireRefBookCore($root);
 
-$fsmRoot = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Fsm';
+$fsmRoot = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Fsm';
 $scanner = new ASAP\RefBook\RefBookReflectionScanner();
-$result = $scanner->scan($fsmRoot, 'ASAP\\Fsm');
+$result = $scanner->scan($fsmRoot, 'Opus\\Fsm');
 $validator = new ASAP\RefBook\RefBookContractValidator();
 $validation = $validator->validate($result);
 $summary = $validation['summary'];
 
 assertSame(0, $summary['load_errors'], 'FSM scan must not have load errors.');
-assertSame(0, $summary['class_metadata_missing'], 'Every FSM class/interface must expose AsapRefBookClass metadata.');
-assertSame(0, $summary['method_metadata_missing'], 'Every FSM public method must expose AsapRefBookMethod metadata.');
+assertSame(0, $summary['class_metadata_missing'], 'Every FSM class/interface must expose OpusRefBookClass metadata.');
+assertSame(0, $summary['method_metadata_missing'], 'Every FSM public method must expose OpusRefBookMethod metadata.');
 assertSame(0, $summary['violations'], 'FSM RefBook contract must have zero violations.');
 assertSame(9, $summary['classes'], 'Expected nine FSM symbols in the first critical domain baseline.');
 assertSame(33, $summary['public_methods'], 'Expected thirty-three FSM public methods after inspectable domain providers.');
@@ -49,37 +49,37 @@ foreach ($result->classes() as $class) {
     }
 }
 
-assertHasClass($classes, 'ASAP\\Fsm\\StateMachine');
-assertHasClass($classes, 'ASAP\\Fsm\\StateDefinition');
-assertHasClass($classes, 'ASAP\\Fsm\\TransitionDefinition');
-assertHasClass($classes, 'ASAP\\Fsm\\TransitionResult');
-assertHasClass($classes, 'ASAP\\Fsm\\StateMemory');
-assertHasClass($classes, 'ASAP\\Fsm\\StateMachineException');
-assertHasClass($classes, 'ASAP\\Fsm\\StateActionInterface');
-assertHasClass($classes, 'ASAP\\Fsm\\Fsm');
-assertHasClass($classes, 'ASAP\\Fsm\\SignalDefinition');
+assertHasClass($classes, 'Opus\\Fsm\\StateMachine');
+assertHasClass($classes, 'Opus\\Fsm\\StateDefinition');
+assertHasClass($classes, 'Opus\\Fsm\\TransitionDefinition');
+assertHasClass($classes, 'Opus\\Fsm\\TransitionResult');
+assertHasClass($classes, 'Opus\\Fsm\\StateMemory');
+assertHasClass($classes, 'Opus\\Fsm\\StateMachineException');
+assertHasClass($classes, 'Opus\\Fsm\\StateActionInterface');
+assertHasClass($classes, 'Opus\\Fsm\\Fsm');
+assertHasClass($classes, 'Opus\\Fsm\\SignalDefinition');
 
-$stateMachine = $classes['ASAP\\Fsm\\StateMachine'];
+$stateMachine = $classes['Opus\\Fsm\\StateMachine'];
 assertSame(true, $stateMachine['implements_refbook_inspectable'], 'StateMachine must opt in to RefBookInspectableInterface.');
-assertSame(true, $classes['ASAP\\Fsm\\Fsm']['implements_refbook_inspectable'], 'Fsm facade must opt in to RefBookInspectableInterface.');
-assertSame(true, $classes['ASAP\\Fsm\\SignalDefinition']['implements_refbook_inspectable'], 'SignalDefinition must opt in to RefBookInspectableInterface.');
+assertSame(true, $classes['Opus\\Fsm\\Fsm']['implements_refbook_inspectable'], 'Fsm facade must opt in to RefBookInspectableInterface.');
+assertSame(true, $classes['Opus\\Fsm\\SignalDefinition']['implements_refbook_inspectable'], 'SignalDefinition must opt in to RefBookInspectableInterface.');
 $apply = findMethod($stateMachine['methods'], 'apply');
-assertSame('ASAP\\Fsm\\TransitionResult', $apply['return_type'], 'StateMachine::apply return type must come from Reflection.');
+assertSame('Opus\\Fsm\\TransitionResult', $apply['return_type'], 'StateMachine::apply return type must come from Reflection.');
 assertSame('string', $apply['parameters'][0]['type'] ?? null, 'StateMachine::apply signal parameter type must come from Reflection.');
 assertContains('FSM_TRANSITION_NOT_ALLOWED', $apply['metadata']['errors'] ?? [], 'StateMachine::apply must declare transition failure code.');
 
-$actionInterface = $classes['ASAP\\Fsm\\StateActionInterface'];
+$actionInterface = $classes['Opus\\Fsm\\StateActionInterface'];
 $execute = findMethod($actionInterface['methods'], 'execute');
 assertSame('void', $execute['return_type'], 'StateActionInterface::execute return type must come from Reflection.');
-assertSame('ASAP\\Fsm\\TransitionDefinition', $execute['parameters'][0]['type'] ?? null, 'Action transition parameter type must come from Reflection.');
-assertSame('ASAP\\Fsm\\StateMemory', $execute['parameters'][1]['type'] ?? null, 'Action memory parameter type must come from Reflection.');
+assertSame('Opus\\Fsm\\TransitionDefinition', $execute['parameters'][0]['type'] ?? null, 'Action transition parameter type must come from Reflection.');
+assertSame('Opus\\Fsm\\StateMemory', $execute['parameters'][1]['type'] ?? null, 'Action memory parameter type must come from Reflection.');
 
-$signalDefinition = $classes['ASAP\\Fsm\\SignalDefinition'];
+$signalDefinition = $classes['Opus\\Fsm\\SignalDefinition'];
 $signalId = findMethod($signalDefinition['methods'], 'id');
 assertSame('string', $signalId['return_type'], 'SignalDefinition::id return type must come from Reflection.');
 assertContains('fsm-definition', $signalId['metadata']['examples'] ?? [], 'SignalDefinition::id must link FSM definition example.');
 
-$fsmFacade = $classes['ASAP\\Fsm\\Fsm'];
+$fsmFacade = $classes['Opus\\Fsm\\Fsm'];
 $demoFlow = findMethod($fsmFacade['methods'], 'demoFlow');
 assertSame('array', $demoFlow['return_type'], 'Fsm::demoFlow return type must come from Reflection.');
 assertContains('fsm-basic-transition', $demoFlow['metadata']['examples'] ?? [], 'Fsm::demoFlow must link FSM basic transition example.');
@@ -99,7 +99,7 @@ assertSame('B', $resultTransition->toState(), 'FSM runtime sanity: result to sta
 try {
     $machine->apply('MISSING');
     fail('FSM runtime sanity: missing transition must fail explicitly.');
-} catch (ASAP\Fsm\StateMachineException $exception) {
+} catch (Opus\Fsm\StateMachineException $exception) {
     assertContains('FSM_TRANSITION_NOT_ALLOWED', $exception->getMessage(), 'FSM runtime sanity: missing transition code mismatch.');
 }
 
@@ -109,15 +109,15 @@ exit(0);
 function requireRefBookCore(string $root): void
 {
     $files = [
-        'framework/Asap/RefBook/Attribute/AsapRefBookClass.php',
-        'framework/Asap/RefBook/Attribute/AsapRefBookMethod.php',
-        'framework/Asap/RefBook/Contract/RefBookInspectableInterface.php',
-        'framework/Asap/RefBook/Model/RefBookMethodEntry.php',
-        'framework/Asap/RefBook/Model/RefBookClassEntry.php',
-        'framework/Asap/RefBook/Model/RefBookScanResult.php',
-        'framework/Asap/RefBook/RefBookReflectionScanner.php',
-        'framework/Asap/RefBook/RefBookContractValidator.php',
-        'framework/Asap/RefBook/RefBookSnapshotBuilder.php',
+        'framework/Opus/RefBook/Attribute/OpusRefBookClass.php',
+        'framework/Opus/RefBook/Attribute/OpusRefBookMethod.php',
+        'framework/Opus/RefBook/Contract/RefBookInspectableInterface.php',
+        'framework/Opus/RefBook/Model/RefBookMethodEntry.php',
+        'framework/Opus/RefBook/Model/RefBookClassEntry.php',
+        'framework/Opus/RefBook/Model/RefBookScanResult.php',
+        'framework/Opus/RefBook/RefBookReflectionScanner.php',
+        'framework/Opus/RefBook/RefBookContractValidator.php',
+        'framework/Opus/RefBook/RefBookSnapshotBuilder.php',
     ];
     foreach ($files as $relative) {
         $path = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);

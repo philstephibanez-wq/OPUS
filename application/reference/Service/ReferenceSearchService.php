@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace ASAPRefBook\Reference\Service;
+namespace OpusRefBook\Reference\Service;
 
 use RuntimeException;
 
@@ -16,7 +16,7 @@ use RuntimeException;
  *   rendering, HTTP state or framework internals.
  *
  * Arguments:
- *   - $catalog: official catalog built from the generated ASAP manifest.
+ *   - $catalog: official catalog built from the generated Opus manifest.
  *   - $content: official localized RefBook content provider.
  *
  * Returns:
@@ -26,7 +26,7 @@ use RuntimeException;
  *   None. Reads only through injected services.
  *
  * Errors:
- *   Throws RuntimeException ASAP_REFBOOK_SEARCH_QUERY_TOO_LONG when an
+ *   Throws RuntimeException OPUS_REFBOOK_SEARCH_QUERY_TOO_LONG when an
  *   explicit query exceeds the public contract length.
  *
  * Contract:
@@ -202,7 +202,7 @@ final class ReferenceSearchService
                     'page' => 'symbol-' . (string) ($symbol['index'] ?? 0),
                     'title' => (string) ($symbol['symbol'] ?? $symbol['name'] ?? $this->content->t('symbol.fallback_name')),
                     'subtitle' => (string) ($symbol['role'] ?? $this->content->t('symbol.fallback_role')),
-                    'meta' => $domainName . ' · ' . $kind . ' · ' . $methodCount . ' ' . $this->content->t('search.methods'),
+                    'meta' => $domainName . ' Â· ' . $kind . ' Â· ' . $methodCount . ' ' . $this->content->t('search.methods'),
                     'badges' => [$this->content->t('search.type_symbol'), $domainName, $kind],
                     'haystack' => [
                         (string) ($symbol['symbol'] ?? ''),
@@ -301,7 +301,7 @@ final class ReferenceSearchService
         $query = trim(preg_replace('/\s+/', ' ', $query) ?? '');
 
         if (strlen($query) > self::MAX_QUERY_LENGTH) {
-            throw new RuntimeException('ASAP_REFBOOK_SEARCH_QUERY_TOO_LONG=' . strlen($query));
+            throw new RuntimeException('OPUS_REFBOOK_SEARCH_QUERY_TOO_LONG=' . strlen($query));
         }
 
         return $query;
@@ -333,7 +333,7 @@ final class ReferenceSearchService
             return $snippet;
         }
 
-        return substr($snippet, 0, 177) . '…';
+        return substr($snippet, 0, 177) . 'â€¦';
     }
 
     /**

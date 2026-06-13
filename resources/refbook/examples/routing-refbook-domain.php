@@ -2,11 +2,11 @@
 declare(strict_types=1);
 
 /*
- * ASAP RefBook example: Routing RefBook domain marker.
+ * Opus RefBook example: Routing RefBook domain marker.
  */
 
 /*
- * ASAP_REFBOOK:
+ * OPUS_REFBOOK:
  *   domain: ROUTING
  *   role: Router and route definitions resolve requests to controller actions.
  *   contract:
@@ -20,5 +20,5 @@ declare(strict_types=1);
  *   diagrams:
  *     - routing-runtime
  *     - secure-dispatch-runtime
- * END_ASAP_REFBOOK
+ * END_OPUS_REFBOOK
  */

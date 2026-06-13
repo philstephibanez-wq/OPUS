@@ -9,14 +9,14 @@ declare(strict_types=1);
  */
 $root = dirname(__DIR__, 2);
 $required = [
-    'framework/Asap/Routing/AttributeRouteProvider.php',
-    'framework/Asap/Routing/ClassIndex.php',
-    'framework/Asap/Routing/Route.php',
-    'framework/Asap/Routing/RouteCompilerException.php',
-    'framework/Asap/Routing/RouteDefinition.php',
-    'framework/Asap/Routing/RouteManifestCompiler.php',
-    'framework/Asap/Routing/RouteMatch.php',
-    'framework/Asap/Routing/Router.php',
+    'framework/Opus/Routing/AttributeRouteProvider.php',
+    'framework/Opus/Routing/ClassIndex.php',
+    'framework/Opus/Routing/Route.php',
+    'framework/Opus/Routing/RouteCompilerException.php',
+    'framework/Opus/Routing/RouteDefinition.php',
+    'framework/Opus/Routing/RouteManifestCompiler.php',
+    'framework/Opus/Routing/RouteMatch.php',
+    'framework/Opus/Routing/Router.php',
     'tests/Contract/RefBookRoutingMetadataContractTest.php',
     'tools/refbook/p112q3e3_refbook_routing_metadata_audit.php',
     'tools/refbook/run_p112q3e3_refbook_routing_metadata_strict.cmd',
@@ -30,27 +30,27 @@ foreach ($required as $relative) {
     }
 }
 
-$router = file_get_contents($root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Routing' . DIRECTORY_SEPARATOR . 'Router.php');
-if (!is_string($router) || !str_contains($router, '#[AsapRefBookClass(') || !str_contains($router, 'RefBookInspectableInterface') || !str_contains($router, 'P112Q3E3')) {
+$router = file_get_contents($root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Routing' . DIRECTORY_SEPARATOR . 'Router.php');
+if (!is_string($router) || !str_contains($router, '#[OpusRefBookClass(') || !str_contains($router, 'RefBookInspectableInterface') || !str_contains($router, 'P112Q3E3')) {
     fwrite(STDERR, 'P112Q3E3_SMOKE_FAILED: ROUTER_METADATA_MARKER_MISSING' . PHP_EOL);
     exit(1);
 }
 
-$routeDefinition = file_get_contents($root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Routing' . DIRECTORY_SEPARATOR . 'RouteDefinition.php');
-if (!is_string($routeDefinition) || !str_contains($routeDefinition, '#[AsapRefBookMethod(') || !str_contains($routeDefinition, 'toManifestRow')) {
+$routeDefinition = file_get_contents($root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Routing' . DIRECTORY_SEPARATOR . 'RouteDefinition.php');
+if (!is_string($routeDefinition) || !str_contains($routeDefinition, '#[OpusRefBookMethod(') || !str_contains($routeDefinition, 'toManifestRow')) {
     fwrite(STDERR, 'P112Q3E3_SMOKE_FAILED: ROUTE_DEFINITION_METADATA_MARKER_MISSING' . PHP_EOL);
     exit(1);
 }
 
 
-$attributeRouteProvider = file_get_contents($root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Routing' . DIRECTORY_SEPARATOR . 'AttributeRouteProvider.php');
-if (!is_string($attributeRouteProvider) || !str_contains($attributeRouteProvider, '#[AsapRefBookClass(') || !str_contains($attributeRouteProvider, 'RefBookInspectableInterface') || !str_contains($attributeRouteProvider, 'P112Q3E3')) {
+$attributeRouteProvider = file_get_contents($root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Routing' . DIRECTORY_SEPARATOR . 'AttributeRouteProvider.php');
+if (!is_string($attributeRouteProvider) || !str_contains($attributeRouteProvider, '#[OpusRefBookClass(') || !str_contains($attributeRouteProvider, 'RefBookInspectableInterface') || !str_contains($attributeRouteProvider, 'P112Q3E3')) {
     fwrite(STDERR, 'P112Q3E3_SMOKE_FAILED: ATTRIBUTE_ROUTE_PROVIDER_METADATA_MARKER_MISSING' . PHP_EOL);
     exit(1);
 }
 
-$routeManifestCompiler = file_get_contents($root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Routing' . DIRECTORY_SEPARATOR . 'RouteManifestCompiler.php');
-if (!is_string($routeManifestCompiler) || !str_contains($routeManifestCompiler, '#[AsapRefBookClass(') || !str_contains($routeManifestCompiler, 'RefBookInspectableInterface') || !str_contains($routeManifestCompiler, 'writePhpManifest')) {
+$routeManifestCompiler = file_get_contents($root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Routing' . DIRECTORY_SEPARATOR . 'RouteManifestCompiler.php');
+if (!is_string($routeManifestCompiler) || !str_contains($routeManifestCompiler, '#[OpusRefBookClass(') || !str_contains($routeManifestCompiler, 'RefBookInspectableInterface') || !str_contains($routeManifestCompiler, 'writePhpManifest')) {
     fwrite(STDERR, 'P112Q3E3_SMOKE_FAILED: ROUTE_MANIFEST_COMPILER_METADATA_MARKER_MISSING' . PHP_EOL);
     exit(1);
 }
@@ -61,7 +61,7 @@ if (!is_string($audit) || !str_contains($audit, 'P112Q3E3_REFBOOK_ROUTING_METADA
     exit(1);
 }
 
-$recipe = file_get_contents($root . DIRECTORY_SEPARATOR . 'tools' . DIRECTORY_SEPARATOR . 'recipes' . DIRECTORY_SEPARATOR . 'asap_global_regression_recipe.php');
+$recipe = file_get_contents($root . DIRECTORY_SEPARATOR . 'tools' . DIRECTORY_SEPARATOR . 'recipes' . DIRECTORY_SEPARATOR . 'opus_global_regression_recipe.php');
 if (!is_string($recipe) || !str_contains($recipe, 'P112Q3E3_UNIT') || !str_contains($recipe, 'P112Q3E3_SMOKE')) {
     fwrite(STDERR, 'P112Q3E3_SMOKE_FAILED: GLOBAL_RECIPE_STEP_MISSING' . PHP_EOL);
     exit(1);

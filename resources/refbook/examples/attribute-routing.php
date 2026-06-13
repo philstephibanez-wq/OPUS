@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /*
- * ASAP RefBook example: attribute routing.
+ * Opus RefBook example: attribute routing.
  *
  * Purpose:
  *   Show how an explicit route can be declared with metadata.
@@ -21,7 +21,7 @@ final class RefBookController
     {
         return [
             'ok' => true,
-            'api_version' => 'asap-refbook-internal/v1',
+            'api_version' => 'opus-refbook-internal/v1',
         ];
     }
 }

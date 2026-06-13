@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe;
+namespace Opus\Recipe;
 
 /**
  * PUBLIC CONTRACT
  *
  * Role:
- *   Define one executable ASAP recipe.
+ *   Define one executable Opus recipe.
  *
  * Responsibility:
  *   Validate a coherent framework area and emit explicit OK markers.

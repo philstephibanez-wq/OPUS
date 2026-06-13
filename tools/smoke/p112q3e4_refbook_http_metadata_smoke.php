@@ -9,8 +9,8 @@ declare(strict_types=1);
  */
 $root = dirname(__DIR__, 2);
 $required = [
-    'framework/Asap/Http/Request.php',
-    'framework/Asap/Http/Response.php',
+    'framework/Opus/Http/Request.php',
+    'framework/Opus/Http/Response.php',
     'tests/Contract/RefBookHttpMetadataContractTest.php',
     'tools/refbook/p112q3e4_refbook_http_metadata_audit.php',
     'tools/refbook/run_p112q3e4_refbook_http_metadata_strict.cmd',
@@ -24,14 +24,14 @@ foreach ($required as $relative) {
     }
 }
 
-$request = file_get_contents($root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Http' . DIRECTORY_SEPARATOR . 'Request.php');
-if (!is_string($request) || !str_contains($request, '#[AsapRefBookClass(') || !str_contains($request, 'RefBookInspectableInterface') || !str_contains($request, 'P112Q3E4')) {
+$request = file_get_contents($root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Http' . DIRECTORY_SEPARATOR . 'Request.php');
+if (!is_string($request) || !str_contains($request, '#[OpusRefBookClass(') || !str_contains($request, 'RefBookInspectableInterface') || !str_contains($request, 'P112Q3E4')) {
     fwrite(STDERR, 'P112Q3E4_SMOKE_FAILED: REQUEST_METADATA_MARKER_MISSING' . PHP_EOL);
     exit(1);
 }
 
-$response = file_get_contents($root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Http' . DIRECTORY_SEPARATOR . 'Response.php');
-if (!is_string($response) || !str_contains($response, '#[AsapRefBookClass(') || !str_contains($response, 'P112Q3E4') || !str_contains($response, 'ASAP_RESPONSE_STATUS_INVALID')) {
+$response = file_get_contents($root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Http' . DIRECTORY_SEPARATOR . 'Response.php');
+if (!is_string($response) || !str_contains($response, '#[OpusRefBookClass(') || !str_contains($response, 'P112Q3E4') || !str_contains($response, 'OPUS_RESPONSE_STATUS_INVALID')) {
     fwrite(STDERR, 'P112Q3E4_SMOKE_FAILED: RESPONSE_METADATA_MARKER_MISSING' . PHP_EOL);
     exit(1);
 }
@@ -42,7 +42,7 @@ if (!is_string($audit) || !str_contains($audit, 'P112Q3E4_REFBOOK_HTTP_METADATA_
     exit(1);
 }
 
-$recipe = file_get_contents($root . DIRECTORY_SEPARATOR . 'tools' . DIRECTORY_SEPARATOR . 'recipes' . DIRECTORY_SEPARATOR . 'asap_global_regression_recipe.php');
+$recipe = file_get_contents($root . DIRECTORY_SEPARATOR . 'tools' . DIRECTORY_SEPARATOR . 'recipes' . DIRECTORY_SEPARATOR . 'opus_global_regression_recipe.php');
 if (!is_string($recipe) || !str_contains($recipe, 'P112Q3E4_UNIT') || !str_contains($recipe, 'P112Q3E4_SMOKE')) {
     fwrite(STDERR, 'P112Q3E4_SMOKE_FAILED: GLOBAL_RECIPE_STEP_MISSING' . PHP_EOL);
     exit(1);

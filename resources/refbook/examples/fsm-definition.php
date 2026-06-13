@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /*
- * ASAP RefBook example: FSM definition.
+ * Opus RefBook example: FSM definition.
  *
  * Purpose:
  *   Define a tiny state machine with explicit states and signals.

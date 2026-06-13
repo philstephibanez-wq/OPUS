@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace ASAPRefBook\Reference\Controller;
+namespace OpusRefBook\Reference\Controller;
 
 use ASAP\Application\ApplicationPaths;
 use ASAP\Renderer\ViewModel;
@@ -35,7 +35,7 @@ abstract class AbstractRefBookController
         $language = (string) ($_GET['lang'] ?? ReferenceContentService::DEFAULT_LANGUAGE);
 
         if (!in_array($language, ReferenceContentService::SUPPORTED_LANGUAGES, true)) {
-            throw new RuntimeException('ASAP_REFBOOK_LANG_UNSUPPORTED=' . $language);
+            throw new RuntimeException('OPUS_REFBOOK_LANG_UNSUPPORTED=' . $language);
         }
 
         return $language;
@@ -75,7 +75,7 @@ abstract class AbstractRefBookController
         $content = $this->content();
         $theme = $this->theme();
 
-        $data['basePath'] = '/ASAP_REF_BOOK';
+        $data['basePath'] = '/OPUS_REF_BOOK';
         $data['lang'] = $content->language();
         $data['languages'] = $content->supportedLanguages();
         $data['theme'] = $theme->theme();
@@ -85,7 +85,7 @@ abstract class AbstractRefBookController
         $data['searchQuery'] = trim((string) ($_GET['q'] ?? ''));
         $data['breadcrumbTitle'] = (string) ($data['title'] ?? $content->t('breadcrumb.home'));
         $data['ui'] = $content->labels();
-        $data['moduleTitle'] = (string) ($content->module()['title'] ?? 'ASAP Reference Book');
+        $data['moduleTitle'] = (string) ($content->module()['title'] ?? 'Opus Reference Book');
         $data['module'] = $content->module();
         $data['navigationDomains'] = $overview['domains'];
         $data['navigationGuides'] = $content->guideNavigation();

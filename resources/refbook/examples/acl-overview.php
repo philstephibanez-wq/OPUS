@@ -2,10 +2,10 @@
 declare(strict_types=1);
 
 /*
- * ASAP RefBook example: ACL overview.
+ * Opus RefBook example: ACL overview.
  *
  * Purpose:
- *   Show the intended ACL vocabulary used by ASAP route/security metadata.
+ *   Show the intended ACL vocabulary used by Opus route/security metadata.
  *
  * Contract:
  *   ACL decisions are explicit. A route or controller must never silently
@@ -47,5 +47,5 @@ $control = new AccessControl($acl);
 $decision = $control->canView($context);
 
 if (!$decision instanceof AccessDecision || !$decision->allowed()) {
-    throw new RuntimeException('ASAP_ACL_DECISION_DENIED');
+    throw new RuntimeException('OPUS_ACL_DECISION_DENIED');
 }

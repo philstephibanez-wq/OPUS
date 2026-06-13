@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe\Life\Scenarios;
+namespace Opus\Recipe\Life\Scenarios;
 
 use ASAP\Recipe\Life\LifeScenarioRunner;
 use ASAP\Recipe\Life\RobotActor;
@@ -36,9 +36,9 @@ final class MaintenanceLifecycleScenario implements RecipeInterface, RobotScenar
             file_put_contents($archives . DIRECTORY_SEPARATOR . 'old.json', '{}');
             @unlink($reports . DIRECTORY_SEPARATOR . 'old.json');
             @unlink($archives . DIRECTORY_SEPARATOR . 'old.json');
-            $context->assert(!is_file($reports . DIRECTORY_SEPARATOR . 'old.json') && !is_file($archives . DIRECTORY_SEPARATOR . 'old.json'), 'ASAP_LIFE_MAINTENANCE_RUNTIME_PURGE_FAILED');
+            $context->assert(!is_file($reports . DIRECTORY_SEPARATOR . 'old.json') && !is_file($archives . DIRECTORY_SEPARATOR . 'old.json'), 'OPUS_LIFE_MAINTENANCE_RUNTIME_PURGE_FAILED');
             $count = (int)$pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
-            $context->assert($count === 1, 'ASAP_LIFE_MAINTENANCE_BUSINESS_DATA_TOUCHED');
+            $context->assert($count === 1, 'OPUS_LIFE_MAINTENANCE_BUSINESS_DATA_TOUCHED');
         })];
     }
 }

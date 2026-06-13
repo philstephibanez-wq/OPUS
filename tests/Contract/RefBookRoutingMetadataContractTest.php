@@ -7,23 +7,23 @@ declare(strict_types=1);
  *
  * Public CLI contract test.
  * Role:
- *   Prove that the third critical ASAP domain (ROUTING) is fully covered by the
+ *   Prove that the third critical Opus domain (ROUTING) is fully covered by the
  *   Reflection + Attributes RefBook contract and still fails routing boundaries explicitly.
  */
 $root = dirname(__DIR__, 2);
 requireRefBookCore($root);
 requireRoutingRuntime($root);
 
-$routingRoot = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Routing';
+$routingRoot = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Routing';
 $scanner = new ASAP\RefBook\RefBookReflectionScanner();
-$result = $scanner->scan($routingRoot, 'ASAP\\Routing');
+$result = $scanner->scan($routingRoot, 'Opus\\Routing');
 $validator = new ASAP\RefBook\RefBookContractValidator();
 $validation = $validator->validate($result);
 $summary = $validation['summary'];
 
 assertSame(0, $summary['load_errors'], 'ROUTING scan must not have load errors.');
-assertSame(0, $summary['class_metadata_missing'], 'Every ROUTING class must expose AsapRefBookClass metadata.');
-assertSame(0, $summary['method_metadata_missing'], 'Every ROUTING public method must expose AsapRefBookMethod metadata.');
+assertSame(0, $summary['class_metadata_missing'], 'Every ROUTING class must expose OpusRefBookClass metadata.');
+assertSame(0, $summary['method_metadata_missing'], 'Every ROUTING public method must expose OpusRefBookMethod metadata.');
 assertSame(0, $summary['violations'], 'ROUTING RefBook contract must have zero violations.');
 assertSame(8, $summary['classes'], 'Expected eight ROUTING symbols in the third critical domain baseline.');
 assertSame(28, $summary['public_methods'], 'Expected twenty-eight ROUTING public methods after inspectable domain providers.');
@@ -49,16 +49,16 @@ foreach ($result->classes() as $class) {
     }
 }
 
-assertHasClass($classes, 'ASAP\\Routing\\AttributeRouteProvider');
-assertHasClass($classes, 'ASAP\\Routing\\ClassIndex');
-assertHasClass($classes, 'ASAP\\Routing\\Route');
-assertHasClass($classes, 'ASAP\\Routing\\RouteCompilerException');
-assertHasClass($classes, 'ASAP\\Routing\\RouteDefinition');
-assertHasClass($classes, 'ASAP\\Routing\\RouteManifestCompiler');
-assertHasClass($classes, 'ASAP\\Routing\\RouteMatch');
-assertHasClass($classes, 'ASAP\\Routing\\Router');
+assertHasClass($classes, 'Opus\\Routing\\AttributeRouteProvider');
+assertHasClass($classes, 'Opus\\Routing\\ClassIndex');
+assertHasClass($classes, 'Opus\\Routing\\Route');
+assertHasClass($classes, 'Opus\\Routing\\RouteCompilerException');
+assertHasClass($classes, 'Opus\\Routing\\RouteDefinition');
+assertHasClass($classes, 'Opus\\Routing\\RouteManifestCompiler');
+assertHasClass($classes, 'Opus\\Routing\\RouteMatch');
+assertHasClass($classes, 'Opus\\Routing\\Router');
 
-foreach (['ASAP\\Routing\\AttributeRouteProvider', 'ASAP\\Routing\\ClassIndex', 'ASAP\\Routing\\Route', 'ASAP\\Routing\\RouteCompilerException', 'ASAP\\Routing\\RouteDefinition', 'ASAP\\Routing\\RouteManifestCompiler', 'ASAP\\Routing\\RouteMatch', 'ASAP\\Routing\\Router'] as $routingSymbol) {
+foreach (['Opus\\Routing\\AttributeRouteProvider', 'Opus\\Routing\\ClassIndex', 'Opus\\Routing\\Route', 'Opus\\Routing\\RouteCompilerException', 'Opus\\Routing\\RouteDefinition', 'Opus\\Routing\\RouteManifestCompiler', 'Opus\\Routing\\RouteMatch', 'Opus\\Routing\\Router'] as $routingSymbol) {
     assertSame(true, $classes[$routingSymbol]['implements_refbook_inspectable'], $routingSymbol . ' must opt in to RefBookInspectableInterface.');
 }
 
@@ -67,14 +67,14 @@ $attributeProvider = $classes['ASAP\Routing\AttributeRouteProvider'];
 $providerRoutes = findMethod($attributeProvider['methods'], 'routes');
 assertSame('array', $providerRoutes['return_type'], 'AttributeRouteProvider::routes return type must come from Reflection.');
 assertSame('?string', $providerRoutes['parameters'][0]['type'] ?? null, 'AttributeRouteProvider::routes namespace parameter type must come from Reflection.');
-assertContains('ASAP_ROUTE_CONTROLLER_CLASS_NOT_FOUND', $providerRoutes['metadata']['errors'] ?? [], 'AttributeRouteProvider::routes must declare missing controller class error.');
+assertContains('OPUS_ROUTE_CONTROLLER_CLASS_NOT_FOUND', $providerRoutes['metadata']['errors'] ?? [], 'AttributeRouteProvider::routes must declare missing controller class error.');
 
 $classIndex = $classes['ASAP\Routing\ClassIndex'];
 $classesMethod = findMethod($classIndex['methods'], 'classes');
 assertSame('array', $classesMethod['return_type'], 'ClassIndex::classes return type must come from Reflection.');
 $classesInNamespace = findMethod($classIndex['methods'], 'classesInNamespace');
 assertSame('array', $classesInNamespace['return_type'], 'ClassIndex::classesInNamespace return type must come from Reflection.');
-assertContains('ASAP_CLASS_INDEX_NAMESPACE_EMPTY', $classesInNamespace['metadata']['errors'] ?? [], 'ClassIndex::classesInNamespace must declare empty namespace error.');
+assertContains('OPUS_CLASS_INDEX_NAMESPACE_EMPTY', $classesInNamespace['metadata']['errors'] ?? [], 'ClassIndex::classesInNamespace must declare empty namespace error.');
 $pathForClass = findMethod($classIndex['methods'], 'pathForClass');
 assertSame('?string', $pathForClass['return_type'], 'ClassIndex::pathForClass return type must come from Reflection.');
 
@@ -84,30 +84,30 @@ assertSame('array', $routeAttributeMethods['return_type'], 'Route::normalizedMet
 
 $routeCompilerException = $classes['ASAP\Routing\RouteCompilerException'];
 $because = findMethod($routeCompilerException['methods'], 'because');
-assertSame('ASAP\\Routing\\RouteCompilerException', $because['return_type'], 'RouteCompilerException::because return type must come from Reflection scanner normalization.');
+assertSame('Opus\\Routing\\RouteCompilerException', $because['return_type'], 'RouteCompilerException::because return type must come from Reflection scanner normalization.');
 
 $routeManifestCompiler = $classes['ASAP\Routing\RouteManifestCompiler'];
 $compile = findMethod($routeManifestCompiler['methods'], 'compile');
 assertSame('array', $compile['return_type'], 'RouteManifestCompiler::compile return type must come from Reflection.');
-assertContains('ASAP_ROUTE_NAME_DUPLICATE', $compile['metadata']['errors'] ?? [], 'RouteManifestCompiler::compile must declare duplicate route name error.');
+assertContains('OPUS_ROUTE_NAME_DUPLICATE', $compile['metadata']['errors'] ?? [], 'RouteManifestCompiler::compile must declare duplicate route name error.');
 $writeManifest = findMethod($routeManifestCompiler['methods'], 'writePhpManifest');
 assertSame('void', $writeManifest['return_type'], 'RouteManifestCompiler::writePhpManifest return type must come from Reflection.');
 $loadManifest = findMethod($routeManifestCompiler['methods'], 'loadPhpManifest');
 assertSame('array', $loadManifest['return_type'], 'RouteManifestCompiler::loadPhpManifest return type must come from Reflection.');
 
-$routerClass = $classes['ASAP\\Routing\\Router'];
+$routerClass = $classes['Opus\\Routing\\Router'];
 $fromXml = findMethod($routerClass['methods'], 'fromXml');
-assertSame('ASAP\\Routing\\Router', $fromXml['return_type'], 'Router::fromXml return type must come from Reflection scanner normalization.');
+assertSame('Opus\\Routing\\Router', $fromXml['return_type'], 'Router::fromXml return type must come from Reflection scanner normalization.');
 assertSame('string', $fromXml['parameters'][0]['type'] ?? null, 'Router::fromXml routesFile parameter type must come from Reflection.');
-assertContains('ASAP_ROUTES_FILE_MISSING', $fromXml['metadata']['errors'] ?? [], 'Router::fromXml must declare missing file error.');
+assertContains('OPUS_ROUTES_FILE_MISSING', $fromXml['metadata']['errors'] ?? [], 'Router::fromXml must declare missing file error.');
 
 $match = findMethod($routerClass['methods'], 'match');
-assertSame('ASAP\\Routing\\RouteMatch', $match['return_type'], 'Router::match return type must come from Reflection.');
-assertSame('ASAP\\Http\\Request', $match['parameters'][0]['type'] ?? null, 'Router::match request parameter type must come from Reflection.');
-assertSame('ASAP\\Site\\SiteDefinition', $match['parameters'][1]['type'] ?? null, 'Router::match site parameter type must come from Reflection.');
-assertContains('ASAP_ROUTE_METHOD_NOT_ALLOWED', $match['metadata']['errors'] ?? [], 'Router::match must declare method mismatch error.');
+assertSame('Opus\\Routing\\RouteMatch', $match['return_type'], 'Router::match return type must come from Reflection.');
+assertSame('Opus\\Http\\Request', $match['parameters'][0]['type'] ?? null, 'Router::match request parameter type must come from Reflection.');
+assertSame('Opus\\Site\\SiteDefinition', $match['parameters'][1]['type'] ?? null, 'Router::match site parameter type must come from Reflection.');
+assertContains('OPUS_ROUTE_METHOD_NOT_ALLOWED', $match['metadata']['errors'] ?? [], 'Router::match must declare method mismatch error.');
 
-$routeDefinition = $classes['ASAP\\Routing\\RouteDefinition'];
+$routeDefinition = $classes['Opus\\Routing\\RouteDefinition'];
 $normalizedMethods = findMethod($routeDefinition['methods'], 'normalizedMethods');
 assertSame('array', $normalizedMethods['return_type'], 'RouteDefinition::normalizedMethods return type must come from Reflection.');
 $toManifestRow = findMethod($routeDefinition['methods'], 'toManifestRow');
@@ -115,7 +115,7 @@ assertSame('array', $toManifestRow['return_type'], 'RouteDefinition::toManifestR
 $routeRefBookDomain = findMethod($routeDefinition['methods'], 'refBookDomain');
 assertSame('string', $routeRefBookDomain['return_type'], 'RouteDefinition::refBookDomain return type must come from Reflection.');
 
-$routeMatch = $classes['ASAP\\Routing\\RouteMatch'];
+$routeMatch = $classes['Opus\\Routing\\RouteMatch'];
 $routeMatchRefBookDomain = findMethod($routeMatch['methods'], 'refBookDomain');
 assertSame('string', $routeMatchRefBookDomain['return_type'], 'RouteMatch::refBookDomain return type must come from Reflection.');
 
@@ -131,8 +131,8 @@ assertSame($tmpRoot . DIRECTORY_SEPARATOR . 'HomeController.php', $classIndexRun
 try {
     $classIndexRuntime->classesInNamespace('');
     fail('ClassIndex runtime sanity: empty namespace must fail explicitly.');
-} catch (ASAP\Routing\RouteCompilerException $exception) {
-    assertContains('ASAP_CLASS_INDEX_NAMESPACE_EMPTY', $exception->getMessage(), 'ClassIndex runtime sanity: empty namespace code mismatch.');
+} catch (Opus\Routing\RouteCompilerException $exception) {
+    assertContains('OPUS_CLASS_INDEX_NAMESPACE_EMPTY', $exception->getMessage(), 'ClassIndex runtime sanity: empty namespace code mismatch.');
 }
 
 $routeAttributeRuntime = new ASAP\Routing\Route(path: '/demo', name: 'demo.route', methods: ['post', 'GET']);
@@ -153,8 +153,8 @@ try {
         new ASAP\Routing\RouteDefinition('dup', '/other', 'B', 'b', [], ['GET']),
     ]);
     fail('RouteManifestCompiler runtime sanity: duplicate names must fail explicitly.');
-} catch (ASAP\Routing\RouteCompilerException $exception) {
-    assertContains('ASAP_ROUTE_NAME_DUPLICATE', $exception->getMessage(), 'RouteManifestCompiler runtime sanity: duplicate name code mismatch.');
+} catch (Opus\Routing\RouteCompilerException $exception) {
+    assertContains('OPUS_ROUTE_NAME_DUPLICATE', $exception->getMessage(), 'RouteManifestCompiler runtime sanity: duplicate name code mismatch.');
 }
 
 $routesFile = $tmpRoot . DIRECTORY_SEPARATOR . 'routes.xml';
@@ -178,15 +178,15 @@ assertSame('fr', $slugMatch->params['lang'] ?? '', 'Routing runtime sanity: defa
 try {
     $router->match(new ASAP\Http\Request('/demo/', 'DELETE'), $site);
     fail('Routing runtime sanity: method mismatch must fail explicitly.');
-} catch (ASAP\Contract\ContractException $exception) {
-    assertContains('ASAP_ROUTE_METHOD_NOT_ALLOWED', $exception->getMessage(), 'Routing runtime sanity: method mismatch code mismatch.');
+} catch (Opus\Contract\ContractException $exception) {
+    assertContains('OPUS_ROUTE_METHOD_NOT_ALLOWED', $exception->getMessage(), 'Routing runtime sanity: method mismatch code mismatch.');
 }
 
 try {
     $router->match(new ASAP\Http\Request('/outside/', 'GET'), $site);
     fail('Routing runtime sanity: outside site base path must fail explicitly.');
-} catch (ASAP\Contract\ContractException $exception) {
-    assertContains('ASAP_REQUEST_OUTSIDE_SITE_BASE_PATH', $exception->getMessage(), 'Routing runtime sanity: outside path code mismatch.');
+} catch (Opus\Contract\ContractException $exception) {
+    assertContains('OPUS_REQUEST_OUTSIDE_SITE_BASE_PATH', $exception->getMessage(), 'Routing runtime sanity: outside path code mismatch.');
 }
 
 cleanupDirectory($tmpRoot);
@@ -197,15 +197,15 @@ exit(0);
 function requireRefBookCore(string $root): void
 {
     $files = [
-        'framework/Asap/RefBook/Attribute/AsapRefBookClass.php',
-        'framework/Asap/RefBook/Attribute/AsapRefBookMethod.php',
-        'framework/Asap/RefBook/Contract/RefBookInspectableInterface.php',
-        'framework/Asap/RefBook/Model/RefBookMethodEntry.php',
-        'framework/Asap/RefBook/Model/RefBookClassEntry.php',
-        'framework/Asap/RefBook/Model/RefBookScanResult.php',
-        'framework/Asap/RefBook/RefBookReflectionScanner.php',
-        'framework/Asap/RefBook/RefBookContractValidator.php',
-        'framework/Asap/RefBook/RefBookSnapshotBuilder.php',
+        'framework/Opus/RefBook/Attribute/OpusRefBookClass.php',
+        'framework/Opus/RefBook/Attribute/OpusRefBookMethod.php',
+        'framework/Opus/RefBook/Contract/RefBookInspectableInterface.php',
+        'framework/Opus/RefBook/Model/RefBookMethodEntry.php',
+        'framework/Opus/RefBook/Model/RefBookClassEntry.php',
+        'framework/Opus/RefBook/Model/RefBookScanResult.php',
+        'framework/Opus/RefBook/RefBookReflectionScanner.php',
+        'framework/Opus/RefBook/RefBookContractValidator.php',
+        'framework/Opus/RefBook/RefBookSnapshotBuilder.php',
     ];
     foreach ($files as $relative) {
         $path = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);
@@ -220,17 +220,17 @@ function requireRefBookCore(string $root): void
 function requireRoutingRuntime(string $root): void
 {
     $files = [
-        'framework/Asap/Contract/ContractException.php',
-        'framework/Asap/Http/Request.php',
-        'framework/Asap/Site/SiteDefinition.php',
-        'framework/Asap/Routing/RouteCompilerException.php',
-        'framework/Asap/Routing/Route.php',
-        'framework/Asap/Routing/ClassIndex.php',
-        'framework/Asap/Routing/AttributeRouteProvider.php',
-        'framework/Asap/Routing/RouteDefinition.php',
-        'framework/Asap/Routing/RouteManifestCompiler.php',
-        'framework/Asap/Routing/RouteMatch.php',
-        'framework/Asap/Routing/Router.php',
+        'framework/Opus/Contract/ContractException.php',
+        'framework/Opus/Http/Request.php',
+        'framework/Opus/Site/SiteDefinition.php',
+        'framework/Opus/Routing/RouteCompilerException.php',
+        'framework/Opus/Routing/Route.php',
+        'framework/Opus/Routing/ClassIndex.php',
+        'framework/Opus/Routing/AttributeRouteProvider.php',
+        'framework/Opus/Routing/RouteDefinition.php',
+        'framework/Opus/Routing/RouteManifestCompiler.php',
+        'framework/Opus/Routing/RouteMatch.php',
+        'framework/Opus/Routing/Router.php',
     ];
     foreach ($files as $relative) {
         $path = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);

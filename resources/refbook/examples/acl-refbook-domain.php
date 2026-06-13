@@ -2,14 +2,14 @@
 declare(strict_types=1);
 
 /*
- * ASAP RefBook example: ACL RefBook domain marker.
+ * Opus RefBook example: ACL RefBook domain marker.
  *
  * Purpose:
  *   Show the source annotation pattern used to classify ACL symbols.
  */
 
 /*
- * ASAP_REFBOOK:
+ * OPUS_REFBOOK:
  *   domain: ACL
  *   role: Class AccessControl belongs to the ACL framework domain.
  *   contract:
@@ -22,5 +22,5 @@ declare(strict_types=1);
  *     - acl-error
  *   diagrams:
  *     - acl-runtime
- * END_ASAP_REFBOOK
+ * END_OPUS_REFBOOK
  */

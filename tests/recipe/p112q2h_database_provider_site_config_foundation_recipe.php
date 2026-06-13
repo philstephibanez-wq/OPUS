@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 $root = 'H:\\ASAP';
-$framework = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
+$framework = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus';
 
 if (!is_dir($framework)) {
-    throw new RuntimeException('ASAP_FRAMEWORK_ROOT_MISSING');
+    throw new RuntimeException('OPUS_FRAMEWORK_ROOT_MISSING');
 }
 
 require_once $framework . '/Contract/ContractException.php';
@@ -60,10 +60,10 @@ if ($factory->build($pgsql) !== 'pgsql:host=127.0.0.1;port=5432;dbname=maestro')
 }
 
 $sqlite = new \ASAP\Database\DatabaseConnectionConfig('sqlite3', null, null, null, [
-    'path' => 'H:/ASAP_REF_BOOK/var/data/asap.sqlite',
+    'path' => 'H:/OPUS_REF_BOOK/var/data/opus.sqlite',
 ]);
 
-if ($factory->build($sqlite) !== 'sqlite:H:/ASAP_REF_BOOK/var/data/asap.sqlite') {
+if ($factory->build($sqlite) !== 'sqlite:H:/OPUS_REF_BOOK/var/data/opus.sqlite') {
     throw new RuntimeException('SQLITE_DSN_FAILED');
 }
 
@@ -77,10 +77,10 @@ if ($factory->build($oracle) !== 'oci:dbname=//127.0.0.1:1521/XE;charset=AL32UTF
 }
 
 $odbc = new \ASAP\Database\DatabaseConnectionConfig('odbc', null, null, null, [
-    'name' => 'ASAP_DSN',
+    'name' => 'OPUS_DSN',
 ]);
 
-if ($factory->build($odbc) !== 'odbc:ASAP_DSN') {
+if ($factory->build($odbc) !== 'odbc:OPUS_DSN') {
     throw new RuntimeException('ODBC_DSN_FAILED');
 }
 
@@ -96,7 +96,7 @@ if ($factory->build($sqlserver) !== 'sqlsrv:Server=127.0.0.1,1433;Database=maest
 
 echo 'PASS DATABASE_DSN_FACTORY' . PHP_EOL;
 
-$tmp = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'asap_p112q2h_site_' . bin2hex(random_bytes(4));
+$tmp = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'opus_p112q2h_site_' . bin2hex(random_bytes(4));
 $site = $tmp . DIRECTORY_SEPARATOR . 'demo-site';
 
 if (!mkdir($site, 0777, true) && !is_dir($site)) {
@@ -107,7 +107,7 @@ file_put_contents($site . DIRECTORY_SEPARATOR . 'routes.xml', '<routes></routes>
 file_put_contents($site . DIRECTORY_SEPARATOR . 'security.xml', '<security></security>');
 file_put_contents(
     $site . DIRECTORY_SEPARATOR . 'database.xml',
-    '<database provider="sqlite"><path>H:/ASAP_REF_BOOK/var/data/asap.sqlite</path></database>'
+    '<database provider="sqlite"><path>H:/OPUS_REF_BOOK/var/data/opus.sqlite</path></database>'
 );
 file_put_contents(
     $site . DIRECTORY_SEPARATOR . 'site.xml',
@@ -131,7 +131,7 @@ if ($config->normalizedProvider() !== \ASAP\Database\DatabaseProvider::SQLITE) {
     throw new RuntimeException('SITE_DATABASE_PROVIDER_FAILED');
 }
 
-if ($factory->build($config) !== 'sqlite:H:/ASAP_REF_BOOK/var/data/asap.sqlite') {
+if ($factory->build($config) !== 'sqlite:H:/OPUS_REF_BOOK/var/data/opus.sqlite') {
     throw new RuntimeException('SITE_DATABASE_CONFIG_DSN_FAILED');
 }
 

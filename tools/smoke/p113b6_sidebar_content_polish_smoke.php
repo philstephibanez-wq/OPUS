@@ -14,7 +14,7 @@ declare(strict_types=1);
  *   Nothing.
  *
  * Contract:
- *   Static read-only smoke. It does not require Apache, UwAmp, ASAP_ROOT or
+ *   Static read-only smoke. It does not require Apache, UwAmp, OPUS_ROOT or
  *   a database. Any missing UI contract or untranslated domain fails clearly.
  */
 $root = dirname(__DIR__, 2);
@@ -93,7 +93,7 @@ foreach ($templateNeedles as $template => $needles) {
 }
 
 $manifest = json_decode((string) file_get_contents($manifestFile), true);
-if (!is_array($manifest) || ($manifest['schema'] ?? null) !== 'ASAP_REFBOOK_SOURCE_MANIFEST_V1') {
+if (!is_array($manifest) || ($manifest['schema'] ?? null) !== 'OPUS_REFBOOK_SOURCE_MANIFEST_V1') {
     fwrite(STDERR, 'P113B6_MANIFEST_INVALID=' . $manifestFile . PHP_EOL);
     exit(1);
 }

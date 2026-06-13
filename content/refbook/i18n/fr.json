@@ -1,15 +1,15 @@
 {
-  "schema": "ASAP_REFBOOK_I18N_V1",
+  "schema": "OPUS_REFBOOK_I18N_V1",
   "language": "fr",
   "labels": {
     "language": {
       "current": "Langue",
-      "fr": "Français",
+      "fr": "FranÃ§ais",
       "en": "Anglais",
       "es": "Espagnol"
     },
     "sidebar": {
-      "api_reference": "Référence API",
+      "api_reference": "RÃ©fÃ©rence API",
       "guides": "Guides",
       "domains": "Domaines",
       "menu": "Navigation RefBook",
@@ -18,68 +18,68 @@
     "home": {
       "kicker": "Application MVC ASAP",
       "symbols": "symboles extraits",
-      "domains": "domaines détectés",
+      "domains": "domaines dÃ©tectÃ©s",
       "pipeline_title": "Canal documentaire",
-      "guides_title": "Guides de départ"
+      "guides_title": "Guides de dÃ©part"
     },
     "api": {
-      "title": "Référence API",
-      "kicker": "Référence API",
-      "intro": "La référence ci-dessous vient du manifeste généré depuis les sources ASAP annotées.",
+      "title": "RÃ©fÃ©rence API",
+      "kicker": "RÃ©fÃ©rence API",
+      "intro": "La rÃ©fÃ©rence ci-dessous vient du manifeste gÃ©nÃ©rÃ© depuis les sources Opus annotÃ©es.",
       "how_to_read": "Comment lire cette page",
       "bullets": [
-        "Un domaine regroupe les classes détectées dans le manifeste.",
-        "Chaque symbole renvoie à sa source et à ses méthodes publiques.",
-        "Les descriptions éditoriales complètent le manifeste sans remplacer la preuve source.",
-        "La navigation ne dépend pas de .htaccess : les liens passent par ?page=..."
+        "Un domaine regroupe les classes dÃ©tectÃ©es dans le manifeste.",
+        "Chaque symbole renvoie Ã  sa source et Ã  ses mÃ©thodes publiques.",
+        "Les descriptions Ã©ditoriales complÃ¨tent le manifeste sans remplacer la preuve source.",
+        "La navigation ne dÃ©pend pas de .htaccess : les liens passent par ?page=..."
       ],
       "symbols": "symboles"
     },
     "domain": {
       "kicker": "Domaine",
       "symbols": "symboles",
-      "with_methods": "avec méthodes publiques",
+      "with_methods": "avec mÃ©thodes publiques",
       "table_symbol": "Symbole",
-      "table_role": "Rôle",
-      "table_methods": "Méthodes",
+      "table_role": "RÃ´le",
+      "table_methods": "MÃ©thodes",
       "table_source": "Source",
       "metrics_label": "Indicateurs du domaine",
-      "public_methods": "méthodes publiques",
+      "public_methods": "mÃ©thodes publiques",
       "classes": "classes",
       "interfaces": "interfaces",
       "inventory_kicker": "Inventaire source",
-      "inventory_title": "Symboles détectés"
+      "inventory_title": "Symboles dÃ©tectÃ©s"
     },
     "symbol": {
       "fallback_kind": "symbole",
       "fallback_name": "Symbole",
-      "fallback_role": "Rôle source à enrichir dans les balises ASAP_REFBOOK.",
+      "fallback_role": "RÃ´le source Ã  enrichir dans les balises OPUS_REFBOOK.",
       "contract_title": "Contrat",
-      "no_contract": "Contrat source à enrichir dans les balises ASAP_REFBOOK.",
+      "no_contract": "Contrat source Ã  enrichir dans les balises OPUS_REFBOOK.",
       "source_title": "Source",
-      "source_missing": "Source à résoudre",
-      "public_methods_title": "Méthodes publiques",
-      "no_methods": "Aucune méthode publique détectée.",
-      "table_method": "Méthode",
+      "source_missing": "Source Ã  rÃ©soudre",
+      "public_methods_title": "MÃ©thodes publiques",
+      "no_methods": "Aucune mÃ©thode publique dÃ©tectÃ©e.",
+      "table_method": "MÃ©thode",
       "table_signature": "Signature",
-      "identity_kicker": "Identité source",
+      "identity_kicker": "IdentitÃ© source",
       "identity_title": "Fiche du symbole",
       "kind_label": "Type",
       "domain_label": "Domaine",
       "namespace_label": "Namespace",
-      "namespace_missing": "Namespace non renseigné",
+      "namespace_missing": "Namespace non renseignÃ©",
       "methods_kicker": "API publique",
-      "examples_title": "Exemples liés",
-      "diagrams_title": "Diagrammes liés"
+      "examples_title": "Exemples liÃ©s",
+      "diagrams_title": "Diagrammes liÃ©s"
     },
     "not_found": {
       "kicker": "404",
       "title": "Page introuvable",
-      "message": "Slug refusé explicitement"
+      "message": "Slug refusÃ© explicitement"
     },
     "topbar": {
       "subtitle": "Documentation ASAP",
-      "controls": "Contrôles du site"
+      "controls": "ContrÃ´les du site"
     },
     "breadcrumb": {
       "label": "Fil d'Ariane",
@@ -91,36 +91,36 @@
       "sections": "sections"
     },
     "theme": {
-      "current": "Thème visuel",
+      "current": "ThÃ¨me visuel",
       "night": "Nuit bleue",
-      "ocean": "Océan technique",
+      "ocean": "OcÃ©an technique",
       "paper": "Papier clair",
       "short": {
         "night": "Nuit",
-        "ocean": "Océan",
+        "ocean": "OcÃ©an",
         "paper": "Clair"
       }
     },
     "search": {
       "kicker": "Recherche RefBook",
       "title": "Recherche",
-      "intro": "Trouvez rapidement une classe, une méthode, un domaine, un guide ou un fichier du framework ASAP.",
+      "intro": "Trouvez rapidement une classe, une mÃ©thode, un domaine, un guide ou un fichier du framework Opus.",
       "form_label": "Recherche dans le RefBook",
-      "input_label": "Terme à rechercher",
-      "placeholder": "Rechercher…",
-      "placeholder_long": "Ex. Router, ACL, render, config, Twig…",
+      "input_label": "Terme Ã  rechercher",
+      "placeholder": "Rechercherâ€¦",
+      "placeholder_long": "Ex. Router, ACL, render, config, Twigâ€¦",
       "submit": "OK",
-      "help": "La recherche interroge les guides, domaines, symboles, namespaces, fichiers, contrats et méthodes publiques indexés.",
-      "results_kicker": "Résultats",
-      "results_title": "Résultats pour",
-      "results": "résultat(s)",
-      "empty_title": "Aucun résultat trouvé",
-      "empty_body": "Essayez un nom plus court, un domaine comme ACL ou Database, ou une méthode publique connue.",
+      "help": "La recherche interroge les guides, domaines, symboles, namespaces, fichiers, contrats et mÃ©thodes publiques indexÃ©s.",
+      "results_kicker": "RÃ©sultats",
+      "results_title": "RÃ©sultats pour",
+      "results": "rÃ©sultat(s)",
+      "empty_title": "Aucun rÃ©sultat trouvÃ©",
+      "empty_body": "Essayez un nom plus court, un domaine comme ACL ou Database, ou une mÃ©thode publique connue.",
       "tips_kicker": "Aide rapide",
       "tips_title": "Ce que vous pouvez chercher",
       "tips": [
         "Une classe ou interface : Router, ViewModel, AccessControl.",
-        "Une méthode publique : render, decide, fromXml, dispatch.",
+        "Une mÃ©thode publique : render, decide, fromXml, dispatch.",
         "Un domaine : ACL, Database, Renderer, Template, HTTP.",
         "Un fichier, namespace ou terme de contrat."
       ],
@@ -128,16 +128,16 @@
       "type_domain": "Domaine",
       "type_symbol": "Symbole",
       "symbols": "symbole(s)",
-      "methods": "méthode(s)",
-      "snippet_default": "Correspondance trouvée dans le catalogue RefBook."
+      "methods": "mÃ©thode(s)",
+      "snippet_default": "Correspondance trouvÃ©e dans le catalogue RefBook."
     }
   },
   "module": {
-    "title": "ASAP Reference Book",
-    "subtitle": "Documentation vivante du framework ASAP, rendue par une application MVC ASAP.",
-    "mission": "Rendre ASAP lisible, vérifiable et utilisable sans fouiller le code à chaque étape.",
+    "title": "Opus Reference Book",
+    "subtitle": "Documentation vivante du framework Opus, rendue par une application MVC Opus.",
+    "mission": "Rendre Opus lisible, vÃ©rifiable et utilisable sans fouiller le code Ã  chaque Ã©tape.",
     "pipeline": [
-      "Source ASAP annotée",
+      "Source Opus annotÃ©e",
       "Manifeste JSON",
       "Service RefBook",
       "ViewModel",
@@ -148,23 +148,23 @@
   "home_cards": [
     {
       "title": "Lire vite",
-      "body": "La colonne gauche donne les domaines et les guides. La page API regroupe les symboles détectés."
+      "body": "La colonne gauche donne les domaines et les guides. La page API regroupe les symboles dÃ©tectÃ©s."
     },
     {
-      "title": "Vérifier",
-      "body": "Chaque domaine et chaque symbole vient du manifeste généré depuis H:\\ASAP."
+      "title": "VÃ©rifier",
+      "body": "Chaque domaine et chaque symbole vient du manifeste gÃ©nÃ©rÃ© depuis H:\\Opus."
     },
     {
-      "title": "Développer",
-      "body": "Toute évolution doit rester MVC : contrôleur fin, service explicite, ViewModel, Twig propre."
+      "title": "DÃ©velopper",
+      "body": "Toute Ã©volution doit rester MVC : contrÃ´leur fin, service explicite, ViewModel, Twig propre."
     },
     {
       "title": "Menu plus court",
-      "body": "Les guides et les domaines sont regroupés en panneaux repliables pour garder la navigation lisible."
+      "body": "Les guides et les domaines sont regroupÃ©s en panneaux repliables pour garder la navigation lisible."
     },
     {
       "title": "Pages plus riches",
-      "body": "Les domaines affichent maintenant classes, interfaces, méthodes publiques et inventaire source."
+      "body": "Les domaines affichent maintenant classes, interfaces, mÃ©thodes publiques et inventaire source."
     }
   ],
   "guides": [
@@ -172,104 +172,104 @@
       "slug": "guide-architecture",
       "title": "Architecture",
       "kicker": "Architecture",
-      "summary": "ASAP sépare application, routing, contrôle, service, rendu, sécurité et configuration.",
+      "summary": "Opus sÃ©pare application, routing, contrÃ´le, service, rendu, sÃ©curitÃ© et configuration.",
       "sections": [
         {
           "title": "Lecture fonctionnelle",
           "items": [
-            "Application orchestre une requête.",
+            "Application orchestre une requÃªte.",
             "SiteResolver choisit la configuration du site courant.",
             "Router transforme une URL en RouteMatch.",
-            "ControllerDispatcher instancie le contrôleur et déclenche l’action.",
-            "ViewModel transporte les données vers le renderer.",
+            "ControllerDispatcher instancie le contrÃ´leur et dÃ©clenche lâ€™action.",
+            "ViewModel transporte les donnÃ©es vers le renderer.",
             "TwigTemplateRenderer transforme la vue en HTML."
           ]
         },
         {
-          "title": "Règle de maintenance",
+          "title": "RÃ¨gle de maintenance",
           "items": [
-            "Ne pas mettre de logique métier dans public/index.php.",
-            "Ne pas utiliser Twig comme stockage de données.",
+            "Ne pas mettre de logique mÃ©tier dans public/index.php.",
+            "Ne pas utiliser Twig comme stockage de donnÃ©es.",
             "Ne pas contourner le dispatcher pour rendre une page.",
-            "Ne pas écrire dans la configuration serveur pour corriger un problème applicatif."
+            "Ne pas Ã©crire dans la configuration serveur pour corriger un problÃ¨me applicatif."
           ]
         },
         {
-          "title": "À retenir",
+          "title": "Ã€ retenir",
           "items": [
-            "Une responsabilité doit appartenir à une seule couche.",
-            "Un service prépare les données ; Twig ne les invente pas.",
-            "Une erreur de contrat doit être explicite et traçable."
+            "Une responsabilitÃ© doit appartenir Ã  une seule couche.",
+            "Un service prÃ©pare les donnÃ©es ; Twig ne les invente pas.",
+            "Une erreur de contrat doit Ãªtre explicite et traÃ§able."
           ]
         }
       ],
-      "reading": "Vue d’ensemble pour comprendre où placer une responsabilité avant de modifier ASAP."
+      "reading": "Vue dâ€™ensemble pour comprendre oÃ¹ placer une responsabilitÃ© avant de modifier Opus."
     },
     {
       "slug": "guide-mvc",
       "title": "Contrat MVC ASAP",
       "kicker": "MVC",
-      "summary": "Route officielle, contrôleur mince, service métier, ViewModel, template.",
+      "summary": "Route officielle, contrÃ´leur mince, service mÃ©tier, ViewModel, template.",
       "sections": [
         {
-          "title": "Contrôleur",
+          "title": "ContrÃ´leur",
           "items": [
-            "Reçoit Request et paramètres de route.",
-            "Appelle les services nécessaires.",
+            "ReÃ§oit Request et paramÃ¨tres de route.",
+            "Appelle les services nÃ©cessaires.",
             "Retourne un ViewModel.",
-            "Ne génère pas le HTML lui-même."
+            "Ne gÃ©nÃ¨re pas le HTML lui-mÃªme."
           ]
         },
         {
           "title": "Service",
           "items": [
-            "Charge les données.",
-            "Prépare les structures de lecture.",
-            "Expose des méthodes testables.",
-            "Ne dépend pas du navigateur."
+            "Charge les donnÃ©es.",
+            "PrÃ©pare les structures de lecture.",
+            "Expose des mÃ©thodes testables.",
+            "Ne dÃ©pend pas du navigateur."
           ]
         },
         {
           "title": "Twig",
           "items": [
             "Affiche un ViewModel.",
-            "Ne décide pas du workflow.",
+            "Ne dÃ©cide pas du workflow.",
             "Ne charge pas les fichiers source.",
-            "Ne contient pas de règles métier."
+            "Ne contient pas de rÃ¨gles mÃ©tier."
           ]
         },
         {
           "title": "Flux correct",
           "items": [
             "Router produit un RouteMatch.",
-            "Dispatcher appelle le contrôleur prévu.",
-            "Le contrôleur retourne un ViewModel.",
-            "Le renderer transforme le ViewModel sans logique métier."
+            "Dispatcher appelle le contrÃ´leur prÃ©vu.",
+            "Le contrÃ´leur retourne un ViewModel.",
+            "Le renderer transforme le ViewModel sans logique mÃ©tier."
           ]
         }
       ],
-      "reading": "Contrat de travail quotidien : la route trouve le contrôleur, le contrôleur prépare, Twig rend."
+      "reading": "Contrat de travail quotidien : la route trouve le contrÃ´leur, le contrÃ´leur prÃ©pare, Twig rend."
     },
     {
       "slug": "guide-source-tags",
-      "title": "Balises source ASAP_REFBOOK",
-      "kicker": "Source de vérité",
-      "summary": "Le contenu API officiel part des classes ASAP annotées, puis passe par un manifeste contrôlé.",
+      "title": "Balises source OPUS_REFBOOK",
+      "kicker": "Source de vÃ©ritÃ©",
+      "summary": "Le contenu API officiel part des classes Opus annotÃ©es, puis passe par un manifeste contrÃ´lÃ©.",
       "sections": [
         {
           "title": "But",
           "items": [
-            "Décrire le rôle d’une classe.",
+            "DÃ©crire le rÃ´le dâ€™une classe.",
             "Expliciter son contrat public.",
-            "Lister ses responsabilités et limites.",
-            "Rendre la documentation vérifiable par extraction."
+            "Lister ses responsabilitÃ©s et limites.",
+            "Rendre la documentation vÃ©rifiable par extraction."
           ]
         },
         {
-          "title": "Règle",
+          "title": "RÃ¨gle",
           "items": [
-            "Une page générée doit pouvoir remonter à un symbole source.",
-            "Un texte éditorial complète le symbole, il ne l’invente pas.",
+            "Une page gÃ©nÃ©rÃ©e doit pouvoir remonter Ã  un symbole source.",
+            "Un texte Ã©ditorial complÃ¨te le symbole, il ne lâ€™invente pas.",
             "Une divergence source/documentation doit produire une correction source ou manifeste."
           ]
         },
@@ -277,24 +277,24 @@
           "title": "Peuplement progressif",
           "items": [
             "Chaque nouvelle annotation source enrichit le manifeste.",
-            "Le texte éditorial peut expliquer, mais pas remplacer la source.",
+            "Le texte Ã©ditorial peut expliquer, mais pas remplacer la source.",
             "Un symbole incomplet doit rester visible comme incomplet."
           ]
         }
       ],
-      "reading": "Point de départ du Reference Book généré : la source annotée reste la preuve."
+      "reading": "Point de dÃ©part du Reference Book gÃ©nÃ©rÃ© : la source annotÃ©e reste la preuve."
     },
     {
       "slug": "guide-routing",
       "title": "Routing et front-controller",
       "kicker": "HTTP",
-      "summary": "Apache sert public/ ; ASAP reçoit la requête ; le router sélectionne la route.",
+      "summary": "Apache sert public/ ; Opus reÃ§oit la requÃªte ; le router sÃ©lectionne la route.",
       "sections": [
         {
           "title": "Contrat public/index.php",
           "items": [
             "Bootstrap uniquement.",
-            "Aucune table de routes codée en dur.",
+            "Aucune table de routes codÃ©e en dur.",
             "Aucun rendu HTML direct.",
             "Aucun fallback silencieux."
           ]
@@ -302,7 +302,7 @@
         {
           "title": "Validation",
           "items": [
-            "Tester d’abord le CLI avec REQUEST_URI.",
+            "Tester dâ€™abord le CLI avec REQUEST_URI.",
             "Tester ensuite le CSS HTTP.",
             "Tester la home HTTP.",
             "Tester enfin les routes profondes."
@@ -311,56 +311,56 @@
         {
           "title": "Diagnostic rapide",
           "items": [
-            "Vérifier REQUEST_URI.",
-            "Vérifier le basePath.",
-            "Vérifier routes.xml.",
-            "Vérifier le contrôleur cible avant Apache."
+            "VÃ©rifier REQUEST_URI.",
+            "VÃ©rifier le basePath.",
+            "VÃ©rifier routes.xml.",
+            "VÃ©rifier le contrÃ´leur cible avant Apache."
           ]
         }
       ],
-      "reading": "Aide à diagnostiquer une page sans déplacer le problème vers Apache ou .htaccess."
+      "reading": "Aide Ã  diagnostiquer une page sans dÃ©placer le problÃ¨me vers Apache ou .htaccess."
     },
     {
       "slug": "guide-lstsa",
-      "title": "LSTSA — Load Store Transform Secure Archive",
-      "kicker": "Pipeline de données",
-      "summary": "LSTSA charge, vérifie, transforme, stocke, trace et archive une transformation typée.",
+      "title": "LSTSA â€” Load Store Transform Secure Archive",
+      "kicker": "Pipeline de donnÃ©es",
+      "summary": "LSTSA charge, vÃ©rifie, transforme, stocke, trace et archive une transformation typÃ©e.",
       "sections": [
         {
-          "title": "Étapes",
+          "title": "Ã‰tapes",
           "items": [
-            "Load : lecture de la source d’entrée.",
-            "Store : écriture dans la cible prévue.",
-            "Transform : mapping typé et conversion.",
+            "Load : lecture de la source dâ€™entrÃ©e.",
+            "Store : Ã©criture dans la cible prÃ©vue.",
+            "Transform : mapping typÃ© et conversion.",
             "Secure : validation des types, longueurs et contraintes.",
             "Archive : log archivable par transformation."
           ]
         },
         {
-          "title": "Règles",
+          "title": "RÃ¨gles",
           "items": [
-            "La configuration décrit source, cible, types et longueurs.",
-            "Une donnée invalide est refusée explicitement.",
-            "Chaque run produit un rapport et un log dédié.",
-            "Aucun fallback de stockage n’est permis."
+            "La configuration dÃ©crit source, cible, types et longueurs.",
+            "Une donnÃ©e invalide est refusÃ©e explicitement.",
+            "Chaque run produit un rapport et un log dÃ©diÃ©.",
+            "Aucun fallback de stockage nâ€™est permis."
           ]
         },
         {
           "title": "Journalisation",
           "items": [
-            "Chaque transformation possède son log dédié.",
-            "Le log doit être archivable.",
-            "Les refus de type ou de longueur doivent indiquer la donnée et la règle."
+            "Chaque transformation possÃ¨de son log dÃ©diÃ©.",
+            "Le log doit Ãªtre archivable.",
+            "Les refus de type ou de longueur doivent indiquer la donnÃ©e et la rÃ¨gle."
           ]
         }
       ],
-      "reading": "Cadre pour transformer des données de manière typée, contrôlée et archivable."
+      "reading": "Cadre pour transformer des donnÃ©es de maniÃ¨re typÃ©e, contrÃ´lÃ©e et archivable."
     },
     {
       "slug": "guide-tests",
       "title": "Tests et recettes",
-      "kicker": "Qualité",
-      "summary": "Un palier ASAP doit être validé par lint, smoke, recette ciblée et état Git propre.",
+      "kicker": "QualitÃ©",
+      "summary": "Un palier Opus doit Ãªtre validÃ© par lint, smoke, recette ciblÃ©e et Ã©tat Git propre.",
       "sections": [
         {
           "title": "Ordre",
@@ -368,7 +368,7 @@
             "Patch minimal.",
             "Lint PHP.",
             "Smoke CLI.",
-            "Test HTTP si le palier le nécessite.",
+            "Test HTTP si le palier le nÃ©cessite.",
             "Staging exact.",
             "Commit clair."
           ]
@@ -376,79 +376,79 @@
         {
           "title": "Interdits",
           "items": [
-            "Pas de gros refactor global non demandé.",
-            "Pas de git add . par défaut.",
+            "Pas de gros refactor global non demandÃ©.",
+            "Pas de git add . par dÃ©faut.",
             "Pas de modification Apache pour corriger une page applicative."
           ]
         },
         {
-          "title": "Après patch",
+          "title": "AprÃ¨s patch",
           "items": [
-            "Exécuter lint et smoke.",
-            "Contrôler les fichiers modifiés.",
+            "ExÃ©cuter lint et smoke.",
+            "ContrÃ´ler les fichiers modifiÃ©s.",
             "Nettoyer les temporaires.",
-            "Préparer rollback et notes de livraison."
+            "PrÃ©parer rollback et notes de livraison."
           ]
         }
       ],
-      "reading": "Recette minimale avant de considérer un palier comme livrable."
+      "reading": "Recette minimale avant de considÃ©rer un palier comme livrable."
     }
   ],
   "domain_descriptions": {
-    "ACL": "Contrôle d’accès : contextes, conditions, rôles, privilèges et décisions de sécurité.",
-    "ACTION": "Actions applicatives déclenchées par routes, recettes ou workflows.",
-    "APPLICATION": "Bootstrap applicatif, chemins, cycle de requête et orchestration MVC.",
+    "ACL": "ContrÃ´le dâ€™accÃ¨s : contextes, conditions, rÃ´les, privilÃ¨ges et dÃ©cisions de sÃ©curitÃ©.",
+    "ACTION": "Actions applicatives dÃ©clenchÃ©es par routes, recettes ou workflows.",
+    "APPLICATION": "Bootstrap applicatif, chemins, cycle de requÃªte et orchestration MVC.",
     "ASSET": "Fichiers publics, CSS, ressources front et liens statiques.",
-    "AUTOLOAD": "Chargement des classes, cache autoload et résolution de namespaces.",
-    "CACHE": "Stockage temporaire contrôlé et invalidation explicite.",
-    "COMPATIBILITY": "Ponts de compatibilité contrôlés avec les anciennes conventions ASAP.",
+    "AUTOLOAD": "Chargement des classes, cache autoload et rÃ©solution de namespaces.",
+    "CACHE": "Stockage temporaire contrÃ´lÃ© et invalidation explicite.",
+    "COMPATIBILITY": "Ponts de compatibilitÃ© contrÃ´lÃ©s avec les anciennes conventions Opus.",
     "CONFIG": "Chargement de configuration, options, XML et contrats de site.",
     "CONTRACT": "Erreurs explicites, assertions et invariants du framework.",
-    "CONTROLLER": "Dispatch HTTP vers contrôleurs et actions MVC.",
-    "COOKIE": "Lecture et écriture contrôlées des cookies HTTP.",
-    "CORE": "Noyau et utilitaires fondamentaux partagés.",
-    "CSS": "Contrats de style et ressources de présentation.",
-    "DATABASE": "Configuration multi-provider, connexions et accès database.",
-    "DATE": "Objets, helpers et formats de date utilisés par ASAP.",
-    "DEBUG": "Diagnostics développeur, traces contrôlées et informations de recette.",
-    "DIRECTORY": "Résolution et contrôle des répertoires applicatifs.",
-    "DOCUMENTATION": "Extraction et génération documentaire depuis les sources annotées.",
-    "EVENT": "Événements applicatifs et points d’extension contrôlés.",
+    "CONTROLLER": "Dispatch HTTP vers contrÃ´leurs et actions MVC.",
+    "COOKIE": "Lecture et Ã©criture contrÃ´lÃ©es des cookies HTTP.",
+    "CORE": "Noyau et utilitaires fondamentaux partagÃ©s.",
+    "CSS": "Contrats de style et ressources de prÃ©sentation.",
+    "DATABASE": "Configuration multi-provider, connexions et accÃ¨s database.",
+    "DATE": "Objets, helpers et formats de date utilisÃ©s par Opus.",
+    "DEBUG": "Diagnostics dÃ©veloppeur, traces contrÃ´lÃ©es et informations de recette.",
+    "DIRECTORY": "RÃ©solution et contrÃ´le des rÃ©pertoires applicatifs.",
+    "DOCUMENTATION": "Extraction et gÃ©nÃ©ration documentaire depuis les sources annotÃ©es.",
+    "EVENT": "Ã‰vÃ©nements applicatifs et points dâ€™extension contrÃ´lÃ©s.",
     "EXCEPTION": "Exceptions contractuelles, erreurs explicites et messages diagnostic.",
     "FILE": "Manipulation de fichiers et validation des chemins.",
-    "FORM": "Construction, validation et rendu des formulaires ASAP.",
-    "FSM": "Machines à états, transitions et validation de workflow.",
-    "FTP": "Accès FTP historique ou contrôlé, à conserver isolé du cœur HTTP.",
-    "HELPER": "Helpers applicatifs ciblés, à surveiller pour éviter les fourre-tout.",
-    "HTTP": "Request, Response, codes HTTP et enveloppes de requête.",
-    "I18N": "Langues, traduction et fallback contrôlé.",
-    "JAVASCRIPT": "Ressources JavaScript et intégration front légère.",
-    "JSON": "Encodage, décodage et contrats JSON.",
-    "LANGUAGE": "Détection, sélection et normalisation de langue.",
-    "LINK": "Génération de liens et navigation applicative.",
-    "LOG": "Journalisation contrôlée, niveaux et traces exploitables.",
+    "FORM": "Construction, validation et rendu des formulaires Opus.",
+    "FSM": "Machines Ã  Ã©tats, transitions et validation de workflow.",
+    "FTP": "AccÃ¨s FTP historique ou contrÃ´lÃ©, Ã  conserver isolÃ© du cÅ“ur HTTP.",
+    "HELPER": "Helpers applicatifs ciblÃ©s, Ã  surveiller pour Ã©viter les fourre-tout.",
+    "HTTP": "Request, Response, codes HTTP et enveloppes de requÃªte.",
+    "I18N": "Langues, traduction et fallback contrÃ´lÃ©.",
+    "JAVASCRIPT": "Ressources JavaScript et intÃ©gration front lÃ©gÃ¨re.",
+    "JSON": "Encodage, dÃ©codage et contrats JSON.",
+    "LANGUAGE": "DÃ©tection, sÃ©lection et normalisation de langue.",
+    "LINK": "GÃ©nÃ©ration de liens et navigation applicative.",
+    "LOG": "Journalisation contrÃ´lÃ©e, niveaux et traces exploitables.",
     "LSTSA": "Pipelines Load Store Transform Secure Archive.",
-    "MAIL": "Préparation et intégration mail.",
-    "MENU": "Structures de menu, navigation et exposition contrôlée des liens.",
-    "MODEL": "Objets de modèle historiques ou applicatifs, à clarifier par domaine.",
-    "MODULE": "Unités fonctionnelles exposées par l’application.",
-    "PACKAGE": "Découverte et chargement de packages ASAP.",
-    "RENDERER": "Transformation des ViewModels en réponse finale.",
-    "REQUEST": "Lecture et normalisation des entrées de requête.",
-    "RESPONSE": "Construction des réponses HTTP et adaptation vers le runtime.",
-    "REST": "Contrats d’appel REST et enveloppes d’échange.",
-    "ROUTER": "Mécanique interne de résolution et de match de route.",
-    "ROUTING": "Définition, résolution et match des routes.",
-    "SECURITY": "Gates, refus explicites et règles de protection.",
-    "SESSION": "Gestion de session et données persistantes côté utilisateur.",
-    "SITE": "Configuration et résolution du site courant.",
+    "MAIL": "PrÃ©paration et intÃ©gration mail.",
+    "MENU": "Structures de menu, navigation et exposition contrÃ´lÃ©e des liens.",
+    "MODEL": "Objets de modÃ¨le historiques ou applicatifs, Ã  clarifier par domaine.",
+    "MODULE": "UnitÃ©s fonctionnelles exposÃ©es par lâ€™application.",
+    "PACKAGE": "DÃ©couverte et chargement de packages Opus.",
+    "RENDERER": "Transformation des ViewModels en rÃ©ponse finale.",
+    "REQUEST": "Lecture et normalisation des entrÃ©es de requÃªte.",
+    "RESPONSE": "Construction des rÃ©ponses HTTP et adaptation vers le runtime.",
+    "REST": "Contrats dâ€™appel REST et enveloppes dâ€™Ã©change.",
+    "ROUTER": "MÃ©canique interne de rÃ©solution et de match de route.",
+    "ROUTING": "DÃ©finition, rÃ©solution et match des routes.",
+    "SECURITY": "Gates, refus explicites et rÃ¨gles de protection.",
+    "SESSION": "Gestion de session et donnÃ©es persistantes cÃ´tÃ© utilisateur.",
+    "SITE": "Configuration et rÃ©solution du site courant.",
     "SMTP": "Configuration et transport SMTP.",
-    "SUPPORT": "Fonctions d’assistance et ressources de support.",
+    "SUPPORT": "Fonctions dâ€™assistance et ressources de support.",
     "TEMPLATE": "Adaptateurs et moteurs de templates, dont Twig.",
-    "THEME": "Thèmes, variantes visuelles et configuration de présentation.",
+    "THEME": "ThÃ¨mes, variantes visuelles et configuration de prÃ©sentation.",
     "URL": "Construction, parsing et normalisation des URL.",
     "VALIDATION": "Validation des valeurs, types, contraintes et erreurs.",
-    "VIEW": "Préparation et rendu des vues.",
-    "XML": "Lecture XML, navigation de nœuds et chargement de configuration."
+    "VIEW": "PrÃ©paration et rendu des vues.",
+    "XML": "Lecture XML, navigation de nÅ“uds et chargement de configuration."
   }
 }

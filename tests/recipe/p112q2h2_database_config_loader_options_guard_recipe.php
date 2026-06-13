@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 $root = 'H:\\ASAP';
-$framework = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
+$framework = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus';
 
 if (!is_dir($framework)) {
-    throw new RuntimeException('ASAP_FRAMEWORK_ROOT_MISSING');
+    throw new RuntimeException('OPUS_FRAMEWORK_ROOT_MISSING');
 }
 
 require_once $framework . '/Database/DatabaseException.php';
@@ -18,7 +18,7 @@ require_once $framework . '/Database/DatabaseConfigLoader.php';
 $loader = new \ASAP\Database\DatabaseConfigLoader();
 
 $withoutOptions = simplexml_load_string(
-    '<database provider="sqlite"><path>H:/ASAP_REF_BOOK/var/data/asap.sqlite</path></database>'
+    '<database provider="sqlite"><path>H:/OPUS_REF_BOOK/var/data/opus.sqlite</path></database>'
 );
 
 if (!$withoutOptions instanceof SimpleXMLElement) {

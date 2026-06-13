@@ -1,13 +1,13 @@
 @echo off
 setlocal EnableExtensions
 
-set "ASAP_ROOT=H:\ASAP"
+set "OPUS_ROOT=H:\ASAP"
 set "PHP=H:\UwAmp\bin\php\php-8.5.6\php.exe"
-set "SMOKE=%ASAP_ROOT%\tests\smoke\p112q1_router_attribute_compiler_smoke.php"
+set "SMOKE=%OPUS_ROOT%\tests\smoke\p112q1_router_attribute_compiler_smoke.php"
 
 echo P112Q1_ROUTER_ATTRIBUTE_COMPILER_START
 
-if not exist "%ASAP_ROOT%" goto asap_missing
+if not exist "%OPUS_ROOT%" goto opus_missing
 if not exist "%PHP%" goto php_missing
 if not exist "%SMOKE%" goto smoke_missing
 
@@ -16,8 +16,8 @@ if not exist "%SMOKE%" goto smoke_missing
 echo P112Q1_ROUTER_ATTRIBUTE_COMPILER_OK
 exit /b 0
 
-:asap_missing
-echo ASAP_ROOT_MISSING
+:opus_missing
+echo OPUS_ROOT_MISSING
 exit /b 1
 
 :php_missing

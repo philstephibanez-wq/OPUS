@@ -6,17 +6,17 @@ declare(strict_types=1);
  * PUBLIC SMOKE SCRIPT
  *
  * Role:
- *   Validate P112Q3B SecureDispatchGate baseline after extraction in the ASAP root.
+ *   Validate P112Q3B SecureDispatchGate baseline after extraction in the Opus root.
  *
  * Responsibility:
  *   Verify the patched files, route security metadata hydration and route-aware
  *   FSM/ACL gate execution with explicit assertions.
  *
  * Reads:
- *   - framework/Asap/Application/Application.php
- *   - framework/Asap/Routing/Router.php
- *   - framework/Asap/Routing/RouteMatch.php
- *   - framework/Asap/Security/SecureDispatchGate.php
+ *   - framework/Opus/Application/Application.php
+ *   - framework/Opus/Routing/Router.php
+ *   - framework/Opus/Routing/RouteMatch.php
+ *   - framework/Opus/Security/SecureDispatchGate.php
  *
  * Writes:
  *   - temporary XML files under the system temporary directory, removed before exit.
@@ -41,11 +41,11 @@ use ASAP\Site\SiteDefinition;
 $root = dirname(__DIR__, 2);
 
 spl_autoload_register(static function (string $class) use ($root): void {
-    $prefix = 'ASAP\\';
+    $prefix = 'Opus\\';
 
     if (str_starts_with($class, $prefix)) {
         $relative = substr($class, strlen($prefix));
-        $path = $root . '/framework/Asap/' . str_replace('\\', '/', $relative) . '.php';
+        $path = $root . '/framework/Opus/' . str_replace('\\', '/', $relative) . '.php';
 
         if (is_file($path)) {
             require_once $path;
@@ -89,14 +89,14 @@ function p112q3b_contains(string $content, string $needle, string $code): void
     p112q3b_assert(str_contains($content, $needle), $code, $needle);
 }
 
-$application = p112q3b_read($root, 'framework/Asap/Application/Application.php');
-$router = p112q3b_read($root, 'framework/Asap/Routing/Router.php');
-$routeMatch = p112q3b_read($root, 'framework/Asap/Routing/RouteMatch.php');
-$gate = p112q3b_read($root, 'framework/Asap/Security/SecureDispatchGate.php');
-$decision = p112q3b_read($root, 'framework/Asap/Security/SecureDispatchDecision.php');
+$application = p112q3b_read($root, 'framework/Opus/Application/Application.php');
+$router = p112q3b_read($root, 'framework/Opus/Routing/Router.php');
+$routeMatch = p112q3b_read($root, 'framework/Opus/Routing/RouteMatch.php');
+$gate = p112q3b_read($root, 'framework/Opus/Security/SecureDispatchGate.php');
+$decision = p112q3b_read($root, 'framework/Opus/Security/SecureDispatchDecision.php');
 $pantherRecipe = p112q3b_read($root, 'tools/recipes/p112q3b_secure_dispatch_gate_panther_recipe.php');
 
-p112q3b_contains($application, 'use ASAP\\Security\\SecureDispatchGate;', 'P112Q3B_APPLICATION_GATE_IMPORT_MISSING');
+p112q3b_contains($application, 'use Opus\\Security\\SecureDispatchGate;', 'P112Q3B_APPLICATION_GATE_IMPORT_MISSING');
 p112q3b_contains($application, '$match = $router->match($request, $site);', 'P112Q3B_APPLICATION_ROUTE_CANDIDATE_MISSING');
 p112q3b_contains($application, '(new SecureDispatchGate())->assertAllowed($request, $securityPolicy, $match);', 'P112Q3B_APPLICATION_GATE_CALL_MISSING');
 p112q3b_contains($application, ')->dispatch($request, $match)', 'P112Q3B_APPLICATION_DISPATCH_MISSING');
@@ -116,9 +116,9 @@ p112q3b_contains($gate, 'resolveFsmSignal', 'P112Q3B_GATE_FSM_RESOLVER_MISSING')
 p112q3b_contains($decision, 'final class SecureDispatchDecision', 'P112Q3B_DECISION_CLASS_MISSING');
 p112q3b_contains($pantherRecipe, 'PANTHER_CLIENT_NOT_AVAILABLE', 'P112Q3B_PANTHER_RECIPE_MARKER_MISSING');
 p112q3b_contains($pantherRecipe, 'class_exists', 'P112Q3B_PANTHER_CLASS_CHECK_MISSING');
-p112q3b_contains($pantherRecipe, 'ASAP_P112Q3B_PANTHER_AUTOLOAD', 'P112Q3B_PANTHER_AUTOLOAD_ENV_MISSING');
+p112q3b_contains($pantherRecipe, 'OPUS_P112Q3B_PANTHER_AUTOLOAD', 'P112Q3B_PANTHER_AUTOLOAD_ENV_MISSING');
 
-$tmpRoot = sys_get_temp_dir() . '/asap_p112q3b_' . bin2hex(random_bytes(4));
+$tmpRoot = sys_get_temp_dir() . '/opus_p112q3b_' . bin2hex(random_bytes(4));
 
 if (!mkdir($tmpRoot, 0777, true) && !is_dir($tmpRoot)) {
     p112q3b_fail('P112Q3B_TEMP_DIR_CREATE_FAILED', $tmpRoot);

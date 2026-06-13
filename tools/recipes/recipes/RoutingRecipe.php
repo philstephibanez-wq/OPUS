@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe\Recipes;
+namespace Opus\Recipe\Recipes;
 
 use ASAP\Recipe\RecipeContext;
 use ASAP\Recipe\RecipeInterface;
@@ -22,15 +22,15 @@ final class RoutingRecipe implements RecipeInterface
         $site = new \ASAP\Site\SiteDefinition('demo', '/demo', $routes, $security);
         $router = \ASAP\Routing\Router::fromXml($routes);
         $home = $router->match(new \ASAP\Http\Request('/demo', 'GET'), $site);
-        $context->assert($home->name === 'home', 'ASAP_ROUTING_HOME_MATCH_FAILED');
+        $context->assert($home->name === 'home', 'OPUS_ROUTING_HOME_MATCH_FAILED');
         $page = $router->match(new \ASAP\Http\Request('/demo/about', 'GET'), $site);
-        $context->assert($page->params['slug'] === 'about', 'ASAP_ROUTING_SLUG_MATCH_FAILED');
+        $context->assert($page->params['slug'] === 'about', 'OPUS_ROUTING_SLUG_MATCH_FAILED');
         try {
             $router->match(new \ASAP\Http\Request('/outside', 'GET'), $site);
-            $context->assert(false, 'ASAP_ROUTING_OUTSIDE_SITE_DID_NOT_FAIL');
+            $context->assert(false, 'OPUS_ROUTING_OUTSIDE_SITE_DID_NOT_FAIL');
         } catch (\ASAP\Contract\ContractException) {
         }
 
-        return ['ASAP_ROUTING_OK'];
+        return ['OPUS_ROUTING_OK'];
     }
 }

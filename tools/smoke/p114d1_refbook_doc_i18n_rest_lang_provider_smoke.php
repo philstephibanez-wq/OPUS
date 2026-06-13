@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../framework/Asap/RefBook/I18n/RefBookDocumentationLocale.php';
-require_once __DIR__ . '/../../framework/Asap/RefBook/I18n/RefBookDocumentationTranslationMissingException.php';
-require_once __DIR__ . '/../../framework/Asap/RefBook/I18n/RefBookDocumentationI18nCatalog.php';
-require_once __DIR__ . '/../../framework/Asap/RefBook/Api/LocalizedRefBookDocumentationProvider.php';
-require_once __DIR__ . '/../../framework/Asap/RefBook/Api/RefBookDocumentationI18nRestRouter.php';
+require_once __DIR__ . '/../../framework/Opus/RefBook/I18n/RefBookDocumentationLocale.php';
+require_once __DIR__ . '/../../framework/Opus/RefBook/I18n/RefBookDocumentationTranslationMissingException.php';
+require_once __DIR__ . '/../../framework/Opus/RefBook/I18n/RefBookDocumentationI18nCatalog.php';
+require_once __DIR__ . '/../../framework/Opus/RefBook/Api/LocalizedRefBookDocumentationProvider.php';
+require_once __DIR__ . '/../../framework/Opus/RefBook/Api/RefBookDocumentationI18nRestRouter.php';
 
 use ASAP\RefBook\Api\LocalizedRefBookDocumentationProvider;
 use ASAP\RefBook\Api\RefBookDocumentationI18nRestRouter;
@@ -74,22 +74,22 @@ assert_true(($response['body']['language'] ?? null) === 'cs', 'REST response lan
 assert_true(str_contains($response['body']['data']['symbols'][1]['responsibility'], 'cestu požadavku'), 'REST cs snapshot was not localized', $failures);
 
 $unsupported = $router->handle('GET', '/api/refbook/pt/snapshot');
-assert_true($unsupported['status'] === 500 && str_contains((string) ($unsupported['body']['error'] ?? ''), 'ASAP_REFBOOK_DOC_LANG_UNSUPPORTED'), 'unsupported lang did not fail explicitly', $failures);
+assert_true($unsupported['status'] === 500 && str_contains((string) ($unsupported['body']['error'] ?? ''), 'OPUS_REFBOOK_DOC_LANG_UNSUPPORTED'), 'unsupported lang did not fail explicitly', $failures);
 
 $missingSnapshot = ['symbols' => [['id' => 'x', 'responsibility' => 'This source string is intentionally not translated.']]];
 try {
     $provider->localizeSnapshot($missingSnapshot, 'cs');
     $failures[] = 'missing translation did not throw';
 } catch (RefBookDocumentationTranslationMissingException $exception) {
-    assert_true(str_contains($exception->getMessage(), 'ASAP_REFBOOK_DOC_TRANSLATION_MISSING'), 'missing translation error code is wrong', $failures);
+    assert_true(str_contains($exception->getMessage(), 'OPUS_REFBOOK_DOC_TRANSLATION_MISSING'), 'missing translation error code is wrong', $failures);
 }
 
 if ($failures !== []) {
-    echo "P114D1_ASAP_REFBOOK_DOC_I18N_REST_LANG_PROVIDER_FAIL\n";
+    echo "P114D1_OPUS_REFBOOK_DOC_I18N_REST_LANG_PROVIDER_FAIL\n";
     foreach ($failures as $idx => $failure) {
         echo str_pad((string) ($idx + 1), 3, '0', STR_PAD_LEFT) . ' ' . $failure . "\n";
     }
     exit(1);
 }
 
-echo "P114D1_ASAP_REFBOOK_DOC_I18N_REST_LANG_PROVIDER_OK\n";
+echo "P114D1_OPUS_REFBOOK_DOC_I18N_REST_LANG_PROVIDER_OK\n";

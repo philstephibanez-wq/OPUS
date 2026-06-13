@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /*
- * ASAP RefBook example: secure dispatch gate.
+ * Opus RefBook example: secure dispatch gate.
  *
  * Purpose:
  *   Route matching, ACL and FSM metadata are validated before controller action.

@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /*
- * ASAP RefBook example: HTTP response overview.
+ * Opus RefBook example: HTTP response overview.
  *
  * Purpose:
  *   Build a typed HTTP response without rendering logic inside controllers.

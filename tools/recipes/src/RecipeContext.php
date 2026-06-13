@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe;
+namespace Opus\Recipe;
 
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -13,7 +13,7 @@ use SplFileInfo;
  * PUBLIC SERVICE
  *
  * Role:
- *   Provide shared filesystem, assertion and autoload helpers to ASAP recipes.
+ *   Provide shared filesystem, assertion and autoload helpers to Opus recipes.
  *
  * Responsibility:
  *   Centralize path resolution, sandbox allocation and explicit recipe
@@ -76,19 +76,19 @@ final class RecipeContext
     {
         $path = $this->runtimePath . DIRECTORY_SEPARATOR . 'sandboxes' . DIRECTORY_SEPARATOR . $name;
         if (!is_dir($path) && !mkdir($path, 0775, true) && !is_dir($path)) {
-            throw RecipeAssertionFailedException::because('ASAP_RECIPE_SANDBOX_CREATE_FAILED', $path);
+            throw RecipeAssertionFailedException::because('OPUS_RECIPE_SANDBOX_CREATE_FAILED', $path);
         }
 
         return $path;
     }
 
-    /** PUBLIC API: register the official ASAP classmap-cache autoloader for recipe checks. */
-    public function registerAsapAutoload(): void
+    /** PUBLIC API: register the official Opus classmap-cache autoloader for recipe checks. */
+    public function registerOpusAutoload(): void
     {
         $root = $this->rootPath;
-        $autoloadCache = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap'
+        $autoloadCache = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus'
             . DIRECTORY_SEPARATOR . 'Autoload' . DIRECTORY_SEPARATOR . 'AutoloadCache.php';
-        $classMapBuilder = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap'
+        $classMapBuilder = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus'
             . DIRECTORY_SEPARATOR . 'Autoload' . DIRECTORY_SEPARATOR . 'ClassMapBuilder.php';
 
         if (is_file($autoloadCache) && is_file($classMapBuilder)) {
@@ -105,7 +105,7 @@ final class RecipeContext
             return;
         }
 
-        throw RecipeAssertionFailedException::because('ASAP_AUTOLOADER_CACHE_RUNTIME_MISSING', $autoloadCache);
+        throw RecipeAssertionFailedException::because('OPUS_AUTOLOADER_CACHE_RUNTIME_MISSING', $autoloadCache);
     }
 
     /**
@@ -125,13 +125,13 @@ final class RecipeContext
     /** PUBLIC API: assert that a file exists. */
     public function assertFile(string $relative): void
     {
-        $this->assert(is_file($this->path($relative)), 'ASAP_RECIPE_REQUIRED_FILE_MISSING', $relative);
+        $this->assert(is_file($this->path($relative)), 'OPUS_RECIPE_REQUIRED_FILE_MISSING', $relative);
     }
 
     /** PUBLIC API: assert that a directory exists. */
     public function assertDirectory(string $relative): void
     {
-        $this->assert(is_dir($this->path($relative)), 'ASAP_RECIPE_REQUIRED_DIRECTORY_MISSING', $relative);
+        $this->assert(is_dir($this->path($relative)), 'OPUS_RECIPE_REQUIRED_DIRECTORY_MISSING', $relative);
     }
 
     /** PUBLIC API: add non-fatal explicit diagnostic message. */

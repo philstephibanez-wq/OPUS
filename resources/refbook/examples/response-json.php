@@ -6,7 +6,7 @@ use ASAP\Http\Response;
 
 $response = Response::json([
     'ok' => true,
-    'source' => 'ASAP REST API',
+    'source' => 'Opus REST API',
 ]);
 
 $response->send();

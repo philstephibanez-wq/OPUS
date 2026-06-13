@@ -6,7 +6,7 @@ declare(strict_types=1);
  *
  * Role:
  *   Validate the P113B8 RefBook search delivery without requiring Apache,
- *   UwAmp, .htaccess, database or ASAP_ROOT.
+ *   UwAmp, .htaccess, database or OPUS_ROOT.
  *
  * Contract:
  *   Static/application smoke only. It checks that the dedicated search service,

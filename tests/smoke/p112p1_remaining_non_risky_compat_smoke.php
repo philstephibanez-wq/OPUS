@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../framework/Asap/Exception/Exception.php';
-require_once __DIR__ . '/../../framework/Asap/Contract/ContractException.php';
-require_once __DIR__ . '/../../framework/Asap/Config/Configuration.php';
-require_once __DIR__ . '/../../framework/Asap/Debug/Debug.php';
-require_once __DIR__ . '/../../framework/Asap/Validation/Validator.php';
-require_once __DIR__ . '/../../framework/Asap/Acl/Acl.php';
-require_once __DIR__ . '/../../framework/Asap/Fsm/Fsm.php';
-require_once __DIR__ . '/../../framework/Asap/Template/TemplateException.php';
-require_once __DIR__ . '/../../framework/Asap/Template/Adapter.php';
-require_once __DIR__ . '/../../framework/Asap/Template/Smarty.php';
-require_once __DIR__ . '/../../framework/Asap/Template/X64.php';
-require_once __DIR__ . '/../../framework/Asap/Template/TemplateRendererInterface.php';
-require_once __DIR__ . '/../../framework/Asap/View/View.php';
-require_once __DIR__ . '/../../framework/Asap/Link/Link.php';
+require_once __DIR__ . '/../../framework/Opus/Exception/Exception.php';
+require_once __DIR__ . '/../../framework/Opus/Contract/ContractException.php';
+require_once __DIR__ . '/../../framework/Opus/Config/Configuration.php';
+require_once __DIR__ . '/../../framework/Opus/Debug/Debug.php';
+require_once __DIR__ . '/../../framework/Opus/Validation/Validator.php';
+require_once __DIR__ . '/../../framework/Opus/Acl/Acl.php';
+require_once __DIR__ . '/../../framework/Opus/Fsm/Fsm.php';
+require_once __DIR__ . '/../../framework/Opus/Template/TemplateException.php';
+require_once __DIR__ . '/../../framework/Opus/Template/Adapter.php';
+require_once __DIR__ . '/../../framework/Opus/Template/Smarty.php';
+require_once __DIR__ . '/../../framework/Opus/Template/X64.php';
+require_once __DIR__ . '/../../framework/Opus/Template/TemplateRendererInterface.php';
+require_once __DIR__ . '/../../framework/Opus/View/View.php';
+require_once __DIR__ . '/../../framework/Opus/Link/Link.php';
 
 use ASAP\Acl\Acl;
 use ASAP\Config\Configuration;
@@ -70,7 +70,7 @@ try {
     $smarty->parse('missing.tpl');
     throw new RuntimeException('ASSERT_FAILED: Smarty parse should fail explicitly without runtime');
 } catch (TemplateException $exception) {
-    assertTrue(str_contains($exception->getMessage(), 'ASAP_TEMPLATE_SMARTY_RUNTIME_NOT_CONFIGURED'), 'Smarty explicit failure');
+    assertTrue(str_contains($exception->getMessage(), 'OPUS_TEMPLATE_SMARTY_RUNTIME_NOT_CONFIGURED'), 'Smarty explicit failure');
 }
 
 $x64 = new X64();
@@ -80,7 +80,7 @@ try {
     $x64->loadTemplate('missing.tpl');
     throw new RuntimeException('ASSERT_FAILED: X64 loadTemplate should fail explicitly without runtime');
 } catch (TemplateException $exception) {
-    assertTrue(str_contains($exception->getMessage(), 'ASAP_TEMPLATE_X64_RUNTIME_NOT_CONFIGURED'), 'X64 explicit failure');
+    assertTrue(str_contains($exception->getMessage(), 'OPUS_TEMPLATE_X64_RUNTIME_NOT_CONFIGURED'), 'X64 explicit failure');
 }
 
 $acl = new Acl();

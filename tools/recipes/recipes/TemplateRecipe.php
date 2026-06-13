@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe\Recipes;
+namespace Opus\Recipe\Recipes;
 
 use ASAP\Recipe\RecipeContext;
 use ASAP\Recipe\RecipeInterface;
@@ -22,13 +22,13 @@ final class TemplateRecipe implements RecipeInterface
         };
         $html = new \ASAP\Renderer\HtmlRenderer($renderer);
         $response = $html->render(new \ASAP\Renderer\ViewModel('hello.tpl', ['name' => 'Ada']));
-        $context->assert($response->body === 'hello.tpl:Ada', 'ASAP_TEMPLATE_HTML_RENDER_FAILED');
+        $context->assert($response->body === 'hello.tpl:Ada', 'OPUS_TEMPLATE_HTML_RENDER_FAILED');
         $json = (new \ASAP\Renderer\JsonRenderer())->render(['ok' => true]);
-        $context->assert(str_contains($json->body, 'true'), 'ASAP_TEMPLATE_JSON_RENDER_FAILED');
+        $context->assert(str_contains($json->body, 'true'), 'OPUS_TEMPLATE_JSON_RENDER_FAILED');
         foreach ([\ASAP\Template\TemplateRendererInterface::class, \ASAP\Template\Adapter::class, \ASAP\Template\TwigTemplateRenderer::class] as $class) {
-            $context->assert(interface_exists($class) || class_exists($class), 'ASAP_TEMPLATE_CLASS_NOT_LOADABLE', $class);
+            $context->assert(interface_exists($class) || class_exists($class), 'OPUS_TEMPLATE_CLASS_NOT_LOADABLE', $class);
         }
 
-        return ['ASAP_TEMPLATE_OK'];
+        return ['OPUS_TEMPLATE_OK'];
     }
 }

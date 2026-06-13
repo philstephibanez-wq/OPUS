@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * P112Q2E — BDD to Database English domain rename.
+ * P112Q2E â€” BDD to Database English domain rename.
  *
  * This migration handles the final P112Q2A2 finding:
  *
@@ -18,21 +18,21 @@ declare(strict_types=1);
  */
 
 $asapRoot = 'H:\\ASAP';
-$refBookRoot = 'H:\\ASAP_REF_BOOK';
-$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
+$refBookRoot = 'H:\\OPUS_REF_BOOK';
+$frameworkRoot = $asapRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus';
 
 if (!is_dir($asapRoot)) {
-    fwrite(STDERR, "ASAP_ROOT_MISSING\n");
+    fwrite(STDERR, "OPUS_ROOT_MISSING\n");
     exit(1);
 }
 
 if (!is_dir($refBookRoot)) {
-    fwrite(STDERR, "ASAP_REF_BOOK_ROOT_MISSING\n");
+    fwrite(STDERR, "OPUS_REF_BOOK_ROOT_MISSING\n");
     exit(1);
 }
 
 if (!is_dir($frameworkRoot)) {
-    fwrite(STDERR, "ASAP_FRAMEWORK_ROOT_MISSING\n");
+    fwrite(STDERR, "OPUS_FRAMEWORK_ROOT_MISSING\n");
     exit(1);
 }
 
@@ -207,13 +207,13 @@ function replaceInTextFiles(array $roots, array $replacements): int
 normalizeDirectorySegment($frameworkRoot, $from, $to);
 
 $replacements = [
-    'namespace ASAP\\BDD' => 'namespace ASAP\\Database',
-    'use ASAP\\BDD' => 'use ASAP\\Database',
-    'ASAP\\BDD' => 'ASAP\\Database',
-    'ASAP\\\\BDD' => 'ASAP\\\\Database',
-    'framework/Asap/BDD' => 'framework/Asap/Database',
-    'framework\\ASAP\\BDD' => 'framework\\ASAP\\Database',
-    'framework\\\\ASAP\\\\BDD' => 'framework\\\\ASAP\\\\Database',
+    'namespace Opus\\BDD' => 'namespace Opus\\Database',
+    'use Opus\\BDD' => 'use Opus\\Database',
+    'Opus\\BDD' => 'Opus\\Database',
+    'Opus\\\\BDD' => 'Opus\\\\Database',
+    'framework/Opus/BDD' => 'framework/Opus/Database',
+    'framework\\Opus\\BDD' => 'framework\\Opus\\Database',
+    'framework\\\\Opus\\\\BDD' => 'framework\\\\Opus\\\\Database',
     'ASAP/BDD' => 'ASAP/Database',
     '/BDD/' => '/Database/',
     '\\BDD\\' => '\\Database\\',

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe\Life;
+namespace Opus\Recipe\Life;
 
 /**
  * PUBLIC VALUE OBJECT
  *
  * Role:
- *   Represent one robotized user or system actor in ASAP life recipes.
+ *   Represent one robotized user or system actor in Opus life recipes.
  *
  * Responsibility:
  *   Carry actor id, role, locale and explicit permissions without reading a

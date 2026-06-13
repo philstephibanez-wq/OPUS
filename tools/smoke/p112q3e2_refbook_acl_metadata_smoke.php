@@ -9,15 +9,15 @@ declare(strict_types=1);
  */
 $root = dirname(__DIR__, 2);
 $required = [
-    'framework/Asap/Acl/AccessControl.php',
-    'framework/Asap/Acl/AccessRule.php',
-    'framework/Asap/Acl/AccessContext.php',
-    'framework/Asap/Acl/AccessDecision.php',
-    'framework/Asap/Acl/AccessConditionInterface.php',
-    'framework/Asap/Acl/AccessControlException.php',
-    'framework/Asap/Acl/RoleDefinition.php',
-    'framework/Asap/Acl/ResourceDefinition.php',
-    'framework/Asap/Acl/PrivilegeDefinition.php',
+    'framework/Opus/Acl/AccessControl.php',
+    'framework/Opus/Acl/AccessRule.php',
+    'framework/Opus/Acl/AccessContext.php',
+    'framework/Opus/Acl/AccessDecision.php',
+    'framework/Opus/Acl/AccessConditionInterface.php',
+    'framework/Opus/Acl/AccessControlException.php',
+    'framework/Opus/Acl/RoleDefinition.php',
+    'framework/Opus/Acl/ResourceDefinition.php',
+    'framework/Opus/Acl/PrivilegeDefinition.php',
     'tests/Contract/RefBookAclMetadataContractTest.php',
     'tools/refbook/p112q3e2_refbook_acl_metadata_audit.php',
     'tools/refbook/run_p112q3e2_refbook_acl_metadata_strict.cmd',
@@ -31,8 +31,8 @@ foreach ($required as $relative) {
     }
 }
 
-$accessControl = file_get_contents($root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Acl' . DIRECTORY_SEPARATOR . 'AccessControl.php');
-if (!is_string($accessControl) || !str_contains($accessControl, '#[AsapRefBookClass(') || !str_contains($accessControl, 'RefBookInspectableInterface')) {
+$accessControl = file_get_contents($root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Acl' . DIRECTORY_SEPARATOR . 'AccessControl.php');
+if (!is_string($accessControl) || !str_contains($accessControl, '#[OpusRefBookClass(') || !str_contains($accessControl, 'RefBookInspectableInterface')) {
     fwrite(STDERR, 'P112Q3E2_SMOKE_FAILED: ACCESS_CONTROL_METADATA_MARKER_MISSING' . PHP_EOL);
     exit(1);
 }
@@ -43,7 +43,7 @@ if (!is_string($audit) || !str_contains($audit, 'P112Q3E2_REFBOOK_ACL_METADATA_A
     exit(1);
 }
 
-$recipe = file_get_contents($root . DIRECTORY_SEPARATOR . 'tools' . DIRECTORY_SEPARATOR . 'recipes' . DIRECTORY_SEPARATOR . 'asap_global_regression_recipe.php');
+$recipe = file_get_contents($root . DIRECTORY_SEPARATOR . 'tools' . DIRECTORY_SEPARATOR . 'recipes' . DIRECTORY_SEPARATOR . 'opus_global_regression_recipe.php');
 if (!is_string($recipe) || !str_contains($recipe, 'P112Q3E2_UNIT') || !str_contains($recipe, 'P112Q3E2_SMOKE')) {
     fwrite(STDERR, 'P112Q3E2_SMOKE_FAILED: GLOBAL_RECIPE_STEP_MISSING' . PHP_EOL);
     exit(1);

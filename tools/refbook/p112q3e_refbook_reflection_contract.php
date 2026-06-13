@@ -7,23 +7,23 @@ declare(strict_types=1);
  *
  * Public CLI tool.
  * Role:
- *   Generate an ASAP RefBook Reflection snapshot and validation report from the
+ *   Generate an Opus RefBook Reflection snapshot and validation report from the
  *   real framework sources without mutating source files.
  *
  * Contract:
  *   - Reflection is the technical source of truth;
- *   - AsapRefBookClass and AsapRefBookMethod attributes are the functional
+ *   - OpusRefBookClass and OpusRefBookMethod attributes are the functional
  *     documentation source of truth;
  *   - reports are written under var/reports/p112q3e_refbook_reflection_contract;
  *   - snapshot is written under var/refbook/snapshot.latest.json;
  *   - strict mode fails explicitly while metadata is missing.
  */
 $root = dirname(__DIR__, 2);
-$strict = in_array('--strict', $argv, true) || getenv('ASAP_P112Q3E_STRICT') === '1';
+$strict = in_array('--strict', $argv, true) || getenv('OPUS_P112Q3E_STRICT') === '1';
 
 requireRefBookCore($root);
 
-$sourceRoot = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
+$sourceRoot = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus';
 $reportRoot = $root . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'reports' . DIRECTORY_SEPARATOR . 'p112q3e_refbook_reflection_contract';
 $snapshotRoot = $root . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'refbook';
 ensureDirectory($reportRoot);
@@ -82,15 +82,15 @@ exit(0);
 function requireRefBookCore(string $root): void
 {
     $files = [
-        'framework/Asap/RefBook/Attribute/AsapRefBookClass.php',
-        'framework/Asap/RefBook/Attribute/AsapRefBookMethod.php',
-        'framework/Asap/RefBook/Contract/RefBookInspectableInterface.php',
-        'framework/Asap/RefBook/Model/RefBookMethodEntry.php',
-        'framework/Asap/RefBook/Model/RefBookClassEntry.php',
-        'framework/Asap/RefBook/Model/RefBookScanResult.php',
-        'framework/Asap/RefBook/RefBookReflectionScanner.php',
-        'framework/Asap/RefBook/RefBookContractValidator.php',
-        'framework/Asap/RefBook/RefBookSnapshotBuilder.php',
+        'framework/Opus/RefBook/Attribute/OpusRefBookClass.php',
+        'framework/Opus/RefBook/Attribute/OpusRefBookMethod.php',
+        'framework/Opus/RefBook/Contract/RefBookInspectableInterface.php',
+        'framework/Opus/RefBook/Model/RefBookMethodEntry.php',
+        'framework/Opus/RefBook/Model/RefBookClassEntry.php',
+        'framework/Opus/RefBook/Model/RefBookScanResult.php',
+        'framework/Opus/RefBook/RefBookReflectionScanner.php',
+        'framework/Opus/RefBook/RefBookContractValidator.php',
+        'framework/Opus/RefBook/RefBookSnapshotBuilder.php',
     ];
     foreach ($files as $relative) {
         $path = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);

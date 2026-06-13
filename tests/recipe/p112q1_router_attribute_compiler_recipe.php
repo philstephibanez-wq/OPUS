@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../framework/Asap/Contract/ContractException.php';
-require_once __DIR__ . '/../../framework/Asap/Routing/RouteCompilerException.php';
-require_once __DIR__ . '/../../framework/Asap/Routing/RouteDefinition.php';
-require_once __DIR__ . '/../../framework/Asap/Routing/Route.php';
-require_once __DIR__ . '/../../framework/Asap/Routing/ClassIndex.php';
-require_once __DIR__ . '/../../framework/Asap/Routing/AttributeRouteProvider.php';
-require_once __DIR__ . '/../../framework/Asap/Routing/RouteManifestCompiler.php';
+require_once __DIR__ . '/../../framework/Opus/Contract/ContractException.php';
+require_once __DIR__ . '/../../framework/Opus/Routing/RouteCompilerException.php';
+require_once __DIR__ . '/../../framework/Opus/Routing/RouteDefinition.php';
+require_once __DIR__ . '/../../framework/Opus/Routing/Route.php';
+require_once __DIR__ . '/../../framework/Opus/Routing/ClassIndex.php';
+require_once __DIR__ . '/../../framework/Opus/Routing/AttributeRouteProvider.php';
+require_once __DIR__ . '/../../framework/Opus/Routing/RouteManifestCompiler.php';
 require_once __DIR__ . '/../fixtures/P112Q1/DemoRouteController.php';
 require_once __DIR__ . '/../fixtures/P112Q1/DuplicateRouteController.php';
 
@@ -33,15 +33,15 @@ function recipeStep(string $message): void
 }
 
 $asapRoot = dirname(__DIR__, 2);
-$refBookRoot = 'H:\\ASAP_REF_BOOK';
+$refBookRoot = 'H:\\OPUS_REF_BOOK';
 
 $requiredFiles = [
-    $asapRoot . '/framework/Asap/Routing/Route.php',
-    $asapRoot . '/framework/Asap/Routing/ClassIndex.php',
-    $asapRoot . '/framework/Asap/Routing/AttributeRouteProvider.php',
-    $asapRoot . '/framework/Asap/Routing/RouteManifestCompiler.php',
+    $asapRoot . '/framework/Opus/Routing/Route.php',
+    $asapRoot . '/framework/Opus/Routing/ClassIndex.php',
+    $asapRoot . '/framework/Opus/Routing/AttributeRouteProvider.php',
+    $asapRoot . '/framework/Opus/Routing/RouteManifestCompiler.php',
     $asapRoot . '/DOC/ROUTER_ATTRIBUTE_COMPILER.md',
-    $asapRoot . '/DOC/P112Q1_ASAP_ROUTER_ATTRIBUTE_COMPILER_CONTRACT.md',
+    $asapRoot . '/DOC/P112Q1_OPUS_ROUTER_ATTRIBUTE_COMPILER_CONTRACT.md',
     $refBookRoot . '/content/markdown/router-attribute-compiler.md',
 ];
 
@@ -57,12 +57,12 @@ $classIndex = ClassIndex::fromComposerClassMap([
 
 recipeAssert($classIndex->classes() === [DemoRouteController::class], 'ClassIndex classes are deterministic');
 recipeAssert($classIndex->pathForClass(DemoRouteController::class) !== null, 'ClassIndex pathForClass works');
-recipeAssert($classIndex->classesInNamespace('ASAP\\Tests\\Fixtures\\P112Q1') === [DemoRouteController::class], 'ClassIndex namespace filter works');
+recipeAssert($classIndex->classesInNamespace('Opus\\Tests\\Fixtures\\P112Q1') === [DemoRouteController::class], 'ClassIndex namespace filter works');
 
 recipeStep('CLASS_INDEX_OK');
 
 $provider = new AttributeRouteProvider($classIndex);
-$routes = $provider->routes('ASAP\\Tests\\Fixtures\\P112Q1');
+$routes = $provider->routes('Opus\\Tests\\Fixtures\\P112Q1');
 
 recipeAssert(count($routes) === 2, 'Attribute provider detects two routes');
 recipeAssert($routes[0] instanceof RouteDefinition, 'Routes are RouteDefinition objects');
@@ -103,15 +103,15 @@ $duplicateProvider = new AttributeRouteProvider(new ClassIndex([
 ]));
 
 try {
-    $compiler->compile($duplicateProvider->routes('ASAP\\Tests\\Fixtures\\P112Q1'));
+    $compiler->compile($duplicateProvider->routes('Opus\\Tests\\Fixtures\\P112Q1'));
     throw new RuntimeException('RECIPE_ASSERT_FAILED: duplicate path+method should fail');
 } catch (RouteCompilerException $exception) {
-    recipeAssert(str_contains($exception->getMessage(), 'ASAP_ROUTE_PATH_METHOD_DUPLICATE'), 'Duplicate path+method conflict explicit');
+    recipeAssert(str_contains($exception->getMessage(), 'OPUS_ROUTE_PATH_METHOD_DUPLICATE'), 'Duplicate path+method conflict explicit');
 }
 
 recipeStep('DUPLICATE_PATH_METHOD_BLOCKED');
 
-$missingNamespaceRoutes = $provider->routes('ASAP\\Missing\\Namespace');
+$missingNamespaceRoutes = $provider->routes('Opus\\Missing\\Namespace');
 
 recipeAssert($missingNamespaceRoutes === [], 'Missing namespace returns an explicit empty route list');
 

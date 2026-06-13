@@ -7,8 +7,8 @@ declare(strict_types=1);
  *
  * Public CLI tool.
  * Role:
- *   Scan ASAP framework public symbols and public methods to verify that each
- *   documented API boundary has an explicit `ASAP_REFBOOK` tag block for the
+ *   Scan Opus framework public symbols and public methods to verify that each
+ *   documented API boundary has an explicit `OPUS_REFBOOK` tag block for the
  *   Reference Book generator.
  *
  * Contract:
@@ -17,7 +17,7 @@ declare(strict_types=1);
  *   - never install dependencies;
  *   - write reports only under var/reports/p112q3d_refbook_tag_contract;
  *   - strict mode fails explicitly when a public class/interface/trait/enum or
- *     public method has no local `ASAP_REFBOOK` block;
+ *     public method has no local `OPUS_REFBOOK` block;
  *   - class-level tags do not silently cover method-level documentation.
  */
 final class P112Q3DRefBookTagContract
@@ -38,21 +38,21 @@ final class P112Q3DRefBookTagContract
     public function __construct(string $root)
     {
         $this->root = rtrim($root, DIRECTORY_SEPARATOR);
-        $this->frameworkRoot = $this->root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap';
+        $this->frameworkRoot = $this->root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus';
         $this->reportRoot = $this->root . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'reports' . DIRECTORY_SEPARATOR . 'p112q3d_refbook_tag_contract';
     }
 
     /**
      * Public CLI entrypoint.
      *
-     * @param bool|null $strict Override strict mode. Null reads ASAP_P112Q3D_STRICT.
+     * @param bool|null $strict Override strict mode. Null reads OPUS_P112Q3D_STRICT.
      *
      * @return int Process exit code.
      */
     public function run(?bool $strict = null): int
     {
         $strict = $strict ?? $this->isStrictMode();
-        $this->assertDirectory($this->frameworkRoot, 'ASAP_FRAMEWORK_ROOT_MISSING');
+        $this->assertDirectory($this->frameworkRoot, 'OPUS_FRAMEWORK_ROOT_MISSING');
 
         $this->symbols = $this->scanFrameworkSymbols();
         $this->buildRows();
@@ -284,7 +284,7 @@ final class P112Q3DRefBookTagContract
             'method_tags_ok' => 0,
             'method_tags_missing' => 0,
             'by_domain' => [],
-            'note' => 'Class-level ASAP_REFBOOK blocks and method-level ASAP_REFBOOK blocks are checked separately. A class tag never silently covers all methods.',
+            'note' => 'Class-level OPUS_REFBOOK blocks and method-level OPUS_REFBOOK blocks are checked separately. A class tag never silently covers all methods.',
         ];
 
         foreach ($this->classRows as $row) {
@@ -350,14 +350,14 @@ final class P112Q3DRefBookTagContract
     private function renderMarkdown(array $summary): string
     {
         $out = [];
-        $out[] = '# P112Q3D — ASAP RefBook Tag Contract';
+        $out[] = '# P112Q3D â€” Opus RefBook Tag Contract';
         $out[] = '';
         $out[] = 'Generated at: `' . (string) $summary['generated_at'] . '`';
         $out[] = '';
         $out[] = '## Contract';
         $out[] = '';
-        $out[] = '- Every public class/interface/trait/enum must have an `ASAP_REFBOOK` block.';
-        $out[] = '- Every public method must have its own local `ASAP_REFBOOK` block.';
+        $out[] = '- Every public class/interface/trait/enum must have an `OPUS_REFBOOK` block.';
+        $out[] = '- Every public method must have its own local `OPUS_REFBOOK` block.';
         $out[] = '- A class-level tag never silently covers all methods.';
         $out[] = '';
         $out[] = '## Summary';
@@ -404,7 +404,7 @@ final class P112Q3DRefBookTagContract
 
         return '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>P112Q3D RefBook Tag Contract</title>'
             . '<style>body{font-family:Arial,sans-serif;background:#0b1220;color:#eef4ff;margin:0;padding:24px}h1{margin:0 0 8px}.muted{color:#9fb2d8}.cards{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0}.card{border:1px solid #263957;border-radius:14px;padding:14px 18px;background:#101b2d}.card strong{display:block;font-size:26px}.note{border-left:4px solid #60a5fa;padding:10px 14px;background:#0f1a2c;margin:18px 0}table{border-collapse:collapse;width:100%;background:#101b2d;border-radius:12px;overflow:hidden;margin:16px 0 28px}th,td{border-bottom:1px solid #263957;padding:9px 10px;text-align:left;font-size:13px}th{background:#17243a}.ok td:first-child{color:#4ade80}.miss td:first-child{color:#fb7185}code{color:#fde68a}</style></head><body>'
-            . '<h1>P112Q3D — ASAP RefBook Tag Contract</h1><p class="muted">Generated at ' . $this->h((string) $summary['generated_at']) . '</p>'
+            . '<h1>P112Q3D â€” Opus RefBook Tag Contract</h1><p class="muted">Generated at ' . $this->h((string) $summary['generated_at']) . '</p>'
             . '<div class="note">Class-level tags and method-level tags are separate. A class tag never silently covers all methods.</div>'
             . '<div class="cards"><div class="card"><span>Symbols</span><strong>' . $this->h((string) $summary['symbols']) . '</strong></div><div class="card"><span>Public methods</span><strong>' . $this->h((string) $summary['public_methods']) . '</strong></div><div class="card"><span>Class tags missing</span><strong>' . $this->h((string) $summary['class_tags_missing']) . '</strong></div><div class="card"><span>Method tags missing</span><strong>' . $this->h((string) $summary['method_tags_missing']) . '</strong></div></div>'
             . '<h2>Classes / interfaces / traits / enums</h2><table><thead><tr><th>Status</th><th>Domain</th><th>Symbol</th><th>File</th></tr></thead><tbody>' . $classRows . '</tbody></table>'
@@ -467,7 +467,7 @@ final class P112Q3DRefBookTagContract
     {
         $block = implode(PHP_EOL, $comments);
 
-        return str_contains($block, 'ASAP_REFBOOK:') && str_contains($block, 'END_ASAP_REFBOOK');
+        return str_contains($block, 'OPUS_REFBOOK:') && str_contains($block, 'END_OPUS_REFBOOK');
     }
 
 
@@ -611,7 +611,7 @@ final class P112Q3DRefBookTagContract
     {
         $normalized = str_replace('\\', '/', $relativePath);
         $parts = explode('/', $normalized);
-        $index = array_search('Asap', $parts, true);
+        $index = array_search('Opus', $parts, true);
         if ($index === false || !isset($parts[$index + 1])) {
             return 'UNKNOWN';
         }
@@ -655,7 +655,7 @@ final class P112Q3DRefBookTagContract
 
     private function isStrictMode(): bool
     {
-        return (string) getenv('ASAP_P112Q3D_STRICT') === '1';
+        return (string) getenv('OPUS_P112Q3D_STRICT') === '1';
     }
 
     private function h(string $value): string

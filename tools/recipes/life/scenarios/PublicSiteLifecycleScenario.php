@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe\Life\Scenarios;
+namespace Opus\Recipe\Life\Scenarios;
 
 use ASAP\Recipe\Life\LifeScenarioRunner;
 use ASAP\Recipe\Life\RobotActor;
@@ -31,7 +31,7 @@ final class PublicSiteLifecycleScenario implements RecipeInterface, RobotScenari
                 file_put_contents($security, '<security></security>');
                 $site = new \ASAP\Site\SiteDefinition('demo', '/demo', $routes, $security);
                 $match = \ASAP\Routing\Router::fromXml($routes)->match(new \ASAP\Http\Request('/demo', 'GET'), $site);
-                $context->assert($match->name === 'home', 'ASAP_LIFE_PUBLIC_ROUTE_MATCH_FAILED');
+                $context->assert($match->name === 'home', 'OPUS_LIFE_PUBLIC_ROUTE_MATCH_FAILED');
                 $session->set('match', $match);
             }),
             new RobotStep('render_public_response', function (RecipeContext $context, RobotSession $session): void {
@@ -39,7 +39,7 @@ final class PublicSiteLifecycleScenario implements RecipeInterface, RobotScenari
                     public function render(string $template, array $data = []): string { return 'FR:' . $template . ':' . (string)($data['route'] ?? ''); }
                 };
                 $response = (new \ASAP\Renderer\HtmlRenderer($renderer))->render(new \ASAP\Renderer\ViewModel('home.tpl', ['route' => $session->get('match')->name]));
-                $context->assert($response->status === 200 && $response->body === 'FR:home.tpl:home', 'ASAP_LIFE_PUBLIC_RENDER_FAILED');
+                $context->assert($response->status === 200 && $response->body === 'FR:home.tpl:home', 'OPUS_LIFE_PUBLIC_RENDER_FAILED');
             }),
         ];
     }

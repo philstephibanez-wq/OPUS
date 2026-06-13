@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /*
- * ASAP RefBook example: HTML response.
+ * Opus RefBook example: HTML response.
  *
  * Purpose:
  *   Show an HTML response boundary. Data is prepared before representation.

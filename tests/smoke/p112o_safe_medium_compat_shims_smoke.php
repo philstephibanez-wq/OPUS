@@ -2,34 +2,34 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../framework/Asap/Exception/Exception.php';
-require_once __DIR__ . '/../../framework/Asap/Contract/ContractException.php';
-require_once __DIR__ . '/../../framework/Asap/Config/Configuration.php';
-require_once __DIR__ . '/../../framework/Asap/Config/ConfigLoader.php';
-require_once __DIR__ . '/../../framework/Asap/Support/Support.php';
-require_once __DIR__ . '/../../framework/Asap/Compatibility/SimpleXMLElementExtended.php';
-require_once __DIR__ . '/../../framework/Asap/Compatibility/LegacySimpleXMLElementExtended.php';
-require_once __DIR__ . '/../../framework/Asap/Compatibility/Singleton.php';
-require_once __DIR__ . '/../../framework/Asap/Compatibility/LegacySingleton.php';
-require_once __DIR__ . '/../../framework/Asap/Validation/Validator.php';
-require_once __DIR__ . '/../../framework/Asap/I18n/TranslationException.php';
-require_once __DIR__ . '/../../framework/Asap/I18n/LocaleCode.php';
-require_once __DIR__ . '/../../framework/Asap/I18n/PluralRuleInterface.php';
-require_once __DIR__ . '/../../framework/Asap/I18n/Plural/EnglishPluralRule.php';
-require_once __DIR__ . '/../../framework/Asap/I18n/Plural/FrenchPluralRule.php';
-require_once __DIR__ . '/../../framework/Asap/I18n/Plural/RussianPluralRule.php';
-require_once __DIR__ . '/../../framework/Asap/I18n/Plural/SpanishPluralRule.php';
-require_once __DIR__ . '/../../framework/Asap/I18n/TranslationCatalog.php';
-require_once __DIR__ . '/../../framework/Asap/I18n/JsonTranslationCatalogLoader.php';
-require_once __DIR__ . '/../../framework/Asap/I18n/Translator.php';
-require_once __DIR__ . '/../../framework/Asap/I18n/I18n.php';
-require_once __DIR__ . '/../../framework/Asap/Http/Response.php';
-require_once __DIR__ . '/../../framework/Asap/Response/ResponseFacade.php';
-require_once __DIR__ . '/../../framework/Asap/Url/Url.php';
-require_once __DIR__ . '/../../framework/Asap/Package/Package.php';
-require_once __DIR__ . '/../../framework/Asap/Package/PackageRepository.php';
-require_once __DIR__ . '/../../framework/Asap/Core/Kernel.php';
-require_once __DIR__ . '/../../framework/Asap/Core/Bootstrap.php';
+require_once __DIR__ . '/../../framework/Opus/Exception/Exception.php';
+require_once __DIR__ . '/../../framework/Opus/Contract/ContractException.php';
+require_once __DIR__ . '/../../framework/Opus/Config/Configuration.php';
+require_once __DIR__ . '/../../framework/Opus/Config/ConfigLoader.php';
+require_once __DIR__ . '/../../framework/Opus/Support/Support.php';
+require_once __DIR__ . '/../../framework/Opus/Compatibility/SimpleXMLElementExtended.php';
+require_once __DIR__ . '/../../framework/Opus/Compatibility/LegacySimpleXMLElementExtended.php';
+require_once __DIR__ . '/../../framework/Opus/Compatibility/Singleton.php';
+require_once __DIR__ . '/../../framework/Opus/Compatibility/LegacySingleton.php';
+require_once __DIR__ . '/../../framework/Opus/Validation/Validator.php';
+require_once __DIR__ . '/../../framework/Opus/I18n/TranslationException.php';
+require_once __DIR__ . '/../../framework/Opus/I18n/LocaleCode.php';
+require_once __DIR__ . '/../../framework/Opus/I18n/PluralRuleInterface.php';
+require_once __DIR__ . '/../../framework/Opus/I18n/Plural/EnglishPluralRule.php';
+require_once __DIR__ . '/../../framework/Opus/I18n/Plural/FrenchPluralRule.php';
+require_once __DIR__ . '/../../framework/Opus/I18n/Plural/RussianPluralRule.php';
+require_once __DIR__ . '/../../framework/Opus/I18n/Plural/SpanishPluralRule.php';
+require_once __DIR__ . '/../../framework/Opus/I18n/TranslationCatalog.php';
+require_once __DIR__ . '/../../framework/Opus/I18n/JsonTranslationCatalogLoader.php';
+require_once __DIR__ . '/../../framework/Opus/I18n/Translator.php';
+require_once __DIR__ . '/../../framework/Opus/I18n/I18n.php';
+require_once __DIR__ . '/../../framework/Opus/Http/Response.php';
+require_once __DIR__ . '/../../framework/Opus/Response/ResponseFacade.php';
+require_once __DIR__ . '/../../framework/Opus/Url/Url.php';
+require_once __DIR__ . '/../../framework/Opus/Package/Package.php';
+require_once __DIR__ . '/../../framework/Opus/Package/PackageRepository.php';
+require_once __DIR__ . '/../../framework/Opus/Core/Kernel.php';
+require_once __DIR__ . '/../../framework/Opus/Core/Bootstrap.php';
 
 use ASAP\Core\Bootstrap;
 use ASAP\Config\ConfigLoader;
@@ -76,17 +76,17 @@ assertTrue(Validator::isAbsoluteUrl('https://example.test/a'), 'Validator isAbso
 assertTrue(Validator::isCleanHtml('<p>ok</p>'), 'Validator isCleanHtml');
 assertTrue(!Validator::isCleanHtml('<script>x</script>'), 'Validator blocks script');
 
-$configFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'p112o_asap_config.php';
+$configFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'p112o_opus_config.php';
 file_put_contents($configFile, '<?php return ["name" => "asap", "enabled" => true];');
 $config = (new ConfigLoader($configFile))->getConfig();
 assertTrue($config->get('name') === 'asap', 'ConfigLoader getConfig');
 @unlink($configFile);
 
 $i18n = new I18n(__DIR__ . '/../../resources/i18n', 'fr');
-assertTrue($i18n->t('asap.title') === 'ASAP Framework', 'I18N t');
-assertTrue(isset($i18n->dictionary()['messages']['asap.title']), 'I18N dictionary');
+assertTrue($i18n->t('opus.title') === 'Opus Framework', 'I18N t');
+assertTrue(isset($i18n->dictionary()['messages']['opus.title']), 'I18N dictionary');
 assertTrue(in_array('fr', $i18n->getAvalaibleLanguages(), true), 'I18N getAvalaibleLanguages');
-assertTrue(I18n::getInstance(__DIR__ . '/../../resources/i18n', 'fr')->translate('asap.title') === 'ASAP Framework', 'I18N getInstance');
+assertTrue(I18n::getInstance(__DIR__ . '/../../resources/i18n', 'fr')->translate('opus.title') === 'Opus Framework', 'I18N getInstance');
 
 $html = Response::html('<h1>OK</h1>');
 assertTrue($html->body === '<h1>OK</h1>', 'Response html body');
@@ -118,4 +118,4 @@ assertTrue($bootstrap->run(static fn (Bootstrap $bootstrap): string => 'BOOT_OK'
 
 echo 'P112O SAFE compat shims smoke OK' . PHP_EOL;
 echo 'P112O MEDIUM foundation shims smoke OK' . PHP_EOL;
-echo 'P112O ASAP compatibility smoke OK' . PHP_EOL;
+echo 'P112O Opus compatibility smoke OK' . PHP_EOL;

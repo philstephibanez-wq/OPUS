@@ -7,22 +7,22 @@ declare(strict_types=1);
  *
  * Public CLI contract test.
  * Role:
- *   Prove that the second critical ASAP domain (ACL) is fully covered by the
+ *   Prove that the second critical Opus domain (ACL) is fully covered by the
  *   Reflection + Attributes RefBook contract and still denies by default.
  */
 $root = dirname(__DIR__, 2);
 requireRefBookCore($root);
 
-$aclRoot = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Asap' . DIRECTORY_SEPARATOR . 'Acl';
+$aclRoot = $root . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Acl';
 $scanner = new ASAP\RefBook\RefBookReflectionScanner();
-$result = $scanner->scan($aclRoot, 'ASAP\\Acl');
+$result = $scanner->scan($aclRoot, 'Opus\\Acl');
 $validator = new ASAP\RefBook\RefBookContractValidator();
 $validation = $validator->validate($result);
 $summary = $validation['summary'];
 
 assertSame(0, $summary['load_errors'], 'ACL scan must not have load errors.');
-assertSame(0, $summary['class_metadata_missing'], 'Every ACL class/interface must expose AsapRefBookClass metadata.');
-assertSame(0, $summary['method_metadata_missing'], 'Every ACL public method must expose AsapRefBookMethod metadata.');
+assertSame(0, $summary['class_metadata_missing'], 'Every ACL class/interface must expose OpusRefBookClass metadata.');
+assertSame(0, $summary['method_metadata_missing'], 'Every ACL public method must expose OpusRefBookMethod metadata.');
 assertSame(0, $summary['violations'], 'ACL RefBook contract must have zero violations.');
 assertSame(11, $summary['classes'], 'Expected eleven ACL symbols in the second critical domain baseline.');
 assertSame(30, $summary['public_methods'], 'Expected thirty ACL public methods after inspectable domain providers.');
@@ -48,40 +48,40 @@ foreach ($result->classes() as $class) {
     }
 }
 
-assertHasClass($classes, 'ASAP\\Acl\\AccessControl');
-assertHasClass($classes, 'ASAP\\Acl\\AccessDeniedException');
-assertHasClass($classes, 'ASAP\\Acl\\Acl');
-assertHasClass($classes, 'ASAP\\Acl\\AccessRule');
-assertHasClass($classes, 'ASAP\\Acl\\AccessContext');
-assertHasClass($classes, 'ASAP\\Acl\\AccessDecision');
-assertHasClass($classes, 'ASAP\\Acl\\AccessConditionInterface');
-assertHasClass($classes, 'ASAP\\Acl\\AccessControlException');
-assertHasClass($classes, 'ASAP\\Acl\\RoleDefinition');
-assertHasClass($classes, 'ASAP\\Acl\\ResourceDefinition');
-assertHasClass($classes, 'ASAP\\Acl\\PrivilegeDefinition');
+assertHasClass($classes, 'Opus\\Acl\\AccessControl');
+assertHasClass($classes, 'Opus\\Acl\\AccessDeniedException');
+assertHasClass($classes, 'Opus\\Acl\\Acl');
+assertHasClass($classes, 'Opus\\Acl\\AccessRule');
+assertHasClass($classes, 'Opus\\Acl\\AccessContext');
+assertHasClass($classes, 'Opus\\Acl\\AccessDecision');
+assertHasClass($classes, 'Opus\\Acl\\AccessConditionInterface');
+assertHasClass($classes, 'Opus\\Acl\\AccessControlException');
+assertHasClass($classes, 'Opus\\Acl\\RoleDefinition');
+assertHasClass($classes, 'Opus\\Acl\\ResourceDefinition');
+assertHasClass($classes, 'Opus\\Acl\\PrivilegeDefinition');
 
-assertSame(true, $classes['ASAP\\Acl\\AccessControl']['implements_refbook_inspectable'], 'AccessControl must opt in to RefBookInspectableInterface.');
-assertSame(true, $classes['ASAP\\Acl\\Acl']['implements_refbook_inspectable'], 'Acl compatibility facade must opt in to RefBookInspectableInterface.');
-assertSame(true, $classes['ASAP\\Acl\\AccessDeniedException']['implements_refbook_inspectable'], 'AccessDeniedException must inherit RefBookInspectableInterface through AccessControlException.');
-assertSame(true, $classes['ASAP\\Acl\\AccessRule']['implements_refbook_inspectable'], 'AccessRule must opt in to RefBookInspectableInterface.');
-assertSame(true, $classes['ASAP\\Acl\\RoleDefinition']['implements_refbook_inspectable'], 'RoleDefinition must opt in to RefBookInspectableInterface.');
+assertSame(true, $classes['Opus\\Acl\\AccessControl']['implements_refbook_inspectable'], 'AccessControl must opt in to RefBookInspectableInterface.');
+assertSame(true, $classes['Opus\\Acl\\Acl']['implements_refbook_inspectable'], 'Acl compatibility facade must opt in to RefBookInspectableInterface.');
+assertSame(true, $classes['Opus\\Acl\\AccessDeniedException']['implements_refbook_inspectable'], 'AccessDeniedException must inherit RefBookInspectableInterface through AccessControlException.');
+assertSame(true, $classes['Opus\\Acl\\AccessRule']['implements_refbook_inspectable'], 'AccessRule must opt in to RefBookInspectableInterface.');
+assertSame(true, $classes['Opus\\Acl\\RoleDefinition']['implements_refbook_inspectable'], 'RoleDefinition must opt in to RefBookInspectableInterface.');
 
-$accessControl = $classes['ASAP\\Acl\\AccessControl'];
+$accessControl = $classes['Opus\\Acl\\AccessControl'];
 $decide = findMethod($accessControl['methods'], 'decide');
-assertSame('ASAP\\Acl\\AccessDecision', $decide['return_type'], 'AccessControl::decide return type must come from Reflection.');
+assertSame('Opus\\Acl\\AccessDecision', $decide['return_type'], 'AccessControl::decide return type must come from Reflection.');
 assertSame('string', $decide['parameters'][0]['type'] ?? null, 'AccessControl::decide role parameter type must come from Reflection.');
 assertSame('string', $decide['parameters'][1]['type'] ?? null, 'AccessControl::decide resource parameter type must come from Reflection.');
 assertSame('string', $decide['parameters'][2]['type'] ?? null, 'AccessControl::decide privilege parameter type must come from Reflection.');
-assertSame('?ASAP\\Acl\\AccessContext', $decide['parameters'][3]['type'] ?? null, 'AccessControl::decide context parameter type must come from Reflection.');
+assertSame('?Opus\\Acl\\AccessContext', $decide['parameters'][3]['type'] ?? null, 'AccessControl::decide context parameter type must come from Reflection.');
 assertContains('ACL_ACCESS_DENIED', $decide['metadata']['errors'] ?? [], 'AccessControl::decide must declare explicit deny code.');
 
-$conditionInterface = $classes['ASAP\\Acl\\AccessConditionInterface'];
+$conditionInterface = $classes['Opus\\Acl\\AccessConditionInterface'];
 $allows = findMethod($conditionInterface['methods'], 'allows');
 assertSame('bool', $allows['return_type'], 'AccessConditionInterface::allows return type must come from Reflection.');
-assertSame('ASAP\\Acl\\AccessContext', $allows['parameters'][0]['type'] ?? null, 'AccessConditionInterface::allows context parameter type must come from Reflection.');
+assertSame('Opus\\Acl\\AccessContext', $allows['parameters'][0]['type'] ?? null, 'AccessConditionInterface::allows context parameter type must come from Reflection.');
 
 
-$aclFacade = $classes['ASAP\\Acl\\Acl'];
+$aclFacade = $classes['Opus\\Acl\\Acl'];
 $canView = findMethod($aclFacade['methods'], 'canView');
 assertSame('bool', $canView['return_type'], 'Acl::canView return type must come from Reflection.');
 assertSame('bool', $canView['parameters'][0]['type'] ?? null, 'Acl::canView allowed parameter type must come from Reflection.');
@@ -89,7 +89,7 @@ assertContains('acl-overview', $canView['metadata']['examples'] ?? [], 'Acl::can
 $aclRefBookDomain = findMethod($aclFacade['methods'], 'refBookDomain');
 assertSame('string', $aclRefBookDomain['return_type'], 'Acl::refBookDomain return type must come from Reflection.');
 
-$roleDefinition = $classes['ASAP\\Acl\\RoleDefinition'];
+$roleDefinition = $classes['Opus\\Acl\\RoleDefinition'];
 $roleId = findMethod($roleDefinition['methods'], 'id');
 assertSame('string', $roleId['return_type'], 'RoleDefinition::id return type must come from Reflection.');
 assertContains('acl-overview', $roleId['metadata']['examples'] ?? [], 'RoleDefinition::id must link ACL overview example.');
@@ -110,7 +110,7 @@ assertContains('ACL_ACCESS_DENIED', $denied->reason(), 'ACL runtime sanity: deni
 try {
     $acl->decide('missing', 'page.admin', 'read');
     fail('ACL runtime sanity: unknown role must fail explicitly.');
-} catch (ASAP\Acl\AccessControlException $exception) {
+} catch (Opus\Acl\AccessControlException $exception) {
     assertContains('ACL_ROLE_UNKNOWN', $exception->getMessage(), 'ACL runtime sanity: unknown role code mismatch.');
 }
 
@@ -120,7 +120,7 @@ assertSame('logandplay', $context->get('tenant'), 'ACL context sanity: tenant va
 try {
     $context->get('missing');
     fail('ACL runtime sanity: missing context key must fail explicitly.');
-} catch (ASAP\Acl\AccessControlException $exception) {
+} catch (Opus\Acl\AccessControlException $exception) {
     assertContains('ACL_CONTEXT_INVALID', $exception->getMessage(), 'ACL runtime sanity: missing context key code mismatch.');
 }
 
@@ -130,15 +130,15 @@ exit(0);
 function requireRefBookCore(string $root): void
 {
     $files = [
-        'framework/Asap/RefBook/Attribute/AsapRefBookClass.php',
-        'framework/Asap/RefBook/Attribute/AsapRefBookMethod.php',
-        'framework/Asap/RefBook/Contract/RefBookInspectableInterface.php',
-        'framework/Asap/RefBook/Model/RefBookMethodEntry.php',
-        'framework/Asap/RefBook/Model/RefBookClassEntry.php',
-        'framework/Asap/RefBook/Model/RefBookScanResult.php',
-        'framework/Asap/RefBook/RefBookReflectionScanner.php',
-        'framework/Asap/RefBook/RefBookContractValidator.php',
-        'framework/Asap/RefBook/RefBookSnapshotBuilder.php',
+        'framework/Opus/RefBook/Attribute/OpusRefBookClass.php',
+        'framework/Opus/RefBook/Attribute/OpusRefBookMethod.php',
+        'framework/Opus/RefBook/Contract/RefBookInspectableInterface.php',
+        'framework/Opus/RefBook/Model/RefBookMethodEntry.php',
+        'framework/Opus/RefBook/Model/RefBookClassEntry.php',
+        'framework/Opus/RefBook/Model/RefBookScanResult.php',
+        'framework/Opus/RefBook/RefBookReflectionScanner.php',
+        'framework/Opus/RefBook/RefBookContractValidator.php',
+        'framework/Opus/RefBook/RefBookSnapshotBuilder.php',
     ];
     foreach ($files as $relative) {
         $path = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);

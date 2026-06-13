@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe\Life\Scenarios;
+namespace Opus\Recipe\Life\Scenarios;
 
 use ASAP\Recipe\Life\LifeScenarioRunner;
 use ASAP\Recipe\Life\RobotActor;
@@ -34,7 +34,7 @@ final class DatabaseLifecycleScenario implements RecipeInterface, RobotScenario
             $dst = $connector->connect($config->get('target'))->pdo();
             $src->exec('CREATE TABLE source_probe (id INTEGER PRIMARY KEY, value TEXT NOT NULL)');
             $dst->exec('CREATE TABLE target_probe (id INTEGER PRIMARY KEY, value TEXT NOT NULL)');
-            $context->assert($config->defaultName() === 'source', 'ASAP_LIFE_DATABASE_DEFAULT_INVALID');
+            $context->assert($config->defaultName() === 'source', 'OPUS_LIFE_DATABASE_DEFAULT_INVALID');
         })];
     }
 }

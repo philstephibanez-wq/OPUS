@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe;
+namespace Opus\Recipe;
 
 use RuntimeException;
 
@@ -10,7 +10,7 @@ use RuntimeException;
  * PUBLIC EXCEPTION
  *
  * Role:
- *   Represent one failed ASAP recipe assertion.
+ *   Represent one failed Opus recipe assertion.
  *
  * Responsibility:
  *   Carry a stable recipe failure code and a human-readable diagnostic.

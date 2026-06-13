@@ -1,5 +1,5 @@
 {
-  "schema": "ASAP_REFBOOK_I18N_V1",
+  "schema": "OPUS_REFBOOK_I18N_V1",
   "language": "en",
   "labels": {
     "language": {
@@ -16,7 +16,7 @@
       "search": "Search"
     },
     "home": {
-      "kicker": "ASAP MVC application",
+      "kicker": "Opus MVC application",
       "symbols": "extracted symbols",
       "domains": "detected domains",
       "pipeline_title": "Documentation pipeline",
@@ -25,7 +25,7 @@
     "api": {
       "title": "API Reference",
       "kicker": "API Reference",
-      "intro": "The reference below comes from the manifest generated from annotated ASAP sources.",
+      "intro": "The reference below comes from the manifest generated from annotated Opus sources.",
       "how_to_read": "How to read this page",
       "bullets": [
         "A domain groups the classes detected in the manifest.",
@@ -53,9 +53,9 @@
     "symbol": {
       "fallback_kind": "symbol",
       "fallback_name": "Symbol",
-      "fallback_role": "Source role to enrich in ASAP_REFBOOK tags.",
+      "fallback_role": "Source role to enrich in OPUS_REFBOOK tags.",
       "contract_title": "Contract",
-      "no_contract": "Source contract to enrich in ASAP_REFBOOK tags.",
+      "no_contract": "Source contract to enrich in OPUS_REFBOOK tags.",
       "source_title": "Source",
       "source_missing": "Source to resolve",
       "public_methods_title": "Public methods",
@@ -78,7 +78,7 @@
       "message": "Explicitly rejected slug"
     },
     "topbar": {
-      "subtitle": "ASAP documentation",
+      "subtitle": "Opus documentation",
       "controls": "Site controls"
     },
     "breadcrumb": {
@@ -104,11 +104,11 @@
     "search": {
       "kicker": "RefBook search",
       "title": "Search",
-      "intro": "Quickly find a class, method, domain, guide or ASAP framework file.",
+      "intro": "Quickly find a class, method, domain, guide or Opus framework file.",
       "form_label": "Search the RefBook",
       "input_label": "Search term",
-      "placeholder": "Search…",
-      "placeholder_long": "Example: Router, ACL, render, config, Twig…",
+      "placeholder": "Searchâ€¦",
+      "placeholder_long": "Example: Router, ACL, render, config, Twigâ€¦",
       "submit": "Go",
       "help": "Search scans indexed guides, domains, symbols, namespaces, files, contracts and public methods.",
       "results_kicker": "Results",
@@ -133,11 +133,11 @@
     }
   },
   "module": {
-    "title": "ASAP Reference Book",
-    "subtitle": "Living documentation for the ASAP framework, rendered by an ASAP MVC application.",
-    "mission": "Make ASAP readable, verifiable, and usable without digging through code at every step.",
+    "title": "Opus Reference Book",
+    "subtitle": "Living documentation for the Opus framework, rendered by an Opus MVC application.",
+    "mission": "Make Opus readable, verifiable, and usable without digging through code at every step.",
     "pipeline": [
-      "Annotated ASAP source",
+      "Annotated Opus source",
       "JSON manifest",
       "RefBook service",
       "ViewModel",
@@ -152,7 +152,7 @@
     },
     {
       "title": "Verify",
-      "body": "Every domain and every symbol comes from the manifest generated from H:\\ASAP."
+      "body": "Every domain and every symbol comes from the manifest generated from H:\\Opus."
     },
     {
       "title": "Develop",
@@ -172,7 +172,7 @@
       "slug": "guide-architecture",
       "title": "Architecture overview",
       "kicker": "Architecture",
-      "summary": "ASAP separates application, routing, control, service, rendering, security, and configuration.",
+      "summary": "Opus separates application, routing, control, service, rendering, security, and configuration.",
       "sections": [
         {
           "title": "Functional reading",
@@ -203,11 +203,11 @@
           ]
         }
       ],
-      "reading": "Overview for deciding where a responsibility belongs before changing ASAP."
+      "reading": "Overview for deciding where a responsibility belongs before changing Opus."
     },
     {
       "slug": "guide-mvc",
-      "title": "ASAP MVC contract",
+      "title": "Opus MVC contract",
       "kicker": "MVC",
       "summary": "Official route, thin controller, business service, ViewModel, template.",
       "sections": [
@@ -252,9 +252,9 @@
     },
     {
       "slug": "guide-source-tags",
-      "title": "ASAP_REFBOOK source tags",
+      "title": "OPUS_REFBOOK source tags",
       "kicker": "Source of truth",
-      "summary": "Official API content starts from annotated ASAP classes and then passes through a controlled manifest.",
+      "summary": "Official API content starts from annotated Opus classes and then passes through a controlled manifest.",
       "sections": [
         {
           "title": "Goal",
@@ -288,7 +288,7 @@
       "slug": "guide-routing",
       "title": "Routing and front controller",
       "kicker": "HTTP",
-      "summary": "Apache serves public/; ASAP receives the request; the router selects the route.",
+      "summary": "Apache serves public/; Opus receives the request; the router selects the route.",
       "sections": [
         {
           "title": "public/index.php contract",
@@ -322,7 +322,7 @@
     },
     {
       "slug": "guide-lstsa",
-      "title": "LSTSA — Load Store Transform Secure Archive",
+      "title": "LSTSA â€” Load Store Transform Secure Archive",
       "kicker": "Data pipeline",
       "summary": "LSTSA loads, validates, transforms, stores, logs, and archives typed transformations.",
       "sections": [
@@ -360,7 +360,7 @@
       "slug": "guide-tests",
       "title": "Tests and recipes",
       "kicker": "Quality",
-      "summary": "An ASAP milestone must be validated by lint, smoke, targeted recipe, and clean Git state.",
+      "summary": "An Opus milestone must be validated by lint, smoke, targeted recipe, and clean Git state.",
       "sections": [
         {
           "title": "Order",
@@ -401,7 +401,7 @@
     "ASSET": "Public files, CSS, front resources and static links.",
     "AUTOLOAD": "Class loading, autoload cache and namespace resolution.",
     "CACHE": "Controlled temporary storage and explicit invalidation.",
-    "COMPATIBILITY": "Controlled compatibility bridges for older ASAP conventions.",
+    "COMPATIBILITY": "Controlled compatibility bridges for older Opus conventions.",
     "CONFIG": "Configuration loading, options, XML and site contracts.",
     "CONTRACT": "Explicit errors, assertions and framework invariants.",
     "CONTROLLER": "HTTP dispatch to MVC controllers and actions.",
@@ -409,14 +409,14 @@
     "CORE": "Core kernel and shared fundamental utilities.",
     "CSS": "Style contracts and presentation resources.",
     "DATABASE": "Multi-provider configuration, connections and database access.",
-    "DATE": "Date objects, helpers and formats used by ASAP.",
+    "DATE": "Date objects, helpers and formats used by Opus.",
     "DEBUG": "Developer diagnostics, controlled traces and recipe information.",
     "DIRECTORY": "Resolution and control of application directories.",
     "DOCUMENTATION": "Documentation extraction and generation from annotated sources.",
     "EVENT": "Application events and controlled extension points.",
     "EXCEPTION": "Contract exceptions, explicit errors and diagnostic messages.",
     "FILE": "File handling and path validation.",
-    "FORM": "ASAP form construction, validation and rendering.",
+    "FORM": "Opus form construction, validation and rendering.",
     "FSM": "State machines, transitions and workflow validation.",
     "FTP": "Historical or controlled FTP access, isolated from the HTTP core.",
     "HELPER": "Targeted application helpers, monitored to avoid catch-all logic.",
@@ -432,7 +432,7 @@
     "MENU": "Menu structures, navigation and controlled link exposure.",
     "MODEL": "Historical or application model objects, to clarify by domain.",
     "MODULE": "Functional units exposed by the application.",
-    "PACKAGE": "ASAP package discovery and loading.",
+    "PACKAGE": "Opus package discovery and loading.",
     "RENDERER": "Transformation of ViewModels into final responses.",
     "REQUEST": "Request input reading and normalization.",
     "RESPONSE": "HTTP response building and runtime adaptation.",

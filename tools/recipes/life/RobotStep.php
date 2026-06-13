@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe\Life;
+namespace Opus\Recipe\Life;
 
 use ASAP\Recipe\RecipeContext;
 

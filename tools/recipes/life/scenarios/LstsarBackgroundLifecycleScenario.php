@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe\Life\Scenarios;
+namespace Opus\Recipe\Life\Scenarios;
 
 use ASAP\Recipe\Life\LifeScenarioRunner;
 use ASAP\Recipe\Life\RobotActor;
@@ -33,14 +33,14 @@ final class LstsarBackgroundLifecycleScenario implements RecipeInterface, RobotS
             $store = new \ASAP\Lstsa\LstsaRunStore($context->rootPath());
             $scheduler = new \ASAP\Lstsa\LstsaScheduler($store);
             $scheduled = $scheduler->enqueueDatabaseStagingSmokeRun($sourceDb, $targetDb);
-            $context->assert($scheduled['status'] === \ASAP\Lstsa\LstsaRunStatus::PENDING, 'ASAP_LIFE_LSTSAR_SCHEDULER_NOT_PENDING');
+            $context->assert($scheduled['status'] === \ASAP\Lstsa\LstsaRunStatus::PENDING, 'OPUS_LIFE_LSTSAR_SCHEDULER_NOT_PENDING');
             $finished = (new \ASAP\Lstsa\LstsaRunner($store))->runOnce('life_lstsar_background_runner');
-            $context->assert(is_array($finished) && $finished['status'] === \ASAP\Lstsa\LstsaRunStatus::DONE, 'ASAP_LIFE_LSTSAR_RUNNER_NOT_DONE');
+            $context->assert(is_array($finished) && $finished['status'] === \ASAP\Lstsa\LstsaRunStatus::DONE, 'OPUS_LIFE_LSTSAR_RUNNER_NOT_DONE');
             $target = new \PDO('sqlite:' . $targetDb, null, null, [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]);
             $count = (int)$target->query('SELECT COUNT(*) FROM users')->fetchColumn();
-            $context->assert($count === 2, 'ASAP_LIFE_LSTSAR_TARGET_COUNT_INVALID');
+            $context->assert($count === 2, 'OPUS_LIFE_LSTSAR_TARGET_COUNT_INVALID');
             $events = $finished['artifacts']['events'] ?? [];
-            $context->assert(is_array($events) && isset($events[0]) && is_file((string)$events[0]), 'ASAP_LIFE_LSTSAR_OK_EVENT_MISSING');
+            $context->assert(is_array($events) && isset($events[0]) && is_file((string)$events[0]), 'OPUS_LIFE_LSTSAR_OK_EVENT_MISSING');
         })];
     }
 }

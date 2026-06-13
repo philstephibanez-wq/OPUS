@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ASAP\Recipe;
+namespace Opus\Recipe;
 
 use Throwable;
 
@@ -10,7 +10,7 @@ use Throwable;
  * PUBLIC SERVICE
  *
  * Role:
- *   Execute a deterministic ordered set of ASAP recipes.
+ *   Execute a deterministic ordered set of Opus recipes.
  *
  * Responsibility:
  *   Stop on first failure, preserve results, emit console markers and produce a
@@ -48,13 +48,13 @@ final class RecipeSuite
                     echo $marker . PHP_EOL;
                 }
                 foreach ($diagnostics as $diagnostic) {
-                    echo 'ASAP_RECIPE_DIAGNOSTIC=' . $diagnostic . PHP_EOL;
+                    echo 'OPUS_RECIPE_DIAGNOSTIC=' . $diagnostic . PHP_EOL;
                 }
                 $results[] = new RecipeResult($recipe->name(), 'OK', microtime(true) - $started, $markers, $diagnostics);
             } catch (Throwable $exception) {
                 $diagnostics = $context->pullDiagnostics();
                 $message = $recipe->name() . ' :: ' . $exception->getMessage();
-                echo 'ASAP_GLOBAL_RECIPE_FAILED=' . $message . PHP_EOL;
+                echo 'OPUS_GLOBAL_RECIPE_FAILED=' . $message . PHP_EOL;
                 $results[] = new RecipeResult($recipe->name(), 'FAILED', microtime(true) - $started, [], array_merge($diagnostics, [$message]));
                 break;
             }

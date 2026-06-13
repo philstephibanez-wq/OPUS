@@ -1,10 +1,10 @@
-﻿# ASAP — As Simple As Possible / As Soon As Possible
+# Opus — As Simple As Possible / As Soon As Possible
 
-ASAP est le framework PHP mutualisable du workspace MAESTRO.
+Opus est le framework PHP mutualisable du workspace MAESTRO.
 
 ## Rôle
 
-ASAP fournit le socle framework générique :
+Opus fournit le socle framework générique :
 
 - Application / Kernel
 - SiteResolver
@@ -19,9 +19,9 @@ ASAP fournit le socle framework générique :
 
 ## Contrat
 
-ASAP est indépendant de MO_KB, MAESTRO, LogAndPlay et des sites applicatifs.
+Opus est indépendant de MO_KB, MAESTRO, LogAndPlay et des sites applicatifs.
 
-ASAP ne contient pas :
+Opus ne contient pas :
 
 - route métier MO_KB
 - thème métier
