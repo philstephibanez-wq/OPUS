@@ -61,7 +61,7 @@ final class ApplicationPaths
         $this->sitesRoot = $root . '/sites';
         $this->contentRoot = $root . '/content/markdown';
         $this->templatesRoot = $root . '/application/reference/templates';
-        $this->cacheRoot = $root . '/var/cache/twig';
+        $this->cacheRoot = $root . '/var/cache/scoretemplate';
 
         foreach ([$this->sitesRoot, $this->contentRoot, $this->templatesRoot] as $path) {
             if (!is_dir($path)) {
