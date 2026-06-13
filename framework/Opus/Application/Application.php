@@ -12,7 +12,7 @@ use Opus\Routing\Router;
 use Opus\Security\SecureDispatchGate;
 use Opus\Security\SiteSecurityPolicyLoader;
 use Opus\Site\SiteResolver;
-use Opus\Template\TwigTemplateRenderer;
+use Opus\Template\ScoreTemplateRenderer;
 
 /*
  * OPUS_REFBOOK:
@@ -55,6 +55,8 @@ use Opus\Template\TwigTemplateRenderer;
  *
  * Extended:
  *   P112Q3B routes requests through SecureDispatchGate before controller dispatch.
+ *   P116B2 uses the native ScoreTemplate renderer. No Twig or Symfony runtime
+ *   dependency is allowed in the application pipeline.
  */
 final class Application
 {
@@ -90,7 +92,7 @@ final class Application
 
         (new SecureDispatchGate())->assertAllowed($request, $securityPolicy, $match);
 
-        $templateRenderer = new TwigTemplateRenderer($this->paths->templatesRoot, $this->paths->cacheRoot);
+        $templateRenderer = new ScoreTemplateRenderer($this->paths->templatesRoot);
         $htmlRenderer = new HtmlRenderer($templateRenderer);
 
         return (new ControllerDispatcher($this->paths, $templateRenderer, $htmlRenderer))->dispatch($request, $match);
