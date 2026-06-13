@@ -9,21 +9,42 @@ namespace Opus\Documentation;
  */
 final class RuntimeMethodInfo
 {
+    private string $name;
+    private bool $isStatic;
+    private string $declaringClass;
+    private ?string $returnType;
+    /** @var list<array{name:string,type:string|null,optional:bool,default:mixed}> */
+    private array $parameters;
+    private ?string $docComment;
+    private int $startLine;
+    private int $endLine;
+    /** @var list<string> */
+    private array $attributes;
+
     /**
      * @param list<array{name:string,type:string|null,optional:bool,default:mixed}> $parameters
      * @param list<string> $attributes
      */
     public function __construct(
-        private readonly string $name,
-        private readonly bool $isStatic,
-        private readonly string $declaringClass,
-        private readonly ?string $returnType,
-        private readonly array $parameters,
-        private readonly ?string $docComment,
-        private readonly int $startLine,
-        private readonly int $endLine,
-        private readonly array $attributes
+        string $name,
+        bool $isStatic,
+        string $declaringClass,
+        ?string $returnType,
+        array $parameters,
+        ?string $docComment,
+        int $startLine,
+        int $endLine,
+        array $attributes
     ) {
+        $this->name = $name;
+        $this->isStatic = $isStatic;
+        $this->declaringClass = $declaringClass;
+        $this->returnType = $returnType;
+        $this->parameters = $parameters;
+        $this->docComment = $docComment;
+        $this->startLine = $startLine;
+        $this->endLine = $endLine;
+        $this->attributes = $attributes;
     }
 
     /** @return array<string, mixed> */
