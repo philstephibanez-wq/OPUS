@@ -24,8 +24,9 @@
 # Runtime state
 /var/*
 !/var/.gitkeep
-/var/lstsa/
 /var/generated/
+/var/lstsa/
+/var/recipes/
 
 # SQLite runtime sidecars
 *.sqlite-wal
