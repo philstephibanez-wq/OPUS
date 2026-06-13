@@ -1,5 +1,0 @@
-- Added strict language contract for ASAP RefBook documentation APIs.
-- Added exact source-text translation catalog baseline.
-- Added localized snapshot provider.
-- Added REST router with language in URL.
-- Added smoke test.

@@ -1,3 +1,0 @@
-- Expand the catalog with all current ASAP_REFBOOK source metadata strings.
-- Add generator support to emit stable doc translation keys instead of exact source text matching.
-- Wire RefBook to consume this ASAP provider in P114D2.
