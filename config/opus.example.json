@@ -1,5 +1,5 @@
 {
-  "config_contract": "OPUS_EXAMPLE_CONFIG_V1",
+  "config_contract": "OPUS_FRAMEWORK_CONFIG_V1",
   "opus_name": "OPUS Framework",
   "fallback_allowed": false,
   "framework_duplication_allowed": false,
@@ -13,5 +13,18 @@
     "var_root": "var"
   },
   "license_profile": "OPUS_SOURCE_AVAILABLE_FREE_NONCOMMERCIAL_COMMERCIAL_ROYALTIES",
-  "copyright_holder": "Philippe Stéphane Ibanez"
+  "copyright_holder": "Philippe Stéphane Ibanez",
+  "product_name": "Opus Framework",
+  "product_version": "8.1.0",
+  "product_codename": "Lysenko",
+  "display_name": "Opus Framework 8.1.0 Lysenko",
+  "core_name": "Opus Core",
+  "distribution": {
+    "license_profile": "SOURCE_AVAILABLE_WITH_COMMERCIAL_ROYALTIES",
+    "free_noncommercial_allowed": true,
+    "commercial_use_requires_license": true
+  },
+  "copyright": {
+    "holder": "Philippe Stéphane Ibanez"
+  }
 }
