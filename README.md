@@ -1,6 +1,16 @@
-# Opus — As Simple As Possible / As Soon As Possible
+# Opus Framework 8.1.0 Lysenko
 
 Opus est le framework PHP mutualisable du workspace MAESTRO.
+
+## Identité
+
+Nom actif : OPUS Framework.
+
+Version cible : 8.1.0 Lysenko.
+
+ASAP : ancien nom historique, legacy uniquement.
+
+Aucun nouveau développement ne doit présenter ASAP comme identité active du framework.
 
 ## Rôle
 
