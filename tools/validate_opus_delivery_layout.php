@@ -175,7 +175,7 @@ final class OpusDeliveryLayoutValidator
             $this->error('Development artifact directory forbidden in delivery: ' . $relative);
         }
 
-        if (preg_match('#(^|/)(cache|tmp|\.cache)(/|$)#i', $relative) === 1 && !str_starts_with($relative, 'var/')) {
+        if (preg_match('#(^|/)(cache|tmp|\.cache)(/|$)#i', $relative) === 1 && !str_starts_with($relative, 'var/') && !str_starts_with($relative, 'framework/Opus/Cache')) {
             $this->error('Unexpected cache/tmp directory outside var/: ' . $relative);
         }
     }
