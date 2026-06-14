@@ -40,12 +40,15 @@ sites/                       sites installés / instances runtime
 config/                      templates de configuration non secrets
 var/                         cache/logs/tmp locaux, livrés vides
 tools/                       outils CLI OPUS
-tests/                       tests internes dev uniquement, hors livrables
 ```
 
 Règle : un seul framework OPUS, plusieurs sites/packages OPUS, aucune duplication du core dans les packages ou les sites.
 
 Si OPUS est placé sous une racine web locale comme `H:\UwAmp\www\OPUS`, le serveur web doit exposer uniquement les dossiers `sites/*/public/`, jamais `framework/`, `packages/`, `tools/`, `tests/`, `config/` ou `var/`.
+
+## Workspace-only development context
+
+Tests, smoke scripts, recipes, reports and legacy roots belong to MAESTRO_WORKSPACE, not to the visible OPUS product root.
 
 ## Packages optionnels
 

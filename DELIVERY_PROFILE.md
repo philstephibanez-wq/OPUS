@@ -52,7 +52,7 @@ secrets.json
 secret.json
 ```
 
-`tests/` belongs to the repository and development workflow only. It is not part of end-user distribution.
+`tests/`, smoke scripts, recipes, reports and legacy roots belong to MAESTRO_WORKSPACE. They are not part of the visible OPUS product root or end-user distribution.
 
 ## Useful empty roots
 

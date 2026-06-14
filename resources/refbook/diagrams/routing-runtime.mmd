@@ -1,7 +1,0 @@
-flowchart TD
-    A[Request path] --> B[Site basePath]
-    B --> C[Router::match]
-    C --> D{Route found}
-    D -- yes --> E[RouteMatch]
-    D -- no --> F[Opus_ROUTE_NOT_FOUND]
-    E --> G[ControllerDispatcher]
