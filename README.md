@@ -45,6 +45,19 @@ Chaque package optionnel doit déclarer sa dépendance au core OPUS via `opus-pa
 
 Un package peut être installé séparément, mais il ne doit jamais embarquer `framework/Opus/`.
 
+## Licence / droits
+
+OPUS suit le profil de licence défini dans `LICENSE_INTENT.md` :
+
+```text
+Copyright © Philippe Stéphane Ibanez
+source-available
+usage personnel et non commercial libre
+usage commercial sous licence commerciale payante
+royalties obligatoires pour usage commercial
+pas open source OSI sauf décision future explicite
+```
+
 ## Contrat
 
 Opus est indépendant de MO_KB, MAESTRO, LogAndPlay et des sites applicatifs.
