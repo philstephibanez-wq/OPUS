@@ -39,7 +39,7 @@ $html = normalize($renderer->render('main.score', [
     'today' => '2026-06-14',
     'items' => [
         'first' => ['label' => 'cello', 'optional' => 'warm'],
-        'second' => ['label' => 'violin'],
+        'second' => ['label' => 'violin', 'optional' => ''],
     ],
 ]));
 
