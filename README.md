@@ -45,6 +45,19 @@ Chaque package optionnel doit déclarer sa dépendance au core OPUS via `opus-pa
 
 Un package peut être installé séparément, mais il ne doit jamais embarquer `framework/Opus/`.
 
+Le contrat de manifest est documenté dans :
+
+```text
+packages/OPUS_PACKAGE_MANIFEST_CONTRACT.md
+packages/opus-package.schema.json
+```
+
+Validation maintenance :
+
+```text
+php tools/validate_opus_packages.php
+```
+
 ## Licence / droits
 
 OPUS suit le profil de licence défini dans `LICENSE_INTENT.md` :
