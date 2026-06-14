@@ -27,6 +27,24 @@ Opus fournit le socle framework générique :
 - I18N
 - REST contracts
 
+## Topologie officielle
+
+OPUS utilise un core partagé et des packages optionnels officiels.
+
+```text
+framework/Opus/              core framework partagé
+packages/opus-refbook/       site RefBook optionnel officiel
+packages/opus-user-guide/    futur guide utilisateur optionnel
+```
+
+Règle : un seul framework OPUS, plusieurs sites/packages OPUS, aucune duplication du core dans les packages.
+
+## Packages optionnels
+
+Chaque package optionnel doit déclarer sa dépendance au core OPUS via `opus-package.json`.
+
+Un package peut être installé séparément, mais il ne doit jamais embarquer `framework/Opus/`.
+
 ## Contrat
 
 Opus est indépendant de MO_KB, MAESTRO, LogAndPlay et des sites applicatifs.
@@ -40,6 +58,7 @@ Opus ne contient pas :
 - secret
 - vendor committé
 - cache runtime
+- duplication du framework dans les packages optionnels
 
 ## Documentation
 
