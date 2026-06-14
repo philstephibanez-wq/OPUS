@@ -7,7 +7,7 @@ This directory contains official optional OPUS packages.
 ```text
 One OPUS framework core.
 Several optional OPUS-powered packages.
-No framework duplication per package.
+No framework duplication per package or per installed site.
 ```
 
 The OPUS core remains in:
@@ -24,6 +24,25 @@ Optional packages may provide sites, guides, tools, resources or publishable fro
 packages/opus-refbook/       official optional OPUS RefBook site package
 packages/opus-user-guide/    future optional OPUS User Guide package
 ```
+
+## Installed site target
+
+A package source is not the same thing as an installed site.
+
+Recommended local topology:
+
+```text
+packages/opus-refbook/       package source
+sites/opus-refbook/          installed runtime site
+```
+
+When OPUS is placed at `H:\UwAmp\www\OPUS`, installed sites belong under:
+
+```text
+H:\UwAmp\www\OPUS\sites\
+```
+
+The web server must expose only `sites/<site>/public/`.
 
 ## Manifest contract
 
@@ -53,7 +72,7 @@ packages/OPUS_PACKAGE_INSTALL_CONTRACT.md
 Official installer:
 
 ```text
-php tools/install_opus_package.php --package=opus-refbook --target=H:\UwAmp\www\OPUS_REF_BOOK --opus-root=H:\OPUS --dry-run
+php tools/install_opus_package.php --package=opus-refbook --target=H:\UwAmp\www\OPUS\sites\opus-refbook --opus-root=H:\UwAmp\www\OPUS --dry-run
 ```
 
 The installer writes a local `opus-runtime.local.json` file in the target package directory. This file declares the shared core path and keeps `fallback_allowed=false`.
@@ -78,7 +97,14 @@ Package gates can be checked with:
 php tools/validate_opus_packages.php
 ```
 
-The validator is a maintenance tool. It does not modify files. A failure means the package tree is not clean enough to deliver.
+The OPUS topology/delivery layout can be checked with:
+
+```text
+php tools/validate_opus_delivery_layout.php --root=H:\UwAmp\www\OPUS --mode=dev
+php tools/validate_opus_delivery_layout.php --root=<DELIVERY_ROOT> --mode=delivery
+```
+
+The validators are maintenance tools. They do not modify files. A failure means the package tree or delivery tree is not clean enough to deliver.
 
 ## Clean deliverable rule
 
