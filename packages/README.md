@@ -25,6 +25,21 @@ packages/opus-refbook/       official optional OPUS RefBook site package
 packages/opus-user-guide/    future optional OPUS User Guide package
 ```
 
+## Manifest contract
+
+Every official package must provide:
+
+```text
+opus-package.json
+```
+
+The manifest contract is documented in:
+
+```text
+packages/OPUS_PACKAGE_MANIFEST_CONTRACT.md
+packages/opus-package.schema.json
+```
+
 ## License inheritance
 
 Official packages inherit the OPUS license intent unless their own manifest declares a stricter profile:
@@ -36,6 +51,16 @@ commercial_use = commercial license + royalties required
 ```
 
 The license intent is documented at repository root in `LICENSE_INTENT.md`.
+
+## Validation
+
+Package gates can be checked with:
+
+```text
+php tools/validate_opus_packages.php
+```
+
+The validator is a maintenance tool. It does not modify files. A failure means the package tree is not clean enough to deliver.
 
 ## Clean deliverable rule
 
