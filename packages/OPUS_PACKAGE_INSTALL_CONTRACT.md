@@ -21,12 +21,35 @@ An optional package installation must:
 ```text
 - copy or deploy the package/site files only;
 - resolve an existing shared OPUS core explicitly;
+- install into the OPUS sites/ topology by default or by explicit target;
 - write an explicit local runtime contract;
 - fail if the OPUS core is missing;
 - fail if a target path is unsafe or non-empty;
 - fail if package scories are detected;
 - never fallback to an embedded or guessed framework.
 ```
+
+## Recommended local topology
+
+For a readable local UwAmp/dev installation, OPUS may live at:
+
+```text
+H:\UwAmp\www\OPUS\
+```
+
+Installed sites should live under:
+
+```text
+H:\UwAmp\www\OPUS\sites\
+```
+
+Example:
+
+```text
+H:\UwAmp\www\OPUS\sites\opus-refbook\
+```
+
+The web server must expose only the installed site's `public/` directory, not the OPUS root.
 
 ## Forbidden model
 
@@ -71,13 +94,13 @@ tools/install_opus_package.php
 Example dry run:
 
 ```text
-php tools/install_opus_package.php --package=opus-refbook --target=H:\UwAmp\www\OPUS_REF_BOOK --opus-root=H:\OPUS --dry-run
+php tools/install_opus_package.php --package=opus-refbook --target=H:\UwAmp\www\OPUS\sites\opus-refbook --opus-root=H:\UwAmp\www\OPUS --dry-run
 ```
 
 Example install:
 
 ```text
-php tools/install_opus_package.php --package=opus-refbook --target=H:\UwAmp\www\OPUS_REF_BOOK --opus-root=H:\OPUS
+php tools/install_opus_package.php --package=opus-refbook --target=H:\UwAmp\www\OPUS\sites\opus-refbook --opus-root=H:\UwAmp\www\OPUS
 ```
 
 ## License inheritance
@@ -104,6 +127,13 @@ Before installing or packaging an optional package, run:
 
 ```text
 php tools/validate_opus_packages.php
+php tools/validate_opus_delivery_layout.php --root=H:\UwAmp\www\OPUS --mode=dev
 ```
 
-Validation failure means the package is not clean enough to deliver or install.
+Before shipping a delivery artifact, run the delivery layout validator against the artifact root:
+
+```text
+php tools/validate_opus_delivery_layout.php --root=<DELIVERY_ROOT> --mode=delivery
+```
+
+Validation failure means the package or delivery tree is not clean enough to deliver or install.
