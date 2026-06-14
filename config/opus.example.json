@@ -1,0 +1,17 @@
+{
+  "config_contract": "OPUS_EXAMPLE_CONFIG_V1",
+  "opus_name": "OPUS Framework",
+  "fallback_allowed": false,
+  "framework_duplication_allowed": false,
+  "shared_core": {
+    "mode": "single_shared_core",
+    "framework_path": "framework/Opus"
+  },
+  "runtime": {
+    "sites_root": "sites",
+    "packages_root": "packages",
+    "var_root": "var"
+  },
+  "license_profile": "OPUS_SOURCE_AVAILABLE_FREE_NONCOMMERCIAL_COMMERCIAL_ROYALTIES",
+  "copyright_holder": "Philippe Stéphane Ibanez"
+}
