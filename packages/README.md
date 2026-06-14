@@ -40,6 +40,24 @@ packages/OPUS_PACKAGE_MANIFEST_CONTRACT.md
 packages/opus-package.schema.json
 ```
 
+## Install contract
+
+Packages must be installed without copying `framework/Opus/` into the target site.
+
+The install contract is documented in:
+
+```text
+packages/OPUS_PACKAGE_INSTALL_CONTRACT.md
+```
+
+Official installer:
+
+```text
+php tools/install_opus_package.php --package=opus-refbook --target=H:\UwAmp\www\OPUS_REF_BOOK --opus-root=H:\OPUS --dry-run
+```
+
+The installer writes a local `opus-runtime.local.json` file in the target package directory. This file declares the shared core path and keeps `fallback_allowed=false`.
+
 ## License inheritance
 
 Official packages inherit the OPUS license intent unless their own manifest declares a stricter profile:
