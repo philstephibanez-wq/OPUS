@@ -20,6 +20,22 @@
     "fallback_allowed": false
   },
   "license_profile": "OPUS_SOURCE_AVAILABLE_FREE_NONCOMMERCIAL_COMMERCIAL_ROYALTIES",
+  "license": {
+    "profile": "OPUS_SOURCE_AVAILABLE_FREE_NONCOMMERCIAL_COMMERCIAL_ROYALTIES",
+    "copyright_holder": "Philippe Stéphane Ibanez",
+    "free_use_scope": "personal_private_educational_evaluation_noncommercial_only",
+    "commercial_use": "paid_commercial_license_required",
+    "commercial_royalties": "required",
+    "osi_open_source": false,
+    "legal_files_required_before_public_release": [
+      "LICENSE",
+      "COMMERCIAL_LICENSE",
+      "NOTICE",
+      "COPYRIGHT",
+      "TRADEMARKS",
+      "PRIVACY"
+    ]
+  },
   "publication_profile": {
     "offline_first": true,
     "online_publishable": true,
