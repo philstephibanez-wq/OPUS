@@ -19,16 +19,17 @@ namespace Opus\Helper;
  * END_OPUS_REFBOOK
  */
 /**
- * PUBLIC LEGACY-ALIGNED HELPER
+ * PUBLIC HELPER
  *
  * Role:
- *   Preserve the original Opus `HELPER\Helper` domain.
+ *   Mutualize deterministic presentation-safe helper functions.
  *
  * Responsibility:
- *   Provide deterministic presentation-safe helpers.
+ *   Provide small reusable transformations shared by controllers, services,
+ *   templates and documentation tooling when no business decision is involved.
  *
  * Contract:
- *   Helpers transform only. They do not load data or decide rendering strategy.
+ *   Helpers transform only. They do not load data and do not render complete pages.
  *
  * Since:
  *   P112D4C
