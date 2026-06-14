@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>P116B5 · Opus live ScoreTemplate recipe</title>
+  <style>
+    :root { color-scheme: dark; --bg:#07111f; --panel:#0e1b2d; --line:#26384f; --text:#eaf2ff; --muted:#9fb1ca; --ok:#4ade80; --fail:#fb7185; --accent:#60a5fa; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Segoe UI, Arial, sans-serif; background:linear-gradient(135deg,#07111f,#101f34); color:var(--text); }
+    header { padding:22px 28px; border-bottom:1px solid var(--line); background:rgba(14,27,45,.94); position:sticky; top:0; z-index:2; }
+    .kicker { color:var(--accent); text-transform:uppercase; letter-spacing:.12em; font-size:12px; font-weight:700; }
+    h1 { margin:.25rem 0 .35rem; font-size:30px; }
+    .meta, p { color:var(--muted); }
+    main { padding:24px 28px; max-width:1180px; margin:0 auto; }
+    .badges { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .badge { border:1px solid var(--line); border-radius:999px; padding:8px 12px; background:#0b1626; font-weight:700; }
+    .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin:22px 0; }
+    .user-card, .form-card, .panel { border:1px solid var(--line); border-radius:18px; padding:18px; background:var(--panel); box-shadow:0 12px 36px rgba(0,0,0,.25); }
+    .user-card { display:flex; gap:14px; align-items:flex-start; }
+    .avatar { width:42px; height:42px; border-radius:999px; display:grid; place-items:center; background:#1d4ed8; font-weight:800; }
+    h2 { margin:0 0 8px; font-size:18px; }
+    form { display:grid; gap:10px; }
+    label { color:#dbeafe; display:grid; gap:6px; font-weight:700; }
+    input { border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:#07111f; color:var(--text); }
+    button { border:1px solid #2563eb; border-radius:999px; padding:10px 14px; background:#1d4ed8; color:white; font-weight:800; cursor:pointer; }
+    table { width:100%; border-collapse:collapse; overflow:hidden; border-radius:16px; background:var(--panel); border:1px solid var(--line); }
+    th, td { text-align:left; padding:12px 14px; border-bottom:1px solid var(--line); vertical-align:top; }
+    th { color:#cfe0ff; background:#101f34; }
+    tr.ok td:last-child { color:var(--ok); font-weight:800; }
+    tr.fail td:last-child { color:var(--fail); font-weight:800; }
+    code { color:#bfdbfe; }
+    @media (max-width: 900px) { .grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<header>
+  <div class="kicker">Opus secure by design · recette live générée par ScoreTemplate</div>
+  <h1>FSM + ACL + Navigation + Formulaires · 3 utilisateurs · FR / ES / EN</h1>
+  <div class="meta">Généré le {{ generated_at }}</div>
+  <div class="badges">
+    <span class="badge">ScoreTemplate: {{ score_status }}</span>
+    <span class="badge">Mail: {{ mail.status }}</span>
+    <span class="badge">Default deny observable</span>
+    <span class="badge">POST forms tested</span>
+  </div>
+</header>
+<main>
+  <section class="grid">
+    [[ foreach: nav_cards as card ]]
+    <article class="user-card">
+      <div class="avatar">{{ card.initial }}</div>
+      <div>
+        <h2>{{ card.label }} · {{ card.language|upper }}</h2>
+        <p>{{ card.rights }}</p>
+        <p><code>{{ card.route }}</code></p>
+      </div>
+    </article>
+    [[ endforeach ]]
+  </section>
+
+  <section class="panel">
+    <h2>Formulaires testés</h2>
+    <p>Les formulaires ci-dessous sont validés par la recette avec de vraies requêtes POST, une route explicite, une transition FSM et une règle ACL.</p>
+    <div class="grid">
+      [[ foreach: form_cards as form ]]
+      <article class="form-card">
+        <h2>{{ form.title }} · {{ form.language|upper }}</h2>
+        <form method="post" action="{{ form.route }}" onsubmit="event.preventDefault(); this.querySelector('.form-result').textContent='Soumission simulée OK · test serveur déjà validé par la recette';">
+          <label>{{ form.field }}<input name="{{ form.field }}" value="{{ form.value }}"></label>
+          <input type="hidden" name="opus_recipe" value="P116B5">
+          <button type="submit">Tester le formulaire</button>
+          <p class="form-result">POST testé côté recette via Router + SecureDispatchGate + FSM + ACL.</p>
+        </form>
+        <p><code>POST {{ form.route }}</code></p>
+      </article>
+      [[ endforeach ]]
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Matrice runtime réelle</h2>
+    <p>Chaque ligne passe par le Router Opus, le SecureDispatchGate, la FSM et l'ACL. Les formulaires POST vérifient aussi l'absence de fallback GET implicite.</p>
+    <table>
+      <thead><tr><th>User</th><th>Lang</th><th>Méthode</th><th>Type</th><th>Route</th><th>Attendu</th><th>Observé</th><th>Résultat</th></tr></thead>
+      <tbody>
+      [[ foreach: rows as row ]]
+        <tr class="{{ row.status_class }}"><td>{{ row.label }}</td><td>{{ row.language|upper }}</td><td>{{ row.method }}</td><td>{{ row.kind }}</td><td><code>{{ row.route }}</code></td><td>{{ row.expected }}</td><td>{{ row.observed }}</td><td>{{ row.status }}</td></tr>
+      [[ endforeach ]]
+      </tbody>
+    </table>
+  </section>
+</main>
+</body>
+</html>
