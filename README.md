@@ -45,10 +45,11 @@ Chaque package optionnel doit déclarer sa dépendance au core OPUS via `opus-pa
 
 Un package peut être installé séparément, mais il ne doit jamais embarquer `framework/Opus/`.
 
-Le contrat de manifest est documenté dans :
+Le contrat de manifest et le contrat d'installation sont documentés dans :
 
 ```text
 packages/OPUS_PACKAGE_MANIFEST_CONTRACT.md
+packages/OPUS_PACKAGE_INSTALL_CONTRACT.md
 packages/opus-package.schema.json
 ```
 
@@ -57,6 +58,20 @@ Validation maintenance :
 ```text
 php tools/validate_opus_packages.php
 ```
+
+Installation maintenance, exemple dry-run :
+
+```text
+php tools/install_opus_package.php --package=opus-refbook --target=H:\UwAmp\www\OPUS_REF_BOOK --opus-root=H:\OPUS --dry-run
+```
+
+Installation réelle :
+
+```text
+php tools/install_opus_package.php --package=opus-refbook --target=H:\UwAmp\www\OPUS_REF_BOOK --opus-root=H:\OPUS
+```
+
+L'installation écrit un `opus-runtime.local.json` dans le site cible. Ce fichier pointe explicitement vers le core OPUS partagé et garde `fallback_allowed=false`.
 
 ## Licence / droits
 
