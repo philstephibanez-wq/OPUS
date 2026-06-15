@@ -4,59 +4,77 @@ Status: active architecture contract.
 
 ## Purpose
 
-This document defines how an official optional OPUS package is installed for local or published use.
+This document defines how an official optional OPUS package is installed for client delivery, local use, published use and development validation.
 
-The installer contract exists to preserve the original OPUS design goal:
+The installer contract preserves the OPUS design goal:
 
 ```text
 One OPUS framework core.
 Several OPUS-powered packages/sites.
 No duplicated framework per site.
+No silent fallback.
+Clean deliverable roots.
 ```
 
-## Mandatory install model
+## Client deliverable install model
+
+Client deliverable package installation must be Composer-managed and multiplatform.
+
+A client package installation contract must not depend on:
+
+```text
+xcopy
+rmdir
+mklink
+cmd
+PowerShell
+shell-specific scripts
+OS-specific filesystem commands
+```
+
+Composer may call OPUS PHP installer logic, Composer scripts or a Composer installer plugin, but that installer logic must use portable PHP APIs and explicit contracts.
+
+## Development model
+
+Development tooling may use local workspace commands, CMD recipes, smoke tests, generators and auditors.
+
+These tools must execute from MAESTRO_WORKSPACE and must not be stored or executed from client deliverable roots, package roots, public site roots or legacy site roots.
+
+## Mandatory install behavior
 
 An optional package installation must:
 
 ```text
-- copy or deploy the package/site files only;
+- install package/site files through Composer-managed logic;
 - resolve an existing shared OPUS core explicitly;
-- install into the OPUS sites/ topology by default or by explicit target;
+- install into the OPUS sites topology by default or by explicit target;
 - write an explicit local runtime contract;
 - fail if the OPUS core is missing;
-- fail if a target path is unsafe or non-empty;
+- fail if a target path is unsafe;
+- fail if a target path is non-empty unless Composer/OPUS explicitly owns it;
 - fail if package scories are detected;
-- never fallback to an embedded or guessed framework.
+- never fallback to an embedded or guessed framework;
+- never duplicate framework/Opus in the installed package.
 ```
 
-## Recommended local topology
+## Recommended topology
 
-For a readable local UwAmp/dev installation, OPUS may live at:
+OPUS core remains shared.
 
-```text
-H:\UwAmp\www\OPUS\
-```
-
-Installed sites should live under:
+Installed sites should live under the OPUS sites topology:
 
 ```text
-H:\UwAmp\www\OPUS\sites\
-```
-
-Example:
-
-```text
-H:\UwAmp\www\OPUS\sites\opus-refbook\
+<OPUS_ROOT>/sites/<package-site>/
 ```
 
 The web server must expose only the installed site's `public/` directory, not the OPUS root.
 
-## Forbidden model
+## Forbidden installed site/package layout
 
-This layout is forbidden in an installed site/package:
+This layout is forbidden:
 
 ```text
-OPUS_REF_BOOK/
+<INSTALLED_SITE>/
   framework/Opus/
 ```
 
@@ -70,7 +88,9 @@ The installer writes this local file in the target directory:
 opus-runtime.local.json
 ```
 
-This file is not a source package manifest. It is local installation state. It must declare:
+This file is local installation state. It is not the source package manifest.
+
+It must declare:
 
 ```text
 runtime_contract = OPUS_SHARED_CORE_PACKAGE_RUNTIME
@@ -83,25 +103,13 @@ framework_duplication_allowed = false
 created_at_utc
 ```
 
-## Official installer
+## Official installer direction
 
-The official installer tool is:
+The official client-facing installation mechanism is Composer.
 
-```text
-tools/install_opus_package.php
-```
+The future OPUS Composer installer must be implemented as portable PHP code under the OPUS namespace and invoked by Composer, not by OS-specific shell commands.
 
-Example dry run:
-
-```text
-php tools/install_opus_package.php --package=opus-refbook --target=H:\UwAmp\www\OPUS\sites\opus-refbook --opus-root=H:\UwAmp\www\OPUS --dry-run
-```
-
-Example install:
-
-```text
-php tools/install_opus_package.php --package=opus-refbook --target=H:\UwAmp\www\OPUS\sites\opus-refbook --opus-root=H:\UwAmp\www\OPUS
-```
+Workspace recipes may validate the installer during development, but they are not the client installation contract.
 
 ## License inheritance
 
@@ -113,27 +121,10 @@ Required profile:
 OPUS_SOURCE_AVAILABLE_FREE_NONCOMMERCIAL_COMMERCIAL_ROYALTIES
 ```
 
-Required holder:
-
-```text
-Philippe Stéphane Ibanez
-```
-
 Commercial use requires a paid commercial license and royalties.
 
 ## Delivery gate
 
-Before installing or packaging an optional package, run:
-
-```text
-php tools/validate_opus_packages.php
-php tools/validate_opus_delivery_layout.php --root=H:\UwAmp\www\OPUS --mode=dev
-```
-
-Before shipping a delivery artifact, run the delivery layout validator against the artifact root:
-
-```text
-php tools/validate_opus_delivery_layout.php --root=<DELIVERY_ROOT> --mode=delivery
-```
+Before packaging or delivering an optional package, validators must prove the active tree is clean.
 
 Validation failure means the package or delivery tree is not clean enough to deliver or install.
