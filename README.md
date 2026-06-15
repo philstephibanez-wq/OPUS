@@ -32,23 +32,24 @@ Opus fournit le socle framework générique :
 OPUS utilise un core partagé, des packages optionnels officiels et des sites installés sous une arborescence lisible.
 
 ```text
-framework/Opus/              core framework partagé unique
-packages/                    packages officiels OPUS installables
-packages/opus-refbook/       site RefBook optionnel officiel
-packages/opus-user-guide/    futur guide utilisateur optionnel
-sites/                       sites installés / instances runtime
-config/                      templates de configuration non secrets
-var/                         cache/logs/tmp locaux, livrés vides
-tools/                       outils CLI OPUS
+framework/Opus/                              core framework partagé unique
+packages/                                    packages officiels OPUS installables
+packages/opus-8.1.0-lysenko-reference-book/  site RefBook officiel versionné
+packages/opus-user-guide/                    futur guide utilisateur optionnel
+sites/                                       sites installés / instances runtime
+config/                                      templates de configuration non secrets
+var/                                         cache/logs/tmp locaux, livrés vides
 ```
 
 Règle : un seul framework OPUS, plusieurs sites/packages OPUS, aucune duplication du core dans les packages ou les sites.
 
-Si OPUS est placé sous une racine web locale comme `H:\UwAmp\www\OPUS`, le serveur web doit exposer uniquement les dossiers `sites/*/public/`, jamais `framework/`, `packages/`, `tools/`, `tests/`, `config/` ou `var/`.
+Un serveur web doit exposer uniquement les dossiers `sites/*/public/`, jamais `framework/`, `packages/`, `config/`, `var/` ou la racine OPUS.
 
 ## Workspace-only development context
 
-Tests, smoke scripts, recipes, reports and legacy roots belong to MAESTRO_WORKSPACE, not to the visible OPUS product root.
+Tests, smoke scripts, recettes, générateurs, outils de patch, rapports et racines legacy appartiennent à MAESTRO_WORKSPACE, pas à la racine produit OPUS visible ni aux livrables client.
+
+Les commandes système locales sont autorisées pour le développement uniquement depuis MAESTRO_WORKSPACE. Elles ne font pas partie du contrat d’installation client.
 
 ## Packages optionnels
 
@@ -65,43 +66,39 @@ packages/opus-package.schema.json
 DELIVERY_PROFILE.md
 ```
 
+## Installation des livrables client
+
+L’installation d’un package OPUS destiné au client est Composer-managed et multiplateforme.
+
+Elle ne doit pas dépendre de commandes système comme `xcopy`, `rmdir`, `mklink`, CMD, PowerShell ou de chemins Windows spécifiques.
+
+Composer peut invoquer une logique OPUS PHP portable, un Composer script ou un Composer installer plugin. Cette logique doit résoudre explicitement le core OPUS partagé, écrire le contrat runtime local et échouer sans fallback silencieux si le contrat n’est pas respecté.
+
+L'installation écrit un `opus-runtime.local.json` dans le site cible. Ce fichier pointe explicitement vers le core OPUS partagé et garde `fallback_allowed=false`.
+
+## Validation développement
+
+Les validateurs et recettes de développement vivent dans MAESTRO_WORKSPACE.
+
 Validation packages :
 
 ```text
-php tools/validate_opus_packages.php
+H:/MAESTRO_WORKSPACE/20_TECHNICAL_FOUNDATIONS/OPUS/tools/validate_opus_packages.php
 ```
 
-Validation layout dev :
+Validation layout :
 
 ```text
-php tools/validate_opus_delivery_layout.php --root=H:\UwAmp\www\OPUS --mode=dev
+H:/MAESTRO_WORKSPACE/20_TECHNICAL_FOUNDATIONS/OPUS/tools/validate_opus_delivery_layout.php
 ```
 
-Validation layout livrable :
-
-```text
-php tools/validate_opus_delivery_layout.php --root=H:\UwAmp\www\OPUS --mode=delivery
-```
-
-Installation maintenance, exemple dry-run :
-
-```text
-php tools/install_opus_package.php --package=opus-refbook --target=H:\UwAmp\www\OPUS\sites\opus-refbook --opus-root=H:\UwAmp\www\OPUS --dry-run
-```
-
-Installation réelle :
-
-```text
-php tools/install_opus_package.php --package=opus-refbook --target=H:\UwAmp\www\OPUS\sites\opus-refbook --opus-root=H:\UwAmp\www\OPUS
-```
-
-L'installation écrit un `opus-runtime.local.json` dans le site cible. Ce fichier pointe explicitement vers le core OPUS partagé et garde `fallback_allowed=false`.
+Ces chemins sont des chemins de développement local, pas un contrat d’installation client.
 
 ## Livraison
 
 Une livraison OPUS core doit conserver l'arborescence utile (`sites/`, `packages/`, `config/`, `var/`) même si certains dossiers ne contiennent que des README ou `.gitkeep`.
 
-`tests/` est interne au développement et ne doit jamais entrer dans les artefacts livrés.
+`tests/`, recettes, smoke scripts, outils de patch, rapports et archives sont internes au développement et ne doivent jamais entrer dans les artefacts livrés.
 
 ## Licence / droits
 
@@ -124,10 +121,10 @@ Opus ne contient pas :
 
 - route métier MO_KB
 - thème métier
-- chemin absolu projet
+- chemin absolu projet dans les livrables client
 - fallback silencieux
 - secret
-- vendor committé
+- vendor committé dans les livrables client
 - cache runtime livré
 - duplication du framework dans les packages optionnels ou les sites
 - tests dans les artefacts livrés
