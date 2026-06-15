@@ -1,7 +1,7 @@
 # Opus repository ignore rules
 #
 # Opus is a reusable PHP framework. The repository must not track generated
-# dependencies, local secrets, runtime state, reports, caches, temporary files,
+# dependencies, local secrets, development state, reports, temporary files,
 # or machine-specific artifacts.
 
 # Dependencies
@@ -22,8 +22,18 @@
 /tmp/
 
 # Runtime state
+#
+# OPUS product runtime var contract is strict:
+#   - /var/cache for runtime cache payloads
+#   - /var/logs for runtime log payloads
+# Nothing else belongs under /var in OPUS.
 /var/*
-!/var/.gitkeep
+!/var/cache/
+!/var/logs/
+/var/cache/*
+!/var/cache/.gitkeep
+/var/logs/*
+!/var/logs/.gitkeep
 
 # SQLite runtime sidecars
 *.sqlite-wal
@@ -44,4 +54,3 @@
 # OS / editor noise
 .DS_Store
 Thumbs.db
-/var/generated/
