@@ -6,7 +6,7 @@ Status: active architecture contract.
 
 Every official optional OPUS package must declare its runtime, delivery, clean-gate and license contract in `opus-package.json`.
 
-The manifest is not decorative metadata. It is the package contract used by maintainers, packaging tools and future installers.
+The manifest is not decorative metadata. It is the package contract used by maintainers, packaging tools, Composer-managed installers and future delivery validators.
 
 ## Required principles
 
@@ -16,6 +16,8 @@ Several optional OPUS packages.
 No framework duplication inside a package.
 No silent fallback.
 No active legacy artifacts in deliverables.
+Composer-managed client installation.
+Clean product roots.
 ```
 
 ## Required package fields
@@ -26,6 +28,7 @@ package_slug
 package_type
 package_status
 requires_opus_version
+requires_opus_codename
 requires_opus_name
 entrypoint
 public_root
@@ -51,6 +54,14 @@ fallback_allowed = false
 
 A package must never ship its own `framework/Opus/` copy.
 
+## Install contract
+
+Client deliverable installation is Composer-managed and multiplatform.
+
+A package manifest must not imply that client installation depends on OS-specific commands such as `xcopy`, `rmdir`, `mklink`, CMD or PowerShell.
+
+Development recipes may exist only in MAESTRO_WORKSPACE and must not be part of client deliverables.
+
 ## License contract
 
 Official OPUS packages inherit the OPUS license intent unless a stricter manifest is explicitly declared.
@@ -59,12 +70,6 @@ Required license profile:
 
 ```text
 OPUS_SOURCE_AVAILABLE_FREE_NONCOMMERCIAL_COMMERCIAL_ROYALTIES
-```
-
-Required copyright holder:
-
-```text
-Philippe Stéphane Ibanez
 ```
 
 Commercial use requires a paid commercial license and royalties.
@@ -85,13 +90,18 @@ vendor dumps
 dead CSS overrides
 duplicated framework code
 hidden fallbacks
+DOC folders
+tools folders
+patch notes
+TODO files
+smoke scripts
 ```
 
-Git history is the archive. The active tree must stay clean.
+Git history and MAESTRO_WORKSPACE archives preserve history. The active deliverable tree must stay clean.
 
 ## Current official packages
 
 ```text
-packages/opus-refbook/       OPUS_REF_BOOK optional official documentation site
-packages/opus-user-guide/    OPUS_USER_GUIDE optional future user guide
+packages/opus-8.1.0-lysenko-reference-book/  OPUS 8.1.0 "Lysenko" Reference Book
+packages/opus-user-guide/                    OPUS_USER_GUIDE optional future user guide
 ```
