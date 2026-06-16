@@ -54,7 +54,7 @@ final class Autoloader
     /**
      * PUBLIC API
      *
-     * @return array{root:string,cache_file:string,log_file:string,class_count:int,rebuild:bool}
+     * @return array{ok:bool,root:string,cache_file:string,log_file:string,class_count:int,rebuild:bool}
      */
     public static function boot(string $projectRoot): array
     {
@@ -64,7 +64,7 @@ final class Autoloader
     /**
      * PUBLIC API
      *
-     * @return array{root:string,cache_file:string,log_file:string,class_count:int,rebuild:bool}
+     * @return array{ok:bool,root:string,cache_file:string,log_file:string,class_count:int,rebuild:bool}
      */
     public function register(): array
     {
@@ -87,6 +87,7 @@ final class Autoloader
         ]);
 
         return [
+            'ok' => true,
             'root' => $root,
             'cache_file' => $cacheFile,
             'log_file' => RuntimeLogger::defaultLogFile($root),
