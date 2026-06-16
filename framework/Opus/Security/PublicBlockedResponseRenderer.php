@@ -22,11 +22,11 @@ use Opus\Http\PublicResponse;
  */
 final class PublicBlockedResponseRenderer
 {
-    public function render(): PublicResponse
+    public function render(?BlockedStateEvent $event = null): PublicResponse
     {
         return new PublicResponse(
             503,
-            "Site temporairement bloqué.\nContactez le support.",
+            $event?->publicBody() ?? "Site temporairement bloqué.\nContactez le support.",
             ['Content-Type' => 'text/plain; charset=UTF-8']
         );
     }
