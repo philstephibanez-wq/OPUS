@@ -43,11 +43,16 @@ final class PublicRouteMvcSmoke
 
         $missRequest = PublicRequest::get('/missing', 'opus-demo');
         $missDecision = $control->denyUnknownRoute($missRequest);
-        $missResponse = $blockedRenderer->render();
+        $blockedEvent = $missDecision->blockedStateEvent();
+        if ($blockedEvent === null) {
+            throw new RuntimeException('OPUS_PUBLIC_SMOKE_BLOCKED_EVENT_MISSING');
+        }
+        $missResponse = $blockedRenderer->render($blockedEvent);
 
         $logger->info('OPUS_PUBLIC_ROUTE_MVC_SMOKE', [
             'normal_status' => $normalResponse->statusCode(),
             'miss_status' => $missResponse->statusCode(),
+            'blocked_event' => $blockedEvent->adminDiagnostics(),
         ]);
 
         return [
@@ -55,6 +60,7 @@ final class PublicRouteMvcSmoke
             'gate' => 'P117A2_OPUS_PUBLIC_ROUTE_MVC_SMOKE',
             'normal_public_response' => $normalResponse->toArray(),
             'blocked_public_response' => $missResponse->toArray(),
+            'blocked_state_event' => $blockedEvent->adminDiagnostics(),
             'admin_diagnostics' => [
                 'normal' => $normalDecision->adminDiagnostics(),
                 'blocked' => $missDecision->adminDiagnostics(),
