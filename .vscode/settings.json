@@ -3,7 +3,6 @@
         "**/.git": true,
         "**/.vscode": true,
         "vendor": true,
-        "var": true,
         "composer.lock": true,
         ".git": true,
         ".vscode": true,
