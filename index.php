@@ -24,4 +24,14 @@ require_once $opusRoot . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR
 require_once $opusAutoloadRoot . DIRECTORY_SEPARATOR . 'ClassMapBuilder.php';
 require_once $opusAutoloadRoot . DIRECTORY_SEPARATOR . 'Autoloader.php';
 
-return \Opus\Autoload\Autoloader::boot($opusRoot);
+$opusAutoloader = \Opus\Autoload\Autoloader::boot($opusRoot);
+
+if (PHP_SAPI === 'cli') {
+    return $opusAutoloader;
+}
+
+(new \Opus\Runtime\NativeHttpEmitter())->emit(
+    (new \Opus\Runtime\NativeHttpKernel())->handle($_SERVER)
+);
+
+return $opusAutoloader;
