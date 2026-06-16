@@ -1,10 +1,10 @@
 # CHANGELOG Ã¢â‚¬â€ P112C5
 
-## AjoutÃƒÂ©
+## Ajouts:
 - Squelette HTML navigable du Reference Book Opus.
 - Pages HTML : accueil, architecture, FSM, ACL.
-- CSS/JS dÃƒÂ©diÃƒÂ©s ÃƒÂ  la documentation gÃƒÂ©nÃƒÂ©rÃƒÂ©e.
-- Navigation JSON sÃƒÂ©parÃƒÂ©e.
+- CSS/JS dédiés ÃƒÂ  la documentation générée.
+- Navigation JSON séparée.
 
 ## P112Q2I0_OPUS_GITHUB_BOOTSTRAP
 - Prepared Opus for private GitHub publication.
@@ -22,7 +22,7 @@
 ## P112Q2I2_OPUS_Lstsa_RUNNER_SCHEDULER_BASELINE
 
 - Ajout du runner CLI Lstsa baseline hors requÃƒÂªte HTTP.
-- Ajout du scheduler baseline pour crÃƒÂ©er une demande de run Lstsa.
+- Ajout du scheduler baseline pour créer une demande de run Lstsa.
 - Ajout queue/locks/heartbeats fichier sous `var/lstsa/` hors Git.
 - Ajout recette smoke test avec rapport JSON/MD append-only.
 <!-- END MAESTRO_WORKSPACE P112Q2I2_OPUS_Lstsa_RUNNER_SCHEDULER_BASELINE -->
@@ -30,10 +30,10 @@
 <!-- BEGIN MAESTRO_WORKSPACE P112Q2I3_OPUS_Lstsa_BATCH_CHECKPOINT_EXECUTOR -->
 ## P112Q2I3_OPUS_Lstsa_BATCH_CHECKPOINT_EXECUTOR
 
-- Ajout du premier exÃƒÂ©cuteur Lstsa batch/checkpoint.
-- Validation stricte input puis output aprÃƒÂ¨s transformation.
-- Quarantine runtime pour lignes rejetÃƒÂ©es.
-- Archives runtime append-only pour lignes stockÃƒÂ©es.
+- Ajout du premier exécuteur Lstsa batch/checkpoint.
+- Validation stricte input puis output après transformation.
+- Quarantine runtime pour lignes rejetées.
+- Archives runtime append-only pour lignes stockées.
 - Rapports JSON/MD enrichis avec artifacts.
 <!-- END MAESTRO_WORKSPACE P112Q2I3_OPUS_Lstsa_BATCH_CHECKPOINT_EXECUTOR -->
 
@@ -51,8 +51,8 @@
 
 - Ajout du contrÃ´le FSM explicite du runner Lstsa background.
 - Ajout des objets de phase Load / Secure input / Transform / Secure output / Store / Archive / Report.
-- Ajout dâ€™un flux SQLite source -> staging cible -> commit final cible, avec suppression du staging en succÃ¨s ou Ã©chec.
-- Ajout des Ã©vÃ©nements append-only OK / FAIL sous `var/lstsa/events/`.
+- Ajout dâ€™un flux SQLite source -> staging cible -> commit final cible, avec suppression du staging en succÃ¨s ou èchec.
+- Ajout des èvènements append-only OK / FAIL sous `var/lstsa/events/`.
 - Ajout dâ€™une recette de validation hors HTTP avec BDD source/cible SQLite temporaires.
 <!-- END MAESTRO_WORKSPACE P112Q2I5_OPUS_Lstsa_FSM_BACKGROUND_STAGING -->
 
@@ -100,12 +100,12 @@
 ## P112Q2K1_OPUS_AUTOLOADER_CACHE_CONTRACT
 
 - Ajout du contrat officiel `Opus\Autoload`.
-- GÃ©nÃ©ration du cache `var/cache/opus/autoload/opus_classmap.php`.
+- Gènèration du cache `var/cache/opus/autoload/opus_classmap.php`.
 - Recette `OPUS_AUTOLOADER_CACHE_OK`.
 
 ## P112Q2L_OPUS_REAL_REFBOOK_HTTP_DIAGNOSTICS
 
-- Ajout d'artefacts diagnostic HTTP pour la recette rÃ©elle `OPUS_REF_BOOK`.
-- Chaque page testÃ©e Ã©crit un JSON et un corps brut dans `var/recipes/.../real_feature_binding/diagnostics`.
+- Ajout d'artefacts diagnostic HTTP pour la recette rèelle `OPUS_REF_BOOK`.
+- Chaque page testèe ècrit un JSON et un corps brut dans `var/recipes/.../real_feature_binding/diagnostics`.
 - La recette globale expose `OPUS_REAL_FEATURE_BINDING_DIAGNOSTICS_OK`.
 
