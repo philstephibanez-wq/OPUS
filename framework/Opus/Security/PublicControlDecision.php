@@ -11,7 +11,8 @@ namespace Opus\Security;
  *   Carry the internal result of the public route control plane.
  *
  * Responsibility:
- *   Separate public execution allowance from protected administrator diagnostics.
+ *   Separate public execution allowance from protected administrator diagnostics
+ *   and attach an optional blocked-state event for denied decisions.
  *
  * Contract:
  *   Diagnostics returned by this object are for protected admin, log and report
@@ -23,7 +24,8 @@ final class PublicControlDecision
     private function __construct(
         private readonly bool $allowed,
         private readonly string $eventId,
-        private readonly array $adminDiagnostics
+        private readonly array $adminDiagnostics,
+        private readonly ?BlockedStateEvent $blockedStateEvent = null
     ) {
     }
 
@@ -34,9 +36,9 @@ final class PublicControlDecision
     }
 
     /** @param array<string,mixed> $adminDiagnostics */
-    public static function denied(string $eventId, array $adminDiagnostics): self
+    public static function denied(string $eventId, array $adminDiagnostics, BlockedStateEvent $blockedStateEvent): self
     {
-        return new self(false, $eventId, $adminDiagnostics);
+        return new self(false, $eventId, $adminDiagnostics, $blockedStateEvent);
     }
 
     public function isAllowed(): bool
@@ -53,5 +55,10 @@ final class PublicControlDecision
     public function adminDiagnostics(): array
     {
         return $this->adminDiagnostics;
+    }
+
+    public function blockedStateEvent(): ?BlockedStateEvent
+    {
+        return $this->blockedStateEvent;
     }
 }
