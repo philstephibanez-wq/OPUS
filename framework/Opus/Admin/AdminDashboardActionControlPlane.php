@@ -42,6 +42,7 @@ final class AdminDashboardActionControlPlane
             self::ACKNOWLEDGE_BLOCKED_STATE_ACTION,
             [
                 'surface' => 'admin_dashboard',
+                'site' => $request->site(),
                 'route_key' => $request->routeKey(),
                 'identity_context' => $request->identityContext(),
                 'fsm_state' => 'ADMIN_DASHBOARD_ACTION_READY',
@@ -90,6 +91,7 @@ final class AdminDashboardActionControlPlane
             $request->action(),
             [
                 'surface' => 'admin_dashboard',
+                'site' => $request->site(),
                 'route_key' => $request->routeKey(),
                 'identity_context' => $request->identityContext(),
                 'fsm_state' => 'ADMIN_DASHBOARD_ACTION_REQUESTED',
