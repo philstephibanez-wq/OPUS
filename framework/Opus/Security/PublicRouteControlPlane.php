@@ -53,8 +53,18 @@ final class PublicRouteControlPlane
 
     private function deny(PublicRequest $request, string $reason): PublicControlDecision
     {
+        $eventId = $this->eventId($request, $reason);
+        $blockedEvent = BlockedStateEvent::publicRequestBlocked(
+            $eventId,
+            $request->site(),
+            $request->routeKey(),
+            'PUBLIC_REQUEST_BLOCKED',
+            $reason,
+            'ADMIN_VIEW_BLOCKED_STATES'
+        );
+
         return PublicControlDecision::denied(
-            $this->eventId($request, $reason),
+            $eventId,
             [
                 'site' => $request->site(),
                 'route_key' => $request->routeKey(),
@@ -64,7 +74,9 @@ final class PublicRouteControlPlane
                 'decision' => 'DENY',
                 'reason' => $reason,
                 'admin_action' => 'ADMIN_VIEW_BLOCKED_STATES',
-            ]
+                'blocked_event' => $blockedEvent->adminDiagnostics(),
+            ],
+            $blockedEvent
         );
     }
 
