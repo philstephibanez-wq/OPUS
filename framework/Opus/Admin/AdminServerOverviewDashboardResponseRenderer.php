@@ -21,38 +21,61 @@ final class AdminServerOverviewDashboardResponseRenderer
 {
     public function render(AdminServerOverviewAccessDecision $decision, ServerOverviewSnapshot $snapshot): AdminDashboardResponse
     {
-        if (!$decision->isAllowed()) { throw new RuntimeException('OPUS_ADMIN_SERVER_OVERVIEW_RENDER_DENIED_DECISION'); }
-        return new AdminDashboardResponse(200, $this->renderBody($decision, $snapshot), ['Content-Type' => 'text/html; charset=utf-8','X-OPUS-Admin-Surface' => 'server_control_plane','X-OPUS-Admin-Route' => 'server-overview','X-OPUS-Admin-Screen' => 'server-overview']);
+        if (!$decision->isAllowed()) {
+            throw new RuntimeException('OPUS_ADMIN_SERVER_OVERVIEW_RENDER_DENIED_DECISION');
+        }
+
+        return new AdminDashboardResponse(
+            200,
+            $this->renderBody($decision, $snapshot),
+            [
+                'Content-Type' => 'text/html; charset=utf-8',
+                'X-OPUS-Admin-Surface' => 'server_control_plane',
+                'X-OPUS-Admin-Route' => 'server-overview',
+                'X-OPUS-Admin-Screen' => 'server-overview',
+            ]
+        );
     }
 
     private function renderBody(AdminServerOverviewAccessDecision $decision, ServerOverviewSnapshot $snapshot): string
     {
-        return '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>OPUS Server Control Plane</title>\n<style data-opus-admin-style="native-server">' . $this->renderStyles() . '</style>\n</head>\n'
-            . '<body data-opus-surface="server_control_plane" data-opus-dashboard="server-overview"><div class="opus-admin-shell">'
-            . '<header class="opus-admin-hero" data-opus-region="admin_header"><div class="opus-admin-brandline"><span class="opus-admin-mark">OPUS</span><span>Server control plane</span></div><div class="opus-admin-hero-grid"><div><h1>OPUS Server Control Plane</h1><p>Read-only supervision of every declared OPUS site on this server.</p></div><div class="opus-admin-route-pill" data-field="server_state">' . $this->e($snapshot->serverState()) . '</div></div></header>'
-            . '<main class="opus-admin-main"><section class="opus-admin-card opus-admin-card--summary" data-opus-region="server_summary"><div class="opus-admin-card-heading"><span class="opus-admin-kicker">Server overview</span><h2>Declared OPUS sites</h2></div><div class="opus-admin-summary-grid">'
-            . $this->renderMetric('Current host', 'current_host', $snapshot->currentHost()) . $this->renderMetric('Sites', 'site_count', (string) $snapshot->siteCount()) . $this->renderMetric('Blocked', 'blocked_site_count', (string) $snapshot->blockedSiteCount())
-            . '</div></section><section class="opus-admin-card opus-admin-card--wide" data-opus-region="server_sites"><div class="opus-admin-card-heading"><span class="opus-admin-kicker">Multi-site supervision</span><h2>Sites on this OPUS server</h2></div>' . $this->renderSites($snapshot) . '</section>'
-            . '<section class="opus-admin-card" data-opus-region="server_security"><div class="opus-admin-card-heading"><span class="opus-admin-kicker">Security gate</span><h2>FSM + ACL bootstrap</h2></div><dl class="opus-admin-detail-list">' . $this->renderDetail('Decision event', 'event_id', $decision->eventId()) . $this->renderDetail('FSM state', 'fsm_state', $decision->diagnostics()['fsm_state'] ?? '') . $this->renderDetail('ACL policy', 'acl_policy', $decision->diagnostics()['acl_policy'] ?? '') . '</dl></section></main>'
-            . '<footer class="opus-admin-footer" data-opus-region="admin_audit_footer"><span>Generated ' . $this->e($snapshot->generatedAt()) . '</span><span>admin-only server overview</span></footer></div></body></html>';
+        return implode("\n", [
+            '<!doctype html>',
+            '<html lang="en">',
+            '<head>',
+            '<meta charset="utf-8">',
+            '<meta name="viewport" content="width=device-width, initial-scale=1">',
+            '<title>OPUS Server Control Plane</title>',
+            '<style data-opus-admin-style="native-server">' . $this->renderStyles() . '</style>',
+            '</head>',
+            '<body data-opus-surface="server_control_plane" data-opus-dashboard="server-overview"><div class="opus-admin-shell">',
+            '<header class="opus-admin-hero" data-opus-region="admin_header"><div class="opus-admin-brandline"><span class="opus-admin-mark">OPUS</span><span>Server control plane</span></div><div class="opus-admin-hero-grid"><div><h1>OPUS Server Control Plane</h1><p>Read-only supervision of every declared OPUS site on this server.</p></div><div class="opus-admin-route-pill" data-field="server_state">' . $this->e($snapshot->serverState()) . '</div></div></header>',
+            '<main class="opus-admin-main"><section class="opus-admin-card opus-admin-card--summary" data-opus-region="server_summary"><div class="opus-admin-card-heading"><span class="opus-admin-kicker">Server overview</span><h2>Declared OPUS sites</h2></div><div class="opus-admin-summary-grid">' . $this->renderMetric('Current host', 'current_host', $snapshot->currentHost()) . $this->renderMetric('Sites', 'site_count', (string) $snapshot->siteCount()) . $this->renderMetric('Blocked', 'blocked_site_count', (string) $snapshot->blockedSiteCount()) . '</div></section>',
+            '<section class="opus-admin-card opus-admin-card--wide" data-opus-region="server_sites"><div class="opus-admin-card-heading"><span class="opus-admin-kicker">Multi-site supervision</span><h2>Sites on this OPUS server</h2></div>' . $this->renderSites($snapshot) . '</section>',
+            '<section class="opus-admin-card" data-opus-region="server_security"><div class="opus-admin-card-heading"><span class="opus-admin-kicker">Security gate</span><h2>FSM + ACL bootstrap</h2></div><dl class="opus-admin-detail-list">' . $this->renderDetail('Decision event', 'event_id', $decision->eventId()) . $this->renderDetail('FSM state', 'fsm_state', $decision->diagnostics()['fsm_state'] ?? '') . $this->renderDetail('ACL policy', 'acl_policy', $decision->diagnostics()['acl_policy'] ?? '') . '</dl></section></main>',
+            '<footer class="opus-admin-footer" data-opus-region="admin_audit_footer"><span>Generated ' . $this->e($snapshot->generatedAt()) . '</span><span>admin-only server overview</span></footer></div></body></html>',
+        ]) . "\n";
     }
 
     private function renderSites(ServerOverviewSnapshot $snapshot): string
     {
-        $html = '<div class="opus-site-grid">\n';
+        $html = ['<div class="opus-site-grid">'];
         foreach ($snapshot->sites() as $site) {
             $classes = 'opus-site-card';
-            if (($site['is_current_host'] ?? false) === true) { $classes .= ' opus-site-card--current'; }
+            if (($site['is_current_host'] ?? false) === true) {
+                $classes .= ' opus-site-card--current';
+            }
             $healthClass = 'opus-site-health--' . strtolower((string) $site['health']);
-            $html .= '<article class="' . $this->e($classes) . '" data-site-id="' . $this->e($site['id']) . '" data-site-type="' . $this->e($site['site_type']) . '">'
+            $html[] = '<article class="' . $this->e($classes) . '" data-site-id="' . $this->e($site['id']) . '" data-site-type="' . $this->e($site['site_type']) . '">'
                 . '<div class="opus-site-card-head"><span>' . $this->e($site['label']) . '</span><strong class="' . $this->e($healthClass) . '" data-field="health">' . $this->e($site['health']) . '</strong></div><dl>'
                 . $this->renderDetail('Enabled', 'enabled', $site['enabled'] ? 'true' : 'false')
                 . $this->renderDetail('Host', 'host', $site['host']) . $this->renderDetail('Site type', 'site_type', $site['site_type']) . $this->renderDetail('FSM', 'fsm_state', $site['fsm_state'])
                 . $this->renderDetail('Auth', 'auth_profile', $site['auth_profile']) . $this->renderDetail('ACL', 'acl_profile', $site['acl_profile']) . $this->renderDetail('Routes', 'routes_profile', $site['routes_profile']) . $this->renderDetail('API', 'api_profile', $site['api_profile'])
                 . $this->renderDetail('Engine root', 'engine_root', $site['engine_root']) . $this->renderDetail('Site root', 'site_root', $site['site_root']) . $this->renderDetail('Public root', 'public_root', $site['public_root']) . $this->renderDetail('Root audit', 'root_audit', $site['root_audit'])
-                . '</dl></article>\n';
+                . '</dl></article>';
         }
-        return $html . '</div>\n';
+        $html[] = '</div>';
+        return implode("\n", $html) . "\n";
     }
 
     private function renderMetric(string $label, string $field, string $value): string
@@ -72,7 +95,9 @@ final class AdminServerOverviewDashboardResponseRenderer
 
     private function e(mixed $value): string
     {
-        if (!is_scalar($value)) { throw new RuntimeException('OPUS_ADMIN_SERVER_OVERVIEW_RENDER_VALUE_INVALID'); }
+        if (!is_scalar($value)) {
+            throw new RuntimeException('OPUS_ADMIN_SERVER_OVERVIEW_RENDER_VALUE_INVALID');
+        }
         return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 }
