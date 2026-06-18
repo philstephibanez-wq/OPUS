@@ -1,0 +1,69 @@
+{
+  "name": "Čeština",
+  "site": {
+    "title": "Log&Play",
+    "kicker": "Hudba · Tvorba · Frameworky · Asistovaná inteligence",
+    "headline": "Svobodný a kontrolovaný ekosystém pro tvorbu, analýzu a publikování hudby zítřka.",
+    "intro": "Log&Play spojuje webové, hudební a znalostní nástroje kolem jedné myšlenky: pomoci tvůrci skládat, chápat, organizovat a sdílet bez ztráty kontroly nad daty nebo uměleckými rozhodnutími.",
+    "status": "Veřejný web se připravuje"
+  },
+  "ui": {
+    "nav": "Navigace",
+    "overview": "Přehled",
+    "ecosystem": "Ekosystém",
+    "projects": "Projekty",
+    "principles": "Principy",
+    "status": "Stav",
+    "languages": "Jazyky",
+    "coming": "JIŽ BRZY",
+    "publicLink": "Veřejný odkaz již brzy",
+    "footerNotice": "Veřejné odkazy budou aktivovány postupně. Z této stránky není vystavena žádná administrační služba.",
+    "asideNotice": "Veřejné odkazy po vizuálním ověření, linuxové předprodukci a konfiguraci Cloudflare.",
+    "principlesTitle": "Tvořit bez černých skříněk.",
+    "projectsTitle": "Tři projekty, jedna společná páteř."
+  },
+  "projects": [
+    {
+      "code": "OPUS",
+      "title": "OPUS",
+      "subtitle": "Svobodný framework",
+      "description": "OPUS je svobodný webový základ ekosystému Log&Play: renderování stránek, modulární architektura, veřejné routy, živá dokumentace a čistě generované weby.",
+      "points": [
+        "Svobodný webový framework",
+        "Generované stránky a weby",
+        "Otevřený technický základ"
+      ]
+    },
+    {
+      "code": "MAESTRO",
+      "title": "MAESTRO",
+      "subtitle": "Hudební asistent",
+      "description": "MAESTRO míří na hudební prostředí pro REAPER: analýzu projektu, kompoziční workflow, orchestraci, přípravu MIDI a podporu rozhodování hudebníka.",
+      "points": [
+        "Workflow hudebníka",
+        "Analýza a orchestrace",
+        "Asistované kreativní nástroje"
+      ]
+    },
+    {
+      "code": "KB",
+      "title": "Knowledge Engine",
+      "subtitle": "Soukromý znalostní engine",
+      "description": "KB je soukromý znalostní engine Log&Play pro hudbu: korpusy, reference, analýzy, workery a uživatelem řízené učicí pipeline.",
+      "points": [
+        "Soukromé hudební znalosti",
+        "Analýza korpusů",
+        "Kontrolovaná a vysvětlitelná AI"
+      ]
+    }
+  ],
+  "principles": [
+    "Svobodný software, když má být svobodný.",
+    "Soukromá data, když musí zůstat soukromá.",
+    "Jasná architektura bez tichého fallbacku.",
+    "Nástroje pro tvorbu hudby, ne pro údržbu infrastruktury."
+  ],
+  "footer": {
+    "baseline": "Log&Play · hudební tvorba, svobodné nástroje a kontrolované znalosti."
+  }
+}

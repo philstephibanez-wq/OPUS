@@ -1,0 +1,69 @@
+{
+  "name": "Italiano",
+  "site": {
+    "title": "Log&Play",
+    "kicker": "Musica · Creazione · Framework · Intelligenza assistita",
+    "headline": "Un ecosistema libero e controllato per creare, analizzare e pubblicare la musica di domani.",
+    "intro": "Log&Play riunisce strumenti web, musicali e di conoscenza attorno a un’idea: aiutare il creatore a comporre, comprendere, organizzare e condividere senza perdere il controllo dei dati né delle scelte artistiche.",
+    "status": "Sito pubblico in preparazione"
+  },
+  "ui": {
+    "nav": "Navigazione",
+    "overview": "Panoramica",
+    "ecosystem": "Ecosistema",
+    "projects": "Progetti",
+    "principles": "Principi",
+    "status": "Stato",
+    "languages": "Lingue",
+    "coming": "PROSSIMAMENTE",
+    "publicLink": "Link pubblico prossimamente",
+    "footerNotice": "I link pubblici saranno attivati progressivamente. Nessun servizio di amministrazione è esposto da questa pagina.",
+    "asideNotice": "Link pubblici attivati dopo validazione visiva, preproduzione Linux e configurazione Cloudflare.",
+    "principlesTitle": "Creare senza scatole nere.",
+    "projectsTitle": "Tre progetti, una stessa spina dorsale."
+  },
+  "projects": [
+    {
+      "code": "OPUS",
+      "title": "OPUS",
+      "subtitle": "Framework libero",
+      "description": "OPUS è la base web libera dell’ecosistema Log&Play: rendering di pagine, architettura modulare, rotte pubbliche, documentazione viva e siti generati in modo pulito.",
+      "points": [
+        "Framework web libero",
+        "Pagine e siti generati",
+        "Base tecnica aperta"
+      ]
+    },
+    {
+      "code": "MAESTRO",
+      "title": "MAESTRO",
+      "subtitle": "Assistente musicale",
+      "description": "MAESTRO punta a un ambiente musicale per REAPER: analisi del progetto, workflow di composizione, orchestrazione, preparazione MIDI e supporto alle decisioni del musicista.",
+      "points": [
+        "Workflow del musicista",
+        "Analisi e orchestrazione",
+        "Strumenti creativi assistiti"
+      ]
+    },
+    {
+      "code": "KB",
+      "title": "Knowledge Engine",
+      "subtitle": "Motore privato di conoscenza",
+      "description": "La KB è il motore privato di conoscenza musicale di Log&Play: corpus, riferimenti, analisi, worker e pipeline di apprendimento controllate dall’utente.",
+      "points": [
+        "Conoscenza musicale privata",
+        "Analisi di corpus",
+        "IA controllata e spiegabile"
+      ]
+    }
+  ],
+  "principles": [
+    "Software libero quando deve esserlo.",
+    "Dati privati quando devono restare tali.",
+    "Architettura chiara, senza fallback silenzioso.",
+    "Strumenti pensati per creare musica, non per mantenere infrastruttura."
+  ],
+  "footer": {
+    "baseline": "Log&Play · creazione musicale, strumenti liberi e conoscenza controllata."
+  }
+}
