@@ -1,0 +1,32 @@
+/* P114C3X — visible I18N fallback must look like an alert. */
+.i18n-missing-visible,
+a.i18n-missing-visible,
+button.i18n-missing-visible,
+summary.i18n-missing-visible,
+span.i18n-missing-visible,
+strong.i18n-missing-visible {
+  color: #fff !important;
+  background: #b91c1c !important;
+  border: 1px solid #ef4444 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, .22), 0 10px 22px rgba(127, 29, 29, .22) !important;
+  padding: .18rem .55rem !important;
+  font-weight: 800 !important;
+  letter-spacing: .01em !important;
+  text-decoration: none !important;
+}
+
+.i18n-missing-visible::before {
+  content: "";
+  font-weight: 900;
+}
+
+option.i18n-missing-visible {
+  color: #b91c1c !important;
+  background: #fee2e2 !important;
+}
+
+/* P114C3AA — compact red visible I18N alert: ⚠[key]. */
+
+/* P114C3AB — compact visible I18N fallback: ⚠[key]. */
+.i18n-missing-visible::before{content:"" !important;}

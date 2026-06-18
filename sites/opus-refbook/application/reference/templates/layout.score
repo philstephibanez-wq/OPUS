@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="{{ seo.description }}">
+  <title>{{ title }} — {{ moduleTitle }}</title>
+  <link rel="stylesheet" href="{{ basePath }}/assets/css/refbook.css?v=P116C5H">
+  <link rel="stylesheet" href="{{ basePath }}/assets/css/refbook-scrollbar-polish.css?v=P116C5H">
+  <link rel="stylesheet" href="{{ basePath }}/assets/css/refbook-header-menu.css?v=P116C5S">
+  <link rel="stylesheet" href="{{ basePath }}/assets/css/refbook-scroll-footer-restoration.css?v=P116C5P">
+  <link rel="stylesheet" href="{{ basePath }}/assets/css/refbook-p116c5s-menu-sidebar.css?v=P116C5U">
+</head>
+<body class="{{ themeClass }}">
+<div class="app-shell app-shell-pro-doc">
+  <header class="site-header site-header-pro-doc">
+    <div class="site-header-mainline">
+      <a class="site-brand site-brand-wordmark" href="{{ basePath }}/?lang={{ lang }}&amp;theme={{ theme }}" aria-label="{{ module.title }} - {{ module.subtitle }}">
+        <span class="site-brand-copy">
+          <strong>{{ module.title }}</strong>
+          <small>{{ module.subtitle }}</small>
+        </span>
+      </a>
+
+      <div class="site-controls" aria-label="{{ ui.topbar.controls }}">
+        <form class="top-search" method="get" action="{{ basePath }}/" role="search">
+          <input type="hidden" name="lang" value="{{ lang }}">
+          <input type="hidden" name="theme" value="{{ theme }}">
+          <input type="hidden" name="page" value="search">
+          <label class="visually-hidden" for="refbook-search">{{ ui.search.form_label }}</label>
+          <input id="refbook-search" name="q" type="search" value="{{ searchQuery }}" placeholder="{{ ui.search.placeholder }}">
+          <button type="submit">{{ ui.search.submit }}</button>
+        </form>
+
+        <nav class="theme-switcher segmented-switcher" aria-label="{{ ui.theme.current }}">
+          [[ foreach: themes as themeCode ]]
+          <a href="{{ basePath }}/?lang={{ lang }}&amp;theme={{ themeCode }}[[ if: pageSlug is not empty ]]&amp;page={{ pageSlug }}[[ endif ]]"[[ if: themeCode == theme ]] class="active" aria-current="true"[[ endif ]]>{{ themeCode }}</a>
+          [[ endforeach ]]
+        </nav>
+
+        <form class="language-switcher language-select-form" method="get" action="{{ basePath }}/" aria-label="{{ ui.language.current }}">
+          <input type="hidden" name="theme" value="{{ theme }}">
+          [[ if: pageSlug is not empty ]]
+          <input type="hidden" name="page" value="{{ pageSlug }}">
+          [[ endif ]]
+          <label class="visually-hidden" for="refbook-language">{{ ui.language.current }}</label>
+          <select id="refbook-language" class="language-select" name="lang" onchange="this.form.submit()">
+            [[ foreach: languageOptions as option ]]
+            <option value="{{ option.code }}" data-state="{{ option.state }}"[[ if: option.code == lang ]] selected[[ endif ]]>{{ option.code|upper }} · {{ option.label }}[[ if: option.partial ]] [partial][[ endif ]]</option>
+            [[ endforeach ]]
+          </select>
+        </form>
+      </div>
+    </div>
+
+    <nav class="site-main-menu site-menu-bar" aria-label="{{ ui.sidebar.menu }}">
+      <a href="{{ basePath }}/?lang={{ lang }}&amp;theme={{ theme }}"[[ if: pageSlug is empty ]] class="active" aria-current="page"[[ endif ]]>Overview</a>
+      <a href="{{ basePath }}/?lang={{ lang }}&amp;theme={{ theme }}&amp;page=api-reference"[[ if: pageSlug == 'api-reference' ]] class="active" aria-current="page"[[ endif ]]>{{ ui.sidebar.api_reference }}</a>
+      <a href="{{ basePath }}/?lang={{ lang }}&amp;theme={{ theme }}&amp;page=download-install"[[ if: pageSlug == 'download-install' ]] class="active" aria-current="page"[[ endif ]]>{{ ui.sidebar.download_install }}</a>
+      <a href="{{ basePath }}/?lang={{ lang }}&amp;theme={{ theme }}&amp;page=search"[[ if: pageSlug == 'search' ]] class="active" aria-current="page"[[ endif ]]>{{ ui.sidebar.search }}</a>
+      <a href="{{ basePath }}/?lang={{ lang }}&amp;theme={{ theme }}&amp;page=legal"[[ if: pageSlug == 'legal' ]] class="active" aria-current="page"[[ endif ]]>{{ ui.sidebar.legal }}</a>
+    </nav>
+  </header>
+
+  <div class="shell-breadcrumb-bar">
+    <nav class="breadcrumb" aria-label="{{ ui.breadcrumb.label }}">
+      [[ foreach: breadcrumbs as breadcrumb ]]
+      <a href="{{ breadcrumb.href }}"[[ if: breadcrumb.current ]] aria-current="page"[[ endif ]]>{{ breadcrumb.label }}</a>
+      [[ if: breadcrumb.current == false ]]<span>/</span>[[ endif ]]
+      [[ endforeach ]]
+    </nav>
+  </div>
+
+  <div class="app-body app-body-pro-doc">
+    <aside class="sidebar pro-doc-sidebar" aria-label="{{ ui.sidebar.menu }}">
+      <nav class="side-nav pro-doc-nav">
+        <a class="brand[[ if: pageSlug is empty ]] active[[ endif ]]" href="{{ basePath }}/?lang={{ lang }}&amp;theme={{ theme }}">Overview</a>
+        <details class="nav-group" open>
+          <summary>{{ ui.sidebar.guides }} <span>{{ navigationGuides|length }}</span></summary>
+          <div class="nav-list">
+            [[ foreach: navigationGuides as guideLink ]]
+            <a href="{{ basePath }}/?lang={{ lang }}&amp;theme={{ theme }}&amp;page={{ guideLink.slug }}"[[ if: pageSlug == guideLink.slug ]] class="active" aria-current="page"[[ endif ]]>{{ guideLink.title }}</a>
+            [[ endforeach ]]
+          </div>
+        </details>
+        <details class="nav-group" open>
+          <summary>{{ ui.sidebar.domains }} <span>{{ navigationDomains|length }}</span></summary>
+          <div class="nav-list nav-list-compact nav-list-full-domains">
+            [[ foreach: navigationDomains as domainLink ]]
+            <a href="{{ basePath }}/?lang={{ lang }}&amp;theme={{ theme }}&amp;page=domain-{{ domainLink.slug }}">{{ domainLink.name }} <span>{{ domainLink.count }}</span></a>
+            [[ endforeach ]]
+          </div>
+        </details>
+      </nav>
+    </aside>
+    <main class="content" id="content">
+      {{{ contentHtml }}}
+    </main>
+  </div>
+
+  <footer class="site-footer-minimal">
+    <span class="footer-powered">{{ ui.footer.powered_by }}</span>
+    <span class="footer-separator">·</span>
+    <span>{{ ui.footer.legal_short }}</span>
+  </footer>
+</div>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, securityLevel: 'strict', theme: 'dark' });
+</script>
+</body>
+</html>

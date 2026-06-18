@@ -1,0 +1,79 @@
+<section class="hero compact-hero">
+  <p class="kicker">{{ symbol.domain }}</p>
+  <h1>{{ symbol.symbol }}</h1>
+  [[ if: symbol.role is defined ]]
+  <p>{{ symbol.role }}</p>
+  [[ endif ]]
+</section>
+
+<section class="panel">
+  <p class="kicker">{{ ui.symbol.identity_kicker }}</p>
+  <h2>{{ ui.symbol.identity_title }}</h2>
+  <dl class="definition-list">
+    <div><dt>{{ ui.symbol.kind_label }}</dt><dd>{{ symbol.kind }}</dd></div>
+    <div><dt>{{ ui.symbol.domain_label }}</dt><dd>{{ symbol.domain }}</dd></div>
+    [[ if: symbol.namespace is defined ]]
+    <div><dt>{{ ui.symbol.namespace_label }}</dt><dd><code>{{ symbol.namespace }}</code></dd></div>
+    [[ endif ]]
+    [[ if: symbol.display_file is defined ]]
+    <div><dt>{{ ui.symbol.source_title }}</dt><dd><code>{{ symbol.display_file }}</code></dd></div>
+    [[ endif ]]
+  </dl>
+</section>
+
+[[ if: symbol.responsibility is defined ]]
+<section class="panel">
+  <p class="kicker">{{ ui.symbol_extra.responsibility }}</p>
+  <p>{{ symbol.responsibility }}</p>
+</section>
+[[ endif ]]
+
+[[ if: symbol.contract is defined ]]
+<section class="panel">
+  <p class="kicker">{{ ui.symbol.contract_title }}</p>
+  <ul>
+    [[ foreach: symbol.contract as contractLine ]]
+    <li>{{ contractLine }}</li>
+    [[ endforeach ]]
+  </ul>
+</section>
+[[ endif ]]
+
+<section class="panel mermaid-panel">
+  <p class="kicker">{{ ui.symbol.diagrams_title }}</p>
+  <h2>Mermaid</h2>
+  <pre class="mermaid">flowchart TD
+    classNode["{{ symbol.symbol }}"]
+    domainNode["{{ symbol.domain }}"]
+    sourceNode["{{ symbol.display_file }}"]
+    classNode -- "domain" --> domainNode
+    classNode -- "source" --> sourceNode
+    [[ if: symbol.methods is defined ]]
+    methodsNode["{{ ui.symbol.public_methods_title }}"]
+    classNode -- "api" --> methodsNode
+    [[ foreach: symbol.methods as method ]]
+    method{{ method.name }}["{{ method.name }}"]
+    methodsNode --> method{{ method.name }}
+    [[ endforeach ]]
+    [[ endif ]]</pre>
+</section>
+
+<section class="panel">
+  <p class="kicker">{{ ui.symbol.methods_kicker }}</p>
+  <h2>{{ ui.symbol.public_methods_title }}</h2>
+  [[ if: symbol.methods is defined ]]
+  [[ foreach: symbol.methods as method ]]
+  <article class="method-card">
+    <h3>{{ method.name }}</h3>
+    [[ if: method.signature is defined ]]
+    <pre><code>{{ method.signature }}</code></pre>
+    [[ endif ]]
+    [[ if: method.role is defined ]]
+    <p>{{ method.role }}</p>
+    [[ endif ]]
+  </article>
+  [[ endforeach ]]
+  [[ else ]]
+  <p>{{ ui.symbol.no_methods }}</p>
+  [[ endif ]]
+</section>

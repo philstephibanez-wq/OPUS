@@ -1,0 +1,38 @@
+{
+  "schema": "OPUS_RELEASE_MANIFEST_V1",
+  "product": "Opus Framework",
+  "latest_version": "8.1.0",
+  "codename": "Lysenko",
+  "official_version_source": "Log&Play Opus release manifest",
+  "public_base_url": "https://opus.logandplay.org",
+  "channels": {
+    "stable": {
+      "label": "Stable",
+      "version": "8.1.0",
+      "package_url": "/downloads/opus/opus-8.1.0-lysenko.zip",
+      "checksum_sha256": "PENDING_PUBLIC_PACKAGE_SHA256",
+      "published_at": "2026-06-14",
+      "notes": "Initial OPUS 8.1.0 Lysenko public package channel placeholder. Replace checksum when the downloadable ZIP is published."
+    },
+    "dev": {
+      "label": "Development",
+      "version": "8.1.0-dev",
+      "package_url": "/downloads/opus/opus-8.1.0-lysenko-dev.zip",
+      "checksum_sha256": "PENDING_PUBLIC_PACKAGE_SHA256",
+      "published_at": "2026-06-14",
+      "notes": "Development package channel placeholder. Do not use for production sites."
+    }
+  },
+  "install_options": [
+    "composer",
+    "official_zip",
+    "local_path_repository_for_development"
+  ],
+  "requirements": [
+    "PHP >= 8.1",
+    "Composer for managed installation",
+    "Apache, Nginx or equivalent PHP-capable HTTP server",
+    "DocumentRoot must point to public/",
+    "ScoreTemplate is the only active RefBook template renderer"
+  ]
+}

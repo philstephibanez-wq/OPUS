@@ -1,63 +1,66 @@
-# OPUS 8.1.0 "Lysenko" Reference Book package
+# OPUS_REF_BOOK
 
-This package is the official versioned Reference Book package for OPUS 8.1.0 "Lysenko".
+Official Reference Book for Opus 8.1.0 "Lysenko".
 
-## Identity
+Composer identity:
 
-```text
-Display name: OPUS 8.1.0 "Lysenko" Reference Book
-Package slug: opus-8.1.0-lysenko-reference-book
-Target OPUS version: 8.1.0
-Target OPUS codename: Lysenko
-```
+- logandplay/opus 8.1.0
+- logandplay/opus-8.1.0-lysenko-reference-book 8.1.0
 
-## Status
+## Scope
 
-```text
-Package skeleton created.
-Clean import pending.
-```
+OPUS_REF_BOOK is a Reference Book, not a User Book.
 
-The old separate `OPUS_REF_BOOK` repository is transitional only. It must be audited before any import.
+It documents short, stable and verifiable facts:
 
-## Purpose
+- package identity and version contract;
+- installation references;
+- public API and class catalog;
+- framework domains;
+- routing, MVC and ScoreTemplate contracts;
+- I18N rules;
+- Mermaid diagrams when they clarify a contract;
+- legal and license summary.
 
-The Reference Book is a real OPUS-powered site package, not a static markdown dump and not framework core code.
+Long tutorials, recipes and many examples belong to a separate OPUS_USER_BOOK.
 
-It must support:
+## Runtime contract
 
-```text
-offline local consultation
-published online documentation
-explicit GitHub update checks
-shared OPUS core runtime
-```
+Opus Application -> SiteResolver -> Router -> SecureDispatchGate -> ControllerDispatcher -> Controller -> Service -> ViewModel -> ScoreTemplateRenderer -> HTML Response.
 
-## Version rule
+## MVC contract
 
-Each OPUS release owns its own Reference Book package.
+OPUS_REF_BOOK is a strict MVC application.
 
-```text
-OPUS 8.1.0 "Lysenko" Reference Book
--> packages/opus-8.1.0-lysenko-reference-book
-```
+- Model: data repositories, manifests, I18N, release metadata, catalog metadata and validated application state.
+- Controller: request routing, service orchestration and ViewModel construction only.
+- View: ScoreTemplate `.score` templates only.
 
-The active site may keep a stable URL such as `sites/opus-refbook`, but it must display the exact OPUS version and codename it documents.
+All page, partial and component representations belong in `.score` files. PHP must not concatenate page HTML.
 
-## Import gate
+## Template contract
 
-No file may be imported from the transitional repository until the source is audited for:
+ScoreTemplate is the only rendering system for the Reference Book.
 
-```text
-0 active Twig templates
-0 legacy backups
-0 dead CSS overrides
-0 hidden fallbacks
-0 runtime caches
-0 duplicated OPUS framework code
-0 broken public i18n route
-```
+Valid templates include:
 
-## Runtime rule
+- `application/reference/templates/layout.score`
+- `application/reference/templates/pages/*.score`
+- future `application/reference/templates/partials/*.score`
+- future `application/reference/templates/components/*.score`
 
-This package must not embed `framework/Opus/`. It must resolve the shared OPUS core through `opus-package.json` and official bootstrap configuration.
+Twig templates are obsolete and must not be used in OPUS_REF_BOOK.
+
+## Rendering contract
+
+The active renderer is the OPUS ScoreTemplate renderer. The previous Twig layer is removed from the active architecture and must not be restored.
+
+## Local development
+
+Use Composer to install OPUS dependencies. In local workspace mode the package can resolve `logandplay/opus` from `H:/OPUS` through the Composer path repository declared in `composer.json`.
+
+Production packages must use normal Composer/package distribution, not workstation-specific paths.
+
+## License
+
+OPUS and OPUS_REF_BOOK follow the proprietary OPUS license previously defined for the OPUS framework family.

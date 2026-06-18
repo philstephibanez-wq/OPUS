@@ -1,0 +1,47 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "b955c0cad5c29eb1707550c5cbece309",
+    "packages": [
+        {
+            "name": "logandplay/opus",
+            "version": "8.1.0",
+            "dist": {
+                "type": "path",
+                "url": "H:/OPUS",
+                "reference": "03da2a56accec1c3b720e630c091543b0bd514b2"
+            },
+            "require": {
+                "php": ">=8.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Opus\\": "framework/Opus/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "description": "Opus 8.1.0 Lysenko PHP 8 framework core",
+            "transport-options": {
+                "symlink": true,
+                "relative": false
+            }
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {},
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {
+        "php": ">=8.1"
+    },
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
+}

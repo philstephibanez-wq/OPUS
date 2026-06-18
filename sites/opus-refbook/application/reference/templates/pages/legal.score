@@ -1,0 +1,24 @@
+<section class="hero compact-hero">
+  <p class="kicker">{{ ui.legal.kicker }}</p>
+  <h1>{{ ui.legal.title }}</h1>
+  <p>{{ ui.legal.intro }}</p>
+</section>
+
+<section class="panel-grid">
+  <article class="panel">
+    <p class="kicker">{{ ui.legal.copyright_kicker }}</p>
+    <h2>{{ ui.legal.author_title }}</h2>
+    <p>{{ ui.legal.original_author }}: Steve Ibanez / Log&amp;Play.</p>
+  </article>
+  <article class="panel">
+    <p class="kicker">{{ ui.legal.licensing_kicker }}</p>
+    <h2>{{ ui.legal.licensing_title }}</h2>
+    <p>{{ ui.legal.personal_free }}</p>
+    <p>{{ ui.legal.commercial_required }}</p>
+  </article>
+</section>
+
+<section class="panel">
+  <p>{{ ui.legal.rights_reserved }}</p>
+  <p>{{ ui.legal.note }}</p>
+</section>

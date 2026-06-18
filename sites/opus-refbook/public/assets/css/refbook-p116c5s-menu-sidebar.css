@@ -1,0 +1,177 @@
+/*
+ * OPUS_REF_BOOK P116C5U fixed application shell.
+ *
+ * Contract:
+ *   CSS only represents prepared navigation ViewModels.
+ *   It does not decide routes, language, fallback or content rules.
+ *   Header, main menu and breadcrumb are shell rows and must not scroll away.
+ */
+
+html,
+body{
+  height:100%;
+  overflow:hidden;
+}
+
+body{
+  margin:0;
+}
+
+.app-shell-pro-doc{
+  height:100vh;
+  min-height:0;
+  display:grid;
+  grid-template-rows:auto auto minmax(0,1fr) auto;
+  overflow:hidden;
+}
+
+.site-header-pro-doc{
+  position:relative!important;
+  top:auto!important;
+  z-index:40;
+  display:block!important;
+  min-height:0!important;
+  padding:.55rem 1rem .62rem!important;
+}
+
+.site-header-pro-doc .site-header-mainline{
+  width:min(1480px,calc(100vw - 2rem));
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+  padding-bottom:.55rem;
+}
+
+.site-menu-bar{
+  width:min(1480px,calc(100vw - 2rem));
+  margin:0 auto;
+  padding:.58rem .85rem;
+  display:flex;
+  align-items:center;
+  gap:.45rem;
+  flex-wrap:wrap;
+  border:1px solid var(--line);
+  border-radius:.85rem;
+  background:color-mix(in srgb,var(--surface-2) 78%,transparent);
+}
+
+.site-menu-bar a{
+  display:inline-flex;
+  align-items:center;
+  min-height:2rem;
+  padding:.35rem .68rem;
+  border-radius:.65rem;
+  color:var(--text);
+  text-decoration:none;
+  font-weight:760;
+  line-height:1.15;
+}
+
+.site-menu-bar a:hover,
+.site-menu-bar a.active{
+  color:var(--text-strong);
+  background:var(--accent-active);
+  text-decoration:none;
+}
+
+.shell-breadcrumb-bar{
+  z-index:30;
+  width:min(1480px,calc(100vw - 2rem));
+  margin:0 auto;
+  min-height:2.35rem;
+  display:flex;
+  align-items:center;
+  padding:.28rem 1rem .45rem;
+  background:color-mix(in srgb,var(--page-bg) 92%,transparent);
+  border-bottom:1px solid var(--line-soft);
+}
+
+.shell-breadcrumb-bar .breadcrumb{
+  margin:0;
+  min-height:0;
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+  color:var(--muted);
+  font-size:.86rem;
+}
+
+.shell-breadcrumb-bar .breadcrumb a{
+  color:var(--muted-2);
+  text-decoration:none;
+}
+
+.shell-breadcrumb-bar .breadcrumb a:hover{
+  text-decoration:underline;
+}
+
+.shell-breadcrumb-bar .breadcrumb a[aria-current="page"]{
+  color:var(--text);
+  pointer-events:none;
+  text-decoration:none;
+}
+
+.app-shell-pro-doc .app-body-pro-doc{
+  width:min(1480px,calc(100vw - 2rem));
+  margin:0 auto;
+  min-height:0!important;
+  height:100%;
+  overflow:hidden;
+  display:grid;
+  grid-template-columns:18rem minmax(0,1fr);
+  align-items:stretch;
+}
+
+.pro-doc-sidebar{
+  position:relative!important;
+  top:auto!important;
+  align-self:stretch!important;
+  min-height:0!important;
+  max-height:none!important;
+  height:100%;
+  overflow:auto!important;
+  padding-bottom:1rem;
+}
+
+.pro-doc-sidebar .nav-list-compact,
+.pro-doc-sidebar .nav-list-full-domains{
+  max-height:none!important;
+  overflow:visible!important;
+}
+
+.pro-doc-sidebar .nav-group summary{
+  position:sticky;
+  top:0;
+  z-index:1;
+  background:color-mix(in srgb,var(--surface) 95%,transparent);
+}
+
+.app-body-pro-doc .content{
+  min-height:0!important;
+  height:100%;
+  overflow:auto!important;
+  padding:1rem 1.5rem 2rem;
+}
+
+.site-footer-minimal{
+  z-index:35;
+}
+
+@media (max-width:1180px){
+  .site-header-pro-doc .site-header-mainline,
+  .site-menu-bar,
+  .shell-breadcrumb-bar,
+  .app-shell-pro-doc .app-body-pro-doc{
+    width:100%;
+  }
+
+  .app-shell-pro-doc .app-body-pro-doc{
+    grid-template-columns:1fr;
+  }
+
+  .pro-doc-sidebar{
+    display:none;
+  }
+}

@@ -1,0 +1,46 @@
+<section class="hero compact-hero">
+  <p class="kicker">{{ ui.assets.kicker }}</p>
+  <h1>{{ title }}</h1>
+  <p>{{ ui.assets.intro }}</p>
+</section>
+
+<section class="metrics domain-metrics">
+  <div><span>{{ ui.assets.missing_refs }}</span><strong>{{ diagnostics.missing_count }}</strong></div>
+  <div><span>{{ ui.assets.unique_missing }}</span><strong>{{ diagnostics.unique_missing_count }}</strong></div>
+  <div><span>{{ ui.assets.example_refs }}</span><strong>{{ diagnostics.by_type.example }}</strong></div>
+  <div><span>{{ ui.assets.diagram_refs }}</span><strong>{{ diagnostics.by_type.diagram }}</strong></div>
+</section>
+
+<section class="panel">
+  <p class="kicker">{{ ui.assets.correction_rule }}</p>
+  <ul>
+    <li>{{ ui.assets.create_examples }} <code>&lt;OPUS_ROOT&gt;/docs/examples</code></li>
+    <li>{{ ui.assets.create_diagrams }} <code>&lt;OPUS_ROOT&gt;/docs/diagrams</code></li>
+    <li>{{ ui.assets.no_placeholder }}</li>
+    <li>{{ ui.assets.rerun_smoke }}</li>
+  </ul>
+</section>
+
+<section class="panel">
+  <p class="kicker">{{ ui.assets.inventory_kicker }}</p>
+  <h2>{{ ui.assets.inventory_title }}</h2>
+  [[ if: diagnostics.unique_missing_count > 0 ]]
+  <table class="data-table">
+    <thead>
+      <tr><th>{{ ui.assets.type }}</th><th>{{ ui.assets.id }}</th><th>{{ ui.assets.references }}</th><th>{{ ui.assets.first_usage }}</th></tr>
+    </thead>
+    <tbody>
+      [[ foreach: diagnostics.unique_missing as missing ]]
+      <tr>
+        <td>{{ missing.type }}</td>
+        <td><code>{{ missing.id }}</code></td>
+        <td>{{ missing.count }}</td>
+        <td><code>{{ missing.first_symbol }}</code></td>
+      </tr>
+      [[ endforeach ]]
+    </tbody>
+  </table>
+  [[ else ]]
+  <p>{{ ui.assets.none_missing }}</p>
+  [[ endif ]]
+</section>

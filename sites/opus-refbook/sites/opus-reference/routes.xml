@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes>
+  <route name="refbook_home" path="/">
+    <target controllerClass="OpusRefBook\Reference\Controller\HomeController" action="index" />
+  </route>
+
+  <route name="refbook_api_reference" path="/api-reference">
+    <target controllerClass="OpusRefBook\Reference\Controller\ApiReferenceController" action="index" />
+  </route>
+
+
+  <route name="refbook_public_robots" path="/robots.txt">
+    <target controllerClass="OpusRefBook\Reference\Controller\ReferenceDiscoveryController" action="robots" />
+  </route>
+
+  <route name="refbook_public_sitemap" path="/sitemap.xml">
+    <target controllerClass="OpusRefBook\Reference\Controller\ReferenceDiscoveryController" action="sitemap" />
+  </route>
+
+  <route name="refbook_internal_api_health" path="/api/refbook/health">
+    <target controllerClass="OpusRefBook\Reference\Controller\ReferenceApiController" action="health" />
+  </route>
+
+  <route name="refbook_internal_api_snapshot" path="/api/refbook/snapshot">
+    <target controllerClass="OpusRefBook\Reference\Controller\ReferenceApiController" action="snapshot" />
+  </route>
+
+  <route name="refbook_internal_api_asset_integrity" path="/api/refbook/asset-integrity">
+    <target controllerClass="OpusRefBook\Reference\Controller\ReferenceApiController" action="assetIntegrity" />
+  </route>
+
+  <route name="refbook_internal_api_domains" path="/api/refbook/domains">
+    <target controllerClass="OpusRefBook\Reference\Controller\ReferenceApiController" action="domains" />
+  </route>
+
+  <route name="refbook_internal_api_classes" path="/api/refbook/classes">
+    <target controllerClass="OpusRefBook\Reference\Controller\ReferenceApiController" action="classes" />
+  </route>
+
+  <route name="refbook_internal_api_class" path="/api/refbook/class">
+    <target controllerClass="OpusRefBook\Reference\Controller\ReferenceApiController" action="classEntry" />
+  </route>
+
+  <route name="refbook_page" path="/{slug}">
+    <target controllerClass="OpusRefBook\Reference\Controller\PageController" action="show" />
+  </route>
+</routes>

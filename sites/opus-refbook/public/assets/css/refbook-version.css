@@ -1,0 +1,72 @@
+/*
+ * P115E_REFBOOK_VERSION_PANEL
+ * Visibility: PUBLIC
+ * Scope: OPUS_REF_BOOK home version panel only.
+ * Role: represent installed, shared and official version data prepared by ReferenceVersionService.
+ * Contract: CSS only. No Git, GitHub, filesystem or routing decision here.
+ */
+.version-panel .panel-heading{
+  align-items:center;
+}
+
+.version-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:.85rem;
+}
+
+.version-card{
+  border:1px solid var(--line-soft);
+  border-radius:.85rem;
+  background:color-mix(in srgb,var(--surface) 72%,transparent);
+  padding:1rem;
+  min-width:0;
+}
+
+.version-card h3{
+  margin:.05rem 0 .85rem;
+  color:var(--text-strong);
+  font-size:1rem;
+}
+
+.version-definition-list{
+  margin:0;
+  display:grid;
+  gap:.55rem;
+}
+
+.version-definition-list div{
+  display:grid;
+  grid-template-columns:7.4rem minmax(0,1fr);
+  gap:.55rem;
+  align-items:baseline;
+}
+
+.version-definition-list dt{
+  color:var(--accent);
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  font-size:.68rem;
+  font-weight:850;
+}
+
+.version-definition-list dd{
+  margin:0;
+  color:var(--muted-2);
+  overflow-wrap:anywhere;
+  min-width:0;
+}
+
+.version-definition-list code{
+  display:inline-block;
+  max-width:100%;
+  overflow-wrap:anywhere;
+}
+
+@media (max-width: 1180px){
+  .version-grid{grid-template-columns:1fr}
+}
+
+@media (max-width: 560px){
+  .version-definition-list div{grid-template-columns:1fr;gap:.18rem}
+}

@@ -1,0 +1,32 @@
+<section class="hero compact-hero">
+  <p class="kicker">{{ ui.home.kicker }}</p>
+  <h1>{{ title }}</h1>
+  <p>{{ module.mission }}</p>
+</section>
+
+<section class="metrics domain-metrics">
+  <div><span>{{ ui.home.symbols }}</span><strong>{{ overview.symbol_count }}</strong></div>
+  <div><span>{{ ui.home.domains }}</span><strong>{{ overview.domain_count }}</strong></div>
+  <div><span>OPUS</span><strong>8.1.0</strong></div>
+  <div><span>Codename</span><strong>Lysenko</strong></div>
+</section>
+
+<section class="panel-grid">
+  [[ foreach: homeCards as card ]]
+  <article class="panel">
+    <p class="kicker">REFBOOK</p>
+    <h2>{{ card.title }}</h2>
+    <p>{{ card.body }}</p>
+  </article>
+  [[ endforeach ]]
+</section>
+
+<section class="panel">
+  <p class="kicker">{{ ui.home.pipeline_title }}</p>
+  <h2>Native OPUS rendering</h2>
+  <ol>
+    [[ foreach: module.pipeline as step ]]
+    <li>{{ step }}</li>
+    [[ endforeach ]]
+  </ol>
+</section>

@@ -1,0 +1,557 @@
+{
+    "schema":  "OPUS_REFBOOK_I18N_V1",
+    "language":  "cs",
+    "labels":  {
+                   "language":  {
+                                    "current":  "Jazyk",
+                                    "fr":  "Francouzština",
+                                    "en":  "Angličtina",
+                                    "es":  "Španělština",
+                                    "de":  "Němčina",
+                                    "uk":  "Ukrajinština",
+                                    "it":  "Italština",
+                                    "pl":  "Polština",
+                                    "cs":  "Čeština",
+                                    "apply":  "Použít"
+                                },
+                   "sidebar":  {
+                                   "api_reference":  "Dokumentace API",
+                                   "guides":  "Průvodce",
+                                   "domains":  "Domény",
+                                   "menu":  "Navigace RefBook",
+                                   "search":  "Hledat",
+                                   "download_install":  "Stáhnout / nainstalovat",
+                                   "assets_docs":  "Dokumentační zdroje",
+                                   "legal":  "Právní informace"
+                               },
+                   "home":  {
+                                "kicker":  "Aplikace Opus MVC",
+                                "symbols":  "extrahované symboly",
+                                "domains":  "nalezené domény",
+                                "pipeline_title":  "Dokumentační pipeline",
+                                "guides_title":  "Úvodní průvodce"
+                            },
+                   "api":  {
+                               "title":  "Dokumentace API",
+                               "kicker":  "DOKUMENTACE API",
+                               "intro":  "Níže uvedená reference pochází z manifestu vytvořeného z anotovaných zdrojů Opus.",
+                               "how_to_read":  "Jak číst tuto stránku",
+                               "bullets":  [
+                                               "Doména seskupuje třídy nalezené v manifestu.",
+                                               "Každý symbol odkazuje na svůj zdroj a veřejné metody.",
+                                               "Redakční popisy doplňují manifest, aniž by nahrazovaly zdrojový důkaz.",
+                                               "Navigace nezávisí na .htaccess: odkazy používají ?page=..."
+                                           ],
+                               "symbols":  "symbolů"
+                           },
+                   "domain":  {
+                                  "kicker":  "Doména",
+                                  "symbols":  "symboly",
+                                  "with_methods":  "s veřejnými metodami",
+                                  "table_symbol":  "Symbol",
+                                  "table_role":  "Role",
+                                  "table_methods":  "Metody",
+                                  "table_source":  "Zdroj",
+                                  "metrics_label":  "Ukazatele domény",
+                                  "public_methods":  "veřejné metody",
+                                  "classes":  "třídy",
+                                  "interfaces":  "rozhraní",
+                                  "inventory_kicker":  "Inventář zdrojů",
+                                  "inventory_title":  "Nalezené symboly"
+                              },
+                   "symbol":  {
+                                  "fallback_kind":  "symbol",
+                                  "fallback_name":  "Symbol",
+                                  "fallback_role":  "Zdrojová role k doplnění v tagách OPUS_REFBOOK.",
+                                  "contract_title":  "Kontrakt",
+                                  "no_contract":  "Zdrojový kontrakt k doplnění v tagách OPUS_REFBOOK.",
+                                  "source_title":  "Zdroj",
+                                  "source_missing":  "Zdroj k dořešení",
+                                  "public_methods_title":  "Veřejné metody",
+                                  "no_methods":  "Nebyla nalezena žádná veřejná metoda.",
+                                  "table_method":  "Metoda",
+                                  "table_signature":  "Signatura",
+                                  "identity_kicker":  "Identita zdroje",
+                                  "identity_title":  "Profil symbolu",
+                                  "kind_label":  "Druh",
+                                  "domain_label":  "Doména",
+                                  "namespace_label":  "Namespace",
+                                  "namespace_missing":  "Namespace není deklarován",
+                                  "methods_kicker":  "Veřejné API",
+                                  "examples_title":  "Související příklady",
+                                  "diagrams_title":  "Související diagramy"
+                              },
+                   "not_found":  {
+                                     "kicker":  "404",
+                                     "title":  "Stránka nenalezena",
+                                     "message":  "Slug byl explicitně odmítnut"
+                                 },
+                   "topbar":  {
+                                  "subtitle":  "Dokumentace Opus",
+                                  "controls":  "Ovládání webu"
+                              },
+                   "breadcrumb":  {
+                                      "label":  "Drobečková navigace",
+                                      "home":  "Domů"
+                                  },
+                   "guide":  {
+                                 "reading_kicker":  "Režim čtení",
+                                 "reading_title":  "Co tato stránka objasňuje",
+                                 "sections":  "sekce"
+                             },
+                   "theme":  {
+                                 "current":  "Vizuální motiv",
+                                 "night":  "Modrá noc",
+                                 "ocean":  "Technický oceán",
+                                 "paper":  "Světlý papír",
+                                 "short":  {
+                                               "night":  "Noc",
+                                               "ocean":  "Oceán",
+                                               "paper":  "Světlý"
+                                           }
+                             },
+                   "search":  {
+                                  "kicker":  "Vyhledávání RefBook",
+                                  "title":  "Hledat",
+                                  "intro":  "Rychle najděte třídu, metodu, doménu, průvodce nebo soubor frameworku Opus.",
+                                  "form_label":  "Hledat v RefBooku",
+                                  "input_label":  "Hledaný výraz",
+                                  "placeholder":  "Hledat…",
+                                  "placeholder_long":  "Např. Router, ACL, render, config, ScoreTemplate…",
+                                  "submit":  "OK",
+                                  "help":  "Vyhledávání prochází indexované průvodce, domény, symboly, namespaces, soubory, kontrakty a veřejné metody.",
+                                  "results_kicker":  "Výsledky",
+                                  "results_title":  "Výsledky pro",
+                                  "results":  "výsledek/výsledků",
+                                  "empty_title":  "Nenalezen žádný výsledek",
+                                  "empty_body":  "Zkuste kratší název, doménu jako ACL nebo Database, nebo známou veřejnou metodu.",
+                                  "tips_kicker":  "Rychlá nápověda",
+                                  "tips_title":  "Co můžete hledat",
+                                  "tips":  [
+                                               "Třída nebo rozhraní: Router, ViewModel, AccessControl.",
+                                               "Veřejná metoda: render, decide, fromXml, dispatch.",
+                                               "Doména: ACL, Database, Renderer, Template, HTTP.",
+                                               "Soubor, namespace nebo termín kontraktu."
+                                           ],
+                                  "type_guide":  "Průvodce",
+                                  "type_domain":  "Doména",
+                                  "type_symbol":  "Symbol",
+                                  "symbols":  "symbol(y)",
+                                  "methods":  "metoda/metody",
+                                  "snippet_default":  "Shoda nalezena v katalogu RefBook."
+                              },
+                   "footer":  {
+                                  "powered_by":  "Používá Opus Framework",
+                                  "copyright":  "Copyright © 2026 Steve Ibanez / Log\u0026Play.",
+                                  "legal_short":  "Opus Framework · zdrojový kód k nahlédnutí · dvojí licence",
+                                  "license_summary":  "Bezplatné osobní, vzdělávací a nekomerční použití. Profesionální, komerční, SaaS, redistribuce nebo integrace do produktu vyžaduje komerční licenci."
+                              },
+                   "runtime":  {
+                                   "kicker":  "Runtime OPUS_REF_BOOK",
+                                   "title":  "Interní API řízené FSM",
+                                   "source":  "Zdroj",
+                                   "opus_root":  "Kořen Opus",
+                                   "read_only":  "Pouze pro čtení",
+                                   "api":  "API",
+                                   "yes":  "ano",
+                                   "no":  "ne",
+                                   "endpoints_title":  "Endpointy zveřejněné RefBookem",
+                                   "method":  "Metoda",
+                                   "path":  "Cesta",
+                                   "description":  "Popis",
+                                   "asset_warning_title":  "Diagnostika dokumentačních zdrojů",
+                                   "asset_warning_body":  "Snapshot Opus odkazuje na chybějící příklady nebo diagramy. RefBook zobrazuje diagnostiku bez vytváření náhradního obsahu."
+                               },
+                   "assets":  {
+                                  "kicker":  "Kvalita dokumentace OPUS_REF_BOOK",
+                                  "title":  "Diagnostika dokumentačních zdrojů",
+                                  "intro":  "Tato stránka převádí chybějící odkazy na akční plán. RefBook nevytváří náhradní obsah.",
+                                  "snapshot_state":  "Stav snapshotu",
+                                  "complete":  "Zdroje kompletní",
+                                  "incomplete":  "Zdroje nekompletní",
+                                  "asset_count":  "zdroj(e)",
+                                  "missing_refs":  "chybějící odkazy",
+                                  "unique_missing":  "jedinečné zdroje k vytvoření",
+                                  "example_refs":  "odkazy na příklady",
+                                  "diagram_refs":  "odkazy na diagramy",
+                                  "truth_source":  "Zdrojem pravdy zůstává",
+                                  "truth_suffix":  "Soubory k vytvoření patří do sdíleného frameworku Opus, ne do RefBooku.",
+                                  "correction_rule":  "Pravidlo opravy",
+                                  "create_examples":  "Vytvořit oficiální příklady v",
+                                  "create_diagrams":  "Vytvořit oficiální diagramy v",
+                                  "no_placeholder":  "Nevytvářet tiché placeholdery v RefBooku.",
+                                  "rerun_smoke":  "Po každé dávce zdrojů znovu spustit API smoke.",
+                                  "inventory_kicker":  "Akční inventář",
+                                  "inventory_title":  "Jedinečné chybějící zdroje",
+                                  "none_missing":  "Žádný chybějící zdroj.",
+                                  "references":  "Odkazy",
+                                  "first_usage":  "První použití",
+                                  "useful_endpoints":  "Užitečné endpointy",
+                                  "short_warning":  "Dokumentační zdroje nejsou kompletní",
+                                  "see_diagnostic":  "Zobrazit diagnostiku.",
+                                  "type":  "Typ",
+                                  "id":  "ID",
+                                  "top_limit":  "top 120"
+                              },
+                   "legal":  {
+                                 "kicker":  "Opus Framework · Právní informace",
+                                 "title":  "Opus Framework · zdrojový kód k nahlédnutí · dvojí licence",
+                                 "intro":  "Opus Framework je veřejně dokumentován tímto RefBookem. RefBook je veřejná dokumentační plocha; není to stažitelný distribuční balíček.",
+                                 "copyright_kicker":  "Copyright",
+                                 "author_title":  "Atribuce autora",
+                                 "original_author":  "Původní autor",
+                                 "licensing_kicker":  "Licenční model",
+                                 "licensing_title":  "Dvojí licence Opus",
+                                 "personal_free":  "Bezplatné osobní, vzdělávací a nekomerční použití.",
+                                 "commercial_required":  "Profesionální, komerční, SaaS, redistribuce nebo integrace do produktu vyžaduje komerční licenci.",
+                                 "rights_reserved":  "Všechna práva vyhrazena kromě práv výslovně udělených příslušnou licencí Opus.",
+                                 "note":  "Tato stránka popisuje veřejnou licenční pozici zobrazenou RefBookem. Konečný stažitelný balíček Opus bude obsahovat detailní licenční soubory odpovídající jeho distribučnímu kanálu.",
+                                 "distribution_kicker":  "Distribuce RefBooku",
+                                 "distribution_title":  "Veřejná dokumentace, soukromý implementační repozitář",
+                                 "distribution_body_1":  "RefBook má být veřejně dostupný jako dokumentace a indexovatelný vyhledávači.",
+                                 "distribution_body_2":  "Zdrojový repozitář RefBooku může zůstat soukromý. Samotný Opus je framework určený pro budoucí distribuci jako balíček."
+                             },
+                   "symbol_extra":  {
+                                        "responsibility":  "Odpovědnost",
+                                        "role":  "Role",
+                                        "declared_examples_missing":  "Odkazy jsou deklarované, ale zdroje nejsou ve snapshotu dostupné.",
+                                        "declared_diagrams_missing":  "Odkazy jsou deklarované, ale diagramy nejsou ve snapshotu dostupné."
+                                    },
+                   "diagram":  {
+                                   "aria":  "Diagram Mermaid",
+                                   "source":  "Zdroj Mermaid",
+                                   "renderer_unavailable":  "Dedikovaný renderer není dostupný"
+                               },
+                   "seo":  {
+                               "description_default":  "Opus Framework Reference Book: veřejná technická dokumentace, kontrakty, třídy, diagramy a příklady pro PHP framework Opus.",
+                               "description_legal":  "Dvojí licence, zdrojový kód k nahlédnutí, copyright a atribuce autora pro Opus Framework.",
+                               "description_api_reference":  "Dokumentace interního API Opus Reference Book, runtime snapshot a mapa domén frameworku.",
+                               "description_download_install":  "Průvodce stažením a instalací Opus Framework pro veřejný distribuční kanál.",
+                               "description_asset_diagnostics":  "Diagnostika RefBooku pro chybějící dokumentační příklady a diagramy.",
+                               "description_search":  "Vyhledávání v průvodcích, doménách, symbolech a veřejných metodách Opus Reference Book.",
+                               "description_domain_suffix":  "reference domény: třídy, kontrakty, runtime chování a příklady.",
+                               "description_symbol_default":  "oficiální reference frameworku Opus."
+                           }
+               },
+    "module":  {
+                   "title":  "OPUS FRAMEWORK",
+                   "subtitle":  "Reference Book",
+                   "mission":  "Udělat Opus čitelný, ověřitelný a použitelný bez neustálého hledání v kódu.",
+                   "pipeline":  [
+                                    "Anotovaný zdroj Opus",
+                                    "Manifest JSON",
+                                    "Služba RefBook",
+                                    "ViewModel",
+                                    "ScoreTemplate",
+                                    "Navigovatelný HTML"
+                                ]
+               },
+    "home_cards":  [
+                       {
+                           "title":  "Číst rychle",
+                           "body":  "Levý sloupec nabízí domény a průvodce. Stránka API seskupuje nalezené symboly."
+                       },
+                       {
+                           "title":  "Ověřit",
+                           "body":  "Každá doména a každý symbol pochází z manifestu vygenerovaného z \u003cOPUS_ROOT\u003e."
+                       },
+                       {
+                           "title":  "Vyvíjet",
+                           "body":  "Každá změna musí zůstat MVC: tenký controller, explicitní služba, ViewModel, čistý ScoreTemplate."
+                       },
+                       {
+                           "title":  "Kratší menu",
+                           "body":  "Průvodce a domény jsou seskupeny do skládacích panelů, aby navigace zůstala čitelná."
+                       },
+                       {
+                           "title":  "Bohatší stránky",
+                           "body":  "Stránky domén nyní zobrazují třídy, rozhraní, veřejné metody a inventář zdrojů."
+                       }
+                   ],
+    "guides":  [
+                   {
+                       "slug":  "guide-architecture",
+                       "title":  "Přehled architektury",
+                       "kicker":  "Architektura",
+                       "summary":  "Opus odděluje aplikaci, routing, řízení, služby, vykreslování, bezpečnost a konfiguraci.",
+                       "sections":  [
+                                        {
+                                            "title":  "Funkční čtení",
+                                            "items":  [
+                                                          "Application orchestruje požadavek.",
+                                                          "SiteResolver vybírá konfiguraci aktuálního webu.",
+                                                          "Router převádí URL na RouteMatch.",
+                                                          "ControllerDispatcher vytváří controller a spouští akci.",
+                                                          "ViewModel přenáší data do rendereru.",
+                                                          "ScoreTemplateRenderer převádí pohled na HTML."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Pravidlo údržby",
+                                            "items":  [
+                                                          "Nedávat business logiku do public/index.php.",
+                                                          "Nepoužívat ScoreTemplate jako úložiště dat.",
+                                                          "Neobcházet dispatcher kvůli vykreslení stránky.",
+                                                          "Neměnit konfiguraci serveru kvůli opravě aplikačního problému."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "K zapamatování",
+                                            "items":  [
+                                                          "Jedna odpovědnost musí patřit jedné vrstvě.",
+                                                          "Služba připravuje data; ScoreTemplate je nevymýšlí.",
+                                                          "Chyba kontraktu musí být explicitní a dohledatelná."
+                                                      ]
+                                        }
+                                    ],
+                       "reading":  "Přehled pro rozhodnutí, kam odpovědnost patří před úpravou Opus."
+                   },
+                   {
+                       "slug":  "guide-mvc",
+                       "title":  "Kontrakt MVC Opus",
+                       "kicker":  "MVC",
+                       "summary":  "Oficiální route, tenký controller, business služba, ViewModel, template.",
+                       "sections":  [
+                                        {
+                                            "title":  "Controller",
+                                            "items":  [
+                                                          "Přijímá Request a parametry route.",
+                                                          "Volá potřebné služby.",
+                                                          "Vrací ViewModel.",
+                                                          "Negeneruje HTML sám."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Služba",
+                                            "items":  [
+                                                          "Načítá data.",
+                                                          "Připravuje čitelné struktury.",
+                                                          "Zpřístupňuje testovatelné metody.",
+                                                          "Nezávisí na prohlížeči."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "ScoreTemplate",
+                                            "items":  [
+                                                          "Zobrazuje ViewModel.",
+                                                          "Nerozhoduje workflow.",
+                                                          "Nenačítá zdrojové soubory.",
+                                                          "Neobsahuje business pravidla."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Správný tok",
+                                            "items":  [
+                                                          "Router vytvoří RouteMatch.",
+                                                          "Dispatcher zavolá očekávaný controller.",
+                                                          "Controller vrátí ViewModel.",
+                                                          "Renderer převede ViewModel bez business logiky."
+                                                      ]
+                                        }
+                                    ],
+                       "reading":  "Denní pracovní kontrakt: route najde controller, controller připraví data, ScoreTemplate vykreslí."
+                   },
+                   {
+                       "slug":  "guide-source-tags",
+                       "title":  "Zdrojové značky OPUS_REFBOOK",
+                       "kicker":  "Zdroj pravdy",
+                       "summary":  "Oficiální obsah API začíná v anotovaných třídách Opus a poté prochází kontrolovaným manifestem.",
+                       "sections":  [
+                                        {
+                                            "title":  "Cíl",
+                                            "items":  [
+                                                          "Popsat roli třídy.",
+                                                          "Explicitně uvést její veřejný kontrakt.",
+                                                          "Vypsat odpovědnosti a limity.",
+                                                          "Udělat dokumentaci ověřitelnou extrakcí."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Pravidlo",
+                                            "items":  [
+                                                          "Vygenerovaná stránka musí být dohledatelná ke zdrojovému symbolu.",
+                                                          "Redakční text symbol doplňuje, nevymýšlí jej.",
+                                                          "Nesoulad zdroj/dokumentace musí vést k opravě zdroje nebo manifestu."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Postupné doplňování",
+                                            "items":  [
+                                                          "Každá nová zdrojová anotace obohacuje manifest.",
+                                                          "Redakční text může vysvětlovat, ne nahrazovat zdrojový důkaz.",
+                                                          "Neúplný symbol musí zůstat viditelně neúplný."
+                                                      ]
+                                        }
+                                    ],
+                       "reading":  "Výchozí bod generovaného Reference Booku: anotovaný zdroj zůstává důkazem."
+                   },
+                   {
+                       "slug":  "guide-routing",
+                       "title":  "Směrování a vstupní kontroler",
+                       "kicker":  "HTTP",
+                       "summary":  "Apache obsluhuje public/; Opus přijme požadavek; router vybere route.",
+                       "sections":  [
+                                        {
+                                            "title":  "Kontrakt public/index.php",
+                                            "items":  [
+                                                          "Pouze bootstrap.",
+                                                          "Žádná hardcodovaná tabulka route.",
+                                                          "Žádné přímé vykreslování HTML.",
+                                                          "Žádný tichý fallback."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Validace",
+                                            "items":  [
+                                                          "Nejprve otestovat CLI s REQUEST_URI.",
+                                                          "Poté otestovat HTTP CSS.",
+                                                          "Poté otestovat HTTP home.",
+                                                          "Nakonec otestovat hluboké route."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Rychlá diagnostika",
+                                            "items":  [
+                                                          "Zkontrolovat REQUEST_URI.",
+                                                          "Zkontrolovat základní cestu aplikace.",
+                                                          "Zkontrolovat routes.xml.",
+                                                          "Zkontrolovat cílový controller před Apache."
+                                                      ]
+                                        }
+                                    ],
+                       "reading":  "Pomáhá diagnostikovat stránku bez přesouvání problému do Apache nebo .htaccess."
+                   },
+                   {
+                       "slug":  "guide-lstsa",
+                       "title":  "LSTSA — Načíst, uložit, transformovat, zabezpečit, archivovat",
+                       "kicker":  "Datová pipeline",
+                       "summary":  "LSTSA načítá, ověřuje, transformuje, ukládá, loguje a archivuje typované transformace.",
+                       "sections":  [
+                                        {
+                                            "title":  "Kroky",
+                                            "items":  [
+                                                          "Load: načtení vstupního zdroje.",
+                                                          "Store: zápis do konfigurovaného cíle.",
+                                                          "Transform: typované mapování a převod.",
+                                                          "Secure: ověření typů, délek a omezení.",
+                                                          "Archive: archivovatelný log pro každou transformaci."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Pravidla",
+                                            "items":  [
+                                                          "Konfigurace popisuje zdroj, cíl, typy a délky.",
+                                                          "Neplatná data jsou explicitně odmítnuta.",
+                                                          "Každý běh vytvoří report a vyhrazený log.",
+                                                          "Fallback úložiště není povolen."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Logování",
+                                            "items":  [
+                                                          "Každá transformace vlastní vyhrazený log.",
+                                                          "Log musí být archivovatelný.",
+                                                          "Odmítnutí typu nebo délky musí uvést data i pravidlo."
+                                                      ]
+                                        }
+                                    ],
+                       "reading":  "Rámec pro transformaci typovaných, kontrolovaných a archivovatelných dat."
+                   },
+                   {
+                       "slug":  "guide-tests",
+                       "title":  "Testy a recepty",
+                       "kicker":  "Kvalita",
+                       "summary":  "Milník Opus musí být ověřen lintem, smoke testem, cílenou recepturou a čistým stavem Git.",
+                       "sections":  [
+                                        {
+                                            "title":  "Pořadí",
+                                            "items":  [
+                                                          "Minimální patch.",
+                                                          "PHP lint.",
+                                                          "CLI smoke.",
+                                                          "HTTP test, pokud jej milník vyžaduje.",
+                                                          "Přesný staging.",
+                                                          "Jasný commit."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Zakázáno",
+                                            "items":  [
+                                                          "Žádný široký globální refactor bez požadavku.",
+                                                          "Žádné výchozí git add .",
+                                                          "Žádná úprava Apache kvůli opravě aplikační stránky."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Po patchi",
+                                            "items":  [
+                                                          "Spustit lint a smoke.",
+                                                          "Zkontrolovat upravené soubory.",
+                                                          "Vyčistit dočasné soubory.",
+                                                          "Připravit rollback a poznámky k dodávce."
+                                                      ]
+                                        }
+                                    ],
+                       "reading":  "Minimální recept před tím, než lze krok považovat za dodatelný."
+                   }
+               ],
+    "domain_descriptions":  {
+                                "ACL":  "Řízení přístupu: kontexty, podmínky, role, oprávnění a bezpečnostní rozhodnutí.",
+                                "ACTION":  "Aplikační akce spouštěné routes, recepty nebo workflow.",
+                                "APPLICATION":  "Bootstrap aplikace, cesty, životní cyklus požadavku a orchestrace MVC.",
+                                "ASSET":  "Veřejné soubory, CSS, front-end zdroje a statické odkazy.",
+                                "AUTOLOAD":  "Načítání tříd, autoload cache a řešení namespaces.",
+                                "CACHE":  "Kontrolované dočasné úložiště a explicitní invalidace.",
+                                "COMPATIBILITY":  "Kontrolované kompatibilitní mosty pro starší konvence Opus.",
+                                "CONFIG":  "Načítání konfigurace, options, XML a kontrakty webu.",
+                                "CONTRACT":  "Explicitní chyby, assertions a invariants frameworku.",
+                                "CONTROLLER":  "HTTP dispatch směrem k MVC controllers a akcím.",
+                                "COOKIE":  "Kontrolované čtení a zápis HTTP cookies.",
+                                "CORE":  "Jádro a sdílené základní utility.",
+                                "CSS":  "Kontrakty stylů a prezentační zdroje.",
+                                "DATABASE":  "Konfigurace více providerů, spojení a přístup k databázi.",
+                                "DATE":  "Objekty data, helpers a formáty používané v Opus.",
+                                "DEBUG":  "Vývojářská diagnostika, kontrolované traces a informace o receptech.",
+                                "DIRECTORY":  "Řešení a kontrola aplikačních adresářů.",
+                                "DOCUMENTATION":  "Extrakce a generování dokumentace z anotovaných zdrojů.",
+                                "EVENT":  "Aplikační události a kontrolované extension points.",
+                                "EXCEPTION":  "Kontraktové výjimky, explicitní chyby a diagnostické zprávy.",
+                                "FILE":  "Práce se soubory a validace cest.",
+                                "FORM":  "Tvorba, validace a vykreslení Opus formulářů.",
+                                "FSM":  "Stavové automaty, přechody a validace workflow.",
+                                "FTP":  "Historický nebo kontrolovaný FTP přístup izolovaný od HTTP jádra.",
+                                "HELPER":  "Cílené aplikační helpers hlídané proti catch-all logice.",
+                                "HTTP":  "Request, Response, HTTP kódy a obálky požadavku.",
+                                "I18N":  "Jazyky, překlad a kontrolovaný fallback.",
+                                "JAVASCRIPT":  "JavaScriptové zdroje a lehká front-end integrace.",
+                                "JSON":  "Kódování, dekódování a kontrakty JSON.",
+                                "LANGUAGE":  "Detekce, výběr a normalizace jazyka.",
+                                "LINK":  "Generování odkazů a aplikační navigace.",
+                                "LOG":  "Kontrolované logování, úrovně a použitelné traces.",
+                                "LSTSA":  "Pipelines Load Store Transform Secure Archive.",
+                                "MAIL":  "Příprava a integrace e-mailu.",
+                                "MENU":  "Struktury menu, navigace a kontrolovaná expozice odkazů.",
+                                "MODEL":  "Historické nebo aplikační modelové objekty k upřesnění podle domény.",
+                                "MODULE":  "Funkční jednotky vystavené aplikací.",
+                                "PACKAGE":  "Objevování a načítání Opus packages.",
+                                "RENDERER":  "Transformace ViewModels do finálních responses.",
+                                "REQUEST":  "Čtení a normalizace vstupů požadavku.",
+                                "RESPONSE":  "Tvorba HTTP responses a adaptace do runtime.",
+                                "REST":  "Kontrakty REST volání a obálky výměny.",
+                                "ROUTER":  "Vnitřní mechanika řešení a matchování routes.",
+                                "ROUTING":  "Definice, řešení a matchování routes.",
+                                "SECURITY":  "Gates, explicitní odmítnutí a pravidla ochrany.",
+                                "SESSION":  "Správa session a perzistentní data uživatele.",
+                                "SITE":  "Konfigurace a řešení aktuálního webu.",
+                                "SMTP":  "Konfigurace a transport SMTP.",
+                                "SUPPORT":  "Podpůrné funkce a zdroje podpory.",
+                                "TEMPLATE":  "Adaptéry a enginy šablon včetně ScoreTemplate.",
+                                "THEME":  "Motivy, vizuální varianty a konfigurování prezentace.",
+                                "URL":  "Sestavení, parsing a normalizace URL.",
+                                "VALIDATION":  "Validace hodnot, typů, omezení a chyb.",
+                                "VIEW":  "Příprava a vykreslení pohledů.",
+                                "XML":  "Čtení XML, navigace uzlů a načítání konfigurace.",
+                                "RefBook":  "Dokumentační plocha RefBook a veřejný katalog frameworku Opus.",
+                                "UNCLASSIFIED":  "Symboly nalezené v manifestu bez přiřazené redakční domény."
+                            }
+}

@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<site id="opus-reference">
+  <basePath>/</basePath>
+  <routes file="routes.xml" />
+  <security file="security.xml" />
+</site>
+

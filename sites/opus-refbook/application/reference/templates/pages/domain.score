@@ -1,0 +1,34 @@
+<section class="hero compact-hero">
+  <p class="kicker">{{ ui.domain.kicker }}</p>
+  <h1>{{ domain.name }}</h1>
+</section>
+
+<section class="metrics domain-metrics">
+  <div><span>{{ ui.domain.symbols }}</span><strong>{{ domain.count }}</strong></div>
+  <div><span>{{ ui.domain.public_methods }}</span><strong>{{ domain.method_count }}</strong></div>
+  <div><span>{{ ui.domain.classes }}</span><strong>{{ domain.class_count }}</strong></div>
+  <div><span>{{ ui.domain.interfaces }}</span><strong>{{ domain.interface_count }}</strong></div>
+</section>
+
+<section class="panel">
+  <p class="kicker">{{ ui.domain.inventory_kicker }}</p>
+  <h2>{{ ui.domain.inventory_title }}</h2>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>{{ ui.domain.table_symbol }}</th>
+        <th>{{ ui.domain.table_role }}</th>
+        <th>{{ ui.domain.table_source }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      [[ foreach: domain.symbols as symbol ]]
+      <tr>
+        <td><a href="{{ basePath }}/?lang={{ lang }}&amp;theme={{ theme }}&amp;page=symbol-{{ symbol.index }}">{{ symbol.symbol }}</a></td>
+        <td>[[ if: symbol.role is defined ]]{{ symbol.role }}[[ endif ]]</td>
+        <td><code>{{ symbol.display_file }}</code></td>
+      </tr>
+      [[ endforeach ]]
+    </tbody>
+  </table>
+</section>

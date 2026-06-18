@@ -1,0 +1,557 @@
+{
+    "schema":  "OPUS_REFBOOK_I18N_V1",
+    "language":  "de",
+    "labels":  {
+                   "language":  {
+                                    "current":  "Sprache",
+                                    "fr":  "Französisch",
+                                    "en":  "Englisch",
+                                    "es":  "Spanisch",
+                                    "de":  "Deutsch",
+                                    "uk":  "Ukrainisch",
+                                    "it":  "Italienisch",
+                                    "pl":  "Polnisch",
+                                    "apply":  "Anwenden",
+                                    "cs":  "Tschechisch"
+                                },
+                   "sidebar":  {
+                                   "api_reference":  "API-Referenz",
+                                   "guides":  "Anleitungen",
+                                   "domains":  "Bereiche",
+                                   "menu":  "RefBook-Navigation",
+                                   "search":  "Suchen",
+                                   "assets_docs":  "Dokumentationsressourcen",
+                                   "legal":  "Rechtliche Informationen",
+                                   "download_install":  "Herunterladen / installieren"
+                               },
+                   "home":  {
+                                "kicker":  "Opus MVC-Anwendung",
+                                "symbols":  "extrahierte Symbole",
+                                "domains":  "erkannte Bereiche",
+                                "pipeline_title":  "Dokumentationskanal",
+                                "guides_title":  "Einstiegsanleitungen"
+                            },
+                   "api":  {
+                               "title":  "API-Referenz",
+                               "kicker":  "API-Referenz",
+                               "intro":  "Die folgende Referenz stammt aus dem Manifest, das aus annotierten Opus-Quellen erzeugt wird.",
+                               "how_to_read":  "So liest man diese Seite",
+                               "bullets":  [
+                                               "Ein Bereich gruppiert die im Manifest erkannten Klassen.",
+                                               "Jedes Symbol verweist zurück auf Quelle und öffentliche Funktionen.",
+                                               "Redaktionelle Beschreibungen ergänzen das Manifest, ohne den Quellnachweis zu ersetzen.",
+                                               "Die Navigation hängt nicht von .htaccess ab: Links nutzen ?page=..."
+                                           ],
+                               "symbols":  "Symbole"
+                           },
+                   "domain":  {
+                                  "kicker":  "Bereich",
+                                  "symbols":  "Symbole",
+                                  "with_methods":  "mit öffentlichen Funktionen",
+                                  "table_symbol":  "Symbol",
+                                  "table_role":  "Rolle",
+                                  "table_methods":  "Funktionen",
+                                  "table_source":  "Quelle",
+                                  "metrics_label":  "Bereichsindikatoren",
+                                  "public_methods":  "öffentliche Funktionen",
+                                  "classes":  "Klassen",
+                                  "interfaces":  "Interfaces",
+                                  "inventory_kicker":  "Quellinventar",
+                                  "inventory_title":  "Erkannte Symbole"
+                              },
+                   "symbol":  {
+                                  "fallback_kind":  "Symbol",
+                                  "fallback_name":  "Symbol",
+                                  "fallback_role":  "Quellrolle zur Ergänzung in OPUS_REFBOOK-Tags.",
+                                  "contract_title":  "Vertrag",
+                                  "no_contract":  "Quellvertrag zur Ergänzung in OPUS_REFBOOK-Tags.",
+                                  "source_title":  "Quelle",
+                                  "source_missing":  "Quelle zu klären",
+                                  "public_methods_title":  "Öffentliche Funktionen",
+                                  "no_methods":  "Keine öffentliche Funktion erkannt.",
+                                  "table_method":  "Funktion",
+                                  "table_signature":  "Signatur",
+                                  "identity_kicker":  "Quellidentität",
+                                  "identity_title":  "Symbolprofil",
+                                  "kind_label":  "Typ",
+                                  "domain_label":  "Bereich",
+                                  "namespace_label":  "Namespace",
+                                  "namespace_missing":  "Namespace nicht angegeben",
+                                  "methods_kicker":  "Öffentliche API",
+                                  "examples_title":  "Verknüpfte Beispiele",
+                                  "diagrams_title":  "Verknüpfte Diagramme"
+                              },
+                   "not_found":  {
+                                     "kicker":  "404",
+                                     "title":  "Seite nicht gefunden",
+                                     "message":  "Slug ausdrücklich abgelehnt"
+                                 },
+                   "topbar":  {
+                                  "subtitle":  "Opus-Dokumentation",
+                                  "controls":  "Site-Steuerung"
+                              },
+                   "breadcrumb":  {
+                                      "label":  "Breadcrumb",
+                                      "home":  "Startseite"
+                                  },
+                   "guide":  {
+                                 "reading_kicker":  "Lesemodus",
+                                 "reading_title":  "Was diese Seite klärt",
+                                 "sections":  "Abschnitte"
+                             },
+                   "theme":  {
+                                 "current":  "Visuelles Thema",
+                                 "night":  "Blaue Nacht",
+                                 "ocean":  "Technischer Ozean",
+                                 "paper":  "Helles Papier",
+                                 "short":  {
+                                               "night":  "Nacht",
+                                               "ocean":  "Ozean",
+                                               "paper":  "Hell"
+                                           }
+                             },
+                   "search":  {
+                                  "kicker":  "RefBook-Suche",
+                                  "title":  "Suchen",
+                                  "intro":  "Schnell eine Klasse, Funktion, einen Bereich, eine Anleitung oder eine Datei des Opus-Frameworks finden.",
+                                  "form_label":  "Im RefBook suchen",
+                                  "input_label":  "Suchbegriff",
+                                  "placeholder":  "Suchen…",
+                                  "placeholder_long":  "Beispiel: Router, ACL, render, config, ScoreTemplate…",
+                                  "submit":  "OK",
+                                  "help":  "Die Suche prüft indizierte Anleitungen, Bereiche, Symbole, Namespaces, Dateien, Verträge und öffentliche Funktionen.",
+                                  "results_kicker":  "Ergebnisse",
+                                  "results_title":  "Ergebnisse für",
+                                  "results":  "Ergebnis(se)",
+                                  "empty_title":  "Kein Ergebnis gefunden",
+                                  "empty_body":  "Versuche einen kürzeren Namen, einen Bereich wie ACL oder Database oder eine bekannte öffentliche Funktion.",
+                                  "tips_kicker":  "Schnellhilfe",
+                                  "tips_title":  "Wonach gesucht werden kann",
+                                  "tips":  [
+                                               "Eine Klasse oder ein Interface: Router, ViewModel, AccessControl.",
+                                               "Eine öffentliche Funktion: render, decide, fromXml, dispatch.",
+                                               "Ein Bereich: ACL, Database, Renderer, Template, HTTP.",
+                                               "Eine Datei, ein Namespace oder ein Vertragsbegriff."
+                                           ],
+                                  "type_guide":  "Anleitung",
+                                  "type_domain":  "Bereich",
+                                  "type_symbol":  "Symbol",
+                                  "symbols":  "Symbol(e)",
+                                  "methods":  "Funktion(n)",
+                                  "snippet_default":  "Treffer im RefBook-Katalog gefunden."
+                              },
+                   "footer":  {
+                                  "powered_by":  "Bereitgestellt von Opus Framework",
+                                  "copyright":  "Copyright © 2026 Steve Ibanez / Log\u0026Play.",
+                                  "legal_short":  "Opus Framework · Quellcode einsehbar · Doppellizenz",
+                                  "license_summary":  "Kostenlose persönliche, bildungsbezogene und nicht kommerzielle Nutzung. Professionelle, kommerzielle, SaaS-, Weiterverteilungs- oder Produktintegrationsnutzung erfordert eine kommerzielle Lizenz."
+                              },
+                   "runtime":  {
+                                   "kicker":  "OPUS_REF_BOOK Runtime",
+                                   "title":  "FSM-gesteuerte interne API",
+                                   "source":  "Quelle",
+                                   "opus_root":  "Opus-Wurzel",
+                                   "read_only":  "Schreibgeschützt",
+                                   "api":  "API",
+                                   "yes":  "ja",
+                                   "no":  "nein",
+                                   "endpoints_title":  "Von RefBook bereitgestellte Endpoints",
+                                   "method":  "Methode",
+                                   "path":  "Pfad",
+                                   "description":  "Beschreibung",
+                                   "asset_warning_title":  "Diagnose der Dokumentationsressourcen",
+                                   "asset_warning_body":  "Der Opus-Snapshot verweist auf fehlende Beispiele oder Diagramme. RefBook zeigt die Diagnose an, ohne Ersatzinhalte zu erfinden."
+                               },
+                   "assets":  {
+                                  "kicker":  "OPUS_REF_BOOK Dokumentationsqualität",
+                                  "title":  "Diagnose der Dokumentationsressourcen",
+                                  "intro":  "Diese Seite wandelt fehlende Referenzen in einen Aktionsplan um. RefBook erzeugt keine Ersatzinhalte.",
+                                  "snapshot_state":  "Snapshot-Status",
+                                  "complete":  "Ressourcen vollständig",
+                                  "incomplete":  "Ressourcen unvollständig",
+                                  "asset_count":  "Ressource(n)",
+                                  "missing_refs":  "fehlende Referenzen",
+                                  "unique_missing":  "einzigartige zu erstellende Ressourcen",
+                                  "example_refs":  "Beispielreferenzen",
+                                  "diagram_refs":  "Diagrammreferenzen",
+                                  "truth_source":  "Die Quelle der Wahrheit bleibt",
+                                  "truth_suffix":  "Die zu erstellenden Dateien gehören zum gemeinsamen Opus-Framework, nicht zu RefBook.",
+                                  "correction_rule":  "Korrekturregel",
+                                  "create_examples":  "Offizielle Beispiele erstellen in",
+                                  "create_diagrams":  "Offizielle Diagramme erstellen in",
+                                  "no_placeholder":  "Keine stillen Platzhalter in RefBook erzeugen.",
+                                  "rerun_smoke":  "Nach jedem Ressourcenpaket den API-Smoke erneut ausführen.",
+                                  "inventory_kicker":  "Umsetzbares Inventar",
+                                  "inventory_title":  "Einzigartige fehlende Ressourcen",
+                                  "none_missing":  "Keine fehlende Ressource.",
+                                  "references":  "Referenzen",
+                                  "first_usage":  "Erste Verwendung",
+                                  "useful_endpoints":  "Nützliche Endpoints",
+                                  "short_warning":  "Dokumentationsressourcen unvollständig",
+                                  "see_diagnostic":  "Diagnose ansehen.",
+                                  "type":  "Typ",
+                                  "id":  "ID",
+                                  "top_limit":  "top 120"
+                              },
+                   "legal":  {
+                                 "kicker":  "Opus Framework · Rechtliche Informationen",
+                                 "title":  "Opus Framework · Quellcode einsehbar · Doppellizenz",
+                                 "intro":  "Opus Framework wird öffentlich über dieses RefBook dokumentiert. Das RefBook ist eine öffentliche Dokumentationsfläche; es ist nicht das herunterladbare Distributionspaket.",
+                                 "copyright_kicker":  "Copyright",
+                                 "author_title":  "Autorenangabe",
+                                 "original_author":  "Ursprünglicher Autor",
+                                 "licensing_kicker":  "Lizenzmodell",
+                                 "licensing_title":  "Opus-Doppellizenz",
+                                 "personal_free":  "Kostenlose persönliche, bildungsbezogene und nicht kommerzielle Nutzung.",
+                                 "commercial_required":  "Professionelle, kommerzielle, SaaS-, Weiterverteilungs- oder Produktintegrationsnutzung erfordert eine kommerzielle Lizenz.",
+                                 "rights_reserved":  "Alle Rechte vorbehalten, sofern sie nicht ausdrücklich durch die anwendbare Opus-Lizenz gewährt werden.",
+                                 "note":  "Diese Seite beschreibt die öffentliche Lizenzposition, die RefBook anzeigt. Das endgültige herunterladbare Opus-Paket wird die detaillierten Lizenzdateien für seinen Vertriebskanal enthalten.",
+                                 "distribution_kicker":  "RefBook-Verteilung",
+                                 "distribution_title":  "Öffentliche Dokumentation, privates Implementierungsrepository",
+                                 "distribution_body_1":  "RefBook soll als Dokumentation öffentlich zugänglich und durch Suchmaschinen auffindbar sein.",
+                                 "distribution_body_2":  "Das RefBook-Quellrepository kann privat bleiben. Opus selbst ist das Framework für eine zukünftige Paketdistribution."
+                             },
+                   "symbol_extra":  {
+                                        "responsibility":  "Verantwortung",
+                                        "role":  "Rolle",
+                                        "declared_examples_missing":  "Referenzen sind deklariert, aber die Ressourcen sind im Snapshot nicht verfügbar.",
+                                        "declared_diagrams_missing":  "Referenzen sind deklariert, aber die Diagramme sind im Snapshot nicht verfügbar."
+                                    },
+                   "diagram":  {
+                                   "aria":  "Mermaid-Diagramm",
+                                   "source":  "Mermaid-Quelle",
+                                   "renderer_unavailable":  "Dedizierter Renderer nicht verfügbar"
+                               },
+                   "seo":  {
+                               "description_default":  "Opus Framework Reference Book: öffentliche technische Dokumentation, Verträge, Klassen, Diagramme und Beispiele für das Opus-PHP-Framework.",
+                               "description_legal":  "Doppellizenz, einsehbarer Quellcode, Copyright und Autorenangabe für Opus Framework.",
+                               "description_api_reference":  "Interne API-Dokumentation des Opus Reference Book, Runtime-Snapshot und Domänenkarte des Frameworks.",
+                               "description_download_install":  "Anleitung zum Herunterladen und Installieren von Opus Framework für den öffentlichen Distributionskanal.",
+                               "description_asset_diagnostics":  "RefBook-Diagnose für fehlende Dokumentationsbeispiele und Diagramme.",
+                               "description_search":  "Suche in Guides, Domänen, Symbolen und öffentlichen Methoden des Opus Reference Book.",
+                               "description_domain_suffix":  "Domänenreferenz: Klassen, Verträge, Runtime-Verhalten und Beispiele.",
+                               "description_symbol_default":  "offizielle Opus-Framework-Referenz."
+                           }
+               },
+    "module":  {
+                   "title":  "OPUS FRAMEWORK",
+                   "subtitle":  "Reference Book",
+                   "mission":  "Opus lesbar, prüfbar und nutzbar machen, ohne bei jedem Schritt den Code zu durchsuchen.",
+                   "pipeline":  [
+                                    "Annotierte Opus-Quelle",
+                                    "JSON-Manifest",
+                                    "RefBook-Service",
+                                    "ViewModel",
+                                    "ScoreTemplate",
+                                    "Navigierbares HTML"
+                                ]
+               },
+    "home_cards":  [
+                       {
+                           "title":  "Schnell lesen",
+                           "body":  "Die linke Spalte zeigt Bereiche und Anleitungen. Die API-Seite gruppiert erkannte Symbole."
+                       },
+                       {
+                           "title":  "Prüfen",
+                           "body":  "Jeder Bereich und jedes Symbol stammt aus dem Manifest, das aus \u003cOPUS_ROOT\u003e erzeugt wird."
+                       },
+                       {
+                           "title":  "Entwickeln",
+                           "body":  "Jede Änderung bleibt MVC: schlanker Controller, expliziter Service, ViewModel und sauberes ScoreTemplate."
+                       },
+                       {
+                           "title":  "Kürzeres Menü",
+                           "body":  "Anleitungen und Bereiche sind in klappbaren Bereichen gruppiert, damit die Navigation lesbar bleibt."
+                       },
+                       {
+                           "title":  "Reichere Seiten",
+                           "body":  "Bereichsseiten zeigen nun Klassen, Interfaces, öffentliche Funktionen und Quellinventar."
+                       }
+                   ],
+    "guides":  [
+                   {
+                       "slug":  "guide-architecture",
+                       "title":  "Architekturüberblick",
+                       "kicker":  "Architektur",
+                       "summary":  "Opus trennt Anwendung, Routing, Steuerung, Service, Rendering, Sicherheit und Konfiguration.",
+                       "sections":  [
+                                        {
+                                            "title":  "Funktionale Lesart",
+                                            "items":  [
+                                                          "Application orchestriert eine Anfrage.",
+                                                          "SiteResolver wählt die aktuelle Site-Konfiguration.",
+                                                          "Router wandelt eine URL in einen RouteMatch um.",
+                                                          "ControllerDispatcher instanziiert den Controller und startet die Aktion.",
+                                                          "ViewModel trägt Daten zum Renderer.",
+                                                          "ScoreTemplateRenderer wandelt die View in HTML um."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Wartungsregel",
+                                            "items":  [
+                                                          "Keine Geschäftslogik in public/index.php ablegen.",
+                                                          "ScoreTemplate nicht als Datenspeicher benutzen.",
+                                                          "Den Dispatcher nicht umgehen, um eine Seite zu rendern.",
+                                                          "Serverkonfiguration nicht ändern, um ein Anwendungsproblem zu kaschieren."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Merksätze",
+                                            "items":  [
+                                                          "Eine Verantwortung gehört zu genau einer Schicht.",
+                                                          "Ein Service bereitet Daten vor; ScoreTemplate erfindet sie nicht.",
+                                                          "Ein Vertragsfehler muss explizit und nachverfolgbar sein."
+                                                      ]
+                                        }
+                                    ],
+                       "reading":  "Überblick, um Verantwortlichkeiten vor einer Opus-Änderung richtig zu platzieren."
+                   },
+                   {
+                       "slug":  "guide-mvc",
+                       "title":  "Opus-MVC-Vertrag",
+                       "kicker":  "MVC",
+                       "summary":  "Offizielle Route, schlanker Controller, fachlicher Service, ViewModel, Template.",
+                       "sections":  [
+                                        {
+                                            "title":  "Controller",
+                                            "items":  [
+                                                          "Empfängt Request und Routenparameter.",
+                                                          "Ruft die benötigten Services auf.",
+                                                          "Gibt ein ViewModel zurück.",
+                                                          "Erzeugt HTML nicht selbst."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Service",
+                                            "items":  [
+                                                          "Lädt Daten.",
+                                                          "Bereitet lesbare Strukturen vor.",
+                                                          "Stellt testbare Funktionen bereit.",
+                                                          "Hängt nicht vom Browser ab."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "ScoreTemplate",
+                                            "items":  [
+                                                          "Zeigt ein ViewModel an.",
+                                                          "Entscheidet keinen Workflow.",
+                                                          "Lädt keine Quelldateien.",
+                                                          "Enthält keine Geschäftsregeln."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Korrekter Ablauf",
+                                            "items":  [
+                                                          "Router erzeugt einen RouteMatch.",
+                                                          "Dispatcher ruft den vorgesehenen Controller auf.",
+                                                          "Der Controller gibt ein ViewModel zurück.",
+                                                          "Der Renderer wandelt das ViewModel ohne Geschäftslogik um."
+                                                      ]
+                                        }
+                                    ],
+                       "reading":  "Täglicher Arbeitsvertrag: Route findet Controller, Controller bereitet vor, ScoreTemplate rendert."
+                   },
+                   {
+                       "slug":  "guide-source-tags",
+                       "title":  "OPUS_REFBOOK-Quelltags",
+                       "kicker":  "Wahrheitsquelle",
+                       "summary":  "Offizieller API-Inhalt startet aus annotierten Opus-Klassen und läuft durch ein kontrolliertes Manifest.",
+                       "sections":  [
+                                        {
+                                            "title":  "Ziel",
+                                            "items":  [
+                                                          "Rolle einer Klasse beschreiben.",
+                                                          "Öffentlichen Vertrag explizit machen.",
+                                                          "Verantwortlichkeiten und Grenzen auflisten.",
+                                                          "Dokumentation durch Extraktion prüfbar machen."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Regel",
+                                            "items":  [
+                                                          "Eine generierte Seite muss zu einem Quellsymbol zurückverfolgbar sein.",
+                                                          "Redaktioneller Text ergänzt das Symbol, er erfindet es nicht.",
+                                                          "Eine Abweichung zwischen Quelle und Dokumentation führt zu einer Quellen- oder Manifestkorrektur."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Schrittweise Befüllung",
+                                            "items":  [
+                                                          "Jede neue Quellannotation erweitert das Manifest.",
+                                                          "Redaktioneller Text darf erklären, nicht den Quellnachweis ersetzen.",
+                                                          "Ein unvollständiges Symbol bleibt sichtbar unvollständig."
+                                                      ]
+                                        }
+                                    ],
+                       "reading":  "Startpunkt des generierten Reference Book: annotierte Quelle bleibt der Nachweis."
+                   },
+                   {
+                       "slug":  "guide-routing",
+                       "title":  "Routing und Front-Controller",
+                       "kicker":  "HTTP",
+                       "summary":  "Apache liefert public/ aus; Opus empfängt die Anfrage; der Router wählt die Route.",
+                       "sections":  [
+                                        {
+                                            "title":  "Vertrag public/index.php",
+                                            "items":  [
+                                                          "Nur Bootstrap.",
+                                                          "Keine hartcodierte Routentabelle.",
+                                                          "Kein direktes HTML-Rendering.",
+                                                          "Kein stiller Fallback."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Validierung",
+                                            "items":  [
+                                                          "Zuerst CLI mit REQUEST_URI testen.",
+                                                          "Dann HTTP-CSS testen.",
+                                                          "Dann die HTTP-Startseite testen.",
+                                                          "Zuletzt tiefe Routen testen."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Schnelldiagnose",
+                                            "items":  [
+                                                          "REQUEST_URI prüfen.",
+                                                          "basepath prüfen.",
+                                                          "routes.xml prüfen.",
+                                                          "Ziel-Controller vor Apache prüfen."
+                                                      ]
+                                        }
+                                    ],
+                       "reading":  "Hilft, eine Seite zu diagnostizieren, ohne das Problem auf Apache oder .htaccess zu verschieben."
+                   },
+                   {
+                       "slug":  "guide-lstsa",
+                       "title":  "LSTSA — Laden, Speichern, Transformieren, Absichern, Archivieren",
+                       "kicker":  "Datenpipeline",
+                       "summary":  "LSTSA lädt, prüft, transformiert, speichert, protokolliert und archiviert typisierte Transformationen.",
+                       "sections":  [
+                                        {
+                                            "title":  "Schritte",
+                                            "items":  [
+                                                          "Load: Eingabequelle lesen.",
+                                                          "Store: in das konfigurierte Ziel schreiben.",
+                                                          "Transform: typisiertes Mapping und Konvertierung.",
+                                                          "Secure: Typen, Längen und Constraints prüfen.",
+                                                          "Archive: archivfähiges Log pro Transformation halten."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Regeln",
+                                            "items":  [
+                                                          "Konfiguration beschreibt Quelle, Ziel, Typen und Längen.",
+                                                          "Ungültige Daten werden explizit abgelehnt.",
+                                                          "Jeder Lauf erzeugt Bericht und eigenes Log.",
+                                                          "Kein Speicher-Fallback ist erlaubt."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Protokollierung",
+                                            "items":  [
+                                                          "Jede Transformation besitzt ein eigenes Log.",
+                                                          "Das Log muss archivfähig sein.",
+                                                          "Typ- oder Längenablehnungen nennen Daten und Regel."
+                                                      ]
+                                        }
+                                    ],
+                       "reading":  "Rahmen für typisierte, kontrollierte und archivfähige Datentransformation."
+                   },
+                   {
+                       "slug":  "guide-tests",
+                       "title":  "Tests und Rezepte",
+                       "kicker":  "Qualität",
+                       "summary":  "Ein Opus-Meilenstein braucht Lint, Smoke, gezielte Abnahme und sauberen Git-Status.",
+                       "sections":  [
+                                        {
+                                            "title":  "Reihenfolge",
+                                            "items":  [
+                                                          "Minimaler Patch.",
+                                                          "PHP-Lint.",
+                                                          "CLI-Smoke.",
+                                                          "HTTP-Test, wenn der Meilenstein es verlangt.",
+                                                          "Exaktes Staging.",
+                                                          "Klarer Commit."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Verboten",
+                                            "items":  [
+                                                          "Kein breiter globaler Refactor ohne Auftrag.",
+                                                          "Kein standardmäßiges git add .",
+                                                          "Keine Apache-Änderung zur Korrektur einer Anwendungsseite."
+                                                      ]
+                                        },
+                                        {
+                                            "title":  "Nach dem Patch",
+                                            "items":  [
+                                                          "Lint und Smoke ausführen.",
+                                                          "Geänderte Dateien prüfen.",
+                                                          "Temporäres bereinigen.",
+                                                          "Rollback und Liefernotizen vorbereiten."
+                                                      ]
+                                        }
+                                    ],
+                       "reading":  "Mindestrezept, bevor ein Schritt lieferbar ist."
+                   }
+               ],
+    "domain_descriptions":  {
+                                "ACL":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: ACL.",
+                                "ACTION":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: ACTION.",
+                                "APPLICATION":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: APPLICATION.",
+                                "ASSET":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: ASSET.",
+                                "AUTOLOAD":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: AUTOLOAD.",
+                                "CACHE":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: CACHE.",
+                                "COMPATIBILITY":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: COMPATIBILITY.",
+                                "CONFIG":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: CONFIG.",
+                                "CONTRACT":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: CONTRACT.",
+                                "CONTROLLER":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: CONTROLLER.",
+                                "COOKIE":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: COOKIE.",
+                                "CORE":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: CORE.",
+                                "CSS":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: CSS.",
+                                "DATABASE":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: DATABASE.",
+                                "DATE":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: DATE.",
+                                "DEBUG":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: DEBUG.",
+                                "DIRECTORY":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: DIRECTORY.",
+                                "DOCUMENTATION":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: DOCUMENTATION.",
+                                "EVENT":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: EVENT.",
+                                "EXCEPTION":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: EXCEPTION.",
+                                "FILE":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: FILE.",
+                                "FORM":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: FORM.",
+                                "FSM":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: FSM.",
+                                "FTP":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: FTP.",
+                                "HELPER":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: HELPER.",
+                                "HTTP":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: HTTP.",
+                                "I18N":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: I18N.",
+                                "JAVASCRIPT":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: JAVASCRIPT.",
+                                "JSON":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: JSON.",
+                                "LANGUAGE":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: LANGUAGE.",
+                                "LINK":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: LINK.",
+                                "LOG":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: LOG.",
+                                "LSTSA":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: LSTSA.",
+                                "MAIL":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: MAIL.",
+                                "MENU":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: MENU.",
+                                "MODEL":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: MODEL.",
+                                "MODULE":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: MODULE.",
+                                "PACKAGE":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: PACKAGE.",
+                                "RENDERER":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: RENDERER.",
+                                "REQUEST":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: REQUEST.",
+                                "RESPONSE":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: RESPONSE.",
+                                "REST":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: REST.",
+                                "ROUTER":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: ROUTER.",
+                                "ROUTING":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: ROUTING.",
+                                "SECURITY":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: SECURITY.",
+                                "SESSION":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: SESSION.",
+                                "SITE":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: SITE.",
+                                "SMTP":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: SMTP.",
+                                "SUPPORT":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: SUPPORT.",
+                                "TEMPLATE":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: TEMPLATE.",
+                                "THEME":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: THEME.",
+                                "URL":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: URL.",
+                                "VALIDATION":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: VALIDATION.",
+                                "VIEW":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: VIEW.",
+                                "XML":  "Kontrollierter Opus-Bereich für den öffentlichen Katalog: XML.",
+                                "RefBook":  "RefBook-Dokumentationsoberfläche und öffentlicher Katalog des Opus-Frameworks.",
+                                "UNCLASSIFIED":  "Vom Manifest erkannte Symbole ohne zugewiesenen redaktionellen Bereich."
+                            }
+}

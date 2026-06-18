@@ -1,0 +1,118 @@
+/* P114C3 — Opus download/install page and legal badge layout guard. */
+
+.site-legal-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .35rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.site-legal-badge strong,
+.site-legal-badge span,
+.site-legal-badge a {
+  max-width: 100%;
+  line-height: 1.25;
+}
+
+.site-legal-badge a {
+  display: inline-flex;
+  flex-wrap: wrap;
+  white-space: normal;
+}
+
+.install-hero {
+  border-left: 4px solid rgba(20, 184, 166, .72);
+}
+
+.install-no-github {
+  margin-top: .75rem;
+  font-weight: 700;
+}
+
+.install-version-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1rem 0 1.25rem;
+}
+
+.install-version-card,
+.install-option-card {
+  border: 1px solid var(--panel-border, rgba(148, 163, 184, .24));
+  border-radius: 16px;
+  padding: 1rem;
+  background: var(--panel-bg, rgba(15, 23, 42, .58));
+}
+
+.install-version-card span {
+  display: block;
+  opacity: .76;
+  font-size: .9rem;
+  margin-bottom: .4rem;
+}
+
+.install-version-card strong {
+  font-size: 1.45rem;
+}
+
+.install-panel code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.install-card-grid {
+  margin-top: 1.25rem;
+}
+
+.install-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.install-option-card h3 {
+  margin-top: 0;
+}
+
+.install-two-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.install-two-columns li {
+  margin-bottom: .55rem;
+}
+
+body.theme-paper .install-version-card,
+body.theme-paper .install-option-card {
+  background: rgba(255, 251, 235, .74);
+}
+
+@media (max-width: 980px) {
+  .install-version-grid,
+  .install-cards,
+  .install-two-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* P114C3U — move powered-by badge right and keep it responsive. */
+.site-header .site-legal-badge {
+  margin-left: clamp(3rem, 7vw, 10rem);
+}
+
+@media (max-width: 1280px) {
+  .site-header .site-legal-badge {
+    margin-left: clamp(1.5rem, 3vw, 3rem);
+  }
+}
+
+@media (max-width: 980px) {
+  .site-header .site-legal-badge {
+    margin-left: 0;
+  }
+}
