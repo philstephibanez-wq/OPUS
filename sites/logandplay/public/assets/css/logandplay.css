@@ -628,3 +628,100 @@ h1 {
         padding: 0.65rem 1rem;
     }
 }
+
+/*
+ * P117SITE11C_LOCAL_RUNTIME_AND_VISUAL_STABILITY
+ * Role: keep the Log&Play public site visually aligned with the OPUS RefBook
+ *       while remaining stable under Chromium/Edge DevTools viewport shrink.
+ * Contract: CSS-only representation fix. No routing, data, security or fallback logic.
+ */
+html {
+    scrollbar-gutter: stable;
+}
+
+.app-shell,
+.app-header,
+.main-panel,
+.hero,
+.projects,
+.principles,
+.project-card,
+.principle-card {
+    min-width: 0;
+}
+
+.main-panel {
+    width: 100%;
+    max-width: 100%;
+}
+
+.projects,
+.principles {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+}
+
+.project-card,
+.principle-card,
+.hero {
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 1180px) {
+    .app-shell {
+        grid-template-columns: 15.5rem minmax(0, 1fr);
+    }
+
+    .top-nav {
+        display: none;
+    }
+
+    .brand small {
+        max-width: 42vw;
+    }
+}
+
+@media (max-width: 860px) {
+    .app-shell {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto auto auto auto;
+        grid-template-areas:
+            "header"
+            "main"
+            "side"
+            "footer";
+    }
+
+    .app-header {
+        position: static;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        padding: 0.75rem;
+    }
+
+    .brand {
+        width: 100%;
+    }
+
+    .brand small {
+        max-width: none;
+        white-space: normal;
+    }
+
+    .language-selector--header {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .language-selector select {
+        min-width: min(100%, 12rem);
+    }
+
+    .side-nav {
+        position: static;
+        max-height: none;
+        border-right: 0;
+        border-top: 1px solid var(--line);
+    }
+}
+

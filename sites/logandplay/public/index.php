@@ -106,7 +106,8 @@ function render_page(array $content, string $language, array $supportedLanguages
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e(string_value($site, 'title')) ?></title>
     <meta name="description" content="<?= e(string_value($site, 'intro')) ?>">
-    <link rel="stylesheet" href="/assets/css/logandplay.css">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'/%3E">
+    <link rel="stylesheet" href="/assets/css/logandplay.css?v=P117SITE11C">
 </head>
 <body>
 <div class="app-shell">
