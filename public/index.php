@@ -27,6 +27,6 @@ try {
         header('Content-Type: text/plain; charset=utf-8');
     }
 
-    echo "Site temporairement bloquÃ©.\nContactez le support.";
+    echo "Site temporairement bloqué.\nContactez le support.";
     exit(1);
 }
