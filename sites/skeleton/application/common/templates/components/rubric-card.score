@@ -1,6 +1,0 @@
-<a class="opus-rubric-card" href="{{ rubric.path }}" data-module="{{ rubric.module }}">
-  <span class="opus-rubric-card__kicker">{{ rubric.kicker }}</span>
-  <strong>{{ rubric.title }}</strong>
-  <span>{{ rubric.description }}</span>
-  <em>{{ i18n.open_rubric }}</em>
-</a>

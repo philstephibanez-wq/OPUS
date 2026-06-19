@@ -1,9 +1,0 @@
-{
-    "site_id": "skeleton",
-    "type": "opus-site",
-    "contract": "OPUS_SITE_APPLICATION_V1",
-    "starter_contract": "OPUS_CREATE_SITE_ASAP_RUBRIC_STARTER_V1",
-    "external_dependencies_allowed": false,
-    "framework_duplication_allowed": false,
-    "created_by": "composer opus:create-site"
-}

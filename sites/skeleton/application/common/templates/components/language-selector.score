@@ -1,6 +1,0 @@
-<form class="opus-lang" action="{{ request.path }}" method="get" aria-label="{{ i18n.language_selector_label }}">
-  <label class="opus-lang__label" for="opus-lang-select">{{ i18n.language_short_label }}</label>
-  <select id="opus-lang-select" class="opus-lang__select" name="lang" onchange="this.form.submit()">
-    {{ common.language_options }}
-  </select>
-</form>
