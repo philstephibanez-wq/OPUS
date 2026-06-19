@@ -12,7 +12,7 @@ use Opus\Console\OpusConsoleException;
  * - patches an existing site incrementally;
  * - never recreates or overwrites the site scaffold;
  * - refuses an existing locale unless a future explicit migration command is added;
- * - writes i18n and starter content files only for the requested locale;
+ * - writes i18n files only for the requested locale;
  * - updates application/config/site.json after all new files are ready;
  * - no external dependency.
  */
@@ -173,39 +173,6 @@ final class AddLanguageCommand implements OpusConsoleCommandInterface
     {
         $files = [];
         $files[$siteRoot . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'i18n' . DIRECTORY_SEPARATOR . $locale . '.json'] = $this->json($this->starterI18n($locale));
-
-        $routes = $routesConfig['routes'] ?? [];
-        if (!is_array($routes)) {
-            throw new OpusConsoleException('OPUS_ADD_LANGUAGE_ROUTES_CONTRACT_INVALID');
-        }
-
-        foreach ($routes as $route) {
-            if (!is_array($route)) {
-                throw new OpusConsoleException('OPUS_ADD_LANGUAGE_ROUTE_CONTRACT_INVALID');
-            }
-
-            $module = (string)($route['module'] ?? '');
-            if ($module === '') {
-                throw new OpusConsoleException('OPUS_ADD_LANGUAGE_ROUTE_MODULE_MISSING');
-            }
-
-            $contentPattern = (string)($route['content'] ?? '');
-            if ($contentPattern === '' || !str_contains($contentPattern, '{{lang}}')) {
-                throw new OpusConsoleException('OPUS_ADD_LANGUAGE_ROUTE_CONTENT_PATTERN_INVALID: ' . (string)($route['id'] ?? 'unknown'));
-            }
-
-            $targetRelative = str_replace('{{lang}}', $locale, $contentPattern);
-            $targetAbsolute = $siteRoot . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $targetRelative);
-
-            $sourceRelative = str_replace('{{lang}}', $defaultLocale, $contentPattern);
-            $sourceAbsolute = $siteRoot . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $sourceRelative);
-            $sourceContent = [];
-            if (is_file($sourceAbsolute)) {
-                $sourceContent = $this->readJson($sourceAbsolute, 'OPUS_ADD_LANGUAGE_SOURCE_CONTENT_JSON_INVALID');
-            }
-
-            $files[$targetAbsolute] = $this->json($this->starterContent($siteId, $module, $locale, $sourceContent));
-        }
 
         return $files;
     }
@@ -458,7 +425,331 @@ final class AddLanguageCommand implements OpusConsoleCommandInterface
             ],
         ];
 
-        return $catalog[$locale] ?? $this->fallbackI18n($locale);
+        $base = $catalog[$locale] ?? $this->fallbackI18n($locale);
+        return array_merge($base, $this->starterI18nContent($locale));
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function starterI18nContent(string $locale): array
+    {
+        $catalog = [
+  'fr' => [
+    'home.kicker' => 'OPUS starter',
+    'home.title' => 'Nouveau site {{ site_id }}',
+    'home.subtitle' => 'Un squelette professionnel pour démarrer un site modulaire OPUS : pages, articles, rubriques et documentation, sans création sauvage.',
+    'home.section_title' => 'Des rubriques prêtes à spécialiser.',
+    'home.section_intro' => 'Chaque encadré ci-dessous est une route vers un module déclaré. Remplacez le contenu, gardez le contrat.',
+    'pages.kicker' => 'Module Pages',
+    'pages.title' => 'Pages éditoriales',
+    'pages.subtitle' => 'Point d’entrée pour les contenus statiques, présentations, informations légales ou pages institutionnelles.',
+    'pages.description' => 'Structure pour pages simples, propres et localisées.',
+    'pages.primary_title' => 'Responsabilité',
+    'pages.primary_text' => 'Ce module porte les pages éditoriales du site, sans logique métier dispersée dans public/index.php.',
+    'pages.secondary_title' => 'À personnaliser',
+    'pages.secondary_text' => 'Adaptez le template .score et les chaînes i18n du module Pages. Les données métier viendront plus tard par providers/services/view-models.',
+    'articles.kicker' => 'Module Articles',
+    'articles.title' => 'Articles et publications',
+    'articles.subtitle' => 'Point d’entrée pour les notes, actualités, annonces produit ou publications longues.',
+    'articles.description' => 'Structure pour futures publications et archives.',
+    'articles.primary_title' => 'Responsabilité',
+    'articles.primary_text' => 'Ce module démontre où placer les services de listing, view-models et templates d’article.',
+    'articles.secondary_title' => 'À personnaliser',
+    'articles.secondary_text' => 'Transformez cette rubrique en vrai flux éditorial, sans imposer de source de données.',
+    'rubriques.kicker' => 'Module Rubriques',
+    'rubriques.title' => 'Rubriques applicatives',
+    'rubriques.subtitle' => 'Point d’entrée pour organiser les grandes zones métier du site.',
+    'rubriques.description' => 'Structure pour sections, catégories et espaces fonctionnels.',
+    'rubriques.primary_title' => 'Responsabilité',
+    'rubriques.primary_text' => 'Une rubrique visible correspond à un module ou à une route de module déclaré.',
+    'rubriques.secondary_title' => 'À personnaliser',
+    'rubriques.secondary_text' => 'Ajoutez vos modules métier avec composer opus:create-module, puis reliez-les par routes.',
+    'documentation.kicker' => 'Module Documentation',
+    'documentation.title' => 'Documentation du site',
+    'documentation.subtitle' => 'Point d’entrée pour expliquer la structure générée et guider l’implémentation.',
+    'documentation.description' => 'Structure pour aide développeur et documentation projet.',
+    'documentation.primary_title' => 'Responsabilité',
+    'documentation.primary_text' => 'Ce module aide l’équipe à comprendre où placer sources, providers, services, view-models, templates et routes.',
+    'documentation.secondary_title' => 'À personnaliser',
+    'documentation.secondary_text' => 'Remplacez cette aide par votre documentation produit ou projet.',
+  ],
+  'en' => [
+    'home.kicker' => 'OPUS starter',
+    'home.title' => 'New site {{ site_id }}',
+    'home.subtitle' => 'A professional skeleton to start an OPUS modular site: pages, articles, rubrics and documentation, without wild page creation.',
+    'home.section_title' => 'Rubrics ready to specialize.',
+    'home.section_intro' => 'Each block below is a route to a declared module. Replace the content, keep the contract.',
+    'pages.kicker' => 'Pages module',
+    'pages.title' => 'Editorial pages',
+    'pages.subtitle' => 'Entry point for static content, presentations, legal information or institutional pages.',
+    'pages.description' => 'Structure for simple, clean and localized pages.',
+    'pages.primary_title' => 'Responsibility',
+    'pages.primary_text' => 'This module owns editorial pages without scattering page logic into public/index.php.',
+    'pages.secondary_title' => 'Customize',
+    'pages.secondary_text' => 'Adapt the .score template and i18n strings. Business data will later come through providers, services and view-models.',
+    'articles.kicker' => 'Articles module',
+    'articles.title' => 'Articles and publications',
+    'articles.subtitle' => 'Entry point for notes, news, product announcements or long-form publications.',
+    'articles.description' => 'Structure for future publications and archives.',
+    'articles.primary_title' => 'Responsibility',
+    'articles.primary_text' => 'This module shows where listing services, view-models and article templates belong.',
+    'articles.secondary_title' => 'Customize',
+    'articles.secondary_text' => 'Turn this rubric into a real editorial stream without imposing a data source.',
+    'rubriques.kicker' => 'Rubrics module',
+    'rubriques.title' => 'Application rubrics',
+    'rubriques.subtitle' => 'Entry point to organize the main business areas of the site.',
+    'rubriques.description' => 'Structure for sections, categories and functional areas.',
+    'rubriques.primary_title' => 'Responsibility',
+    'rubriques.primary_text' => 'A visible rubric maps to a declared module or module route.',
+    'rubriques.secondary_title' => 'Customize',
+    'rubriques.secondary_text' => 'Add business modules with composer opus:create-module, then connect them through routes.',
+    'documentation.kicker' => 'Documentation module',
+    'documentation.title' => 'Site documentation',
+    'documentation.subtitle' => 'Entry point to explain the generated structure and guide implementation.',
+    'documentation.description' => 'Structure for developer help and project documentation.',
+    'documentation.primary_title' => 'Responsibility',
+    'documentation.primary_text' => 'This module helps the team understand where to place sources, providers, services, view-models, templates and routes.',
+    'documentation.secondary_title' => 'Customize',
+    'documentation.secondary_text' => 'Replace this help with your product or project documentation.',
+  ],
+  'de' => [
+    'home.kicker' => 'OPUS-Starter',
+    'home.title' => 'Neue Website {{ site_id }}',
+    'home.subtitle' => 'Ein professionelles Grundgerüst für eine modulare OPUS-Website: Seiten, Artikel, Rubriken und Dokumentation, ohne wilde Seitenerstellung.',
+    'home.section_title' => 'Rubriken bereit zur Spezialisierung.',
+    'home.section_intro' => 'Jeder Block unten ist eine Route zu einem deklarierten Modul. Ersetzen Sie den Inhalt und behalten Sie den Vertrag bei.',
+    'pages.kicker' => 'Modul Seiten',
+    'pages.title' => 'Redaktionelle Seiten',
+    'pages.subtitle' => 'Einstiegspunkt für statische Inhalte, Präsentationen, rechtliche Informationen oder institutionelle Seiten.',
+    'pages.description' => 'Struktur für einfache, saubere und lokalisierte Seiten.',
+    'pages.primary_title' => 'Verantwortung',
+    'pages.primary_text' => 'Dieses Modul besitzt die redaktionellen Seiten, ohne Seitenlogik in public/index.php zu verteilen.',
+    'pages.secondary_title' => 'Anpassen',
+    'pages.secondary_text' => 'Passen Sie das .score-Template und die i18n-Zeichenketten an. Fachdaten kommen später über Provider, Services und ViewModels.',
+    'articles.kicker' => 'Modul Artikel',
+    'articles.title' => 'Artikel und Veröffentlichungen',
+    'articles.subtitle' => 'Einstiegspunkt für Notizen, Nachrichten, Produktankündigungen oder längere Publikationen.',
+    'articles.description' => 'Struktur für zukünftige Veröffentlichungen und Archive.',
+    'articles.primary_title' => 'Verantwortung',
+    'articles.primary_text' => 'Dieses Modul zeigt, wo Listing-Services, ViewModels und Artikel-Templates hingehören.',
+    'articles.secondary_title' => 'Anpassen',
+    'articles.secondary_text' => 'Machen Sie daraus einen echten redaktionellen Fluss, ohne eine Datenquelle vorzuschreiben.',
+    'rubriques.kicker' => 'Modul Rubriken',
+    'rubriques.title' => 'Anwendungsrubriken',
+    'rubriques.subtitle' => 'Einstiegspunkt zur Organisation der wichtigsten Geschäftsbereiche der Site.',
+    'rubriques.description' => 'Struktur für Bereiche, Kategorien und funktionale Zonen.',
+    'rubriques.primary_title' => 'Verantwortung',
+    'rubriques.primary_text' => 'Eine sichtbare Rubrik entspricht einem deklarierten Modul oder einer Modulroute.',
+    'rubriques.secondary_title' => 'Anpassen',
+    'rubriques.secondary_text' => 'Fügen Sie Geschäfts-Module mit composer opus:create-module hinzu und verbinden Sie sie über Routen.',
+    'documentation.kicker' => 'Modul Dokumentation',
+    'documentation.title' => 'Website-Dokumentation',
+    'documentation.subtitle' => 'Einstiegspunkt, um die generierte Struktur zu erklären und die Implementierung zu führen.',
+    'documentation.description' => 'Struktur für Entwicklerhilfe und Projektdokumentation.',
+    'documentation.primary_title' => 'Verantwortung',
+    'documentation.primary_text' => 'Dieses Modul hilft dem Team zu verstehen, wo Quellen, Provider, Services, ViewModels, Templates und Routen liegen.',
+    'documentation.secondary_title' => 'Anpassen',
+    'documentation.secondary_text' => 'Ersetzen Sie diese Hilfe durch Ihre Produkt- oder Projektdokumentation.',
+  ],
+  'es' => [
+    'home.kicker' => 'Starter OPUS',
+    'home.title' => 'Nuevo sitio {{ site_id }}',
+    'home.subtitle' => 'Un esqueleto profesional para iniciar un sitio OPUS modular: páginas, artículos, secciones y documentación, sin creación salvaje de páginas.',
+    'home.section_title' => 'Secciones listas para especializarse.',
+    'home.section_intro' => 'Cada bloque siguiente es una ruta hacia un módulo declarado. Sustituya el contenido y conserve el contrato.',
+    'pages.kicker' => 'Módulo Páginas',
+    'pages.title' => 'Páginas editoriales',
+    'pages.subtitle' => 'Punto de entrada para contenido estático, presentaciones, información legal o páginas institucionales.',
+    'pages.description' => 'Estructura para páginas simples, limpias y localizadas.',
+    'pages.primary_title' => 'Responsabilidad',
+    'pages.primary_text' => 'Este módulo posee las páginas editoriales sin dispersar la lógica en public/index.php.',
+    'pages.secondary_title' => 'Personalizar',
+    'pages.secondary_text' => 'Adapte el template .score y las cadenas i18n. Los datos de negocio llegarán después mediante providers, servicios y view-models.',
+    'articles.kicker' => 'Módulo Artículos',
+    'articles.title' => 'Artículos y publicaciones',
+    'articles.subtitle' => 'Punto de entrada para notas, noticias, anuncios de producto o publicaciones largas.',
+    'articles.description' => 'Estructura para futuras publicaciones y archivos.',
+    'articles.primary_title' => 'Responsabilidad',
+    'articles.primary_text' => 'Este módulo muestra dónde colocar servicios de listado, view-models y templates de artículo.',
+    'articles.secondary_title' => 'Personalizar',
+    'articles.secondary_text' => 'Convierta esta sección en un flujo editorial real sin imponer una fuente de datos.',
+    'rubriques.kicker' => 'Módulo Secciones',
+    'rubriques.title' => 'Secciones aplicativas',
+    'rubriques.subtitle' => 'Punto de entrada para organizar las grandes zonas de negocio del sitio.',
+    'rubriques.description' => 'Estructura para secciones, categorías y áreas funcionales.',
+    'rubriques.primary_title' => 'Responsabilidad',
+    'rubriques.primary_text' => 'Una sección visible corresponde a un módulo declarado o a una ruta de módulo.',
+    'rubriques.secondary_title' => 'Personalizar',
+    'rubriques.secondary_text' => 'Añada módulos de negocio con composer opus:create-module y conéctelos mediante rutas.',
+    'documentation.kicker' => 'Módulo Documentación',
+    'documentation.title' => 'Documentación del sitio',
+    'documentation.subtitle' => 'Punto de entrada para explicar la estructura generada y guiar la implementación.',
+    'documentation.description' => 'Estructura para ayuda de desarrollador y documentación de proyecto.',
+    'documentation.primary_title' => 'Responsabilidad',
+    'documentation.primary_text' => 'Este módulo ayuda al equipo a entender dónde colocar fuentes, providers, servicios, view-models, templates y rutas.',
+    'documentation.secondary_title' => 'Personalizar',
+    'documentation.secondary_text' => 'Sustituya esta ayuda por la documentación de su producto o proyecto.',
+  ],
+  'it' => [
+    'home.kicker' => 'Starter OPUS',
+    'home.title' => 'Nuovo sito {{ site_id }}',
+    'home.subtitle' => 'Uno scheletro professionale per avviare un sito OPUS modulare: pagine, articoli, rubriche e documentazione, senza pagine selvagge.',
+    'home.section_title' => 'Rubriche pronte per la specializzazione.',
+    'home.section_intro' => 'Ogni blocco qui sotto è una route verso un modulo dichiarato. Sostituisci il contenuto e conserva il contratto.',
+    'pages.kicker' => 'Modulo Pagine',
+    'pages.title' => 'Pagine editoriali',
+    'pages.subtitle' => 'Punto di ingresso per contenuti statici, presentazioni, informazioni legali o pagine istituzionali.',
+    'pages.description' => 'Struttura per pagine semplici, pulite e localizzate.',
+    'pages.primary_title' => 'Responsabilità',
+    'pages.primary_text' => 'Questo modulo possiede le pagine editoriali senza disperdere logica in public/index.php.',
+    'pages.secondary_title' => 'Personalizzare',
+    'pages.secondary_text' => 'Adatta il template .score e le stringhe i18n. I dati applicativi arriveranno tramite provider, servizi e view-model.',
+    'articles.kicker' => 'Modulo Articoli',
+    'articles.title' => 'Articoli e pubblicazioni',
+    'articles.subtitle' => 'Punto di ingresso per note, notizie, annunci prodotto o pubblicazioni lunghe.',
+    'articles.description' => 'Struttura per future pubblicazioni e archivi.',
+    'articles.primary_title' => 'Responsabilità',
+    'articles.primary_text' => 'Questo modulo mostra dove collocare servizi di listing, view-model e template articolo.',
+    'articles.secondary_title' => 'Personalizzare',
+    'articles.secondary_text' => 'Trasforma questa rubrica in un vero flusso editoriale senza imporre una fonte dati.',
+    'rubriques.kicker' => 'Modulo Rubriche',
+    'rubriques.title' => 'Rubriche applicative',
+    'rubriques.subtitle' => 'Punto di ingresso per organizzare le grandi aree funzionali del sito.',
+    'rubriques.description' => 'Struttura per sezioni, categorie e aree funzionali.',
+    'rubriques.primary_title' => 'Responsabilità',
+    'rubriques.primary_text' => 'Una rubrica visibile corrisponde a un modulo dichiarato o a una route di modulo.',
+    'rubriques.secondary_title' => 'Personalizzare',
+    'rubriques.secondary_text' => 'Aggiungi moduli business con composer opus:create-module e collegali tramite route.',
+    'documentation.kicker' => 'Modulo Documentazione',
+    'documentation.title' => 'Documentazione del sito',
+    'documentation.subtitle' => 'Punto di ingresso per spiegare la struttura generata e guidare l’implementazione.',
+    'documentation.description' => 'Struttura per aiuto sviluppatore e documentazione progetto.',
+    'documentation.primary_title' => 'Responsabilità',
+    'documentation.primary_text' => 'Questo modulo aiuta il team a capire dove collocare sorgenti, provider, servizi, view-model, template e route.',
+    'documentation.secondary_title' => 'Personalizzare',
+    'documentation.secondary_text' => 'Sostituisci questo aiuto con la documentazione prodotto o progetto.',
+  ],
+  'pl' => [
+    'home.kicker' => 'Starter OPUS',
+    'home.title' => 'Nowa strona {{ site_id }}',
+    'home.subtitle' => 'Profesjonalny szkielet modularnej strony OPUS: strony, artykuły, rubryki i dokumentacja, bez dzikiego tworzenia stron.',
+    'home.section_title' => 'Rubryki gotowe do specjalizacji.',
+    'home.section_intro' => 'Każdy blok poniżej jest trasą do zadeklarowanego modułu. Zastąp treść i zachowaj kontrakt.',
+    'pages.kicker' => 'Moduł Strony',
+    'pages.title' => 'Strony redakcyjne',
+    'pages.subtitle' => 'Punkt wejścia dla treści statycznych, prezentacji, informacji prawnych lub stron instytucjonalnych.',
+    'pages.description' => 'Struktura dla prostych, czystych i lokalizowanych stron.',
+    'pages.primary_title' => 'Odpowiedzialność',
+    'pages.primary_text' => 'Ten moduł posiada strony redakcyjne bez rozpraszania logiki w public/index.php.',
+    'pages.secondary_title' => 'Dostosuj',
+    'pages.secondary_text' => 'Dostosuj template .score i ciągi i18n. Dane domenowe przyjdą później przez providery, serwisy i view-modele.',
+    'articles.kicker' => 'Moduł Artykuły',
+    'articles.title' => 'Artykuły i publikacje',
+    'articles.subtitle' => 'Punkt wejścia dla notatek, aktualności, ogłoszeń produktowych lub długich publikacji.',
+    'articles.description' => 'Struktura dla przyszłych publikacji i archiwów.',
+    'articles.primary_title' => 'Odpowiedzialność',
+    'articles.primary_text' => 'Ten moduł pokazuje, gdzie umieszczać serwisy list, view-modele i template artykułów.',
+    'articles.secondary_title' => 'Dostosuj',
+    'articles.secondary_text' => 'Przekształć tę rubrykę w prawdziwy strumień redakcyjny bez narzucania źródła danych.',
+    'rubriques.kicker' => 'Moduł Rubryki',
+    'rubriques.title' => 'Rubryki aplikacyjne',
+    'rubriques.subtitle' => 'Punkt wejścia do organizowania głównych obszarów biznesowych strony.',
+    'rubriques.description' => 'Struktura dla sekcji, kategorii i obszarów funkcjonalnych.',
+    'rubriques.primary_title' => 'Odpowiedzialność',
+    'rubriques.primary_text' => 'Widoczna rubryka odpowiada zadeklarowanemu modułowi lub trasie modułu.',
+    'rubriques.secondary_title' => 'Dostosuj',
+    'rubriques.secondary_text' => 'Dodaj moduły biznesowe przez composer opus:create-module, a potem połącz je trasami.',
+    'documentation.kicker' => 'Moduł Dokumentacja',
+    'documentation.title' => 'Dokumentacja strony',
+    'documentation.subtitle' => 'Punkt wejścia do wyjaśnienia wygenerowanej struktury i prowadzenia implementacji.',
+    'documentation.description' => 'Struktura dla pomocy deweloperskiej i dokumentacji projektu.',
+    'documentation.primary_title' => 'Odpowiedzialność',
+    'documentation.primary_text' => 'Ten moduł pomaga zespołowi zrozumieć, gdzie umieszczać źródła, providery, serwisy, view-modele, template i trasy.',
+    'documentation.secondary_title' => 'Dostosuj',
+    'documentation.secondary_text' => 'Zastąp tę pomoc dokumentacją produktu lub projektu.',
+  ],
+  'cs' => [
+    'home.kicker' => 'OPUS starter',
+    'home.title' => 'Nový web {{ site_id }}',
+    'home.subtitle' => 'Profesionální kostra pro modulární web OPUS: stránky, články, rubriky a dokumentace, bez divokého vytváření stránek.',
+    'home.section_title' => 'Rubriky připravené ke specializaci.',
+    'home.section_intro' => 'Každý blok níže je route k deklarovanému modulu. Nahraďte obsah a zachovejte kontrakt.',
+    'pages.kicker' => 'Modul Stránky',
+    'pages.title' => 'Redakční stránky',
+    'pages.subtitle' => 'Vstupní bod pro statický obsah, prezentace, právní informace nebo institucionální stránky.',
+    'pages.description' => 'Struktura pro jednoduché, čisté a lokalizované stránky.',
+    'pages.primary_title' => 'Odpovědnost',
+    'pages.primary_text' => 'Tento modul vlastní redakční stránky bez rozptylování logiky do public/index.php.',
+    'pages.secondary_title' => 'Přizpůsobit',
+    'pages.secondary_text' => 'Upravte .score šablonu a i18n řetězce. Doménová data později přijdou přes providery, služby a view-modely.',
+    'articles.kicker' => 'Modul Články',
+    'articles.title' => 'Články a publikace',
+    'articles.subtitle' => 'Vstupní bod pro poznámky, novinky, produktová oznámení nebo dlouhé publikace.',
+    'articles.description' => 'Struktura pro budoucí publikace a archivy.',
+    'articles.primary_title' => 'Odpovědnost',
+    'articles.primary_text' => 'Tento modul ukazuje, kam patří listing služby, view-modely a šablony článků.',
+    'articles.secondary_title' => 'Přizpůsobit',
+    'articles.secondary_text' => 'Proměňte tuto rubriku ve skutečný redakční tok bez vnucené datové source.',
+    'rubriques.kicker' => 'Modul Rubriky',
+    'rubriques.title' => 'Aplikační rubriky',
+    'rubriques.subtitle' => 'Vstupní bod pro organizaci hlavních business oblastí webu.',
+    'rubriques.description' => 'Struktura pro sekce, kategorie a funkční oblasti.',
+    'rubriques.primary_title' => 'Odpovědnost',
+    'rubriques.primary_text' => 'Viditelná rubrika odpovídá deklarovanému modulu nebo route modulu.',
+    'rubriques.secondary_title' => 'Přizpůsobit',
+    'rubriques.secondary_text' => 'Přidejte business moduly přes composer opus:create-module a propojte je routami.',
+    'documentation.kicker' => 'Modul Dokumentace',
+    'documentation.title' => 'Dokumentace webu',
+    'documentation.subtitle' => 'Vstupní bod pro vysvětlení vygenerované struktury a vedení implementace.',
+    'documentation.description' => 'Struktura pro vývojářskou pomoc a projektovou dokumentaci.',
+    'documentation.primary_title' => 'Odpovědnost',
+    'documentation.primary_text' => 'Tento modul pomáhá týmu pochopit, kam patří zdroje, providery, služby, view-modely, šablony a routy.',
+    'documentation.secondary_title' => 'Přizpůsobit',
+    'documentation.secondary_text' => 'Nahraďte tuto pomoc produktovou nebo projektovou dokumentací.',
+  ],
+  'uk' => [
+    'home.kicker' => 'Старт OPUS',
+    'home.title' => 'Новий сайт {{ site_id }}',
+    'home.subtitle' => 'Професійний каркас для модульного сайту OPUS: сторінки, статті, рубрики та документація, без дикого створення сторінок.',
+    'home.section_title' => 'Рубрики готові до спеціалізації.',
+    'home.section_intro' => 'Кожен блок нижче є маршрутом до оголошеного модуля. Замініть зміст і збережіть контракт.',
+    'pages.kicker' => 'Модуль Сторінки',
+    'pages.title' => 'Редакційні сторінки',
+    'pages.subtitle' => 'Точка входу для статичного контенту, презентацій, юридичної інформації або інституційних сторінок.',
+    'pages.description' => 'Структура для простих, чистих і локалізованих сторінок.',
+    'pages.primary_title' => 'Відповідальність',
+    'pages.primary_text' => 'Цей модуль володіє редакційними сторінками без розкидання логіки у public/index.php.',
+    'pages.secondary_title' => 'Налаштувати',
+    'pages.secondary_text' => 'Адаптуйте .score шаблон і i18n-рядки. Доменні дані пізніше прийдуть через провайдери, сервіси та view-models.',
+    'articles.kicker' => 'Модуль Статті',
+    'articles.title' => 'Статті та публікації',
+    'articles.subtitle' => 'Точка входу для нотаток, новин, продуктових оголошень або довгих публікацій.',
+    'articles.description' => 'Структура для майбутніх публікацій та архівів.',
+    'articles.primary_title' => 'Відповідальність',
+    'articles.primary_text' => 'Цей модуль показує, де мають бути сервіси списків, view-models і шаблони статей.',
+    'articles.secondary_title' => 'Налаштувати',
+    'articles.secondary_text' => 'Перетворіть цю рубрику на справжній редакційний потік без нав’язаної source даних.',
+    'rubriques.kicker' => 'Модуль Рубрики',
+    'rubriques.title' => 'Прикладні рубрики',
+    'rubriques.subtitle' => 'Точка входу для організації головних бізнес-зон сайту.',
+    'rubriques.description' => 'Структура для розділів, категорій і функціональних зон.',
+    'rubriques.primary_title' => 'Відповідальність',
+    'rubriques.primary_text' => 'Видима рубрика відповідає оголошеному модулю або маршруту модуля.',
+    'rubriques.secondary_title' => 'Налаштувати',
+    'rubriques.secondary_text' => 'Додайте бізнес-модулі через composer opus:create-module, потім з’єднайте їх маршрутами.',
+    'documentation.kicker' => 'Модуль Документація',
+    'documentation.title' => 'Документація сайту',
+    'documentation.subtitle' => 'Точка входу для пояснення згенерованої структури та ведення реалізації.',
+    'documentation.description' => 'Структура для допомоги розробникам і документації проєкту.',
+    'documentation.primary_title' => 'Відповідальність',
+    'documentation.primary_text' => 'Цей модуль допомагає команді зрозуміти, де розміщувати sources, providers, services, view-models, templates і routes.',
+    'documentation.secondary_title' => 'Налаштувати',
+    'documentation.secondary_text' => 'Замініть цю допомогу документацією продукту або проєкту.',
+  ],
+];
+
+        return $catalog[$locale] ?? $catalog['fr'];
     }
 
     /**

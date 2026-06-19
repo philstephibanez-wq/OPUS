@@ -10,7 +10,7 @@ use Opus\Console\OpusConsoleException;
  *
  * Contract:
  * - read-only command;
- * - validates site/module/route/content/template/i18n structure;
+ * - validates site/module/route/template/i18n structure;
  * - fails loudly on missing required contract pieces;
  * - forbids extra public PHP pages beside public/index.php.
  */
@@ -59,7 +59,6 @@ final class ValidateSiteCommand implements OpusConsoleCommandInterface
         $this->requireDirectory($siteRoot, 'application/config');
         $this->requireDirectory($siteRoot, 'application/common/templates');
         $this->requireDirectory($siteRoot, 'application/modules');
-        $this->requireDirectory($siteRoot, 'resources/content');
         $this->requireDirectory($siteRoot, 'resources/i18n');
 
         $this->forbidPublicPhpFilesExceptFrontController($siteRoot);
@@ -130,7 +129,6 @@ final class ValidateSiteCommand implements OpusConsoleCommandInterface
             $path = (string)($route['path'] ?? '');
             $moduleId = (string)($route['module'] ?? '');
             $template = (string)($route['template'] ?? '');
-            $contentPattern = (string)($route['content'] ?? '');
 
             if ($routeId === '') {
                 throw new OpusConsoleException('OPUS_VALIDATE_ROUTE_ID_MISSING');
@@ -151,15 +149,7 @@ final class ValidateSiteCommand implements OpusConsoleCommandInterface
             }
             $this->requireFile($siteRoot, $template);
 
-            if ($contentPattern === '' || !str_contains($contentPattern, '{{lang}}')) {
-                throw new OpusConsoleException('OPUS_VALIDATE_ROUTE_CONTENT_PATTERN_INVALID: ' . $routeId);
-            }
 
-            foreach ($locales as $locale) {
-                $contentRelative = str_replace('{{lang}}', (string)$locale, $contentPattern);
-                $this->requireFile($siteRoot, $contentRelative);
-                $this->readJson($siteRoot, $contentRelative, 'OPUS_VALIDATE_CONTENT_JSON_INVALID: ' . $contentRelative);
-            }
         }
 
         echo "OPUS_VALIDATE_SITE_OK: {$siteId}\n";

@@ -47,6 +47,9 @@ use Opus\Contract\ContractException;
  *   [[ foreach: items as item ]]     list loop
  *   [[ foreach: items as key, item ]] map loop
  *   [[ endforeach ]]                 loop end
+ *   [[ ignore ]]                     ignored internal block
+ *   [[ ignore: note ]]               ignored internal block with note
+ *   [[ endignore ]]                  ignored internal block end
  *
  * Since:
  *   P116A
@@ -190,11 +193,17 @@ final class ScoreTemplateRenderer implements TemplateRendererInterface
                 return [$nodes, $normalized];
             }
 
-            if ($normalized === 'else' || $normalized === 'endif' || $normalized === 'endforeach') {
+            if ($normalized === 'else' || $normalized === 'endif' || $normalized === 'endforeach' || $normalized === 'endignore') {
                 throw ContractException::because(
                     'OPUS_SCORE_TEMPLATE_UNEXPECTED_DIRECTIVE',
                     $value . ' in ' . $template . ':' . $token['line'] . ':' . $token['column']
                 );
+            }
+
+            if ($normalized === 'ignore' || str_starts_with($normalized, 'ignore:')) {
+                $index++;
+                $this->skipIgnoredBlock($tokens, $index, $template, $token['line']);
+                continue;
             }
 
             if (preg_match('/^include\s*:\s*([A-Za-z0-9_\.\/-]+)$/', $value, $matches) === 1) {
@@ -253,6 +262,39 @@ final class ScoreTemplateRenderer implements TemplateRendererInterface
         }
 
         return [$nodes, null];
+    }
+
+    /**
+     * @param list<array{type:string,value:string,line:int,column:int}> $tokens
+     */
+    private function skipIgnoredBlock(array $tokens, int &$index, string $template, int $startLine): void
+    {
+        $depth = 1;
+
+        while ($index < count($tokens)) {
+            $token = $tokens[$index];
+            if (($token['type'] ?? '') === 'directive') {
+                $value = strtolower(trim((string) ($token['value'] ?? '')));
+                if ($value === 'ignore' || str_starts_with($value, 'ignore:')) {
+                    $depth++;
+                    $index++;
+                    continue;
+                }
+
+                if ($value === 'endignore') {
+                    $depth--;
+                    $index++;
+                    if ($depth === 0) {
+                        return;
+                    }
+                    continue;
+                }
+            }
+
+            $index++;
+        }
+
+        throw ContractException::because('OPUS_SCORE_TEMPLATE_IGNORE_NOT_CLOSED', $template . ':' . $startLine);
     }
 
     /**
