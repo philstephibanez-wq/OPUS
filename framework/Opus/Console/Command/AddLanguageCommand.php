@@ -109,13 +109,31 @@ final class AddLanguageCommand implements OpusConsoleCommandInterface
 
         $locales[] = $locale;
         $locales = array_values(array_unique($locales));
-        sort($locales);
+        usort($locales, fn ($left, $right): int => strcmp($this->localeSortKey((string) $left), $this->localeSortKey((string) $right)));
         $siteConfig['locales'] = $locales;
 
         $this->writeJson($siteConfigPath, $siteConfig, 'OPUS_ADD_LANGUAGE_SITE_JSON_WRITE_FAILED');
 
         echo "OPUS_ADD_LANGUAGE_WRITTEN: {$siteId}/{$locale}\n";
         return 0;
+    }
+
+    private function localeSortKey(string $locale): string
+    {
+        // Keep generated site.json locale order aligned with the visible
+        // selector order, without relying on external locale/ICU extensions.
+        $sortKeys = [
+            'cs' => 'cestina',
+            'de' => 'deutsch',
+            'en' => 'english',
+            'es' => 'espanol',
+            'fr' => 'francais',
+            'it' => 'italiano',
+            'pl' => 'polski',
+            'uk' => 'ukrainska',
+        ];
+
+        return $sortKeys[$locale] ?? $locale;
     }
 
     /**

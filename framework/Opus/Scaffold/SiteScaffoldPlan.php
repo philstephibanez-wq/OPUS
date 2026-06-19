@@ -968,6 +968,25 @@ function opus_locale_label(array $i18n, string $locale): string
     return $nativeLabels[$locale] ?? strtoupper($locale);
 }
 
+function opus_locale_sort_key(string $locale): string
+{
+    // Explicit ASCII sort keys keep the selector stable without requiring ICU,
+    // intl, mbstring or any external dependency. The visible labels remain
+    // proper autonyms; this key is only for ordering.
+    $sortKeys = [
+        'cs' => 'cestina',
+        'de' => 'deutsch',
+        'en' => 'english',
+        'es' => 'espanol',
+        'fr' => 'francais',
+        'it' => 'italiano',
+        'pl' => 'polski',
+        'uk' => 'ukrainska',
+    ];
+
+    return $sortKeys[$locale] ?? $locale;
+}
+
 $siteConfig = opus_read_json($siteRoot . '/application/config/site.json');
 $routesConfig = opus_read_json($siteRoot . '/application/config/routes.json');
 
@@ -994,6 +1013,9 @@ if (!is_array($locales)) {
     echo 'OPUS_STARTER_LOCALES_CONTRACT_INVALID';
     exit;
 }
+
+$locales = array_values(array_filter($locales, 'is_scalar'));
+usort($locales, static fn ($left, $right): int => strcmp(opus_locale_sort_key((string) $left), opus_locale_sort_key((string) $right)));
 
 $defaultLocale = (string) ($siteConfig['default_locale'] ?? 'fr');
 $queryLocale = isset($_GET['lang']) ? strtolower((string) $_GET['lang']) : '';

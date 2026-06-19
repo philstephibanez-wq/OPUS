@@ -7,15 +7,19 @@ use Opus\Console\Command\AddLanguageCommand;
 use Opus\Console\Command\CreateModuleCommand;
 use Opus\Console\Command\CreateSiteCommand;
 use Opus\Console\Command\OpusConsoleCommandInterface;
+use Opus\Console\Command\ServeSiteCommand;
+use Opus\Console\Command\ValidateSiteCommand;
 
 /**
- * Minimal OPUS console application.
+ * OPUS console application.
  *
- * Contract:
- * - Composer-facing CLI entry point;
+ * Public contract:
+ * - Composer-facing entry point for OPUS generators and local tools;
  * - no external dependency;
- * - no command fallback;
- * - commands must be explicit.
+ * - no implicit fallback;
+ * - unknown commands fail explicitly;
+ * - creation commands create scaffolds only;
+ * - serve/validate commands operate on existing sites only.
  */
 final class OpusConsoleApplication
 {
@@ -31,6 +35,8 @@ final class OpusConsoleApplication
         $this->register(new CreateSiteCommand($opusRoot));
         $this->register(new CreateModuleCommand($opusRoot));
         $this->register(new AddLanguageCommand($opusRoot));
+        $this->register(new ServeSiteCommand($opusRoot));
+        $this->register(new ValidateSiteCommand($opusRoot));
     }
 
     /**
@@ -73,17 +79,20 @@ final class OpusConsoleApplication
     {
         echo "OPUS Console\n";
         echo "\n";
-        echo "Commands:\n";
+        echo "Create commands:\n";
         echo "  create:site <site-id> [--dry-run|--write]\n";
         echo "  create:module <site-id> <ModuleName> [--dry-run|--write]\n";
         echo "  add:language <site-id> <locale> [--dry-run|--write]\n";
         echo "\n";
+        echo "Inspect / local runtime commands:\n";
+        echo "  validate:site <site-id>\n";
+        echo "  serve:site <site-id> [--host 127.0.0.1] [--port 8791]\n";
+        echo "\n";
         echo "Composer examples:\n";
-        echo "  composer opus:create-site -- logandplay --dry-run\n";
-        echo "  composer opus:create-site -- logandplay --write\n";
-        echo "  composer opus:create-module -- logandplay PublicIdentity --dry-run\n";
-        echo "  composer opus:create-module -- logandplay PublicIdentity --write\n";
-        echo "  composer opus:add-language -- logandplay en --dry-run\n";
-        echo "  composer opus:add-language -- logandplay en --write\n";
+        echo "  composer opus:create-site -- skeleton --write\n";
+        echo "  composer opus:create-module -- skeleton Dashboard --write\n";
+        echo "  composer opus:add-language -- skeleton en --write\n";
+        echo "  composer opus:validate-site -- skeleton\n";
+        echo "  composer opus:serve-site -- skeleton --port 8791\n";
     }
 }
