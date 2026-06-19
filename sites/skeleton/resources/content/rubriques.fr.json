@@ -1,0 +1,10 @@
+{
+    "kicker": "Module Rubriques",
+    "title": "Rubriques applicatives",
+    "subtitle": "Point d’entrée pour organiser les grandes zones métier du site.",
+    "description": "Structure pour sections, catégories et espaces fonctionnels.",
+    "primary_title": "Responsabilité",
+    "primary_text": "Ce module représente le principe ASAP : une rubrique visible correspond à un module ou une route de module.",
+    "secondary_title": "À personnaliser",
+    "secondary_text": "Ajoutez vos propres modules métier avec composer opus:create-module, puis reliez-les par routes."
+}

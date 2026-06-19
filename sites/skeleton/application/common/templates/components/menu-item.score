@@ -1,0 +1,1 @@
+<a class="opus-nav__link {{ menu_item.active_class }}" href="{{ menu_item.path }}">{{ menu_item.label }}</a>

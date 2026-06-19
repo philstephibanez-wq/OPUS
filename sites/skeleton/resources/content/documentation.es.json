@@ -1,0 +1,10 @@
+{
+    "kicker": "Módulo Documentación",
+    "title": "Documentación del sitio",
+    "subtitle": "Punto de entrada para explicar la estructura generada y guiar la implementación.",
+    "description": "Estructura para ayuda de desarrollo y documentación de proyecto.",
+    "primary_title": "Responsabilidad",
+    "primary_text": "Este módulo ayuda al equipo a entender dónde colocar contenidos, plantillas, rutas y módulos.",
+    "secondary_title": "Personalizar",
+    "secondary_text": "Sustituya esta ayuda por su documentación de producto o proyecto."
+}

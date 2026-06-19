@@ -1,0 +1,10 @@
+{
+    "kicker": "Módulo Páginas",
+    "title": "Páginas editoriales",
+    "subtitle": "Punto de entrada para contenidos estáticos, presentaciones, información legal o páginas institucionales.",
+    "description": "Estructura para páginas simples, limpias y localizadas.",
+    "primary_title": "Responsabilidad",
+    "primary_text": "Este módulo debe contener las páginas editoriales del sitio, sin dispersar lógica de página en public/index.php.",
+    "secondary_title": "Personalizar",
+    "secondary_text": "Añada sus contenidos en resources/content y adapte luego las plantillas .score del módulo."
+}

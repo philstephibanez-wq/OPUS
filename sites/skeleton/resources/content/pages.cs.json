@@ -1,0 +1,10 @@
+{
+    "kicker": "Modul Stránky",
+    "title": "Redakční stránky",
+    "subtitle": "Vstupní bod pro statický obsah, prezentace, právní informace nebo institucionální stránky.",
+    "description": "Struktura pro jednoduché, čisté a lokalizované stránky.",
+    "primary_title": "Odpovědnost",
+    "primary_text": "Tento modul vlastní redakční stránky webu, bez rozptýlení logiky stránky do public/index.php.",
+    "secondary_title": "Přizpůsobit",
+    "secondary_text": "Přidejte obsah do resources/content a poté upravte .score šablony modulu."
+}

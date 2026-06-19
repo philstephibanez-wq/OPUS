@@ -1,0 +1,10 @@
+{
+    "kicker": "Pages module",
+    "title": "Editorial pages",
+    "subtitle": "Entry point for static content, presentations, legal information or institutional pages.",
+    "description": "Structure for simple, clean and localized pages.",
+    "primary_title": "Responsibility",
+    "primary_text": "This module owns editorial pages without scattering page logic into public/index.php.",
+    "secondary_title": "Customize",
+    "secondary_text": "Add your content under resources/content, then adapt the module .score templates."
+}

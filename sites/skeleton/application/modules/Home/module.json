@@ -1,0 +1,11 @@
+{
+    "module_id": "Home",
+    "site_id": "skeleton",
+    "contract": "OPUS_APPLICATION_MODULE_V1",
+    "role": "starter-home",
+    "route": "home.index",
+    "inherits_common_layer": true,
+    "external_dependencies_allowed": false,
+    "html_rendering": "score-template",
+    "created_by": "composer opus:create-site"
+}

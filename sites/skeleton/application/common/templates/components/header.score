@@ -1,0 +1,16 @@
+<header class="opus-header" role="banner">
+  <div class="opus-header__inner">
+    <a class="opus-brand" href="{{ routes.home }}" aria-label="{{ site.name }}">
+      <span class="opus-brand__mark">OP</span>
+      <span class="opus-brand__copy">
+        <strong>{{ site.name }}</strong>
+        <span>{{ site.framework }} modular site</span>
+      </span>
+    </a>
+    <nav class="opus-nav" aria-label="{{ i18n.menu_label }}">
+      {{ common.menu }}
+    </nav>
+    {{ common.language_selector }}
+    <a class="opus-cta" href="{{ routes.documentation }}">{{ i18n.header_cta }}</a>
+  </div>
+</header>

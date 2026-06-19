@@ -1,0 +1,10 @@
+{
+    "kicker": "Moduł Rubryki",
+    "title": "Rubryki aplikacyjne",
+    "subtitle": "Punkt wejścia do organizowania głównych obszarów funkcjonalnych witryny.",
+    "description": "Struktura dla sekcji, kategorii i obszarów funkcjonalnych.",
+    "primary_title": "Odpowiedzialność",
+    "primary_text": "Ten moduł reprezentuje zasadę ASAP: widoczna rubryka odpowiada modułowi albo trasie modułu.",
+    "secondary_title": "Dostosowanie",
+    "secondary_text": "Dodaj własne moduły biznesowe poleceniem composer opus:create-module, a następnie połącz je trasami."
+}

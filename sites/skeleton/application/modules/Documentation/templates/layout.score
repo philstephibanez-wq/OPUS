@@ -1,0 +1,3 @@
+<section class="opus-module" data-module="Documentation">
+  {{ content }}
+</section>

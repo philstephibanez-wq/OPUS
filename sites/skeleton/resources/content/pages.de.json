@@ -1,0 +1,10 @@
+{
+    "kicker": "Modul Seiten",
+    "title": "Redaktionelle Seiten",
+    "subtitle": "Einstiegspunkt für statische Inhalte, Präsentationen, rechtliche Informationen oder institutionelle Seiten.",
+    "description": "Struktur für einfache, saubere und lokalisierte Seiten.",
+    "primary_title": "Verantwortung",
+    "primary_text": "Dieses Modul besitzt die redaktionellen Seiten, ohne Seitenlogik in public/index.php zu verteilen.",
+    "secondary_title": "Anpassen",
+    "secondary_text": "Fügen Sie Ihre Inhalte unter resources/content hinzu und passen Sie danach die .score-Templates des Moduls an."
+}

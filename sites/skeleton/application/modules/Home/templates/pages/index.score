@@ -1,0 +1,35 @@
+<section class="opus-hero">
+  <div class="opus-shell opus-hero__inner">
+    <div class="opus-hero__copy">
+      <p class="opus-kicker">{{ page.kicker }}</p>
+      <h1>{{ page.title }}</h1>
+      <p class="opus-lead">{{ page.subtitle }}</p>
+      <div class="opus-hero__actions">
+        <a class="opus-button opus-button--primary" href="{{ routes.rubriques }}">{{ i18n.explore_rubrics }}</a>
+        <a class="opus-button" href="{{ routes.documentation }}">{{ i18n.read_skeleton }}</a>
+      </div>
+    </div>
+    <aside class="opus-hero__summary" aria-label="{{ i18n.contract_label }}">
+      <p class="opus-card__label">{{ i18n.contract_label }}</p>
+      <div class="opus-contract-list">
+        <span>{{ i18n.contract_module }}</span>
+        <span>{{ i18n.contract_score }}</span>
+        <span>{{ i18n.contract_routes }}</span>
+        <span>{{ i18n.contract_no_wild }}</span>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section class="opus-section">
+  <div class="opus-shell">
+    <div class="opus-section__title">
+      <p class="opus-kicker">{{ i18n.starter_map }}</p>
+      <h2>{{ page.section_title }}</h2>
+      <p>{{ page.section_intro }}</p>
+    </div>
+    <div class="opus-rubric-grid">
+      {{ home.rubric_cards }}
+    </div>
+  </div>
+</section>

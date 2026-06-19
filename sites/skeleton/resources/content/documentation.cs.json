@@ -1,0 +1,10 @@
+{
+    "kicker": "Modul Dokumentace",
+    "title": "Dokumentace webu",
+    "subtitle": "Vstupní bod pro vysvětlení vygenerované struktury a vedení implementace.",
+    "description": "Struktura pro vývojářskou pomoc a projektovou dokumentaci.",
+    "primary_title": "Odpovědnost",
+    "primary_text": "Tento modul pomáhá týmu pochopit, kam umístit obsah, šablony, routy a moduly.",
+    "secondary_title": "Přizpůsobit",
+    "secondary_text": "Nahraďte tuto nápovědu dokumentací produktu nebo projektu."
+}

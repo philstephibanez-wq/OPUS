@@ -1,0 +1,37 @@
+{
+    "contract": "OPUS_FSM_REGISTRY_V1",
+    "initial_state": "HOME",
+    "states": [
+        {
+            "id": "HOME",
+            "module": "Home",
+            "route": "home.index",
+            "role": "starter-home"
+        },
+        {
+            "id": "PAGES",
+            "module": "Pages",
+            "route": "pages.index",
+            "role": "starter-rubric"
+        },
+        {
+            "id": "ARTICLES",
+            "module": "Articles",
+            "route": "articles.index",
+            "role": "starter-rubric"
+        },
+        {
+            "id": "RUBRIQUES",
+            "module": "Rubriques",
+            "route": "rubriques.index",
+            "role": "starter-rubric"
+        },
+        {
+            "id": "DOCUMENTATION",
+            "module": "Documentation",
+            "route": "documentation.index",
+            "role": "starter-rubric"
+        }
+    ],
+    "transitions": []
+}

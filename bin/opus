@@ -1,0 +1,16 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+$autoload = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+
+if (!is_file($autoload)) {
+    fwrite(STDERR, "OPUS_VENDOR_AUTOLOAD_MISSING: run composer dump-autoload before using bin/opus.\n");
+    exit(2);
+}
+
+require $autoload;
+
+use Opus\Console\OpusConsoleApplication;
+
+exit((new OpusConsoleApplication(dirname(__DIR__)))->run($argv));

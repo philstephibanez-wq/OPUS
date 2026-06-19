@@ -1,0 +1,31 @@
+{
+    "contract": "OPUS_MENU_ROUTE_PROJECTION_V1",
+    "source": "application/config/routes.json",
+    "items": [
+        {
+            "route": "home.index",
+            "label": "menu.home",
+            "order": 10
+        },
+        {
+            "route": "pages.index",
+            "label": "menu.pages",
+            "order": 20
+        },
+        {
+            "route": "articles.index",
+            "label": "menu.articles",
+            "order": 30
+        },
+        {
+            "route": "rubriques.index",
+            "label": "menu.rubriques",
+            "order": 40
+        },
+        {
+            "route": "documentation.index",
+            "label": "menu.documentation",
+            "order": 50
+        }
+    ]
+}

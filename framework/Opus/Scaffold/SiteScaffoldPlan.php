@@ -1,0 +1,1150 @@
+<?php
+declare(strict_types=1);
+
+namespace Opus\Scaffold;
+
+/**
+ * Scaffold plan for a full OPUS site/application.
+ *
+ * Contract:
+ * - creates the application common layer;
+ * - creates starter rubric modules inspired by the historical ASAP demo model;
+ * - every visible home block is backed by a declared module/route;
+ * - creates local resources and i18n starter content;
+ * - creates a public front controller that renders only declared routes and .score templates;
+ * - never imports external dependencies.
+ */
+final class SiteScaffoldPlan implements ScaffoldPlanInterface
+{
+    /**
+     * Starter modules generated with a new OPUS site.
+     *
+     * Home aggregates route/module entries. Pages, Articles, Rubriques and Documentation
+     * are rubrique modules that demonstrate the expected application structure without
+     * esoteric sample content.
+     *
+     * @return list<array{id:string, path:string, route:string, role:string, label:string, order:int}>
+     */
+    private function starterModules(): array
+    {
+        return [
+            ['id' => 'Home', 'path' => '/', 'route' => 'home.index', 'role' => 'starter-home', 'label' => 'menu.home', 'order' => 10],
+            ['id' => 'Pages', 'path' => '/pages', 'route' => 'pages.index', 'role' => 'starter-rubric', 'label' => 'menu.pages', 'order' => 20],
+            ['id' => 'Articles', 'path' => '/articles', 'route' => 'articles.index', 'role' => 'starter-rubric', 'label' => 'menu.articles', 'order' => 30],
+            ['id' => 'Rubriques', 'path' => '/rubriques', 'route' => 'rubriques.index', 'role' => 'starter-rubric', 'label' => 'menu.rubriques', 'order' => 40],
+            ['id' => 'Documentation', 'path' => '/documentation', 'route' => 'documentation.index', 'role' => 'starter-rubric', 'label' => 'menu.documentation', 'order' => 50],
+        ];
+    }
+
+    private function __construct(private readonly string $siteId)
+    {
+    }
+
+    public static function forSite(string $siteId): self
+    {
+        return new self($siteId);
+    }
+
+    public function rootRelativePath(): string
+    {
+        return 'sites/' . $this->siteId;
+    }
+
+    /**
+     * @return list<ScaffoldEntry>
+     */
+    public function entries(): array
+    {
+        $site = $this->siteId;
+
+        $directories = [
+            "sites/{$site}/application/config",
+            "sites/{$site}/application/common/acl",
+            "sites/{$site}/application/common/helpers",
+            "sites/{$site}/application/common/assets",
+            "sites/{$site}/application/common/javascript",
+            "sites/{$site}/application/common/local",
+            "sites/{$site}/application/common/models",
+            "sites/{$site}/application/common/services",
+            "sites/{$site}/application/common/view-models",
+            "sites/{$site}/application/common/views",
+            "sites/{$site}/application/common/templates/partials",
+            "sites/{$site}/application/common/templates/components",
+            "sites/{$site}/resources/content",
+            "sites/{$site}/resources/i18n",
+            "sites/{$site}/resources/themes",
+            "sites/{$site}/resources/assets",
+            "sites/{$site}/public/assets/css",
+            "sites/{$site}/public/assets/js",
+            "sites/{$site}/public/assets/img",
+        ];
+
+        foreach ($this->starterModules() as $module) {
+            $moduleId = $module['id'];
+            foreach ([
+                'acl',
+                'helpers',
+                'assets',
+                'javascript',
+                'local',
+                'models',
+                'services',
+                'controllers',
+                'view-models',
+                'views',
+                'templates/pages',
+                'templates/partials',
+                'templates/components',
+            ] as $subdir) {
+                $directories[] = "sites/{$site}/application/modules/{$moduleId}/{$subdir}";
+            }
+        }
+
+        $entries = array_map(static fn (string $directory): ScaffoldEntry => ScaffoldEntry::directory($directory), $directories);
+
+        $entries[] = ScaffoldEntry::file("sites/{$site}/README.md", $this->readmeContent());
+        $entries[] = ScaffoldEntry::file("sites/{$site}/START_HERE.md", $this->startHereContent());
+        $entries[] = ScaffoldEntry::file("sites/{$site}/opus-site.json", $this->json([
+            'site_id' => $site,
+            'type' => 'opus-site',
+            'contract' => 'OPUS_SITE_APPLICATION_V1',
+            'starter_contract' => 'OPUS_CREATE_SITE_ASAP_RUBRIC_STARTER_V1',
+            'external_dependencies_allowed' => false,
+            'framework_duplication_allowed' => false,
+            'created_by' => 'composer opus:create-site',
+        ]));
+        $entries[] = ScaffoldEntry::file("sites/{$site}/application/config/site.json", $this->json([
+            'site_id' => $site,
+            'site_name' => 'Nouveau site ' . $site,
+            'contract' => 'OPUS_SITE_APPLICATION_V1',
+            'default_locale' => 'fr',
+            'locales' => ['fr'],
+            'public_root' => 'public',
+            'application_root' => 'application',
+            'resources_root' => 'resources',
+            'common_root' => 'application/common',
+            'modules_root' => 'application/modules',
+            'home_route' => 'home.index',
+        ]));
+        $entries[] = ScaffoldEntry::file("sites/{$site}/application/config/modules.json", $this->json($this->modulesConfig($site)));
+        $entries[] = ScaffoldEntry::file("sites/{$site}/application/config/routes.json", $this->json($this->routesConfig()));
+        $entries[] = ScaffoldEntry::file("sites/{$site}/application/config/fsm.json", $this->json($this->fsmConfig()));
+        $entries[] = ScaffoldEntry::file("sites/{$site}/application/config/menu.json", $this->json($this->menuConfig()));
+        $entries[] = ScaffoldEntry::file("sites/{$site}/application/config/rubrics.json", $this->json($this->rubricsConfig()));
+
+        $entries[] = ScaffoldEntry::file("sites/{$site}/application/common/templates/layout.score", $this->commonLayoutScore());
+        $entries[] = ScaffoldEntry::file("sites/{$site}/application/common/templates/components/header.score", $this->headerScore());
+        $entries[] = ScaffoldEntry::file("sites/{$site}/application/common/templates/components/footer.score", $this->footerScore());
+        $entries[] = ScaffoldEntry::file("sites/{$site}/application/common/templates/components/powered-by-opus.score", $this->poweredByScore());
+        $entries[] = ScaffoldEntry::file("sites/{$site}/application/common/templates/components/menu-item.score", $this->menuItemScore());
+        $entries[] = ScaffoldEntry::file("sites/{$site}/application/common/templates/components/language-selector.score", $this->languageSelectorScore());
+        $entries[] = ScaffoldEntry::file("sites/{$site}/application/common/templates/components/rubric-card.score", $this->rubricCardScore());
+
+        foreach ($this->starterModules() as $module) {
+            $moduleId = $module['id'];
+            $moduleKey = $this->moduleContentKey($moduleId);
+            $entries[] = ScaffoldEntry::file("sites/{$site}/application/modules/{$moduleId}/README.md", $this->moduleReadmeContent($moduleId, $module['role']));
+            $entries[] = ScaffoldEntry::file("sites/{$site}/application/modules/{$moduleId}/module.json", $this->json([
+                'module_id' => $moduleId,
+                'site_id' => $site,
+                'contract' => 'OPUS_APPLICATION_MODULE_V1',
+                'role' => $module['role'],
+                'route' => $module['route'],
+                'inherits_common_layer' => true,
+                'external_dependencies_allowed' => false,
+                'html_rendering' => 'score-template',
+                'created_by' => 'composer opus:create-site',
+            ]));
+            $entries[] = ScaffoldEntry::file("sites/{$site}/application/modules/{$moduleId}/controllers/{$moduleId}Controller.php", $this->controllerContent($moduleId));
+            $entries[] = ScaffoldEntry::file("sites/{$site}/application/modules/{$moduleId}/services/{$moduleId}PageService.php", $this->serviceContent($moduleId));
+            $entries[] = ScaffoldEntry::file("sites/{$site}/application/modules/{$moduleId}/view-models/{$moduleId}PageViewModel.php", $this->viewModelContent($moduleId));
+            $entries[] = ScaffoldEntry::file("sites/{$site}/application/modules/{$moduleId}/templates/layout.score", $this->moduleLayoutScore($moduleId));
+            $entries[] = ScaffoldEntry::file("sites/{$site}/application/modules/{$moduleId}/templates/pages/index.score", $moduleId === 'Home' ? $this->homePageScore() : $this->rubricPageScore());
+            $entries[] = ScaffoldEntry::file("sites/{$site}/resources/content/{$moduleKey}.fr.json", $this->json($this->moduleContentFr($site, $moduleId)));
+        }
+
+        $entries[] = ScaffoldEntry::file("sites/{$site}/resources/i18n/fr.json", $this->json($this->i18nFr()));
+        $entries[] = ScaffoldEntry::file("sites/{$site}/public/assets/css/starter.css", $this->starterCss());
+        $entries[] = ScaffoldEntry::file("sites/{$site}/public/index.php", $this->frontControllerContent());
+
+        return $entries;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function modulesConfig(string $site): array
+    {
+        return [
+            'contract' => 'OPUS_MODULE_REGISTRY_V1',
+            'modules' => array_map(static fn (array $module): array => [
+                'id' => $module['id'],
+                'enabled' => true,
+                'contract' => 'OPUS_APPLICATION_MODULE_V1',
+                'role' => $module['role'],
+                'route' => $module['route'],
+                'created_by' => 'composer opus:create-site',
+            ], $this->starterModules()),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function routesConfig(): array
+    {
+        return [
+            'contract' => 'OPUS_ROUTE_REGISTRY_V1',
+            'routes' => array_map(fn (array $module): array => [
+                'id' => $module['route'],
+                'path' => $module['path'],
+                'module' => $module['id'],
+                'controller' => $module['id'] . 'Controller',
+                'action' => 'index',
+                'template' => 'application/modules/' . $module['id'] . '/templates/pages/index.score',
+                'content' => 'resources/content/' . $this->moduleContentKey($module['id']) . '.{{lang}}.json',
+                'label' => $module['label'],
+                'acl' => 'public',
+                'fsm_state' => strtoupper($module['id']),
+                'show_in_menu' => true,
+                'show_on_home' => $module['id'] !== 'Home',
+                'order' => $module['order'],
+            ], $this->starterModules()),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function fsmConfig(): array
+    {
+        return [
+            'contract' => 'OPUS_FSM_REGISTRY_V1',
+            'initial_state' => 'HOME',
+            'states' => array_map(static fn (array $module): array => [
+                'id' => strtoupper($module['id']),
+                'module' => $module['id'],
+                'route' => $module['route'],
+                'role' => $module['role'],
+            ], $this->starterModules()),
+            'transitions' => [],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function menuConfig(): array
+    {
+        return [
+            'contract' => 'OPUS_MENU_ROUTE_PROJECTION_V1',
+            'source' => 'application/config/routes.json',
+            'items' => array_map(static fn (array $module): array => [
+                'route' => $module['route'],
+                'label' => $module['label'],
+                'order' => $module['order'],
+            ], $this->starterModules()),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function rubricsConfig(): array
+    {
+        return [
+            'contract' => 'OPUS_HOME_RUBRIC_ROUTE_PROJECTION_V1',
+            'source' => 'application/config/routes.json',
+            'rubrics' => array_values(array_map(static fn (array $module): array => [
+                'route' => $module['route'],
+                'module' => $module['id'],
+                'order' => $module['order'],
+            ], array_filter($this->starterModules(), static fn (array $module): bool => $module['id'] !== 'Home'))),
+        ];
+    }
+
+    private function readmeContent(): string
+    {
+        return "# {$this->siteId}\n\nOPUS site/application scaffold generated by `composer opus:create-site`.\n\nThis is a professional starter site inspired by the historical ASAP modular demo model, without legacy esoteric sample content.\n\n## Contract\n\n- Application is modular.\n- Common application resources live under `application/common`.\n- Visible home rubrics are backed by declared modules/routes.\n- Business modules live under `application/modules`.\n- Public entry point only resolves declared routes and renders `.score` templates.\n- HTML rendering must go through `.score` templates.\n- External dependencies are forbidden unless an explicit ADR allows them.\n\nRead `START_HERE.md` before modifying the site.\n";
+    }
+
+    private function startHereContent(): string
+    {
+        return "# Start here\n\nThis site was generated by `composer opus:create-site`.\n\n## Starter modules\n\n- `Home` aggregates the declared rubrics.\n- `Pages` demonstrates static page/content ownership.\n- `Articles` demonstrates publication/article ownership.\n- `Rubriques` demonstrates section/rubric ownership.\n- `Documentation` demonstrates developer documentation ownership.\n\n## First safe edits\n\n1. Edit `resources/content/*.fr.json`.\n2. Add another locale with `composer opus:add-language -- {$this->siteId} en --write`, then edit the generated localized content.
+3. Edit the relevant module templates under `application/modules/<Module>/templates/pages/index.score`.\n4. Add business modules with `composer opus:create-module -- {$this->siteId} ModuleName --write`.\n5. Keep `public/index.php` as a starter front controller. Do not put page business logic there.\n6. Keep HTML in `.score` templates.\n7. Keep common assets/helpers/templates in `application/common`.\n8. Put module-specific resources in `application/modules/<ModuleName>`.\n\n## Rules\n\n- No wild page creation.\n- No module without a site.\n- No page outside a module.\n- No home card that is not backed by a module/route.\n- No duplicated framework.\n- No external dependency unless contractually approved.\n";
+    }
+
+    private function commonLayoutScore(): string
+    {
+        return <<<'SCORE'
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ page.title }}</title>
+  <link rel="stylesheet" href="/assets/css/starter.css">
+</head>
+<body class="opus-starter-site">
+  {{ common.header }}
+  <main class="opus-main" id="main-content">
+    {{ content }}
+  </main>
+  {{ common.footer }}
+</body>
+</html>
+SCORE;
+    }
+
+    private function headerScore(): string
+    {
+        return <<<'SCORE'
+<header class="opus-header" role="banner">
+  <div class="opus-header__inner">
+    <a class="opus-brand" href="{{ routes.home }}" aria-label="{{ site.name }}">
+      <span class="opus-brand__mark">OP</span>
+      <span class="opus-brand__copy">
+        <strong>{{ site.name }}</strong>
+        <span>{{ site.framework }} modular site</span>
+      </span>
+    </a>
+    <nav class="opus-nav" aria-label="{{ i18n.menu_label }}">
+      {{ common.menu }}
+    </nav>
+    {{ common.language_selector }}
+    <a class="opus-cta" href="{{ routes.documentation }}">{{ i18n.header_cta }}</a>
+  </div>
+</header>
+SCORE;
+    }
+
+    private function footerScore(): string
+    {
+        return <<<'SCORE'
+<footer class="opus-footer" role="contentinfo">
+  <div class="opus-footer__inner">
+    <div>
+      {{ common.powered_by }}
+      <span class="opus-footer__separator" aria-hidden="true">•</span>
+      <span>{{ site.copyright }}</span>
+    </div>
+    <div class="opus-footer__meta">
+      <span>{{ i18n.footer_contract }}</span>
+      <span class="opus-footer__separator" aria-hidden="true">•</span>
+      <a class="opus-footer__link" href="#main-content">{{ i18n.back_to_top }}</a>
+    </div>
+  </div>
+</footer>
+SCORE;
+    }
+
+    private function poweredByScore(): string
+    {
+        return <<<'SCORE'
+<span class="opus-powered">Powered by OPUS</span>
+SCORE;
+    }
+
+    private function menuItemScore(): string
+    {
+        return <<<'SCORE'
+<a class="opus-nav__link {{ menu_item.active_class }}" href="{{ menu_item.path }}">{{ menu_item.label }}</a>
+SCORE;
+    }
+
+    private function languageSelectorScore(): string
+    {
+        return <<<'SCORE'
+<form class="opus-lang" action="{{ request.path }}" method="get" aria-label="{{ i18n.language_selector_label }}">
+  <label class="opus-lang__label" for="opus-lang-select">{{ i18n.language_short_label }}</label>
+  <select id="opus-lang-select" class="opus-lang__select" name="lang" onchange="this.form.submit()">
+    {{ common.language_options }}
+  </select>
+</form>
+SCORE;
+    }
+
+    private function rubricCardScore(): string
+    {
+        return <<<'SCORE'
+<a class="opus-rubric-card" href="{{ rubric.path }}" data-module="{{ rubric.module }}">
+  <span class="opus-rubric-card__kicker">{{ rubric.kicker }}</span>
+  <strong>{{ rubric.title }}</strong>
+  <span>{{ rubric.description }}</span>
+  <em>{{ i18n.open_rubric }}</em>
+</a>
+SCORE;
+    }
+
+    private function moduleReadmeContent(string $moduleId, string $role): string
+    {
+        return "# {$moduleId} module\n\nGenerated by `composer opus:create-site`.\n\n## Responsibility\n\nRole: `{$role}`.\n\n- Owns its declared route.\n- Renders through `templates/pages/index.score`.\n- Reads editable content from `resources/content/{$this->moduleContentKey($moduleId)}.<locale>.json`.\n- Demonstrates the expected OPUS module structure.\n\nPatch it for the project real needs after generation.\n";
+    }
+
+    private function controllerContent(string $moduleId): string
+    {
+        $namespace = $this->siteNamespace();
+
+        return <<<PHP
+<?php
+declare(strict_types=1);
+
+namespace OpusSite\\{$namespace}\\{$moduleId}\\Controller;
+
+/**
+ * Generated {$moduleId} controller skeleton.
+ *
+ * Contract:
+ * - controller orchestrates the module use case;
+ * - it does not render HTML directly;
+ * - rendering belongs to .score templates.
+ */
+final class {$moduleId}Controller
+{
+    public function index(): void
+    {
+        // Implement project-specific orchestration here.
+        // Do not concatenate HTML in this controller.
+    }
+}
+PHP;
+    }
+
+    private function serviceContent(string $moduleId): string
+    {
+        $namespace = $this->siteNamespace();
+
+        return <<<PHP
+<?php
+declare(strict_types=1);
+
+namespace OpusSite\\{$namespace}\\{$moduleId}\\Service;
+
+/**
+ * Generated {$moduleId} service skeleton.
+ *
+ * Contract:
+ * - service prepares/validates module data;
+ * - service does not render HTML;
+ * - service returns data for a view-model or response model.
+ */
+final class {$moduleId}PageService
+{
+    /**
+     * @return array<string, string>
+     */
+    public function loadStarterData(): array
+    {
+        return [
+            'status' => 'starter',
+        ];
+    }
+}
+PHP;
+    }
+
+    private function viewModelContent(string $moduleId): string
+    {
+        $namespace = $this->siteNamespace();
+
+        return <<<PHP
+<?php
+declare(strict_types=1);
+
+namespace OpusSite\\{$namespace}\\{$moduleId}\\ViewModel;
+
+/**
+ * Generated {$moduleId} view-model skeleton.
+ *
+ * Contract:
+ * - view-model contains render-ready state;
+ * - no business computation here;
+ * - no HTML concatenation here.
+ */
+final class {$moduleId}PageViewModel
+{
+    /**
+     * @param array<string, mixed> \$data
+     */
+    public function __construct(private readonly array \$data)
+    {
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return \$this->data;
+    }
+}
+PHP;
+    }
+
+    private function moduleLayoutScore(string $moduleId): string
+    {
+        return <<<SCORE
+<section class="opus-module" data-module="{$moduleId}">
+  {{ content }}
+</section>
+SCORE;
+    }
+
+    private function homePageScore(): string
+    {
+        return <<<'SCORE'
+<section class="opus-hero">
+  <div class="opus-shell opus-hero__inner">
+    <div class="opus-hero__copy">
+      <p class="opus-kicker">{{ page.kicker }}</p>
+      <h1>{{ page.title }}</h1>
+      <p class="opus-lead">{{ page.subtitle }}</p>
+      <div class="opus-hero__actions">
+        <a class="opus-button opus-button--primary" href="{{ routes.rubriques }}">{{ i18n.explore_rubrics }}</a>
+        <a class="opus-button" href="{{ routes.documentation }}">{{ i18n.read_skeleton }}</a>
+      </div>
+    </div>
+    <aside class="opus-hero__summary" aria-label="{{ i18n.contract_label }}">
+      <p class="opus-card__label">{{ i18n.contract_label }}</p>
+      <div class="opus-contract-list">
+        <span>{{ i18n.contract_module }}</span>
+        <span>{{ i18n.contract_score }}</span>
+        <span>{{ i18n.contract_routes }}</span>
+        <span>{{ i18n.contract_no_wild }}</span>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section class="opus-section">
+  <div class="opus-shell">
+    <div class="opus-section__title">
+      <p class="opus-kicker">{{ i18n.starter_map }}</p>
+      <h2>{{ page.section_title }}</h2>
+      <p>{{ page.section_intro }}</p>
+    </div>
+    <div class="opus-rubric-grid">
+      {{ home.rubric_cards }}
+    </div>
+  </div>
+</section>
+SCORE;
+    }
+
+    private function rubricPageScore(): string
+    {
+        return <<<'SCORE'
+<section class="opus-page-hero">
+  <div class="opus-shell opus-page-hero__inner">
+    <p class="opus-kicker">{{ page.kicker }}</p>
+    <h1>{{ page.title }}</h1>
+    <p>{{ page.subtitle }}</p>
+  </div>
+</section>
+
+<section class="opus-section opus-section--compact">
+  <div class="opus-shell opus-detail-grid">
+    <article class="opus-detail-panel">
+      <h2>{{ page.primary_title }}</h2>
+      <p>{{ page.primary_text }}</p>
+    </article>
+    <article class="opus-detail-panel">
+      <h2>{{ page.secondary_title }}</h2>
+      <p>{{ page.secondary_text }}</p>
+    </article>
+  </div>
+</section>
+SCORE;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function i18nFr(): array
+    {
+        return [
+            'menu_label' => 'Navigation principale',
+            'menu.home' => 'Accueil',
+            'menu.pages' => 'Pages',
+            'menu.articles' => 'Articles',
+            'menu.rubriques' => 'Rubriques',
+            'menu.documentation' => 'Documentation',
+            'header_cta' => 'Démarrer',
+            'explore_rubrics' => 'Explorer les rubriques',
+            'read_skeleton' => 'Voir le squelette',
+            'contract_label' => 'Contrat OPUS',
+            'contract_module' => 'Rubriques = modules déclarés',
+            'contract_score' => 'Rendu via templates .score',
+            'contract_routes' => 'Menu basé sur les routes',
+            'contract_no_wild' => 'Aucune page sauvage',
+            'starter_map' => 'Structure générée',
+            'open_rubric' => 'Ouvrir la rubrique',
+            'footer_contract' => 'Site OPUS généré',
+            'back_to_top' => 'Retour haut',
+            'language_selector_label' => 'Sélecteur de langue',
+            'language_short_label' => 'Langue',
+            'language.fr' => 'Français',
+            'language.en' => 'Anglais',
+            'language.de' => 'Allemand',
+            'language.es' => 'Espagnol',
+            'language.it' => 'Italien',
+            'language.pl' => 'Polonais',
+            'language.uk' => 'Ukrainien',
+            'language.cs' => 'Tchèque',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function i18nEn(): array
+    {
+        return [
+            'menu_label' => 'Main navigation',
+            'menu.home' => 'Home',
+            'menu.pages' => 'Pages',
+            'menu.articles' => 'Articles',
+            'menu.rubriques' => 'Rubrics',
+            'menu.documentation' => 'Documentation',
+            'header_cta' => 'Start',
+            'explore_rubrics' => 'Explore rubrics',
+            'read_skeleton' => 'View skeleton',
+            'contract_label' => 'OPUS contract',
+            'contract_module' => 'Rubrics = declared modules',
+            'contract_score' => 'Rendered through .score templates',
+            'contract_routes' => 'Route-based menu',
+            'contract_no_wild' => 'No wild pages',
+            'starter_map' => 'Generated structure',
+            'open_rubric' => 'Open rubric',
+            'footer_contract' => 'Generated OPUS site',
+            'back_to_top' => 'Back to top',
+            'language_selector_label' => 'Language selector',
+            'language_short_label' => 'Language',
+            'language.fr' => 'French',
+            'language.en' => 'English',
+            'language.de' => 'German',
+            'language.es' => 'Spanish',
+            'language.it' => 'Italian',
+            'language.pl' => 'Polish',
+            'language.uk' => 'Ukrainian',
+            'language.cs' => 'Czech',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function moduleContentFr(string $site, string $moduleId): array
+    {
+        $content = [
+            'Home' => [
+                'kicker' => 'OPUS starter',
+                'title' => 'Nouveau site ' . $site,
+                'subtitle' => 'Un squelette professionnel pour démarrer un site modulaire OPUS : pages, articles, rubriques et documentation, sans création sauvage.',
+                'section_title' => 'Des rubriques prêtes à spécialiser.',
+                'section_intro' => 'Chaque encadré ci-dessous est une route vers un module déclaré. Remplacez le contenu, gardez le contrat.',
+            ],
+            'Pages' => [
+                'kicker' => 'Module Pages',
+                'title' => 'Pages éditoriales',
+                'subtitle' => 'Point d’entrée pour les contenus statiques, présentations, informations légales ou pages institutionnelles.',
+                'description' => 'Structure pour pages simples, propres et localisées.',
+                'primary_title' => 'Responsabilité',
+                'primary_text' => 'Ce module doit porter les pages éditoriales du site, sans logique métier dispersée dans public/index.php.',
+                'secondary_title' => 'À personnaliser',
+                'secondary_text' => 'Ajoutez vos contenus dans resources/content, puis adaptez les templates .score du module Pages.',
+            ],
+            'Articles' => [
+                'kicker' => 'Module Articles',
+                'title' => 'Articles et publications',
+                'subtitle' => 'Point d’entrée pour les notes, actualités, annonces produit ou publications longues.',
+                'description' => 'Structure pour futures publications et archives.',
+                'primary_title' => 'Responsabilité',
+                'primary_text' => 'Ce module démontre où placer les contenus publiés, les services de listing et les templates d’article.',
+                'secondary_title' => 'À personnaliser',
+                'secondary_text' => 'Transformez cette rubrique en vrai flux éditorial, sans dépendance externe imposée.',
+            ],
+            'Rubriques' => [
+                'kicker' => 'Module Rubriques',
+                'title' => 'Rubriques applicatives',
+                'subtitle' => 'Point d’entrée pour organiser les grandes zones métier du site.',
+                'description' => 'Structure pour sections, catégories et espaces fonctionnels.',
+                'primary_title' => 'Responsabilité',
+                'primary_text' => 'Ce module représente le principe ASAP : une rubrique visible correspond à un module ou une route de module.',
+                'secondary_title' => 'À personnaliser',
+                'secondary_text' => 'Ajoutez vos propres modules métier avec composer opus:create-module, puis reliez-les par routes.',
+            ],
+            'Documentation' => [
+                'kicker' => 'Module Documentation',
+                'title' => 'Documentation du site',
+                'subtitle' => 'Point d’entrée pour expliquer la structure générée et guider l’implémentation.',
+                'description' => 'Structure pour aide développeur et documentation projet.',
+                'primary_title' => 'Responsabilité',
+                'primary_text' => 'Ce module doit aider l’équipe à comprendre où placer contenus, templates, routes et modules.',
+                'secondary_title' => 'À personnaliser',
+                'secondary_text' => 'Remplacez cette aide par votre documentation produit ou projet.',
+            ],
+        ];
+
+        return $content[$moduleId] ?? [];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function moduleContentEn(string $site, string $moduleId): array
+    {
+        $content = [
+            'Home' => [
+                'kicker' => 'OPUS starter',
+                'title' => 'New site ' . $site,
+                'subtitle' => 'A professional skeleton to start an OPUS modular site: pages, articles, rubrics and documentation, without wild page creation.',
+                'section_title' => 'Rubrics ready to specialize.',
+                'section_intro' => 'Each block below is a route to a declared module. Replace the content, keep the contract.',
+            ],
+            'Pages' => [
+                'kicker' => 'Pages module',
+                'title' => 'Editorial pages',
+                'subtitle' => 'Entry point for static content, presentations, legal information or institutional pages.',
+                'description' => 'Structure for simple, clean and localized pages.',
+                'primary_title' => 'Responsibility',
+                'primary_text' => 'This module owns editorial pages without scattering page logic into public/index.php.',
+                'secondary_title' => 'Customize',
+                'secondary_text' => 'Add your content under resources/content, then adapt the module .score templates.',
+            ],
+            'Articles' => [
+                'kicker' => 'Articles module',
+                'title' => 'Articles and publications',
+                'subtitle' => 'Entry point for notes, news, product announcements or long-form publications.',
+                'description' => 'Structure for future publications and archives.',
+                'primary_title' => 'Responsibility',
+                'primary_text' => 'This module shows where published content, listing services and article templates belong.',
+                'secondary_title' => 'Customize',
+                'secondary_text' => 'Turn this rubric into a real editorial stream without imposing external dependencies.',
+            ],
+            'Rubriques' => [
+                'kicker' => 'Rubrics module',
+                'title' => 'Application rubrics',
+                'subtitle' => 'Entry point to organize the main business areas of the site.',
+                'description' => 'Structure for sections, categories and functional areas.',
+                'primary_title' => 'Responsibility',
+                'primary_text' => 'This module represents the ASAP principle: a visible rubric maps to a module or module route.',
+                'secondary_title' => 'Customize',
+                'secondary_text' => 'Add your own business modules with composer opus:create-module, then connect them through routes.',
+            ],
+            'Documentation' => [
+                'kicker' => 'Documentation module',
+                'title' => 'Site documentation',
+                'subtitle' => 'Entry point to explain the generated structure and guide implementation.',
+                'description' => 'Structure for developer help and project documentation.',
+                'primary_title' => 'Responsibility',
+                'primary_text' => 'This module helps the team understand where to place content, templates, routes and modules.',
+                'secondary_title' => 'Customize',
+                'secondary_text' => 'Replace this help with your product or project documentation.',
+            ],
+        ];
+
+        return $content[$moduleId] ?? [];
+    }
+
+    private function starterCss(): string
+    {
+        return <<<'CSS'
+:root {
+  color-scheme: dark;
+  --opus-bg: #07111f;
+  --opus-surface: rgba(16, 28, 47, 0.84);
+  --opus-surface-strong: rgba(18, 31, 53, 0.96);
+  --opus-border: rgba(148, 170, 216, 0.22);
+  --opus-border-strong: rgba(148, 170, 216, 0.38);
+  --opus-text: #f6f8ff;
+  --opus-muted: #b8c5de;
+  --opus-soft: #7e8da9;
+  --opus-blue: #5aa7ff;
+  --opus-cyan: #6ce3ff;
+  --opus-yellow: #fff16a;
+  --opus-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
+  font-family: Inter, "Segoe UI", Arial, Helvetica, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body.opus-starter-site {
+  margin: 0;
+  min-height: 100vh;
+  padding-top: 76px;
+  padding-bottom: 58px;
+  background:
+    radial-gradient(circle at 84% 4%, rgba(90, 167, 255, 0.14), transparent 26rem),
+    radial-gradient(circle at 8% 22%, rgba(108, 227, 255, 0.08), transparent 23rem),
+    linear-gradient(135deg, #07111f 0%, #0b1627 46%, #07111f 100%);
+  color: var(--opus-text);
+}
+
+.opus-shell { width: min(1280px, calc(100% - 56px)); margin: 0 auto; }
+.opus-header, .opus-footer {
+  position: fixed; left: 0; right: 0; z-index: 20;
+  background: rgba(7, 17, 31, 0.84);
+  border-color: var(--opus-border);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+}
+.opus-header { top: 0; border-bottom: 1px solid var(--opus-border); }
+.opus-footer { bottom: 0; border-top: 1px solid var(--opus-border); }
+.opus-header__inner, .opus-footer__inner {
+  width: min(1280px, calc(100% - 56px)); margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+}
+.opus-header__inner { min-height: 64px; }
+.opus-footer__inner { min-height: 46px; color: var(--opus-muted); font-size: .88rem; }
+.opus-footer__meta, .opus-footer__inner > div { display: inline-flex; align-items: center; gap: 10px; }
+
+.opus-brand { display: inline-flex; align-items: center; gap: 12px; color: var(--opus-text); text-decoration: none; min-width: 220px; }
+.opus-brand__mark { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 13px; background: linear-gradient(145deg, #2767e8, #54d7ff); font-size: .72rem; font-weight: 900; box-shadow: 0 12px 34px rgba(84, 215, 255, .12); }
+.opus-brand__copy { display: grid; gap: 1px; }
+.opus-brand strong { font-size: 1.02rem; }
+.opus-brand span span { color: var(--opus-muted); font-size: .8rem; }
+
+.opus-nav { display: flex; align-items: center; gap: 8px; justify-content: center; flex: 1; }
+.opus-nav__link, .opus-cta, .opus-button, .opus-footer__link { color: var(--opus-text); text-decoration: none; }
+.opus-nav__link, .opus-cta { display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border: 1px solid var(--opus-border); border-radius: 999px; color: var(--opus-muted); font-weight: 760; }
+.opus-nav__link:hover, .opus-nav__link--active, .opus-cta { color: var(--opus-text); border-color: rgba(90,167,255,.50); background: rgba(90,167,255,.12); }
+.opus-cta { flex: 0 0 auto; background: linear-gradient(135deg, rgba(39,103,232,.40), rgba(84,215,255,.18)); }
+.opus-lang { display:inline-flex; align-items:center; gap:8px; flex:0 0 auto; }
+.opus-lang__label { color: var(--opus-muted); font-size:.78rem; font-weight:850; letter-spacing:.08em; text-transform:uppercase; }
+.opus-lang__select { min-height:36px; border:1px solid var(--opus-border); border-radius:999px; padding:0 34px 0 12px; background:rgba(255,255,255,.045); color:var(--opus-text); font-weight:800; outline:none; }
+.opus-lang__select:focus { border-color:rgba(108,227,255,.58); box-shadow:0 0 0 3px rgba(108,227,255,.10); }
+.opus-lang__select option { background:#0b1627; color:#f6f8ff; }
+
+.opus-main { min-height: calc(100vh - 134px); }
+.opus-hero { padding: 26px 0 18px; }
+.opus-hero__inner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, 330px); gap: 16px; align-items: stretch; }
+.opus-hero__copy, .opus-hero__summary, .opus-rubric-card, .opus-detail-panel, .opus-page-hero__inner {
+  border: 1px solid var(--opus-border); border-radius: 22px; background: var(--opus-surface); box-shadow: var(--opus-shadow);
+}
+.opus-hero__copy { min-height: 310px; padding: clamp(26px, 3.8vw, 42px); display:flex; flex-direction:column; justify-content:center; position: relative; overflow: hidden; }
+.opus-hero__copy::after { content:""; position:absolute; right:-76px; top:-96px; width:250px; height:250px; border-radius:50%; background: rgba(90,167,255,.14); pointer-events:none; }
+.opus-kicker, .opus-card__label, .opus-powered, .opus-rubric-card__kicker { color: #72b8ff; font-size: .73rem; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }
+.opus-hero h1, .opus-page-hero h1 { margin: 10px 0 0; font-size: clamp(2.65rem, 5vw, 4.55rem); line-height: .94; letter-spacing: -.06em; }
+.opus-lead, .opus-page-hero p, .opus-section__title p, .opus-detail-panel p { color: var(--opus-muted); line-height: 1.58; }
+.opus-lead { max-width: 720px; margin: 18px 0 0; font-size: clamp(1rem, 1.35vw, 1.16rem); }
+.opus-hero__actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:24px; }
+.opus-button { min-height:40px; padding:0 16px; display:inline-flex; align-items:center; border:1px solid var(--opus-border-strong); border-radius:999px; font-weight:800; background:rgba(255,255,255,.04); }
+.opus-button--primary { border-color:rgba(108,227,255,.58); background:linear-gradient(135deg, rgba(39,103,232,.36), rgba(108,227,255,.16)); }
+.opus-hero__summary { min-height: 310px; padding: 22px; display:flex; flex-direction:column; justify-content:center; }
+.opus-contract-list { display:grid; gap:10px; margin-top:15px; }
+.opus-contract-list span { display:block; padding:10px 12px; border:1px solid rgba(148,170,216,.18); border-radius:14px; background:rgba(255,255,255,.035); color: var(--opus-muted); font-weight:760; line-height:1.35; }
+
+.opus-section { padding: 14px 0 30px; }
+.opus-section--compact { padding-top: 22px; }
+.opus-section__title { display:grid; gap:7px; max-width: 720px; margin-bottom: 16px; }
+.opus-section__title h2 { margin:0; font-size: clamp(1.9rem, 3.4vw, 2.7rem); letter-spacing:-.05em; }
+.opus-section__title p { margin:0; }
+.opus-rubric-grid { display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap:14px; }
+.opus-rubric-card { min-height: 158px; padding: 18px; display:flex; flex-direction:column; gap:10px; text-decoration:none; color:var(--opus-text); transition: transform .16s ease, border-color .16s ease, background .16s ease; }
+.opus-rubric-card:hover { transform: translateY(-2px); border-color: rgba(108,227,255,.45); background: var(--opus-surface-strong); }
+.opus-rubric-card strong { font-size:1.12rem; }
+.opus-rubric-card span:not(.opus-rubric-card__kicker) { color:var(--opus-muted); line-height:1.45; }
+.opus-rubric-card em { margin-top:auto; color:var(--opus-cyan); font-style:normal; font-weight:800; }
+
+.opus-page-hero { padding: 26px 0 8px; }
+.opus-page-hero__inner { padding: 34px; }
+.opus-page-hero h1 { font-size: clamp(2.4rem, 4.8vw, 4.1rem); }
+.opus-detail-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:16px; }
+.opus-detail-panel { padding: 24px; }
+.opus-detail-panel h2 { margin:0 0 10px; font-size:1.25rem; }
+
+.opus-footer__separator { color: var(--opus-soft); }
+
+@media (max-width: 1050px) {
+  .opus-rubric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .opus-hero__inner, .opus-detail-grid { grid-template-columns: 1fr; }
+  .opus-hero__summary { min-height: auto; }
+}
+@media (max-width: 760px) {
+  body.opus-starter-site { padding-top: 126px; padding-bottom: 92px; }
+  .opus-shell, .opus-header__inner, .opus-footer__inner { width: min(100% - 28px, 1280px); }
+  .opus-header__inner, .opus-footer__inner { flex-wrap: wrap; padding: 12px 0; }
+  .opus-nav { order: 3; width: 100%; justify-content: flex-start; overflow:auto; }
+  .opus-rubric-grid { grid-template-columns: 1fr; }
+  .opus-hero__copy { min-height: 280px; }
+  .opus-hero h1, .opus-page-hero h1 { font-size: clamp(2.25rem, 11vw, 3.3rem); }
+}
+CSS;
+    }
+
+    private function frontControllerContent(): string
+    {
+        return <<<'PHP'
+<?php
+declare(strict_types=1);
+
+require dirname(__DIR__, 3) . '/vendor/autoload.php';
+
+$siteRoot = dirname(__DIR__);
+
+/**
+ * Minimal generated starter front controller.
+ *
+ * Contract:
+ * - resolves declared routes only;
+ * - renders .score templates only;
+ * - generates route-based menu/rubric projections through .score partials;
+ * - keeps the current locale across all starter navigation links;
+ * - contains no project-specific business logic;
+ * - exists so a generated site is immediately visible and self-documented.
+ */
+function opus_read_json(string $path): array
+{
+    if (!is_file($path)) {
+        http_response_code(500);
+        header('Content-Type: text/plain; charset=UTF-8');
+        echo 'OPUS_STARTER_REQUIRED_FILE_MISSING: ' . $path;
+        exit;
+    }
+
+    $decoded = json_decode((string) file_get_contents($path), true);
+    if (!is_array($decoded)) {
+        http_response_code(500);
+        header('Content-Type: text/plain; charset=UTF-8');
+        echo 'OPUS_STARTER_JSON_INVALID: ' . $path;
+        exit;
+    }
+
+    return $decoded;
+}
+
+function opus_get(array $data, string $key, bool $raw = false): string
+{
+    $cursor = $data;
+    foreach (explode('.', $key) as $part) {
+        if (!is_array($cursor) || !array_key_exists($part, $cursor)) {
+            return '';
+        }
+        $cursor = $cursor[$part];
+    }
+
+    if (is_scalar($cursor)) {
+        $value = (string) $cursor;
+        return $raw ? $value : htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+
+    return '';
+}
+
+function opus_render_score(string $template, array $data, array $rawKeys = []): string
+{
+    return (string) preg_replace_callback('/\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}/', static function (array $match) use ($data, $rawKeys): string {
+        $key = $match[1];
+        return opus_get($data, $key, in_array($key, $rawKeys, true));
+    }, $template);
+}
+
+function opus_i18n(array $i18n, string $key): string
+{
+    return is_scalar($i18n[$key] ?? null) ? (string) $i18n[$key] : $key;
+}
+
+function opus_route_url(string $path, string $lang): string
+{
+    return $path . (str_contains($path, '?') ? '&' : '?') . 'lang=' . rawurlencode($lang);
+}
+
+function opus_locale_label(array $i18n, string $locale): string
+{
+    // Language options are always shown as autonyms, not translated into the
+    // current UI language, so a user can recognize their language even when the
+    // page is currently displayed in an unfamiliar locale.
+    $nativeLabels = [
+        'fr' => 'Français',
+        'en' => 'English',
+        'de' => 'Deutsch',
+        'es' => 'Español',
+        'it' => 'Italiano',
+        'pl' => 'Polski',
+        'uk' => 'Українська',
+        'cs' => 'Čeština',
+    ];
+
+    return $nativeLabels[$locale] ?? strtoupper($locale);
+}
+
+$siteConfig = opus_read_json($siteRoot . '/application/config/site.json');
+$routesConfig = opus_read_json($siteRoot . '/application/config/routes.json');
+
+$path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+$route = null;
+foreach (($routesConfig['routes'] ?? []) as $candidate) {
+    if (($candidate['path'] ?? null) === $path) {
+        $route = $candidate;
+        break;
+    }
+}
+
+if (!is_array($route)) {
+    http_response_code(404);
+    header('Content-Type: text/plain; charset=UTF-8');
+    echo 'OPUS_STARTER_ROUTE_NOT_FOUND';
+    exit;
+}
+
+$locales = $siteConfig['locales'] ?? [];
+if (!is_array($locales)) {
+    http_response_code(500);
+    header('Content-Type: text/plain; charset=UTF-8');
+    echo 'OPUS_STARTER_LOCALES_CONTRACT_INVALID';
+    exit;
+}
+
+$defaultLocale = (string) ($siteConfig['default_locale'] ?? 'fr');
+$queryLocale = isset($_GET['lang']) ? strtolower((string) $_GET['lang']) : '';
+$cookieLocale = isset($_COOKIE['opus_starter_lang']) ? strtolower((string) $_COOKIE['opus_starter_lang']) : '';
+$lang = $defaultLocale;
+if ($queryLocale !== '') {
+    $lang = $queryLocale;
+} elseif ($cookieLocale !== '' && in_array($cookieLocale, $locales, true)) {
+    $lang = $cookieLocale;
+}
+
+if (!in_array($lang, $locales, true)) {
+    http_response_code(400);
+    header('Content-Type: text/plain; charset=UTF-8');
+    echo 'OPUS_STARTER_LOCALE_UNAVAILABLE';
+    exit;
+}
+
+if ($queryLocale !== '') {
+    setcookie('opus_starter_lang', $lang, [
+        'expires' => time() + 31536000,
+        'path' => '/',
+        'samesite' => 'Lax',
+    ]);
+}
+
+$i18n = opus_read_json($siteRoot . '/resources/i18n/' . $lang . '.json');
+$contentPath = str_replace('{{lang}}', $lang, (string) ($route['content'] ?? ''));
+$page = opus_read_json($siteRoot . '/' . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $contentPath));
+
+$templatePath = $siteRoot . '/' . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, (string) $route['template']);
+$layoutPath = $siteRoot . '/application/common/templates/layout.score';
+$headerPath = $siteRoot . '/application/common/templates/components/header.score';
+$footerPath = $siteRoot . '/application/common/templates/components/footer.score';
+$poweredPath = $siteRoot . '/application/common/templates/components/powered-by-opus.score';
+$menuItemPath = $siteRoot . '/application/common/templates/components/menu-item.score';
+$languageSelectorPath = $siteRoot . '/application/common/templates/components/language-selector.score';
+$rubricCardPath = $siteRoot . '/application/common/templates/components/rubric-card.score';
+
+$routeUrls = [];
+foreach (($routesConfig['routes'] ?? []) as $configuredRoute) {
+    if (!is_array($configuredRoute)) {
+        continue;
+    }
+    $moduleKey = strtolower((string) ($configuredRoute['module'] ?? ''));
+    $routeUrls[$moduleKey] = opus_route_url((string) ($configuredRoute['path'] ?? '/'), $lang);
+}
+
+$pageData = [
+    'lang' => $lang,
+    'request' => [
+        'path' => $path,
+    ],
+    'routes' => $routeUrls,
+    'site' => [
+        'id' => (string) ($siteConfig['site_id'] ?? ''),
+        'name' => (string) ($siteConfig['site_name'] ?? ''),
+        'framework' => 'OPUS',
+        'copyright' => '© Log&Play / OPUS — Tous droits réservés',
+    ],
+    'page' => $page,
+    'i18n' => $i18n,
+    'common' => [],
+    'home' => [],
+];
+
+$menuTemplate = (string) file_get_contents($menuItemPath);
+$menuHtml = '';
+foreach (($routesConfig['routes'] ?? []) as $menuRoute) {
+    if (($menuRoute['show_in_menu'] ?? false) !== true) {
+        continue;
+    }
+    $menuData = $pageData;
+    $menuData['menu_item'] = [
+        'path' => opus_route_url((string) ($menuRoute['path'] ?? '#'), $lang),
+        'label' => opus_i18n($i18n, (string) ($menuRoute['label'] ?? '')),
+        'active_class' => (($menuRoute['id'] ?? '') === ($route['id'] ?? '')) ? 'opus-nav__link--active' : '',
+    ];
+    $menuHtml .= opus_render_score($menuTemplate, $menuData);
+}
+$pageData['common']['menu'] = $menuHtml;
+
+$languageOptions = '';
+foreach ($locales as $locale) {
+    if (!is_scalar($locale)) {
+        continue;
+    }
+    $localeValue = (string) $locale;
+    $selected = $localeValue === $lang ? ' selected' : '';
+    $languageOptions .= '<option value="' . htmlspecialchars($localeValue, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '"' . $selected . '>'
+        . htmlspecialchars(opus_locale_label($i18n, $localeValue), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</option>';
+}
+$pageData['common']['language_options'] = $languageOptions;
+$pageData['common']['language_selector'] = opus_render_score((string) file_get_contents($languageSelectorPath), $pageData, ['common.language_options']);
+
+$rubricTemplate = (string) file_get_contents($rubricCardPath);
+$rubricCards = '';
+foreach (($routesConfig['routes'] ?? []) as $rubricRoute) {
+    if (($rubricRoute['show_on_home'] ?? false) !== true) {
+        continue;
+    }
+    $rubricContentPath = str_replace('{{lang}}', $lang, (string) ($rubricRoute['content'] ?? ''));
+    $rubricPage = opus_read_json($siteRoot . '/' . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $rubricContentPath));
+    $rubricData = $pageData;
+    $rubricData['rubric'] = [
+        'path' => opus_route_url((string) ($rubricRoute['path'] ?? '#'), $lang),
+        'module' => (string) ($rubricRoute['module'] ?? ''),
+        'kicker' => (string) ($rubricPage['kicker'] ?? ''),
+        'title' => (string) ($rubricPage['title'] ?? ''),
+        'description' => (string) ($rubricPage['description'] ?? $rubricPage['subtitle'] ?? ''),
+    ];
+    $rubricCards .= opus_render_score($rubricTemplate, $rubricData);
+}
+$pageData['home']['rubric_cards'] = $rubricCards;
+$pageData['common']['powered_by'] = opus_render_score((string) file_get_contents($poweredPath), $pageData);
+
+$content = opus_render_score((string) file_get_contents($templatePath), $pageData, ['common.menu', 'home.rubric_cards', 'common.powered_by']);
+$pageData['content'] = $content;
+$pageData['common']['header'] = opus_render_score((string) file_get_contents($headerPath), $pageData, ['common.menu', 'common.language_selector']);
+$pageData['common']['footer'] = opus_render_score((string) file_get_contents($footerPath), $pageData, ['common.powered_by']);
+
+header('Content-Type: text/html; charset=UTF-8');
+echo opus_render_score((string) file_get_contents($layoutPath), $pageData, ['common.header', 'common.footer', 'content']);
+PHP;
+    }
+
+
+    private function moduleContentKey(string $moduleId): string
+    {
+        return strtolower(preg_replace('/(?<!^)[A-Z]/', '-$0', $moduleId) ?: $moduleId);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function json(array $data): string
+    {
+        return (string) json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n";
+    }
+
+    private function siteNamespace(): string
+    {
+        $parts = preg_split('/[^a-zA-Z0-9]+/', $this->siteId) ?: [];
+        $namespace = '';
+        foreach ($parts as $part) {
+            if ($part === '') {
+                continue;
+            }
+            $namespace .= ucfirst(strtolower($part));
+        }
+
+        return $namespace !== '' ? $namespace : 'GeneratedSite';
+    }
+}

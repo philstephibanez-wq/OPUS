@@ -1,0 +1,10 @@
+{
+    "kicker": "Articles module",
+    "title": "Articles and publications",
+    "subtitle": "Entry point for notes, news, product announcements or long-form publications.",
+    "description": "Structure for future publications and archives.",
+    "primary_title": "Responsibility",
+    "primary_text": "This module shows where published content, listing services and article templates belong.",
+    "secondary_title": "Customize",
+    "secondary_text": "Turn this rubric into a real editorial stream without imposing external dependencies."
+}

@@ -1,0 +1,22 @@
+{
+    "site_id": "skeleton",
+    "site_name": "Nouveau site skeleton",
+    "contract": "OPUS_SITE_APPLICATION_V1",
+    "default_locale": "fr",
+    "locales": [
+        "cs",
+        "de",
+        "en",
+        "es",
+        "fr",
+        "it",
+        "pl",
+        "uk"
+    ],
+    "public_root": "public",
+    "application_root": "application",
+    "resources_root": "resources",
+    "common_root": "application/common",
+    "modules_root": "application/modules",
+    "home_route": "home.index"
+}

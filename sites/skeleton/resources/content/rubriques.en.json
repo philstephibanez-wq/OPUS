@@ -1,0 +1,10 @@
+{
+    "kicker": "Rubrics module",
+    "title": "Application rubrics",
+    "subtitle": "Entry point to organize the main business areas of the site.",
+    "description": "Structure for sections, categories and functional areas.",
+    "primary_title": "Responsibility",
+    "primary_text": "This module represents the ASAP principle: a visible rubric maps to a module or module route.",
+    "secondary_title": "Customize",
+    "secondary_text": "Add your own business modules with composer opus:create-module, then connect them through routes."
+}

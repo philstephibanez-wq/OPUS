@@ -1,0 +1,10 @@
+{
+    "kicker": "Modul Dokumentation",
+    "title": "Website-Dokumentation",
+    "subtitle": "Einstiegspunkt, um die erzeugte Struktur zu erklären und die Implementierung zu leiten.",
+    "description": "Struktur für Entwicklerhilfe und Projektdokumentation.",
+    "primary_title": "Verantwortung",
+    "primary_text": "Dieses Modul hilft dem Team zu verstehen, wo Inhalte, Templates, Routen und Module platziert werden.",
+    "secondary_title": "Anpassen",
+    "secondary_text": "Ersetzen Sie diese Hilfe durch Ihre Produkt- oder Projektdokumentation."
+}

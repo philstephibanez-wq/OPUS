@@ -1,0 +1,10 @@
+{
+    "kicker": "Módulo Secciones",
+    "title": "Secciones aplicativas",
+    "subtitle": "Punto de entrada para organizar las grandes zonas funcionales del sitio.",
+    "description": "Estructura para secciones, categorías y espacios funcionales.",
+    "primary_title": "Responsabilidad",
+    "primary_text": "Este módulo representa el principio ASAP: una sección visible corresponde a un módulo o a una ruta de módulo.",
+    "secondary_title": "Personalizar",
+    "secondary_text": "Añada sus propios módulos de negocio con composer opus:create-module y enlazarlos mediante rutas."
+}

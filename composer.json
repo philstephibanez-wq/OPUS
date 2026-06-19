@@ -1,15 +1,24 @@
 {
-  "name": "logandplay/opus",
-  "description": "Opus 8.1.0 Lysenko PHP 8 framework core",
-  "type": "library",
-  "version": "8.1.0",
-  "license": "proprietary",
-  "require": {
-    "php": ">=8.0"
-  },
-  "autoload": {
-    "psr-4": {
-      "Opus\\": "framework/Opus/"
+    "name": "logandplay/opus",
+    "description": "Opus 8.1.0 Lysenko PHP 8 framework core",
+    "type": "library",
+    "version": "8.1.0",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Opus\\": "framework/Opus/"
+        }
+    },
+    "bin": [
+        "bin/opus"
+    ],
+    "scripts": {
+        "opus": "@php bin/opus",
+        "opus:create-site": "@php bin/opus create:site",
+        "opus:create-module": "@php bin/opus create:module",
+        "opus:add-language": "@php bin/opus add:language"
     }
-  }
 }
