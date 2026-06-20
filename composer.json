@@ -23,6 +23,8 @@
         "opus:serve-site": "@php bin/opus serve:site",
         "opus:validate-site": "@php bin/opus validate:site",
         "opus:list-routes": "@php bin/opus list:routes",
-        "opus:list-modules": "@php bin/opus list:modules"
+        "opus:list-modules": "@php bin/opus list:modules",
+        "opus:create-page": "@php bin/opus create:page",
+        "opus:create-rubric": "@php bin/opus create:rubric"
     }
 }

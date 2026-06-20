@@ -6,16 +6,16 @@ namespace Opus\Console\Command;
 use Opus\Console\OpusConsoleException;
 
 /**
- * Creates a new module in an existing generated OPUS site.
+ * Creates a new rubric as a module plus default index route.
  *
  * Public contract:
  * - requires --write to mutate the site;
- * - writes only under sites/<site-id>/application/modules/<ModuleId>;
- * - registers the module in application/config/modules.json;
+ * - writes a module scaffold;
+ * - appends the default route <module>.index;
  * - updates i18n resources with starter keys;
- * - does not create routes; use create:page or create:rubric for routes.
+ * - fails loudly on duplicate module or route path.
  */
-final class CreateModuleCommand implements OpusConsoleCommandInterface
+final class CreateRubricCommand implements OpusConsoleCommandInterface
 {
     private readonly SiteScaffoldCommandSupport $support;
 
@@ -26,7 +26,7 @@ final class CreateModuleCommand implements OpusConsoleCommandInterface
 
     public function name(): string
     {
-        return 'create:module';
+        return 'create:rubric';
     }
 
     /**
@@ -35,19 +35,20 @@ final class CreateModuleCommand implements OpusConsoleCommandInterface
     public function run(array $arguments): int
     {
         $positionals = $this->support->positionalArguments($arguments);
-        if (count($positionals) !== 2) {
-            throw new OpusConsoleException('OPUS_CREATE_MODULE_USAGE: create:module <site-id> <ModuleId> [--title <title>] --write');
+        if (count($positionals) !== 3) {
+            throw new OpusConsoleException('OPUS_CREATE_RUBRIC_USAGE: create:rubric <site-id> <ModuleId> <path> [--title <title>] --write');
         }
 
-        [$siteId, $moduleId] = $positionals;
+        [$siteId, $moduleId, $path] = $positionals;
         $title = $this->support->optionValue($arguments, '--title', $moduleId) ?? $moduleId;
         $write = $this->support->hasFlag($arguments, '--write');
-        $this->support->requireWrite($write, 'OPUS_CREATE_MODULE_PLAN: ' . $siteId . '/' . $moduleId);
+        $this->support->requireWrite($write, 'OPUS_CREATE_RUBRIC_PLAN: ' . $siteId . '/' . $moduleId . ' -> ' . $path);
 
         $siteRoot = $this->support->siteRoot($siteId);
-        $this->support->createModule($siteRoot, $moduleId, $title);
+        $this->support->assertRoutePath($path, 'OPUS_CREATE_RUBRIC_INVALID_ROUTE_PATH');
+        $this->support->createRubric($siteRoot, $moduleId, $path, $title);
 
-        echo 'OPUS_CREATE_MODULE_WRITTEN: ' . $siteId . '/' . $moduleId . "\n";
+        echo 'OPUS_CREATE_RUBRIC_WRITTEN: ' . $siteId . '/' . $moduleId . ' ' . $path . "\n";
         return 0;
     }
 }

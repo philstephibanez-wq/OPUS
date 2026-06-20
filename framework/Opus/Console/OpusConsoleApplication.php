@@ -11,6 +11,8 @@ use Opus\Console\Command\ListRoutesCommand;
 use Opus\Console\Command\OpusConsoleCommandInterface;
 use Opus\Console\Command\ServeSiteCommand;
 use Opus\Console\Command\ValidateSiteCommand;
+use Opus\Console\Command\CreateRubricCommand;
+use Opus\Console\Command\CreatePageCommand;
 
 /**
  * OPUS console application.
@@ -41,6 +43,8 @@ final class OpusConsoleApplication
         $this->register(new ValidateSiteCommand($opusRoot));
         $this->register(new ListRoutesCommand($opusRoot));
         $this->register(new ListModulesCommand($opusRoot));
+        $this->register(new CreateRubricCommand($opusRoot));
+        $this->register(new CreatePageCommand($opusRoot));
     }
 
     /**
@@ -90,6 +94,9 @@ final class OpusConsoleApplication
         echo "\n";
         echo "Inspect / local runtime commands:\n";
         echo "  validate:site <site-id>\n";
+        echo "  create:module <site-id> <ModuleId> [--title <title>] --write\n";
+        echo "  create:page <site-id> <ModuleId> <page-id> <path> [--title <title>] --write\n";
+        echo "  create:rubric <site-id> <ModuleId> <path> [--title <title>] --write\n";
         echo "  list:routes <site-id>\n";
         echo "  list:modules <site-id>\n";
         echo "  serve:site <site-id> [--host 127.0.0.1] [--port 8791]\n";
@@ -101,6 +108,9 @@ final class OpusConsoleApplication
         echo "  composer opus:validate-site -- skeleton\n";
         echo "  composer opus:list-routes -- skeleton\n";
         echo "  composer opus:list-modules -- skeleton\n";
+        echo "  composer opus:create-module -- skeleton Blog --title Blog --write\n";
+        echo "  composer opus:create-page -- skeleton Blog archive /blog/archive --title Blog archive --write\n";
+        echo "  composer opus:create-rubric -- skeleton News /news --title News --write\n";
         echo "  composer opus:serve-site -- skeleton --port 8791\n";
     }
 }
