@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Opus\Console;
 
 use Opus\Console\Command\AddLanguageCommand;
+use Opus\Console\Command\CreateApplicationCommand;
 use Opus\Console\Command\CreateModuleCommand;
 use Opus\Console\Command\CreateSiteCommand;
 use Opus\Console\Command\ListModulesCommand;
@@ -36,6 +37,7 @@ final class OpusConsoleApplication
     {
         $this->opusRoot = $opusRoot;
 
+        $this->register(new CreateApplicationCommand($opusRoot));
         $this->register(new CreateSiteCommand($opusRoot));
         $this->register(new CreateModuleCommand($opusRoot));
         $this->register(new AddLanguageCommand($opusRoot));
@@ -88,6 +90,7 @@ final class OpusConsoleApplication
         echo "OPUS Console\n";
         echo "\n";
         echo "Create commands:\n";
+        echo "  create:application <application-id> [--dry-run|--write] [--serve] [--port 8791]\n";
         echo "  create:site <site-id> [--dry-run|--write]\n";
         echo "  create:module <site-id> <ModuleName> [--dry-run|--write]\n";
         echo "  add:language <site-id> <locale> [--dry-run|--write]\n";
@@ -102,6 +105,7 @@ final class OpusConsoleApplication
         echo "  serve:site <site-id> [--host 127.0.0.1] [--port 8791]\n";
         echo "\n";
         echo "Composer examples:\n";
+        echo "  composer opus:create-application -- skeleton --write\n";
         echo "  composer opus:create-site -- skeleton --write\n";
         echo "  composer opus:create-module -- skeleton Dashboard --write\n";
         echo "  composer opus:add-language -- skeleton en --write\n";
