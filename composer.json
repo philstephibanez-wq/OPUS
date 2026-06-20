@@ -21,6 +21,8 @@
         "opus:create-module": "@php bin/opus create:module",
         "opus:add-language": "@php bin/opus add:language",
         "opus:serve-site": "@php bin/opus serve:site",
-        "opus:validate-site": "@php bin/opus validate:site"
+        "opus:validate-site": "@php bin/opus validate:site",
+        "opus:list-routes": "@php bin/opus list:routes",
+        "opus:list-modules": "@php bin/opus list:modules"
     }
 }

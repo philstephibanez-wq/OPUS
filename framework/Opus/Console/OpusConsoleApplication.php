@@ -6,6 +6,8 @@ namespace Opus\Console;
 use Opus\Console\Command\AddLanguageCommand;
 use Opus\Console\Command\CreateModuleCommand;
 use Opus\Console\Command\CreateSiteCommand;
+use Opus\Console\Command\ListModulesCommand;
+use Opus\Console\Command\ListRoutesCommand;
 use Opus\Console\Command\OpusConsoleCommandInterface;
 use Opus\Console\Command\ServeSiteCommand;
 use Opus\Console\Command\ValidateSiteCommand;
@@ -37,6 +39,8 @@ final class OpusConsoleApplication
         $this->register(new AddLanguageCommand($opusRoot));
         $this->register(new ServeSiteCommand($opusRoot));
         $this->register(new ValidateSiteCommand($opusRoot));
+        $this->register(new ListRoutesCommand($opusRoot));
+        $this->register(new ListModulesCommand($opusRoot));
     }
 
     /**
@@ -86,6 +90,8 @@ final class OpusConsoleApplication
         echo "\n";
         echo "Inspect / local runtime commands:\n";
         echo "  validate:site <site-id>\n";
+        echo "  list:routes <site-id>\n";
+        echo "  list:modules <site-id>\n";
         echo "  serve:site <site-id> [--host 127.0.0.1] [--port 8791]\n";
         echo "\n";
         echo "Composer examples:\n";
@@ -93,6 +99,8 @@ final class OpusConsoleApplication
         echo "  composer opus:create-module -- skeleton Dashboard --write\n";
         echo "  composer opus:add-language -- skeleton en --write\n";
         echo "  composer opus:validate-site -- skeleton\n";
+        echo "  composer opus:list-routes -- skeleton\n";
+        echo "  composer opus:list-modules -- skeleton\n";
         echo "  composer opus:serve-site -- skeleton --port 8791\n";
     }
 }
