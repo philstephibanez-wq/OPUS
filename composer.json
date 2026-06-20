@@ -17,6 +17,7 @@
     ],
     "scripts": {
         "opus": "@php bin/opus",
+        "opus:create-application": "@php bin/opus create:application",
         "opus:create-site": "@php bin/opus create:site",
         "opus:create-module": "@php bin/opus create:module",
         "opus:add-language": "@php bin/opus add:language",
