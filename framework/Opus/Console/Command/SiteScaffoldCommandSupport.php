@@ -174,14 +174,16 @@ final class SiteScaffoldCommandSupport
         if (is_file($absoluteTemplate)) {
             throw new OpusConsoleException('OPUS_CREATE_PAGE_TEMPLATE_ALREADY_EXISTS: ' . $relativeTemplate);
         }
-        $this->writeText($absoluteTemplate, $this->pageTemplate($moduleId, $pageId, $title));
 
         $routeId = strtolower($moduleId) . '.' . $pageId;
+        $this->assertRouteAvailable($siteRoot, $routeId, $path);
+
+        $this->writeText($absoluteTemplate, $this->pageTemplate($moduleId, $pageId, $title));
         $this->appendRoute($siteRoot, $routeId, $path, $moduleId, $relativeTemplate);
         $this->upsertI18n($siteRoot, $moduleId, $pageId, $title);
     }
 
-    public function appendRoute(string $siteRoot, string $routeId, string $path, string $moduleId, string $template): void
+    public function assertRouteAvailable(string $siteRoot, string $routeId, string $path): void
     {
         $routesPath = $siteRoot . DIRECTORY_SEPARATOR . $this->toPath('application/config/routes.json');
         $routesConfig = $this->readJson($routesPath, 'OPUS_SITE_COMMAND_ROUTES_JSON_INVALID');
@@ -200,6 +202,18 @@ final class SiteScaffoldCommandSupport
                 throw new OpusConsoleException('OPUS_SITE_COMMAND_ROUTE_PATH_ALREADY_EXISTS: ' . $path);
             }
         }
+    }
+
+    public function appendRoute(string $siteRoot, string $routeId, string $path, string $moduleId, string $template): void
+    {
+        $this->assertRouteAvailable($siteRoot, $routeId, $path);
+
+        $routesPath = $siteRoot . DIRECTORY_SEPARATOR . $this->toPath('application/config/routes.json');
+        $routesConfig = $this->readJson($routesPath, 'OPUS_SITE_COMMAND_ROUTES_JSON_INVALID');
+        $routes = $routesConfig['routes'] ?? [];
+        if (!is_array($routes)) {
+            throw new OpusConsoleException('OPUS_SITE_COMMAND_ROUTES_CONTRACT_INVALID');
+        }
         $routes[] = [
             'id' => $routeId,
             'path' => $path,
@@ -212,14 +226,15 @@ final class SiteScaffoldCommandSupport
 
     public function createRubric(string $siteRoot, string $moduleId, string $path, string $title): void
     {
+        $this->assertModuleId($moduleId, 'OPUS_CREATE_RUBRIC_INVALID_MODULE_ID');
+        $this->assertRoutePath($path, 'OPUS_CREATE_RUBRIC_INVALID_ROUTE_PATH');
+
+        $routeId = strtolower($moduleId) . '.index';
+        $template = 'application/modules/' . $moduleId . '/templates/pages/index.score';
+        $this->assertRouteAvailable($siteRoot, $routeId, $path);
+
         $this->createModule($siteRoot, $moduleId, $title);
-        $this->appendRoute(
-            $siteRoot,
-            strtolower($moduleId) . '.index',
-            $path,
-            $moduleId,
-            'application/modules/' . $moduleId . '/templates/pages/index.score'
-        );
+        $this->appendRoute($siteRoot, $routeId, $path, $moduleId, $template);
     }
 
     /**
