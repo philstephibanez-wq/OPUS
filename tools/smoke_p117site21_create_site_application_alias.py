@@ -7,6 +7,14 @@ import sys
 from pathlib import Path
 
 
+def resolve_composer_command() -> str:
+    for candidate in ("composer.bat", "composer.cmd", "composer"):
+        resolved = shutil.which(candidate)
+        if resolved:
+            return resolved
+    raise RuntimeError("COMPOSER_EXECUTABLE_NOT_FOUND: composer.bat/composer.cmd/composer")
+
+
 def run_command(command: list[str], cwd: Path) -> str:
     completed = subprocess.run(command, cwd=str(cwd), text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     if completed.returncode != 0:
@@ -46,11 +54,12 @@ def main() -> int:
     root = Path(__file__).resolve().parents[1]
     application_id = "p117site21-site-alias-smoke"
     target = root / "sites" / application_id
+    composer_command = resolve_composer_command()
 
     cleanup(target)
 
     try:
-        output = run_command(["composer", "opus:create-site", "--", application_id, "--write"], root)
+        output = run_command([composer_command, "opus:create-site", "--", application_id, "--write"], root)
         if "OPUS_CREATE_APPLICATION_WRITTEN" not in output:
             raise RuntimeError("CHECK_CREATE_SITE_ALIAS_OUTPUT_MISSING")
 
