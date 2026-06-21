@@ -1,18 +1,27 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 
-def resolve_composer_command() -> str:
-    for candidate in ("composer.bat", "composer.cmd", "composer"):
-        resolved = shutil.which(candidate)
-        if resolved:
-            return resolved
-    raise RuntimeError("COMPOSER_EXECUTABLE_NOT_FOUND: composer.bat/composer.cmd/composer")
+def resolve_composer_command() -> list[str]:
+    if os.name == "nt":
+        if shutil.which("composer"):
+            return ["cmd", "/d", "/c", "composer"]
+        for candidate in ("composer.bat", "composer.cmd"):
+            resolved = shutil.which(candidate)
+            if resolved:
+                return [resolved]
+        raise RuntimeError("COMPOSER_EXECUTABLE_NOT_FOUND: composer/composer.bat/composer.cmd")
+
+    resolved = shutil.which("composer")
+    if resolved:
+        return [resolved]
+    raise RuntimeError("COMPOSER_EXECUTABLE_NOT_FOUND: composer")
 
 
 def run_command(command: list[str], cwd: Path) -> str:
@@ -59,7 +68,7 @@ def main() -> int:
     cleanup(target)
 
     try:
-        output = run_command([composer_command, "opus:create-site", "--", application_id, "--write"], root)
+        output = run_command([*composer_command, "opus:create-site", "--", application_id, "--write"], root)
         if "OPUS_CREATE_APPLICATION_WRITTEN" not in output:
             raise RuntimeError("CHECK_CREATE_SITE_ALIAS_OUTPUT_MISSING")
 
