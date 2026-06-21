@@ -1,0 +1,16 @@
+{
+  "schema": "OPUS_REFERENCE_TOPICS_V1",
+  "package": "opus-8.1.0-lysenko-reference-book",
+  "topics": [
+    {
+      "id": "console.authoring_commands",
+      "title": "Console authoring commands",
+      "status": "integrated",
+      "category": "console",
+      "markdown": "resources/reference/console/authoring_commands.md",
+      "score": "resources/reference/console/authoring_commands.score",
+      "data": "resources/reference/console/authoring_commands.json",
+      "summary": "Composer commands for generating sites, modules, pages, rubrics, and inspecting routes/modules."
+    }
+  ]
+}

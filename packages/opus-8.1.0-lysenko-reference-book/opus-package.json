@@ -49,5 +49,21 @@
     "runtime_cache_allowed": false,
     "secrets_allowed": false,
     "duplicated_framework_allowed": false
+  },
+  "reference_book_content": {
+    "schema": "OPUS_REFERENCE_BOOK_CONTENT_V1",
+    "topics_index": "resources/reference/index/reference_topics.json",
+    "console_authoring_commands": {
+      "title": "Console authoring commands",
+      "markdown": "resources/reference/console/authoring_commands.md",
+      "score": "resources/reference/console/authoring_commands.score",
+      "data": "resources/reference/console/authoring_commands.json",
+      "status": "integrated",
+      "source_milestones": [
+        "P117SITE15_LIST_ROUTES_MODULES",
+        "P117SITE16_CREATE_PAGE_MODULE_RUBRIC_COMMANDS",
+        "P117SITE17_AUTHORING_ERROR_PATHS"
+      ]
+    }
   }
 }

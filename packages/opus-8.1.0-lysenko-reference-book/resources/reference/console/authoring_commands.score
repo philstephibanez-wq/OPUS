@@ -1,0 +1,70 @@
+<article class="opus-reference-topic opus-reference-topic--console-authoring">
+  <header class="opus-reference-topic__header">
+    <p class="eyebrow">OPUS Reference Book</p>
+    <h1>Console authoring commands</h1>
+    <p>Composer commands for site, module, page, rubric and inspection workflows.</p>
+  </header>
+  <section class="opus-reference-topic__section">
+    <h2>Contract</h2>
+    <ul>
+      <li>Write commands require <code>--write</code>.</li>
+      <li>Dry-run mode must not write files.</li>
+      <li>Duplicate identifiers and route paths fail explicitly.</li>
+      <li>Invalid identifiers and route paths fail explicitly.</li>
+      <li>No partial writes and no silent overwrite are allowed.</li>
+    </ul>
+  </section>
+  <section class="opus-reference-topic__section">
+    <h2>Command matrix</h2>
+    <div class="opus-command-grid">
+      <article class="opus-command-card">
+        <h3>opus:create-site</h3>
+        <p><code>composer opus:create-site -- <site-id> --write</code></p>
+        <p>Create a generated OPUS site skeleton.</p>
+        <p><strong>Mode:</strong> requires --write</p>
+      </article>
+      <article class="opus-command-card">
+        <h3>opus:validate-site</h3>
+        <p><code>composer opus:validate-site -- <site-id></code></p>
+        <p>Validate a generated OPUS site contract.</p>
+        <p><strong>Mode:</strong> read-only</p>
+      </article>
+      <article class="opus-command-card">
+        <h3>opus:serve-site</h3>
+        <p><code>composer opus:serve-site -- <site-id> --port <port></code></p>
+        <p>Serve a generated site through PHP built-in server for local development.</p>
+        <p><strong>Mode:</strong> read-only runtime</p>
+      </article>
+      <article class="opus-command-card">
+        <h3>opus:list-routes</h3>
+        <p><code>composer opus:list-routes -- <site-id></code></p>
+        <p>List routes declared by a generated site.</p>
+        <p><strong>Mode:</strong> read-only</p>
+      </article>
+      <article class="opus-command-card">
+        <h3>opus:list-modules</h3>
+        <p><code>composer opus:list-modules -- <site-id></code></p>
+        <p>List modules declared by a generated site.</p>
+        <p><strong>Mode:</strong> read-only</p>
+      </article>
+      <article class="opus-command-card">
+        <h3>opus:create-module</h3>
+        <p><code>composer opus:create-module -- <site-id> <ModuleId> --title <title> --write</code></p>
+        <p>Create a module directory, module manifest, default Score templates, and module registry entry.</p>
+        <p><strong>Mode:</strong> requires --write</p>
+      </article>
+      <article class="opus-command-card">
+        <h3>opus:create-page</h3>
+        <p><code>composer opus:create-page -- <site-id> <ModuleId> <page-id> <route-path> --title <title> --write</code></p>
+        <p>Create a module page Score template and route entry.</p>
+        <p><strong>Mode:</strong> requires --write</p>
+      </article>
+      <article class="opus-command-card">
+        <h3>opus:create-rubric</h3>
+        <p><code>composer opus:create-rubric -- <site-id> <RubricId> <route-path> --title <title> --write</code></p>
+        <p>Create a rubric module and its index route in one authoring operation.</p>
+        <p><strong>Mode:</strong> requires --write</p>
+      </article>
+    </div>
+  </section>
+</article>

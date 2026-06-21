@@ -61,3 +61,22 @@ No file may be imported from the transitional repository until the source is aud
 ## Runtime rule
 
 This package must not embed `framework/Opus/`. It must resolve the shared OPUS core through `opus-package.json` and official bootstrap configuration.
+
+<!-- BEGIN P117SITE18_AUTHORING_COMMANDS_DOCBOOK_INTEGRATION -->
+## Integrated Reference Book content
+
+The Reference Book package now contains integrated OPUS console authoring documentation.
+
+```text
+Topic: console.authoring_commands
+Markdown: resources/reference/console/authoring_commands.md
+Score: resources/reference/console/authoring_commands.score
+Data: resources/reference/console/authoring_commands.json
+Index: resources/reference/index/reference_topics.json
+```
+
+This topic documents the Composer commands for creating sites, modules, pages, rubrics, listing modules, listing routes, validating sites, and serving sites.
+
+The content is package-owned Reference Book content, not a transient milestone note.
+<!-- END P117SITE18_AUTHORING_COMMANDS_DOCBOOK_INTEGRATION -->
+
