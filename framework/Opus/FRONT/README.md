@@ -1,5 +1,25 @@
-# OPUS FRONT
+# OPUS FRONT boundary
 
-The FRONT layer owns representation only: views, layouts, sections, standard component usage, custom application components, navigation, assets, themes, and API clients.
+`OPUS\\FRONT` owns representation only.
 
-It does not own business rules or data persistence.
+Allowed:
+
+- views
+- layouts
+- sections
+- components
+- form and menu components
+- renderers
+- themes and assets
+- API clients that call MIDDLE contracts
+
+Forbidden:
+
+- business actions
+- services and repositories
+- database access
+- runners, jobs and workers
+- direct BACK calls
+- direct system commands
+
+FRONT emits intentions. It never processes business work directly.
