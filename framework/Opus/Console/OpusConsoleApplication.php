@@ -91,7 +91,7 @@ final class OpusConsoleApplication
         echo "\n";
         echo "Create commands:\n";
         echo "  create:application <application-id> [--dry-run|--write] [--serve] [--port 8791]\n";
-        echo "  create:site <site-id> [--dry-run|--write]\n";
+        echo "  create:site <application-id> [--dry-run|--write] [--serve] [--port 8791] (alias of create:application)\n";
         echo "  create:module <site-id> <ModuleName> [--dry-run|--write]\n";
         echo "  add:language <site-id> <locale> [--dry-run|--write]\n";
         echo "\n";
