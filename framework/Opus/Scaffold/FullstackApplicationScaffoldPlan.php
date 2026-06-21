@@ -3,17 +3,7 @@ declare(strict_types=1);
 
 namespace Opus\Scaffold;
 
-/**
- * Fullstack OPUS application scaffold plan.
- *
- * Contract:
- * - generated application has explicit frontend/backend roots;
- * - frontend is representation only;
- * - backend is business/data processing only;
- * - OPUS owns standard components;
- * - application owns custom components only;
- * - backoffice is a frontend specialization, not backend.
- */
+/** Fullstack OPUS application scaffold plan. */
 final class FullstackApplicationScaffoldPlan implements ScaffoldPlanInterface
 {
     private function __construct(private readonly string $applicationId)
@@ -35,71 +25,20 @@ final class FullstackApplicationScaffoldPlan implements ScaffoldPlanInterface
     {
         $app = $this->applicationId;
         $directories = [
-            "sites/{$app}/public/assets/css",
-            "sites/{$app}/public/assets/js",
-            "sites/{$app}/public/assets/img",
-            "sites/{$app}/frontend/views/home",
-            "sites/{$app}/frontend/layouts/public",
-            "sites/{$app}/frontend/sections/site-header",
-            "sites/{$app}/frontend/sections/home-hero",
-            "sites/{$app}/frontend/sections/home-main",
-            "sites/{$app}/frontend/sections/site-footer",
-            "sites/{$app}/frontend/custom-components",
-            "sites/{$app}/frontend/navigation",
-            "sites/{$app}/frontend/api-clients",
-            "sites/{$app}/frontend/assets/css",
-            "sites/{$app}/frontend/assets/js",
-            "sites/{$app}/frontend/theme",
-            "sites/{$app}/backend/modules/content",
-            "sites/{$app}/backend/modules/navigation",
-            "sites/{$app}/backend/services",
-            "sites/{$app}/backend/actions",
-            "sites/{$app}/backend/repositories",
-            "sites/{$app}/backend/validators",
-            "sites/{$app}/backend/policies",
-            "sites/{$app}/backend/api-endpoints",
-            "sites/{$app}/backend/runners",
-            "sites/{$app}/backend/jobs",
-            "sites/{$app}/backend/dto",
-            "sites/{$app}/backend/viewmodels",
-            "sites/{$app}/resources/i18n",
-            "sites/{$app}/resources/data",
-            "sites/{$app}/docs",
+            'public/assets/css', 'public/assets/js', 'public/assets/img',
+            'frontend/views/home', 'frontend/layouts/public',
+            'frontend/sections/site-header', 'frontend/sections/home-hero', 'frontend/sections/home-main', 'frontend/sections/site-footer',
+            'frontend/custom-components', 'frontend/navigation', 'frontend/api-clients', 'frontend/assets/css', 'frontend/assets/js', 'frontend/theme',
+            'backend/modules/content', 'backend/modules/navigation', 'backend/services', 'backend/actions', 'backend/repositories',
+            'backend/validators', 'backend/policies', 'backend/api-endpoints', 'backend/runners', 'backend/jobs', 'backend/dto', 'backend/viewmodels',
+            'resources/i18n', 'resources/data', 'docs',
         ];
+        $entries = array_map(static fn (string $directory): ScaffoldEntry => ScaffoldEntry::directory("sites/{$app}/{$directory}"), $directories);
 
-        $entries = array_map(static fn (string $directory): ScaffoldEntry => ScaffoldEntry::directory($directory), $directories);
         $entries[] = ScaffoldEntry::file("sites/{$app}/README.md", $this->readmeContent());
         $entries[] = ScaffoldEntry::file("sites/{$app}/START_HERE.md", $this->startHereContent());
-        $entries[] = ScaffoldEntry::file("sites/{$app}/application.opus.json", $this->json([
-            'application_id' => $app,
-            'type' => 'opus-fullstack-application',
-            'contract' => 'OPUS_FULLSTACK_APPLICATION_V1',
-            'frontend_contract' => 'OPUS_FRONTEND_VIEWS_LAYOUTS_SECTIONS_COMPONENTS_V1',
-            'backend_contract' => 'OPUS_BACKEND_BUSINESS_DATA_PROCESSING_V1',
-            'standard_components_owner' => 'OPUS',
-            'custom_components_owner' => 'application',
-            'created_by' => 'composer opus:create-application',
-            'external_dependencies_allowed' => false,
-            'framework_duplication_allowed' => false,
-            'backoffice_is_backend' => false,
-            'frontend_root' => 'frontend',
-            'backend_root' => 'backend',
-            'public_root' => 'public',
-            'resources_root' => 'resources',
-        ]));
-        $entries[] = ScaffoldEntry::file("sites/{$app}/frontend/views/home/home.view.json", $this->json([
-            'contract' => 'OPUS_FRONTEND_VIEW_V1',
-            'id' => 'home',
-            'route' => '/',
-            'layout' => 'public',
-            'viewmodel' => 'home',
-            'sections' => [
-                ['slot' => 'header', 'section' => 'site-header'],
-                ['slot' => 'hero', 'section' => 'home-hero'],
-                ['slot' => 'main', 'section' => 'home-main'],
-                ['slot' => 'footer', 'section' => 'site-footer'],
-            ],
-        ]));
+        $entries[] = ScaffoldEntry::file("sites/{$app}/application.opus.json", $this->json($this->applicationContract()));
+        $entries[] = ScaffoldEntry::file("sites/{$app}/frontend/views/home/home.view.json", $this->json($this->homeViewContract()));
         $entries[] = ScaffoldEntry::file("sites/{$app}/frontend/layouts/public/public.layout.json", $this->json(['contract' => 'OPUS_FRONTEND_LAYOUT_V1', 'id' => 'public', 'template' => 'public.layout.score', 'slots' => ['header', 'hero', 'main', 'footer'], 'nested_layouts_allowed' => true]));
         $entries[] = ScaffoldEntry::file("sites/{$app}/frontend/layouts/public/public.layout.score", '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ application.name }}</title><link rel="stylesheet" href="/assets/css/application.css"></head><body class="opus-fullstack-application"><header>{{{ slots.header }}}</header><main><section>{{{ slots.hero }}}</section><section id="contract">{{{ slots.main }}}</section></main><footer>{{{ slots.footer }}}</footer></body></html>');
         $entries[] = ScaffoldEntry::file("sites/{$app}/frontend/sections/site-header/site-header.section.json", $this->json(['contract' => 'OPUS_FRONTEND_SECTION_V1', 'id' => 'site-header', 'components' => [['component' => 'TextBlock'], ['component' => 'Menu']]]));
@@ -129,6 +68,18 @@ final class FullstackApplicationScaffoldPlan implements ScaffoldPlanInterface
         return $entries;
     }
 
+    /** @return array<string,mixed> */
+    private function applicationContract(): array
+    {
+        return ['application_id' => $this->applicationId, 'type' => 'opus-fullstack-application', 'contract' => 'OPUS_FULLSTACK_APPLICATION_V1', 'frontend_contract' => 'OPUS_FRONTEND_VIEWS_LAYOUTS_SECTIONS_COMPONENTS_V1', 'backend_contract' => 'OPUS_BACKEND_BUSINESS_DATA_PROCESSING_V1', 'standard_components_owner' => 'OPUS', 'custom_components_owner' => 'application', 'created_by' => 'composer opus:create-application', 'external_dependencies_allowed' => false, 'framework_duplication_allowed' => false, 'backoffice_is_backend' => false, 'frontend_root' => 'frontend', 'backend_root' => 'backend', 'public_root' => 'public', 'resources_root' => 'resources'];
+    }
+
+    /** @return array<string,mixed> */
+    private function homeViewContract(): array
+    {
+        return ['contract' => 'OPUS_FRONTEND_VIEW_V1', 'id' => 'home', 'route' => '/', 'layout' => 'public', 'viewmodel' => 'home', 'sections' => [['slot' => 'header', 'section' => 'site-header'], ['slot' => 'hero', 'section' => 'home-hero'], ['slot' => 'main', 'section' => 'home-main'], ['slot' => 'footer', 'section' => 'site-footer']]];
+    }
+
     /** @param array<string,mixed> $data */
     private function json(array $data): string
     {
@@ -148,19 +99,7 @@ final class FullstackApplicationScaffoldPlan implements ScaffoldPlanInterface
     /** @return array<string,mixed> */
     private function homeViewModel(): array
     {
-        return [
-            'contract' => 'OPUS_VIEWMODEL_V1',
-            'application' => ['id' => $this->applicationId, 'name' => 'Application OPUS ' . $this->applicationId],
-            'navigation' => ['items' => [['label' => 'Accueil', 'href' => '/'], ['label' => 'Contrat', 'href' => '#contract']]],
-            'hero' => ['kicker' => 'Fullstack OPUS', 'title' => 'Frontend et backend clairement séparés', 'subtitle' => 'Le frontend représente les données. Le backend traite les données et le métier.', 'primaryAction' => ['label' => 'Lire le contrat', 'href' => '#contract']],
-            'contractCards' => [
-                ['title' => 'Frontend', 'text' => 'Views, layouts, sections, composants, navigation, API clients, assets et thème.'],
-                ['title' => 'Backend', 'text' => 'Modules métier, services, actions, repositories, validators, policies, API endpoints, runners, jobs, DTO et viewmodels.'],
-                ['title' => 'Composants OPUS', 'text' => 'Form, input, menu, card, table et autres composants standards appartiennent à OPUS.'],
-                ['title' => 'Backoffice', 'text' => 'Un backoffice est un frontend spécialisé. Ce n’est jamais le backend.'],
-            ],
-            'footer' => ['text' => 'Generated by composer opus:create-application — OPUS_FULLSTACK_APPLICATION_V1'],
-        ];
+        return ['contract' => 'OPUS_VIEWMODEL_V1', 'application' => ['id' => $this->applicationId, 'name' => 'Application OPUS ' . $this->applicationId], 'navigation' => ['items' => [['label' => 'Accueil', 'href' => '/'], ['label' => 'Contrat', 'href' => '#contract']]], 'hero' => ['kicker' => 'Fullstack OPUS', 'title' => 'Frontend et backend clairement séparés', 'subtitle' => 'Le frontend représente les données. Le backend traite les données et le métier.', 'primaryAction' => ['label' => 'Lire le contrat', 'href' => '#contract']], 'contractCards' => [['title' => 'Frontend', 'text' => 'Views, layouts, sections, composants, navigation, API clients, assets et thème.'], ['title' => 'Backend', 'text' => 'Modules métier, services, actions, repositories, validators, policies, API endpoints, runners, jobs, DTO et viewmodels.'], ['title' => 'Composants OPUS', 'text' => 'Form, input, menu, card, table et autres composants standards appartiennent à OPUS.'], ['title' => 'Backoffice', 'text' => 'Un backoffice est un frontend spécialisé. Ce n’est jamais le backend.']], 'footer' => ['text' => 'Generated by composer opus:create-application — OPUS_FULLSTACK_APPLICATION_V1']];
     }
 
     private function frontControllerContent(): string
