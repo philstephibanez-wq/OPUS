@@ -1,10 +1,27 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+
+def resolve_composer_command() -> list[str]:
+    if os.name == "nt":
+        if shutil.which("composer"):
+            return ["cmd", "/d", "/c", "composer"]
+        for candidate in ("composer.bat", "composer.cmd"):
+            resolved = shutil.which(candidate)
+            if resolved:
+                return [resolved]
+        raise RuntimeError("COMPOSER_EXECUTABLE_NOT_FOUND: composer/composer.bat/composer.cmd")
+
+    resolved = shutil.which("composer")
+    if resolved:
+        return [resolved]
+    raise RuntimeError("COMPOSER_EXECUTABLE_NOT_FOUND: composer")
 
 
 def require_path(path: Path, label: str) -> None:
@@ -39,12 +56,13 @@ def main() -> int:
     root = Path(__file__).resolve().parents[1]
     application_id = "p117site20-smoke"
     target = root / "sites" / application_id
+    composer_command = resolve_composer_command()
 
     if target.exists():
         shutil.rmtree(target)
 
     try:
-        output = run_command(["composer", "opus:create-application", "--", application_id, "--write"], root)
+        output = run_command([*composer_command, "opus:create-application", "--", application_id, "--write"], root)
         if "OPUS_CREATE_APPLICATION_WRITTEN" not in output:
             raise RuntimeError("CREATE_APPLICATION_OUTPUT_MISSING")
 
