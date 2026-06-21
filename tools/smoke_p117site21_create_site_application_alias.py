@@ -43,10 +43,7 @@ def forbid_path(path: Path, label: str) -> None:
 
 def require_json(path: Path, label: str) -> dict:
     require_path(path, label)
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        raise RuntimeError(f"{label}_INVALID_JSON: {path.as_posix()}:{exc.lineno}:{exc.colno}") from exc
+    value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
         raise RuntimeError(f"{label}_NOT_OBJECT: {path.as_posix()}")
     return value
@@ -73,18 +70,22 @@ def main() -> int:
             raise RuntimeError("CHECK_CREATE_SITE_ALIAS_OUTPUT_MISSING")
 
         require_path(target / "frontend", "CHECK_ALIAS_FRONTEND_ROOT")
+        require_path(target / "middle", "CHECK_ALIAS_MIDDLE_ROOT")
         require_path(target / "backend", "CHECK_ALIAS_BACKEND_ROOT")
         require_path(target / "frontend/views/home/home.view.json", "CHECK_ALIAS_HOME_VIEW")
+        require_path(target / "frontend/views/catalog-index/catalog-index.view.json", "CHECK_ALIAS_CATALOG_VIEW")
         require_path(target / "frontend/layouts/public/public.layout.json", "CHECK_ALIAS_PUBLIC_LAYOUT")
-        require_path(target / "frontend/sections/home-main/home-main.section.json", "CHECK_ALIAS_HOME_MAIN_SECTION")
-        require_path(target / "backend/api-endpoints/home-viewmodel.endpoint.json", "CHECK_ALIAS_BACKEND_ENDPOINT")
+        require_path(target / "frontend/sections/catalog-grid/catalog-grid.section.json", "CHECK_ALIAS_CATALOG_SECTION")
+        require_path(target / "middle/routes/routes.json", "CHECK_ALIAS_MIDDLE_ROUTES")
+        require_path(target / "backend/api-endpoints/catalog-list.endpoint.json", "CHECK_ALIAS_BACKEND_ENDPOINT")
+        require_path(target / "backend/modules/catalog/catalog.items.json", "CHECK_ALIAS_CATALOG_MODULE_DATA")
         forbid_path(target / "application", "CHECK_ALIAS_LEGACY_APPLICATION_ROOT")
 
         application = require_json(target / "application.opus.json", "CHECK_ALIAS_APPLICATION_CONTRACT")
         if application.get("contract") != "OPUS_FULLSTACK_APPLICATION_V1":
             raise RuntimeError("CHECK_ALIAS_FULLSTACK_CONTRACT_INVALID")
-        if application.get("frontend_root") != "frontend" or application.get("backend_root") != "backend":
-            raise RuntimeError("CHECK_ALIAS_FRONT_BACK_ROOTS_INVALID")
+        if application.get("frontend_root") != "frontend" or application.get("middle_root") != "middle" or application.get("backend_root") != "backend":
+            raise RuntimeError("CHECK_ALIAS_FRONT_MIDDLE_BACK_ROOTS_INVALID")
         if application.get("backoffice_is_backend") is not False:
             raise RuntimeError("CHECK_ALIAS_BACKOFFICE_BACKEND_SEPARATION_INVALID")
 
