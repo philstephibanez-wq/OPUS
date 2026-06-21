@@ -9,6 +9,16 @@ Make the OPUS framework tree reflect the contract used by generated applications
 - `Opus\\BACK` owns business domains, data access, services, runners, jobs, and integrations.
 - The FSM is the mandatory processor for every operation path.
 
+## P117SITE24 continuation
+
+P117SITE24 extends this first skeleton with a visible `COMMON` boundary and mandatory Mermaid + FSM documentation.
+
+See:
+
+- `DOC/P117SITE24_FRONT_MIDDLE_BACK_COMMON_BOUNDARIES.md`
+- `framework/Opus/COMMON/README.md`
+- `framework/Opus/MIDDLE/FSM/fsm.transitions.json`
+
 ## Framework structure
 
 ```text
@@ -16,6 +26,7 @@ framework/Opus/FRONT
 framework/Opus/MIDDLE
 framework/Opus/MIDDLE/FSM
 framework/Opus/BACK
+framework/Opus/COMMON
 ```
 
 ## End-to-end rule
