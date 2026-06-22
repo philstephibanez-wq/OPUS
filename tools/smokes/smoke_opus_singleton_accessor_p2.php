@@ -2,10 +2,10 @@
 /**
  * P2 OPUS singleton/accessor smoke.
  *
- * Read-only smoke after tools/apply_opus_singleton_accessor_p2.py --write.
+ * Read-only smoke for the committed OPUS singleton/accessor contract.
  */
 
-$root = dirname(__DIR__);
+$root = dirname(__DIR__, 2);
 $failures = array();
 
 function p2_check($condition, $label, $detail = '') {

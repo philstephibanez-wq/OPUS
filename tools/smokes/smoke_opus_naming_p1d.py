@@ -66,7 +66,7 @@ TEXT_SUFFIXES = {
 
 
 def root() -> Path:
-    return Path(__file__).resolve().parents[1]
+    return Path(__file__).resolve().parents[2]
 
 
 def rel(path: Path, repo_root: Path) -> str:

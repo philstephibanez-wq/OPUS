@@ -109,7 +109,7 @@ def main() -> int:
     tracked = git_files()
     print("P3_OPUS_ROOT_CLEANUP_AUDIT")
     print("MODE=READ_ONLY")
-    print("SCOPE=repo root, Opus/ direct files, tools/ root scripts")
+    print("SCOPE=repo root, Opus/ direct files, tools/ organized scripts")
     print()
 
     if not OPUS.is_dir():
@@ -147,7 +147,7 @@ def main() -> int:
         print("NONE")
     print()
 
-    print("ROOT_TOOL_SCRIPTS")
+    print("TOOLS_LAYOUT")
     tools = sorted(path for path in tracked if is_root_tool(path))
     if tools:
         for rel in tools:
@@ -163,7 +163,7 @@ def main() -> int:
     print("P3D: review Kernel/Package/Request/Response after singleton/accessor policy is stable.")
     print()
     print(f"FINDINGS_OPUS_ROOT_DIRECT_FILES={len(opus_root_files)}")
-    print(f"FINDINGS_ROOT_TOOL_SCRIPTS={len(tools)}")
+    print(f"FINDINGS_TOOLS_LAYOUT={len(tools)}")
     print("P3_OPUS_ROOT_CLEANUP_AUDIT_OK")
     return 0
 

@@ -18,7 +18,7 @@ final class P1Smoke
 
     public function run(): int
     {
-        $root = realpath(__DIR__ . '/..');
+        $root = realpath(__DIR__ . '/../..');
         if ($root === false) {
             $this->fail('CHECK_REPO_ROOT', 'Unable to resolve repository root.');
             return $this->finish();
