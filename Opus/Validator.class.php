@@ -13,7 +13,7 @@
  */
 
 #[AllowDynamicProperties]
-class ASAP_Validator {
+class OPUS_Validator {
 	protected $_valid = true;
 	protected $_messages = array();
 	protected $_toValidate = null;
@@ -24,7 +24,7 @@ class ASAP_Validator {
 	public function __construct($label, $toValidate, $controller, $args=null) { 
             $this->_label = $label;
             $this->_toValidate = $toValidate ;   
-            $this->_i18n = ASAP_I18N_I18n::getInstance(null, $this);	
+            $this->_i18n = OPUS_I18N_I18n::getInstance(null, $this);	
  
         }
 	

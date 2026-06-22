@@ -1,6 +1,6 @@
 <?php
 #[AllowDynamicProperties]
-class ASAP_LINK_Link{
+class OPUS_LINK_Link{
     public $_HTMLLink = '';
     private $_url;
     private $_hasAnchor = false;

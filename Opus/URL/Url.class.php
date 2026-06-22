@@ -1,7 +1,7 @@
 <?php
 
 #[AllowDynamicProperties]
-class ASAP_URL_Url {
+class OPUS_URL_Url {
     public $_protocol;
     public $_host;
     public $_path;
@@ -9,7 +9,7 @@ class ASAP_URL_Url {
     public $_anchor;
     
     public function __construct($url='', $path='', $arguments=array(), $anchor='') {
-         $app = ASAP_Application::getInstance();
+         $app = OPUS_Application::getInstance();
          
          if($url != '') {
              $this->parse($url);

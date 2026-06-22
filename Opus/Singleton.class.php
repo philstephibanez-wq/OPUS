@@ -1,7 +1,7 @@
 <?php
 
 #[AllowDynamicProperties]
-abstract class ASAP_Singleton {
+abstract class OPUS_Singleton {
     protected static $_instance = NULL;     // php5.3
     protected $_controller = null;
 
@@ -9,7 +9,7 @@ abstract class ASAP_Singleton {
      * Prevent direct object creation
      */
     private function  __construct() { 
-        $this->_controller = ASAP_CONTROLLER_Controller::getInstance();					
+        $this->_controller = OPUS_CONTROLLER_Controller::getInstance();					
     }
 
     /**

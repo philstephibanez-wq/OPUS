@@ -7,7 +7,7 @@ if (!class_exists('ADOConnection') && defined('ROOT') && is_file(ROOT . '/framew
  * @author Stephane
  */
 #[AllowDynamicProperties]
-class ASAP_adodb5 extends ADOConnection {
+class OPUS_adodb5 extends ADOConnection {
 
     public static function ADONewConnection($adapter) {
         return self::newConnection($adapter);
@@ -15,7 +15,7 @@ class ASAP_adodb5 extends ADOConnection {
 
     public static function newConnection($adapter) {
         if (!function_exists('ADONewConnection')) {
-            throw new ASAP_Exception('ADOdb is not loaded: ADONewConnection() is unavailable.');
+            throw new OPUS_Exception('ADOdb is not loaded: ADONewConnection() is unavailable.');
         }
         return ADONewConnection($adapter);
     }

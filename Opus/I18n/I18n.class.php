@@ -1,7 +1,7 @@
 <?php
 
 #[AllowDynamicProperties]
-class ASAP_I18N_I18n {
+class OPUS_I18N_I18n {
 
     protected static $_instance = null;
     protected $_app = null;
@@ -18,10 +18,10 @@ class ASAP_I18N_I18n {
 
     // CONSTRUCTOR
     private function __construct($lang = null) {
-        $this->_app = ASAP_Application::getInstance();
+        $this->_app = OPUS_Application::getInstance();
 
         $this->_code = $lang;
-        $this->_controller = $this->_controller = ASAP_Controller::getInstance();
+        $this->_controller = $this->_controller = OPUS_Controller::getInstance();
         if ($this->_controller != null)
             $this->_modulePath = $this->_controller->getParam('module_path') . "local/";
 
@@ -31,9 +31,9 @@ class ASAP_I18N_I18n {
         // load _availableLanguages as key=country value lang_country
         // like this: ('us' => 'en_US') from local/en_US
         $this->getAvalaibleLanguages();
-//		ASAP_Debug::addDump(__CLASS__.__FUNCTION__."   ",$this->_availableLanguages, __FILE__, __LINE__, 'blue');
-//		ASAP_Debug::addDump(__CLASS__.__FUNCTION__." SHARED  ",$this->_sharedPathLang, __FILE__, __LINE__, 'blue');
-//		ASAP_Debug::addDump(__CLASS__.__FUNCTION__."  MODULE ",$this->_modulePathLang, __FILE__, __LINE__, 'blue');
+//		OPUS_Debug::addDump(__CLASS__.__FUNCTION__."   ",$this->_availableLanguages, __FILE__, __LINE__, 'blue');
+//		OPUS_Debug::addDump(__CLASS__.__FUNCTION__." SHARED  ",$this->_sharedPathLang, __FILE__, __LINE__, 'blue');
+//		OPUS_Debug::addDump(__CLASS__.__FUNCTION__."  MODULE ",$this->_modulePathLang, __FILE__, __LINE__, 'blue');
 
         if ($lang == null) {
             $this->setLanguage();
@@ -44,11 +44,11 @@ class ASAP_I18N_I18n {
     }
 
     public static function getInstance($lang = null, $controller = null) {
-        if (ASAP_I18N_i18n::$_instance != null) {
-            return ASAP_I18N_i18n::$_instance;
+        if (OPUS_I18N_i18n::$_instance != null) {
+            return OPUS_I18N_i18n::$_instance;
         } else {
-            ASAP_I18N_i18n::$_instance = new ASAP_I18N_i18n($lang, $controller);
-            return ASAP_I18N_i18n::$_instance;
+            OPUS_I18N_i18n::$_instance = new OPUS_I18N_i18n($lang, $controller);
+            return OPUS_I18N_i18n::$_instance;
         }
     }
 
@@ -81,7 +81,7 @@ class ASAP_I18N_I18n {
 
     public function getAvalaibleLanguages() {
         if (!is_dir($this->_sharedPath)) {
-            throw new ASAP_Exception('I18N shared local directory not found: ' . $this->_sharedPath);
+            throw new OPUS_Exception('I18N shared local directory not found: ' . $this->_sharedPath);
         }
         $iterator = new DirectoryIterator($this->_sharedPath);
         foreach ($iterator as $fileinfo) {
@@ -137,8 +137,8 @@ class ASAP_I18N_I18n {
     }
 
     private function _loadSharedDictionary() {
-//		ASAP_Debug::add(__CLASS__.__FUNCTION__.$this->_code, __FILE__, __LINE__, 'red');
-//		ASAP_Debug::add(__CLASS__.__FUNCTION__.$this->_sharedPathLang[$this->_code], __FILE__, __LINE__, 'red');
+//		OPUS_Debug::add(__CLASS__.__FUNCTION__.$this->_code, __FILE__, __LINE__, 'red');
+//		OPUS_Debug::add(__CLASS__.__FUNCTION__.$this->_sharedPathLang[$this->_code], __FILE__, __LINE__, 'red');
         $iterator = new DirectoryIterator($this->_sharedPathLang[$this->_code]);
         foreach ($iterator as $fileinfo) {
             if ($fileinfo->isFile()) {
@@ -151,7 +151,7 @@ class ASAP_I18N_I18n {
     }
 
     private function _loadDictionary($filePath) {
-//		ASAP_Debug::add(__CLASS__.__FUNCTION__."   ".$filePath, __FILE__, __LINE__, 'white');
+//		OPUS_Debug::add(__CLASS__.__FUNCTION__."   ".$filePath, __FILE__, __LINE__, 'white');
         if (!file_exists($filePath)) {
             throw new Exception("File not found: " . $filePath);
             ;
@@ -165,15 +165,15 @@ class ASAP_I18N_I18n {
     }
 
     public function loadDictionary($filename) {
-//		ASAP_Debug::add(__CLASS__.__FUNCTION__."   ".$filename, __FILE__, __LINE__, 'blue');
+//		OPUS_Debug::add(__CLASS__.__FUNCTION__."   ".$filename, __FILE__, __LINE__, 'blue');
         foreach ($this->_modulePathLang as $path) {
-//			ASAP_Debug::add(__CLASS__.__FUNCTION__."   ".$path, __FILE__, __LINE__, 'red');
+//			OPUS_Debug::add(__CLASS__.__FUNCTION__."   ".$path, __FILE__, __LINE__, 'red');
             $iterator = new DirectoryIterator($path);
             foreach ($iterator as $fileinfo) {
                 if ($fileinfo->isFile()) {
                     if ($fileinfo->getExtension() == 'xml') {
                         $this->_loadDictionary($path . $fileinfo->getFilename());
-//						ASAP_Debug::add(__CLASS__.__FUNCTION__."   ".$path.$fileinfo->getFilename(), __FILE__, __LINE__, 'red');
+//						OPUS_Debug::add(__CLASS__.__FUNCTION__."   ".$path.$fileinfo->getFilename(), __FILE__, __LINE__, 'red');
                     }
                 }
             }
@@ -183,7 +183,7 @@ class ASAP_I18N_I18n {
 
     private function _parseDictionary($str) {
         try {
-            $xml = new ASAP_SimpleXMLElementExtended($str);
+            $xml = new OPUS_SimpleXMLElementExtended($str);
         } catch (Exception $e) {
             throw new Exception($str);
         }
@@ -205,11 +205,11 @@ class ASAP_I18N_I18n {
 
     public function translate($needle, $count = 1, $gender = "N", $noError=false) {
         $search = "$needle::$gender";
-//ASAP_Debug::add(__CLASS__.__FUNCTION__."   $search, $gender, $count ", __FILE__, __LINE__, 'red');
-        $plural = ASAP_I18N_i18n::getPlural($count);
+//OPUS_Debug::add(__CLASS__.__FUNCTION__."   $search, $gender, $count ", __FILE__, __LINE__, 'red');
+        $plural = OPUS_I18N_i18n::getPlural($count);
         $name = $search . $plural;
 
-//ASAP_Debug::add(__CLASS__.__FUNCTION__."   $name, $str ", __FILE__, __LINE__, 'red');
+//OPUS_Debug::add(__CLASS__.__FUNCTION__."   $name, $str ", __FILE__, __LINE__, 'red');
         if (isset($this->_dic[$name])) {
             $str = $this->_dic[$name];
         } else {

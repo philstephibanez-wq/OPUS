@@ -20,7 +20,7 @@
 	if (!defined("FTP_BINARY")) define("FTP_BINARY",1);
 
 	#[AllowDynamicProperties]
-class ASAP_Ftp {
+class OPUS_Ftp {
 
 		var $passiveMode = TRUE;
 		var $lastLines = array();

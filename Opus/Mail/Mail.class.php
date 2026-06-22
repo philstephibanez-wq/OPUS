@@ -1,7 +1,7 @@
 <?php
 
 #[AllowDynamicProperties]
-class ASAP_Mail {
+class OPUS_Mail {
     public function __construct($params = null, $controller = null) {
         // Historical factory class kept for BC. Use create() for explicit creation.
     }
@@ -13,7 +13,7 @@ class ASAP_Mail {
         switch ($params['adapter'] ?? 'phpmailer') {
             case 'phpmailer':
             default:
-                return new ASAP_PhpMailer();
+                return new OPUS_PhpMailer();
         }
     }
 }

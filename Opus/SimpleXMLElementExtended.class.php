@@ -1,7 +1,7 @@
 <?php
 
 #[AllowDynamicProperties]
-class ASAP_SimpleXMLElementExtended extends SimpleXMLElement{
+class OPUS_SimpleXMLElementExtended extends SimpleXMLElement{
    
 		public function getAttribute($name){
 		    $attrs = $this->attributes();

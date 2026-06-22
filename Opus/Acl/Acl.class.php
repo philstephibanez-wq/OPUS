@@ -21,7 +21,7 @@ class Acl {
     );
 
     final private function __construct() {
-        $this->_roles = new ASAP_ACL_roles();
+        $this->_roles = new OPUS_ACL_roles();
     }
 
     final public static function getInstance() {
@@ -35,18 +35,18 @@ class Acl {
 
     protected function _getRoles() {
         if (null === $this->_roles) {
-            $this->_roles = new ASAP_Acl_roles();
+            $this->_roles = new OPUS_Acl_roles();
         }
         return $this->_roles;
     }
 
     public function addRole($role, $parents = null) {
         if (is_string($role)) {
-            $role = new ASAP_ACL_Role($role);
+            $role = new OPUS_ACL_Role($role);
         }
 
-        if (!$role instanceof ASAP_ACL_Role) {
-            throw new ASAP_Exception('addRole() expects $role to be of type ASAP_ACL_Role');
+        if (!$role instanceof OPUS_ACL_Role) {
+            throw new OPUS_Exception('addRole() expects $role to be of type OPUS_ACL_Role');
         }
 
         $this->_roles->add($role, $parents);
@@ -68,7 +68,7 @@ class Acl {
     public function removeRole($role) {
         $this->Roles->remove($role);
 
-        if ($role instanceof ASAP_Acl_Role) {
+        if ($role instanceof OPUS_Acl_Role) {
             $roleId = $role->getRoleId();
         } else {
             $roleId = $role;
@@ -112,31 +112,31 @@ class Acl {
 
     public function addResource($resource, $parent = null) {
         if (is_string($resource)) {
-            $resource = new ASAP_Acl_Resource($resource);
+            $resource = new OPUS_Acl_Resource($resource);
         }
 
-        if (!$resource instanceof ASAP_Acl_Resource) {
-            throw new ASAP_Exception('addResource() expects $resource to be of type ASAP_Acl_Resource');
+        if (!$resource instanceof OPUS_Acl_Resource) {
+            throw new OPUS_Exception('addResource() expects $resource to be of type OPUS_Acl_Resource');
         }
 
         $resourceId = $resource->getResourceId();
 
         if ($this->has($resourceId)) {
-            throw new ASAP_Exception("Resource id '$resourceId' already exists in the ACL");
+            throw new OPUS_Exception("Resource id '$resourceId' already exists in the ACL");
         }
 
         $resourceParent = null;
 
         if (null !== $parent) {
             try {
-                if ($parent instanceof ASAP_Acl_Resource) {
+                if ($parent instanceof OPUS_Acl_Resource) {
                     $resourceParentId = $parent->getResourceId();
                 } else {
                     $resourceParentId = $parent;
                 }
                 $resourceParent = $this->getResource($resourceParentId);
             } catch (Exception $e) {
-                throw new ASAP_Exception("Parent Resource id '$resourceParentId' does not exist", 0, $e);
+                throw new OPUS_Exception("Parent Resource id '$resourceParentId' does not exist", 0, $e);
             }
             $this->_resources[$resourceParentId]['children'][$resourceId] = $resource;
         }
@@ -150,20 +150,20 @@ class Acl {
     }
 
     public function getResource($resource) {
-        if ($resource instanceof ASAP_ACL_Resource) {
+        if ($resource instanceof OPUS_ACL_Resource) {
             $resourceId = $resource->getResourceId();
         } else {
             $resourceId = (string) $resource;
         }
 
         if (!$this->has($resource)) {
-            throw new ASAP_Exception("Resource '$resourceId' not found");
+            throw new OPUS_Exception("Resource '$resourceId' not found");
         }
         return $this->_resources[$resourceId]['instance'];
     }
 
     public function has($resource) {
-        if ($resource instanceof ASAP_ACL_Resource) {
+        if ($resource instanceof OPUS_ACL_Resource) {
             $resourceId = $resource->getResourceId();
         } else {
             $resourceId = (string) $resource;
@@ -176,7 +176,7 @@ class Acl {
             $resourceId = $this->getResource($resource)->getResourceId();
             $inheritId = $this->getResource($inherit)->getResourceId();
         } catch (Exception $e) {
-            throw new ASAP_Exception($e->getMessage(), $e->getCode(), $e);
+            throw new OPUS_Exception($e->getMessage(), $e->getCode(), $e);
         }
 
         if (null !== $this->_resources[$resourceId]['parent']) {
@@ -203,7 +203,7 @@ class Acl {
         try {
             $resourceId = $this->get($resource)->getResourceId();
         } catch (Exception $e) {
-            throw new ASAP_Exception($e->getMessage(), $e->getCode(), $e);
+            throw new OPUS_Exception($e->getMessage(), $e->getCode(), $e);
         }
 
         $resourcesRemoved = array($resourceId);
@@ -266,7 +266,7 @@ class Acl {
 
         // ensure that the rule type is valid; normalize input to uppercase
         if ('allowed' !== $type && 'denied' !== $type) {
-            throw new ASAP_Exception("Unsupported rule type: '$type'  must be either 'allowed' or 'denied'");
+            throw new OPUS_Exception("Unsupported rule type: '$type'  must be either 'allowed' or 'denied'");
         }
 
         // ensure that all specified Roles exist; normalize input to array of Role objects or null
@@ -439,7 +439,7 @@ class Acl {
                 break;
 
             default:
-                throw new ASAP_Exception("Unsupported operation; must be either 'add' or 'remove'");
+                throw new OPUS_Exception("Unsupported operation; must be either 'add' or 'remove'");
         }
 
         return $this;
@@ -455,7 +455,7 @@ class Acl {
             // keep track of originally called role
             $this->_isAllowedRole = $role;
             $role = $this->_roles->get($role);
-            if (!$this->_isAllowedRole instanceof ASAP_Acl_Role) {
+            if (!$this->_isAllowedRole instanceof OPUS_Acl_Role) {
                 $this->_isAllowedRole = $role;
             }
         }
@@ -464,7 +464,7 @@ class Acl {
             // keep track of originally called resource
             $this->_isAllowedResource = $resource;
             $resource = $this->getResource($resource);
-            if (!$this->_isAllowedResource instanceof ASAP_Acl_Resource) {
+            if (!$this->_isAllowedResource instanceof OPUS_Acl_Resource) {
                 $this->_isAllowedResource = $resource;
             }
         }
@@ -537,7 +537,7 @@ class Acl {
 
     protected function _roleDFSVisitAllPrivileges($role, $resource = null, &$dfs = null) {
         if (null === $dfs) {
-            throw new ASAP_Exception('$dfs parameter may not be null');
+            throw new OPUS_Exception('$dfs parameter may not be null');
         }
 
         if (null !== ($rules = $this->_getRules($resource, $role))) {
@@ -561,7 +561,7 @@ class Acl {
 
     protected function _roleDFSOnePrivilege($role, $resource = null, $privilege = null) {
         if (null === $privilege) {
-            throw new ASAP_Exception('$privilege parameter may not be null');
+            throw new OPUS_Exception('$privilege parameter may not be null');
         }
 
         $dfs = array(
@@ -586,11 +586,11 @@ class Acl {
 
     protected function _roleDFSVisitOnePrivilege($role, $resource = null, $privilege = null, &$dfs = null) {
         if (null === $privilege) {
-            throw new ASAP_Exception('$privilege parameter may not be null');
+            throw new OPUS_Exception('$privilege parameter may not be null');
         }
 
         if (null === $dfs) {
-            throw new ASAP_Exception('$dfs parameter may not be null');
+            throw new OPUS_Exception('$dfs parameter may not be null');
         }
 
         if (null !== ($ruleTypeOnePrivilege = $this->_getRuleType($resource, $role, $privilege))) {
@@ -630,7 +630,7 @@ class Acl {
         if ($rule['conditions']) {
             $conditions = $rule['conditions'];
             $conditionValue = $conditions->assert(
-                    $this, ($this->_isAllowedRole instanceof ASAP_Acl_Role) ? $this->_isAllowedRole : $role, ($this->_isAllowedResource instanceof ASAP_Acl_Resource) ? $this->_isAllowedResource : $resource, $this->_isAllowedPrivilege
+                    $this, ($this->_isAllowedRole instanceof OPUS_Acl_Role) ? $this->_isAllowedRole : $role, ($this->_isAllowedResource instanceof OPUS_Acl_Resource) ? $this->_isAllowedResource : $resource, $this->_isAllowedPrivilege
             );
         }
 
@@ -732,5 +732,5 @@ class Acl {
 
 }
 
-// ASAP_Acl
+// OPUS_Acl
 ?>

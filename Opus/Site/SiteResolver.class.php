@@ -1,15 +1,15 @@
 <?php
 
 #[AllowDynamicProperties]
-class ASAP_SITE_SiteResolver {
-    public static function resolve($packagesConfig, string $defaultSiteId = 'logandplay', string $basePath = '', ?array &$catalog = null): ASAP_SITE_Site {
+class OPUS_SITE_SiteResolver {
+    public static function resolve($packagesConfig, string $defaultSiteId = 'logandplay', string $basePath = '', ?array &$catalog = null): OPUS_SITE_Site {
         $packages = is_array($packagesConfig) ? $packagesConfig : array();
         $host = self::detectHost();
         $sites = array();
 
         foreach ($packages as $id => $packageData) {
             $site = self::loadSitePackage((string)$id, $packageData, $host);
-            if ($site instanceof ASAP_SITE_Site) {
+            if ($site instanceof OPUS_SITE_Site) {
                 $sites[$site->getId()] = $site;
             }
         }
@@ -24,10 +24,10 @@ class ASAP_SITE_SiteResolver {
         }
 
         // 2) Path-prefix mode. This enables one local folder without vhosts:
-        //    /LOGANDPLAY_ASAP_LOCAL_PACKAGES/demo/...    -> demo
-        //    /LOGANDPLAY_ASAP_LOCAL_PACKAGES/maestro/... -> maestro
+        //    /LOGANDPLAY_OPUS_LOCAL_PACKAGES/demo/...    -> demo
+        //    /LOGANDPLAY_OPUS_LOCAL_PACKAGES/maestro/... -> maestro
         $pathSite = self::resolveByPathPrefix($sites, $basePath);
-        if ($pathSite instanceof ASAP_SITE_Site) {
+        if ($pathSite instanceof OPUS_SITE_Site) {
             return self::finalize($pathSite, $host, 'path');
         }
 
@@ -50,11 +50,11 @@ class ASAP_SITE_SiteResolver {
         }
 
         $first = reset($sites);
-        if ($first instanceof ASAP_SITE_Site) {
+        if ($first instanceof OPUS_SITE_Site) {
             return self::finalize($first, $host, self::isGenericLocalHost($host) ? 'path' : 'default');
         }
 
-        $fallback = new ASAP_SITE_Site('logandplay', array(
+        $fallback = new OPUS_SITE_Site('logandplay', array(
             'label' => 'Log&Play',
             'hosts' => 'logandplay.localhost,localhost,127.0.0.1',
             'pathPrefix' => '',
@@ -69,18 +69,18 @@ class ASAP_SITE_SiteResolver {
         return self::finalize($fallback, $host, self::isGenericLocalHost($host) ? 'path' : 'default');
     }
 
-    protected static function finalize(ASAP_SITE_Site $site, string $host, string $mode): ASAP_SITE_Site {
+    protected static function finalize(OPUS_SITE_Site $site, string $host, string $mode): OPUS_SITE_Site {
         $site->setRuntimeContext($host, $mode);
         $site->ensureRuntimeDirs();
         return $site;
     }
 
-    protected static function resolveByPathPrefix(array $sites, string $basePath): ?ASAP_SITE_Site {
+    protected static function resolveByPathPrefix(array $sites, string $basePath): ?OPUS_SITE_Site {
         $path = self::requestPathAfterBase($basePath);
         $trimmed = trim($path, '/');
         if ($trimmed === '') { return null; }
         $first = explode('/', $trimmed, 2)[0];
-        $first = ASAP_SITE_Site::normalizePathPrefix($first);
+        $first = OPUS_SITE_Site::normalizePathPrefix($first);
         if ($first === '') { return null; }
 
         foreach ($sites as $site) {
@@ -121,23 +121,23 @@ class ASAP_SITE_SiteResolver {
         return '/' . trim($path, '/');
     }
 
-    protected static function loadSitePackage(string $id, $packageData, string $host): ?ASAP_SITE_Site {
+    protected static function loadSitePackage(string $id, $packageData, string $host): ?OPUS_SITE_Site {
         $path = '';
         if (is_array($packageData)) { $path = (string)($packageData['path'] ?? ''); }
         elseif (is_string($packageData)) { $path = $packageData; }
         if ($path === '') { return null; }
         $siteXml = self::rootPath($path);
-        if (!is_file($siteXml)) { throw new ASAP_Exception('ASAP site package manifest not found: ' . $siteXml); }
+        if (!is_file($siteXml)) { throw new OPUS_Exception('OPUS site package manifest not found: ' . $siteXml); }
         $data = self::parseSiteXml($siteXml);
         $siteId = (string)($data['id'] ?? $id);
         unset($data['id']);
-        return new ASAP_SITE_Site($siteId, $data, $host, dirname($siteXml));
+        return new OPUS_SITE_Site($siteId, $data, $host, dirname($siteXml));
     }
 
     protected static function parseSiteXml(string $file): array {
-        if (!class_exists('SimpleXMLElement')) { throw new ASAP_Exception('PHP SimpleXML is required to load site package: ' . $file); }
+        if (!class_exists('SimpleXMLElement')) { throw new OPUS_Exception('PHP SimpleXML is required to load site package: ' . $file); }
         $xml = simplexml_load_file($file);
-        if (!$xml) { throw new ASAP_Exception('Invalid ASAP site package manifest: ' . $file); }
+        if (!$xml) { throw new OPUS_Exception('Invalid OPUS site package manifest: ' . $file); }
         $data = array('id' => (string)$xml['id']);
         foreach ($xml->children() as $key => $child) { $data[(string)$key] = (string)$child; }
         return $data;
@@ -152,14 +152,14 @@ class ASAP_SITE_SiteResolver {
     public static function detectHost(): string {
         $candidates = array($_SERVER['HTTP_X_FORWARDED_HOST'] ?? '', $_SERVER['HTTP_HOST'] ?? '', $_SERVER['SERVER_NAME'] ?? '');
         foreach ($candidates as $candidate) {
-            $host = ASAP_SITE_Site::normalizeHost((string)$candidate);
+            $host = OPUS_SITE_Site::normalizeHost((string)$candidate);
             if ($host !== '') { return $host; }
         }
         return 'localhost';
     }
 
     public static function isGenericLocalHost(string $host): bool {
-        $host = ASAP_SITE_Site::normalizeHost($host);
+        $host = OPUS_SITE_Site::normalizeHost($host);
         return in_array($host, array('localhost', '127.0.0.1', '::1'), true);
     }
 }

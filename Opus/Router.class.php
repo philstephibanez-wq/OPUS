@@ -1,9 +1,9 @@
 <?php
 
 #[AllowDynamicProperties]
-class ASAP_Router {
+class OPUS_Router {
     private const ROUTE_DEBUG_ENABLED = false;
-    private const ROUTE_DEBUG_LOG = '/logs/asap_route_debug.log';
+    private const ROUTE_DEBUG_LOG = '/logs/opus_route_debug.log';
     private const ROUTE_DEBUG_MAX_BYTES = 524288;
 
     protected $_app = null;
@@ -20,14 +20,14 @@ class ASAP_Router {
     protected $_target = array();
 
     public function __construct($app, $siteDir, $routes) {
-        $this->_app = ASAP_Application::getInstance();
-        $this->_i18n = ASAP_I18N_I18n::getInstance();
+        $this->_app = OPUS_Application::getInstance();
+        $this->_i18n = OPUS_I18N_I18n::getInstance();
         $this->_routes = is_array($routes) ? $routes : array();
         $this->_siteDir = $this->_normalizeBasePath((string)$siteDir);
         if ($this->_siteDir === '') {
             $this->_siteDir = $this->_detectBasePath();
         }
-        $this->_sitePathPrefix = method_exists($this->_app, 'getSitePathPrefix') ? ASAP_SITE_Site::normalizePathPrefix((string)$this->_app->getSitePathPrefix()) : '';
+        $this->_sitePathPrefix = method_exists($this->_app, 'getSitePathPrefix') ? OPUS_SITE_Site::normalizePathPrefix((string)$this->_app->getSitePathPrefix()) : '';
         $this->_siteResolutionMode = method_exists($this->_app, 'getSiteResolutionMode') ? (string)$this->_app->getSiteResolutionMode() : '';
         $this->_debugLog('construct', array(
             'siteDir' => $this->_siteDir,
@@ -252,12 +252,12 @@ class ASAP_Router {
         }
 
         /*
-         * ASAP legacy router used to translate every URL segment through I18N
+         * OPUS legacy router used to translate every URL segment through I18N
          * before route matching. That breaks modern localized routes because
          * a route like /fr/framework becomes /Français/framework when the
          * dictionary contains a translation for "fr".
          *
-         * Modern ASAP routes are already declared in their public localized
+         * Modern OPUS routes are already declared in their public localized
          * form inside config.xml. Therefore the dispatcher must match the
          * decoded URL as-is, after base path stripping and UTF-8 normalization.
          */
@@ -291,7 +291,7 @@ class ASAP_Router {
         $target_parts = explode('|', $this->_target[$key]);
         $conditions_parts = explode('|', $this->_conditions[$key]);
         if (count($target_parts) !== count($conditions_parts)) {
-            throw new ASAP_Exception("TARGET PARTS DON'T MATCH CONDITIONS PART for key $key");
+            throw new OPUS_Exception("TARGET PARTS DON'T MATCH CONDITIONS PART for key $key");
         }
         return array_combine($conditions_parts, $target_parts);
     }
@@ -352,7 +352,7 @@ class ASAP_Router {
                         'rule' => isset($route->rule) ? (string)$route->rule : '',
                         'target' => isset($route->target) ? $route->target : array(),
                     ));
-                    throw new ASAP_Exception("TARGET: $required is NOT DEFINED for route name: $name");
+                    throw new OPUS_Exception("TARGET: $required is NOT DEFINED for route name: $name");
                 }
             }
 

@@ -1,7 +1,7 @@
 <?php
 
 #[AllowDynamicProperties]
-class ASAP_ConfigLoader {
+class OPUS_ConfigLoader {
     protected ?string $_env = null;
     protected string $_filename = '';
     protected $_xml = null;
@@ -14,7 +14,7 @@ class ASAP_ConfigLoader {
         $phpFile = $xmlFile . '.php';
 
         if (!file_exists($xmlFile)) {
-            throw new ASAP_Exception('Config XML file not found: ' . $xmlFile);
+            throw new OPUS_Exception('Config XML file not found: ' . $xmlFile);
         }
 
         $configFileLastMod = filemtime($xmlFile);
@@ -34,11 +34,11 @@ class ASAP_ConfigLoader {
 
         if ($mustRebuild) {
             if (!class_exists('SimpleXMLElement')) {
-                throw new ASAP_Exception('PHP extension simplexml/xml is required to load ASAP XML configuration. Enable it in php.ini.');
+                throw new OPUS_Exception('PHP extension simplexml/xml is required to load OPUS XML configuration. Enable it in php.ini.');
             }
             $contents = file_get_contents($xmlFile);
             if ($contents === false) {
-                throw new ASAP_Exception('Cannot read config XML file: ' . $xmlFile);
+                throw new OPUS_Exception('Cannot read config XML file: ' . $xmlFile);
             }
             $this->_xml = new SimpleXMLElement($contents);
             $this->_parseXml($this->_xml);
@@ -49,14 +49,14 @@ class ASAP_ConfigLoader {
     }
 
     public static function getConfig($xmlFile) {
-        $thisObj = new ASAP_ConfigLoader($xmlFile);
+        $thisObj = new OPUS_ConfigLoader($xmlFile);
         return $thisObj->phpFile;
     }
 
     private function _writePhpFile(): void {
         $tempFilePath = $this->_filename . '.tmp';
         if (file_put_contents($tempFilePath, $this->_php_content, LOCK_EX) === false) {
-            throw new ASAP_Exception('Cannot write temporary config PHP file: ' . $tempFilePath);
+            throw new OPUS_Exception('Cannot write temporary config PHP file: ' . $tempFilePath);
         }
         rename($tempFilePath, $this->_filename . '.php');
     }
@@ -87,7 +87,7 @@ class ASAP_ConfigLoader {
 
             if (count($xml->children()) > 0) {
                 if ($level > 30) {
-                    throw new ASAP_Exception('Too much nested tags in config XML file');
+                    throw new OPUS_Exception('Too much nested tags in config XML file');
                 }
                 $this->_parseXml($xml->children(), $currentPath, $level + 1);
                 continue;
@@ -130,7 +130,7 @@ class ASAP_ConfigLoader {
 
     protected function _generatePhpConfig(): void {
         $php = "<?php\n";
-        $php .= "class Config extends ASAP_Configuration {\n";
+        $php .= "class Config extends OPUS_Configuration {\n";
         $php .= "    public function __construct() {\n";
         foreach ($this->_confVars as [$path, $value]) {
             if (!$path) {

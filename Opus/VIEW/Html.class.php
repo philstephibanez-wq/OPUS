@@ -1,7 +1,7 @@
 <?php
 
 #[AllowDynamicProperties]
-class ASAP_VIEW_Html {
+class OPUS_VIEW_Html {
 	protected $_app = null;
 	protected $_i18n = null;
 	protected $_controller=null;
@@ -13,20 +13,20 @@ class ASAP_VIEW_Html {
 	protected $_theme = '';
 	
 	function __construct() {
-		$this->_app = ASAP_Application::getInstance();	
-		$this->_controller = ASAP_Controller::getInstance();		
+		$this->_app = OPUS_Application::getInstance();	
+		$this->_controller = OPUS_Controller::getInstance();		
 		$theme = $this->_app->config->get('theme');
 		$this->applyTheme($theme);	
 		
-		$this->_i18n = ASAP_I18N_I18n::getInstance(null);	
-//		ASAP_Debug::addDump(__CLASS__.__FUNCTION__."   ",$this->_i18n->getDictionary(), __FILE__, __LINE__, 'blue');
+		$this->_i18n = OPUS_I18N_I18n::getInstance(null);	
+//		OPUS_Debug::addDump(__CLASS__.__FUNCTION__."   ",$this->_i18n->getDictionary(), __FILE__, __LINE__, 'blue');
 				
 		$this->init();
 	}	
 //
 	
 	protected function init() {
-//		throw new ASAP_Exception(VIEW CLASS (to override));
+//		throw new OPUS_Exception(VIEW CLASS (to override));
 //		echo "<h1><font color='BLUE'>VIEW CLASS (to override)</font></h1>";
 	}	
 	
@@ -186,7 +186,7 @@ class ASAP_VIEW_Html {
   		echo $this->_getHeader();
  		echo "<body>";
 		echo  $this->_output;
-                echo ASAP_Debug::get();
+                echo OPUS_Debug::get();
                 if($this->_app->config->getEnv("debug")) echo "<div class='echo'>$old_buffer</div>"; // recupere les warnings etc... PHP
  		echo "</body>";
  		echo "</html>";

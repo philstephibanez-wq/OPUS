@@ -1,7 +1,7 @@
 <?php
 	
 #[AllowDynamicProperties]
-abstract class ASAP_Debug {
+abstract class OPUS_Debug {
 		static $_logs = array();
 		static $_root = '../';
 		static $_debug = false;

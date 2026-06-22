@@ -1,7 +1,7 @@
 <?php
 
 #[AllowDynamicProperties]
-class ASAP_SITE_Site {
+class OPUS_SITE_Site {
     protected string $_id;
     protected string $_label;
     protected array $_hosts;

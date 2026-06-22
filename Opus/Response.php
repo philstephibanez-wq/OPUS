@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace ASAP;
+namespace Opus;
 
 final class Response
 {

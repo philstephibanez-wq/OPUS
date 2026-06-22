@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace ASAP;
+namespace Opus;
 
 final class Bootstrap
 {
@@ -32,7 +32,7 @@ final class Bootstrap
             'Router.php',
             'Kernel.php',
         ] as $file) {
-            require_once $rootDir . '/framework/ASAP/' . $file;
+            require_once $rootDir . '/Opus/' . $file;
         }
     }
 
@@ -48,7 +48,7 @@ final class Bootstrap
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ASAP fatal error</title>
+<title>OPUS fatal error</title>
 <style>
 body{font-family:system-ui,Segoe UI,Arial,sans-serif;margin:2rem;background:#151820;color:#f5f7ff;line-height:1.5}
 pre{white-space:pre-wrap;background:#07090f;border:1px solid #353b4f;border-radius:12px;padding:1rem;color:#ffdf99}
@@ -56,7 +56,7 @@ strong{color:#ffb86b}
 </style>
 </head>
 <body>
-<h1>ASAP — erreur explicite</h1>
+<h1>OPUS — erreur explicite</h1>
 <p><strong>{$message}</strong></p>
 <pre>{$file}:{$line}</pre>
 </body>

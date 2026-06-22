@@ -1,7 +1,7 @@
 <?php
 
 #[AllowDynamicProperties]
-class ASAP_BDD_Database {
+class OPUS_BDD_Database {
 
     function __construct($params=null) {
         if ($params == null)
@@ -15,9 +15,9 @@ class ASAP_BDD_Database {
                 if (!isset($params['port']))
                     $params['port'] = "3306";
                 if (isset($params['prefix'])) {
-                    $mysql = new ASAP_BDD_Mysql($params['server'], $params['username'], $params['password'], $params['schema'], $params['port'], $params['prefix']);
+                    $mysql = new OPUS_BDD_Mysql($params['server'], $params['username'], $params['password'], $params['schema'], $params['port'], $params['prefix']);
                 }
-                $mysql = new ASAP_BDD_Mysql($params['server'], $params['username'], $params['password'], $params['schema'], $params['port']);
+                $mysql = new OPUS_BDD_Mysql($params['server'], $params['username'], $params['password'], $params['schema'], $params['port']);
                 return $mysql;
         }
         return null;

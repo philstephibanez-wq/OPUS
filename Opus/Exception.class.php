@@ -2,13 +2,13 @@
 
 
 /**
-* @category   ASAP
-* @package    ASAP
-* @copyright  Copyright (c) 2005-2011 ASAP Technologies USA Inc. (http://www.ASAP.com)
-* @license    http://framework.ASAP.com/license/new-bsd     New BSD License
+* @category   OPUS
+* @package    OPUS
+* @copyright  Copyright (c) 2005-2011 OPUS Technologies USA Inc. (http://www.OPUS.com)
+* @license    http://framework.OPUS.com/license/new-bsd     New BSD License
 */
 #[AllowDynamicProperties]
-class ASAP_Exception extends Exception
+class OPUS_Exception extends Exception
 {
     /**
      * @var null|Exception

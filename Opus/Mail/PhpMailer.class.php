@@ -2,11 +2,11 @@
 if (!class_exists('PHPMailer') && defined('ROOT') && is_file(ROOT . '/framework/libs/PHPMailer/class.phpmailer.php')) { require_once ROOT . '/framework/libs/PHPMailer/class.phpmailer.php'; }
 
 #[AllowDynamicProperties]
-class ASAP_PhpMailer extends PHPMailer {
+class OPUS_PhpMailer extends PHPMailer {
 
     public function __construct($exceptions=true) {
         parent::__construct($exceptions); // true for exceptions
-        $app = ASAP_Application::getInstance();
+        $app = OPUS_Application::getInstance();
         $smtpConf = $app->config->getEnv('smtp') ?: array();
         if (!empty($smtpConf)) {
             if (defined('ROOT')) {
@@ -39,9 +39,9 @@ class ASAP_PhpMailer extends PHPMailer {
             $this->Send();
             echo "Message Sent OK</p>\n";
         } catch (phpmailerException $e) {
-            throw new ASAP_Exception( $e->errorMessage()); //Pretty error messages from PHPMailer
+            throw new OPUS_Exception( $e->errorMessage()); //Pretty error messages from PHPMailer
         } catch (Exception $e) {
-            throw new ASAP_Exception( $e->getMessage()); //Boring error messages from anything else!
+            throw new OPUS_Exception( $e->getMessage()); //Boring error messages from anything else!
         }
     }
 

@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Lightweight FSM diagram renderer for ASAP.
+ * Lightweight FSM diagram renderer for OPUS.
  *
  * This replaces the historical GraphViz/dot dependency with a self-contained
  * SVG renderer: no external binary, no exec(), no temporary image file.
  */
-class ASAP_FSM_Diagram {
+class OPUS_FSM_Diagram {
     private string $_title;
     private string $_initialState;
     private string $_finalState;
@@ -16,8 +16,8 @@ class ASAP_FSM_Diagram {
     private array $_edges = array();
     private array $_actions = array();
 
-    public function __construct(string $title = 'ASAP FSM', string $initialState = '', string $finalState = '', string $currentState = '', array $memory = array()) {
-        $this->_title = $title !== '' ? $title : 'ASAP FSM';
+    public function __construct(string $title = 'OPUS FSM', string $initialState = '', string $finalState = '', string $currentState = '', array $memory = array()) {
+        $this->_title = $title !== '' ? $title : 'OPUS FSM';
         $this->_initialState = $initialState;
         $this->_finalState = $finalState;
         $this->_currentState = $currentState;
@@ -76,7 +76,7 @@ class ASAP_FSM_Diagram {
     }
 
     public static function renderDemoHtml(): string {
-        $diagram = new self('ASAP demo FSM', 'IDLE', 'DONE', 'ROUTE_FOUND', array(
+        $diagram = new self('OPUS demo FSM', 'IDLE', 'DONE', 'ROUTE_FOUND', array(
             'url' => '/fr/démo-interne',
             'module' => 'default',
             'language' => 'FR-fr',
@@ -163,7 +163,7 @@ class ASAP_FSM_Diagram {
             );
         }
 
-        $svg = '<svg class="fsm-diagram" viewBox="0 0 ' . $width . ' ' . $height . '" role="img" aria-label="Diagramme FSM ASAP">';
+        $svg = '<svg class="fsm-diagram" viewBox="0 0 ' . $width . ' ' . $height . '" role="img" aria-label="Diagramme FSM OPUS">';
         $svg .= '<defs>'
             . '<marker id="fsm-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" /></marker>'
             . '<linearGradient id="fsm-state-fill" x1="0" x2="1" y1="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#eef6ff"/></linearGradient>'

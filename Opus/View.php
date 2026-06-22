@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace ASAP;
+namespace Opus;
 
 final class View
 {
@@ -28,7 +28,7 @@ final class View
         $packageNav = $this->renderPackageNav($package, $lang, $pageId);
         $body = $this->renderBody($package, $lang, $page);
         $year = date('Y');
-        $badge = Support::e((string)($package->meta['badge'] ?? 'ASAP'));
+        $badge = Support::e((string)($package->meta['badge'] ?? 'OPUS'));
         $footerTagline = $this->footerTagline($lang);
 
         return <<<HTML
@@ -52,7 +52,7 @@ final class View
   {$body}
 </main>
 <footer class="site-footer">
-  <span>© {$year} Log&Play / ASAP</span>
+  <span>© {$year} Log&Play / OPUS</span>
   <span>{$footerTagline}</span>
 </footer>
 <script src="{$assetJs}" defer></script>

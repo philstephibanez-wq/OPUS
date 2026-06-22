@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/ASAP/bootstrap.php';
+require_once __DIR__ . '/Bootstrap.php';
 
 
 class ExtensionFilterIteratorDecorator extends FilterIterator {
@@ -143,7 +143,7 @@ $tmpPath = defined('ROOT') ? ROOT . '/tmp/' : __DIR__ . '/../tmp/';
 $base = defined('ROOT') ? ROOT : realpath(__DIR__ . '/..');
 
 $autoloader = DirectoriesAutoloader::getInstance($tmpPath)
-    ->addDirectory($base . '/framework/ASAP/')
+    ->addDirectory($base . '/Opus/')
     ->addDirectory($base . '/application/');
 
 spl_autoload_register(array($autoloader, 'autoload'));

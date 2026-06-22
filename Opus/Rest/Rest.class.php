@@ -1,14 +1,14 @@
 <?php
 
 /**
- * ASAP REST base controller.
+ * OPUS REST base controller.
  *
- * Minimal PHP 8 compatible REST layer for the legacy ASAP MVC runtime.
+ * Minimal PHP 8 compatible REST layer for the legacy OPUS MVC runtime.
  * It keeps the historical router/controller contract and adds explicit JSON
  * responses, HTTP method dispatch, request body parsing and lightweight CORS.
  */
 #[AllowDynamicProperties]
-abstract class ASAP_REST_Rest extends ASAP_Controller {
+abstract class OPUS_REST_Rest extends OPUS_Controller {
     protected array $_restAllowedMethods = array('GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS');
     protected string $_restMethod = 'GET';
     protected array $_restInput = array();
@@ -16,7 +16,7 @@ abstract class ASAP_REST_Rest extends ASAP_Controller {
     protected bool $_restInputParsed = false;
 
     public function run() {
-        ASAP_Debug::addDump(__CLASS__ . '::' . __FUNCTION__ . ' parameters', $this->_params, __FILE__, __LINE__, 'cyan');
+        OPUS_Debug::addDump(__CLASS__ . '::' . __FUNCTION__ . ' parameters', $this->_params, __FILE__, __LINE__, 'cyan');
 
         $this->_restMethod = $this->method();
         if (!in_array($this->_restMethod, $this->_restAllowedMethods, true)) {

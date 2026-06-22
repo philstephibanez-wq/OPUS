@@ -24,7 +24,7 @@ class Route_Object {
 }
 
 #[AllowDynamicProperties]
-class ASAP_Configuration {
+class OPUS_Configuration {
 
     protected $_env = null;
     protected $_configArray = array();
@@ -42,8 +42,8 @@ class ASAP_Configuration {
     }
 
     protected function findEnv() {
-        if (defined('ASAP_ENV') && isset($this->_environments[ASAP_ENV])) {
-            $this->_env = ASAP_ENV;
+        if (defined('OPUS_ENV') && isset($this->_environments[OPUS_ENV])) {
+            $this->_env = OPUS_ENV;
             return;
         }
 
@@ -73,7 +73,7 @@ class ASAP_Configuration {
             }
         }
 
-        // Modern ASAP demo: when siteUrl is {AUTO}/empty/local, the same codebase
+        // Modern OPUS demo: when siteUrl is {AUTO}/empty/local, the same codebase
         // can run from localhost, a LAN host, or a Cloudflare/HTTPS public host.
         // If no explicit environment matches, dev is the safe default.
         if (isset($this->_environments['dev'])) {

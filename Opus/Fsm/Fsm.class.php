@@ -19,13 +19,13 @@ class Transition {
 }
 
 #[AllowDynamicProperties]
-class ASAP_FSM_GraphViz {
+class OPUS_FSM_GraphViz {
     public static function export(&$fsm) {
-        throw new ASAP_Exception('GraphViz export has been removed from ASAP PHP 8 demo. Use ASAP_FSM_Diagram instead.');
+        throw new OPUS_Exception('GraphViz export has been removed from OPUS PHP 8 demo. Use OPUS_FSM_Diagram instead.');
     }
 
     public static function render(&$fsm): string {
-        throw new ASAP_Exception('GraphViz renderer has been removed from ASAP PHP 8 demo. Use ASAP_FSM_Fsm::draw() or ASAP_FSM_Diagram directly.');
+        throw new OPUS_Exception('GraphViz renderer has been removed from OPUS PHP 8 demo. Use OPUS_FSM_Fsm::draw() or OPUS_FSM_Diagram directly.');
     }
 }
 
@@ -37,7 +37,7 @@ interface iFSM {
 define('PROGRAM_COLOR', 'blue');
 
 #[AllowDynamicProperties]
-class ASAP_FSM_Fsm Implements iFSM {
+class OPUS_FSM_Fsm Implements iFSM {
 
     protected $_id;
     protected $_currentState;
@@ -52,7 +52,7 @@ class ASAP_FSM_Fsm Implements iFSM {
     protected $_dir;
 
     public function __construct($id, $initialState, $finalState='', $presetMemory=array(), $presetStack=array(), $loadProgram=false) {     
- //       $this->_debug = ASAP_Debug::getInstance();
+ //       $this->_debug = OPUS_Debug::getInstance();
         $this->_id = $id;
         $this->_currentState = $initialState;
         $this->_presetStack = $presetStack;
@@ -82,7 +82,7 @@ class ASAP_FSM_Fsm Implements iFSM {
     public function create(){throw new Exception("Method: create MUST BE IMPLEMENTED into the FSM");} 
     	
     final public function __destruct() {
-        ASAP_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " FSM DESTRUCTOR (save state)", __FILE__, __LINE__, PROGRAM_COLOR);
+        OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " FSM DESTRUCTOR (save state)", __FILE__, __LINE__, PROGRAM_COLOR);
         $this->saveState();
     }
 
@@ -118,13 +118,13 @@ class ASAP_FSM_Fsm Implements iFSM {
     }
 
     final public function peek($name) {
-//		ASAP_Debug::addDump(__CLASS__."::".__FUNCTION__." name. $name", $this->_memory[$name], __FILE__, __LINE__, PROGRAM_COLOR);		
+//		OPUS_Debug::addDump(__CLASS__."::".__FUNCTION__." name. $name", $this->_memory[$name], __FILE__, __LINE__, PROGRAM_COLOR);		
         return $this->_memory[$name];
     }
 
     final public function poke($name, $value) {
         $this->_memory[$name] = $value;
-//		ASAP_Debug::addDump(__CLASS__."::".__FUNCTION__." name. $name", $value, __FILE__, __LINE__, PROGRAM_COLOR);		
+//		OPUS_Debug::addDump(__CLASS__."::".__FUNCTION__." name. $name", $value, __FILE__, __LINE__, PROGRAM_COLOR);		
     }
 
     // STACK
@@ -169,7 +169,7 @@ class ASAP_FSM_Fsm Implements iFSM {
 
     final public function push($value) {
         $this->_stack[] = $value;
-        ASAP_Debug::addDump('VALUE:', $value, __CLASS__ . "::" . __FUNCTION__, __FILE__, __LINE__, PROGRAM_COLOR);
+        OPUS_Debug::addDump('VALUE:', $value, __CLASS__ . "::" . __FUNCTION__, __FILE__, __LINE__, PROGRAM_COLOR);
     }
 
     final protected function _setCurrentState($state) {
@@ -188,7 +188,7 @@ class ASAP_FSM_Fsm Implements iFSM {
     }
 
     final public function draw() {
-        print ASAP_FSM_Diagram::renderRuntime(
+        print OPUS_FSM_Diagram::renderRuntime(
             get_class($this),
             (string)$this->_initialState,
             (string)$this->_finalState,
@@ -199,13 +199,13 @@ class ASAP_FSM_Fsm Implements iFSM {
     }
 
     final protected function _execute($method, $signal) {
-        ASAP_Debug::add(__CLASS__ . "::" . __FUNCTION__ . "::$method, signal: $signal", __FILE__, __LINE__, 'cyan');
+        OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . "::$method, signal: $signal", __FILE__, __LINE__, 'cyan');
         return $this->{$method}($signal);
     }
 
     final protected function _getTransition($signal) {
         $state = $this->getCurrentState();
-        ASAP_Debug::add(__FUNCTION__ . " state: $state", __FILE__, __LINE__, 'cyan');
+        OPUS_Debug::add(__FUNCTION__ . " state: $state", __FILE__, __LINE__, 'cyan');
         if (isset($this->_transitions["$signal,$state"])) {
             return $this->_transitions["$signal,$state"];
         } elseif (isset($this->_transitions["__any__,$state"])) {
@@ -218,7 +218,7 @@ class ASAP_FSM_Fsm Implements iFSM {
     final protected function process($signal) {
         $transition = $this->_getTransition($signal);
         $msg = __FUNCTION__ . " TRANSITION: [$signal," . $this->getCurrentState() . "] action: " . $transition->action;
-        ASAP_Debug::add($msg, __FILE__, __LINE__, 'cyan');
+        OPUS_Debug::add($msg, __FILE__, __LINE__, 'cyan');
 
         // Update the current state to this transition's exit state. 
 //		$fsm->setCurrentSignal($signal);
@@ -232,10 +232,10 @@ class ASAP_FSM_Fsm Implements iFSM {
 
         // If a new signal was returned process new signal, here the state can't change
         if (!is_null($receivedSignal)) {
-//			ASAP_Debug::add(  __CLASS__."::".__FUNCTION__." CHAIN-------------> $receivedSignal", __FILE__, __LINE__, PROGRAM_COLOR);
+//			OPUS_Debug::add(  __CLASS__."::".__FUNCTION__." CHAIN-------------> $receivedSignal", __FILE__, __LINE__, PROGRAM_COLOR);
             $this->process($receivedSignal);
         }
-//		ASAP_Debug::add(  __CLASS__."::".__FUNCTION__." end", __FILE__, __LINE__, PROGRAM_COLOR);
+//		OPUS_Debug::add(  __CLASS__."::".__FUNCTION__." end", __FILE__, __LINE__, PROGRAM_COLOR);
     }
 
     final protected function attachEvent($event, $handler) {
@@ -271,7 +271,7 @@ class ASAP_FSM_Fsm Implements iFSM {
     final public function saveState() {
 //		$this->_lockExec('save');	
         $file = $this->_dir . "/" . $this->_id . ".fsm";
-        ASAP_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " $file", __FILE__, __LINE__, PROGRAM_COLOR);
+        OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " $file", __FILE__, __LINE__, PROGRAM_COLOR);
 
         $timeLimit = time() + $this->getTimeout();
         $dump = array(
@@ -282,14 +282,14 @@ class ASAP_FSM_Fsm Implements iFSM {
             'memory' => $this->getMemory(),
             'stack' => $this->getStack()
         );
-        ASAP_Debug::addDump(__CLASS__ . "::" . __FUNCTION__ . " data:", $dump, __FILE__, __LINE__, PROGRAM_COLOR);
+        OPUS_Debug::addDump(__CLASS__ . "::" . __FUNCTION__ . " data:", $dump, __FILE__, __LINE__, PROGRAM_COLOR);
         $s = serialize($dump);
         file_put_contents($file, $s);
     }
 
     final public function loadState() {
         $file = $this->_dir . "/" . $this->_id . ".fsm";
-        ASAP_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " $file", __FILE__, __LINE__, PROGRAM_COLOR);
+        OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " $file", __FILE__, __LINE__, PROGRAM_COLOR);
         $t = time();
         if (is_file($file)) {
 //			while( !$s ) {
@@ -324,7 +324,7 @@ class ASAP_FSM_Fsm Implements iFSM {
         }
         /*
           else {
-          //			ASAP_Debug::add( __CLASS__."::".__FUNCTION__." (no file) STATE = ".$this->getCurrentState(), __FILE__, __LINE__, PROGRAM_COLOR);
+          //			OPUS_Debug::add( __CLASS__."::".__FUNCTION__." (no file) STATE = ".$this->getCurrentState(), __FILE__, __LINE__, PROGRAM_COLOR);
           $this->create(); // reset
           $this->poke('timeLimit', time() + $this->getTimeout(), false);
           }
@@ -345,7 +345,7 @@ class ASAP_FSM_Fsm Implements iFSM {
     final protected function _lockExec($cmd, $timeout=5) {
         // Tache � effectuer ou non ? 
         $lockFile = $this->_dir . "/" . $this->_id . ".sem";
-        ASAP_Debug::add(__CLASS__ . "::" . __FUNCTION__ . "LOCKFILE: $lockFile", __FILE__, __LINE__, PROGRAM_COLOR);
+        OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . "LOCKFILE: $lockFile", __FILE__, __LINE__, PROGRAM_COLOR);
 
         if (!file_exists($lockFile)) {
             // Fichier n'existe pas, pose du verrou mode bloquant. 

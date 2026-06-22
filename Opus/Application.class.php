@@ -4,10 +4,10 @@ define('APP_COLOR', 'orange');
 define('TODO', 'red');
 
 #[AllowDynamicProperties]
-class ASAP_Application {
+class OPUS_Application {
 
     private const ROUTE_DEBUG_ENABLED = false;
-    private const ROUTE_DEBUG_LOG = '/logs/asap_route_debug.log';
+    private const ROUTE_DEBUG_LOG = '/logs/opus_route_debug.log';
     private const ROUTE_DEBUG_MAX_BYTES = 524288;
 
     private static $_instance = null;     // php5.3
@@ -67,8 +67,8 @@ class ASAP_Application {
 
     final public function __construct() {
 
-        ASAP_Application::$_instance = $this;
-        ob_start("ASAP_Application::output_handler");
+        OPUS_Application::$_instance = $this;
+        ob_start("OPUS_Application::output_handler");
         
         $ip = str_replace(':', '_', $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1');
 
@@ -85,17 +85,17 @@ class ASAP_Application {
         // charger la config correspondant au signal
 //        $xmlFile = ROOT . "/application/config/config.$defaultLang.xml";
         $xmlFile = ROOT . "/application/config/config.xml";
-        $PHPconfig = ASAP_ConfigLoader::getConfig($xmlFile);
+        $PHPconfig = OPUS_ConfigLoader::getConfig($xmlFile);
 
         require_once ($PHPconfig);        
         $this->config = new Config();            
 
-        // ASAP multi-site resolver: one codebase can serve several local hosts
+        // OPUS multi-site resolver: one codebase can serve several local hosts
         // and one local folder through path prefixes (/demo, /maestro).
         $initialSiteDir = $this->_detectBasePath();
         $this->_sites = array();
-        $this->_site = ASAP_SITE_SiteResolver::resolve($this->config->get('sitePackages'), (string)$this->config->get('defaultSite'), $initialSiteDir, $this->_sites);
-        if ($this->_site instanceof ASAP_SITE_Site) {
+        $this->_site = OPUS_SITE_SiteResolver::resolve($this->config->get('sitePackages'), (string)$this->config->get('defaultSite'), $initialSiteDir, $this->_sites);
+        if ($this->_site instanceof OPUS_SITE_Site) {
             $this->config->set('theme', $this->_site->getTheme());
             $this->config->set('currentSite', $this->_site->toArray());
         }
@@ -103,8 +103,8 @@ class ASAP_Application {
         $debug = $this->config->getEnv("debug");
 
         if ($debug) {
-            ASAP_Debug::setDebug($debug, $this->getSiteLogDir());
-            ASAP_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " DEBUG IS STARTED !!!!!", __FILE__, __LINE__, TODO);
+            OPUS_Debug::setDebug($debug, $this->getSiteLogDir());
+            OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " DEBUG IS STARTED !!!!!", __FILE__, __LINE__, TODO);
         }
 
         $configuredSiteDir = (string)$this->config->getEnv("siteDir");
@@ -117,7 +117,7 @@ class ASAP_Application {
         // and breaks CSS/JS assets.  Folder mode is still preserved for generic
         // localhost / 127.0.0.1.
         if ($configuredSiteDir === ''
-            && $this->_site instanceof ASAP_SITE_Site
+            && $this->_site instanceof OPUS_SITE_Site
             && $this->_site->getResolutionMode() === 'host') {
             $autoSiteDir = '';
         }
@@ -160,8 +160,8 @@ class ASAP_Application {
             'assets' => $this->_assets,
         ));
 
-//        ASAP_Debug::addDump(__CLASS__ . "::" . __FUNCTION__ . " \$this->config ", $this->config, __FILE__, __LINE__, APP_COLOR);
-        ASAP_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " FAIRE un POKE de la config ?????", __FILE__, __LINE__, TODO);
+//        OPUS_Debug::addDump(__CLASS__ . "::" . __FUNCTION__ . " \$this->config ", $this->config, __FILE__, __LINE__, APP_COLOR);
+        OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " FAIRE un POKE de la config ?????", __FILE__, __LINE__, TODO);
 
         if ($this->config->get('router')) {
             $this->_configRoutes = $this->_loadCurrentSiteRoutes();
@@ -172,7 +172,7 @@ class ASAP_Application {
             'routeCount' => is_array($this->_configRoutes) ? count($this->_configRoutes) : 0,
             'firstRouteIds' => is_array($this->_configRoutes) ? array_slice(array_keys($this->_configRoutes), 0, 40) : array(),
         ));
-        $this->router = new ASAP_Router($this, $this->_siteDir, $this->_configRoutes);
+        $this->router = new OPUS_Router($this, $this->_siteDir, $this->_configRoutes);
 
 //        parent::__construct($id, 'INIT', null, array(), array(), false);
         $this->dispatch();
@@ -180,7 +180,7 @@ class ASAP_Application {
 
    public static function getInstance (){
       if(self::$_instance === null){
-         return self::$_instance = new ASAP_Application();
+         return self::$_instance = new OPUS_Application();
       }
       return self::$_instance;
    }
@@ -191,7 +191,7 @@ class ASAP_Application {
 
     // site en maintenance ?
     protected function isOff() {
-        ASAP_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " " . ROOT . "/application/config/maintenance", __FILE__, __LINE__, TODO);
+        OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " " . ROOT . "/application/config/maintenance", __FILE__, __LINE__, TODO);
         if (file_exists(ROOT . "/application/config/maintenance"))
             return true;
         return false;
@@ -213,7 +213,7 @@ class ASAP_Application {
     private function _detectBasePath(): string {
         // First use REQUEST_URI + the project directory name. Behind reverse
         // proxies / rewrites, SCRIPT_NAME can be just /index.php, while the
-        // public request is still /asap_php85/...
+        // public request is still /opus_php85/...
         $rootName = basename(str_replace('\\', '/', rtrim((string)ROOT, '/\\')));
         $request = (string)($_SERVER['REQUEST_URI'] ?? '');
         $requestPath = $request;
@@ -267,31 +267,31 @@ class ASAP_Application {
     }
 
     private function _currentSiteWebPath(): string {
-        if ($this->_site instanceof ASAP_SITE_Site && $this->_site->getResolutionMode() === 'path') {
+        if ($this->_site instanceof OPUS_SITE_Site && $this->_site->getResolutionMode() === 'path') {
             return $this->_joinWebPaths($this->_siteDir, $this->_site->getPathPrefix());
         }
         return $this->_siteDir;
     }
 
     private function _isGenericLocalHost(string $host): bool {
-        return class_exists('ASAP_SITE_SiteResolver') && ASAP_SITE_SiteResolver::isGenericLocalHost($host);
+        return class_exists('OPUS_SITE_SiteResolver') && OPUS_SITE_SiteResolver::isGenericLocalHost($host);
     }
 
     private function _preferPathModeLinks(): bool {
-        if ($this->_site instanceof ASAP_SITE_Site && $this->_site->getResolutionMode() === 'path') {
+        if ($this->_site instanceof OPUS_SITE_Site && $this->_site->getResolutionMode() === 'path') {
             return true;
         }
         return $this->_isGenericLocalHost($this->_detectRequestHost()) && $this->_siteDir !== '';
     }
 
-    private function _sitePathFor(ASAP_SITE_Site $site): string {
+    private function _sitePathFor(OPUS_SITE_Site $site): string {
         if ($this->_preferPathModeLinks()) {
             return $this->_joinWebPaths($this->_siteDir, $site->getPathPrefix());
         }
         return $this->_siteDir;
     }
 
-    private function _siteHostFor(ASAP_SITE_Site $site): string {
+    private function _siteHostFor(OPUS_SITE_Site $site): string {
         $hosts = $site->getHosts();
         foreach ($hosts as $host) {
             if (!$this->_isGenericLocalHost($host)) {
@@ -310,10 +310,10 @@ class ASAP_Application {
     public function getSiteUrl($siteId = null, string $path = ''): string {
         $siteId = $siteId === null || $siteId === '' ? $this->getSiteId() : (string)$siteId;
         $site = $this->_sites[$siteId] ?? null;
-        if (!($site instanceof ASAP_SITE_Site)) {
+        if (!($site instanceof OPUS_SITE_Site)) {
             $site = $this->_site;
         }
-        if (!($site instanceof ASAP_SITE_Site)) {
+        if (!($site instanceof OPUS_SITE_Site)) {
             return rtrim($this->getUrl(), '/') . $this->_cleanRelativeUrlPath($path);
         }
 
@@ -420,7 +420,7 @@ class ASAP_Application {
     }
 
     private function _loadCurrentSiteRoutes(): array {
-        if (!($this->_site instanceof ASAP_SITE_Site)) {
+        if (!($this->_site instanceof OPUS_SITE_Site)) {
             return array();
         }
         return $this->_loadRoutesFromXml($this->_site->getRoutesPath());
@@ -428,14 +428,14 @@ class ASAP_Application {
 
     private function _loadRoutesFromXml(string $file): array {
         if ($file === '' || !is_file($file)) {
-            throw new ASAP_Exception('Site routes XML file not found: ' . $file);
+            throw new OPUS_Exception('Site routes XML file not found: ' . $file);
         }
         if (!class_exists('SimpleXMLElement')) {
-            throw new ASAP_Exception('PHP extension simplexml/xml is required to load site routes: ' . $file);
+            throw new OPUS_Exception('PHP extension simplexml/xml is required to load site routes: ' . $file);
         }
         $xml = simplexml_load_file($file);
         if (!$xml) {
-            throw new ASAP_Exception('Invalid site routes XML: ' . $file);
+            throw new OPUS_Exception('Invalid site routes XML: ' . $file);
         }
         $routes = array();
         foreach ($xml->route as $node) {
@@ -469,7 +469,7 @@ class ASAP_Application {
     }
 
     public function getSiteId(): string {
-        return ($this->_site instanceof ASAP_SITE_Site) ? $this->_site->getId() : '';
+        return ($this->_site instanceof OPUS_SITE_Site) ? $this->_site->getId() : '';
     }
 
     public function getSitesCatalog(): array {
@@ -477,39 +477,39 @@ class ASAP_Application {
     }
 
     public function getSitePathPrefix(): string {
-        return ($this->_site instanceof ASAP_SITE_Site) ? $this->_site->getPathPrefix() : '';
+        return ($this->_site instanceof OPUS_SITE_Site) ? $this->_site->getPathPrefix() : '';
     }
 
     public function getSiteResolutionMode(): string {
-        return ($this->_site instanceof ASAP_SITE_Site) ? $this->_site->getResolutionMode() : '';
+        return ($this->_site instanceof OPUS_SITE_Site) ? $this->_site->getResolutionMode() : '';
     }
 
     public function getSiteLabel(): string {
-        return ($this->_site instanceof ASAP_SITE_Site) ? $this->_site->getLabel() : '';
+        return ($this->_site instanceof OPUS_SITE_Site) ? $this->_site->getLabel() : '';
     }
 
     public function getSiteHost(): string {
-        return ($this->_site instanceof ASAP_SITE_Site) ? $this->_site->getHost() : '';
+        return ($this->_site instanceof OPUS_SITE_Site) ? $this->_site->getHost() : '';
     }
 
     public function getSiteDefaultLang(): string {
-        return ($this->_site instanceof ASAP_SITE_Site) ? $this->_site->getDefaultLang() : 'fr';
+        return ($this->_site instanceof OPUS_SITE_Site) ? $this->_site->getDefaultLang() : 'fr';
     }
 
     public function getSitePackagePath(): string {
-        return ($this->_site instanceof ASAP_SITE_Site) ? $this->_site->getPackagePath() : '';
+        return ($this->_site instanceof OPUS_SITE_Site) ? $this->_site->getPackagePath() : '';
     }
 
     public function getSitePublicPath(): string {
-        return ($this->_site instanceof ASAP_SITE_Site) ? $this->_site->getPublicPath() : '';
+        return ($this->_site instanceof OPUS_SITE_Site) ? $this->_site->getPublicPath() : '';
     }
 
     public function getSiteLogDir(): string {
-        return ($this->_site instanceof ASAP_SITE_Site) ? $this->_site->getLogsPath() : rtrim((string)ROOT, '/\\') . '/logs';
+        return ($this->_site instanceof OPUS_SITE_Site) ? $this->_site->getLogsPath() : rtrim((string)ROOT, '/\\') . '/logs';
     }
 
     public function getSiteTmpDir(): string {
-        return ($this->_site instanceof ASAP_SITE_Site) ? $this->_site->getTmpPath() : rtrim((string)ROOT, '/\\') . '/tmp';
+        return ($this->_site instanceof OPUS_SITE_Site) ? $this->_site->getTmpPath() : rtrim((string)ROOT, '/\\') . '/tmp';
     }
 
     public function getProtocol() {
@@ -576,14 +576,14 @@ class ASAP_Application {
     }   
     
     public function getThemeUrl() {
-        if ($this->_site instanceof ASAP_SITE_Site) {
+        if ($this->_site instanceof OPUS_SITE_Site) {
             return rtrim($this->getUrl(), '/') . '/_site/' . rawurlencode($this->_site->getId());
         }
         return $this->getUrl().$this->_public.'themes/'.$this->config->get('theme');
     }
     
     public function getThemePath() {
-        if ($this->_site instanceof ASAP_SITE_Site) {
+        if ($this->_site instanceof OPUS_SITE_Site) {
             return rtrim($this->_site->getPublicPath(), '/\\');
         }
         return $this->getPath().$this->_public.'themes/'.$this->config->get('theme');
@@ -636,10 +636,10 @@ class ASAP_Application {
         $this->_routerParams['url'] = $this->getUrl();
 
         $controllerName = ucfirst((string)$this->_routerParams['controller']) . '_controller.class.php';
-        $packagePath = ($this->_site instanceof ASAP_SITE_Site) ? $this->_site->getPackagePath() : '';
+        $packagePath = ($this->_site instanceof OPUS_SITE_Site) ? $this->_site->getPackagePath() : '';
         $controller_path = rtrim($packagePath, '/\\') . '/controllers/' . $controllerName;
         $controller_path = str_replace('\\', '/', $controller_path);
-        ASAP_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " PATH " . $controller_path, __FILE__, __LINE__, TODO);
+        OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " PATH " . $controller_path, __FILE__, __LINE__, TODO);
 //echo "<br> PATH: $controller_path" ; 
 //echo "<br> URL: ".$this->_routerParams['url'] ; 
 
@@ -675,7 +675,7 @@ class ASAP_Application {
         // user hang ?
         
         
-//        ASAP_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " signal: $signal ", __FILE__, __LINE__, APP_COLOR);
+//        OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " signal: $signal ", __FILE__, __LINE__, APP_COLOR);
         $this->_protocol = $this->_detectRequestProtocol();
         $this->_https = $this->_protocol === 'https';
 
@@ -686,10 +686,10 @@ class ASAP_Application {
 //echo "<font color='blue'><pre>AFTER EXECUTE " . print_r($this->_routerParams, true) . "</pre></font>";
 
         $controller_path = $this->processUrl();
-//        ASAP_Debug::addDump(__CLASS__ . "::" . __FUNCTION__ . " ROUTER RESULT ", $this->_routerParams, __FILE__, __LINE__, 'red');
+//        OPUS_Debug::addDump(__CLASS__ . "::" . __FUNCTION__ . " ROUTER RESULT ", $this->_routerParams, __FILE__, __LINE__, 'red');
 
         if ($controller_path == false) {
-//            ASAP_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " ROUTE FOUND " . ($this->_routerParams['found'] ? "YES" : "No!!!!!"), __FILE__, __LINE__, TODO);
+//            OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " ROUTE FOUND " . ($this->_routerParams['found'] ? "YES" : "No!!!!!"), __FILE__, __LINE__, TODO);
             $this->_routeDebugLog('dispatch-404', array(
                 'requestUri' => $_SERVER['REQUEST_URI'] ?? '',
                 'routerParams' => $this->_routerParams,
@@ -697,7 +697,7 @@ class ASAP_Application {
             $this->error_404($_SERVER['REQUEST_URI'], $this->_routerParams);
         } else {
             $this->_module = $this->getSiteId() ?: (string)$this->_routerParams['module'];
-            $this->_modulePath = ($this->_site instanceof ASAP_SITE_Site) ? $this->_site->getPackagePath() : (ROOT . '/application/' . $this->_module);
+            $this->_modulePath = ($this->_site instanceof OPUS_SITE_Site) ? $this->_site->getPackagePath() : (ROOT . '/application/' . $this->_module);
             $controller = $this->_routerParams['controller'];
             $this->_routerParams['module_path'] = rtrim($this->_modulePath, '/\\') . '/';
             $this->_routerParams['site_package_path'] = $this->_routerParams['module_path'];

@@ -3,7 +3,7 @@
 define('MODEL_COLOR', 'green');
 
 #[AllowDynamicProperties]
-class ASAP_MODEL_Model {
+class OPUS_MODEL_Model {
 
     protected $_app = null;
     protected $_controller = null;
@@ -13,8 +13,8 @@ class ASAP_MODEL_Model {
     protected $_tables = array();
 
     public function __construct($dbCId = false, $tables = array()) {
-        $this->_app = ASAP_Application::getInstance();
-        $this->_controller = ASAP_Controller::getInstance();
+        $this->_app = OPUS_Application::getInstance();
+        $this->_controller = OPUS_Controller::getInstance();
         $this->init();
         $this->_dbId = $dbCId;
         if (!is_array($tables)) {
@@ -31,7 +31,7 @@ class ASAP_MODEL_Model {
 
     protected function dbConnect() {
         $dbConf = $this->_app->config->getDatabase($this->_dbId);
-        ASAP_Debug::addDump(__CLASS__ . "::" . __FUNCTION__ . " INIT", $dbConf, __FILE__, __LINE__, TODO);
+        OPUS_Debug::addDump(__CLASS__ . "::" . __FUNCTION__ . " INIT", $dbConf, __FILE__, __LINE__, TODO);
                 
         $adapter = $dbConf['adapter'] ?? '';
         if ($adapter === 'mysql') {
@@ -40,13 +40,13 @@ class ASAP_MODEL_Model {
 
         foreach (array('server', 'username', 'schema') as $requiredKey) {
             if (!isset($dbConf[$requiredKey]) || $dbConf[$requiredKey] === '') {
-                throw new ASAP_Exception('Database configuration "' . $this->_dbId . '" is incomplete: missing ' . $requiredKey . '. Set ASAP_DB_* environment variables or disable DB usage for this model.');
+                throw new OPUS_Exception('Database configuration "' . $this->_dbId . '" is incomplete: missing ' . $requiredKey . '. Set OPUS_DB_* environment variables or disable DB usage for this model.');
             }
         }
 
-        $this->_bdd = ASAP_adodb5::newConnection($adapter);
+        $this->_bdd = OPUS_adodb5::newConnection($adapter);
         $result = $this->_bdd->Connect($dbConf['server'], $dbConf['username'], $dbConf['password'] ?? '', $dbConf['schema']);
-        if($result==false || $result==null) throw new ASAP_Exception($this->_bdd->ErrorMsg());
+        if($result==false || $result==null) throw new OPUS_Exception($this->_bdd->ErrorMsg());
     }
 
     final public function __call($methodName, $args) {
@@ -55,11 +55,11 @@ class ASAP_MODEL_Model {
             $property = strtolower($matches[2]) . $matches[3];
             if ($this->_controller) {
                 if (!property_exists($this->_controller, $property) and $function != 'new') {
-                    throw new ASAP_Exception('Property ' . $property . ' not exists');
+                    throw new OPUS_Exception('Property ' . $property . ' not exists');
                 }
             } else {
                 if (!property_exists($this, $property) and $function != 'new') {
-                    throw new ASAP_Exception('Property ' . $property . ' not exists');
+                    throw new OPUS_Exception('Property ' . $property . ' not exists');
                 }
             }
             switch ($function) {
@@ -71,7 +71,7 @@ class ASAP_MODEL_Model {
                     $this->checkArguments($args, 0, 0, $methodName);
                     return $this->get($property);
                 case 'default':
-                    throw new ASAP_Exception('Method ' . $methodName . ' not exists');
+                    throw new OPUS_Exception('Method ' . $methodName . ' not exists');
             }
         }
     }
@@ -96,7 +96,7 @@ class ASAP_MODEL_Model {
     final protected function checkArguments(array $args, $min, $max, $methodName) {
         $argc = count($args);
         if ($argc < $min || $argc > $max) {
-            throw new ASAP_Exception('Method ' . $methodName . ' needs minimaly ' . $min . ' and maximaly ' . $max . ' arguments. ' . $argc . ' arguments given.');
+            throw new OPUS_Exception('Method ' . $methodName . ' needs minimaly ' . $min . ' and maximaly ' . $max . ' arguments. ' . $argc . ' arguments given.');
         }
     }
 

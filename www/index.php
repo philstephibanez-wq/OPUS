@@ -3,9 +3,9 @@ error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
 define('ROOT', realpath(__DIR__ . '/..'));
-define('ENV', getenv('ASAP_ENV') ?: 'dev');
+define('ENV', getenv('OPUS_ENV') ?: 'dev');
 
-function asap_serve_package_asset(): void {
+function opus_serve_package_asset(): void {
     $uri = (string)($_SERVER['REQUEST_URI'] ?? '');
     $path = parse_url($uri, PHP_URL_PATH);
     if (!is_string($path)) { return; }
@@ -63,10 +63,10 @@ function asap_serve_package_asset(): void {
     exit;
 }
 
-asap_serve_package_asset();
+opus_serve_package_asset();
 
-require_once ROOT . '/framework/ASAP/Bootstrap.php';
-require_once ROOT . '/framework/autoloader.class.php';
+require_once ROOT . '/Opus/Bootstrap.php';
+require_once ROOT . '/Opus/autoloader.class.php';
 
-$app = ASAP_Application::getInstance();
+$app = OPUS_Application::getInstance();
 $app->run();

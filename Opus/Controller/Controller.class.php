@@ -2,12 +2,12 @@
 
 define('CTRL_COLOR', 'lime');
 
-interface ASAP_CONTROLLER_iController {
+interface OPUS_CONTROLLER_iController {
     function default_action();
 }
 
 #[AllowDynamicProperties]
-class  ASAP_Controller implements ASAP_CONTROLLER_iController {
+class  OPUS_Controller implements OPUS_CONTROLLER_iController {
         public $response;
         private static $_instance = null;     // php5.3
         protected $_app = null;
@@ -24,13 +24,13 @@ class  ASAP_Controller implements ASAP_CONTROLLER_iController {
       if(self::$_instance != null){
           throw new Exception("Only one instance of controller is allowed");
       }
-        $this->_app = ASAP_Application::getInstance();
-        $this->_acl = ASAP_Acl::getInstance();
+        $this->_app = OPUS_Application::getInstance();
+        $this->_acl = OPUS_Acl::getInstance();
         
         $this->_params = $params;
 //echo "<br>CONTROLLER <font color='blue'><pre>PARAMS " . print_r($params, true) . "</pre></font>";
       
- 	$this->_i18n = ASAP_I18N_I18n::getInstance(null, $this);	
+ 	$this->_i18n = OPUS_I18N_I18n::getInstance(null, $this);	
   	$id = 'c_'; //.$this->_app->getID();
  
         if(count($params)>0) foreach($params as $key => $value) {
@@ -87,7 +87,7 @@ class  ASAP_Controller implements ASAP_CONTROLLER_iController {
     public function getParam($key) { return $this->_params[$key]; }
 
     public function getTemplateEngine($name) {
-		$name = "ASAP_TEMPLATE_".ucfirst($name);
+		$name = "OPUS_TEMPLATE_".ucfirst($name);
 		$reflection = new ReflectionClass($name);
 		return $reflection->newInstanceArgs(array($this));
 	}
@@ -95,7 +95,7 @@ class  ASAP_Controller implements ASAP_CONTROLLER_iController {
  
     public function run() {
 		
-        ASAP_Debug::addDump(__CLASS__."::".__FUNCTION__." parameters", $this->_params,  __FILE__, __LINE__, CTRL_COLOR);
+        OPUS_Debug::addDump(__CLASS__."::".__FUNCTION__." parameters", $this->_params,  __FILE__, __LINE__, CTRL_COLOR);
         if(!isset($this->_params['action'])) $this->_params['action'] = 'default';
         $this->_action = $this->_params['action']."_action";
         $action = $this->_action;
@@ -106,7 +106,7 @@ class  ASAP_Controller implements ASAP_CONTROLLER_iController {
     	$this->before_action();
       
         if (!method_exists($this, $action)) {
-            throw new ASAP_Exception('Controller action not found: ' . static::class . '::' . $action);
+            throw new OPUS_Exception('Controller action not found: ' . static::class . '::' . $action);
         }
         $this->{$action}();       
         

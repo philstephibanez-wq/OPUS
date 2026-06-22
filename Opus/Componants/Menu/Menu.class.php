@@ -1,7 +1,7 @@
 <?php
 
 #[AllowDynamicProperties]
-class ASAP_MENU_Menu {
+class OPUS_MENU_Menu {
     protected $_class ;
     protected $_app = null;
     protected $_i18n = null;
@@ -10,9 +10,9 @@ class ASAP_MENU_Menu {
 
     function __construct($menuClasss='topnav', $addDefaults=true) {
         $this->_class = $menuClasss;
-        $this->_app = ASAP_Application::getInstance();
-        $this->_controller = ASAP_Controller::getInstance();
-        $this->_i18n = ASAP_I18N_I18n::getInstance();
+        $this->_app = OPUS_Application::getInstance();
+        $this->_controller = OPUS_Controller::getInstance();
+        $this->_i18n = OPUS_I18N_I18n::getInstance();
         if($addDefaults) $this->_defaults = $this->_getDefaultLinks();
     }
     
@@ -108,10 +108,10 @@ class ASAP_MENU_Menu {
                $id = $module."_".$controller;             
                $label = ucfirst($module);
                list($mode, $block) = explode(':', $route->method);
-               $url = new ASAP_URL_Url('', $path); 
+               $url = new OPUS_URL_Url('', $path); 
 //echo "<br>$name <b>PATH</b> ===== <font color='orange'>$path, $mode, $block</font>";
            
-               $link = new ASAP_LINK_Link($url, $label, "title" , "", array(), $mode, $block);            
+               $link = new OPUS_LINK_Link($url, $label, "title" , "", array(), $mode, $block);            
                $links[$id] = $link;                
 //echo "<br><b>LINK $id</b> ===== <font color='white'>$link</font>";
                $this->addNode($id, $link, null, null);
@@ -137,10 +137,10 @@ class ASAP_MENU_Menu {
 // echo "<br><font color='yellow'>$num<pre>".print_r($params, true)."</pre></font>"; 
                 list($module, $controller) = explode("_", $nodeId);
                 $path = $module."/".$controller."/".$params['urlParms'];
-               $url = new ASAP_URL_Url('', $path); 
+               $url = new OPUS_URL_Url('', $path); 
 //echo "<br>$num <b>PATH</b> ===== <font color='orange'>$path, $mode, $block</font>";
                $label = $params['label'];
-               $link = new ASAP_LINK_Link($url, $label, "", "", array(), $mode, $block);    
+               $link = new OPUS_LINK_Link($url, $label, "", "", array(), $mode, $block);    
             $this->addNode($nodeId."_".$num, $link, $nodeId);
         }
 //echo "<br><font color='yellow'>nodes<pre>".print_r($this->_nodes, true)."</pre></font>"; 
