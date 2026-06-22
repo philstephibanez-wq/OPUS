@@ -1,7 +1,7 @@
 <?php
 
 #[AllowDynamicProperties]
-class OPUS_URL_Url {
+class OPUS_Url_Url {
     public $_protocol;
     public $_host;
     public $_path;

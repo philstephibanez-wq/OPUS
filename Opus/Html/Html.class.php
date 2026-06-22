@@ -1,7 +1,7 @@
 <?php
 
 #[AllowDynamicProperties]
-class OPUS_VIEW_Html {
+class OPUS_Html_Html {
 	protected $_app = null;
 	protected $_i18n = null;
 	protected $_controller=null;

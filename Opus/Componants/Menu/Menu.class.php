@@ -108,7 +108,7 @@ class OPUS_MENU_Menu {
                $id = $module."_".$controller;             
                $label = ucfirst($module);
                list($mode, $block) = explode(':', $route->method);
-               $url = new OPUS_URL_Url('', $path); 
+               $url = new OPUS_Url_Url('', $path); 
 //echo "<br>$name <b>PATH</b> ===== <font color='orange'>$path, $mode, $block</font>";
            
                $link = new OPUS_LINK_Link($url, $label, "title" , "", array(), $mode, $block);            
@@ -137,7 +137,7 @@ class OPUS_MENU_Menu {
 // echo "<br><font color='yellow'>$num<pre>".print_r($params, true)."</pre></font>"; 
                 list($module, $controller) = explode("_", $nodeId);
                 $path = $module."/".$controller."/".$params['urlParms'];
-               $url = new OPUS_URL_Url('', $path); 
+               $url = new OPUS_Url_Url('', $path); 
 //echo "<br>$num <b>PATH</b> ===== <font color='orange'>$path, $mode, $block</font>";
                $label = $params['label'];
                $link = new OPUS_LINK_Link($url, $label, "", "", array(), $mode, $block);    
