@@ -10,7 +10,13 @@
     "autoload": {
         "psr-4": {
             "Opus\\": "framework/Opus/"
-        }
+        },
+        "classmap": [
+            "framework/Opus/FRONT/",
+            "framework/Opus/MIDDLE/",
+            "framework/Opus/BACK/",
+            "framework/Opus/COMMON/"
+        ]
     },
     "bin": [
         "bin/opus"

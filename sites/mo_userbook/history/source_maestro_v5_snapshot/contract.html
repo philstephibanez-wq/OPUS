@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Contrat</title>
+  <link rel="stylesheet" href="doc_style.css">
+</head>
+<body>
+<header>
+  <h1>Contrat</h1>
+  <p class="muted">Résumé lisible du contrat AGENTS.md.</p>
+  <div class="nav"><a href="accueil.html" class="">Accueil</a><a href="user_guide.html" class="">Guide utilisateur</a><a href="workflow.html" class="">Workflow musicien</a><a href="framework.html" class="">Framework</a><a href="architecture.html" class="">Architecture</a><a href="objects.html" class="">Objets</a><a href="engines.html" class="">Engines</a><a href="components.html" class="">Composants</a><a href="modules.html" class="">Modules</a><a href="fsm.html" class="">FSM</a><a href="concepts.html" class="">Concepts</a><a href="contract.html" class="active">Contrat</a></div>
+</header>
+<main>
+
+<section class="card hero"><h2>Contrat MAESTRO</h2><p>Le contrat de référence est <code>AGENTS.md</code>. Cette page résume les points incontournables.</p></section>
+<section class="grid wide"><div class="card"><h3>0 fallback</h3><p>Chemin officiel ou erreur explicite. Pas de secours caché.</p></div><div class="card"><h3>SYS unique</h3><p><code>SYS</code> est le bus runtime public. Pas de <code>_G</code>, pas de <code>SYS.Services</code>.</p></div><div class="card"><h3>UI officielle</h3><p>Factory et composants publics sont souverains. Les modules n'inventent pas de widgets locaux.</p></div><div class="card"><h3>Documentation miroir</h3><p>Quand une doc Markdown est maintenue, son HTML doit être livré aussi.</p></div></section>
+
+<div class="footer">MAESTRO V5 — Documentation HTML synchronisée. Point d'entrée officiel : <b>Accueil</b>.</div>
+</main>
+</body>
+</html>

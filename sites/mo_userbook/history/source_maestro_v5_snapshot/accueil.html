@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Accueil MAESTRO V5</title>
+  <link rel="stylesheet" href="doc_style.css">
+</head>
+<body>
+<header>
+  <h1>Accueil MAESTRO V5</h1>
+  <p class="muted">Point d’entrée humain de la documentation : utilisateur, workflow et framework.</p>
+  <div class="nav"><a href="accueil.html" class="active">Accueil</a><a href="user_guide.html" class="">Guide utilisateur</a><a href="workflow.html" class="">Workflow musicien</a><a href="framework.html" class="">Framework</a><a href="architecture.html" class="">Architecture</a><a href="objects.html" class="">Objets</a><a href="engines.html" class="">Engines</a><a href="components.html" class="">Composants</a><a href="modules.html" class="">Modules</a><a href="fsm.html" class="">FSM</a><a href="concepts.html" class="">Concepts</a><a href="contract.html" class="">Contrat</a></div>
+</header>
+<main>
+
+<section class="card hero">
+  <h2>Bienvenue dans MAESTRO V5</h2>
+  <p>MAESTRO est un assistant de composition et d'orchestration pour REAPER. Il sécurise le projet, lit la session, propose un chemin musical, explique ses choix et laisse toujours le musicien libre.</p>
+  <div class="kpi"><span class="tag ok">Project Guard</span><span class="tag info">Workflow musicien</span><span class="tag info">Framework SYS</span><span class="tag warn">0 fallback</span></div>
+</section>
+<section class="grid wide">
+  <div class="card"><h3>Je veux utiliser Maestro</h3><p>Commence par le guide utilisateur : workdir, certification RPP, Hub, workflow et modules.</p><p><a href="user_guide.html">Ouvrir le guide utilisateur</a></p></div>
+  <div class="card"><h3>Je veux comprendre le workflow</h3><p>Le parcours musicien va de Project Guard à Sanitize, Intent, Split, Humanize puis FX/Mix.</p><p><a href="workflow.html">Lire le workflow musicien</a></p></div>
+  <div class="card"><h3>Je veux développer</h3><p>Kernel, FSM, Dispatcher, Factory, objets, moteurs, modules et composants sont documentés côté framework.</p><p><a href="framework.html">Lire le framework</a></p></div>
+</section>
+<section class="split">
+  <div class="card">
+    <h2>Chemin musicien résumé</h2>
+    <div class="flow">PROJECT_READY
+→ SANITIZE : nettoyer la matière MIDI/RPP
+→ INTENT : choisir l'objectif artistique au moment Split
+→ SPLIT : préparer instruments, sections et rôles
+→ HUMANIZE : chef, groupe, interprètes et façon de jouer
+→ FX / MIX : pan, EQ, spatialisation, reverb, rendu</div>
+  </div>
+  <div class="card">
+    <h2>Règle d'or</h2>
+    <p>Le style choisi guide Maestro, mais ne verrouille jamais le musicien. Un projet peut passer d'une symphonie romantique à une ballade country : Maestro recalcule et explique.</p>
+    <p class="warn"><b>Important :</b> Maestro conseille, orchestre et mémorise les décisions. Il ne remplace pas le compositeur.</p>
+  </div>
+</section>
+<section class="card">
+  <h2>Entrées principales</h2>
+  <ul>
+    <li><a href="architecture.html">Architecture technique</a> — vue développeur.</li>
+    <li><a href="objects.html">Objets framework</a> — Object, UI Layer, RichText Parser, FSM, Workflow Orchestrator.</li>
+    <li><a href="components.html">Composants publics</a> — UI-only, CSS/ranges, pas de métier.</li>
+    <li><a href="fsm.html">FSM et tables dédiées</a> — boot, Adminer, Project Guard, Workflow.</li>
+  </ul>
+</section>
+
+<div class="footer">MAESTRO V5 — Documentation HTML synchronisée. Point d'entrée officiel : <b>Accueil</b>.</div>
+</main>
+</body>
+</html>

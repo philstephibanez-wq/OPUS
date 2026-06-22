@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Engines</title>
+  <link rel="stylesheet" href="doc_style.css">
+</head>
+<body>
+<header>
+  <h1>Engines</h1>
+  <p class="muted">Moteurs officiels et protocole de boot.</p>
+  <div class="nav"><a href="accueil.html" class="">Accueil</a><a href="user_guide.html" class="">Guide utilisateur</a><a href="workflow.html" class="">Workflow musicien</a><a href="framework.html" class="">Framework</a><a href="architecture.html" class="">Architecture</a><a href="objects.html" class="">Objets</a><a href="engines.html" class="active">Engines</a><a href="components.html" class="">Composants</a><a href="modules.html" class="">Modules</a><a href="fsm.html" class="">FSM</a><a href="concepts.html" class="">Concepts</a><a href="contract.html" class="">Contrat</a></div>
+</header>
+<main>
+
+<section class="card hero"><h2>Moteurs officiels</h2><p>Les moteurs sont les périphériques runtime exposés par <code>SYS</code>. Ils suivent le protocole officiel de boot : load, ping, init, expose, puis <code>STEP_NEXT</code>.</p></section>
+<table><thead><tr><th>Famille</th><th>Moteurs</th><th>Rôle</th></tr></thead><tbody>
+<tr><td>Preboot</td><td>Manifest, Logger, Panic Handler, Boot Console, SQL, Dispatcher, FSM</td><td>Démarrage minimal et activation du contrôle FSM.</td></tr>
+<tr><td>Framework</td><td>CSS, I18N, System Monitor, Scheduler, UI Factory</td><td>Style, traduction, supervision, cadence et UI.</td></tr>
+<tr><td>Métier/périphériques</td><td>MIDI, REST, AI</td><td>Lecture RPP/MIDI, pont HTTP/API, conseil externe.</td></tr>
+<tr><td>Workflow</td><td>Workflow Orchestrator</td><td>Partie métier présentée par le Hub et les modules après <code>PROJECT_READY</code>.</td></tr>
+</tbody></table>
+<section class="card"><h2>Adminer</h2><p>Adminer utilise le même framework, mais son profil ne charge pas le workflow musicien. Il reste dédié à l’administration SQL.</p></section>
+
+<div class="footer">MAESTRO V5 — Documentation HTML synchronisée. Point d'entrée officiel : <b>Accueil</b>.</div>
+</main>
+</body>
+</html>

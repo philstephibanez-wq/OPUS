@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site id="logandplay">
+    <label>Log&amp;Play</label>
+    <hosts>logandplay.org,www.logandplay.org,logandplay.localhost,www.logandplay.localhost,localhost,127.0.0.1</hosts>
+    <pathPrefix></pathPrefix>
+    <theme>logandplay</theme>
+    <defaultLang>fr</defaultLang>
+    <homeSlug>home</homeSlug>
+    <kind>portal</kind>
+    <routes>routes.xml</routes>
+    <public>www</public>
+    <logs>logs</logs>
+    <tmp>tmp</tmp>
+    <description>Site principal local Log&amp;Play construit avec ASAP.</description>
+</site>

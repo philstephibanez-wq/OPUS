@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Modules</title>
+  <link rel="stylesheet" href="doc_style.css">
+</head>
+<body>
+<header>
+  <h1>Modules</h1>
+  <p class="muted">Modules métier, Hub et POP contractuels.</p>
+  <div class="nav"><a href="accueil.html" class="">Accueil</a><a href="user_guide.html" class="">Guide utilisateur</a><a href="workflow.html" class="">Workflow musicien</a><a href="framework.html" class="">Framework</a><a href="architecture.html" class="">Architecture</a><a href="objects.html" class="">Objets</a><a href="engines.html" class="">Engines</a><a href="components.html" class="">Composants</a><a href="modules.html" class="active">Modules</a><a href="fsm.html" class="">FSM</a><a href="concepts.html" class="">Concepts</a><a href="contract.html" class="">Contrat</a></div>
+</header>
+<main>
+
+<section class="card hero"><h2>Modules et POP</h2><p>Les modules présentent le métier et envoient des intentions vers les moteurs. Ils ne chargent pas le framework et ne contournent pas les composants publics.</p></section>
+<section class="grid wide"><div class="card"><h3>Modules Hub</h3><p><code>MOD_HUB</code> affiche Project Health, Session Map, Workflow et panels. Il consomme les viewmodels, il ne décide pas le workflow.</p></div><div class="card"><h3>Modules musicien</h3><p>Sanitizer nettoie, Splitter prépare l’orchestration et l’intention, Humanizer interprète, FX Studio spatialise et colore.</p></div><div class="card"><h3>POP Project Guard</h3><p><code>POP_WORKING_PROJECT_PROBE</code>, <code>POP_PROJECT_CERTIFICATION</code>, <code>POP_PROJECT_IMPORT</code> sont des modules normaux hébergés en popup via FSM dédiée.</p></div></section>
+<section class="callout warn"><b>Rappel :</b> les POP ne sont pas des composants spéciaux. Ils suivent le contrat module.</section>
+
+<div class="footer">MAESTRO V5 — Documentation HTML synchronisée. Point d'entrée officiel : <b>Accueil</b>.</div>
+</main>
+</body>
+</html>

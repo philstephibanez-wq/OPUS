@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Objets framework</title>
+  <link rel="stylesheet" href="doc_style.css">
+</head>
+<body>
+<header>
+  <h1>Objets framework</h1>
+  <p class="muted">Référence des objets structurants récents.</p>
+  <div class="nav"><a href="accueil.html" class="">Accueil</a><a href="user_guide.html" class="">Guide utilisateur</a><a href="workflow.html" class="">Workflow musicien</a><a href="framework.html" class="">Framework</a><a href="architecture.html" class="">Architecture</a><a href="objects.html" class="active">Objets</a><a href="engines.html" class="">Engines</a><a href="components.html" class="">Composants</a><a href="modules.html" class="">Modules</a><a href="fsm.html" class="">FSM</a><a href="concepts.html" class="">Concepts</a><a href="contract.html" class="">Contrat</a></div>
+</header>
+<main>
+
+<section class="card hero"><h2>Objets framework</h2><p>Les objets centralisent les comportements transversaux sans créer de chemins parallèles. Ils sont chargés par les moteurs officiels.</p></section>
+<table><thead><tr><th>Objet</th><th>Rôle</th><th>Exposition / usage</th></tr></thead><tbody>
+<tr><td><code>OBJ_Object</code></td><td>Base objet : héritage, interfaces, validation.</td><td>Socle des autres objets et composants.</td></tr>
+<tr><td><code>OBJ_UI_Layer</code></td><td>Layer UI : z-order, dirty/bounds, policy direct/buffered.</td><td>Utilisé par <code>MO_UI_FACTORY</code>.</td></tr>
+<tr><td><code>OBJ_RichTextParser</code></td><td>Parsing RichText centralisé : UTF-8, balises, glyphes, fallback I18N préservé.</td><td>Utilisé par les API RichText Factory et composants.</td></tr>
+<tr><td><code>OBJ_FSM</code></td><td>FSM objet : état, table source, wildcard explicite, dernières transitions.</td><td><code>SYS.FSM</code>, <code>SYS.PROJECT_GUARD_FSM</code>, <code>SYS.WORKFLOW_FSM</code>.</td></tr>
+<tr><td><code>OBJ_WorkflowOrchestrator</code></td><td>Orchestrateur métier musicien : viewmodel, intention, recommandations.</td><td><code>SYS.WORKFLOW</code>.</td></tr>
+</tbody></table>
+<section class="callout warn"><b>Contrat :</b> un objet ne devient jamais un fallback ni une copie cachée d’un moteur. Il est créé par le chemin officiel et échoue explicitement si le contrat n’est pas disponible.</section>
+
+<div class="footer">MAESTRO V5 — Documentation HTML synchronisée. Point d'entrée officiel : <b>Accueil</b>.</div>
+</main>
+</body>
+</html>

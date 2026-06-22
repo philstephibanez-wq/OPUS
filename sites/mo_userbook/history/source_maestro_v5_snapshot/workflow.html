@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Workflow musicien</title>
+  <link rel="stylesheet" href="doc_style.css">
+</head>
+<body>
+<header>
+  <h1>Workflow musicien</h1>
+  <div class="nav"><a href="index.html">Accueil</a><a href="architecture.html">Architecture</a><a href="workflow.html">Workflow</a><a href="objects.html">Objets</a><a href="engines.html">Engines</a><a href="modules.html">Modules</a><a href="components.html">Components</a><a href="fsm.html">FSM</a></div>
+</header>
+<main>
+
+<section class="card">
+  <h2>Workflow musicien</h2>
+  <p>Le workflow musicien est l’orchestrateur métier présenté par le Hub et les modules. Il aide le compositeur à avancer sans décider à sa place.</p>
+</section>
+<section class="card">
+  <h2>Pipeline cible</h2>
+  <ol>
+    <li><strong>Project Guard</strong> : vérifier workdir, certification et import.</li>
+    <li><strong>Sanitize</strong> : nettoyer et fiabiliser la matière MIDI/RPP.</li>
+    <li><strong>Intent</strong> : choisir ou modifier le style et l’intention artistique au moment du Split.</li>
+    <li><strong>Split</strong> : préparer les instruments, rôles, familles et normalisations.</li>
+    <li><strong>Humanize</strong> : configurer le style de jeu, le chef, le groupe et les interprètes éventuels.</li>
+    <li><strong>FX / Mix</strong> : spatialisation, EQ, pan, reverb et finition.</li>
+  </ol>
+</section>
+<section class="card">
+  <h2>Liberté du musicien</h2>
+  <p>Le style guide Maestro, mais ne verrouille jamais le musicien. Le musicien peut revenir en arrière, ajouter une section, changer d’instrument, modifier la signature ou transformer une symphonie en ballade country. Maestro recalcule le chemin conseillé.</p>
+</section>
+<section class="card">
+  <h2>P88B</h2>
+  <p><code>SYS.WORKFLOW</code> est chargé au boot avant <code>MOD_HUB</code>. Il attend <code>PROJECT_READY</code> avant de produire les recommandations musicales.</p>
+</section>
+
+<section class="card"><h2>P88C — Intention artistique après Sanitize</h2><p>Le Workflow Orchestrator demande maintenant une intention artistique après Sanitize, au moment où le Split prépare l'orchestration. La ListBox de style est affichée par <code>MOD_SPLITTER</code>, alimentée par <code>CONFIG/WORKFLOW_STYLE_PROFILES.lua</code>. Le Hub reste un afficheur du workflow. Le style choisi oriente Split, Humanize et FX/Mix sans verrouiller le musicien.</p></section>
+<section class="card"><h2>P88C3 — Intention dans Splitter</h2><p>La sélection de style a été retirée du Hub et placée dans le Splitter. Le musicien choisit l’intention au moment où les instruments et sections vont être préparés.</p></section>
+
+<section class="card"><h2>P88C6 — Reprise d’intention</h2><p>L’intention artistique choisie dans le Splitter est maintenant persistée dans l’ExtState du RPP, section <code>MAESTRO_WORKFLOW</code>. À la réouverture du projet, Maestro restaure l’intention et reprend le workflow musicien au bon endroit, sans passer par la BDD comme source souveraine.</p></section>
+
+<section class="card"><h2>P88D — Sanitize puis mapping GM/GS avant intention</h2><p>Le workflow ne demande plus l’intention artistique trop tôt. Après <code>PROJECT_READY</code>, Maestro vérifie d’abord l’audit Sanitize. Si la matière est fiable, le Splitter affiche une étape <strong>GM/GS Track Mapping</strong> qui propose une famille instrumentale et prépare la standardisation des noms. L’intention artistique n’apparaît qu’après validation de ce mapping.</p><ol><li>Sanitize Audit : vérifier ghost notes, CC et timeline.</li><li>GM/GS Mapping : identifier les pistes et familles instrumentales.</li><li>Intent : choisir le style au moment du Split.</li><li>Split : préparer les instruments et sections.</li></ol></section>
+</main>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Guide utilisateur</title>
+  <link rel="stylesheet" href="doc_style.css">
+</head>
+<body>
+<header>
+  <h1>Guide utilisateur</h1>
+  <p class="muted">Première documentation utilisateur : Project Guard, Hub et workflow musicien.</p>
+  <div class="nav"><a href="accueil.html" class="">Accueil</a><a href="user_guide.html" class="active">Guide utilisateur</a><a href="workflow.html" class="">Workflow musicien</a><a href="framework.html" class="">Framework</a><a href="architecture.html" class="">Architecture</a><a href="objects.html" class="">Objets</a><a href="engines.html" class="">Engines</a><a href="components.html" class="">Composants</a><a href="modules.html" class="">Modules</a><a href="fsm.html" class="">FSM</a><a href="concepts.html" class="">Concepts</a><a href="contract.html" class="">Contrat</a></div>
+</header>
+<main>
+
+<section class="card hero"><h2>Guide utilisateur — démarrage</h2><p>Cette page démarre la documentation utilisateur. Elle explique le parcours sans rentrer dans le code.</p></section>
+<section class="grid wide">
+<div class="card"><h3>1. Ouvrir Maestro</h3><p>Maestro vérifie le projet courant et affiche le Hub. Si un prérequis manque, le Hub explique quoi faire.</p></div>
+<div class="card"><h3>2. Choisir ou créer la workdir</h3><p>La workdir est le dossier de travail officiel. Si elle manque, Maestro ouvre l'explorateur Workdir pour la créer ou la sélectionner.</p></div>
+<div class="card"><h3>3. Certifier le RPP</h3><p>Le projet REAPER doit être certifié dans la workdir. Maestro peut créer/importer la copie de travail signée.</p></div>
+<div class="card"><h3>4. Suivre le workflow</h3><p>Une fois <code>PROJECT_READY</code>, Maestro propose les étapes musicales : Sanitize, Intent, Split, Humanize, FX/Mix.</p></div>
+</section>
+<section class="card"><h2>Que faire si je change d'avis ?</h2><p>C'est normal. Tu peux changer de style, ajouter un instrument, revenir sur une étape ou ignorer une recommandation. Maestro doit accompagner le changement, pas le bloquer.</p></section>
+<section class="card"><h2>Modules principaux</h2><ul><li><b>Sanitizer</b> : nettoyer et diagnostiquer.</li><li><b>Splitter</b> : choisir l'intention et préparer l'orchestration.</li><li><b>Humanizer</b> : rendre le jeu vivant.</li><li><b>FX Studio / Manager</b> : spatialiser, équilibrer et colorer.</li><li><b>AI Studio</b> : demander des idées ou conseils si disponible.</li></ul></section>
+
+<div class="footer">MAESTRO V5 — Documentation HTML synchronisée. Point d'entrée officiel : <b>Accueil</b>.</div>
+</main>
+</body>
+</html>

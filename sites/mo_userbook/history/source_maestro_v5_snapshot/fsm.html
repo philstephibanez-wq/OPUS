@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FSM</title>
+  <link rel="stylesheet" href="doc_style.css">
+</head>
+<body>
+<header>
+  <h1>FSM</h1>
+  <p class="muted">Tables FSM, wildcard et séparation des domaines.</p>
+  <div class="nav"><a href="accueil.html" class="">Accueil</a><a href="user_guide.html" class="">Guide utilisateur</a><a href="workflow.html" class="">Workflow musicien</a><a href="framework.html" class="">Framework</a><a href="architecture.html" class="">Architecture</a><a href="objects.html" class="">Objets</a><a href="engines.html" class="">Engines</a><a href="components.html" class="">Composants</a><a href="modules.html" class="">Modules</a><a href="fsm.html" class="active">FSM</a><a href="concepts.html" class="">Concepts</a><a href="contract.html" class="">Contrat</a></div>
+</header>
+<main>
+
+<section class="card hero"><h2>FSM et tables dédiées</h2><p>La FSM est le microprocesseur de contrôle : signal, état courant, action, état suivant. Les tables sont séparées par domaine.</p></section>
+<table><thead><tr><th>Table</th><th>Domaine</th><th>Rôle</th></tr></thead><tbody>
+<tr><td><code>MAESTRO_FSM</code></td><td>Maestro</td><td>Boot et navigation Maestro.</td></tr>
+<tr><td><code>ADMINER_FSM</code></td><td>Adminer</td><td>Boot Adminer autonome.</td></tr>
+<tr><td><code>PROJECT_GUARD_FSM</code></td><td>Project Guard</td><td>Workdir, certification, import, POP Project Guard.</td></tr>
+<tr><td><code>WORKFLOW_FSM</code></td><td>Workflow musicien</td><td>Microcode des recommandations : Sanitize, Intent, Split, Humanize, FX/Mix.</td></tr>
+</tbody></table>
+<section class="card"><h2>Wildcard explicite</h2><p>Le wildcard <code>*</code> est autorisé uniquement comme règle visible en table. Il n’est pas un fallback silencieux.</p><div class="flow">1. signal exact + state exact
+2. signal exact + state "*"
+3. signal "*" + state exact
+4. signal "*" + state "*"
+5. aucun match → erreur explicite</div></section>
+
+<div class="footer">MAESTRO V5 — Documentation HTML synchronisée. Point d'entrée officiel : <b>Accueil</b>.</div>
+</main>
+</body>
+</html>
