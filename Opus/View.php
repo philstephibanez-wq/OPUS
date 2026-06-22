@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Opus;
 
+use Opus\Template\ScoreTemplateRenderer;
+
 final class View
 {
     private Kernel $kernel;
@@ -28,37 +30,50 @@ final class View
         $packageNav = $this->renderPackageNav($package, $lang, $pageId);
         $body = $this->renderBody($package, $lang, $page);
         $year = date('Y');
-        $badge = Support::e((string)($package->meta['badge'] ?? 'OPUS'));
+        $badge = (string)($package->meta['badge'] ?? 'OPUS');
         $footerTagline = $this->footerTagline($lang);
 
-        return <<<HTML
-<!doctype html>
-<html lang="{$lang}" data-theme="{$theme}">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{$this->esc($title)} — {$this->esc($package->name)}</title>
-<meta name="description" content="{$this->esc($description)}">
-<link rel="stylesheet" href="{$assetCss}">
-</head>
-<body>
-<header class="site-header">
-  <a class="brand" href="{$homeUrl}" aria-label="Home"><span>{$badge}</span><strong>{$this->esc($package->name)}</strong></a>
-  {$mainNav}
-  {$switcher}
-</header>
-<main class="shell">
-  {$packageNav}
-  {$body}
-</main>
-<footer class="site-footer">
-  <span>© {$year} Log&Play / OPUS</span>
-  <span>{$footerTagline}</span>
-</footer>
-<script src="{$assetJs}" defer></script>
-</body>
-</html>
-HTML;
+        return $this->renderLayout([
+            'lang' => $lang,
+            'theme' => $theme,
+            'title' => $title,
+            'description' => $description,
+            'package' => [
+                'name' => $package->name,
+                'slug' => $package->slug,
+            ],
+            'assets' => [
+                'css' => $assetCss,
+                'js' => $assetJs,
+            ],
+            'urls' => [
+                'home' => $homeUrl,
+            ],
+            'nav' => [
+                'main' => $mainNav,
+                'package' => $packageNav,
+                'switcher' => $switcher,
+            ],
+            'body' => [
+                'html' => $body,
+            ],
+            'footer' => [
+                'year' => $year,
+                'tagline' => $footerTagline,
+            ],
+            'badge' => $badge,
+        ]);
+    }
+
+    /** @param array<string,mixed> $data */
+    private function renderLayout(array $data): string
+    {
+        require_once __DIR__ . '/Score/TemplateException.php';
+        require_once __DIR__ . '/Score/TemplateRendererInterface.php';
+        require_once __DIR__ . '/Score/ScoreTemplateRenderer.php';
+
+        $renderer = new ScoreTemplateRenderer(__DIR__ . '/Score/templates/view');
+        return $renderer->render('layout.score', $data);
     }
 
     private function renderLanguageSwitcher(Package $package, string $lang, string $pageId): string
