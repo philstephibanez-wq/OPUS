@@ -78,7 +78,7 @@ abstract class OPUS_Singleton implements OPUS_AccessorInterface {
     protected function __construct() {}
 
     /** Prevent object cloning. */
-    final private function __clone() {}
+    private function __clone() {}
 
     /**
      * Hook for subclasses that need initialization after the scope has been set.
