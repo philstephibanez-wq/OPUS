@@ -1,0 +1,298 @@
+#!/usr/bin/env python3
+"""P2 OPUS singleton/accessor contract apply tool.
+
+This tool restores the historical OPUS/ASAP singleton intent without touching
+sites, vendor, cache, router, FSM, or application-site code.
+
+It is intentionally small:
+- adds OPUS_AccessorInterface;
+- rewrites OPUS_Singleton as the official per-scope singleton + auto accessor base;
+- keeps automatic getXxx()/setXxx()/hasXxx() behavior;
+- supports one singleton instance per site/application scope.
+"""
+
+from __future__ import annotations
+
+import subprocess
+import sys
+from pathlib import Path
+from typing import List, Tuple
+
+INTERFACE_PATH = Path("Opus/AccessorInterface.class.php")
+SINGLETON_PATH = Path("Opus/Singleton.class.php")
+
+INTERFACE_CONTENT = """<?php
+
+/**
+ * OPUS accessor contract.
+ *
+ * Implementations must expose controlled access to protected/internal
+ * properties through explicit get()/set()/has() calls. Dynamic getXxx(),
+ * setXxx() and hasXxx() are implemented by OPUS_Singleton through __call().
+ */
+interface OPUS_AccessorInterface {
+    public function get($property);
+    public function set($property, $value);
+    public function has($property): bool;
+}
+
+?>
+"""
+
+SINGLETON_CONTENT = """<?php
+
+require_once __DIR__ . '/AccessorInterface.class.php';
+
+/**
+ * OPUS singleton and automatic accessor base.
+ *
+ * Contract:
+ * - one singleton instance per concrete class and per scope;
+ * - default scope keeps the historical getInstance() behavior;
+ * - site/application scopes are explicit;
+ * - protected properties stay protected;
+ * - callers use getXxx()/setXxx()/hasXxx() or get()/set()/has();
+ * - missing properties fail explicitly.
+ */
+#[AllowDynamicProperties]
+abstract class OPUS_Singleton implements OPUS_AccessorInterface {
+    /** @var array<string,array<string,object>> */
+    protected static $_instances = array();
+
+    /**
+     * Legacy default pointer, kept for old code that inspects $_instance in
+     * subclasses or expects getInstance() to behave like the historical ASAP
+     * singleton.
+     */
+    protected static $_instance = null;
+
+    protected $_scope = 'default';
+
+    /**
+     * Reserved for legacy classes that expose controller through accessors.
+     * It is no longer auto-filled here; controller coupling must be explicit.
+     */
+    protected $_controller = null;
+
+    /** Prevent direct object creation. */
+    protected function __construct() {}
+
+    /** Prevent object cloning. */
+    final private function __clone() {}
+
+    /**
+     * Hook for subclasses that need initialization after the scope has been set.
+     */
+    protected function initSingleton(): void {}
+
+    /**
+     * Returns the singleton for the concrete class and scope.
+     *
+     * @param string $scope default, site:<id>, application:<id>, or custom scope.
+     * @return static
+     */
+    final public static function getInstance($scope = 'default') {
+        $class = static::class;
+        $scope = self::normalizeScope($scope);
+
+        if (!isset(self::$_instances[$class])) {
+            self::$_instances[$class] = array();
+        }
+
+        if (!isset(self::$_instances[$class][$scope])) {
+            $instance = new static();
+            $instance->_scope = $scope;
+            $instance->initSingleton();
+            self::$_instances[$class][$scope] = $instance;
+        }
+
+        if ($scope === 'default') {
+            static::$_instance = self::$_instances[$class][$scope];
+        }
+
+        return self::$_instances[$class][$scope];
+    }
+
+    /** @return static */
+    final public static function getInstanceForSite($siteId) {
+        return static::getInstance('site:' . self::normalizeScope($siteId));
+    }
+
+    /** @return static */
+    final public static function getInstanceForApplication($applicationId) {
+        return static::getInstance('application:' . self::normalizeScope($applicationId));
+    }
+
+    final public function getScope(): string {
+        return (string)$this->_scope;
+    }
+
+    final public function __call($methodName, $args) {
+        if (!preg_match('~^(set|get|has)([A-Z])(.*)$~', $methodName, $matches)) {
+            throw new OPUS_Exception('Method ' . $methodName . ' not exists');
+        }
+
+        $property = strtolower($matches[2]) . $matches[3];
+        switch ($matches[1]) {
+            case 'set':
+                $this->checkArguments($args, 1, 1, $methodName);
+                return $this->set($property, $args[0]);
+            case 'get':
+                $this->checkArguments($args, 0, 0, $methodName);
+                return $this->get($property);
+            case 'has':
+                $this->checkArguments($args, 0, 0, $methodName);
+                return $this->has($property);
+        }
+
+        throw new OPUS_Exception('Method ' . $methodName . ' not exists');
+    }
+
+    final public function get($property) {
+        $property = $this->resolveAccessorProperty($property);
+        return $this->$property;
+    }
+
+    final public function set($property, $value) {
+        $property = $this->resolveAccessorProperty($property);
+        $this->$property = $value;
+        return $this;
+    }
+
+    final public function has($property): bool {
+        return $this->resolveAccessorPropertyOrNull($property) !== null;
+    }
+
+    final protected function checkArguments(array $args, $min, $max, $methodName): void {
+        $argc = count($args);
+        if ($argc < $min || $argc > $max) {
+            throw new OPUS_Exception('Method ' . $methodName . ' needs minimally ' . $min . ' and maximally ' . $max . ' arguments. ' . $argc . ' arguments given.');
+        }
+    }
+
+    final protected function resolveAccessorProperty($property): string {
+        $resolved = $this->resolveAccessorPropertyOrNull($property);
+        if ($resolved === null) {
+            throw new OPUS_Exception('Property ' . $property . ' not exists');
+        }
+        return $resolved;
+    }
+
+    final protected function resolveAccessorPropertyOrNull($property): ?string {
+        $property = (string)$property;
+        if ($property === '') {
+            return null;
+        }
+
+        if (property_exists($this, $property)) {
+            return $property;
+        }
+
+        if ($property[0] !== '_') {
+            $protected = '_' . $property;
+            if (property_exists($this, $protected)) {
+                return $protected;
+            }
+        }
+
+        return null;
+    }
+
+    private static function normalizeScope($scope): string {
+        $scope = trim((string)$scope);
+        return $scope !== '' ? $scope : 'default';
+    }
+}
+
+?>
+"""
+
+
+def repo_root() -> Path:
+    return Path(__file__).resolve().parents[1]
+
+
+def git_status(root: Path) -> str:
+    proc = subprocess.run(
+        ["git", "status", "--short"],
+        cwd=str(root),
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if proc.returncode != 0:
+        raise RuntimeError((proc.stdout + proc.stderr).strip() or "git status failed")
+    return proc.stdout.strip()
+
+
+def planned_changes(root: Path) -> List[Tuple[str, str]]:
+    changes: List[Tuple[str, str]] = []
+    interface_file = root / INTERFACE_PATH
+    singleton_file = root / SINGLETON_PATH
+
+    if not interface_file.exists() or interface_file.read_text(encoding="utf-8", errors="replace") != INTERFACE_CONTENT:
+        changes.append(("WRITE", INTERFACE_PATH.as_posix()))
+
+    if not singleton_file.exists() or singleton_file.read_text(encoding="utf-8", errors="replace") != SINGLETON_CONTENT:
+        changes.append(("WRITE", SINGLETON_PATH.as_posix()))
+
+    return changes
+
+
+def apply_changes(root: Path) -> List[Tuple[str, str]]:
+    changes = planned_changes(root)
+    if not changes:
+        return []
+
+    (root / INTERFACE_PATH).write_text(INTERFACE_CONTENT, encoding="utf-8", newline="\n")
+    (root / SINGLETON_PATH).write_text(SINGLETON_CONTENT, encoding="utf-8", newline="\n")
+    return changes
+
+
+def main(argv: List[str]) -> int:
+    root = repo_root()
+    write = "--write" in argv
+
+    if not (root / "Opus").is_dir():
+        print("P2_SINGLETON_ACCESSOR_APPLY_FAIL")
+        print(" - OPUS root not found")
+        return 1
+
+    try:
+        status = git_status(root)
+    except RuntimeError as exc:
+        print("P2_SINGLETON_ACCESSOR_APPLY_FAIL")
+        print(f" - {exc}")
+        return 1
+
+    if status:
+        print("P2_SINGLETON_ACCESSOR_APPLY_FAIL")
+        print(" - git working tree is not clean")
+        print(status)
+        return 1
+
+    changes = planned_changes(root)
+
+    if not write:
+        print("P2_SINGLETON_ACCESSOR_PLAN")
+        if changes:
+            for action, path in changes:
+                print(f"{action} {path}")
+        else:
+            print("NO_CHANGES")
+        return 0
+
+    applied = apply_changes(root)
+    print("P2_SINGLETON_ACCESSOR_APPLIED")
+    if applied:
+        for action, path in applied:
+            print(f"{action} {path}")
+    else:
+        print("NO_CHANGES")
+    print("P2_SINGLETON_ACCESSOR_APPLY_OK")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv[1:]))
