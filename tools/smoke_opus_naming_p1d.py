@@ -3,6 +3,11 @@
 
 Checks the OPUS framework naming convention after the P1D apply tool.
 This script is read-only.
+
+Windows note:
+    Directory existence checks cannot be used to validate case-only renames
+    such as Opus/URL -> Opus/Url because NTFS is commonly case-insensitive.
+    Forbidden and required path casing is therefore checked through git ls-files.
 """
 
 from __future__ import annotations
@@ -10,7 +15,7 @@ from __future__ import annotations
 import subprocess
 import sys
 from pathlib import Path
-from typing import Iterable, List, Sequence, Tuple
+from typing import Iterable, List, Set, Tuple
 
 FORBIDDEN_DIRS = (
     "Opus/VIEW",
@@ -68,6 +73,29 @@ def rel(path: Path, repo_root: Path) -> str:
     return path.relative_to(repo_root).as_posix()
 
 
+def git_ls_files(repo_root: Path) -> Set[str]:
+    proc = subprocess.run(
+        ["git", "ls-files"],
+        cwd=str(repo_root),
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if proc.returncode != 0:
+        raise RuntimeError((proc.stdout + proc.stderr).strip() or "git ls-files failed")
+    return {line.strip().replace("\\", "/") for line in proc.stdout.splitlines() if line.strip()}
+
+
+def tracked_dir_exists(tracked_files: Set[str], directory: str) -> bool:
+    prefix = directory.rstrip("/") + "/"
+    return any(path.startswith(prefix) for path in tracked_files)
+
+
+def tracked_file_exists(tracked_files: Set[str], file_rel: str) -> bool:
+    return file_rel.replace("\\", "/") in tracked_files
+
+
 def run_php_lint(repo_root: Path, file_rel: str) -> Tuple[bool, str]:
     proc = subprocess.run(
         ["php", "-l", file_rel],
@@ -106,23 +134,43 @@ def main() -> int:
     repo_root = root()
     failures: List[Tuple[str, str]] = []
 
+    try:
+        tracked_files = git_ls_files(repo_root)
+    except RuntimeError as exc:
+        print(f"CHECK_GIT_LS_FILES=FAIL {exc}")
+        print("P1D_OPUS_NAMING_SMOKE_FAIL")
+        print(f" - CHECK_GIT_LS_FILES: {exc}")
+        return 1
+
     for marker in ("Opus", "www", "composer.json"):
         ok, detail = check((repo_root / marker).exists(), "CHECK_REPO_ROOT_" + marker.replace(".", "_").upper(), marker)
         if not ok:
             failures.append(("CHECK_REPO_ROOT", detail))
 
     for directory in FORBIDDEN_DIRS:
-        ok, detail = check(not (repo_root / directory).exists(), "CHECK_NO_" + directory.replace("/", "_").upper(), directory)
+        ok, detail = check(
+            not tracked_dir_exists(tracked_files, directory),
+            "CHECK_NO_TRACKED_" + directory.replace("/", "_").upper(),
+            directory,
+        )
         if not ok:
-            failures.append(("CHECK_NO_FORBIDDEN_DIR", detail))
+            failures.append(("CHECK_NO_FORBIDDEN_TRACKED_DIR", detail))
 
     for directory in REQUIRED_DIRS:
-        ok, detail = check((repo_root / directory).is_dir(), "CHECK_DIR_" + directory.replace("/", "_").upper(), directory)
+        ok, detail = check(
+            tracked_dir_exists(tracked_files, directory),
+            "CHECK_TRACKED_DIR_" + directory.replace("/", "_").upper(),
+            directory,
+        )
         if not ok:
-            failures.append(("CHECK_REQUIRED_DIR", detail))
+            failures.append(("CHECK_REQUIRED_TRACKED_DIR", detail))
 
     for file_rel in REQUIRED_FILES:
-        ok, detail = check((repo_root / file_rel).is_file(), "CHECK_FILE_" + file_rel.replace("/", "_").replace(".", "_").upper(), file_rel)
+        ok, detail = check(
+            tracked_file_exists(tracked_files, file_rel) and (repo_root / file_rel).is_file(),
+            "CHECK_FILE_" + file_rel.replace("/", "_").replace(".", "_").upper(),
+            file_rel,
+        )
         if not ok:
             failures.append(("CHECK_REQUIRED_FILE", detail))
 
