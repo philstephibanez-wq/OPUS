@@ -53,10 +53,24 @@ def move_file(source_rel: str, target_rel: str) -> None:
 def add_use_after_namespace(content: str, use_line: str) -> str:
     if use_line in content:
         return content
-    namespace = "namespace Opus;\n"
-    if namespace not in content:
+
+    lines = content.splitlines(keepends=True)
+    namespace_index: int | None = None
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("namespace ") and stripped.endswith(";"):
+            namespace_index = index
+            break
+
+    if namespace_index is None:
         fail(f"NAMESPACE_NOT_FOUND_FOR_USE={use_line}")
-    return content.replace(namespace, namespace + "\n" + use_line + "\n", 1)
+
+    insert_index = namespace_index + 1
+    while insert_index < len(lines) and lines[insert_index].strip() == "":
+        insert_index += 1
+
+    lines.insert(insert_index, use_line + "\n")
+    return "".join(lines)
 
 
 def patch_application_definition() -> None:
