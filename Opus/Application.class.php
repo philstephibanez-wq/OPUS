@@ -34,6 +34,31 @@ class OPUS_Application {
     private $_configRoutes;
     private $_site = null;
     private $_sites = array();
+    private $_bootFsm = null;
+
+
+    /**
+     * Initialize and execute the mandatory boot FSM.
+     *
+     * Contract:
+     * - no FSM, no engine
+     * - boot is a FSM program
+     * - Application owns the runtime boot FSM
+     */
+    private function _initBootFsm(): void {
+        $siteKey = PHP_SAPI === 'cli' ? 'cli' : $this->_detectRequestHost();
+        $siteKey = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', (string)$siteKey);
+        if ($siteKey === '') {
+            $siteKey = 'default';
+        }
+
+        $this->_bootFsm = new OPUS_FSM_Boot('opus_boot_' . $siteKey);
+        $this->_bootFsm->runBoot();
+    }
+
+    public function getBootFsm() {
+        return $this->_bootFsm;
+    }
 
     private function _routeDebugLog(string $event, $payload = null): void {
         if (!self::ROUTE_DEBUG_ENABLED || !defined('ROOT')) {
@@ -68,6 +93,7 @@ class OPUS_Application {
     final public function __construct() {
 
         OPUS_Application::$_instance = $this;
+        $this->_initBootFsm();
         ob_start("OPUS_Application::output_handler");
         
         $ip = str_replace(':', '_', $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1');
@@ -175,6 +201,9 @@ class OPUS_Application {
         $this->router = new OPUS_Router($this, $this->_siteDir, $this->_configRoutes);
 
 //        parent::__construct($id, 'INIT', null, array(), array(), false);
+        if (!($this->_bootFsm instanceof OPUS_FSM_Boot) || !$this->_bootFsm->isReady()) {
+            throw new OPUS_Exception('OPUS boot FSM did not reach BOOT_READY. Runtime dispatch is forbidden.');
+        }
         $this->dispatch();
     }
 
