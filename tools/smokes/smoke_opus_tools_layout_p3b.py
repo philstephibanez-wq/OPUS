@@ -6,7 +6,7 @@ Read-only validation for the cleaned tools/ layout after the P4/P5 cleanup.
 Contract:
 - active tools stay inside their typed directories;
 - no tool runner/script is allowed directly under tools/;
-- obsolete P1/P2/P4 scripts may exist only under tools/archive/;
+- obsolete P1/P2/P4/P5 scripts may exist only under tools/archive/;
 - this smoke must reflect the current runtime layout, not the historical P1/P2 layout.
 """
 from __future__ import annotations
@@ -31,6 +31,10 @@ REQUIRED_ARCHIVED_TRACKED = (
     "tools/archive/stale_smokes/smoke_opus_singleton_accessor_p2.php",
     "tools/archive/p4_migrations/apply_p4x_move_legacy_application_boundary.py",
     "tools/archive/p4_audits/audit_p4v_entrypoints_runtime_split.py",
+    "tools/archive/p5_migrations/apply_p5f_legacy_entrypoint_composer_boot.py",
+    "tools/archive/p5_migrations/apply_p5g_legacy_autoloader_composer_guard.py",
+    "tools/archive/p5_migrations/apply_p5i_migrate_bootstrap_to_runtime_namespace.py",
+    "tools/archive/p5_migrations/apply_p5i_repair_runtime_bootstrap_checks.py",
 )
 
 FORBIDDEN_ROOT_TOOLS = (
@@ -50,6 +54,10 @@ FORBIDDEN_ACTIVE_TOOLS = (
     "tools/smokes/smoke_opus_boot_render_p1.php",
     "tools/smokes/smoke_opus_view_scoretemplate_p1b.php",
     "tools/smokes/smoke_opus_singleton_accessor_p2.php",
+    "tools/migrations/apply_p5f_legacy_entrypoint_composer_boot.py",
+    "tools/migrations/apply_p5g_legacy_autoloader_composer_guard.py",
+    "tools/migrations/apply_p5i_migrate_bootstrap_to_runtime_namespace.py",
+    "tools/migrations/apply_p5i_repair_runtime_bootstrap_checks.py",
 )
 
 CONTENT_MARKERS = (
