@@ -26,7 +26,7 @@ DIRECT_BRIDGE_TOKENS = [
 ]
 
 COMPOSER_AWARE_TOKENS = [
-    "class_exists(\\Opus\\Bootstrap::class)",
+    "class_exists(\\Opus\\Runtime\\Bootstrap::class)",
     "OPUS_BOOTSTRAP_CLASS_REQUIRED",
 ]
 
@@ -189,7 +189,7 @@ def print_decision() -> None:
         print("NEXT_SAFE_STEP=P5G_MIGRATE_LEGACY_AUTOLOADER_TO_COMPOSER_AWARE_BOOTSTRAP_GUARD")
     elif composer_aware and not direct_bridge:
         print("DECISION=P5G_LEGACY_AUTOLOADER_COMPOSER_GUARD_OK")
-        print("NEXT_SAFE_STEP=P5H_BOOTSTRAP_MOVE_DESIGN_AUDIT")
+        print("NEXT_SAFE_STEP=P5J_ARCHIVE_COMPLETED_P5_MIGRATIONS_OR_RUNTIME_SMOKE")
     elif composer_aware:
         print("DECISION=LEGACY_AUTOLOADER_BOOTSTRAP_BRIDGE_ALREADY_COMPOSER_AWARE")
         print("NEXT_SAFE_STEP=RERUN_P5E_AND_P5B")

@@ -1,5 +1,5 @@
 <?php
-if (!class_exists(\Opus\Bootstrap::class)) {
+if (!class_exists(\Opus\Runtime\Bootstrap::class)) {
     throw new RuntimeException('OPUS_BOOTSTRAP_CLASS_REQUIRED: Composer autoload must be loaded before legacy autoloader.');
 }
 

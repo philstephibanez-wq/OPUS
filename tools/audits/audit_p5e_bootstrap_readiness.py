@@ -5,8 +5,8 @@ P5E_BOOTSTRAP_READINESS_AUDIT
 Read-only audit for the last OPUS direct PHP file under Opus/.
 
 Purpose:
-- prove that Opus/Bootstrap.php is the only remaining direct PHP file in Opus/;
-- classify whether Bootstrap can be moved now or must remain as the legacy bridge;
+- prove that Opus/Bootstrap.php has been moved out of the Opus root;
+- classify the runtime Bootstrap namespace/location after migration;
 - keep modern and legacy entrypoints explicit;
 - never rewrite files, caches, Composer output, or entrypoints.
 """
@@ -97,23 +97,22 @@ def check_root_boundary(files: list[str]) -> int:
     ok("CHECK_OPUS_ROOT", OPUS.as_posix())
 
     direct = direct_opus_php_files(files)
-    if direct != ["Opus/Bootstrap.php"]:
+    if direct != []:
         print("OPUS_DIRECT_PHP_FILES=" + ",".join(direct))
         return fail("CHECK_BOOTSTRAP_ONLY_DIRECT_OPUS_PHP")
-    ok("CHECK_BOOTSTRAP_ONLY_DIRECT_OPUS_PHP", "Opus/Bootstrap.php")
+    ok("CHECK_BOOTSTRAP_ONLY_DIRECT_OPUS_PHP", "none")
     return 0
 
 
 def check_bootstrap_contract() -> int:
-    rel = "Opus/Bootstrap.php"
+    rel = "Opus/Runtime/Bootstrap.php"
     path = ROOT / rel
     if not path.is_file():
         return fail("CHECK_BOOTSTRAP_EXISTS", rel)
 
     content = read(rel)
     required_tokens = [
-        "namespace Opus;",
-        "use Opus\\Runtime\\Kernel;",
+        "namespace Opus\\Runtime;",
         "use Opus\\Http\\Request;",
         "use Opus\\Http\\Response;",
         "final class Bootstrap",
@@ -228,8 +227,8 @@ def print_decision() -> None:
     print("COMPOSER_AUTOLOAD_CAN_LOAD_OPUS_BOOTSTRAP=YES")
     print("LEGACY_WWW_ENTRYPOINT_DIRECTLY_REQUIRES_BOOTSTRAP=NO")
     print("LEGACY_AUTOLOADER_STILL_BOOTSTRAPS_BRIDGE=NO")
-    print("DECISION=BOOTSTRAP_DIRECT_RUNTIME_REFERENCES_REMOVED")
-    print("NEXT_SAFE_STEP=P5H_BOOTSTRAP_MOVE_DESIGN_AUDIT")
+    print("DECISION=BOOTSTRAP_MOVED_TO_RUNTIME_NAMESPACE")
+    print("NEXT_SAFE_STEP=P5J_ARCHIVE_COMPLETED_P5_MIGRATIONS_OR_RUNTIME_SMOKE")
 
 
 def main() -> int:

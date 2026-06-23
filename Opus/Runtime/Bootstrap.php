@@ -1,9 +1,8 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus;
+namespace Opus\Runtime;
 
-use Opus\Runtime\Kernel;
 
 use Opus\Http\Response;
 use Opus\Http\Request;

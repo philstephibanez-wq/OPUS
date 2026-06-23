@@ -12,8 +12,8 @@
  * Contract:
  * - OPUS root entrypoint index.php is modern and does not boot legacy Application.
  * - Legacy www/index.php explicitly loads Composer, legacy autoloader and legacy Application.
- * - Legacy autoloader requires Composer-loaded Opus\\Bootstrap instead of requiring Opus/Bootstrap.php directly.
- * - Opus/ root contains Bootstrap.php as the only remaining root PHP runtime file.
+ * - Legacy autoloader requires Composer-loaded Opus\\Runtime\\Bootstrap.
+ * - Opus/ root contains no direct PHP runtime file after Bootstrap moved to Opus/Runtime.
  * - Former root legacy classes stay absent from Opus/ root.
  * - P4 runners stay archived outside repository root.
  */
@@ -75,11 +75,11 @@ final class P5BCurrentRuntimeLayoutSmoke
         );
         sort($matches);
         $relative = array_map(fn(string $path): string => $this->relative($path), $matches);
-        if ($relative !== ['Opus/Bootstrap.php']) {
+        if ($relative !== []) {
             $this->fail('CHECK_OPUS_ROOT_PHP_BOUNDARY', implode(', ', $relative));
             return;
         }
-        $this->ok('CHECK_OPUS_ROOT_PHP_BOUNDARY', 'Opus/Bootstrap.php');
+        $this->ok('CHECK_OPUS_ROOT_PHP_BOUNDARY', 'none');
     }
 
     private function checkFormerRootLegacyClassesAbsent(): void
@@ -140,7 +140,7 @@ final class P5BCurrentRuntimeLayoutSmoke
         $content = $this->read($file);
         if ($content === null) { return; }
 
-        $this->contains($content, 'class_exists(\Opus\Bootstrap::class)', 'CHECK_LEGACY_AUTOLOADER_COMPOSER_BOOTSTRAP_GUARD');
+        $this->contains($content, 'class_exists(\Opus\Runtime\Bootstrap::class)', 'CHECK_LEGACY_AUTOLOADER_COMPOSER_BOOTSTRAP_GUARD');
         $this->contains($content, 'OPUS_BOOTSTRAP_CLASS_REQUIRED', 'CHECK_LEGACY_AUTOLOADER_BOOTSTRAP_REQUIRED_ERROR');
         $this->notContains($content, 'require_once $opusBootstrap;', 'CHECK_LEGACY_AUTOLOADER_NO_BOOTSTRAP_REQUIRE');
         $this->notContains($content, "ROOT . '/Opus/Bootstrap.php'", 'CHECK_LEGACY_AUTOLOADER_NO_ROOT_BOOTSTRAP_PATH');
@@ -148,11 +148,11 @@ final class P5BCurrentRuntimeLayoutSmoke
 
     private function checkBootstrapContract(): void
     {
-        $file = $this->root . '/Opus/Bootstrap.php';
+        $file = $this->root . '/Opus/Runtime/Bootstrap.php';
         $content = $this->read($file);
         if ($content === null) { return; }
 
-        $this->contains($content, 'namespace Opus;', 'CHECK_BOOTSTRAP_NAMESPACE');
+        $this->contains($content, 'namespace Opus\Runtime;', 'CHECK_BOOTSTRAP_NAMESPACE');
         $this->contains($content, 'final class Bootstrap', 'CHECK_BOOTSTRAP_CLASS');
         $this->contains($content, "'Runtime/Kernel.php'", 'CHECK_BOOTSTRAP_LOADS_RUNTIME_KERNEL');
         $this->contains($content, "'Routing/Router.php'", 'CHECK_BOOTSTRAP_LOADS_ROUTER');

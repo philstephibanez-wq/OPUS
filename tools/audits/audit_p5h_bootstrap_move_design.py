@@ -5,9 +5,9 @@ P5H_BOOTSTRAP_MOVE_DESIGN_AUDIT
 Read-only design audit for a future Bootstrap move.
 
 Purpose:
-- prove that Opus/Bootstrap.php has no remaining runtime direct path dependency;
-- verify that Composer can support a namespace-correct runtime Bootstrap target;
-- identify the official target path/class for a future controlled migration;
+- prove that Opus/Bootstrap.php has been moved to the runtime namespace;
+- verify that Composer can load the runtime Bootstrap class;
+- identify any remaining post-move cleanup work;
 - never move files, rewrite sources, regenerate Composer output, or clean caches.
 """
 from __future__ import annotations
@@ -21,7 +21,7 @@ ROOT = Path.cwd()
 
 CURRENT_BOOTSTRAP = "Opus/Bootstrap.php"
 TARGET_BOOTSTRAP = "Opus/Runtime/Bootstrap.php"
-CURRENT_CLASS = "Opus\\Bootstrap"
+CURRENT_CLASS = "Opus\\Runtime\\Bootstrap"
 TARGET_CLASS = "Opus\\Runtime\\Bootstrap"
 LEGACY_AUTOLOADER = "Opus/Legacy/Autoload/autoloader.class.php"
 WWW_INDEX = "www/index.php"
@@ -35,7 +35,7 @@ RUNTIME_FILES = {
 }
 
 REQUIRED_FILES = [
-    CURRENT_BOOTSTRAP,
+    TARGET_BOOTSTRAP,
     "Opus/Runtime/Kernel.php",
     LEGACY_AUTOLOADER,
     WWW_INDEX,
@@ -45,7 +45,7 @@ REQUIRED_FILES = [
 ]
 
 CURRENT_BOOTSTRAP_TOKENS = [
-    "namespace Opus;",
+    "namespace Opus\\Runtime;",
     "final class Bootstrap",
     "public static function run(string $rootDir): void",
     "private static function loadFramework(string $rootDir): void",
@@ -102,21 +102,24 @@ def check_required_files() -> int:
 
 
 def check_current_bootstrap_contract() -> int:
-    content = read(CURRENT_BOOTSTRAP)
+    content = read(TARGET_BOOTSTRAP)
     for token in CURRENT_BOOTSTRAP_TOKENS:
         if token not in content:
-            return fail("CHECK_CURRENT_BOOTSTRAP_TOKEN", token)
-    ok("CHECK_CURRENT_BOOTSTRAP_CONTRACT")
+            return fail("CHECK_TARGET_BOOTSTRAP_TOKEN", token)
+    ok("CHECK_TARGET_BOOTSTRAP_CONTRACT")
 
-    if not php_lint(CURRENT_BOOTSTRAP):
-        return fail("CHECK_CURRENT_BOOTSTRAP_PHP_LINT", CURRENT_BOOTSTRAP)
+    if not php_lint(TARGET_BOOTSTRAP):
+        return fail("CHECK_TARGET_BOOTSTRAP_PHP_LINT", TARGET_BOOTSTRAP)
     return 0
 
 
 def check_target_collision() -> int:
-    if (ROOT / TARGET_BOOTSTRAP).exists():
-        return fail("CHECK_TARGET_BOOTSTRAP_ABSENT", TARGET_BOOTSTRAP)
-    ok("CHECK_TARGET_BOOTSTRAP_ABSENT", TARGET_BOOTSTRAP)
+    if (ROOT / CURRENT_BOOTSTRAP).exists():
+        return fail("CHECK_CURRENT_BOOTSTRAP_ABSENT", CURRENT_BOOTSTRAP)
+    ok("CHECK_CURRENT_BOOTSTRAP_ABSENT", CURRENT_BOOTSTRAP)
+    if not (ROOT / TARGET_BOOTSTRAP).is_file():
+        return fail("CHECK_TARGET_BOOTSTRAP_PRESENT", TARGET_BOOTSTRAP)
+    ok("CHECK_TARGET_BOOTSTRAP_PRESENT", TARGET_BOOTSTRAP)
     return 0
 
 
@@ -151,7 +154,7 @@ def check_runtime_references_removed() -> int:
 def check_legacy_guard_ready_for_target_update() -> int:
     content = read(LEGACY_AUTOLOADER)
     required = [
-        "class_exists(\\Opus\\Bootstrap::class)",
+        "class_exists(\\Opus\\Runtime\\Bootstrap::class)",
         "OPUS_BOOTSTRAP_CLASS_REQUIRED",
     ]
     for token in required:
@@ -159,8 +162,8 @@ def check_legacy_guard_ready_for_target_update() -> int:
             return fail("CHECK_LEGACY_AUTOLOADER_CURRENT_COMPOSER_GUARD", token)
     if "require_once $opusBootstrap;" in content or "Opus/Bootstrap.php" in content:
         return fail("CHECK_LEGACY_AUTOLOADER_NO_DIRECT_BOOTSTRAP_REQUIRE")
-    ok("CHECK_LEGACY_AUTOLOADER_CURRENT_COMPOSER_GUARD", CURRENT_CLASS)
-    ok("CHECK_LEGACY_AUTOLOADER_TARGET_GUARD_UPDATE_REQUIRED", TARGET_CLASS)
+    ok("CHECK_LEGACY_AUTOLOADER_TARGET_COMPOSER_GUARD", TARGET_CLASS)
+    ok("CHECK_LEGACY_AUTOLOADER_OLD_GUARD_ABSENT", CURRENT_CLASS)
     return 0
 
 
@@ -181,7 +184,7 @@ def scan_class_and_path_references() -> int:
             continue
         if "Opus/Bootstrap.php" in content:
             path_refs.append(rel)
-        if "Opus\\Bootstrap" in content or "Opus\\\\Bootstrap" in content:
+        if "Opus\\Runtime\\Bootstrap" in content or "Opus\\\\Bootstrap" in content:
             current_class_refs.append(rel)
         if "Opus\\Runtime\\Bootstrap" in content or "Opus\\\\Runtime\\\\Bootstrap" in content:
             target_class_refs.append(rel)
@@ -209,12 +212,12 @@ def print_design_decision() -> None:
     print(f"TARGET_BOOTSTRAP_PATH={TARGET_BOOTSTRAP}")
     print(f"TARGET_BOOTSTRAP_CLASS={TARGET_CLASS}")
     print("TARGET_NAMESPACE=Opus\\Runtime")
-    print("MOVE_REQUIRES_NAMESPACE_UPDATE=YES")
-    print("MOVE_REQUIRES_LEGACY_GUARD_UPDATE=YES")
-    print("MOVE_REQUIRES_COMPOSER_DUMP_AUTOLOAD=YES")
+    print("MOVE_REQUIRES_NAMESPACE_UPDATE=NO")
+    print("MOVE_REQUIRES_LEGACY_GUARD_UPDATE=NO")
+    print("MOVE_REQUIRES_COMPOSER_DUMP_AUTOLOAD=YES_LOCAL_REFRESH_REQUIRED")
     print("ROOT_BOOTSTRAP_RUNTIME_BLOCKERS=NO")
-    print("DECISION=P5H_MOVE_DESIGN_READY_TARGET_OPUS_RUNTIME_BOOTSTRAP")
-    print("NEXT_SAFE_STEP=P5I_MIGRATE_BOOTSTRAP_TO_RUNTIME_NAMESPACE")
+    print("DECISION=P5I_BOOTSTRAP_MOVED_TO_RUNTIME_NAMESPACE")
+    print("NEXT_SAFE_STEP=P5J_ARCHIVE_COMPLETED_P5_MIGRATIONS_OR_RUNTIME_SMOKE")
 
 
 def main() -> int:
