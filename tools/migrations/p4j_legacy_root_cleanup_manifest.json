@@ -1,0 +1,58 @@
+{
+  "patch_id": "P4J_MOVE_LEGACY_ROOT_CLASSES",
+  "contract": {
+    "wrapper_is_fallback": true,
+    "no_wrapper": true,
+    "no_silent_fallback": true,
+    "no_runtime_direct_legacy_path_reference": true
+  },
+  "non_runtime_reference_roots": [
+    "tools/audits/",
+    "tools/migrations/",
+    "RUN_P4J_MOVE_LEGACY_ROOT_CLASSES.cmd"
+  ],
+  "moves": [
+    {
+      "symbol": "OPUS_AccessorInterface",
+      "kind": "interface",
+      "source": "Opus/AccessorInterface.class.php",
+      "target": "Opus/Accessor/AccessorInterface.class.php"
+    },
+    {
+      "symbol": "OPUS_ConfigLoader",
+      "kind": "class",
+      "source": "Opus/ConfigLoader.class.php",
+      "target": "Opus/Config/ConfigLoader.class.php"
+    },
+    {
+      "symbol": "OPUS_Configuration",
+      "kind": "class",
+      "source": "Opus/Configuration.class.php",
+      "target": "Opus/Config/Configuration.class.php"
+    },
+    {
+      "symbol": "OPUS_Debug",
+      "kind": "class",
+      "source": "Opus/Debug.class.php",
+      "target": "Opus/Debug/Debug.class.php"
+    },
+    {
+      "symbol": "OPUS_Exception",
+      "kind": "class",
+      "source": "Opus/Exception.class.php",
+      "target": "Opus/Exception/Exception.class.php"
+    },
+    {
+      "symbol": "OPUS_SimpleXMLElementExtended",
+      "kind": "class",
+      "source": "Opus/SimpleXMLElementExtended.class.php",
+      "target": "Opus/Xml/SimpleXMLElementExtended.class.php"
+    },
+    {
+      "symbol": "OPUS_Singleton",
+      "kind": "class",
+      "source": "Opus/Singleton.class.php",
+      "target": "Opus/Core/Singleton.class.php"
+    }
+  ]
+}
