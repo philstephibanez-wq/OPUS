@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Opus;
 
+use Opus\Application\ApplicationDefinition;
 use Opus\Foundation\Support;
 
 use Opus\Template\ScoreTemplateRenderer;
@@ -19,20 +20,20 @@ final class View
     }
 
     /** @param array<string,mixed> $page */
-    public function render(Package $package, string $lang, string $pageId, array $page): string
+    public function render(ApplicationDefinition $application, string $lang, string $pageId, array $page): string
     {
-        $title = (string)($page['title'] ?? $package->name);
+        $title = (string)($page['title'] ?? $application->name);
         $description = (string)($page['description'] ?? '');
-        $theme = (string)($package->meta['theme'] ?? 'blue');
-        $assetCss = $this->kernel->assetUrl($package, 'assets/css/site.css');
-        $assetJs = $this->kernel->assetUrl($package, 'assets/js/site.js');
-        $homeUrl = $this->kernel->packageUrl($package->slug, '', $lang);
-        $switcher = $this->renderLanguageSwitcher($package, $lang, $pageId);
-        $mainNav = $this->renderMainNav($package, $lang);
-        $packageNav = $this->renderPackageNav($package, $lang, $pageId);
-        $body = $this->renderBody($package, $lang, $page);
+        $theme = (string)($application->meta['theme'] ?? 'blue');
+        $assetCss = $this->kernel->assetUrl($application, 'assets/css/site.css');
+        $assetJs = $this->kernel->assetUrl($application, 'assets/js/site.js');
+        $homeUrl = $this->kernel->packageUrl($application->slug, '', $lang);
+        $switcher = $this->renderLanguageSwitcher($application, $lang, $pageId);
+        $mainNav = $this->renderMainNav($application, $lang);
+        $applicationNav = $this->renderPackageNav($application, $lang, $pageId);
+        $body = $this->renderBody($application, $lang, $page);
         $year = date('Y');
-        $badge = (string)($package->meta['badge'] ?? 'OPUS');
+        $badge = (string)($application->meta['badge'] ?? 'OPUS');
         $footerTagline = $this->footerTagline($lang);
 
         return $this->renderLayout([
@@ -41,8 +42,8 @@ final class View
             'title' => $title,
             'description' => $description,
             'package' => [
-                'name' => $package->name,
-                'slug' => $package->slug,
+                'name' => $application->name,
+                'slug' => $application->slug,
             ],
             'assets' => [
                 'css' => $assetCss,
@@ -53,7 +54,7 @@ final class View
             ],
             'nav' => [
                 'main' => $mainNav,
-                'package' => $packageNav,
+                'package' => $applicationNav,
                 'switcher' => $switcher,
             ],
             'body' => [
@@ -78,11 +79,11 @@ final class View
         return $renderer->render('layout.score', $data);
     }
 
-    private function renderLanguageSwitcher(Package $package, string $lang, string $pageId): string
+    private function renderLanguageSwitcher(ApplicationDefinition $application, string $lang, string $pageId): string
     {
         $links = [];
-        foreach ($package->languages as $candidate) {
-            $href = $this->kernel->pageUrl($package, $candidate, $pageId);
+        foreach ($application->languages as $candidate) {
+            $href = $this->kernel->pageUrl($application, $candidate, $pageId);
             $class = $candidate === $lang ? 'active' : '';
             $label = strtoupper($candidate);
             $links[] = "<a class=\"{$class}\" href=\"{$href}\">{$label}</a>";
@@ -90,12 +91,12 @@ final class View
         return '<nav class="lang-switcher" aria-label="Language switcher">' . implode('', $links) . '</nav>';
     }
 
-    private function renderMainNav(Package $package, string $lang): string
+    private function renderMainNav(ApplicationDefinition $application, string $lang): string
     {
         $items = [
-            ['logandplay', $this->i18n->t($package, $lang, 'nav.logandplay')],
-            ['demo', $this->i18n->t($package, $lang, 'nav.demo')],
-            ['maestro', $this->i18n->t($package, $lang, 'nav.maestro')],
+            ['logandplay', $this->i18n->t($application, $lang, 'nav.logandplay')],
+            ['demo', $this->i18n->t($application, $lang, 'nav.demo')],
+            ['maestro', $this->i18n->t($application, $lang, 'nav.maestro')],
         ];
         $html = [];
         foreach ($items as [$slug, $label]) {
@@ -105,10 +106,10 @@ final class View
         return '<nav class="main-nav" aria-label="Packages">' . implode('', $html) . '</nav>';
     }
 
-    private function renderPackageNav(Package $package, string $lang, string $currentPageId): string
+    private function renderPackageNav(ApplicationDefinition $application, string $lang, string $currentPageId): string
     {
-        $routes = $package->routes();
-        $content = $package->content();
+        $routes = $application->routes();
+        $content = $application->content();
         $langRoutes = (array)($routes[$lang] ?? []);
         if (!$langRoutes) {
             return '';
@@ -120,7 +121,7 @@ final class View
                 continue;
             }
             $seen[$pageId] = true;
-            $href = $this->kernel->packageUrl($package->slug, $slug, $lang);
+            $href = $this->kernel->packageUrl($application->slug, $slug, $lang);
             $page = (array)($content[$lang][$pageId] ?? []);
             $label = (string)($page['nav'] ?? $page['title'] ?? $this->labelFor((string)$pageId));
             $class = $pageId === $currentPageId ? ' class="active"' : '';
@@ -130,17 +131,17 @@ final class View
     }
 
     /** @param array<string,mixed> $page */
-    private function renderBody(Package $package, string $lang, array $page): string
+    private function renderBody(ApplicationDefinition $application, string $lang, array $page): string
     {
         if (isset($page['html'])) {
-            return '<article class="doc-content">' . $this->resolveInlineLinks((string)$page['html'], $package, $lang) . '</article>';
+            return '<article class="doc-content">' . $this->resolveInlineLinks((string)$page['html'], $application, $lang) . '</article>';
         }
 
-        $title = $this->esc((string)($page['title'] ?? $package->name));
-        $kicker = $this->esc((string)($page['kicker'] ?? $package->slug));
+        $title = $this->esc((string)($page['title'] ?? $application->name));
+        $kicker = $this->esc((string)($page['kicker'] ?? $application->slug));
         $lead = $this->esc((string)($page['lead'] ?? ''));
         $sections = $this->renderSections((array)($page['sections'] ?? []));
-        $cards = $this->renderCards((array)($page['cards'] ?? []), $package, $lang);
+        $cards = $this->renderCards((array)($page['cards'] ?? []), $application, $lang);
         $flow = $this->renderFlow((array)($page['flow'] ?? []));
 
         return <<<HTML
@@ -156,14 +157,14 @@ HTML;
     }
 
     /** @param list<array<string,mixed>> $cards */
-    private function renderCards(array $cards, Package $package, string $lang): string
+    private function renderCards(array $cards, ApplicationDefinition $application, string $lang): string
     {
         if (!$cards) return '';
         $html = [];
         foreach ($cards as $card) {
             $title = $this->esc((string)($card['title'] ?? ''));
             $text = $this->esc((string)($card['text'] ?? ''));
-            $href = $this->resolveHref((string)($card['href'] ?? ''), $package, $lang);
+            $href = $this->resolveHref((string)($card['href'] ?? ''), $application, $lang);
             $cta = $this->esc((string)($card['cta'] ?? $this->defaultCta($lang)));
             $link = $href !== '' ? '<a class="card-link" href="' . $this->esc($href) . '">' . $cta . '</a>' : '';
             $html[] = "<article class=\"card\"><h3>{$title}</h3><p>{$text}</p>{$link}</article>";
@@ -198,26 +199,26 @@ HTML;
         return '<section class="panel"><h2>FSM trace</h2><div class="table-wrap"><table><thead><tr><th>State</th><th>Signal</th><th>Action</th><th>Next</th></tr></thead><tbody>' . $rows . '</tbody></table></div></section>';
     }
 
-    private function resolveInlineLinks(string $html, Package $package, string $lang): string
+    private function resolveInlineLinks(string $html, ApplicationDefinition $application, string $lang): string
     {
-        return preg_replace_callback('/href="([^"]*)"/', function (array $m) use ($package, $lang): string {
+        return preg_replace_callback('/href="([^"]*)"/', function (array $m) use ($application, $lang): string {
             $href = (string)$m[1];
             if (preg_match('/^@route\/(.*)$/', $href, $r)) {
-                return 'href="' . $this->esc($this->kernel->packageUrl($package->slug, $r[1], $lang)) . '"';
+                return 'href="' . $this->esc($this->kernel->packageUrl($application->slug, $r[1], $lang)) . '"';
             }
-            return 'href="' . $this->esc($this->resolveHref($href, $package, $lang)) . '"';
+            return 'href="' . $this->esc($this->resolveHref($href, $application, $lang)) . '"';
         }, $html) ?? $html;
     }
 
-    private function resolveHref(string $href, Package $package, string $lang): string
+    private function resolveHref(string $href, ApplicationDefinition $application, string $lang): string
     {
         if ($href === '') return '';
         if (preg_match('/^@api\/([a-z0-9_-]+)\/(.*)$/', $href, $m)) return $this->kernel->apiUrl($m[1], $m[2]);
-        if (preg_match('/^@asset\/(.*)$/', $href, $m)) return $this->kernel->assetUrl($package, $m[1]);
+        if (preg_match('/^@asset\/(.*)$/', $href, $m)) return $this->kernel->assetUrl($application, $m[1]);
         if (preg_match('/^@([a-z0-9_-]+)\/([a-z]{2})(?:\/(.*))?$/', $href, $m)) return $this->kernel->packageUrl($m[1], $m[3] ?? '', $m[2]);
         if (preg_match('/^https?:\/\//', $href)) return $href;
         if ($href[0] === '/') return $href;
-        return $this->kernel->packageUrl($package->slug, $href, $lang);
+        return $this->kernel->packageUrl($application->slug, $href, $lang);
     }
 
 

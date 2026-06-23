@@ -3,24 +3,25 @@ declare(strict_types=1);
 
 namespace Opus;
 
+use Opus\Application\ApplicationDefinition;
 final class I18n
 {
     /** @var array<string,array<string,string>> */
     private array $cache = [];
 
     /** @return array<string,string> */
-    public function dictionary(Package $package, string $lang): array
+    public function dictionary(ApplicationDefinition $application, string $lang): array
     {
-        if (!$package->hasLanguage($lang)) {
-            throw new \RuntimeException("Language {$lang} is not declared for package {$package->slug}");
+        if (!$application->hasLanguage($lang)) {
+            throw new \RuntimeException("Language {$lang} is not declared for application {$application->slug}");
         }
 
-        $key = $package->slug . ':' . $lang;
+        $key = $application->slug . ':' . $lang;
         if (isset($this->cache[$key])) {
             return $this->cache[$key];
         }
 
-        $file = $package->dir . '/local/' . $lang . '.php';
+        $file = $application->dir . '/local/' . $lang . '.php';
         if (!is_file($file)) {
             throw new \RuntimeException("I18N file missing: {$file}");
         }
@@ -34,9 +35,9 @@ final class I18n
         return $this->cache[$key];
     }
 
-    public function t(Package $package, string $lang, string $key): string
+    public function t(ApplicationDefinition $application, string $lang, string $key): string
     {
-        $dict = $this->dictionary($package, $lang);
+        $dict = $this->dictionary($application, $lang);
         return $dict[$key] ?? '[*' . $key . '*]';
     }
 }

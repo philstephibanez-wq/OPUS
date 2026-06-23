@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Opus;
 
+use Opus\Application\ApplicationDefinition;
 use Opus\Foundation\Support;
 
 use Opus\Http\Response;
@@ -25,17 +26,17 @@ final class Router
     }
 
     /** @param list<string> $segments */
-    public function dispatch(Package $package, array $segments, Request $request): Response
+    public function dispatch(ApplicationDefinition $application, array $segments, Request $request): Response
     {
-        $routes = $package->routes();
+        $routes = $application->routes();
 
         if (($segments[0] ?? '') === 'api') {
-            return $this->dispatchApi($package, array_slice($segments, 1), $request);
+            return $this->dispatchApi($application, array_slice($segments, 1), $request);
         }
 
-        $lang = $segments[0] ?? $package->defaultLang;
-        if (!$package->hasLanguage($lang)) {
-            $lang = $package->defaultLang;
+        $lang = $segments[0] ?? $application->defaultLang;
+        if (!$application->hasLanguage($lang)) {
+            $lang = $application->defaultLang;
             $routeSegments = $segments;
         } else {
             $routeSegments = array_slice($segments, 1);
@@ -46,13 +47,13 @@ final class Router
         $pageId = (string)($langRoutes[$routeKey] ?? '');
 
         if ($pageId === '') {
-            return $this->notFound($package, $lang, $request, $routeKey);
+            return $this->notFound($application, $lang, $request, $routeKey);
         }
 
-        $content = $package->content();
+        $content = $application->content();
         $page = (array)($content[$lang][$pageId] ?? []);
         if (!$page) {
-            throw new \RuntimeException("Page content missing: {$package->slug}/{$lang}/{$pageId}");
+            throw new \RuntimeException("Page content missing: {$application->slug}/{$lang}/{$pageId}");
         }
 
         if (!$this->acl->canView($page)) {
@@ -63,17 +64,17 @@ final class Router
             $page['flow'] = $this->fsm->demoFlow($lang);
         }
 
-        return Response::html($this->view->render($package, $lang, $pageId, $page));
+        return Response::html($this->view->render($application, $lang, $pageId, $page));
     }
 
     /** @param list<string> $segments */
-    private function dispatchApi(Package $package, array $segments, Request $request): Response
+    private function dispatchApi(ApplicationDefinition $application, array $segments, Request $request): Response
     {
         $endpoint = implode('/', $segments);
-        if ($package->slug === 'demo' && $endpoint === 'ping') {
+        if ($application->slug === 'demo' && $endpoint === 'ping') {
             return Response::json([
                 'ok' => true,
-                'package' => $package->slug,
+                'package' => $application->slug,
                 'host' => $request->host,
                 'base_path' => $request->basePath,
                 'path' => $request->path,
@@ -81,17 +82,17 @@ final class Router
             ]);
         }
 
-        if ($package->slug === 'demo' && $endpoint === 'site') {
+        if ($application->slug === 'demo' && $endpoint === 'site') {
             return Response::json([
-                'package' => $package->slug,
-                'name' => $package->name,
-                'languages' => $package->languages,
+                'package' => $application->slug,
+                'name' => $application->name,
+                'languages' => $application->languages,
                 'paths' => [
-                    'package_dir' => $package->dir,
-                    'www' => $package->dir . '/www',
-                    'logs' => $package->dir . '/logs',
-                    'tmp' => $package->dir . '/tmp',
-                    'history' => $package->dir . '/history',
+                    'package_dir' => $application->dir,
+                    'www' => $application->dir . '/www',
+                    'logs' => $application->dir . '/logs',
+                    'tmp' => $application->dir . '/tmp',
+                    'history' => $application->dir . '/history',
                 ],
                 'checks' => [
                     'dynamic_paths' => true,
@@ -108,11 +109,11 @@ final class Router
         ], 404);
     }
 
-    private function notFound(Package $package, string $lang, Request $request, string $routeKey): Response
+    private function notFound(ApplicationDefinition $application, string $lang, Request $request, string $routeKey): Response
     {
         $route = Support::e($routeKey);
         $path = Support::e($request->path);
-        $home = $this->kernel->packageUrl($package->slug, '', $lang);
-        return Response::html("<!doctype html><html lang=\"{$lang}\"><head><meta charset=\"utf-8\"><title>404</title><link rel=\"stylesheet\" href=\"" . $this->kernel->assetUrl($package, 'assets/css/site.css') . "\"></head><body><main class=\"shell\"><section class=\"panel\"><h1>DISPATCH erreur 404</h1><p>Path: {$path}</p><p>Route: {$route}</p><p><a href=\"{$home}\">Retour package</a></p></section></main></body></html>", 404);
+        $home = $this->kernel->packageUrl($application->slug, '', $lang);
+        return Response::html("<!doctype html><html lang=\"{$lang}\"><head><meta charset=\"utf-8\"><title>404</title><link rel=\"stylesheet\" href=\"" . $this->kernel->assetUrl($application, 'assets/css/site.css') . "\"></head><body><main class=\"shell\"><section class=\"panel\"><h1>DISPATCH erreur 404</h1><p>Path: {$path}</p><p>Route: {$route}</p><p><a href=\"{$home}\">Retour package</a></p></section></main></body></html>", 404);
     }
 }

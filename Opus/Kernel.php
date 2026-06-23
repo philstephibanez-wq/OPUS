@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Opus;
 
+use Opus\Application\ApplicationRegistry;
+use Opus\Application\ApplicationDefinition;
 use Opus\Http\Response;
 
 use Opus\Http\Request;
@@ -10,7 +12,7 @@ use Opus\Http\Request;
 final class Kernel
 {
     private string $rootDir;
-    private PackageRepository $packages;
+    private ApplicationRegistry $applications;
     private I18n $i18n;
     private Router $router;
     private ?Request $request = null;
@@ -18,7 +20,7 @@ final class Kernel
     public function __construct(string $rootDir)
     {
         $this->rootDir = rtrim($rootDir, '/\\');
-        $this->packages = new PackageRepository($this->rootDir);
+        $this->applications = new ApplicationRegistry($this->rootDir);
         $this->i18n = new I18n();
         $view = new View($this, $this->i18n);
         $this->router = new Router($this, $view, new Acl(), new Fsm());
@@ -27,8 +29,8 @@ final class Kernel
     public function handle(Request $request): Response
     {
         $this->request = $request;
-        [$package, $segments] = $this->packages->resolve($request);
-        return $this->router->dispatch($package, $segments, $request);
+        [$application, $segments] = $this->applications->resolve($request);
+        return $this->router->dispatch($application, $segments, $request);
     }
 
     public function rootDir(): string
@@ -36,19 +38,19 @@ final class Kernel
         return $this->rootDir;
     }
 
-    public function getPackage(string $slug): Package
+    public function getApplication(string $slug): Package
     {
-        return $this->packages->get($slug);
+        return $this->applications->get($slug);
     }
 
-    public function packageUrl(string $packageSlug, string $route = '', ?string $lang = null): string
+    public function packageUrl(string $applicationSlug, string $route = '', ?string $lang = null): string
     {
-        $package = $this->packages->get($packageSlug);
-        $lang = $lang !== null && $package->hasLanguage($lang) ? $lang : $package->defaultLang;
+        $application = $this->applications->get($applicationSlug);
+        $lang = $lang !== null && $application->hasLanguage($lang) ? $lang : $application->defaultLang;
         $base = $this->request ? $this->request->basePath : '';
         $parts = [$base];
-        if ($packageSlug !== 'logandplay') {
-            $parts[] = $packageSlug;
+        if ($applicationSlug !== 'logandplay') {
+            $parts[] = $applicationSlug;
         }
         $parts[] = $lang;
         if ($route !== '') {
@@ -57,9 +59,9 @@ final class Kernel
         return $this->joinUrlParts($parts);
     }
 
-    public function pageUrl(Package $package, string $lang, string $pageId): string
+    public function pageUrl(ApplicationDefinition $application, string $lang, string $pageId): string
     {
-        $routes = $package->routes();
+        $routes = $application->routes();
         $langRoutes = (array)($routes[$lang] ?? []);
         $route = '';
         foreach ($langRoutes as $candidate => $candidatePageId) {
@@ -68,25 +70,25 @@ final class Kernel
                 break;
             }
         }
-        return $this->packageUrl($package->slug, $route, $lang);
+        return $this->packageUrl($application->slug, $route, $lang);
     }
 
-    public function apiUrl(string $packageSlug, string $endpoint): string
+    public function apiUrl(string $applicationSlug, string $endpoint): string
     {
         $base = $this->request ? $this->request->basePath : '';
         $parts = [$base];
-        if ($packageSlug !== 'logandplay') {
-            $parts[] = $packageSlug;
+        if ($applicationSlug !== 'logandplay') {
+            $parts[] = $applicationSlug;
         }
         $parts[] = 'api';
         $parts[] = trim($endpoint, '/');
         return $this->joinUrlParts($parts);
     }
 
-    public function assetUrl(Package $package, string $asset): string
+    public function assetUrl(ApplicationDefinition $application, string $asset): string
     {
         $base = $this->request ? $this->request->basePath : '';
-        return $this->joinUrlParts([$base, 'sites', $package->slug, 'www', trim($asset, '/')]);
+        return $this->joinUrlParts([$base, 'sites', $application->slug, 'www', trim($asset, '/')]);
     }
 
     /** @param list<string> $parts */

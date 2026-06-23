@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus;
+namespace Opus\Application;
 
-final class Package
+final class ApplicationDefinition
 {
     public string $slug;
     public string $name;
@@ -21,7 +21,7 @@ final class Package
     {
         foreach (['slug', 'name', 'default_lang', 'languages'] as $key) {
             if (!array_key_exists($key, $config)) {
-                throw new \RuntimeException("Package config missing key {$key} in {$dir}");
+                throw new \RuntimeException("Application definition config missing key {$key} in {$dir}");
             }
         }
         $this->dir = $dir;
@@ -43,11 +43,11 @@ final class Package
     {
         $file = $this->dir . '/routes.php';
         if (!is_file($file)) {
-            throw new \RuntimeException("Routes file missing for package {$this->slug}: {$file}");
+            throw new \RuntimeException("Routes file missing for application {$this->slug}: {$file}");
         }
         $routes = require $file;
         if (!is_array($routes)) {
-            throw new \RuntimeException("Routes file must return array for package {$this->slug}: {$file}");
+            throw new \RuntimeException("Routes file must return array for application {$this->slug}: {$file}");
         }
         return $routes;
     }
@@ -57,11 +57,11 @@ final class Package
     {
         $file = $this->dir . '/content.php';
         if (!is_file($file)) {
-            throw new \RuntimeException("Content file missing for package {$this->slug}: {$file}");
+            throw new \RuntimeException("Content file missing for application {$this->slug}: {$file}");
         }
         $content = require $file;
         if (!is_array($content)) {
-            throw new \RuntimeException("Content file must return array for package {$this->slug}: {$file}");
+            throw new \RuntimeException("Content file must return array for application {$this->slug}: {$file}");
         }
         return $content;
     }
