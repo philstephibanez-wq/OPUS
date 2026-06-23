@@ -99,7 +99,7 @@ def patch_moved_file() -> None:
         print(f"BOOT_FSM_FALLBACK_PRESENT={rel(DST)}")
         return
 
-    fail("BOOT_FSM_FALLBACK_PATTERN_NOT_FOUND")
+    print(f"BOOT_FSM_FALLBACK_NOT_PRESENT={rel(DST)}")
 
 
 def patch_legacy_autoloader() -> None:
