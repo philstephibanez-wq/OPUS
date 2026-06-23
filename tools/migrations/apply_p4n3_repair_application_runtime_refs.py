@@ -108,7 +108,7 @@ def ensure_fsm_class() -> None:
     target.write_text("""<?php
 declare(strict_types=1);
 
-namespace Opus\FSM;
+namespace Opus\\FSM;
 
 final class Fsm
 {
