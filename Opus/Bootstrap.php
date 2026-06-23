@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Opus;
 
+use Opus\Http\Response;
+use Opus\Http\Request;
 final class Bootstrap
 {
     public static function run(string $rootDir): void
@@ -20,15 +22,15 @@ final class Bootstrap
     private static function loadFramework(string $rootDir): void
     {
         foreach ([
-            'Support.php',
-            'Request.php',
-            'Response.php',
-            'Package.php',
-            'PackageRepository.php',
+            'Foundation/Support.php',
+            'Http/Request.php',
+            'Http/Response.php',
+            'Application/ApplicationDefinition.php',
+            'Application/ApplicationRegistry.php',
             'I18n.php',
             'View.php',
-            'Acl.php',
-            'Fsm.php',
+            'Security/Acl.php',
+            'FSM/Fsm.php',
             'Router.php',
             'Kernel.php',
         ] as $file) {

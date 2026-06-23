@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Opus;
 
+use Opus\FSM\Fsm;
+use Opus\Security\Acl;
 use Opus\Application\ApplicationRegistry;
 use Opus\Application\ApplicationDefinition;
 use Opus\Http\Response;
@@ -38,7 +40,7 @@ final class Kernel
         return $this->rootDir;
     }
 
-    public function getApplication(string $slug): Package
+    public function getApplication(string $slug): ApplicationDefinition
     {
         return $this->applications->get($slug);
     }

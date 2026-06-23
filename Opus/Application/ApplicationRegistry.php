@@ -25,7 +25,7 @@ final class ApplicationRegistry
         foreach (glob($this->sitesDir . '/*/package.php') ?: [] as $file) {
             $config = require $file;
             if (!is_array($config)) {
-                throw new \RuntimeException('ApplicationDefinition config must return array: ' . $file);
+                throw new \RuntimeException('Application definition config must return array: ' . $file);
             }
             $application = new ApplicationDefinition(dirname($file), $config);
             $this->applications[$application->slug] = $application;
@@ -42,7 +42,7 @@ final class ApplicationRegistry
         return $this->applications;
     }
 
-    public function get(string $slug): Package
+    public function get(string $slug): ApplicationDefinition
     {
         if (!isset($this->applications[$slug])) {
             throw new \RuntimeException("Unknown application: {$slug}");
@@ -54,7 +54,7 @@ final class ApplicationRegistry
     public function resolve(Request $request): array
     {
         $segments = $request->segments;
-        $explicitApplicationDefinition = false;
+        $explicitApplication = false;
 
         if (isset($segments[0]) && isset($this->applications[$segments[0]])) {
             $application = $this->applications[$segments[0]];
@@ -65,11 +65,11 @@ final class ApplicationRegistry
         foreach ($this->applications as $application) {
             foreach ($application->domains as $domain) {
                 if (strtolower($domain) === $request->host) {
-                    return [$application, $segments, $explicitPackage];
+                    return [$application, $segments, $explicitApplication];
                 }
             }
         }
 
-        return [$this->applications['logandplay'], $segments, $explicitPackage];
+        return [$this->applications['logandplay'], $segments, $explicitApplication];
     }
 }

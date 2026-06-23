@@ -1,7 +1,7 @@
 <?php
 
 #[AllowDynamicProperties]
-class PackageContent_helper {
+class ApplicationContent_helper {
     private static string $lang = 'fr';
 
     public static function prepare($controller): void {
