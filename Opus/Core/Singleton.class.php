@@ -1,7 +1,5 @@
 <?php
 
-require_once __DIR__ . '/AccessorInterface.class.php';
-
 /**
  * OPUS singleton and automatic accessor base.
  *
