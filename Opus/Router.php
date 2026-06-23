@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Opus;
 
+use Opus\View\View;
+
 use Opus\FSM\Fsm;
 use Opus\Security\Acl;
 use Opus\Application\ApplicationDefinition;

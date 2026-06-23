@@ -1,7 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus;
+namespace Opus\View;
+
+use Opus\Kernel;
+
+use Opus\I18n\I18n;
 
 use Opus\Application\ApplicationDefinition;
 use Opus\Foundation\Support;
@@ -71,11 +75,11 @@ final class View
     /** @param array<string,mixed> $data */
     private function renderLayout(array $data): string
     {
-        require_once __DIR__ . '/Score/TemplateException.php';
-        require_once __DIR__ . '/Score/TemplateRendererInterface.php';
-        require_once __DIR__ . '/Score/ScoreTemplateRenderer.php';
+        require_once __DIR__ . '/../Score/TemplateException.php';
+        require_once __DIR__ . '/../Score/TemplateRendererInterface.php';
+        require_once __DIR__ . '/../Score/ScoreTemplateRenderer.php';
 
-        $renderer = new ScoreTemplateRenderer(__DIR__ . '/Score/templates/view');
+        $renderer = new ScoreTemplateRenderer(__DIR__ . '/../Score/templates/view');
         return $renderer->render('layout.score', $data);
     }
 

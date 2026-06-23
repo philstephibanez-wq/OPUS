@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus;
+namespace Opus\I18n;
 
 use Opus\Application\ApplicationDefinition;
 final class I18n
