@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """P3B OPUS tools layout smoke.
 
-Read-only validation for the cleaned tools/ layout.
+Read-only validation for the cleaned tools/ layout after the P4/P5 cleanup.
+
+Contract:
+- active tools stay inside their typed directories;
+- no tool runner/script is allowed directly under tools/;
+- obsolete P1/P2/P4 scripts may exist only under tools/archive/;
+- this smoke must reflect the current runtime layout, not the historical P1/P2 layout.
 """
 from __future__ import annotations
 
@@ -11,14 +17,20 @@ from typing import Iterable
 
 ROOT = Path(__file__).resolve().parents[2]
 
-REQUIRED_TRACKED = (
+REQUIRED_ACTIVE_TRACKED = (
     "tools/audits/audit_opus_root_cleanup_p3.py",
     "tools/migrations/apply_opus_tools_layout_p3b.py",
-    "tools/smokes/smoke_opus_boot_render_p1.php",
-    "tools/smokes/smoke_opus_view_scoretemplate_p1b.php",
     "tools/smokes/smoke_opus_naming_p1d.py",
-    "tools/smokes/smoke_opus_singleton_accessor_p2.php",
     "tools/smokes/smoke_opus_tools_layout_p3b.py",
+    "tools/smokes/smoke_p5b_current_runtime_layout.php",
+)
+
+REQUIRED_ARCHIVED_TRACKED = (
+    "tools/archive/stale_smokes/smoke_opus_boot_render_p1.php",
+    "tools/archive/stale_smokes/smoke_opus_view_scoretemplate_p1b.php",
+    "tools/archive/stale_smokes/smoke_opus_singleton_accessor_p2.php",
+    "tools/archive/p4_migrations/apply_p4x_move_legacy_application_boundary.py",
+    "tools/archive/p4_audits/audit_p4v_entrypoints_runtime_split.py",
 )
 
 FORBIDDEN_ROOT_TOOLS = (
@@ -34,15 +46,21 @@ FORBIDDEN_ROOT_TOOLS = (
     "tools/smoke_opus_singleton_accessor_p2.php",
 )
 
+FORBIDDEN_ACTIVE_TOOLS = (
+    "tools/smokes/smoke_opus_boot_render_p1.php",
+    "tools/smokes/smoke_opus_view_scoretemplate_p1b.php",
+    "tools/smokes/smoke_opus_singleton_accessor_p2.php",
+)
+
 CONTENT_MARKERS = (
-    ("tools/smokes/smoke_opus_boot_render_p1.php", "realpath(__DIR__ . '/../..')"),
-    ("tools/smokes/smoke_opus_view_scoretemplate_p1b.php", "realpath(__DIR__ . '/../..')"),
     ("tools/smokes/smoke_opus_naming_p1d.py", "parents[2]"),
-    ("tools/smokes/smoke_opus_singleton_accessor_p2.php", "dirname(__DIR__, 2)"),
+    ("tools/smokes/smoke_opus_tools_layout_p3b.py", "P3B_OPUS_TOOLS_LAYOUT_SMOKE"),
+    ("tools/smokes/smoke_p5b_current_runtime_layout.php", "P5B_CURRENT_RUNTIME_LAYOUT_SMOKE_OK"),
 )
 
 
 def run_git(args: list[str]) -> str:
+    """Run git in the repository root and return stdout, failing loudly."""
     proc = subprocess.run(
         ["git", *args],
         cwd=str(ROOT),
@@ -57,10 +75,12 @@ def run_git(args: list[str]) -> str:
 
 
 def tracked_files() -> set[str]:
+    """Return tracked files using normalized forward-slash paths."""
     return {line.strip().replace("\\", "/") for line in run_git(["ls-files"]).splitlines() if line.strip()}
 
 
 def root_tool_scripts(files: Iterable[str]) -> list[str]:
+    """Find script-like files directly below tools/, which are no longer allowed."""
     results: list[str] = []
     for rel in files:
         parts = Path(rel).parts
@@ -70,11 +90,23 @@ def root_tool_scripts(files: Iterable[str]) -> list[str]:
 
 
 def check(condition: bool, label: str, details: str = "") -> tuple[bool, str]:
+    """Print an OPUS-style check result and return its status."""
     if condition:
         print(label + "=OK")
         return True, ""
     print(label + "=FAIL" + (" " + details if details else ""))
     return False, details
+
+
+def assert_tracked_file(rel: str, tracked: set[str], failures: list[tuple[str, str]], label_prefix: str) -> None:
+    """Validate that a tracked file exists at the expected repository path."""
+    ok, detail = check(
+        rel in tracked and (ROOT / rel).is_file(),
+        label_prefix + rel.replace("/", "_").replace(".", "_").upper(),
+        rel,
+    )
+    if not ok:
+        failures.append((label_prefix.rstrip("_"), detail))
 
 
 def main() -> int:
@@ -96,15 +128,21 @@ def main() -> int:
     if not ok:
         failures.append(("CHECK_NO_ROOT_TOOL_SCRIPTS", detail))
 
-    for rel in REQUIRED_TRACKED:
-        ok, detail = check(rel in tracked and (ROOT / rel).is_file(), "CHECK_REQUIRED_" + rel.replace("/", "_").replace(".", "_").upper(), rel)
-        if not ok:
-            failures.append(("CHECK_REQUIRED_FILE", detail))
+    for rel in REQUIRED_ACTIVE_TRACKED:
+        assert_tracked_file(rel, tracked, failures, "CHECK_REQUIRED_ACTIVE_")
+
+    for rel in REQUIRED_ARCHIVED_TRACKED:
+        assert_tracked_file(rel, tracked, failures, "CHECK_REQUIRED_ARCHIVED_")
 
     for rel in FORBIDDEN_ROOT_TOOLS:
-        ok, detail = check(rel not in tracked, "CHECK_NOT_TRACKED_" + rel.replace("/", "_").replace(".", "_").upper(), rel)
+        ok, detail = check(rel not in tracked, "CHECK_NOT_TRACKED_ROOT_" + rel.replace("/", "_").replace(".", "_").upper(), rel)
         if not ok:
-            failures.append(("CHECK_FORBIDDEN_TRACKED", detail))
+            failures.append(("CHECK_FORBIDDEN_ROOT_TRACKED", detail))
+
+    for rel in FORBIDDEN_ACTIVE_TOOLS:
+        ok, detail = check(rel not in tracked, "CHECK_NOT_TRACKED_ACTIVE_" + rel.replace("/", "_").replace(".", "_").upper(), rel)
+        if not ok:
+            failures.append(("CHECK_FORBIDDEN_ACTIVE_TRACKED", detail))
 
     for rel, marker in CONTENT_MARKERS:
         text = (ROOT / rel).read_text(encoding="utf-8", errors="replace") if (ROOT / rel).is_file() else ""
