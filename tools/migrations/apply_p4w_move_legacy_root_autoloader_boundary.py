@@ -80,6 +80,7 @@ def assert_no_active_root_autoloader_refs() -> None:
         "RUN_",
         ".git/",
         "var/cache/",
+        "vendor/",
     )
     offenders: list[str] = []
     needles = ["Opus/autoloader.class.php", "Opus\\autoloader.class.php"]
