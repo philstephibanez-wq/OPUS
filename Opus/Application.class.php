@@ -52,8 +52,39 @@ class OPUS_Application {
             $siteKey = 'default';
         }
 
-        $this->_bootFsm = new OPUS_FSM_Boot('opus_boot_' . $siteKey);
-        $this->_bootFsm->runBoot();
+        $programFile = $this->_resolveBootFsmProgramFile();
+        $this->_bootFsm = OPUS_FSM_Program::fromFile('opus_boot_' . $siteKey, $programFile);
+        $this->_bootFsm->run();
+    }
+
+    /**
+     * Resolve the configured boot FSM program file.
+     *
+     * Contract:
+     * - the Application never owns boot transition instructions;
+     * - transitions are loaded from configuration;
+     * - missing boot program is a hard error, never a silent fallback.
+     */
+    private function _resolveBootFsmProgramFile(): string {
+        $candidates = array();
+
+        if (defined('ROOT')) {
+            $candidates[] = rtrim((string)ROOT, '/\\') . '/application/config/fsm.boot.php';
+        }
+
+        $candidates[] = dirname(__DIR__) . '/config/fsm.boot.php';
+
+        foreach ($candidates as $candidate) {
+            if (is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        $message = 'OPUS boot FSM program not found. Expected one of: ' . implode(' | ', $candidates);
+        if (class_exists('OPUS_Exception')) {
+            throw new OPUS_Exception($message);
+        }
+        throw new RuntimeException($message);
     }
 
     public function getBootFsm() {
@@ -201,7 +232,7 @@ class OPUS_Application {
         $this->router = new OPUS_Router($this, $this->_siteDir, $this->_configRoutes);
 
 //        parent::__construct($id, 'INIT', null, array(), array(), false);
-        if (!($this->_bootFsm instanceof OPUS_FSM_Boot) || !$this->_bootFsm->isReady()) {
+        if (!($this->_bootFsm instanceof OPUS_FSM_Program) || !$this->_bootFsm->isReady()) {
             throw new OPUS_Exception('OPUS boot FSM did not reach BOOT_READY. Runtime dispatch is forbidden.');
         }
         $this->dispatch();
