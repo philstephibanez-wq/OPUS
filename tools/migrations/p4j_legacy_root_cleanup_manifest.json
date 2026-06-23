@@ -4,12 +4,23 @@
     "wrapper_is_fallback": true,
     "no_wrapper": true,
     "no_silent_fallback": true,
-    "no_runtime_direct_legacy_path_reference": true
+    "no_runtime_direct_legacy_path_reference": true,
+    "autoload_is_the_only_legacy_symbol_resolution_path": true
   },
   "non_runtime_reference_roots": [
+    "DOC/",
     "tools/audits/",
     "tools/migrations/",
+    "tools/smokes/",
     "RUN_P4J_MOVE_LEGACY_ROOT_CLASSES.cmd"
+  ],
+  "content_replacements": [
+    {
+      "path": "Opus/Singleton.class.php",
+      "reason": "Remove direct legacy file include. OPUS_AccessorInterface must be resolved by autoload after both classes are moved out of framework root.",
+      "search": "require_once __DIR__ . '/AccessorInterface.class.php';\n\n",
+      "replace": ""
+    }
   ],
   "moves": [
     {
