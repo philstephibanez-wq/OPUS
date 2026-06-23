@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus;
+namespace Opus\Security;
 
 final class Acl
 {

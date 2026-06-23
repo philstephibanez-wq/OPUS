@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus;
+namespace Opus\FSM;
 
 final class Fsm
 {
