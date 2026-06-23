@@ -11,7 +11,7 @@
  *
  * Contract:
  * - OPUS root entrypoint index.php is modern and does not boot legacy Application.
- * - Legacy www/index.php explicitly loads Bootstrap, legacy autoloader and legacy Application.
+ * - Legacy www/index.php explicitly loads Composer, legacy autoloader and legacy Application.
  * - Opus/ root contains Bootstrap.php as the only remaining root PHP runtime file.
  * - Former root legacy classes stay absent from Opus/ root.
  * - P4 runners stay archived outside repository root.
@@ -122,7 +122,10 @@ final class P5BCurrentRuntimeLayoutSmoke
         if ($content === null) { return; }
 
         $this->contains($content, "define('ROOT', realpath(__DIR__ . '/..'));", 'CHECK_WWW_DEFINES_ROOT');
-        $this->contains($content, "require_once ROOT . '/Opus/Bootstrap.php';", 'CHECK_WWW_REQUIRES_BOOTSTRAP');
+        $this->contains($content, "\$composerAutoload = ROOT . '/vendor/autoload.php';", 'CHECK_WWW_DECLARES_COMPOSER_AUTOLOAD');
+        $this->contains($content, "throw new RuntimeException('OPUS_COMPOSER_AUTOLOAD_REQUIRED: ' . \$composerAutoload);", 'CHECK_WWW_COMPOSER_AUTOLOAD_REQUIRED_ERROR');
+        $this->contains($content, 'require_once $composerAutoload;', 'CHECK_WWW_REQUIRES_COMPOSER_AUTOLOAD');
+        $this->notContains($content, "require_once ROOT . '/Opus/Bootstrap.php';", 'CHECK_WWW_DOES_NOT_REQUIRE_BOOTSTRAP_DIRECTLY');
         $this->contains($content, "require_once ROOT . '/Opus/Legacy/Autoload/autoloader.class.php';", 'CHECK_WWW_REQUIRES_LEGACY_AUTOLOADER');
         $this->contains($content, "require_once ROOT . '/Opus/Legacy/Application/Application.class.php';", 'CHECK_WWW_REQUIRES_LEGACY_APPLICATION');
         $this->contains($content, 'OPUS_Application::getInstance()', 'CHECK_WWW_BOOTSTRAPS_LEGACY_APPLICATION');

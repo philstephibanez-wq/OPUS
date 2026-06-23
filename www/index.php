@@ -65,7 +65,11 @@ function opus_serve_package_asset(): void {
 
 opus_serve_package_asset();
 
-require_once ROOT . '/Opus/Bootstrap.php';
+$composerAutoload = ROOT . '/vendor/autoload.php';
+if (!is_file($composerAutoload)) {
+    throw new RuntimeException('OPUS_COMPOSER_AUTOLOAD_REQUIRED: ' . $composerAutoload);
+}
+require_once $composerAutoload;
 require_once ROOT . '/Opus/Legacy/Autoload/autoloader.class.php';
 require_once ROOT . '/Opus/Legacy/Application/Application.class.php';
 

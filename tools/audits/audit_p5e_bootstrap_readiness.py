@@ -40,7 +40,9 @@ RUNTIME_SCAN_FILES = [
 ]
 
 EXPECTED_WWW_REQUIRES = [
-    "require_once ROOT . '/Opus/Bootstrap.php';",
+    "$composerAutoload = ROOT . '/vendor/autoload.php';",
+    "throw new RuntimeException('OPUS_COMPOSER_AUTOLOAD_REQUIRED: ' . $composerAutoload);",
+    "require_once $composerAutoload;",
     "require_once ROOT . '/Opus/Legacy/Autoload/autoloader.class.php';",
     "require_once ROOT . '/Opus/Legacy/Application/Application.class.php';",
 ]
@@ -213,9 +215,9 @@ def scan_bootstrap_references(files: list[str]) -> int:
     for rel in sorted(ignored_refs):
         print(f"NON_RUNTIME_REF={rel}")
 
-    if runtime_refs != ["www/index.php"]:
+    if runtime_refs:
         return fail("CHECK_BOOTSTRAP_RUNTIME_REFERENCES", ",".join(runtime_refs))
-    ok("CHECK_BOOTSTRAP_RUNTIME_REFERENCES", "www/index.php")
+    ok("CHECK_BOOTSTRAP_RUNTIME_REFERENCES", "none")
     return 0
 
 
@@ -224,9 +226,10 @@ def print_decision() -> None:
     print("BOOTSTRAP_READINESS_DECISION")
     print("MODERN_ENTRYPOINT_BLOCKS_BOOTSTRAP_MOVE=NO")
     print("COMPOSER_AUTOLOAD_CAN_LOAD_OPUS_BOOTSTRAP=YES")
-    print("LEGACY_WWW_ENTRYPOINT_DIRECTLY_REQUIRES_BOOTSTRAP=YES")
-    print("DECISION=KEEP_OPUS_BOOTSTRAP_PHP_AT_ROOT_FOR_NOW")
-    print("NEXT_SAFE_STEP=P5F_DESIGN_BOOTSTRAP_COMPATIBILITY_OR_LEGACY_ENTRYPOINT_AUTLOAD_SWITCH")
+    print("LEGACY_WWW_ENTRYPOINT_DIRECTLY_REQUIRES_BOOTSTRAP=NO")
+    print("LEGACY_AUTOLOADER_STILL_BOOTSTRAPS_BRIDGE=YES")
+    print("DECISION=KEEP_OPUS_BOOTSTRAP_PHP_AT_ROOT_FOR_LEGACY_AUTOLOADER_BRIDGE")
+    print("NEXT_SAFE_STEP=P5G_DESIGN_LEGACY_AUTOLOADER_BOOTSTRAP_COMPATIBILITY")
 
 
 def main() -> int:
