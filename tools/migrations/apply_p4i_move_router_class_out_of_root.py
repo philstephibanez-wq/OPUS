@@ -37,6 +37,10 @@ SELF_FILES: frozenset[Path] = frozenset({
     Path("RUN_P4I_MOVE_ROUTER_CLASS_OUT_OF_ROOT.cmd"),
 })
 
+NON_RUNTIME_LEGACY_REFERENCE_PREFIXES: tuple[tuple[str, ...], ...] = (
+    ("tools", "audits"),
+)
+
 
 def rel(path: Path) -> Path:
     return path.resolve().relative_to(ROOT.resolve())
@@ -44,6 +48,14 @@ def rel(path: Path) -> Path:
 
 def fail(message: str) -> None:
     raise RuntimeError(f"{PATCH_ID}: {message}")
+
+
+def is_non_runtime_legacy_reference(relative: Path) -> bool:
+    relative_parts: tuple[str, ...] = tuple(relative.parts)
+    for prefix in NON_RUNTIME_LEGACY_REFERENCE_PREFIXES:
+        if relative_parts[:len(prefix)] == prefix:
+            return True
+    return False
 
 
 def iter_scanned_files() -> Iterable[Path]:
@@ -60,18 +72,32 @@ def iter_scanned_files() -> Iterable[Path]:
         yield path
 
 
-def assert_no_legacy_path_references() -> None:
-    offenders: list[str] = []
+def assert_no_runtime_legacy_path_references() -> None:
+    runtime_offenders: list[str] = []
+    non_runtime_references: list[str] = []
+
     for path in iter_scanned_files():
+        relative: Path = rel(path)
         text: str = path.read_text(encoding="utf-8", errors="ignore")
         for needle in FORBIDDEN_LEGACY_PATHS:
-            if needle in text:
-                offenders.append(f"{rel(path)} contains {needle}")
-    if offenders:
-        print("LEGACY_ROUTER_PATH_REFERENCES_FOUND")
-        for offender in offenders:
+            if needle not in text:
+                continue
+            entry: str = f"{relative} contains {needle}"
+            if is_non_runtime_legacy_reference(relative):
+                non_runtime_references.append(entry)
+                continue
+            runtime_offenders.append(entry)
+
+    if non_runtime_references:
+        print("NON_RUNTIME_LEGACY_ROUTER_PATH_REFERENCES_FOUND")
+        for reference in non_runtime_references:
+            print(reference)
+
+    if runtime_offenders:
+        print("RUNTIME_LEGACY_ROUTER_PATH_REFERENCES_FOUND")
+        for offender in runtime_offenders:
             print(offender)
-        fail("REFUSING_MOVE_BECAUSE_DIRECT_FILE_PATH_REFERENCE_EXISTS")
+        fail("REFUSING_MOVE_BECAUSE_RUNTIME_DIRECT_FILE_PATH_REFERENCE_EXISTS")
 
 
 def main() -> None:
@@ -82,7 +108,7 @@ def main() -> None:
     if TARGET.exists():
         fail(f"TARGET_ALREADY_EXISTS: {rel(TARGET)}")
 
-    assert_no_legacy_path_references()
+    assert_no_runtime_legacy_path_references()
 
     TARGET.parent.mkdir(parents=True, exist_ok=True)
     SOURCE.replace(TARGET)
