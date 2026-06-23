@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Opus;
 
+use Opus\Foundation\Support;
+
 use Opus\Http\Response;
 
 use Opus\Http\Request;

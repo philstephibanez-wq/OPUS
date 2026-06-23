@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Opus\Http;
 
-use Opus\Support;
+use Opus\Foundation\Support;
 
 final class Request
 {
