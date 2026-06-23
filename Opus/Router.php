@@ -3,6 +3,10 @@ declare(strict_types=1);
 
 namespace Opus;
 
+use Opus\Http\Response;
+
+use Opus\Http\Request;
+
 final class Router
 {
     private Kernel $kernel;
