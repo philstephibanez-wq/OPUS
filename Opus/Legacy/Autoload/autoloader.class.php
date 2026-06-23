@@ -145,7 +145,11 @@ $tmpPath = defined('ROOT') ? ROOT . '/tmp/' : $legacyRoot . '/tmp/';
 $base = defined('ROOT') ? ROOT : $legacyRoot;
 
 $autoloader = DirectoriesAutoloader::getInstance($tmpPath)
-    ->addDirectory($base . '/Opus/')
-    ->addDirectory($base . '/application/');
+    ->addDirectory($base . '/Opus/');
+
+$legacyApplicationDirectory = $base . '/application/';
+if (is_dir($legacyApplicationDirectory)) {
+    $autoloader->addDirectory($legacyApplicationDirectory);
+}
 
 spl_autoload_register(array($autoloader, 'autoload'));
