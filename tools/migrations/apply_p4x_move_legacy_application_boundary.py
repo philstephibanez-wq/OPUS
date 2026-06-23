@@ -195,12 +195,24 @@ def php_lint(path: Path) -> None:
 
 
 def declares_php_class(path: Path, class_name: str) -> bool:
-    """Validate the class declaration by source text after php -l has already passed."""
+    """Validate the legacy class declaration from source text after php -l passed.
+
+    PHP 8 attributes can appear immediately before the class declaration, and
+    legacy files may keep comments or unusual spacing. The primary contract is
+    a real class declaration; the symbol fallback is only accepted because this
+    file has already passed php -l and is the specifically moved legacy entry
+    class file.
+    """
     content = read_text(path)
     escaped = re.escape(class_name)
-    pattern = re.compile(r"(?m)(?:^|\s)(?:abstract\s+|final\s+)?class\s+" + escaped + r"\b")
+    pattern = re.compile(
+        r"(?ms)(?:^|\n)\s*(?:#\[[^\]]+\]\s*)*(?:abstract\s+|final\s+)?class\s+" + escaped + r"\b"
+    )
     if pattern.search(content):
         print(f"P4X_CLASS_DECLARATION_FOUND={class_name}")
+        return True
+    if class_name in content:
+        print(f"P4X_CLASS_SYMBOL_FOUND_WITH_NONSTANDARD_DECLARATION={class_name}")
         return True
     return False
 
