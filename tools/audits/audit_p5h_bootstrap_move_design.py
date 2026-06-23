@@ -2,12 +2,12 @@
 """
 P5H_BOOTSTRAP_MOVE_DESIGN_AUDIT
 
-Read-only design audit for a future Bootstrap move.
+Read-only audit for the stable Bootstrap runtime location after the move.
 
 Purpose:
-- prove that Opus/Bootstrap.php has been moved to the runtime namespace;
+- prove that Opus/Bootstrap.php remains absent;
+- prove that Opus/Runtime/Bootstrap.php owns the runtime Bootstrap class;
 - verify that Composer can load the runtime Bootstrap class;
-- identify any remaining post-move cleanup work;
 - never move files, rewrite sources, regenerate Composer output, or clean caches.
 """
 from __future__ import annotations
@@ -206,24 +206,24 @@ def scan_class_and_path_references() -> int:
 
 def print_design_decision() -> None:
     print()
-    print("P5H_BOOTSTRAP_MOVE_DESIGN_DECISION")
+    print("P5H_BOOTSTRAP_RUNTIME_LOCATION_DECISION")
     print(f"CURRENT_BOOTSTRAP_PATH={CURRENT_BOOTSTRAP}")
-    print(f"CURRENT_BOOTSTRAP_CLASS={CURRENT_CLASS}")
-    print(f"TARGET_BOOTSTRAP_PATH={TARGET_BOOTSTRAP}")
-    print(f"TARGET_BOOTSTRAP_CLASS={TARGET_CLASS}")
+    print(f"LEGACY_BOOTSTRAP_CLASS_ABSENT_OR_SUPERSEDED={CURRENT_CLASS}")
+    print(f"RUNTIME_BOOTSTRAP_PATH={TARGET_BOOTSTRAP}")
+    print(f"RUNTIME_BOOTSTRAP_CLASS={TARGET_CLASS}")
     print("TARGET_NAMESPACE=Opus\\Runtime")
-    print("MOVE_REQUIRES_NAMESPACE_UPDATE=NO")
-    print("MOVE_REQUIRES_LEGACY_GUARD_UPDATE=NO")
+    print("RUNTIME_BOOTSTRAP_NAMESPACE_STABLE=YES")
+    print("LEGACY_GUARD_USES_RUNTIME_BOOTSTRAP=YES")
     print("MOVE_REQUIRES_COMPOSER_DUMP_AUTOLOAD=YES_LOCAL_REFRESH_REQUIRED")
     print("ROOT_BOOTSTRAP_RUNTIME_BLOCKERS=NO")
-    print("DECISION=P5I_BOOTSTRAP_MOVED_TO_RUNTIME_NAMESPACE")
-    print("NEXT_SAFE_STEP=P5J_ARCHIVE_COMPLETED_P5_MIGRATIONS_OR_RUNTIME_SMOKE")
+    print("DECISION=BOOTSTRAP_RUNTIME_LOCATION_STABLE")
+    print("NEXT_SAFE_STEP=P6A_SELECT_NEXT_RUNTIME_CLEANUP_TARGET")
 
 
 def main() -> int:
     print(PATCH_ID)
     print("MODE=READ_ONLY")
-    print("SCOPE=bootstrap move target design, namespace transition, runtime blockers")
+    print("SCOPE=stable bootstrap runtime location, namespace, composer, runtime blockers")
 
     checks = [
         check_required_files(),

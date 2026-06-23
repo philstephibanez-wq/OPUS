@@ -2,11 +2,11 @@
 """
 P5E_BOOTSTRAP_READINESS_AUDIT
 
-Read-only audit for the last OPUS direct PHP file under Opus/.
+Read-only audit for the stable OPUS bootstrap runtime boundary.
 
 Purpose:
-- prove that Opus/Bootstrap.php has been moved out of the Opus root;
-- classify the runtime Bootstrap namespace/location after migration;
+- prove that no PHP file remains directly under Opus/;
+- prove that the runtime Bootstrap lives at Opus/Runtime/Bootstrap.php;
 - keep modern and legacy entrypoints explicit;
 - never rewrite files, caches, Composer output, or entrypoints.
 """
@@ -222,19 +222,19 @@ def scan_bootstrap_references(files: list[str]) -> int:
 
 def print_decision() -> None:
     print()
-    print("BOOTSTRAP_READINESS_DECISION")
+    print("BOOTSTRAP_STABLE_STATE_DECISION")
     print("MODERN_ENTRYPOINT_BLOCKS_BOOTSTRAP_MOVE=NO")
-    print("COMPOSER_AUTOLOAD_CAN_LOAD_OPUS_BOOTSTRAP=YES")
+    print("COMPOSER_AUTOLOAD_CAN_LOAD_RUNTIME_BOOTSTRAP=YES")
     print("LEGACY_WWW_ENTRYPOINT_DIRECTLY_REQUIRES_BOOTSTRAP=NO")
     print("LEGACY_AUTOLOADER_STILL_BOOTSTRAPS_BRIDGE=NO")
-    print("DECISION=BOOTSTRAP_MOVED_TO_RUNTIME_NAMESPACE")
-    print("NEXT_SAFE_STEP=P5J_ARCHIVE_COMPLETED_P5_MIGRATIONS_OR_RUNTIME_SMOKE")
+    print("DECISION=BOOTSTRAP_RUNTIME_BOUNDARY_STABLE")
+    print("NEXT_SAFE_STEP=P6A_SELECT_NEXT_RUNTIME_CLEANUP_TARGET")
 
 
 def main() -> int:
     print(PATCH_ID)
     print("MODE=READ_ONLY")
-    print("SCOPE=bootstrap readiness, modern entrypoint, legacy entrypoint, composer autoload")
+    print("SCOPE=stable bootstrap runtime boundary, modern entrypoint, legacy entrypoint, composer autoload")
 
     files = tracked_files()
     checks = [

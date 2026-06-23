@@ -2,12 +2,12 @@
 """
 P5G_LEGACY_AUTOLOADER_BOOTSTRAP_BRIDGE_AUDIT
 
-Read-only audit for the legacy DirectoriesAutoloader bootstrap dependency.
+Read-only audit for the stable legacy DirectoriesAutoloader composer-aware bootstrap guard.
 
 Purpose:
-- prove the modern www legacy entrypoint now loads Composer before legacy classes;
-- classify the remaining Opus/Bootstrap.php dependency inside Opus/Legacy/Autoload/autoloader.class.php;
-- decide whether the next safe migration can replace the direct file require with a composer-aware guard;
+- prove the modern www legacy entrypoint loads Composer before legacy classes;
+- prove the legacy autoloader no longer requires Opus/Bootstrap.php directly;
+- prove the composer-aware runtime Bootstrap guard remains active;
 - never rewrite source, caches, Composer output, or entrypoints.
 """
 from __future__ import annotations
@@ -180,7 +180,7 @@ def print_decision() -> None:
     composer_aware = any(token in content for token in COMPOSER_AWARE_TOKENS)
 
     print()
-    print("P5G_LEGACY_AUTOLOADER_BOOTSTRAP_BRIDGE_DECISION")
+    print("P5G_LEGACY_AUTOLOADER_BOOTSTRAP_GUARD_DECISION")
     print("WWW_ENTRYPOINT_LOADS_COMPOSER_BEFORE_LEGACY=YES")
     print(f"LEGACY_AUTOLOADER_DIRECTLY_REQUIRES_BOOTSTRAP={'YES' if direct_bridge else 'NO'}")
     print(f"LEGACY_AUTOLOADER_COMPOSER_AWARE_GUARD={'YES' if composer_aware else 'NO'}")
@@ -189,7 +189,7 @@ def print_decision() -> None:
         print("NEXT_SAFE_STEP=P5G_MIGRATE_LEGACY_AUTOLOADER_TO_COMPOSER_AWARE_BOOTSTRAP_GUARD")
     elif composer_aware and not direct_bridge:
         print("DECISION=P5G_LEGACY_AUTOLOADER_COMPOSER_GUARD_OK")
-        print("NEXT_SAFE_STEP=P5J_ARCHIVE_COMPLETED_P5_MIGRATIONS_OR_RUNTIME_SMOKE")
+        print("NEXT_SAFE_STEP=P6A_SELECT_NEXT_RUNTIME_CLEANUP_TARGET")
     elif composer_aware:
         print("DECISION=LEGACY_AUTOLOADER_BOOTSTRAP_BRIDGE_ALREADY_COMPOSER_AWARE")
         print("NEXT_SAFE_STEP=RERUN_P5E_AND_P5B")
@@ -201,7 +201,7 @@ def print_decision() -> None:
 def main() -> int:
     print(PATCH_ID)
     print("MODE=READ_ONLY")
-    print("SCOPE=legacy autoloader bootstrap bridge, composer-aware readiness")
+    print("SCOPE=stable legacy autoloader composer-aware bootstrap guard")
 
     checks = [
         check_required_files(),
