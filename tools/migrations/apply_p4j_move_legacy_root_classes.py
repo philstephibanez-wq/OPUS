@@ -78,6 +78,38 @@ def is_non_runtime_reference(relative: str, non_runtime_roots: List[str]) -> boo
     return False
 
 
+def apply_declared_content_replacements(manifest: Dict[str, Any]) -> None:
+    replacements: Any = manifest.get("content_replacements", [])
+    if replacements is None:
+        return
+    if not isinstance(replacements, list):
+        fail("CONTENT_REPLACEMENTS_MUST_BE_LIST")
+
+    for raw_replacement in replacements:
+        if not isinstance(raw_replacement, dict):
+            fail("CONTENT_REPLACEMENT_MUST_BE_OBJECT")
+        relative_path: str = str(raw_replacement.get("path", ""))
+        search: str = str(raw_replacement.get("search", ""))
+        replace: str = str(raw_replacement.get("replace", ""))
+        reason: str = str(raw_replacement.get("reason", ""))
+        if relative_path == "" or search == "":
+            fail("CONTENT_REPLACEMENT_PATH_AND_SEARCH_REQUIRED")
+
+        path: Path = REPO_ROOT / relative_path
+        if not path.is_file():
+            fail(f"CONTENT_REPLACEMENT_FILE_NOT_FOUND={relative_path}")
+
+        content: str = path.read_text(encoding="utf-8")
+        occurrence_count: int = content.count(search)
+        if occurrence_count != 1:
+            fail(f"CONTENT_REPLACEMENT_EXPECTED_ONE_MATCH={relative_path}; matches={occurrence_count}")
+
+        path.write_text(content.replace(search, replace, 1), encoding="utf-8")
+        print(f"CONTENT_REPLACED={relative_path}")
+        if reason:
+            print(f"CONTENT_REPLACEMENT_REASON={reason}")
+
+
 def assert_no_runtime_legacy_path_references(manifest: Dict[str, Any]) -> None:
     moves: List[Dict[str, str]] = [dict(item) for item in manifest["moves"]]
     non_runtime_roots: List[str] = [str(item) for item in manifest.get("non_runtime_reference_roots", [])]
@@ -147,6 +179,7 @@ def main() -> None:
     print(f"== {PATCH_ID} ==")
     manifest: Dict[str, Any] = read_manifest()
     assert_manifest_targets_are_unique(manifest)
+    apply_declared_content_replacements(manifest)
     assert_no_runtime_legacy_path_references(manifest)
     move_classes(manifest)
     print(f"{PATCH_ID}_OK")
