@@ -175,7 +175,7 @@ final class P5BCurrentRuntimeLayoutSmoke
         foreach ([
             'index.php',
             'www/index.php',
-            'Opus/Bootstrap.php',
+            'Opus/Runtime/Bootstrap.php',
             'Opus/Legacy/Autoload/autoloader.class.php',
             'Opus/Legacy/Application/Application.class.php',
             'Opus/Runtime/Kernel.php',
