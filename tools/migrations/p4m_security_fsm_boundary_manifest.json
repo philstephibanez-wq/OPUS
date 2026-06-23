@@ -1,0 +1,38 @@
+{
+  "patch_id": "P4M_MOVE_SECURITY_AND_FSM_CLASSES",
+  "contract": {
+    "no_wrapper": true,
+    "no_alias": true,
+    "no_stub": true,
+    "no_silent_fallback": true,
+    "runtime_legacy_references_block": true
+  },
+  "moves": [
+    {
+      "source": "Opus/Acl.php",
+      "target": "Opus/Security/Acl.php",
+      "old_namespace": "Opus",
+      "new_namespace": "Opus\\Security",
+      "class": "Acl",
+      "legacy_symbols": ["Opus\\Acl"]
+    },
+    {
+      "source": "Opus/Fsm.php",
+      "target": "Opus/FSM/Fsm.php",
+      "old_namespace": "Opus",
+      "new_namespace": "Opus\\FSM",
+      "class": "Fsm",
+      "legacy_symbols": ["Opus\\Fsm"]
+    }
+  ],
+  "runtime_roots": ["Opus", "application", "config", "packages", "public", "sites"],
+  "non_runtime_roots": ["DOC", "tools", "vendor", ".git"],
+  "php_lint_targets": [
+    "Opus/Security/Acl.php",
+    "Opus/FSM/Fsm.php"
+  ],
+  "autoload_symbols": [
+    "Opus\\Security\\Acl",
+    "Opus\\FSM\\Fsm"
+  ]
+}
