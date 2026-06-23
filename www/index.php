@@ -66,7 +66,7 @@ function opus_serve_package_asset(): void {
 opus_serve_package_asset();
 
 require_once ROOT . '/Opus/Bootstrap.php';
-require_once ROOT . '/Opus/autoloader.class.php';
+require_once ROOT . '/Opus/Legacy/Autoload/autoloader.class.php';
 
 $app = OPUS_Application::getInstance();
 $app->run();

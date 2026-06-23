@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/Bootstrap.php';
+$opusBootstrap = defined('ROOT') ? ROOT . '/Opus/Bootstrap.php' : dirname(__DIR__, 2) . '/Bootstrap.php';
+require_once $opusBootstrap;
 
 
 class ExtensionFilterIteratorDecorator extends FilterIterator {
@@ -139,8 +140,9 @@ class DirectoriesAutoloader {
     }
 }
 
-$tmpPath = defined('ROOT') ? ROOT . '/tmp/' : __DIR__ . '/../tmp/';
-$base = defined('ROOT') ? ROOT : realpath(__DIR__ . '/..');
+$legacyRoot = dirname(__DIR__, 3);
+$tmpPath = defined('ROOT') ? ROOT . '/tmp/' : $legacyRoot . '/tmp/';
+$base = defined('ROOT') ? ROOT : $legacyRoot;
 
 $autoloader = DirectoriesAutoloader::getInstance($tmpPath)
     ->addDirectory($base . '/Opus/')
