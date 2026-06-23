@@ -1,35 +1,45 @@
 # P4B - OPUS no root wrappers
 
-## Decision
+## Status
+
+SUPERSEDED / CORRECTED by:
+
+- `DOC/CONTRACTS/OPUS_FSM_FIRST_ENGINE_CONTRACT.md`
+
+This document is kept only as historical context for the P4 discussion.
+
+## Corrected decision
 
 OPUS must not keep wrapper classes at the direct `Opus/` root.
 
-Root files such as `Opus/Acl.php`, `Opus/Fsm.php`, `Opus/I18n.php`, and `Opus/Router.php` are not final architecture. They were introduced as a temporary reborn runtime layer and must be removed or moved into a real responsibility namespace.
+More importantly: wrappers must not be moved elsewhere as a solution.
 
-## Rule
+A wrapper that only relays to another real class must not exist.
 
-No root wrapper:
+Therefore this earlier idea is invalid:
 
-- no direct `Opus/Acl.php` wrapper;
-- no direct `Opus/Fsm.php` wrapper;
-- no direct `Opus/I18n.php` wrapper;
-- no direct `Opus/Router.php` wrapper.
-
-If the new runtime needs classes, they must be real classes in real folders, for example:
-
-- `Opus/Kernel/Kernel.php`
 - `Opus/Kernel/Acl.php`
 - `Opus/Kernel/Fsm.php`
 - `Opus/Kernel/I18n.php`
 - `Opus/Kernel/Router.php`
-- `Opus/Http/Request.php`
-- `Opus/Http/Response.php`
-- `Opus/Site/Package.php`
-- `Opus/Site/PackageRepository.php`
-- `Opus/Support/Support.php`
-- `Opus/View/View.php`
 
-## Historical classes
+Moving a wrapper does not make it clean.
+
+## Mandatory FSM-first rule
+
+The valid architecture is now defined by the FSM-first contract:
+
+- `index.php` is the only public web entry point.
+- FSM is the engine.
+- Boot is driven by FSM.
+- Runtime is driven by FSM.
+- Transitions are configurable.
+- Application/site singleton is the runtime anchor.
+- Router translates request intent but never replaces FSM.
+- No wrapper may be created, preserved, or moved as a solution.
+- Kernel is not sovereign. If it duplicates Application or bypasses FSM, it must disappear.
+
+## Historical classes remain source of truth
 
 Historical ASAP/OPUS classes remain the source of truth until individually reviewed:
 
@@ -41,6 +51,14 @@ Historical ASAP/OPUS classes remain the source of truth until individually revie
 
 ## Next implementation step
 
-Create a controlled migration for the temporary reborn runtime files, then rerun the validated smokes.
+Do not migrate wrappers into other folders.
+
+The next valid implementation step is:
+
+1. Inspect the real historical classes.
+2. Make `index.php` enter the FSM-first boot path.
+3. Connect the application/site singleton.
+4. Connect the real router and real FSM.
+5. Delete wrapper classes only when their call sites have been replaced by real classes.
 
 No deletion of historical classes is allowed in this step.
