@@ -1,0 +1,45 @@
+{
+  "patch_id": "P4N_MOVE_PACKAGE_CLASSES",
+  "contract": {
+    "typed_variables": true,
+    "no_hardcode": true,
+    "no_wrapper": true,
+    "no_alias": true,
+    "no_stub": true,
+    "no_silent_fallback": true
+  },
+  "moves": [
+    {
+      "symbol": "Opus\\Package\\Package",
+      "old_symbol": "Opus\\Package",
+      "source": "Opus/Package.php",
+      "target": "Opus/Package/Package.php",
+      "old_namespace": "namespace Opus;",
+      "new_namespace": "namespace Opus\\Package;"
+    },
+    {
+      "symbol": "Opus\\Package\\PackageRepository",
+      "old_symbol": "Opus\\PackageRepository",
+      "source": "Opus/PackageRepository.php",
+      "target": "Opus/Package/PackageRepository.php",
+      "old_namespace": "namespace Opus;",
+      "new_namespace": "namespace Opus\\Package;",
+      "required_use": "use Opus\\Http\\Request;"
+    }
+  ],
+  "runtime_patches": [
+    {
+      "file": "Opus/Kernel.php",
+      "uses": [
+        "use Opus\\Package\\Package;",
+        "use Opus\\Package\\PackageRepository;"
+      ]
+    },
+    {
+      "file": "Opus/Router.php",
+      "uses": [
+        "use Opus\\Package\\Package;"
+      ]
+    }
+  ]
+}
