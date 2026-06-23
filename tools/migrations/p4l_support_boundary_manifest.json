@@ -1,0 +1,26 @@
+{
+  "patch_id": "P4L_MOVE_SUPPORT_CLASS_TO_FOUNDATION",
+  "contract": {
+    "typed_variables": true,
+    "no_hardcoded_legacy_path": true,
+    "no_wrapper": true,
+    "no_alias": true,
+    "no_stub": true,
+    "no_silent_fallback": true,
+    "wrapper_is_fallback": true
+  },
+  "move": {
+    "class": "Opus\\Foundation\\Support",
+    "source": "Opus/Support.php",
+    "target": "Opus/Foundation/Support.php",
+    "old_namespace": "namespace Opus;",
+    "new_namespace": "namespace Opus\\Foundation;"
+  },
+  "import_replacements": [
+    {
+      "old": "use Opus\\Support;",
+      "new": "use Opus\\Foundation\\Support;"
+    }
+  ],
+  "direct_call_symbol": "Support::"
+}
