@@ -23,6 +23,7 @@ PATCH_ID = "P4X_MOVE_LEGACY_APPLICATION_BOUNDARY"
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "Opus" / "Application.class.php"
 DST = ROOT / "Opus" / "Legacy" / "Application" / "Application.class.php"
+LEGACY_AUTOLOADER = ROOT / "Opus" / "Legacy" / "Autoload" / "autoloader.class.php"
 
 IGNORED_TOP_LEVEL = {
     ".git",
@@ -36,6 +37,16 @@ IGNORED_TOP_LEVEL = {
 
 OLD_BOOT_FSM_FALLBACK = "dirname(__DIR__) . '/config/fsm.boot.php'"
 NEW_BOOT_FSM_FALLBACK = "dirname(__DIR__, 3) . '/config/fsm.boot.php'"
+OLD_LEGACY_AUTOLOADER_REGISTRATION = """$autoloader = DirectoriesAutoloader::getInstance($tmpPath)
+    ->addDirectory($base . '/Opus/')
+    ->addDirectory($base . '/application/');"""
+NEW_LEGACY_AUTOLOADER_REGISTRATION = """$autoloader = DirectoriesAutoloader::getInstance($tmpPath)
+    ->addDirectory($base . '/Opus/');
+
+$legacyApplicationDirectory = $base . '/application/';
+if (is_dir($legacyApplicationDirectory)) {
+    $autoloader->addDirectory($legacyApplicationDirectory);
+}"""
 
 
 def fail(message: str) -> None:
@@ -81,6 +92,24 @@ def patch_moved_file() -> None:
         print(f"ALREADY_PATCHED={rel(DST)}::boot_fsm_fallback_root")
     else:
         fail("BOOT_FSM_FALLBACK_PATTERN_NOT_FOUND")
+
+
+def patch_legacy_autoloader() -> None:
+    if not LEGACY_AUTOLOADER.exists():
+        fail(f"LEGACY_AUTOLOADER_MISSING path={rel(LEGACY_AUTOLOADER)}")
+
+    content = read_text(LEGACY_AUTOLOADER)
+    if OLD_LEGACY_AUTOLOADER_REGISTRATION in content:
+        updated = content.replace(OLD_LEGACY_AUTOLOADER_REGISTRATION, NEW_LEGACY_AUTOLOADER_REGISTRATION)
+        write_text(LEGACY_AUTOLOADER, updated)
+        print(f"PATCHED={rel(LEGACY_AUTOLOADER)}::optional_legacy_application_directory")
+        return
+
+    if NEW_LEGACY_AUTOLOADER_REGISTRATION in content:
+        print(f"ALREADY_PATCHED={rel(LEGACY_AUTOLOADER)}::optional_legacy_application_directory")
+        return
+
+    fail("LEGACY_AUTOLOADER_DIRECTORY_REGISTRATION_PATTERN_NOT_FOUND")
 
 
 def is_runtime_source(path: Path) -> bool:
@@ -152,8 +181,10 @@ def main() -> None:
     print(f"== {PATCH_ID} ==")
     move_file()
     patch_moved_file()
+    patch_legacy_autoloader()
     assert_no_active_root_application_path_refs()
     php_lint(DST)
+    php_lint(LEGACY_AUTOLOADER)
     assert_legacy_autoload_can_load_application()
     print(f"{PATCH_ID}_OK")
 
