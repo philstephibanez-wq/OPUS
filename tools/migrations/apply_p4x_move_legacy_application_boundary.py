@@ -37,6 +37,7 @@ IGNORED_TOP_LEVEL = {
 
 OLD_BOOT_FSM_FALLBACK = "dirname(__DIR__) . '/config/fsm.boot.php'"
 NEW_BOOT_FSM_FALLBACK = "dirname(__DIR__, 3) . '/config/fsm.boot.php'"
+BOOT_FSM_FALLBACK_MARKER = "config/fsm.boot.php"
 OLD_LEGACY_AUTOLOADER_REGISTRATION = """$autoloader = DirectoriesAutoloader::getInstance($tmpPath)
     ->addDirectory($base . '/Opus/')
     ->addDirectory($base . '/application/');"""
@@ -88,10 +89,17 @@ def patch_moved_file() -> None:
     if updated != content:
         write_text(DST, updated)
         print(f"PATCHED={rel(DST)}::boot_fsm_fallback_root")
-    elif NEW_BOOT_FSM_FALLBACK in content:
+        return
+
+    if NEW_BOOT_FSM_FALLBACK in content:
         print(f"ALREADY_PATCHED={rel(DST)}::boot_fsm_fallback_root")
-    else:
-        fail("BOOT_FSM_FALLBACK_PATTERN_NOT_FOUND")
+        return
+
+    if BOOT_FSM_FALLBACK_MARKER in content:
+        print(f"BOOT_FSM_FALLBACK_PRESENT={rel(DST)}")
+        return
+
+    fail("BOOT_FSM_FALLBACK_PATTERN_NOT_FOUND")
 
 
 def patch_legacy_autoloader() -> None:
