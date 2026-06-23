@@ -95,6 +95,14 @@ def patch_router() -> None:
     write_if_changed(path, content)
 
 
+def patch_view() -> None:
+    path = ROOT / "Opus" / "View" / "View.php"
+    content = read_text(path)
+    content = replace_optional(content, "$this->kernel->packageUrl(", "$this->kernel->applicationUrl(")
+    content = replace_optional(content, "->packageUrl(", "->applicationUrl(")
+    write_if_changed(path, content)
+
+
 def iter_runtime_php_files() -> list[Path]:
     roots = [ROOT / "Opus", ROOT / "sites"]
     files: list[Path] = []
@@ -155,12 +163,14 @@ def main() -> None:
     patch_application_registry()
     patch_kernel()
     patch_router()
+    patch_view()
     assert_no_runtime_package_leftovers()
 
     lint_targets = [
         ROOT / "Opus" / "Application" / "ApplicationRegistry.php",
         ROOT / "Opus" / "Kernel.php",
         ROOT / "Opus" / "Router.php",
+        ROOT / "Opus" / "View" / "View.php",
     ]
     lint_targets.extend(sorted((ROOT / "sites").glob("*/application.php")))
     for path in lint_targets:
