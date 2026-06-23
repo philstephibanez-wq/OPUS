@@ -31,7 +31,7 @@ final class View
         $theme = (string)($application->meta['theme'] ?? 'blue');
         $assetCss = $this->kernel->assetUrl($application, 'assets/css/site.css');
         $assetJs = $this->kernel->assetUrl($application, 'assets/js/site.js');
-        $homeUrl = $this->kernel->packageUrl($application->slug, '', $lang);
+        $homeUrl = $this->kernel->applicationUrl($application->slug, '', $lang);
         $switcher = $this->renderLanguageSwitcher($application, $lang, $pageId);
         $mainNav = $this->renderMainNav($application, $lang);
         $applicationNav = $this->renderPackageNav($application, $lang, $pageId);
@@ -104,7 +104,7 @@ final class View
         ];
         $html = [];
         foreach ($items as [$slug, $label]) {
-            $href = $this->kernel->packageUrl($slug, '', $lang);
+            $href = $this->kernel->applicationUrl($slug, '', $lang);
             $html[] = '<a href="' . $href . '">' . $this->esc($label) . '</a>';
         }
         return '<nav class="main-nav" aria-label="Packages">' . implode('', $html) . '</nav>';
@@ -125,7 +125,7 @@ final class View
                 continue;
             }
             $seen[$pageId] = true;
-            $href = $this->kernel->packageUrl($application->slug, $slug, $lang);
+            $href = $this->kernel->applicationUrl($application->slug, $slug, $lang);
             $page = (array)($content[$lang][$pageId] ?? []);
             $label = (string)($page['nav'] ?? $page['title'] ?? $this->labelFor((string)$pageId));
             $class = $pageId === $currentPageId ? ' class="active"' : '';
@@ -208,7 +208,7 @@ HTML;
         return preg_replace_callback('/href="([^"]*)"/', function (array $m) use ($application, $lang): string {
             $href = (string)$m[1];
             if (preg_match('/^@route\/(.*)$/', $href, $r)) {
-                return 'href="' . $this->esc($this->kernel->packageUrl($application->slug, $r[1], $lang)) . '"';
+                return 'href="' . $this->esc($this->kernel->applicationUrl($application->slug, $r[1], $lang)) . '"';
             }
             return 'href="' . $this->esc($this->resolveHref($href, $application, $lang)) . '"';
         }, $html) ?? $html;
@@ -219,10 +219,10 @@ HTML;
         if ($href === '') return '';
         if (preg_match('/^@api\/([a-z0-9_-]+)\/(.*)$/', $href, $m)) return $this->kernel->apiUrl($m[1], $m[2]);
         if (preg_match('/^@asset\/(.*)$/', $href, $m)) return $this->kernel->assetUrl($application, $m[1]);
-        if (preg_match('/^@([a-z0-9_-]+)\/([a-z]{2})(?:\/(.*))?$/', $href, $m)) return $this->kernel->packageUrl($m[1], $m[3] ?? '', $m[2]);
+        if (preg_match('/^@([a-z0-9_-]+)\/([a-z]{2})(?:\/(.*))?$/', $href, $m)) return $this->kernel->applicationUrl($m[1], $m[3] ?? '', $m[2]);
         if (preg_match('/^https?:\/\//', $href)) return $href;
         if ($href[0] === '/') return $href;
-        return $this->kernel->packageUrl($application->slug, $href, $lang);
+        return $this->kernel->applicationUrl($application->slug, $href, $lang);
     }
 
 

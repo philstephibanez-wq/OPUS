@@ -49,7 +49,7 @@ final class Kernel
         return $this->applications->get($slug);
     }
 
-    public function packageUrl(string $applicationSlug, string $route = '', ?string $lang = null): string
+    public function applicationUrl(string $applicationSlug, string $route = '', ?string $lang = null): string
     {
         $application = $this->applications->get($applicationSlug);
         $lang = $lang !== null && $application->hasLanguage($lang) ? $lang : $application->defaultLang;
@@ -76,7 +76,7 @@ final class Kernel
                 break;
             }
         }
-        return $this->packageUrl($application->slug, $route, $lang);
+        return $this->applicationUrl($application->slug, $route, $lang);
     }
 
     public function apiUrl(string $applicationSlug, string $endpoint): string

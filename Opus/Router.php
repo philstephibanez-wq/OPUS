@@ -78,7 +78,7 @@ final class Router
         if ($application->slug === 'demo' && $endpoint === 'ping') {
             return Response::json([
                 'ok' => true,
-                'package' => $application->slug,
+                'application' => $application->slug,
                 'host' => $request->host,
                 'base_path' => $request->basePath,
                 'path' => $request->path,
@@ -88,11 +88,11 @@ final class Router
 
         if ($application->slug === 'demo' && $endpoint === 'site') {
             return Response::json([
-                'package' => $application->slug,
+                'application' => $application->slug,
                 'name' => $application->name,
                 'languages' => $application->languages,
                 'paths' => [
-                    'package_dir' => $application->dir,
+                    'application_dir' => $application->dir,
                     'www' => $application->dir . '/www',
                     'logs' => $application->dir . '/logs',
                     'tmp' => $application->dir . '/tmp',
@@ -101,7 +101,7 @@ final class Router
                 'checks' => [
                     'dynamic_paths' => true,
                     'external_links_required' => false,
-                    'accented_url' => $this->kernel->packageUrl('demo', 'démo-interne', 'fr'),
+                    'accented_url' => $this->kernel->applicationUrl('demo', 'démo-interne', 'fr'),
                 ],
             ]);
         }
@@ -117,7 +117,7 @@ final class Router
     {
         $route = Support::e($routeKey);
         $path = Support::e($request->path);
-        $home = $this->kernel->packageUrl($application->slug, '', $lang);
-        return Response::html("<!doctype html><html lang=\"{$lang}\"><head><meta charset=\"utf-8\"><title>404</title><link rel=\"stylesheet\" href=\"" . $this->kernel->assetUrl($application, 'assets/css/site.css') . "\"></head><body><main class=\"shell\"><section class=\"panel\"><h1>DISPATCH erreur 404</h1><p>Path: {$path}</p><p>Route: {$route}</p><p><a href=\"{$home}\">Retour package</a></p></section></main></body></html>", 404);
+        $home = $this->kernel->applicationUrl($application->slug, '', $lang);
+        return Response::html("<!doctype html><html lang=\"{$lang}\"><head><meta charset=\"utf-8\"><title>404</title><link rel=\"stylesheet\" href=\"" . $this->kernel->assetUrl($application, 'assets/css/site.css') . "\"></head><body><main class=\"shell\"><section class=\"panel\"><h1>DISPATCH erreur 404</h1><p>Path: {$path}</p><p>Route: {$route}</p><p><a href=\"{$home}\">Retour application</a></p></section></main></body></html>", 404);
     }
 }

@@ -22,7 +22,7 @@ final class ApplicationRegistry
             throw new \RuntimeException('Sites directory missing: ' . $this->sitesDir);
         }
 
-        foreach (glob($this->sitesDir . '/*/package.php') ?: [] as $file) {
+        foreach (glob($this->sitesDir . '/*/application.php') ?: [] as $file) {
             $config = require $file;
             if (!is_array($config)) {
                 throw new \RuntimeException('Application definition config must return array: ' . $file);
