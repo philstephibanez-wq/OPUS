@@ -194,6 +194,55 @@ def php_lint(path: Path) -> None:
         fail(f"PHP_LINT_FAILED path={rel(path)}")
 
 
+def php_token_declares_class(path: Path, class_name: str) -> bool:
+    """Return true when PHP tokens declare the requested class without executing the file."""
+    php_code = r'''
+$path = $argv[1];
+$className = $argv[2];
+$source = file_get_contents($path);
+if ($source === false) {
+    fwrite(STDERR, "READ_FAILED\n");
+    exit(2);
+}
+$tokens = token_get_all($source);
+$count = count($tokens);
+for ($i = 0; $i < $count; $i++) {
+    $token = $tokens[$i];
+    if (!is_array($token) || $token[0] !== T_CLASS) {
+        continue;
+    }
+    for ($j = $i + 1; $j < $count; $j++) {
+        $candidate = $tokens[$j];
+        if (is_array($candidate) && in_array($candidate[0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)) {
+            continue;
+        }
+        if (is_array($candidate) && $candidate[0] === T_STRING && $candidate[1] === $className) {
+            echo "CLASS_DECLARATION_OK\n";
+            exit(0);
+        }
+        break;
+    }
+}
+echo "CLASS_DECLARATION_NOT_FOUND\n";
+exit(1);
+'''
+    result = subprocess.run(
+        ["php", "-r", php_code, str(path), class_name],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if result.returncode == 0:
+        print(result.stdout.strip())
+        return True
+    if result.stdout.strip():
+        print(f"PHP_TOKEN_CLASS_CHECK_STDOUT={result.stdout.strip()}")
+    if result.stderr.strip():
+        print(f"PHP_TOKEN_CLASS_CHECK_STDERR={result.stderr.strip()}")
+    return False
+
+
 def assert_explicit_legacy_application_contract() -> None:
     if not DST.exists():
         fail(f"LEGACY_APPLICATION_FILE_MISSING path={rel(DST)}")
@@ -202,8 +251,7 @@ def assert_explicit_legacy_application_contract() -> None:
     if not WWW_INDEX.exists():
         fail(f"WWW_INDEX_MISSING path={rel(WWW_INDEX)}")
 
-    application_content = read_text(DST)
-    if not re.search(r"\bclass\s+OPUS_Application\b", application_content):
+    if not php_token_declares_class(DST, "OPUS_Application"):
         fail("LEGACY_APPLICATION_CLASS_DECLARATION_NOT_FOUND")
 
     www_content = read_text(WWW_INDEX)
