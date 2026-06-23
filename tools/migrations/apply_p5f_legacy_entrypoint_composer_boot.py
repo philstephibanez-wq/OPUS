@@ -40,8 +40,14 @@ NEW_P5B_DOC = "- Legacy www/index.php explicitly loads Composer, legacy autoload
 OLD_P5B_CHECK = """        $this->contains($content, \"require_once ROOT . '/Opus/Bootstrap.php';\", 'CHECK_WWW_REQUIRES_BOOTSTRAP');
         $this->contains($content, \"require_once ROOT . '/Opus/Legacy/Autoload/autoloader.class.php';\", 'CHECK_WWW_REQUIRES_LEGACY_AUTOLOADER');"""
 
-NEW_P5B_CHECK = """        $this->contains($content, '$composerAutoload = ROOT . \'/vendor/autoload.php\';', 'CHECK_WWW_DECLARES_COMPOSER_AUTOLOAD');
-        $this->contains($content, 'throw new RuntimeException(\'OPUS_COMPOSER_AUTOLOAD_REQUIRED: \' . $composerAutoload);', 'CHECK_WWW_COMPOSER_AUTOLOAD_REQUIRED_ERROR');
+BAD_P5B_CHECK = """        $this->contains($content, '$composerAutoload = ROOT . '/vendor/autoload.php';', 'CHECK_WWW_DECLARES_COMPOSER_AUTOLOAD');
+        $this->contains($content, 'throw new RuntimeException('OPUS_COMPOSER_AUTOLOAD_REQUIRED: ' . $composerAutoload);', 'CHECK_WWW_COMPOSER_AUTOLOAD_REQUIRED_ERROR');
+        $this->contains($content, 'require_once $composerAutoload;', 'CHECK_WWW_REQUIRES_COMPOSER_AUTOLOAD');
+        $this->notContains($content, \"require_once ROOT . '/Opus/Bootstrap.php';\", 'CHECK_WWW_DOES_NOT_REQUIRE_BOOTSTRAP_DIRECTLY');
+        $this->contains($content, \"require_once ROOT . '/Opus/Legacy/Autoload/autoloader.class.php';\", 'CHECK_WWW_REQUIRES_LEGACY_AUTOLOADER');"""
+
+NEW_P5B_CHECK = """        $this->contains($content, \"\\$composerAutoload = ROOT . '/vendor/autoload.php';\", 'CHECK_WWW_DECLARES_COMPOSER_AUTOLOAD');
+        $this->contains($content, \"throw new RuntimeException('OPUS_COMPOSER_AUTOLOAD_REQUIRED: ' . \\$composerAutoload);\", 'CHECK_WWW_COMPOSER_AUTOLOAD_REQUIRED_ERROR');
         $this->contains($content, 'require_once $composerAutoload;', 'CHECK_WWW_REQUIRES_COMPOSER_AUTOLOAD');
         $this->notContains($content, \"require_once ROOT . '/Opus/Bootstrap.php';\", 'CHECK_WWW_DOES_NOT_REQUIRE_BOOTSTRAP_DIRECTLY');
         $this->contains($content, \"require_once ROOT . '/Opus/Legacy/Autoload/autoloader.class.php';\", 'CHECK_WWW_REQUIRES_LEGACY_AUTOLOADER');"""
@@ -107,6 +113,22 @@ def replace_once(path: Path, old: str, new: str, marker: str) -> None:
     print(f"PATCHED={rel(path)}::{marker}")
 
 
+def replace_once_or_repair(path: Path, old: str, bad: str, new: str, marker: str) -> None:
+    content = read(path)
+    if new in content:
+        print(f"ALREADY_PATCHED={rel(path)}::{marker}")
+        return
+    if old in content:
+        write(path, content.replace(old, new, 1))
+        print(f"PATCHED={rel(path)}::{marker}")
+        return
+    if bad in content:
+        write(path, content.replace(bad, new, 1))
+        print(f"REPAIRED={rel(path)}::{marker}")
+        return
+    fail(f"PATCH_PATTERN_NOT_FOUND path={rel(path)} marker={marker}")
+
+
 def assert_www_contract() -> None:
     content = read(WWW_INDEX)
     required = [
@@ -135,7 +157,7 @@ def main() -> int:
     print(f"== {PATCH_ID} ==")
     replace_once(WWW_INDEX, OLD_WWW_BOOT_BLOCK, NEW_WWW_BOOT_BLOCK, "composer_before_legacy_boot")
     replace_once(P5B_SMOKE, OLD_P5B_DOC, NEW_P5B_DOC, "legacy_entrypoint_doc")
-    replace_once(P5B_SMOKE, OLD_P5B_CHECK, NEW_P5B_CHECK, "legacy_entrypoint_composer_checks")
+    replace_once_or_repair(P5B_SMOKE, OLD_P5B_CHECK, BAD_P5B_CHECK, NEW_P5B_CHECK, "legacy_entrypoint_composer_checks")
     replace_once(P5E_AUDIT, OLD_P5E_EXPECTED, NEW_P5E_EXPECTED, "expected_www_requires")
     replace_once(P5E_AUDIT, OLD_P5E_REF_CHECK, NEW_P5E_REF_CHECK, "runtime_bootstrap_refs_none")
     replace_once(P5E_AUDIT, OLD_P5E_DECISION, NEW_P5E_DECISION, "decision_after_p5f")
