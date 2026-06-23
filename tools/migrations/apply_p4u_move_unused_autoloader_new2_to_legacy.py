@@ -17,12 +17,14 @@ NON_RUNTIME_PREFIXES = (
 NON_RUNTIME_FILES = {
     "RUN_P4U_MOVE_UNUSED_AUTOLOADER_NEW2_TO_LEGACY.cmd",
 }
+
+# Strict legacy-only markers. Do not scan for the generic token "Autoloader",
+# because OPUS now has a modern namespaced Opus\Autoload\Autoloader and
+# a different legacy DirectoriesAutoloader. Those are not uses of
+# autoloader_new2.class.php.
 TOKENS = (
     "autoloader_new2.class.php",
     "_import(",
-    "Autoloader::",
-    "new Autoloader",
-    "class Autoloader",
 )
 
 
