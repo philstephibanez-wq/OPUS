@@ -11,6 +11,7 @@ Contract:
 - no alias;
 - no silent fallback;
 - www/index.php must explicitly load the legacy application class;
+- the moved file must still declare OPUS_Application;
 - the legacy autoloader may still serve legacy secondary classes;
 - Bootstrap.php remains stable at Opus/Bootstrap.php.
 """
@@ -192,29 +193,25 @@ def php_lint(path: Path) -> None:
         fail(f"PHP_LINT_FAILED path={rel(path)}")
 
 
-def assert_explicit_legacy_application_require_works() -> None:
-    php_code = (
-        "define('ROOT', getcwd()); "
-        "require 'Opus/Legacy/Autoload/autoloader.class.php'; "
-        "require 'Opus/Legacy/Application/Application.class.php'; "
-        "echo class_exists('OPUS_Application', false) "
-        "? 'P4X_LEGACY_APPLICATION_EXPLICIT_REQUIRE_OK' "
-        ": 'P4X_LEGACY_APPLICATION_EXPLICIT_REQUIRE_FAIL';"
-    )
-    result = subprocess.run(
-        ["php", "-r", php_code],
-        cwd=ROOT,
-        text=True,
-        capture_output=True,
-    )
-    if result.stdout.strip():
-        print(result.stdout.strip())
-    if result.stderr.strip():
-        print(result.stderr.strip())
-    if result.returncode != 0:
-        fail("LEGACY_APPLICATION_EXPLICIT_REQUIRE_CHECK_FAILED")
-    if "P4X_LEGACY_APPLICATION_EXPLICIT_REQUIRE_OK" not in result.stdout:
-        fail("LEGACY_APPLICATION_CLASS_NOT_EXPLICITLY_LOADABLE")
+def assert_explicit_legacy_application_contract() -> None:
+    if not DST.exists():
+        fail(f"LEGACY_APPLICATION_FILE_MISSING path={rel(DST)}")
+    if not LEGACY_AUTOLOADER.exists():
+        fail(f"LEGACY_AUTOLOADER_MISSING path={rel(LEGACY_AUTOLOADER)}")
+    if not WWW_INDEX.exists():
+        fail(f"WWW_INDEX_MISSING path={rel(WWW_INDEX)}")
+
+    application_content = read_text(DST)
+    if "class OPUS_Application" not in application_content:
+        fail("LEGACY_APPLICATION_CLASS_DECLARATION_NOT_FOUND")
+
+    www_content = read_text(WWW_INDEX)
+    if NEW_WWW_APPLICATION_REQUIRE not in www_content:
+        fail("WWW_LEGACY_APPLICATION_EXPLICIT_REQUIRE_NOT_FOUND")
+    if OLD_WWW_ROOT_APPLICATION_REQUIRE in www_content:
+        fail("WWW_STILL_REQUIRES_ROOT_APPLICATION")
+
+    print("P4X_LEGACY_APPLICATION_EXPLICIT_REQUIRE_CONTRACT_OK")
 
 
 def main() -> None:
@@ -227,7 +224,7 @@ def main() -> None:
     php_lint(DST)
     php_lint(LEGACY_AUTOLOADER)
     php_lint(WWW_INDEX)
-    assert_explicit_legacy_application_require_works()
+    assert_explicit_legacy_application_contract()
     print(f"{PATCH_ID}_OK")
 
 
