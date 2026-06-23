@@ -17,6 +17,7 @@ Contract:
 """
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -202,7 +203,7 @@ def assert_explicit_legacy_application_contract() -> None:
         fail(f"WWW_INDEX_MISSING path={rel(WWW_INDEX)}")
 
     application_content = read_text(DST)
-    if "class OPUS_Application" not in application_content:
+    if not re.search(r"\bclass\s+OPUS_Application\b", application_content):
         fail("LEGACY_APPLICATION_CLASS_DECLARATION_NOT_FOUND")
 
     www_content = read_text(WWW_INDEX)
@@ -211,6 +212,7 @@ def assert_explicit_legacy_application_contract() -> None:
     if OLD_WWW_ROOT_APPLICATION_REQUIRE in www_content:
         fail("WWW_STILL_REQUIRES_ROOT_APPLICATION")
 
+    print("P4X_LEGACY_APPLICATION_CLASS_DECLARATION_OK")
     print("P4X_LEGACY_APPLICATION_EXPLICIT_REQUIRE_CONTRACT_OK")
 
 
