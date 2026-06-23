@@ -10,7 +10,8 @@ Contract:
 - no wrapper;
 - no alias;
 - no silent fallback;
-- www/index.php must keep working through the legacy recursive autoloader;
+- www/index.php must explicitly load the legacy application class;
+- the legacy autoloader may still serve legacy secondary classes;
 - Bootstrap.php remains stable at Opus/Bootstrap.php.
 """
 from __future__ import annotations
@@ -24,6 +25,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "Opus" / "Application.class.php"
 DST = ROOT / "Opus" / "Legacy" / "Application" / "Application.class.php"
 LEGACY_AUTOLOADER = ROOT / "Opus" / "Legacy" / "Autoload" / "autoloader.class.php"
+WWW_INDEX = ROOT / "www" / "index.php"
 
 IGNORED_TOP_LEVEL = {
     ".git",
@@ -38,6 +40,7 @@ IGNORED_TOP_LEVEL = {
 OLD_BOOT_FSM_FALLBACK = "dirname(__DIR__) . '/config/fsm.boot.php'"
 NEW_BOOT_FSM_FALLBACK = "dirname(__DIR__, 3) . '/config/fsm.boot.php'"
 BOOT_FSM_FALLBACK_MARKER = "config/fsm.boot.php"
+
 OLD_LEGACY_AUTOLOADER_REGISTRATION = """$autoloader = DirectoriesAutoloader::getInstance($tmpPath)
     ->addDirectory($base . '/Opus/')
     ->addDirectory($base . '/application/');"""
@@ -48,6 +51,10 @@ $legacyApplicationDirectory = $base . '/application/';
 if (is_dir($legacyApplicationDirectory)) {
     $autoloader->addDirectory($legacyApplicationDirectory);
 }"""
+
+OLD_WWW_AUTOLOADER_REQUIRE = "require_once ROOT . '/Opus/Legacy/Autoload/autoloader.class.php';"
+NEW_WWW_APPLICATION_REQUIRE = "require_once ROOT . '/Opus/Legacy/Application/Application.class.php';"
+OLD_WWW_ROOT_APPLICATION_REQUIRE = "require_once ROOT . '/Opus/Application.class.php';"
 
 
 def fail(message: str) -> None:
@@ -120,6 +127,30 @@ def patch_legacy_autoloader() -> None:
     fail("LEGACY_AUTOLOADER_DIRECTORY_REGISTRATION_PATTERN_NOT_FOUND")
 
 
+def patch_www_index() -> None:
+    if not WWW_INDEX.exists():
+        fail(f"WWW_INDEX_MISSING path={rel(WWW_INDEX)}")
+
+    content = read_text(WWW_INDEX)
+    if OLD_WWW_ROOT_APPLICATION_REQUIRE in content:
+        content = content.replace(OLD_WWW_ROOT_APPLICATION_REQUIRE, NEW_WWW_APPLICATION_REQUIRE)
+
+    if NEW_WWW_APPLICATION_REQUIRE in content:
+        print(f"ALREADY_PATCHED={rel(WWW_INDEX)}::legacy_application_explicit_require")
+        write_text(WWW_INDEX, content)
+        return
+
+    if OLD_WWW_AUTOLOADER_REQUIRE not in content:
+        fail("WWW_LEGACY_AUTOLOADER_REQUIRE_PATTERN_NOT_FOUND")
+
+    updated = content.replace(
+        OLD_WWW_AUTOLOADER_REQUIRE,
+        OLD_WWW_AUTOLOADER_REQUIRE + "\n" + NEW_WWW_APPLICATION_REQUIRE,
+    )
+    write_text(WWW_INDEX, updated)
+    print(f"PATCHED={rel(WWW_INDEX)}::legacy_application_explicit_require")
+
+
 def is_runtime_source(path: Path) -> bool:
     relative = path.relative_to(ROOT)
     if not relative.parts:
@@ -161,13 +192,14 @@ def php_lint(path: Path) -> None:
         fail(f"PHP_LINT_FAILED path={rel(path)}")
 
 
-def assert_legacy_autoload_can_load_application() -> None:
+def assert_explicit_legacy_application_require_works() -> None:
     php_code = (
         "define('ROOT', getcwd()); "
         "require 'Opus/Legacy/Autoload/autoloader.class.php'; "
-        "echo class_exists('OPUS_Application') "
-        "? 'P4X_LEGACY_APPLICATION_AUTOLOAD_OK' "
-        ": 'P4X_LEGACY_APPLICATION_AUTOLOAD_FAIL';"
+        "require 'Opus/Legacy/Application/Application.class.php'; "
+        "echo class_exists('OPUS_Application', false) "
+        "? 'P4X_LEGACY_APPLICATION_EXPLICIT_REQUIRE_OK' "
+        ": 'P4X_LEGACY_APPLICATION_EXPLICIT_REQUIRE_FAIL';"
     )
     result = subprocess.run(
         ["php", "-r", php_code],
@@ -180,9 +212,9 @@ def assert_legacy_autoload_can_load_application() -> None:
     if result.stderr.strip():
         print(result.stderr.strip())
     if result.returncode != 0:
-        fail("LEGACY_APPLICATION_AUTOLOAD_CHECK_FAILED")
-    if "P4X_LEGACY_APPLICATION_AUTOLOAD_OK" not in result.stdout:
-        fail("LEGACY_APPLICATION_CLASS_NOT_AUTOLOADABLE")
+        fail("LEGACY_APPLICATION_EXPLICIT_REQUIRE_CHECK_FAILED")
+    if "P4X_LEGACY_APPLICATION_EXPLICIT_REQUIRE_OK" not in result.stdout:
+        fail("LEGACY_APPLICATION_CLASS_NOT_EXPLICITLY_LOADABLE")
 
 
 def main() -> None:
@@ -190,10 +222,12 @@ def main() -> None:
     move_file()
     patch_moved_file()
     patch_legacy_autoloader()
+    patch_www_index()
     assert_no_active_root_application_path_refs()
     php_lint(DST)
     php_lint(LEGACY_AUTOLOADER)
-    assert_legacy_autoload_can_load_application()
+    php_lint(WWW_INDEX)
+    assert_explicit_legacy_application_require_works()
     print(f"{PATCH_ID}_OK")
 
 
