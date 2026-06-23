@@ -1,7 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus;
+namespace Opus\Runtime;
+
+use Opus\Routing\Router;
 
 use Opus\View\View;
 

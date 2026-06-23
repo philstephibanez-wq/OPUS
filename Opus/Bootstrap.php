@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Opus;
 
+use Opus\Runtime\Kernel;
+
 use Opus\Http\Response;
 use Opus\Http\Request;
 final class Bootstrap
@@ -31,8 +33,8 @@ final class Bootstrap
             'View/View.php',
             'Security/Acl.php',
             'FSM/Fsm.php',
-            'Router.php',
-            'Kernel.php',
+            'Routing/Router.php',
+            'Runtime/Kernel.php',
         ] as $file) {
             require_once $rootDir . '/Opus/' . $file;
         }
