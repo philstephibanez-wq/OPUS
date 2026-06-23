@@ -1,6 +1,7 @@
 <?php
-$opusBootstrap = defined('ROOT') ? ROOT . '/Opus/Bootstrap.php' : dirname(__DIR__, 2) . '/Bootstrap.php';
-require_once $opusBootstrap;
+if (!class_exists(\Opus\Bootstrap::class)) {
+    throw new RuntimeException('OPUS_BOOTSTRAP_CLASS_REQUIRED: Composer autoload must be loaded before legacy autoloader.');
+}
 
 
 class ExtensionFilterIteratorDecorator extends FilterIterator {

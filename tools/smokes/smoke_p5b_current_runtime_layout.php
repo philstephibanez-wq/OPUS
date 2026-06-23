@@ -12,6 +12,7 @@
  * Contract:
  * - OPUS root entrypoint index.php is modern and does not boot legacy Application.
  * - Legacy www/index.php explicitly loads Composer, legacy autoloader and legacy Application.
+ * - Legacy autoloader requires Composer-loaded Opus\\Bootstrap instead of requiring Opus/Bootstrap.php directly.
  * - Opus/ root contains Bootstrap.php as the only remaining root PHP runtime file.
  * - Former root legacy classes stay absent from Opus/ root.
  * - P4 runners stay archived outside repository root.
@@ -42,6 +43,7 @@ final class P5BCurrentRuntimeLayoutSmoke
         $this->checkFormerRootLegacyClassesAbsent();
         $this->checkModernEntrypoint();
         $this->checkLegacyEntrypoint();
+        $this->checkLegacyAutoloaderComposerGuard();
         $this->checkBootstrapContract();
         $this->checkLegacyApplicationContract();
         $this->lintRuntimeFiles();
@@ -130,6 +132,18 @@ final class P5BCurrentRuntimeLayoutSmoke
         $this->contains($content, "require_once ROOT . '/Opus/Legacy/Application/Application.class.php';", 'CHECK_WWW_REQUIRES_LEGACY_APPLICATION');
         $this->contains($content, 'OPUS_Application::getInstance()', 'CHECK_WWW_BOOTSTRAPS_LEGACY_APPLICATION');
         $this->notContains($content, 'Opus/Application.class.php', 'CHECK_WWW_DOES_NOT_REQUIRE_ROOT_APPLICATION');
+    }
+
+    private function checkLegacyAutoloaderComposerGuard(): void
+    {
+        $file = $this->root . '/Opus/Legacy/Autoload/autoloader.class.php';
+        $content = $this->read($file);
+        if ($content === null) { return; }
+
+        $this->contains($content, 'class_exists(\Opus\Bootstrap::class)', 'CHECK_LEGACY_AUTOLOADER_COMPOSER_BOOTSTRAP_GUARD');
+        $this->contains($content, 'OPUS_BOOTSTRAP_CLASS_REQUIRED', 'CHECK_LEGACY_AUTOLOADER_BOOTSTRAP_REQUIRED_ERROR');
+        $this->notContains($content, 'require_once $opusBootstrap;', 'CHECK_LEGACY_AUTOLOADER_NO_BOOTSTRAP_REQUIRE');
+        $this->notContains($content, "ROOT . '/Opus/Bootstrap.php'", 'CHECK_LEGACY_AUTOLOADER_NO_ROOT_BOOTSTRAP_PATH');
     }
 
     private function checkBootstrapContract(): void
