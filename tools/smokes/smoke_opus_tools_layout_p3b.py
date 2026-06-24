@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[2]
 REQUIRED_ACTIVE_TRACKED = (
     "tools/audits/audit_opus_root_cleanup_p3.py",
     "tools/audits/audit_p6c_select_next_runtime_cleanup_target.py",
+    "tools/audits/audit_p6d_runtime_application_namespace_readiness.py",
     "tools/migrations/apply_opus_tools_layout_p3b.py",
     "tools/smokes/smoke_opus_naming_p1d.py",
     "tools/smokes/smoke_opus_tools_layout_p3b.py",
@@ -70,6 +71,7 @@ CONTENT_MARKERS = (
     ("tools/smokes/smoke_opus_tools_layout_p3b.py", "P3B_OPUS_TOOLS_LAYOUT_SMOKE"),
     ("tools/smokes/smoke_p5b_current_runtime_layout.php", "P5B_CURRENT_RUNTIME_LAYOUT_SMOKE_OK"),
     ("tools/audits/audit_p6c_select_next_runtime_cleanup_target.py", "P6C_SELECT_NEXT_RUNTIME_CLEANUP_TARGET_AUDIT_OK"),
+    ("tools/audits/audit_p6d_runtime_application_namespace_readiness.py", "P6D_RUNTIME_APPLICATION_NAMESPACE_AND_REFBOOK_DOC_AUDIT"),
 )
 
 
