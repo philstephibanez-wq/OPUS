@@ -2,9 +2,9 @@
 
 #[AllowDynamicProperties]
 /**
- * Legacy ACL resource descriptor.
+ * OPUS ACL resource descriptor.
  *
- * Represents a protected resource consumed by legacy OPUS ACL checks.
+ * Represents a protected resource consumed by OPUS ACL checks.
  */
 class ACL_Resource {
 

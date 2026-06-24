@@ -2,9 +2,9 @@
 
 #[AllowDynamicProperties]
 /**
- * Legacy OPUS database base class.
+ * OPUS database base class.
  *
- * Provides the legacy database abstraction surface used by older OPUS data-access components.
+ * Provides the database abstraction surface used by OPUS data-access components.
  */
 class OPUS_BDD_Database {
 

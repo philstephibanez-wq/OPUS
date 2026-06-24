@@ -3,9 +3,9 @@ if (!class_exists('PHPMailer') && defined('ROOT') && is_file(ROOT . '/framework/
 
 #[AllowDynamicProperties]
 /**
- * Legacy PHPMailer adapter for OPUS.
+ * OPUS PHPMailer adapter for OPUS.
  *
- * Adapts PHPMailer behavior for legacy OPUS mail delivery.
+ * Adapts PHPMailer behavior for OPUS mail delivery.
  */
 class OPUS_PhpMailer extends PHPMailer {
 

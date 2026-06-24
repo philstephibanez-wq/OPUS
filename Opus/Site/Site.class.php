@@ -2,9 +2,9 @@
 
 #[AllowDynamicProperties]
 /**
- * Legacy OPUS site descriptor.
+ * OPUS site descriptor.
  *
- * Stores site-level configuration and context for legacy OPUS applications.
+ * Stores site-level configuration and context for OPUS applications.
  */
 class OPUS_SITE_Site {
     protected string $_id;

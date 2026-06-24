@@ -2,9 +2,9 @@
 
 #[AllowDynamicProperties]
 /**
- * Legacy OPUS ACL coordinator.
+ * OPUS ACL coordinator.
  *
- * Provides access-control checks for legacy OPUS resources and roles.
+ * Provides access-control checks for OPUS resources and roles.
  */
 class Acl {
 

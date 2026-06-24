@@ -25,7 +25,7 @@ namespace Opus\Link;
  *   Preserve the original Opus `LINK\Link` object.
  *
  * Responsibility:
- *   Carry one safe link declaration and the remaining small legacy modifiers.
+ *   Carry one safe link declaration and the remaining small modifiers.
  *
  * Contract:
  *   Link renders only a simple anchor string. It does not route, authorize or
@@ -34,7 +34,7 @@ namespace Opus\Link;
  * Since:
  *   P112D4C
  *
- * Legacy compatibility:
+ * OPUS compatibility:
  *   P112P1 restores __toString/changeClass/changeId/getBlock/getMode.
  */
 final class Link

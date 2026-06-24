@@ -2,9 +2,9 @@
 
 #[AllowDynamicProperties]
 /**
- * Legacy OPUS HTML helper.
+ * OPUS HTML helper.
  *
- * Builds HTML fragments for older OPUS rendering surfaces.
+ * Builds HTML fragments for OPUS rendering surfaces.
  */
 class OPUS_Html_Html {
 	protected $_app = null;

@@ -2,9 +2,9 @@
 
 #[AllowDynamicProperties]
 /**
- * Legacy OPUS router.
+ * OPUS router.
  *
- * Routes legacy OPUS requests before the modern runtime routing layer takes over.
+ * Routes OPUS requests before the modern runtime routing layer takes over.
  */
 class OPUS_Router {
     private const ROUTE_DEBUG_ENABLED = false;

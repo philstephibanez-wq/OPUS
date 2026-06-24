@@ -1,9 +1,9 @@
 <?php
 #[AllowDynamicProperties]
 /**
- * Legacy OPUS link component kept for compatibility.
+ * OPUS link component kept for compatibility.
  *
- * Represents a link component used by legacy OPUS rendering surfaces while the framework migrates to namespaced components.
+ * Represents a link component used by OPUS rendering surfaces while the framework migrates to namespaced components.
  */
 class OPUS_LINK_Link{
     public $_HTMLLink = '';

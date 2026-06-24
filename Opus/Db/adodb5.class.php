@@ -8,9 +8,9 @@ if (!class_exists('ADOConnection') && defined('ROOT') && is_file(ROOT . '/framew
  */
 #[AllowDynamicProperties]
 /**
- * Legacy ADODB bridge for OPUS.
+ * OPUS ADODB bridge for OPUS.
  *
- * Wraps ADODB-compatible database access for legacy OPUS components.
+ * Wraps ADODB-compatible database access for OPUS components.
  */
 class OPUS_adodb5 extends ADOConnection {
 

@@ -3,15 +3,15 @@
 /**
  * OPUS REST base controller.
  *
- * Minimal PHP 8 compatible REST layer for the legacy OPUS MVC runtime.
+ * Minimal PHP 8 compatible REST layer for the OPUS MVC runtime.
  * It keeps the historical router/controller contract and adds explicit JSON
  * responses, HTTP method dispatch, request body parsing and lightweight CORS.
  */
 #[AllowDynamicProperties]
 /**
- * Legacy OPUS REST helper.
+ * OPUS REST helper.
  *
- * Provides REST-oriented helpers for older OPUS API surfaces.
+ * Provides REST-oriented helpers for OPUS API surfaces.
  */
 abstract class OPUS_REST_Rest extends OPUS_Controller {
     protected array $_restAllowedMethods = array('GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS');

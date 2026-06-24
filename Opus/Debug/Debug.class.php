@@ -2,9 +2,9 @@
 	
 #[AllowDynamicProperties]
 /**
- * Legacy OPUS debug helper.
+ * OPUS debug helper.
  *
- * Provides debugging utilities used by older OPUS runtime code.
+ * Provides debugging utilities used by OPUS runtime code.
  */
 abstract class OPUS_Debug {
 		static $_logs = array();

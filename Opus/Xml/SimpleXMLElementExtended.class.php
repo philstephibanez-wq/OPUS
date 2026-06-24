@@ -4,7 +4,7 @@
 /**
  * Extended SimpleXML helper for OPUS.
  *
- * Adds helper behavior around SimpleXML for legacy OPUS XML processing.
+ * Adds helper behavior around SimpleXML for OPUS XML processing.
  */
 class OPUS_SimpleXMLElementExtended extends SimpleXMLElement{
    

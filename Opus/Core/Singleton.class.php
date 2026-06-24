@@ -13,16 +13,16 @@
  */
 #[AllowDynamicProperties]
 /**
- * Legacy singleton base helper.
+ * OPUS singleton base helper.
  *
- * Provides shared singleton access behavior used by older OPUS classes before full dependency-injection migration.
+ * Provides shared singleton access behavior used by OPUS classes during dependency-injection migration.
  */
 abstract class OPUS_Singleton implements OPUS_AccessorInterface {
     /** @var array<string,array<string,object>> */
     protected static $_instances = array();
 
     /**
-     * Legacy default pointer, kept for old code that inspects $_instance in
+     * OPUS default pointer, kept for old code that inspects $_instance in
      * subclasses or expects getInstance() to behave like the historical ASAP
      * singleton.
      */
@@ -31,7 +31,7 @@ abstract class OPUS_Singleton implements OPUS_AccessorInterface {
     protected $_scope = 'default';
 
     /**
-     * Reserved for legacy classes that expose controller through accessors.
+     * Reserved for classes that expose controller through accessors.
      * It is no longer auto-filled here; controller coupling must be explicit.
      */
     protected $_controller = null;

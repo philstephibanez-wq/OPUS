@@ -2,9 +2,9 @@
 
 #[AllowDynamicProperties]
 /**
- * Legacy OPUS configuration loader.
+ * OPUS configuration loader.
  *
- * Loads configuration data for legacy OPUS runtime surfaces while the framework migrates toward explicit configuration contracts.
+ * Loads configuration data for OPUS runtime surfaces while the framework migrates toward explicit configuration contracts.
  */
 class OPUS_ConfigLoader {
     protected ?string $_env = null;

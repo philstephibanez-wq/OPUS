@@ -5,9 +5,9 @@ define('HELPER_COLOR', 'blue');
 
 #[AllowDynamicProperties]
 /**
- * Legacy OPUS helper base class.
+ * OPUS helper base class.
  *
- * Provides shared helper utilities consumed by legacy OPUS runtime components.
+ * Provides shared helper utilities consumed by OPUS runtime components.
  */
 class OPUS_HELPER_Helper {
 	protected $_app = null;

@@ -2,9 +2,9 @@
 
 #[AllowDynamicProperties]
 /**
- * Legacy OPUS I18N service.
+ * OPUS I18N service.
  *
- * Loads and resolves translations for legacy OPUS applications.
+ * Loads and resolves translations for OPUS applications.
  */
 class OPUS_I18N_I18n {
 

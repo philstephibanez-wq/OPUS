@@ -4,9 +4,9 @@ define('MODEL_COLOR', 'green');
 
 #[AllowDynamicProperties]
 /**
- * Legacy OPUS base model.
+ * OPUS base model.
  *
- * Provides the base data model surface used by legacy OPUS modules.
+ * Provides the base data model surface used by OPUS modules.
  */
 class OPUS_MODEL_Model {
 

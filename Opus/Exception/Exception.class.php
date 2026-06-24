@@ -9,9 +9,9 @@
 */
 #[AllowDynamicProperties]
 /**
- * Legacy OPUS exception type.
+ * OPUS exception type.
  *
- * Represents framework-specific exceptions raised by legacy OPUS runtime components.
+ * Represents framework-specific exceptions raised by OPUS runtime components.
  */
 class OPUS_Exception extends Exception
 {

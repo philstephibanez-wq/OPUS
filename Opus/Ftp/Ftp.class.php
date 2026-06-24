@@ -21,9 +21,9 @@
 
 	#[AllowDynamicProperties]
 /**
- * Legacy OPUS FTP helper.
+ * OPUS FTP helper.
  *
- * Provides FTP operations used by older OPUS integration code.
+ * Provides FTP operations used by OPUS integration code.
  */
 class OPUS_Ftp {
 

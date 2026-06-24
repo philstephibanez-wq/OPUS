@@ -4,9 +4,9 @@ define('DBCOLOR', 'lightgray');
 
 #[AllowDynamicProperties]
 /**
- * Legacy OPUS MySQL database adapter.
+ * OPUS MySQL database adapter.
  *
- * Implements MySQL-specific behavior for the legacy OPUS database layer.
+ * Implements MySQL-specific behavior for the OPUS database layer.
  */
 class OPUS_BDD_Mysql {
     protected string $_server = '';

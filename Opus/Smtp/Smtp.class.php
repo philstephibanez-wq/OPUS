@@ -511,7 +511,7 @@ class eMail extends Toolbox {
 /**
  * Embedded SMTP client implementation.
  *
- * Provides SMTP protocol operations used by legacy OPUS mail delivery.
+ * Provides SMTP protocol operations used by OPUS mail delivery.
  */
 class SMTP extends Toolbox {
         const AUTH_AUTO_DETECT = '';

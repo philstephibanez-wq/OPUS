@@ -2,9 +2,9 @@
 
 #[AllowDynamicProperties]
 /**
- * Legacy ACL roles collection.
+ * OPUS ACL roles collection.
  *
- * Groups role definitions used by the legacy OPUS ACL layer.
+ * Groups role definitions used by the OPUS ACL layer.
  */
 class ACL_roles {
 

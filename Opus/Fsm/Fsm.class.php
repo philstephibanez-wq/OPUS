@@ -2,9 +2,9 @@
 
 #[AllowDynamicProperties]
 /**
- * Legacy FSM transition value object.
+ * OPUS FSM transition value object.
  *
- * Represents a finite-state-machine transition in the legacy OPUS FSM implementation.
+ * Represents a finite-state-machine transition in the OPUS FSM implementation.
  */
 class Transition {
 
@@ -25,7 +25,7 @@ class Transition {
 
 #[AllowDynamicProperties]
 /**
- * Legacy FSM GraphViz exporter.
+ * OPUS FSM GraphViz exporter.
  *
  * Builds graph representations of OPUS finite-state-machine definitions.
  */
@@ -41,9 +41,9 @@ class OPUS_FSM_GraphViz {
 
 
 /**
- * Legacy FSM interface.
+ * OPUS FSM interface.
  *
- * Defines the common finite-state-machine contract used by legacy OPUS FSM implementations.
+ * Defines the common finite-state-machine contract used by OPUS FSM implementations.
  */
 interface iFSM {
     function create();
@@ -53,9 +53,9 @@ define('PROGRAM_COLOR', 'blue');
 
 #[AllowDynamicProperties]
 /**
- * Legacy OPUS finite-state-machine engine.
+ * OPUS finite-state-machine engine.
  *
- * Executes state transitions and guards for legacy OPUS workflow logic.
+ * Executes state transitions and guards for OPUS workflow logic.
  */
 class OPUS_FSM_Fsm Implements iFSM {
 

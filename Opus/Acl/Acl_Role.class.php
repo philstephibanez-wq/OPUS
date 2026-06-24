@@ -2,9 +2,9 @@
 
 #[AllowDynamicProperties]
 /**
- * Legacy ACL role descriptor.
+ * OPUS ACL role descriptor.
  *
- * Represents a role used by legacy OPUS access-control rules.
+ * Represents a role used by OPUS access-control rules.
  */
 class ACL_Role {
 

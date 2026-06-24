@@ -2,9 +2,9 @@
 
 #[AllowDynamicProperties]
 /**
- * Legacy ACL condition container.
+ * OPUS ACL condition container.
  *
- * Stores additional ACL conditions evaluated by legacy OPUS authorization checks.
+ * Stores additional ACL conditions evaluated by OPUS authorization checks.
  */
 abstract class Acl_Conditions {
 

@@ -11,9 +11,9 @@
  */
 #[AllowDynamicProperties]
 /**
- * Legacy FSM program container.
+ * OPUS FSM program container.
  *
- * Stores legacy OPUS FSM program definitions and transition data.
+ * Stores OPUS FSM program definitions and transition data.
  */
 class OPUS_FSM_Program {
     private string $_id;

@@ -2,9 +2,9 @@
 
 #[AllowDynamicProperties]
 /**
- * Legacy OPUS mail facade.
+ * OPUS mail facade.
  *
- * Provides the mail-sending surface used by legacy OPUS modules.
+ * Provides the mail-sending surface used by OPUS modules.
  */
 class OPUS_Mail {
     public function __construct($params = null, $controller = null) {

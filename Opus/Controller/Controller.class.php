@@ -3,9 +3,9 @@
 define('CTRL_COLOR', 'lime');
 
 /**
- * Legacy OPUS controller interface.
+ * OPUS controller interface.
  *
- * Defines the controller contract used by legacy OPUS controller implementations.
+ * Defines the controller contract used by OPUS controller implementations.
  */
 interface OPUS_CONTROLLER_iController {
     function default_action();
@@ -13,9 +13,9 @@ interface OPUS_CONTROLLER_iController {
 
 #[AllowDynamicProperties]
 /**
- * Legacy OPUS base controller.
+ * OPUS base controller.
  *
- * Provides the base controller surface used by legacy OPUS runtime dispatch and application modules.
+ * Provides the base controller surface used by OPUS runtime dispatch and application modules.
  */
 class  OPUS_Controller implements OPUS_CONTROLLER_iController {
         public $response;

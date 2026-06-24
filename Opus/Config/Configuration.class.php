@@ -2,9 +2,9 @@
 
 #[AllowDynamicProperties]
 /**
- * Legacy route configuration value object.
+ * OPUS route configuration value object.
  *
- * Carries route configuration fields used by legacy OPUS configuration parsing.
+ * Carries route configuration fields used by OPUS configuration parsing.
  */
 class Route_Object {
 
@@ -30,7 +30,7 @@ class Route_Object {
 
 #[AllowDynamicProperties]
 /**
- * Legacy OPUS configuration container.
+ * OPUS configuration container.
  *
  * Stores and exposes application, routing and runtime configuration loaded from OPUS configuration sources.
  */
