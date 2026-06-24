@@ -138,7 +138,8 @@ final class P5BCurrentRuntimeLayoutSmoke
     {
         foreach ([
             'Opus/Legacy',
-            'Opus/Runtime/Application.php',
+            'Opus/Legacy/Autoload/autoloader.class.php',
+            'Opus/Legacy/Application/Application.class.php',
         ] as $path) {
             $fullPath = $this->root . '/' . $path;
             if (file_exists($fullPath)) {
@@ -179,8 +180,7 @@ final class P5BCurrentRuntimeLayoutSmoke
             'index.php',
             'www/index.php',
             'Opus/Runtime/Bootstrap.php',
-            'Opus/Legacy/Autoload/autoloader.class.php',
-            'Opus/Legacy/Application/Application.class.php',
+            'Opus/Runtime/Application.php',
             'Opus/Runtime/Kernel.php',
             'Opus/Routing/Router.php',
             'Opus/View/View.php',
