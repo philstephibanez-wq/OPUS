@@ -1,6 +1,11 @@
 <?php
 
 #[AllowDynamicProperties]
+/**
+ * Legacy ACL role descriptor.
+ *
+ * Represents a role used by legacy OPUS access-control rules.
+ */
 class ACL_Role {
 
     protected $_roleId;

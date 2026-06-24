@@ -3,6 +3,11 @@
 define('MODEL_COLOR', 'green');
 
 #[AllowDynamicProperties]
+/**
+ * Legacy OPUS base model.
+ *
+ * Provides the base data model surface used by legacy OPUS modules.
+ */
 class OPUS_MODEL_Model {
 
     protected $_app = null;

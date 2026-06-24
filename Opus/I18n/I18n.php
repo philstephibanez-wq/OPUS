@@ -4,6 +4,11 @@ declare(strict_types=1);
 namespace Opus\I18n;
 
 use Opus\Application\ApplicationDefinition;
+/**
+ * Namespaced OPUS I18N service.
+ *
+ * Loads and resolves translations for modern OPUS runtime applications.
+ */
 final class I18n
 {
     /** @var array<string,array<string,string>> */

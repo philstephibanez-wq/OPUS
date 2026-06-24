@@ -1,6 +1,11 @@
 <?php
 
 #[AllowDynamicProperties]
+/**
+ * Legacy ACL roles collection.
+ *
+ * Groups role definitions used by the legacy OPUS ACL layer.
+ */
 class ACL_roles {
 
     protected $_roles = array();

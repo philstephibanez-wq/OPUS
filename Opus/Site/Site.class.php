@@ -1,6 +1,11 @@
 <?php
 
 #[AllowDynamicProperties]
+/**
+ * Legacy OPUS site descriptor.
+ *
+ * Stores site-level configuration and context for legacy OPUS applications.
+ */
 class OPUS_SITE_Site {
     protected string $_id;
     protected string $_label;

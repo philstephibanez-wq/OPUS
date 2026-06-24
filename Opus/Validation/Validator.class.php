@@ -13,6 +13,11 @@
  */
 
 #[AllowDynamicProperties]
+/**
+ * Legacy OPUS validator.
+ *
+ * Provides validation helpers used by legacy OPUS forms and data-processing code.
+ */
 class OPUS_Validator {
 	protected $_valid = true;
 	protected $_messages = array();

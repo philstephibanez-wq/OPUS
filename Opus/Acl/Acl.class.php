@@ -1,6 +1,11 @@
 <?php
 
 #[AllowDynamicProperties]
+/**
+ * Legacy OPUS ACL coordinator.
+ *
+ * Provides access-control checks for legacy OPUS resources and roles.
+ */
 class Acl {
 
     protected static $_instance = NULL;     // php5.3

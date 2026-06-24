@@ -1,6 +1,11 @@
 <?php
 
 #[AllowDynamicProperties]
+/**
+ * Legacy OPUS router.
+ *
+ * Routes legacy OPUS requests before the modern runtime routing layer takes over.
+ */
 class OPUS_Router {
     private const ROUTE_DEBUG_ENABLED = false;
     private const ROUTE_DEBUG_LOG = '/logs/opus_route_debug.log';

@@ -79,6 +79,11 @@ use \Exception,
     \stdClass;
 
     #[AllowDynamicProperties]
+/**
+ * SMTP utility toolbox.
+ *
+ * Provides helper routines used by the embedded SMTP implementation.
+ */
 abstract class Toolbox {
 
         protected function _intValue($v) {
@@ -95,6 +100,11 @@ abstract class Toolbox {
     }
 
     #[AllowDynamicProperties]
+/**
+ * SMTP user value object.
+ *
+ * Stores SMTP user data used by the embedded mail workflow.
+ */
 class User {
 
         protected $name;
@@ -165,6 +175,11 @@ class User {
     class_alias(__NAMESPACE__ . '\User', __NAMESPACE__ . '\eMailUser');
 
     #[AllowDynamicProperties]
+/**
+ * SMTP email message object.
+ *
+ * Represents an email message handled by the embedded SMTP implementation.
+ */
 class eMail extends Toolbox {
         const PRIORITY_LOW = 5;
         const PRIORITY_NORMAL = 3;
@@ -493,6 +508,11 @@ class eMail extends Toolbox {
     }
 
     #[AllowDynamicProperties]
+/**
+ * Embedded SMTP client implementation.
+ *
+ * Provides SMTP protocol operations used by legacy OPUS mail delivery.
+ */
 class SMTP extends Toolbox {
         const AUTH_AUTO_DETECT = '';
         const AUTH_CRAM_SHA1 = 'CRAM-SHA1';

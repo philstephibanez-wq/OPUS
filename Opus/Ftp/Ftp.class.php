@@ -20,6 +20,11 @@
 	if (!defined("FTP_BINARY")) define("FTP_BINARY",1);
 
 	#[AllowDynamicProperties]
+/**
+ * Legacy OPUS FTP helper.
+ *
+ * Provides FTP operations used by older OPUS integration code.
+ */
 class OPUS_Ftp {
 
 		var $passiveMode = TRUE;

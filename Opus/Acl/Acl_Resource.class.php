@@ -1,6 +1,11 @@
 <?php
 
 #[AllowDynamicProperties]
+/**
+ * Legacy ACL resource descriptor.
+ *
+ * Represents a protected resource consumed by legacy OPUS ACL checks.
+ */
 class ACL_Resource {
 
     protected $_resourceId;

@@ -1,6 +1,11 @@
 <?php
 
 #[AllowDynamicProperties]
+/**
+ * Legacy ACL condition container.
+ *
+ * Stores additional ACL conditions evaluated by legacy OPUS authorization checks.
+ */
 abstract class Acl_Conditions {
 
 	 public function assert() {

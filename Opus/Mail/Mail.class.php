@@ -1,6 +1,11 @@
 <?php
 
 #[AllowDynamicProperties]
+/**
+ * Legacy OPUS mail facade.
+ *
+ * Provides the mail-sending surface used by legacy OPUS modules.
+ */
 class OPUS_Mail {
     public function __construct($params = null, $controller = null) {
         // Historical factory class kept for BC. Use create() for explicit creation.

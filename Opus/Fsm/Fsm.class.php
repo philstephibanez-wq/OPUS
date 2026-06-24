@@ -1,6 +1,11 @@
 <?php
 
 #[AllowDynamicProperties]
+/**
+ * Legacy FSM transition value object.
+ *
+ * Represents a finite-state-machine transition in the legacy OPUS FSM implementation.
+ */
 class Transition {
 
     public $signal;
@@ -19,6 +24,11 @@ class Transition {
 }
 
 #[AllowDynamicProperties]
+/**
+ * Legacy FSM GraphViz exporter.
+ *
+ * Builds graph representations of OPUS finite-state-machine definitions.
+ */
 class OPUS_FSM_GraphViz {
     public static function export(&$fsm) {
         throw new OPUS_Exception('GraphViz export has been removed from OPUS PHP 8 demo. Use OPUS_FSM_Diagram instead.');
@@ -30,6 +40,11 @@ class OPUS_FSM_GraphViz {
 }
 
 
+/**
+ * Legacy FSM interface.
+ *
+ * Defines the common finite-state-machine contract used by legacy OPUS FSM implementations.
+ */
 interface iFSM {
     function create();
 }
@@ -37,6 +52,11 @@ interface iFSM {
 define('PROGRAM_COLOR', 'blue');
 
 #[AllowDynamicProperties]
+/**
+ * Legacy OPUS finite-state-machine engine.
+ *
+ * Executes state transitions and guards for legacy OPUS workflow logic.
+ */
 class OPUS_FSM_Fsm Implements iFSM {
 
     protected $_id;

@@ -10,6 +10,11 @@
  * - memory, stack, NMI and events are first-class runtime state.
  */
 #[AllowDynamicProperties]
+/**
+ * Legacy FSM program container.
+ *
+ * Stores legacy OPUS FSM program definitions and transition data.
+ */
 class OPUS_FSM_Program {
     private string $_id;
     private string $_state;

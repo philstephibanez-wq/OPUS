@@ -1,6 +1,11 @@
 <?php
 
 #[AllowDynamicProperties]
+/**
+ * Legacy OPUS URL helper.
+ *
+ * Builds and resolves URLs for legacy OPUS routing and navigation code.
+ */
 class OPUS_Url_Url {
     public $_protocol;
     public $_host;

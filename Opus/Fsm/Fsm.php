@@ -3,6 +3,11 @@ declare(strict_types=1);
 
 namespace Opus\FSM;
 
+/**
+ * Namespaced OPUS finite-state-machine engine.
+ *
+ * Provides the modern FSM surface used by namespaced OPUS runtime code.
+ */
 final class Fsm
 {
     /** @return list<array<string,string>> */

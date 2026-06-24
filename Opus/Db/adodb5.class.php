@@ -7,6 +7,11 @@ if (!class_exists('ADOConnection') && defined('ROOT') && is_file(ROOT . '/framew
  * @author Stephane
  */
 #[AllowDynamicProperties]
+/**
+ * Legacy ADODB bridge for OPUS.
+ *
+ * Wraps ADODB-compatible database access for legacy OPUS components.
+ */
 class OPUS_adodb5 extends ADOConnection {
 
     public static function ADONewConnection($adapter) {

@@ -1,6 +1,11 @@
 <?php
 
 #[AllowDynamicProperties]
+/**
+ * Legacy OPUS site resolver.
+ *
+ * Resolves the current site context for legacy OPUS runtime execution.
+ */
 class OPUS_SITE_SiteResolver {
     public static function resolve($packagesConfig, string $defaultSiteId = 'logandplay', string $basePath = '', ?array &$catalog = null): OPUS_SITE_Site {
         $packages = is_array($packagesConfig) ? $packagesConfig : array();

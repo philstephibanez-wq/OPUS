@@ -1,6 +1,11 @@
 <?php
 
 #[AllowDynamicProperties]
+/**
+ * Legacy OPUS HTML helper.
+ *
+ * Builds HTML fragments for older OPUS rendering surfaces.
+ */
 class OPUS_Html_Html {
 	protected $_app = null;
 	protected $_i18n = null;

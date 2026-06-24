@@ -8,6 +8,11 @@
  * responses, HTTP method dispatch, request body parsing and lightweight CORS.
  */
 #[AllowDynamicProperties]
+/**
+ * Legacy OPUS REST helper.
+ *
+ * Provides REST-oriented helpers for older OPUS API surfaces.
+ */
 abstract class OPUS_REST_Rest extends OPUS_Controller {
     protected array $_restAllowedMethods = array('GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS');
     protected string $_restMethod = 'GET';

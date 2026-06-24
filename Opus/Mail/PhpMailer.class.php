@@ -2,6 +2,11 @@
 if (!class_exists('PHPMailer') && defined('ROOT') && is_file(ROOT . '/framework/libs/PHPMailer/class.phpmailer.php')) { require_once ROOT . '/framework/libs/PHPMailer/class.phpmailer.php'; }
 
 #[AllowDynamicProperties]
+/**
+ * Legacy PHPMailer adapter for OPUS.
+ *
+ * Adapts PHPMailer behavior for legacy OPUS mail delivery.
+ */
 class OPUS_PhpMailer extends PHPMailer {
 
     public function __construct($exceptions=true) {
