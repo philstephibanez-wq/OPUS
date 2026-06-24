@@ -37,6 +37,11 @@ use Opus\Routing\RouteMatch;
     diagrams: ['router-breadcrumb-runtime'],
     introducedIn: 'P116C5S'
 )]
+/**
+ * Breadcrumb builder driven by OPUS routing context.
+ *
+ * Builds breadcrumb items from the current application, page route and request path for ScoreTemplate view models.
+ */
 final class RouterBreadcrumbBuilder implements RefBookInspectableInterface
 {
     public function __construct(

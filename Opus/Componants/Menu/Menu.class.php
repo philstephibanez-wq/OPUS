@@ -1,6 +1,11 @@
 <?php
 
 #[AllowDynamicProperties]
+/**
+ * Legacy OPUS menu component kept for compatibility.
+ *
+ * Builds menu structures used by legacy OPUS runtime references while modern menu classes continue the migration path.
+ */
 class OPUS_MENU_Menu {
     protected $_class ;
     protected $_app = null;

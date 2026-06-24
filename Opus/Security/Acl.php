@@ -3,6 +3,11 @@ declare(strict_types=1);
 
 namespace Opus\Security;
 
+/**
+ * Namespaced access-control helper for OPUS runtime security.
+ *
+ * Evaluates user roles and route policies for integrated application pages and API endpoints.
+ */
 final class Acl
 {
     /** @param array<string,mixed> $page */

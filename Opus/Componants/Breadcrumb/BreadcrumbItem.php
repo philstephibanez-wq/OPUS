@@ -36,6 +36,11 @@ use Opus\RefBook\Contract\RefBookInspectableInterface;
     diagrams: ['router-breadcrumb-runtime'],
     introducedIn: 'P116C5S'
 )]
+/**
+ * Breadcrumb navigation item for OPUS route context.
+ *
+ * Stores the label, URL and active state used by breadcrumb builders and view rendering.
+ */
 final class BreadcrumbItem implements RefBookInspectableInterface
 {
     #[OpusRefBookMethod(
