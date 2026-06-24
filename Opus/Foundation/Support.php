@@ -3,6 +3,11 @@ declare(strict_types=1);
 
 namespace Opus\Foundation;
 
+/**
+ * Shared support helpers for the modern OPUS foundation layer.
+ *
+ * Centralizes small framework-level helpers used by the runtime while keeping application rendering and business logic out of utility code.
+ */
 final class Support
 {
     public static function e(string $value): string

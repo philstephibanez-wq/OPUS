@@ -3,6 +3,11 @@ declare(strict_types=1);
 
 namespace Opus\Http;
 
+/**
+ * HTTP response value object emitted by the OPUS runtime.
+ *
+ * Stores status code, headers and body content before the front controller sends the response to the client.
+ */
 final class Response
 {
     private string $body;

@@ -4,6 +4,11 @@ declare(strict_types=1);
 namespace Opus\Application;
 
 use Opus\Http\Request;
+/**
+ * Registry of integrated OPUS application definitions.
+ *
+ * Collects and exposes application definitions for runtime resolution, navigation, routing and discovery.
+ */
 final class ApplicationRegistry
 {
     private string $sitesDir;

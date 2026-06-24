@@ -3,6 +3,11 @@ declare(strict_types=1);
 
 namespace Opus\Application;
 
+/**
+ * Immutable definition of an integrated OPUS application.
+ *
+ * Describes the application identifier, title, base path, menu entries, routes, API endpoints and access policy used by the runtime kernel.
+ */
 final class ApplicationDefinition
 {
     public string $slug;

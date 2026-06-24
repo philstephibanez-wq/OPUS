@@ -5,6 +5,11 @@ namespace Opus\Http;
 
 use Opus\Foundation\Support;
 
+/**
+ * HTTP request value object used by the OPUS runtime.
+ *
+ * Carries the resolved method, URI, query parameters and POST data consumed by routing and application dispatch.
+ */
 final class Request
 {
     public string $host;
