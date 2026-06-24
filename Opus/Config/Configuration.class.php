@@ -1,6 +1,11 @@
 <?php
 
 #[AllowDynamicProperties]
+/**
+ * Legacy route configuration value object.
+ *
+ * Carries route configuration fields used by legacy OPUS configuration parsing.
+ */
 class Route_Object {
 
     public $id = '';
@@ -24,6 +29,11 @@ class Route_Object {
 }
 
 #[AllowDynamicProperties]
+/**
+ * Legacy OPUS configuration container.
+ *
+ * Stores and exposes application, routing and runtime configuration loaded from OPUS configuration sources.
+ */
 class OPUS_Configuration {
 
     protected $_env = null;

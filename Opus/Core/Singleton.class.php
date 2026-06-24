@@ -12,6 +12,11 @@
  * - missing properties fail explicitly.
  */
 #[AllowDynamicProperties]
+/**
+ * Legacy singleton base helper.
+ *
+ * Provides shared singleton access behavior used by older OPUS classes before full dependency-injection migration.
+ */
 abstract class OPUS_Singleton implements OPUS_AccessorInterface {
     /** @var array<string,array<string,object>> */
     protected static $_instances = array();

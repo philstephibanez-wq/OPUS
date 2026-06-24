@@ -8,6 +8,11 @@
 * @license    http://framework.OPUS.com/license/new-bsd     New BSD License
 */
 #[AllowDynamicProperties]
+/**
+ * Legacy OPUS exception type.
+ *
+ * Represents framework-specific exceptions raised by legacy OPUS runtime components.
+ */
 class OPUS_Exception extends Exception
 {
     /**
