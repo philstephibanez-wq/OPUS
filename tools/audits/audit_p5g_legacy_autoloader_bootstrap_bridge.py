@@ -2,12 +2,12 @@
 """
 P5G_LEGACY_AUTOLOADER_BOOTSTRAP_BRIDGE_AUDIT
 
-Read-only audit for the stable legacy DirectoriesAutoloader composer-aware bootstrap guard.
+Read-only audit for the removed legacy autoloader boundary.
 
 Purpose:
-- prove the modern www legacy entrypoint loads Composer before legacy classes;
-- prove the legacy autoloader no longer requires Opus/Bootstrap.php directly;
-- prove the composer-aware runtime Bootstrap guard remains active;
+- prove that www/index.php is Composer-only before OPUS_Application boot;
+- prove that the legacy DirectoriesAutoloader runtime file is absent;
+- prove that Opus/Legacy does not participate in runtime loading anymore;
 - never rewrite source, caches, Composer output, or entrypoints.
 """
 from __future__ import annotations
@@ -17,18 +17,11 @@ from pathlib import Path
 
 PATCH_ID = "P5G_LEGACY_AUTOLOADER_BOOTSTRAP_BRIDGE_AUDIT"
 ROOT = Path.cwd()
-LEGACY_AUTOLOADER = "Opus/Legacy/Autoload/autoloader.class.php"
 WWW_INDEX = "www/index.php"
-
-DIRECT_BRIDGE_TOKENS = [
-    "$opusBootstrap = defined('ROOT') ? ROOT . '/Opus/Bootstrap.php' : dirname(__DIR__, 2) . '/Bootstrap.php';",
-    "require_once $opusBootstrap;",
-]
-
-COMPOSER_AWARE_TOKENS = [
-    "class_exists(\\Opus\\Runtime\\Bootstrap::class)",
-    "OPUS_BOOTSTRAP_CLASS_REQUIRED",
-]
+RUNTIME_APPLICATION = "Opus/Runtime/Application.php"
+LEGACY_ROOT = "Opus/Legacy"
+LEGACY_AUTOLOADER = "Opus/Legacy/Autoload/autoloader.class.php"
+LEGACY_APPLICATION = "Opus/Legacy/Application/Application.class.php"
 
 WWW_COMPOSER_TOKENS = [
     "$composerAutoload = ROOT . '/vendor/autoload.php';",
@@ -36,10 +29,10 @@ WWW_COMPOSER_TOKENS = [
     "require_once $composerAutoload;",
 ]
 
-WWW_LEGACY_TOKENS = [
+WWW_FORBIDDEN_TOKENS = [
     "require_once ROOT . '/Opus/Legacy/Autoload/autoloader.class.php';",
     "require_once ROOT . '/Opus/Legacy/Application/Application.class.php';",
-    "OPUS_Application::getInstance()",
+    "require_once ROOT . '/Opus/Bootstrap.php';",
 ]
 
 
@@ -76,70 +69,55 @@ def php_lint(rel: str) -> bool:
 
 
 def check_required_files() -> int:
-    missing = [rel for rel in [LEGACY_AUTOLOADER, WWW_INDEX, "vendor/autoload.php"] if not (ROOT / rel).is_file()]
+    missing = [rel for rel in [WWW_INDEX, RUNTIME_APPLICATION, "vendor/autoload.php"] if not (ROOT / rel).is_file()]
     if missing:
         return fail("CHECK_REQUIRED_FILES", ",".join(missing))
     ok("CHECK_REQUIRED_FILES")
     return 0
 
 
-def check_www_entrypoint_composer_before_legacy() -> int:
+def check_legacy_files_absent() -> int:
+    existing = [rel for rel in [LEGACY_AUTOLOADER, LEGACY_APPLICATION, LEGACY_ROOT] if (ROOT / rel).exists()]
+    if existing:
+        return fail("CHECK_LEGACY_RUNTIME_PATHS_ABSENT", ",".join(existing))
+    ok("CHECK_LEGACY_RUNTIME_PATHS_ABSENT")
+    return 0
+
+
+def check_www_composer_only_entrypoint() -> int:
     content = read(WWW_INDEX)
     for token in WWW_COMPOSER_TOKENS:
         if token not in content:
             return fail("CHECK_WWW_COMPOSER_TOKEN", token)
-    for token in WWW_LEGACY_TOKENS:
-        if token not in content:
-            return fail("CHECK_WWW_LEGACY_TOKEN", token)
-    if "require_once ROOT . '/Opus/Bootstrap.php';" in content:
-        return fail("CHECK_WWW_NO_DIRECT_BOOTSTRAP_REQUIRE", WWW_INDEX)
-
-    composer_pos = content.index("require_once $composerAutoload;")
-    legacy_pos = content.index("require_once ROOT . '/Opus/Legacy/Autoload/autoloader.class.php';")
-    if composer_pos > legacy_pos:
-        return fail("CHECK_WWW_COMPOSER_BEFORE_LEGACY_AUTOLOADER")
-    ok("CHECK_WWW_COMPOSER_BEFORE_LEGACY_AUTOLOADER")
-
+    for token in WWW_FORBIDDEN_TOKENS:
+        if token in content:
+            return fail("CHECK_WWW_FORBIDDEN_LEGACY_TOKEN", token)
+    if "OPUS_Application::getInstance()" not in content or "$app->run();" not in content:
+        return fail("CHECK_WWW_APPLICATION_BOOT_SEQUENCE", WWW_INDEX)
+    ok("CHECK_WWW_COMPOSER_ONLY_ENTRYPOINT")
     if not php_lint(WWW_INDEX):
         return fail("CHECK_WWW_PHP_LINT", WWW_INDEX)
     return 0
 
 
-def check_legacy_autoloader_bridge() -> int:
-    content = read(LEGACY_AUTOLOADER)
-    direct_missing = [token for token in DIRECT_BRIDGE_TOKENS if token not in content]
-    composer_aware = any(token in content for token in COMPOSER_AWARE_TOKENS)
-
-    if direct_missing and not composer_aware:
-        return fail("CHECK_LEGACY_AUTOLOADER_BOOTSTRAP_BRIDGE_UNKNOWN", ",".join(direct_missing))
-
-    if not direct_missing:
-        ok("CHECK_LEGACY_AUTOLOADER_DIRECT_BOOTSTRAP_BRIDGE", LEGACY_AUTOLOADER)
-    else:
-        ok("CHECK_LEGACY_AUTOLOADER_DIRECT_BOOTSTRAP_BRIDGE_ABSENT")
-
-    if composer_aware:
-        ok("CHECK_LEGACY_AUTOLOADER_COMPOSER_AWARE_BOOTSTRAP_GUARD")
-    else:
-        ok("CHECK_LEGACY_AUTOLOADER_COMPOSER_AWARE_BOOTSTRAP_GUARD_ABSENT")
-
-    required_classes = [
-        "class ExtensionFilterIteratorDecorator extends FilterIterator",
-        "class DirectoriesAutoloaderException extends Exception",
-        "class DirectoriesAutoloader",
-        "spl_autoload_register(array($autoloader, 'autoload'));",
+def check_runtime_application_contract() -> int:
+    content = read(RUNTIME_APPLICATION)
+    required = [
+        "class OPUS_Application",
+        "dirname(__DIR__, 2) . '/config/fsm.boot.php'",
     ]
-    for token in required_classes:
+    for token in required:
         if token not in content:
-            return fail("CHECK_LEGACY_AUTOLOADER_CLASS_TOKEN", token)
-    ok("CHECK_LEGACY_AUTOLOADER_CLASS_CONTRACT")
-
-    if not php_lint(LEGACY_AUTOLOADER):
-        return fail("CHECK_LEGACY_AUTOLOADER_PHP_LINT", LEGACY_AUTOLOADER)
+            return fail("CHECK_RUNTIME_APPLICATION_TOKEN", token)
+    if "dirname(__DIR__, 3) . '/config/fsm.boot.php'" in content:
+        return fail("CHECK_RUNTIME_APPLICATION_NO_LEGACY_BOOT_FSM_ROOT")
+    ok("CHECK_RUNTIME_APPLICATION_CONTRACT")
+    if not php_lint(RUNTIME_APPLICATION):
+        return fail("CHECK_RUNTIME_APPLICATION_PHP_LINT", RUNTIME_APPLICATION)
     return 0
 
 
-def scan_bootstrap_runtime_refs() -> int:
+def scan_legacy_runtime_refs() -> int:
     files = run_git(["ls-files"])
     runtime_refs: list[str] = []
     ignored_refs: list[str] = []
@@ -152,62 +130,47 @@ def scan_bootstrap_runtime_refs() -> int:
             content = read(rel)
         except OSError:
             continue
-        if "Opus/Bootstrap.php" not in content:
+        has_legacy_ref = "Opus/Legacy" in content or "DirectoriesAutoloader" in content
+        if not has_legacy_ref:
             continue
-        if rel in {WWW_INDEX, LEGACY_AUTOLOADER}:
+        if rel == WWW_INDEX or rel.startswith("Opus/"):
             runtime_refs.append(rel)
         else:
             ignored_refs.append(rel)
 
-    print("BOOTSTRAP_REFERENCE_CLASSIFICATION")
+    print("LEGACY_REFERENCE_CLASSIFICATION")
     for rel in sorted(runtime_refs):
-        print(f"RUNTIME_OR_BRIDGE_REF={rel}")
+        print(f"RUNTIME_LEGACY_REF={rel}")
     for rel in sorted(ignored_refs):
-        print(f"NON_RUNTIME_REF={rel}")
+        print(f"NON_RUNTIME_LEGACY_REF={rel}")
 
-    if runtime_refs == [LEGACY_AUTOLOADER] or sorted(runtime_refs) == [LEGACY_AUTOLOADER]:
-        ok("CHECK_BOOTSTRAP_RUNTIME_OR_BRIDGE_REFERENCES", LEGACY_AUTOLOADER)
-        return 0
-    if runtime_refs == []:
-        ok("CHECK_BOOTSTRAP_RUNTIME_OR_BRIDGE_REFERENCES", "none")
-        return 0
-    return fail("CHECK_BOOTSTRAP_RUNTIME_OR_BRIDGE_REFERENCES", ",".join(sorted(runtime_refs)))
+    if runtime_refs:
+        return fail("CHECK_LEGACY_RUNTIME_REFERENCES", ",".join(sorted(runtime_refs)))
+    ok("CHECK_LEGACY_RUNTIME_REFERENCES", "none")
+    return 0
 
 
 def print_decision() -> None:
-    content = read(LEGACY_AUTOLOADER)
-    direct_bridge = all(token in content for token in DIRECT_BRIDGE_TOKENS)
-    composer_aware = any(token in content for token in COMPOSER_AWARE_TOKENS)
-
     print()
-    print("P5G_LEGACY_AUTOLOADER_BOOTSTRAP_GUARD_DECISION")
-    print("WWW_ENTRYPOINT_LOADS_COMPOSER_BEFORE_LEGACY=YES")
-    print(f"LEGACY_AUTOLOADER_DIRECTLY_REQUIRES_BOOTSTRAP={'YES' if direct_bridge else 'NO'}")
-    print(f"LEGACY_AUTOLOADER_COMPOSER_AWARE_GUARD={'YES' if composer_aware else 'NO'}")
-    if direct_bridge and not composer_aware:
-        print("DECISION=P5G_SAFE_MIGRATION_AVAILABLE")
-        print("NEXT_SAFE_STEP=P5G_MIGRATE_LEGACY_AUTOLOADER_TO_COMPOSER_AWARE_BOOTSTRAP_GUARD")
-    elif composer_aware and not direct_bridge:
-        print("DECISION=P5G_LEGACY_AUTOLOADER_COMPOSER_GUARD_OK")
-        print("NEXT_SAFE_STEP=P6A_SELECT_NEXT_RUNTIME_CLEANUP_TARGET")
-    elif composer_aware:
-        print("DECISION=LEGACY_AUTOLOADER_BOOTSTRAP_BRIDGE_ALREADY_COMPOSER_AWARE")
-        print("NEXT_SAFE_STEP=RERUN_P5E_AND_P5B")
-    else:
-        print("DECISION=MANUAL_REVIEW_REQUIRED")
-        print("NEXT_SAFE_STEP=INSPECT_LEGACY_AUTOLOADER_BOOTSTRAP_HEADER")
+    print("P5G_LEGACY_AUTOLOADER_REMOVAL_DECISION")
+    print("WWW_ENTRYPOINT_COMPOSER_ONLY=YES")
+    print("LEGACY_AUTOLOADER_RUNTIME_FILE_PRESENT=NO")
+    print("RUNTIME_APPLICATION_LOCATION=Opus/Runtime/Application.php")
+    print("DECISION=LEGACY_RUNTIME_BOUNDARY_REMOVED")
+    print("NEXT_SAFE_STEP=P6B_ARCHIVE_P6A_MIGRATION_OR_REMOVE_STALE_LEGACY_AUDITS")
 
 
 def main() -> int:
     print(PATCH_ID)
     print("MODE=READ_ONLY")
-    print("SCOPE=stable legacy autoloader composer-aware bootstrap guard")
+    print("SCOPE=removed legacy autoloader runtime boundary")
 
     checks = [
         check_required_files(),
-        check_www_entrypoint_composer_before_legacy(),
-        check_legacy_autoloader_bridge(),
-        scan_bootstrap_runtime_refs(),
+        check_legacy_files_absent(),
+        check_www_composer_only_entrypoint(),
+        check_runtime_application_contract(),
+        scan_legacy_runtime_refs(),
     ]
     if any(code != 0 for code in checks):
         print(f"{PATCH_ID}_FAIL")

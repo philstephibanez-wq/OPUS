@@ -70,8 +70,6 @@ if (!is_file($composerAutoload)) {
     throw new RuntimeException('OPUS_COMPOSER_AUTOLOAD_REQUIRED: ' . $composerAutoload);
 }
 require_once $composerAutoload;
-require_once ROOT . '/Opus/Legacy/Autoload/autoloader.class.php';
-require_once ROOT . '/Opus/Legacy/Application/Application.class.php';
 
 $app = OPUS_Application::getInstance();
 $app->run();

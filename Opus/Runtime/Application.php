@@ -72,7 +72,7 @@ class OPUS_Application {
             $candidates[] = rtrim((string)ROOT, '/\\') . '/application/config/fsm.boot.php';
         }
 
-        $candidates[] = dirname(__DIR__, 3) . '/config/fsm.boot.php';
+        $candidates[] = dirname(__DIR__, 2) . '/config/fsm.boot.php';
 
         foreach ($candidates as $candidate) {
             if (is_file($candidate)) {

@@ -23,7 +23,6 @@ CURRENT_BOOTSTRAP = "Opus/Bootstrap.php"
 TARGET_BOOTSTRAP = "Opus/Runtime/Bootstrap.php"
 CURRENT_CLASS = "Opus\\Runtime\\Bootstrap"
 TARGET_CLASS = "Opus\\Runtime\\Bootstrap"
-LEGACY_AUTOLOADER = "Opus/Legacy/Autoload/autoloader.class.php"
 WWW_INDEX = "www/index.php"
 MODERN_INDEX = "index.php"
 COMPOSER_JSON = "composer.json"
@@ -31,13 +30,11 @@ COMPOSER_JSON = "composer.json"
 RUNTIME_FILES = {
     MODERN_INDEX,
     WWW_INDEX,
-    LEGACY_AUTOLOADER,
 }
 
 REQUIRED_FILES = [
     TARGET_BOOTSTRAP,
     "Opus/Runtime/Kernel.php",
-    LEGACY_AUTOLOADER,
     WWW_INDEX,
     MODERN_INDEX,
     COMPOSER_JSON,
@@ -151,19 +148,11 @@ def check_runtime_references_removed() -> int:
     return 0
 
 
-def check_legacy_guard_ready_for_target_update() -> int:
-    content = read(LEGACY_AUTOLOADER)
-    required = [
-        "class_exists(\\Opus\\Runtime\\Bootstrap::class)",
-        "OPUS_BOOTSTRAP_CLASS_REQUIRED",
-    ]
-    for token in required:
-        if token not in content:
-            return fail("CHECK_LEGACY_AUTOLOADER_CURRENT_COMPOSER_GUARD", token)
-    if "require_once $opusBootstrap;" in content or "Opus/Bootstrap.php" in content:
-        return fail("CHECK_LEGACY_AUTOLOADER_NO_DIRECT_BOOTSTRAP_REQUIRE")
-    ok("CHECK_LEGACY_AUTOLOADER_TARGET_COMPOSER_GUARD", TARGET_CLASS)
-    ok("CHECK_LEGACY_AUTOLOADER_OLD_GUARD_ABSENT", CURRENT_CLASS)
+def check_legacy_runtime_absent() -> int:
+    existing = [rel for rel in ["Opus/Legacy", "Opus/Legacy/Autoload/autoloader.class.php", "Opus/Legacy/Application/Application.class.php"] if (ROOT / rel).exists()]
+    if existing:
+        return fail("CHECK_LEGACY_RUNTIME_PATHS_ABSENT", ",".join(existing))
+    ok("CHECK_LEGACY_RUNTIME_PATHS_ABSENT")
     return 0
 
 
@@ -213,11 +202,11 @@ def print_design_decision() -> None:
     print(f"RUNTIME_BOOTSTRAP_CLASS={TARGET_CLASS}")
     print("TARGET_NAMESPACE=Opus\\Runtime")
     print("RUNTIME_BOOTSTRAP_NAMESPACE_STABLE=YES")
-    print("LEGACY_GUARD_USES_RUNTIME_BOOTSTRAP=YES")
+    print("LEGACY_RUNTIME_BOUNDARY_PRESENT=NO")
     print("MOVE_REQUIRES_COMPOSER_DUMP_AUTOLOAD=YES_LOCAL_REFRESH_REQUIRED")
     print("ROOT_BOOTSTRAP_RUNTIME_BLOCKERS=NO")
     print("DECISION=BOOTSTRAP_RUNTIME_LOCATION_STABLE")
-    print("NEXT_SAFE_STEP=P6A_SELECT_NEXT_RUNTIME_CLEANUP_TARGET")
+    print("NEXT_SAFE_STEP=P6B_ARCHIVE_P6A_MIGRATION_OR_REMOVE_STALE_LEGACY_AUDITS")
 
 
 def main() -> int:
@@ -231,7 +220,7 @@ def main() -> int:
         check_target_collision(),
         check_composer_contract(),
         check_runtime_references_removed(),
-        check_legacy_guard_ready_for_target_update(),
+        check_legacy_runtime_absent(),
         scan_class_and_path_references(),
     ]
     if any(code != 0 for code in checks):

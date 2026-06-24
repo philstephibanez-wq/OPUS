@@ -11,8 +11,8 @@
  *
  * Contract:
  * - OPUS root entrypoint index.php is modern and does not boot legacy Application.
- * - Legacy www/index.php explicitly loads Composer, legacy autoloader and legacy Application.
- * - Legacy autoloader requires Composer-loaded Opus\\Runtime\\Bootstrap.
+ * - www/index.php loads Composer and boots OPUS_Application from Composer classmap.
+ * - Opus/Legacy is absent from runtime and must not be required by entrypoints.
  * - Opus/ root contains no direct PHP runtime file after Bootstrap moved to Opus/Runtime.
  * - Former root legacy classes stay absent from Opus/ root.
  * - P4 runners stay archived outside repository root.
@@ -43,9 +43,9 @@ final class P5BCurrentRuntimeLayoutSmoke
         $this->checkFormerRootLegacyClassesAbsent();
         $this->checkModernEntrypoint();
         $this->checkLegacyEntrypoint();
-        $this->checkLegacyAutoloaderComposerGuard();
+        $this->checkLegacyRemoved();
         $this->checkBootstrapContract();
-        $this->checkLegacyApplicationContract();
+        $this->checkApplicationContract();
         $this->lintRuntimeFiles();
 
         if ($this->failures > 0) {
@@ -128,22 +128,25 @@ final class P5BCurrentRuntimeLayoutSmoke
         $this->contains($content, "throw new RuntimeException('OPUS_COMPOSER_AUTOLOAD_REQUIRED: ' . \$composerAutoload);", 'CHECK_WWW_COMPOSER_AUTOLOAD_REQUIRED_ERROR');
         $this->contains($content, 'require_once $composerAutoload;', 'CHECK_WWW_REQUIRES_COMPOSER_AUTOLOAD');
         $this->notContains($content, "require_once ROOT . '/Opus/Bootstrap.php';", 'CHECK_WWW_DOES_NOT_REQUIRE_BOOTSTRAP_DIRECTLY');
-        $this->contains($content, "require_once ROOT . '/Opus/Legacy/Autoload/autoloader.class.php';", 'CHECK_WWW_REQUIRES_LEGACY_AUTOLOADER');
-        $this->contains($content, "require_once ROOT . '/Opus/Legacy/Application/Application.class.php';", 'CHECK_WWW_REQUIRES_LEGACY_APPLICATION');
+        $this->notContains($content, "require_once ROOT . '/Opus/Legacy/Autoload/autoloader.class.php';", 'CHECK_WWW_DOES_NOT_REQUIRE_LEGACY_AUTOLOADER');
+        $this->notContains($content, "require_once ROOT . '/Opus/Legacy/Application/Application.class.php';", 'CHECK_WWW_DOES_NOT_REQUIRE_LEGACY_APPLICATION');
         $this->contains($content, 'OPUS_Application::getInstance()', 'CHECK_WWW_BOOTSTRAPS_LEGACY_APPLICATION');
         $this->notContains($content, 'Opus/Application.class.php', 'CHECK_WWW_DOES_NOT_REQUIRE_ROOT_APPLICATION');
     }
 
-    private function checkLegacyAutoloaderComposerGuard(): void
+    private function checkLegacyRemoved(): void
     {
-        $file = $this->root . '/Opus/Legacy/Autoload/autoloader.class.php';
-        $content = $this->read($file);
-        if ($content === null) { return; }
-
-        $this->contains($content, 'class_exists(\Opus\Runtime\Bootstrap::class)', 'CHECK_LEGACY_AUTOLOADER_COMPOSER_BOOTSTRAP_GUARD');
-        $this->contains($content, 'OPUS_BOOTSTRAP_CLASS_REQUIRED', 'CHECK_LEGACY_AUTOLOADER_BOOTSTRAP_REQUIRED_ERROR');
-        $this->notContains($content, 'require_once $opusBootstrap;', 'CHECK_LEGACY_AUTOLOADER_NO_BOOTSTRAP_REQUIRE');
-        $this->notContains($content, "ROOT . '/Opus/Bootstrap.php'", 'CHECK_LEGACY_AUTOLOADER_NO_ROOT_BOOTSTRAP_PATH');
+        foreach ([
+            'Opus/Legacy',
+            'Opus/Runtime/Application.php',
+        ] as $path) {
+            $fullPath = $this->root . '/' . $path;
+            if (file_exists($fullPath)) {
+                $this->fail('CHECK_LEGACY_RUNTIME_PATH_ABSENT', $path);
+                return;
+            }
+        }
+        $this->ok('CHECK_LEGACY_RUNTIME_PATHS_ABSENT');
     }
 
     private function checkBootstrapContract(): void
@@ -159,15 +162,15 @@ final class P5BCurrentRuntimeLayoutSmoke
         $this->contains($content, "'View/View.php'", 'CHECK_BOOTSTRAP_LOADS_VIEW');
     }
 
-    private function checkLegacyApplicationContract(): void
+    private function checkApplicationContract(): void
     {
-        $file = $this->root . '/Opus/Legacy/Application/Application.class.php';
+        $file = $this->root . '/Opus/Runtime/Application.php';
         $content = $this->read($file);
         if ($content === null) { return; }
 
         $this->contains($content, 'class OPUS_Application', 'CHECK_LEGACY_APPLICATION_CLASS');
-        $this->contains($content, "dirname(__DIR__, 3) . '/config/fsm.boot.php'", 'CHECK_LEGACY_APPLICATION_BOOT_FSM_ROOT');
-        $this->notContains($content, "dirname(__DIR__) . '/config/fsm.boot.php'", 'CHECK_LEGACY_APPLICATION_NO_OLD_BOOT_FSM_ROOT');
+        $this->contains($content, "dirname(__DIR__, 2) . '/config/fsm.boot.php'", 'CHECK_RUNTIME_APPLICATION_BOOT_FSM_ROOT');
+        $this->notContains($content, "dirname(__DIR__, 3) . '/config/fsm.boot.php'", 'CHECK_RUNTIME_APPLICATION_NO_LEGACY_BOOT_FSM_ROOT');
     }
 
     private function lintRuntimeFiles(): void

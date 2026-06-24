@@ -7,7 +7,7 @@ Read-only audit for the stable OPUS bootstrap runtime boundary.
 Purpose:
 - prove that no PHP file remains directly under Opus/;
 - prove that the runtime Bootstrap lives at Opus/Runtime/Bootstrap.php;
-- keep modern and legacy entrypoints explicit;
+- keep modern and www entrypoints Composer-driven;
 - never rewrite files, caches, Composer output, or entrypoints.
 """
 from __future__ import annotations
@@ -43,6 +43,9 @@ EXPECTED_WWW_REQUIRES = [
     "$composerAutoload = ROOT . '/vendor/autoload.php';",
     "throw new RuntimeException('OPUS_COMPOSER_AUTOLOAD_REQUIRED: ' . $composerAutoload);",
     "require_once $composerAutoload;",
+]
+
+FORBIDDEN_WWW_REQUIRES = [
     "require_once ROOT . '/Opus/Legacy/Autoload/autoloader.class.php';",
     "require_once ROOT . '/Opus/Legacy/Application/Application.class.php';",
 ]
@@ -161,7 +164,12 @@ def check_legacy_entrypoint() -> int:
     for token in EXPECTED_WWW_REQUIRES:
         if token not in content:
             return fail("CHECK_LEGACY_WWW_REQUIRE", token)
-    ok("CHECK_LEGACY_WWW_EXPLICIT_REQUIRES", str(len(EXPECTED_WWW_REQUIRES)))
+    ok("CHECK_WWW_COMPOSER_REQUIRES", str(len(EXPECTED_WWW_REQUIRES)))
+
+    for token in FORBIDDEN_WWW_REQUIRES:
+        if token in content:
+            return fail("CHECK_WWW_FORBIDDEN_LEGACY_REQUIRE", token)
+    ok("CHECK_WWW_LEGACY_REQUIRES_ABSENT")
 
     if "OPUS_Application::getInstance()" not in content or "$app->run();" not in content:
         return fail("CHECK_LEGACY_WWW_BOOT_SEQUENCE", rel)
@@ -234,7 +242,7 @@ def print_decision() -> None:
 def main() -> int:
     print(PATCH_ID)
     print("MODE=READ_ONLY")
-    print("SCOPE=stable bootstrap runtime boundary, modern entrypoint, legacy entrypoint, composer autoload")
+    print("SCOPE=stable bootstrap runtime boundary, modern entrypoint, www composer entrypoint")
 
     files = tracked_files()
     checks = [
