@@ -36,6 +36,7 @@ REQUIRED_ARCHIVED_TRACKED = (
     "tools/archive/p5_migrations/apply_p5i_migrate_bootstrap_to_runtime_namespace.py",
     "tools/archive/p5_migrations/apply_p5i_repair_runtime_bootstrap_checks.py",
     "tools/archive/p5_migrations/apply_p5l_stabilize_post_move_audits.py",
+    "tools/archive/p6_migrations/apply_p6a_remove_legacy_runtime_boundary.py",
 )
 
 FORBIDDEN_ROOT_TOOLS = (
@@ -60,6 +61,7 @@ FORBIDDEN_ACTIVE_TOOLS = (
     "tools/migrations/apply_p5i_migrate_bootstrap_to_runtime_namespace.py",
     "tools/migrations/apply_p5i_repair_runtime_bootstrap_checks.py",
     "tools/migrations/apply_p5l_stabilize_post_move_audits.py",
+    "tools/migrations/apply_p6a_remove_legacy_runtime_boundary.py",
 )
 
 CONTENT_MARKERS = (
