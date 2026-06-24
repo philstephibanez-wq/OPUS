@@ -8,8 +8,8 @@ namespace Opus\Scaffold;
  *
  * Contract:
  * - creates the application common layer;
- * - creates starter rubric modules inspired by the historical OPUS demo model;
- * - every visible home block is backed by a declared module/route;
+ * - creates starter rubric pages inspired by the historical OPUS demo model;
+ * - every visible home block is backed by a declared page/route;
  * - creates local resources and source-agnostic i18n starter strings;
  * - creates a public front controller that renders only declared routes and .score templates;
  * - never imports external dependencies.
@@ -17,15 +17,15 @@ namespace Opus\Scaffold;
 final class SiteScaffoldPlan implements ScaffoldPlanInterface
 {
     /**
-     * Starter modules generated with a new OPUS site.
+     * Starter pages generated with a new OPUS site.
      *
-     * Home aggregates route/module entries. Pages, Articles, Rubriques and Documentation
-     * are rubrique modules that demonstrate the expected application structure without
+     * Home aggregates route/page entries. Pages, Articles, Rubriques and Documentation
+     * are rubrique pages that demonstrate the expected application structure without
      * esoteric sample content.
      *
      * @return list<array{id:string, path:string, route:string, role:string, label:string, order:int}>
      */
-    private function starterModules(): array
+    private function starterPages(): array
     {
         return [
             ['id' => 'Home', 'path' => '/', 'route' => 'home.index', 'role' => 'starter-home', 'label' => 'menu.home', 'order' => 10],
@@ -78,8 +78,8 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface
             "sites/{$site}/public/assets/img",
         ];
 
-        foreach ($this->starterModules() as $module) {
-            $moduleId = $module['id'];
+        foreach ($this->starterPages() as $page) {
+            $pageId = $page['id'];
             foreach ([
                 'acl',
                 'helpers',
@@ -95,7 +95,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface
                 'templates/partials',
                 'templates/components',
             ] as $subdir) {
-                $directories[] = "sites/{$site}/application/modules/{$moduleId}/{$subdir}";
+                $directories[] = "sites/{$site}/application/pages/{$pageId}/{$subdir}";
             }
         }
 
@@ -122,10 +122,10 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface
             'application_root' => 'application',
             'resources_root' => 'resources',
             'common_root' => 'application/common',
-            'modules_root' => 'application/modules',
+            'pages_root' => 'application/pages',
             'home_route' => 'home.index',
         ]));
-        $entries[] = ScaffoldEntry::file("sites/{$site}/application/config/modules.json", $this->json($this->modulesConfig($site)));
+        $entries[] = ScaffoldEntry::file("sites/{$site}/application/config/pages.json", $this->json($this->pagesConfig($site)));
         $entries[] = ScaffoldEntry::file("sites/{$site}/application/config/routes.json", $this->json($this->routesConfig()));
         $entries[] = ScaffoldEntry::file("sites/{$site}/application/config/fsm.json", $this->json($this->fsmConfig()));
         $entries[] = ScaffoldEntry::file("sites/{$site}/application/config/menu.json", $this->json($this->menuConfig()));
@@ -139,25 +139,25 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface
         $entries[] = ScaffoldEntry::file("sites/{$site}/application/common/templates/components/language-selector.score", $this->languageSelectorScore());
         $entries[] = ScaffoldEntry::file("sites/{$site}/application/common/templates/components/rubric-card.score", $this->rubricCardScore());
 
-        foreach ($this->starterModules() as $module) {
-            $moduleId = $module['id'];
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/modules/{$moduleId}/README.md", $this->moduleReadmeContent($moduleId, $module['role']));
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/modules/{$moduleId}/module.json", $this->json([
-                'module_id' => $moduleId,
+        foreach ($this->starterPages() as $page) {
+            $pageId = $page['id'];
+            $entries[] = ScaffoldEntry::file("sites/{$site}/application/pages/{$pageId}/README.md", $this->pageReadmeContent($pageId, $page['role']));
+            $entries[] = ScaffoldEntry::file("sites/{$site}/application/pages/{$pageId}/page.json", $this->json([
+                'module_id' => $pageId,
                 'site_id' => $site,
-                'contract' => 'OPUS_APPLICATION_MODULE_V1',
-                'role' => $module['role'],
-                'route' => $module['route'],
+                'contract' => 'OPUS_APPLICATION_PAGE_V1',
+                'role' => $page['role'],
+                'route' => $page['route'],
                 'inherits_common_layer' => true,
                 'external_dependencies_allowed' => false,
                 'html_rendering' => 'score-template',
                 'created_by' => 'composer opus:create-site',
             ]));
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/modules/{$moduleId}/controllers/{$moduleId}Controller.php", $this->controllerContent($moduleId));
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/modules/{$moduleId}/services/{$moduleId}PageService.php", $this->serviceContent($moduleId));
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/modules/{$moduleId}/view-models/{$moduleId}PageViewModel.php", $this->viewModelContent($moduleId));
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/modules/{$moduleId}/templates/layout.score", $this->moduleLayoutScore($moduleId));
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/modules/{$moduleId}/templates/pages/index.score", $moduleId === 'Home' ? $this->homePageScore() : $this->rubricPageScore());
+            $entries[] = ScaffoldEntry::file("sites/{$site}/application/pages/{$pageId}/controllers/{$pageId}Controller.php", $this->controllerContent($pageId));
+            $entries[] = ScaffoldEntry::file("sites/{$site}/application/pages/{$pageId}/services/{$pageId}PageService.php", $this->serviceContent($pageId));
+            $entries[] = ScaffoldEntry::file("sites/{$site}/application/pages/{$pageId}/view-models/{$pageId}PageViewModel.php", $this->viewModelContent($pageId));
+            $entries[] = ScaffoldEntry::file("sites/{$site}/application/pages/{$pageId}/templates/layout.score", $this->pageLayoutScore($pageId));
+            $entries[] = ScaffoldEntry::file("sites/{$site}/application/pages/{$pageId}/templates/pages/index.score", $pageId === 'Home' ? $this->homePageScore() : $this->rubricPageScore());
         }
 
         $entries[] = ScaffoldEntry::file("sites/{$site}/resources/i18n/fr.json", $this->json($this->i18nFr()));
@@ -170,18 +170,18 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface
     /**
      * @return array<string, mixed>
      */
-    private function modulesConfig(string $site): array
+    private function pagesConfig(string $site): array
     {
         return [
-            'contract' => 'OPUS_MODULE_REGISTRY_V1',
-            'modules' => array_map(static fn (array $module): array => [
-                'id' => $module['id'],
+            'contract' => 'OPUS_PAGE_REGISTRY_V1',
+            'pages' => array_map(static fn (array $page): array => [
+                'id' => $page['id'],
                 'enabled' => true,
-                'contract' => 'OPUS_APPLICATION_MODULE_V1',
-                'role' => $module['role'],
-                'route' => $module['route'],
+                'contract' => 'OPUS_APPLICATION_PAGE_V1',
+                'role' => $page['role'],
+                'route' => $page['route'],
                 'created_by' => 'composer opus:create-site',
-            ], $this->starterModules()),
+            ], $this->starterPages()),
         ];
     }
 
@@ -192,20 +192,20 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface
     {
         return [
             'contract' => 'OPUS_ROUTE_REGISTRY_V1',
-            'routes' => array_map(fn (array $module): array => [
-                'id' => $module['route'],
-                'path' => $module['path'],
-                'module' => $module['id'],
-                'controller' => $module['id'] . 'Controller',
+            'routes' => array_map(fn (array $page): array => [
+                'id' => $page['route'],
+                'path' => $page['path'],
+                'page' => $page['id'],
+                'controller' => $page['id'] . 'Controller',
                 'action' => 'index',
-                'template' => 'application/modules/' . $module['id'] . '/templates/pages/index.score',
-                    'label' => $module['label'],
+                'template' => 'application/pages/' . $page['id'] . '/templates/pages/index.score',
+                    'label' => $page['label'],
                 'acl' => 'public',
-                'fsm_state' => strtoupper($module['id']),
+                'fsm_state' => strtoupper($page['id']),
                 'show_in_menu' => true,
-                'show_on_home' => $module['id'] !== 'Home',
-                'order' => $module['order'],
-            ], $this->starterModules()),
+                'show_on_home' => $page['id'] !== 'Home',
+                'order' => $page['order'],
+            ], $this->starterPages()),
         ];
     }
 
@@ -217,12 +217,12 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface
         return [
             'contract' => 'OPUS_FSM_REGISTRY_V1',
             'initial_state' => 'HOME',
-            'states' => array_map(static fn (array $module): array => [
-                'id' => strtoupper($module['id']),
-                'module' => $module['id'],
-                'route' => $module['route'],
-                'role' => $module['role'],
-            ], $this->starterModules()),
+            'states' => array_map(static fn (array $page): array => [
+                'id' => strtoupper($page['id']),
+                'page' => $page['id'],
+                'route' => $page['route'],
+                'role' => $page['role'],
+            ], $this->starterPages()),
             'transitions' => [],
         ];
     }
@@ -235,11 +235,11 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface
         return [
             'contract' => 'OPUS_MENU_ROUTE_PROJECTION_V1',
             'source' => 'application/config/routes.json',
-            'items' => array_map(static fn (array $module): array => [
-                'route' => $module['route'],
-                'label' => $module['label'],
-                'order' => $module['order'],
-            ], $this->starterModules()),
+            'items' => array_map(static fn (array $page): array => [
+                'route' => $page['route'],
+                'label' => $page['label'],
+                'order' => $page['order'],
+            ], $this->starterPages()),
         ];
     }
 
@@ -251,17 +251,17 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface
         return [
             'contract' => 'OPUS_HOME_RUBRIC_ROUTE_PROJECTION_V1',
             'source' => 'application/config/routes.json',
-            'rubrics' => array_values(array_map(static fn (array $module): array => [
-                'route' => $module['route'],
-                'module' => $module['id'],
-                'order' => $module['order'],
-            ], array_filter($this->starterModules(), static fn (array $module): bool => $module['id'] !== 'Home'))),
+            'rubrics' => array_values(array_map(static fn (array $page): array => [
+                'route' => $page['route'],
+                'page' => $page['id'],
+                'order' => $page['order'],
+            ], array_filter($this->starterPages(), static fn (array $page): bool => $page['id'] !== 'Home'))),
         ];
     }
 
     private function readmeContent(): string
     {
-        return "# {$this->siteId}\n\nOPUS site/application scaffold generated by `composer opus:create-site`.\n\nThis is a professional starter site inspired by the historical OPUS modular demo model, without legacy esoteric sample content.\n\n## Contract\n\n- Application is modular.\n- Common application resources live under `application/common`.\n- Visible home rubrics are backed by declared modules/routes.\n- Business modules live under `application/modules`.\n- Public entry point only resolves declared routes and renders `.score` templates.\n- HTML rendering must go through `.score` templates.\n- External dependencies are forbidden unless an explicit ADR allows them.\n\nRead `START_HERE.md` before modifying the site.\n";
+        return "# {$this->siteId}\n\nOPUS site/application scaffold generated by `composer opus:create-site`.\n\nThis is a professional starter site inspired by the historical OPUS modular demo model, without legacy esoteric sample content.\n\n## Contract\n\n- Application is modular.\n- Common application resources live under `application/common`.\n- Visible home rubrics are backed by declared pages/routes.\n- Business services live under `application/pages`.\n- Public entry point only resolves declared routes and renders `.score` templates.\n- HTML rendering must go through `.score` templates.\n- External dependencies are forbidden unless an explicit ADR allows them.\n\nRead `START_HERE.md` before modifying the site.\n";
     }
 
     private function startHereContent(): string
@@ -273,15 +273,15 @@ This site was generated by `composer opus:create-site`.
 
 ## Edit map
 
-Route -> module -> template -> i18n -> assets.
+Route -> page -> template -> i18n -> assets.
 
 | Need | Source of truth | Generated path |
 | --- | --- | --- |
 | Public route | Route registry | `application/config/routes.json` |
 | Visible menu item | Route/menu projection | `application/config/menu.json` |
 | Home rubric card | Rubric projection | `application/config/rubrics.json` |
-| Module contract | Module manifest | `application/modules/<Module>/module.json` |
-| Page markup | Score template | `application/modules/<Module>/templates/pages/index.score` |
+| Page contract | Page manifest | `application/pages/<Page>/page.json` |
+| Page markup | Score template | `application/pages/<Page>/templates/pages/index.score` |
 | Shared layout | Common score template | `application/common/templates/layout.score` |
 | Shared components | Common score components | `application/common/templates/components/*.score` |
 | Localized text | I18N resources | `resources/i18n/<locale>.json` |
@@ -290,15 +290,15 @@ Route -> module -> template -> i18n -> assets.
 ## First safe edits
 
 1. Pick the public URL in `application/config/routes.json`.
-2. Read the `module`, `controller`, `action` and `template` fields for that route.
-3. Edit only the module template under `application/modules/<Module>/templates/pages/`.
+2. Read the `page`, `controller`, `action` and `template` fields for that route.
+3. Edit only the page template under `application/pages/<Page>/templates/pages/`.
 4. Edit the visible text in `resources/i18n/fr.json` or another locale file generated with `composer opus:add-language -- {{ site_id }} en --write`.
-5. Edit CSS in `public/assets/css/starter.css` or module-specific assets when the module owns the style.
+5. Edit CSS in `public/assets/css/starter.css` or page-specific assets when the page owns the style.
 6. Keep `public/index.php` as the generated front controller. Do not add page business logic there.
 7. Keep HTML in `.score` templates.
-8. Keep business data preparation in module services/view-models.
+8. Keep business data preparation in page services/view-models.
 9. Keep common reusable components in `application/common/templates/components`.
-10. Keep module-specific resources inside `application/modules/<Module>`.
+10. Keep page-specific resources inside `application/pages/<Page>`.
 
 ## Score syntax reminder
 
@@ -310,9 +310,9 @@ Route -> module -> template -> i18n -> assets.
 ## Rules
 
 - No wild page creation.
-- No route without a declared module.
-- No page outside a module.
-- No home card that is not backed by a module/route.
+- No route without a declared page.
+- No page outside a page.
+- No home card that is not backed by a page/route.
 - No business HTML concatenation in controllers or services.
 - No duplicated framework.
 - No external dependency unless contractually approved.
@@ -412,7 +412,7 @@ SCORE;
     private function rubricCardScore(): string
     {
         return <<<'SCORE'
-<a class="opus-rubric-card" href="{{ rubric.path }}" data-module="{{ rubric.module }}">
+<a class="opus-rubric-card" href="{{ rubric.path }}" data-page="{{ rubric.page }}">
   <span class="opus-rubric-card__kicker">{{ rubric.kicker }}</span>
   <strong>{{ rubric.title }}</strong>
   <span>{{ rubric.description }}</span>
@@ -421,14 +421,14 @@ SCORE;
 SCORE;
     }
 
-    private function moduleReadmeContent(string $moduleId, string $role): string
+    private function pageReadmeContent(string $pageId, string $role): string
     {
-        $contentKey = $this->moduleContentKey($moduleId);
+        $contentKey = $this->moduleContentKey($pageId);
 
-        return "# {$moduleId} module\n\nGenerated by `composer opus:create-site`.\n\n## Responsibility\n\nRole: `{$role}`.\n\n- Owns its declared route.\n- Renders through `templates/pages/index.score`.\n- Uses localized strings in `resources/i18n/<locale>.json` with the `{$contentKey}.` key prefix.\n- Keeps page markup in `.score` templates.\n- Keeps orchestration in the controller, data preparation in services and render-ready state in view-models.\n- Demonstrates the expected OPUS module structure without JSON page layout.\n\n## Safe edit path\n\n1. Find the route in `application/config/routes.json`.\n2. Confirm this module is declared in `application/config/modules.json`.\n3. Edit `application/modules/{$moduleId}/templates/pages/index.score` for markup.\n4. Edit `resources/i18n/<locale>.json` for text.\n5. Edit module-specific assets under this module only when the style belongs to this module.\n\nPatch it for the project real needs after generation.\n";
+        return "# {$pageId} page\n\nGenerated by `composer opus:create-site`.\n\n## Responsibility\n\nRole: `{$role}`.\n\n- Owns its declared route.\n- Renders through `templates/pages/index.score`.\n- Uses localized strings in `resources/i18n/<locale>.json` with the `{$contentKey}.` key prefix.\n- Keeps page markup in `.score` templates.\n- Keeps orchestration in the controller, data preparation in services and render-ready state in view-models.\n- Demonstrates the expected OPUS page structure without JSON page layout.\n\n## Safe edit path\n\n1. Find the route in `application/config/routes.json`.\n2. Confirm this page is declared in `application/config/pages.json`.\n3. Edit `application/pages/{$pageId}/templates/pages/index.score` for markup.\n4. Edit `resources/i18n/<locale>.json` for text.\n5. Edit page-specific assets under this page only when the style belongs to this page.\n\nPatch it for the project real needs after generation.\n";
     }
 
-    private function controllerContent(string $moduleId): string
+    private function controllerContent(string $pageId): string
     {
         $namespace = $this->siteNamespace();
 
@@ -436,17 +436,17 @@ SCORE;
 <?php
 declare(strict_types=1);
 
-namespace OpusSite\\{$namespace}\\{$moduleId}\\Controller;
+namespace OpusSite\\{$namespace}\\{$pageId}\\Controller;
 
 /**
- * Generated {$moduleId} controller skeleton.
+ * Generated {$pageId} controller skeleton.
  *
  * Contract:
- * - controller orchestrates the module use case;
+ * - controller orchestrates the page use case;
  * - it does not render HTML directly;
  * - rendering belongs to .score templates.
  */
-final class {$moduleId}Controller
+final class {$pageId}Controller
 {
     public function index(): void
     {
@@ -457,7 +457,7 @@ final class {$moduleId}Controller
 PHP;
     }
 
-    private function serviceContent(string $moduleId): string
+    private function serviceContent(string $pageId): string
     {
         $namespace = $this->siteNamespace();
 
@@ -465,17 +465,17 @@ PHP;
 <?php
 declare(strict_types=1);
 
-namespace OpusSite\\{$namespace}\\{$moduleId}\\Service;
+namespace OpusSite\\{$namespace}\\{$pageId}\\Service;
 
 /**
- * Generated {$moduleId} service skeleton.
+ * Generated {$pageId} service skeleton.
  *
  * Contract:
- * - service prepares/validates module data;
+ * - service prepares/validates page data;
  * - service does not render HTML;
  * - service returns data for a view-model or response model.
  */
-final class {$moduleId}PageService
+final class {$pageId}PageService
 {
     /**
      * @return array<string, string>
@@ -490,7 +490,7 @@ final class {$moduleId}PageService
 PHP;
     }
 
-    private function viewModelContent(string $moduleId): string
+    private function viewModelContent(string $pageId): string
     {
         $namespace = $this->siteNamespace();
 
@@ -498,17 +498,17 @@ PHP;
 <?php
 declare(strict_types=1);
 
-namespace OpusSite\\{$namespace}\\{$moduleId}\\ViewModel;
+namespace OpusSite\\{$namespace}\\{$pageId}\\ViewModel;
 
 /**
- * Generated {$moduleId} view-model skeleton.
+ * Generated {$pageId} view-model skeleton.
  *
  * Contract:
  * - view-model contains render-ready state;
  * - no business computation here;
  * - no HTML concatenation here.
  */
-final class {$moduleId}PageViewModel
+final class {$pageId}PageViewModel
 {
     /**
      * @param array<string, mixed> \$data
@@ -528,10 +528,10 @@ final class {$moduleId}PageViewModel
 PHP;
     }
 
-    private function moduleLayoutScore(string $moduleId): string
+    private function pageLayoutScore(string $pageId): string
     {
         return <<<SCORE
-<section class="opus-module" data-module="{$moduleId}">
+<section class="opus-page" data-page="{$pageId}">
   {{{ content }}}
 </section>
 SCORE;
@@ -554,7 +554,7 @@ SCORE;
     <aside class="opus-hero__summary" aria-label="{{ i18n.contract_label }}">
       <p class="opus-card__label">{{ i18n.contract_label }}</p>
       <div class="opus-contract-list">
-        <span>{{ i18n.contract_module }}</span>
+        <span>{{ i18n.contract_page }}</span>
         <span>{{ i18n.contract_score }}</span>
         <span>{{ i18n.contract_routes }}</span>
         <span>{{ i18n.contract_no_wild }}</span>
@@ -620,7 +620,7 @@ SCORE;
             'explore_rubrics' => 'Explorer les rubriques',
             'read_skeleton' => 'Voir le squelette',
             'contract_label' => 'Contrat OPUS',
-            'contract_module' => 'Rubriques = modules déclarés',
+            'contract_page' => 'Rubriques = pages déclarés',
             'contract_score' => 'Rendu via templates .score',
             'contract_routes' => 'Menu basé sur les routes',
             'contract_no_wild' => 'Aucune page sauvage',
@@ -640,37 +640,37 @@ SCORE;
             'language.cs' => 'Tchèque',
             'documentation.secondary_text' => 'Remplacez cette aide par votre documentation produit ou projet.',
             'documentation.secondary_title' => 'À personnaliser',
-            'documentation.primary_text' => 'Ce module aide l’équipe à comprendre où placer sources, providers, services, view-models, templates et routes.',
+            'documentation.primary_text' => 'Ce page aide l’équipe à comprendre où placer sources, providers, services, view-models, templates et routes.',
             'documentation.primary_title' => 'Responsabilité',
             'documentation.description' => 'Structure pour aide développeur et documentation projet.',
             'documentation.subtitle' => 'Point d’entrée pour expliquer la structure générée et guider l’implémentation.',
             'documentation.title' => 'Documentation du site',
-            'documentation.kicker' => 'Module Documentation',
-            'rubriques.secondary_text' => 'Ajoutez vos modules métier avec composer opus:create-module, puis reliez-les par routes.',
+            'documentation.kicker' => 'Page Documentation',
+            'rubriques.secondary_text' => 'Ajoutez vos pages métier avec composer opus:create-page, puis reliez-les par routes.',
             'rubriques.secondary_title' => 'À personnaliser',
-            'rubriques.primary_text' => 'Une rubrique visible correspond à un module ou à une route de module déclaré.',
+            'rubriques.primary_text' => 'Une rubrique visible correspond à un page ou à une route de page déclaré.',
             'rubriques.primary_title' => 'Responsabilité',
             'rubriques.description' => 'Structure pour sections, catégories et espaces fonctionnels.',
             'rubriques.subtitle' => 'Point d’entrée pour organiser les grandes zones métier du site.',
             'rubriques.title' => 'Rubriques applicatives',
-            'rubriques.kicker' => 'Module Rubriques',
+            'rubriques.kicker' => 'Page Rubriques',
             'articles.secondary_text' => 'Transformez cette rubrique en vrai flux éditorial, sans imposer de source de données.',
             'articles.secondary_title' => 'À personnaliser',
-            'articles.primary_text' => 'Ce module démontre où placer les services de listing, view-models et templates d’article.',
+            'articles.primary_text' => 'Ce page démontre où placer les services de listing, view-models et templates d’article.',
             'articles.primary_title' => 'Responsabilité',
             'articles.description' => 'Structure pour futures publications et archives.',
             'articles.subtitle' => 'Point d’entrée pour les notes, actualités, annonces produit ou publications longues.',
             'articles.title' => 'Articles et publications',
-            'articles.kicker' => 'Module Articles',
-            'pages.secondary_text' => 'Adaptez le template .score et les chaînes i18n du module Pages. Les données métier viendront plus tard par providers/services/view-models.',
+            'articles.kicker' => 'Page Articles',
+            'pages.secondary_text' => 'Adaptez le template .score et les chaînes i18n du page Pages. Les données métier viendront plus tard par providers/services/view-models.',
             'pages.secondary_title' => 'À personnaliser',
-            'pages.primary_text' => 'Ce module porte les pages éditoriales du site, sans logique métier dispersée dans public/index.php.',
+            'pages.primary_text' => 'Ce page porte les pages éditoriales du site, sans logique métier dispersée dans public/index.php.',
             'pages.primary_title' => 'Responsabilité',
             'pages.description' => 'Structure pour pages simples, propres et localisées.',
             'pages.subtitle' => 'Point d’entrée pour les contenus statiques, présentations, informations légales ou pages institutionnelles.',
             'pages.title' => 'Pages éditoriales',
-            'pages.kicker' => 'Module Pages',
-            'home.section_intro' => 'Chaque encadré ci-dessous est une route vers un module déclaré. Remplacez le contenu, gardez le contrat.',
+            'pages.kicker' => 'Page Pages',
+            'home.section_intro' => 'Chaque encadré ci-dessous est une route vers un page déclaré. Remplacez le contenu, gardez le contrat.',
             'home.section_title' => 'Des rubriques prêtes à spécialiser.',
             'home.subtitle' => 'Un squelette professionnel pour démarrer un site modulaire OPUS : pages, articles, rubriques et documentation, sans création sauvage.',
             'home.title' => 'Nouveau site {{ site_id }}',
@@ -694,7 +694,7 @@ SCORE;
             'explore_rubrics' => 'Explore rubrics',
             'read_skeleton' => 'View skeleton',
             'contract_label' => 'OPUS contract',
-            'contract_module' => 'Rubrics = declared modules',
+            'contract_page' => 'Rubrics = declared pages',
             'contract_score' => 'Rendered through .score templates',
             'contract_routes' => 'Route-based menu',
             'contract_no_wild' => 'No wild pages',
@@ -718,7 +718,7 @@ SCORE;
     /**
      * @return array<string, string>
      */
-    private function moduleContentFr(string $site, string $moduleId): array
+    private function pageContentFr(string $site, string $pageId): array
     {
         $content = [
             'Home' => [
@@ -726,57 +726,57 @@ SCORE;
                 'title' => 'Nouveau site ' . $site,
                 'subtitle' => 'Un squelette professionnel pour démarrer un site modulaire OPUS : pages, articles, rubriques et documentation, sans création sauvage.',
                 'section_title' => 'Des rubriques prêtes à spécialiser.',
-                'section_intro' => 'Chaque encadré ci-dessous est une route vers un module déclaré. Remplacez le contenu, gardez le contrat.',
+                'section_intro' => 'Chaque encadré ci-dessous est une route vers un page déclaré. Remplacez le contenu, gardez le contrat.',
             ],
             'Pages' => [
-                'kicker' => 'Module Pages',
+                'kicker' => 'Page Pages',
                 'title' => 'Pages éditoriales',
                 'subtitle' => 'Point d’entrée pour les contenus statiques, présentations, informations légales ou pages institutionnelles.',
                 'description' => 'Structure pour pages simples, propres et localisées.',
                 'primary_title' => 'Responsabilité',
-                'primary_text' => 'Ce module doit porter les pages éditoriales du site, sans logique métier dispersée dans public/index.php.',
+                'primary_text' => 'Ce page doit porter les pages éditoriales du site, sans logique métier dispersée dans public/index.php.',
                 'secondary_title' => 'À personnaliser',
-                'secondary_text' => 'Ajoutez vos contenus dans resources/i18n, puis adaptez les templates .score du module Pages.',
+                'secondary_text' => 'Ajoutez vos contenus dans resources/i18n, puis adaptez les templates .score du page Pages.',
             ],
             'Articles' => [
-                'kicker' => 'Module Articles',
+                'kicker' => 'Page Articles',
                 'title' => 'Articles et publications',
                 'subtitle' => 'Point d’entrée pour les notes, actualités, annonces produit ou publications longues.',
                 'description' => 'Structure pour futures publications et archives.',
                 'primary_title' => 'Responsabilité',
-                'primary_text' => 'Ce module démontre où placer les contenus publiés, les services de listing et les templates d’article.',
+                'primary_text' => 'Ce page démontre où placer les contenus publiés, les services de listing et les templates d’article.',
                 'secondary_title' => 'À personnaliser',
                 'secondary_text' => 'Transformez cette rubrique en vrai flux éditorial, sans dépendance externe imposée.',
             ],
             'Rubriques' => [
-                'kicker' => 'Module Rubriques',
+                'kicker' => 'Page Rubriques',
                 'title' => 'Rubriques applicatives',
                 'subtitle' => 'Point d’entrée pour organiser les grandes zones métier du site.',
                 'description' => 'Structure pour sections, catégories et espaces fonctionnels.',
                 'primary_title' => 'Responsabilité',
-                'primary_text' => 'Ce module représente le principe OPUS : une rubrique visible correspond à un module ou une route de module.',
+                'primary_text' => 'Ce page représente le principe OPUS : une rubrique visible correspond à un page ou une route de page.',
                 'secondary_title' => 'À personnaliser',
-                'secondary_text' => 'Ajoutez vos propres modules métier avec composer opus:create-module, puis reliez-les par routes.',
+                'secondary_text' => 'Ajoutez vos propres pages métier avec composer opus:create-page, puis reliez-les par routes.',
             ],
             'Documentation' => [
-                'kicker' => 'Module Documentation',
+                'kicker' => 'Page Documentation',
                 'title' => 'Documentation du site',
                 'subtitle' => 'Point d’entrée pour expliquer la structure générée et guider l’implémentation.',
                 'description' => 'Structure pour aide développeur et documentation projet.',
                 'primary_title' => 'Responsabilité',
-                'primary_text' => 'Ce module doit aider l’équipe à comprendre où placer contenus, templates, routes et modules.',
+                'primary_text' => 'Ce page doit aider l’équipe à comprendre où placer contenus, templates, routes et pages.',
                 'secondary_title' => 'À personnaliser',
                 'secondary_text' => 'Remplacez cette aide par votre documentation produit ou projet.',
             ],
         ];
 
-        return $content[$moduleId] ?? [];
+        return $content[$pageId] ?? [];
     }
 
     /**
      * @return array<string, string>
      */
-    private function moduleContentEn(string $site, string $moduleId): array
+    private function pageContentEn(string $site, string $pageId): array
     {
         $content = [
             'Home' => [
@@ -784,51 +784,51 @@ SCORE;
                 'title' => 'New site ' . $site,
                 'subtitle' => 'A professional skeleton to start an OPUS modular site: pages, articles, rubrics and documentation, without wild page creation.',
                 'section_title' => 'Rubrics ready to specialize.',
-                'section_intro' => 'Each block below is a route to a declared module. Replace the content, keep the contract.',
+                'section_intro' => 'Each block below is a route to a declared page. Replace the content, keep the contract.',
             ],
             'Pages' => [
-                'kicker' => 'Pages module',
+                'kicker' => 'Pages page',
                 'title' => 'Editorial pages',
                 'subtitle' => 'Entry point for static content, presentations, legal information or institutional pages.',
                 'description' => 'Structure for simple, clean and localized pages.',
                 'primary_title' => 'Responsibility',
-                'primary_text' => 'This module owns editorial pages without scattering page logic into public/index.php.',
+                'primary_text' => 'This page owns editorial pages without scattering page logic into public/index.php.',
                 'secondary_title' => 'Customize',
                 'secondary_text' => 'Adapt the .score templates and i18n strings. Business data will later come through providers, services and view-models.',
             ],
             'Articles' => [
-                'kicker' => 'Articles module',
+                'kicker' => 'Articles page',
                 'title' => 'Articles and publications',
                 'subtitle' => 'Entry point for notes, news, product announcements or long-form publications.',
                 'description' => 'Structure for future publications and archives.',
                 'primary_title' => 'Responsibility',
-                'primary_text' => 'This module shows where published content, listing services and article templates belong.',
+                'primary_text' => 'This page shows where published content, listing services and article templates belong.',
                 'secondary_title' => 'Customize',
                 'secondary_text' => 'Turn this rubric into a real editorial stream without imposing external dependencies.',
             ],
             'Rubriques' => [
-                'kicker' => 'Rubrics module',
+                'kicker' => 'Rubrics page',
                 'title' => 'Application rubrics',
                 'subtitle' => 'Entry point to organize the main business areas of the site.',
                 'description' => 'Structure for sections, categories and functional areas.',
                 'primary_title' => 'Responsibility',
-                'primary_text' => 'This module represents the OPUS principle: a visible rubric maps to a module or module route.',
+                'primary_text' => 'This page represents the OPUS principle: a visible rubric maps to a page or page route.',
                 'secondary_title' => 'Customize',
-                'secondary_text' => 'Add your own business modules with composer opus:create-module, then connect them through routes.',
+                'secondary_text' => 'Add your own business services with composer opus:create-page, then connect them through routes.',
             ],
             'Documentation' => [
-                'kicker' => 'Documentation module',
+                'kicker' => 'Documentation page',
                 'title' => 'Site documentation',
                 'subtitle' => 'Entry point to explain the generated structure and guide implementation.',
                 'description' => 'Structure for developer help and project documentation.',
                 'primary_title' => 'Responsibility',
-                'primary_text' => 'This module helps the team understand where to place content, templates, routes and modules.',
+                'primary_text' => 'This page helps the team understand where to place content, templates, routes and pages.',
                 'secondary_title' => 'Customize',
                 'secondary_text' => 'Replace this help with your product or project documentation.',
             ],
         ];
 
-        return $content[$moduleId] ?? [];
+        return $content[$pageId] ?? [];
     }
 
     private function starterCss(): string
@@ -1005,11 +1005,11 @@ function opus_i18n(array $i18n, string $key): string
     return is_scalar($i18n[$key] ?? null) ? (string) $i18n[$key] : $key;
 }
 
-function opus_starter_page_from_i18n(array $i18n, string $module, string $siteId): array
+function opus_starter_page_from_i18n(array $i18n, string $page, string $siteId): array
 {
-    $prefix = strtolower((string) preg_replace('/(?<!^)[A-Z]/', '-$0', $module));
+    $prefix = strtolower((string) preg_replace('/(?<!^)[A-Z]/', '-$0', $page));
     if ($prefix === '') {
-        $prefix = strtolower($module);
+        $prefix = strtolower($page);
     }
 
     $keys = [
@@ -1132,16 +1132,16 @@ try {
     }
 
     $i18n = opus_read_json($siteRoot . '/resources/i18n/' . $lang . '.json');
-    $currentModuleId = (string) ($route['module'] ?? '');
-    $page = opus_starter_page_from_i18n($i18n, $currentModuleId, (string) ($siteConfig['site_id'] ?? ''));
+    $currentPageId = (string) ($route['page'] ?? '');
+    $page = opus_starter_page_from_i18n($i18n, $currentPageId, (string) ($siteConfig['site_id'] ?? ''));
 
     $routeUrls = [];
     foreach (($routesConfig['routes'] ?? []) as $configuredRoute) {
         if (!is_array($configuredRoute)) {
             continue;
         }
-        $moduleKey = strtolower((string) ($configuredRoute['module'] ?? ''));
-        $routeUrls[$moduleKey] = opus_route_url((string) ($configuredRoute['path'] ?? '/'), $lang);
+        $pageKey = strtolower((string) ($configuredRoute['page'] ?? ''));
+        $routeUrls[$pageKey] = opus_route_url((string) ($configuredRoute['path'] ?? '/'), $lang);
     }
 
     $pageData = [
@@ -1195,11 +1195,11 @@ try {
         if (($rubricRoute['show_on_home'] ?? false) !== true) {
             continue;
         }
-        $rubricPage = opus_starter_page_from_i18n($i18n, (string) ($rubricRoute['module'] ?? ''), (string) ($siteConfig['site_id'] ?? ''));
+        $rubricPage = opus_starter_page_from_i18n($i18n, (string) ($rubricRoute['page'] ?? ''), (string) ($siteConfig['site_id'] ?? ''));
         $rubricData = $pageData;
         $rubricData['rubric'] = [
             'path' => opus_route_url((string) ($rubricRoute['path'] ?? '#'), $lang),
-            'module' => (string) ($rubricRoute['module'] ?? ''),
+            'page' => (string) ($rubricRoute['page'] ?? ''),
             'kicker' => (string) ($rubricPage['kicker'] ?? ''),
             'title' => (string) ($rubricPage['title'] ?? ''),
             'description' => (string) ($rubricPage['description'] ?? $rubricPage['subtitle'] ?? ''),
@@ -1224,9 +1224,9 @@ try {
 PHP;
     }
 
-    private function moduleContentKey(string $moduleId): string
+    private function pageContentKey(string $pageId): string
     {
-        return strtolower(preg_replace('/(?<!^)[A-Z]/', '-$0', $moduleId) ?: $moduleId);
+        return strtolower(preg_replace('/(?<!^)[A-Z]/', '-$0', $pageId) ?: $pageId);
     }
 
     /**
