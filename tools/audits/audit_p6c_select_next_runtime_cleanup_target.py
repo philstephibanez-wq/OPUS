@@ -12,7 +12,7 @@ Contract:
 - no fallback;
 - no mutation;
 - only runtime-active files decide the next target;
-- archived references are classified as non-runtime evidence, not blockers.
+- archived/tool/documentation references are classified as non-runtime evidence, not blockers.
 """
 from __future__ import annotations
 
@@ -38,6 +38,19 @@ FORBIDDEN_RUNTIME_PATHS = (
     "Opus/Application.class.php",
     "Opus/autoloader.class.php",
     "Opus/autoloader_new2.class.php",
+)
+
+RUNTIME_SCAN_ROOTS = (
+    "index.php",
+    "www",
+    "Opus",
+)
+
+NON_RUNTIME_SCAN_PREFIXES = (
+    ".git/",
+    "vendor/",
+    "DOC/",
+    "tools/",
 )
 
 
@@ -86,24 +99,44 @@ def check(condition: bool, label: str, details: str = "") -> bool:
     return False
 
 
+def is_runtime_scan_candidate(relative: str) -> bool:
+    """Return whether a path belongs to the runtime-active scan surface."""
+    if any(relative.startswith(prefix) for prefix in NON_RUNTIME_SCAN_PREFIXES):
+        return False
+    if relative == "index.php":
+        return True
+    if relative.startswith("www/"):
+        return True
+    if relative.startswith("Opus/"):
+        return True
+    return False
+
+
 def runtime_refs_to(token: str) -> list[str]:
-    """Find active runtime references to a token, excluding archives and this audit."""
+    """Find active runtime references to a token, excluding tools, docs, archives and vendors."""
     results: list[str] = []
-    ignored_parts = {".git", "vendor"}
-    ignored_prefixes = (
-        "tools/archive/",
-        "tools/migrations/",
-    )
     for path in ROOT.rglob("*"):
         if not path.is_file():
             continue
         relative = rel(path)
-        parts = set(Path(relative).parts)
-        if parts & ignored_parts:
+        if not is_runtime_scan_candidate(relative):
             continue
-        if relative.startswith(ignored_prefixes):
+        if path.suffix.lower() not in {".php", ".json", ".yml", ".yaml"}:
             continue
-        if relative == "tools/audits/audit_p6c_select_next_runtime_cleanup_target.py":
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if token in text:
+            results.append(relative)
+    return sorted(results)
+
+
+def non_runtime_refs_to(token: str) -> list[str]:
+    """Find non-runtime references to a token for informational classification only."""
+    results: list[str] = []
+    for path in ROOT.rglob("*"):
+        if not path.is_file():
+            continue
+        relative = rel(path)
+        if is_runtime_scan_candidate(relative):
             continue
         if path.suffix.lower() not in {".php", ".py", ".md", ".json", ".yml", ".yaml", ".txt"}:
             continue
@@ -184,12 +217,15 @@ def main() -> int:
         if not check(ok, "CHECK_PHP_LINT_" + rel_path.replace("/", "_").replace(".", "_").upper(), output):
             failures.append("CHECK_PHP_LINT")
 
-    legacy_refs = runtime_refs_to("Opus/Legacy") + runtime_refs_to("OPUS_Application")
-    # OPUS_Application is currently expected in www/index.php and Runtime/Application.php;
-    # Legacy path references are not expected in active runtime.
     active_legacy_path_refs = runtime_refs_to("Opus/Legacy")
-    if not check(not active_legacy_path_refs, "CHECK_ACTIVE_LEGACY_PATH_REFERENCES_ABSENT", ", ".join(active_legacy_path_refs)):
-        failures.append("CHECK_ACTIVE_LEGACY_PATH_REFERENCES_ABSENT")
+    if not check(not active_legacy_path_refs, "CHECK_ACTIVE_RUNTIME_LEGACY_PATH_REFERENCES_ABSENT", ", ".join(active_legacy_path_refs)):
+        failures.append("CHECK_ACTIVE_RUNTIME_LEGACY_PATH_REFERENCES_ABSENT")
+
+    classified_legacy_path_refs = non_runtime_refs_to("Opus/Legacy")
+    if classified_legacy_path_refs:
+        print("LEGACY_PATH_REFERENCE_CLASSIFICATION")
+        for relative in classified_legacy_path_refs:
+            print("NON_RUNTIME_LEGACY_PATH_REF=" + relative)
 
     if failures:
         print("P6C_SELECT_NEXT_RUNTIME_CLEANUP_TARGET_AUDIT_FAIL")
