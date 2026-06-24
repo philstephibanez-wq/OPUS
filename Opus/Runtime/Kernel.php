@@ -17,6 +17,11 @@ use Opus\Http\Response;
 
 use Opus\Http\Request;
 
+/**
+ * Modern OPUS runtime kernel responsible for application resolution and request dispatch.
+ *
+ * Coordinates application registry, I18N, routing, ACL, FSM and URL generation for integrated OPUS applications.
+ */
 final class Kernel
 {
     private string $rootDir;

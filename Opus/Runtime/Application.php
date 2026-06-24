@@ -4,6 +4,11 @@ define('APP_COLOR', 'orange');
 define('TODO', 'red');
 
 #[AllowDynamicProperties]
+/**
+ * Historical global OPUS application runtime and dispatch coordinator.
+ *
+ * Owns the boot FSM, site resolution, route bootstrap and request dispatch contract while OPUS progressively migrates toward namespaced runtime services.
+ */
 class OPUS_Application {
 
     private const ROUTE_DEBUG_ENABLED = false;

@@ -6,6 +6,12 @@ namespace Opus\Runtime;
 
 use Opus\Http\Response;
 use Opus\Http\Request;
+
+/**
+ * Runtime bootstrap entry point for the modern Composer-driven OPUS kernel.
+ *
+ * Loads the minimal framework surface required by the runtime kernel and converts fatal bootstrap failures into explicit HTTP responses.
+ */
 final class Bootstrap
 {
     public static function run(string $rootDir): void

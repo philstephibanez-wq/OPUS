@@ -12,6 +12,11 @@ use Opus\Foundation\Support;
 
 use Opus\Template\ScoreTemplateRenderer;
 
+/**
+ * HTML view renderer for integrated OPUS applications.
+ *
+ * Builds the view model consumed by Score templates, including navigation, language switching, assets, body content and footer data.
+ */
 final class View
 {
     private Kernel $kernel;

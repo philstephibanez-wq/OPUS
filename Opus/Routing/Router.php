@@ -16,6 +16,11 @@ use Opus\Http\Response;
 
 use Opus\Http\Request;
 
+/**
+ * Runtime router for integrated OPUS applications.
+ *
+ * Resolves page routes and API endpoints from application definitions, applies access control and delegates HTML rendering to the view layer.
+ */
 final class Router
 {
     private Kernel $kernel;
