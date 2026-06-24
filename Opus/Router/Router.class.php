@@ -302,7 +302,7 @@ class OPUS_Router {
     }
 
     private function _parameterRegex(string $key): string {
-        if ($key === 'module') {
+        if ($key === 'page') {
             if (array_key_exists($key, $this->_conditions)) {
                 return '(' . $this->_conditions[$key] . ')';
             }
@@ -349,7 +349,7 @@ class OPUS_Router {
         ));
 
         foreach ($this->_routes as $name => $route) {
-            foreach (array('module', 'controller', 'action') as $required) {
+            foreach (array('page', 'controller', 'action') as $required) {
                 if (!isset($route->target[$required])) {
                     $this->_debugLog('route-invalid-target', array(
                         'routeId' => (string)$name,

@@ -4,7 +4,7 @@
 /**
  * OPUS mail facade.
  *
- * Provides the mail-sending surface used by OPUS modules.
+ * Provides the mail-sending surface used by OPUS pages.
  */
 class OPUS_Mail {
     public function __construct($params = null, $controller = null) {

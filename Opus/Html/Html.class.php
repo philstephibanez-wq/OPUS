@@ -35,19 +35,19 @@ class OPUS_Html_Html {
 //		echo "<h1><font color='BLUE'>VIEW CLASS (to override)</font></h1>";
 	}	
 	
-	public function addModuleScript($script) {
+	public function addPageScript($script) {
 	    $url  = $this->_app->getUrl()."application/";
-	    $url .= $this->_app->getModule()."/javascript/";
+	    $url .= $this->_app->getPage()."/javascript/";
 	    $this->_scripts[] =  $url . $script;		
 	}
 	
 	
 	public function require_script($script) { // ie: photos_photo.js or photos/photo.js
             $script = str_replace("_", "/", $script);
-            list($module, $filename) = explode("/", $script);
+            list($page, $filename) = explode("/", $script);
 	    
             $url  = $this->_app->getUrl()."application/";
-	    $url .= $module."/javascript/".$filename;;
+	    $url .= $page."/javascript/".$filename;;
 
             $this->_scripts[] =  $url;
 	}

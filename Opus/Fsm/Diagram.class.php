@@ -78,7 +78,7 @@ class OPUS_FSM_Diagram {
     public static function renderDemoHtml(): string {
         $diagram = new self('OPUS demo FSM', 'IDLE', 'DONE', 'ROUTE_FOUND', array(
             'url' => '/fr/démo-interne',
-            'module' => 'default',
+            'page' => 'default',
             'language' => 'FR-fr',
         ));
 

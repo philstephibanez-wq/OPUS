@@ -6,7 +6,7 @@ define('MODEL_COLOR', 'green');
 /**
  * OPUS base model.
  *
- * Provides the base data model surface used by OPUS modules.
+ * Provides the base data model surface used by OPUS pages.
  */
 class OPUS_MODEL_Model {
 

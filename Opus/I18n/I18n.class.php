@@ -11,12 +11,12 @@ class OPUS_I18N_I18n {
     protected static $_instance = null;
     protected $_app = null;
     protected $_controller;
-    protected $_modulePath = '';
+    protected $_pagePath = '';
     protected $_sharedPath = '';
     protected $_code;     // current language code ex: fr_FR
     protected $_availableLanguages = array();     // Array og all local subdirectories found
     protected $_sharedPathLang = array();
-    protected $_modulePathLang = array();
+    protected $_pagePathLang = array();
     protected $_dic = array();          // Array of dictionaries
     protected $_local = array();         // Array of locales (l10n)
     protected $_cases = array("NS", "NP", "NP1", "MS", "MP", "MP1", "FS", "FP", "FP1");
@@ -28,7 +28,7 @@ class OPUS_I18N_I18n {
         $this->_code = $lang;
         $this->_controller = $this->_controller = OPUS_Controller::getInstance();
         if ($this->_controller != null)
-            $this->_modulePath = $this->_controller->getParam('module_path') . "local/";
+            $this->_pagePath = $this->_controller->getParam('page_path') . "local/";
 
         $this->_sharedPath = $this->_app->getPath() . "application/default/local/";
 // die($this->_sharedPath)   ;  		
@@ -38,7 +38,7 @@ class OPUS_I18N_I18n {
         $this->getAvalaibleLanguages();
 //		OPUS_Debug::addDump(__CLASS__.__FUNCTION__."   ",$this->_availableLanguages, __FILE__, __LINE__, 'blue');
 //		OPUS_Debug::addDump(__CLASS__.__FUNCTION__." SHARED  ",$this->_sharedPathLang, __FILE__, __LINE__, 'blue');
-//		OPUS_Debug::addDump(__CLASS__.__FUNCTION__."  MODULE ",$this->_modulePathLang, __FILE__, __LINE__, 'blue');
+//		OPUS_Debug::addDump(__CLASS__.__FUNCTION__."  PAGE ",$this->_pagePathLang, __FILE__, __LINE__, 'blue');
 
         if ($lang == null) {
             $this->setLanguage();
@@ -97,14 +97,14 @@ class OPUS_I18N_I18n {
                 }
             }
         }
-//        echo "<br> I18N_modulePath   ".$this->_modulePath; die();
-        if($this->_modulePath != '' && is_dir($this->_modulePath)) {
-            $iterator = new DirectoryIterator($this->_modulePath);
+//        echo "<br> I18N_pagePath   ".$this->_pagePath; die();
+        if($this->_pagePath != '' && is_dir($this->_pagePath)) {
+            $iterator = new DirectoryIterator($this->_pagePath);
             foreach ($iterator as $fileinfo) {
                 if ($fileinfo->isDir()) {
                     if (!in_array($fileinfo->getFilename(), array('.', '..'))) {
                         $this->_availableLanguages[$fileinfo->getFilename()] = $fileinfo->getFilename();
-                        $this->_modulePathLang[$fileinfo->getFilename()] = $this->_modulePath . $fileinfo->getFilename() . "/";
+                        $this->_pagePathLang[$fileinfo->getFilename()] = $this->_pagePath . $fileinfo->getFilename() . "/";
                     }
                 }
             }
@@ -171,7 +171,7 @@ class OPUS_I18N_I18n {
 
     public function loadDictionary($filename) {
 //		OPUS_Debug::add(__CLASS__.__FUNCTION__."   ".$filename, __FILE__, __LINE__, 'blue');
-        foreach ($this->_modulePathLang as $path) {
+        foreach ($this->_pagePathLang as $path) {
 //			OPUS_Debug::add(__CLASS__.__FUNCTION__."   ".$path, __FILE__, __LINE__, 'red');
             $iterator = new DirectoryIterator($path);
             foreach ($iterator as $fileinfo) {

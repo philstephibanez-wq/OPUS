@@ -15,7 +15,7 @@ interface OPUS_CONTROLLER_iController {
 /**
  * OPUS base controller.
  *
- * Provides the base controller surface used by OPUS runtime dispatch and application modules.
+ * Provides the base controller surface used by OPUS runtime dispatch and application pages.
  */
 class  OPUS_Controller implements OPUS_CONTROLLER_iController {
         public $response;

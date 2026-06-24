@@ -21,7 +21,7 @@ class OPUS_Url_Url {
          } else {
             $this->_protocol = $app->getProtocol();
             $this->_host = $app->getDomain(); //www.zone-webmasters.net
-            $this->_path = $path; // module/controller without left /
+            $this->_path = $path; // page/controller without left /
             $this->_arguments = $arguments;
             $this->_anchor = $anchor;             
          }

@@ -28,8 +28,8 @@ class OPUS_Application {
     private $_useRouter = false;
     private $_routerParams;
     private $_routes = array();
-    private $_module;
-    private $_modulePath;
+    private $_page;
+    private $_pagePath;
     private $_controllerClass = '';
     private $_siteUrl = '';
     private $_sitePath = '';
@@ -589,11 +589,11 @@ class OPUS_Application {
         return $this->_controllerClass;
     }
 
-    public function getModulePath() {
-        return $this->_modulePath;
+    public function getPagePath() {
+        return $this->_pagePath;
     }
-    public function getModule() {
-        return $this->_module;
+    public function getPage() {
+        return $this->_page;
     }
     
     public function getRoutesMenu($menu) {
@@ -692,7 +692,7 @@ class OPUS_Application {
             'routerParams' => $this->_routerParams,
         ));
 
-        if (!isset($this->_routerParams['module'], $this->_routerParams['controller'], $this->_routerParams['action'])) {
+        if (!isset($this->_routerParams['page'], $this->_routerParams['controller'], $this->_routerParams['action'])) {
             $this->_routeDebugLog('process-url-missing-target', array(
                 'routerParams' => $this->_routerParams,
             ));
@@ -761,11 +761,11 @@ class OPUS_Application {
             ));
             $this->error_404($_SERVER['REQUEST_URI'], $this->_routerParams);
         } else {
-            $this->_module = $this->getSiteId() ?: (string)$this->_routerParams['module'];
-            $this->_modulePath = ($this->_site instanceof OPUS_SITE_Site) ? $this->_site->getPackagePath() : (ROOT . '/application/' . $this->_module);
+            $this->_page = $this->getSiteId() ?: (string)$this->_routerParams['page'];
+            $this->_pagePath = ($this->_site instanceof OPUS_SITE_Site) ? $this->_site->getPackagePath() : (ROOT . '/application/' . $this->_page);
             $controller = $this->_routerParams['controller'];
-            $this->_routerParams['module_path'] = rtrim($this->_modulePath, '/\\') . '/';
-            $this->_routerParams['site_package_path'] = $this->_routerParams['module_path'];
+            $this->_routerParams['page_path'] = rtrim($this->_pagePath, '/\\') . '/';
+            $this->_routerParams['site_package_path'] = $this->_routerParams['page_path'];
             $this->_routerParams['controller_path'] = $controller_path;
             require_once($controller_path);
             $class = ucfirst($controller) . '_controller';
