@@ -7,7 +7,7 @@
  * Adds helper behavior around SimpleXML for OPUS XML processing.
  */
 class OPUS_SimpleXMLElementExtended extends SimpleXMLElement{
-   
+
 		public function getAttribute($name){
 		    $attrs = $this->attributes();
 		    return $attrs[$name];
@@ -21,7 +21,7 @@ class OPUS_SimpleXMLElementExtended extends SimpleXMLElement{
             }// end if
         }// end foreach
     }// end function getAttribute
-*/   
+*/
     public function getAttributeNames(){
         $cnt = 0;
         $arrTemp = array();
@@ -31,7 +31,7 @@ class OPUS_SimpleXMLElementExtended extends SimpleXMLElement{
         }// end foreach
         return (array)$arrTemp;
     }// end function getAttributeNames
-   
+
     public function getChildrenCount(){
         $cnt = 0;
         foreach($this->children() as $node){
@@ -39,7 +39,7 @@ class OPUS_SimpleXMLElementExtended extends SimpleXMLElement{
         }// end foreach
         return (int)$cnt;
     }// end function getChildrenCount
-   
+
     public function getAttributeCount(){
         $cnt = 0;
         foreach($this->attributes() as $key=>$val){
@@ -47,7 +47,7 @@ class OPUS_SimpleXMLElementExtended extends SimpleXMLElement{
         }// end foreach
         return (int)$cnt;
     }// end function getAttributeCount
-   
+
     public function getAttributesArray($names){
         $len = count($names);
         $arrTemp = array();
@@ -56,7 +56,7 @@ class OPUS_SimpleXMLElementExtended extends SimpleXMLElement{
         }// end for
         return (array)$arrTemp;
     }// end function getAttributesArray
-   
+
 }
 
 ?>

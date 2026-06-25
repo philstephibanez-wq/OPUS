@@ -31,14 +31,14 @@ class OPUS_I18N_I18n {
             $this->_pagePath = $this->_controller->getParam('page_path') . "local/";
 
         $this->_sharedPath = $this->_app->getPath() . "application/default/local/";
-// die($this->_sharedPath)   ;  		
+// die($this->_sharedPath)   ;
         // get available languages in local directory
         // load _availableLanguages as key=country value lang_country
         // like this: ('us' => 'en_US') from local/en_US
         $this->getAvalaibleLanguages();
-//		OPUS_Debug::addDump(__CLASS__.__FUNCTION__."   ",$this->_availableLanguages, __FILE__, __LINE__, 'blue');
-//		OPUS_Debug::addDump(__CLASS__.__FUNCTION__." SHARED  ",$this->_sharedPathLang, __FILE__, __LINE__, 'blue');
-//		OPUS_Debug::addDump(__CLASS__.__FUNCTION__."  PAGE ",$this->_pagePathLang, __FILE__, __LINE__, 'blue');
+//		\Opus\Diagnostics\Diagnostics::dump(__CLASS__.__FUNCTION__."   ",$this->_availableLanguages, __FILE__, __LINE__, 'blue');
+//		\Opus\Diagnostics\Diagnostics::dump(__CLASS__.__FUNCTION__." SHARED  ",$this->_sharedPathLang, __FILE__, __LINE__, 'blue');
+//		\Opus\Diagnostics\Diagnostics::dump(__CLASS__.__FUNCTION__."  PAGE ",$this->_pagePathLang, __FILE__, __LINE__, 'blue');
 
         if ($lang == null) {
             $this->setLanguage();
@@ -57,7 +57,7 @@ class OPUS_I18N_I18n {
         }
     }
 
-    
+
     static function getPlural($count) {
         if (function_exists('plural')) {
             return plural($count);
@@ -111,7 +111,7 @@ class OPUS_I18N_I18n {
         }
     }
 
- 
+
     function getLanguage() {
         return $this->_code;
     }
@@ -142,8 +142,8 @@ class OPUS_I18N_I18n {
     }
 
     private function _loadSharedDictionary() {
-//		OPUS_Debug::add(__CLASS__.__FUNCTION__.$this->_code, __FILE__, __LINE__, 'red');
-//		OPUS_Debug::add(__CLASS__.__FUNCTION__.$this->_sharedPathLang[$this->_code], __FILE__, __LINE__, 'red');
+//		\Opus\Diagnostics\Diagnostics::debug(__CLASS__.__FUNCTION__.$this->_code, __FILE__, __LINE__, 'red');
+//		\Opus\Diagnostics\Diagnostics::debug(__CLASS__.__FUNCTION__.$this->_sharedPathLang[$this->_code], __FILE__, __LINE__, 'red');
         $iterator = new DirectoryIterator($this->_sharedPathLang[$this->_code]);
         foreach ($iterator as $fileinfo) {
             if ($fileinfo->isFile()) {
@@ -156,7 +156,7 @@ class OPUS_I18N_I18n {
     }
 
     private function _loadDictionary($filePath) {
-//		OPUS_Debug::add(__CLASS__.__FUNCTION__."   ".$filePath, __FILE__, __LINE__, 'white');
+//		\Opus\Diagnostics\Diagnostics::debug(__CLASS__.__FUNCTION__."   ".$filePath, __FILE__, __LINE__, 'white');
         if (!file_exists($filePath)) {
             throw new Exception("File not found: " . $filePath);
             ;
@@ -170,15 +170,15 @@ class OPUS_I18N_I18n {
     }
 
     public function loadDictionary($filename) {
-//		OPUS_Debug::add(__CLASS__.__FUNCTION__."   ".$filename, __FILE__, __LINE__, 'blue');
+//		\Opus\Diagnostics\Diagnostics::debug(__CLASS__.__FUNCTION__."   ".$filename, __FILE__, __LINE__, 'blue');
         foreach ($this->_pagePathLang as $path) {
-//			OPUS_Debug::add(__CLASS__.__FUNCTION__."   ".$path, __FILE__, __LINE__, 'red');
+//			\Opus\Diagnostics\Diagnostics::debug(__CLASS__.__FUNCTION__."   ".$path, __FILE__, __LINE__, 'red');
             $iterator = new DirectoryIterator($path);
             foreach ($iterator as $fileinfo) {
                 if ($fileinfo->isFile()) {
                     if ($fileinfo->getExtension() == 'xml') {
                         $this->_loadDictionary($path . $fileinfo->getFilename());
-//						OPUS_Debug::add(__CLASS__.__FUNCTION__."   ".$path.$fileinfo->getFilename(), __FILE__, __LINE__, 'red');
+//						\Opus\Diagnostics\Diagnostics::debug(__CLASS__.__FUNCTION__."   ".$path.$fileinfo->getFilename(), __FILE__, __LINE__, 'red');
                     }
                 }
             }
@@ -210,20 +210,20 @@ class OPUS_I18N_I18n {
 
     public function translate($needle, $count = 1, $gender = "N", $noError=false) {
         $search = "$needle::$gender";
-//OPUS_Debug::add(__CLASS__.__FUNCTION__."   $search, $gender, $count ", __FILE__, __LINE__, 'red');
+//\Opus\Diagnostics\Diagnostics::debug(__CLASS__.__FUNCTION__."   $search, $gender, $count ", __FILE__, __LINE__, 'red');
         $plural = OPUS_I18N_i18n::getPlural($count);
         $name = $search . $plural;
 
-//OPUS_Debug::add(__CLASS__.__FUNCTION__."   $name, $str ", __FILE__, __LINE__, 'red');
+//\Opus\Diagnostics\Diagnostics::debug(__CLASS__.__FUNCTION__."   $name, $str ", __FILE__, __LINE__, 'red');
         if (isset($this->_dic[$name])) {
             $str = $this->_dic[$name];
         } else {
             if($noError) {
                return $needle;
             } else {
-               return "[translate:" . $name . ", $count]"; 
+               return "[translate:" . $name . ", $count]";
             }
-           
+
         }
         if (preg_match('/%c/', $str)) {
             $str = preg_replace('/%c/', (string) $count, $str);

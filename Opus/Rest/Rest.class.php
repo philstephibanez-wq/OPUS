@@ -21,7 +21,7 @@ abstract class OPUS_REST_Rest extends OPUS_Controller {
     protected bool $_restInputParsed = false;
 
     public function run() {
-        OPUS_Debug::addDump(__CLASS__ . '::' . __FUNCTION__ . ' parameters', $this->_params, __FILE__, __LINE__, 'cyan');
+        \Opus\Diagnostics\Diagnostics::dump(__CLASS__ . '::' . __FUNCTION__ . ' parameters', $this->_params, __FILE__, __LINE__, 'cyan');
 
         $this->_restMethod = $this->method();
         if (!in_array($this->_restMethod, $this->_restAllowedMethods, true)) {

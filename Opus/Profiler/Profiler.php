@@ -8,7 +8,7 @@ namespace Opus\Profiler;
  *
  * Contract:
  * - dev-only diagnostic storage;
- * - no runtime dependency on OPUS_Debug;
+ * - no runtime dependency on legacy debug;
  * - one JSON file per trace;
  * - explicit trace_id propagation;
  * - explicit failure when storage cannot be created or written.

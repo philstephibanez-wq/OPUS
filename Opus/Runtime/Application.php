@@ -17,11 +17,11 @@ class OPUS_Application {
 
     private static $_instance = null;     // php5.3
     private static $_output = '';
-     
+
     public $response;
     public $config;
     public $router;
-    
+
     private $_env = false;
     private $_https = false;
     private $_protocol = 'http';
@@ -131,7 +131,7 @@ class OPUS_Application {
         OPUS_Application::$_instance = $this;
         $this->_initBootFsm();
         ob_start("OPUS_Application::output_handler");
-        
+
         $ip = str_replace(':', '_', $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1');
 
         $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'CLI';
@@ -143,14 +143,14 @@ class OPUS_Application {
         $defaultLang = $langParts[0] ?? 'fr';
         $defaultLang_long = $langParts[1] ?? $defaultLang;
         if($defaultLang == '') $defaultLang = 'fr';
-        
+
         // charger la config correspondant au signal
 //        $xmlFile = ROOT . "/application/config/config.$defaultLang.xml";
         $xmlFile = ROOT . "/application/config/config.xml";
         $PHPconfig = OPUS_ConfigLoader::getConfig($xmlFile);
 
-        require_once ($PHPconfig);        
-        $this->config = new Config();            
+        require_once ($PHPconfig);
+        $this->config = new Config();
 
         // OPUS multi-site resolver: one codebase can serve several local hosts
         // and one local folder through path prefixes (/demo, /maestro).
@@ -165,8 +165,8 @@ class OPUS_Application {
         $debug = $this->config->getEnv("debug");
 
         if ($debug) {
-            OPUS_Debug::setDebug($debug, $this->getSiteLogDir());
-            OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " DEBUG IS STARTED !!!!!", __FILE__, __LINE__, TODO);
+            \Opus\Diagnostics\Diagnostics::configure($debug, $this->getSiteLogDir());
+            \Opus\Diagnostics\Diagnostics::debug(__CLASS__ . "::" . __FUNCTION__ . " DEBUG IS STARTED !!!!!", __FILE__, __LINE__, TODO);
         }
 
         $configuredSiteDir = (string)$this->config->getEnv("siteDir");
@@ -222,8 +222,8 @@ class OPUS_Application {
             'assets' => $this->_assets,
         ));
 
-//        OPUS_Debug::addDump(__CLASS__ . "::" . __FUNCTION__ . " \$this->config ", $this->config, __FILE__, __LINE__, APP_COLOR);
-        OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " FAIRE un POKE de la config ?????", __FILE__, __LINE__, TODO);
+//        \Opus\Diagnostics\Diagnostics::dump(__CLASS__ . "::" . __FUNCTION__ . " \$this->config ", $this->config, __FILE__, __LINE__, APP_COLOR);
+        \Opus\Diagnostics\Diagnostics::debug(__CLASS__ . "::" . __FUNCTION__ . " FAIRE un POKE de la config ?????", __FILE__, __LINE__, TODO);
 
         if ($this->config->get('router')) {
             $this->_configRoutes = $this->_loadCurrentSiteRoutes();
@@ -256,7 +256,7 @@ class OPUS_Application {
 
     // site en maintenance ?
     protected function isOff() {
-        OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " " . ROOT . "/application/config/maintenance", __FILE__, __LINE__, TODO);
+        \Opus\Diagnostics\Diagnostics::debug(__CLASS__ . "::" . __FUNCTION__ . " " . ROOT . "/application/config/maintenance", __FILE__, __LINE__, TODO);
         if (file_exists(ROOT . "/application/config/maintenance"))
             return true;
         return false;
@@ -583,8 +583,8 @@ class OPUS_Application {
 
      public function getDomain() {
         return $this->_siteUrl;
-    }   
-    
+    }
+
     public function getControllerClass() {
         return $this->_controllerClass;
     }
@@ -595,11 +595,11 @@ class OPUS_Application {
     public function getPage() {
         return $this->_page;
     }
-    
+
     public function getRoutesMenu($menu) {
-        $routes = array(); 
+        $routes = array();
         foreach ($this->_configRoutes as $name => $route) {
-           if ($route->menu == $menu) $routes[] = $route;          
+           if ($route->menu == $menu) $routes[] = $route;
         }
         return $routes;
     }
@@ -631,34 +631,34 @@ class OPUS_Application {
     public function getPublic() {
         return $this->_public;
     }
-    
+
     public function getAssetsUrl() {
         return $this->getUrl().$this->_public.$this->_assets;
     }
-    
+
     public function getAssetsPath() {
         return $this->getPath().$this->_public.$this->_assets;
-    }   
-    
+    }
+
     public function getThemeUrl() {
         if ($this->_site instanceof OPUS_SITE_Site) {
             return rtrim($this->getUrl(), '/') . '/_site/' . rawurlencode($this->_site->getId());
         }
         return $this->getUrl().$this->_public.'themes/'.$this->config->get('theme');
     }
-    
+
     public function getThemePath() {
         if ($this->_site instanceof OPUS_SITE_Site) {
             return rtrim($this->_site->getPublicPath(), '/\\');
         }
         return $this->getPath().$this->_public.'themes/'.$this->config->get('theme');
-    }       
-    
-    
+    }
+
+
     public function getPath() {
         return $this->_sitePath;
     }
-    
+
     public function error_404($url, $params) {
         echo "<h1>DISPATCH erreur 404 : $url</h1>";
         echo "<pre>PARAMS " . print_r($params, true) . "</pre>";
@@ -704,9 +704,9 @@ class OPUS_Application {
         $packagePath = ($this->_site instanceof OPUS_SITE_Site) ? $this->_site->getPackagePath() : '';
         $controller_path = rtrim($packagePath, '/\\') . '/controllers/' . $controllerName;
         $controller_path = str_replace('\\', '/', $controller_path);
-        OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " PATH " . $controller_path, __FILE__, __LINE__, TODO);
-//echo "<br> PATH: $controller_path" ; 
-//echo "<br> URL: ".$this->_routerParams['url'] ; 
+        \Opus\Diagnostics\Diagnostics::debug(__CLASS__ . "::" . __FUNCTION__ . " PATH " . $controller_path, __FILE__, __LINE__, TODO);
+//echo "<br> PATH: $controller_path" ;
+//echo "<br> URL: ".$this->_routerParams['url'] ;
 
         if (!file_exists($controller_path)) {
             $this->_routeDebugLog('process-url-controller-missing', array(
@@ -734,13 +734,13 @@ class OPUS_Application {
 
 
     public function dispatch() {
-        
+
         // serveur off ?
-        
+
         // user hang ?
-        
-        
-//        OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " signal: $signal ", __FILE__, __LINE__, APP_COLOR);
+
+
+//        \Opus\Diagnostics\Diagnostics::debug(__CLASS__ . "::" . __FUNCTION__ . " signal: $signal ", __FILE__, __LINE__, APP_COLOR);
         $this->_protocol = $this->_detectRequestProtocol();
         $this->_https = $this->_protocol === 'https';
 
@@ -751,10 +751,10 @@ class OPUS_Application {
 //echo "<font color='blue'><pre>AFTER EXECUTE " . print_r($this->_routerParams, true) . "</pre></font>";
 
         $controller_path = $this->processUrl();
-//        OPUS_Debug::addDump(__CLASS__ . "::" . __FUNCTION__ . " ROUTER RESULT ", $this->_routerParams, __FILE__, __LINE__, 'red');
+//        \Opus\Diagnostics\Diagnostics::dump(__CLASS__ . "::" . __FUNCTION__ . " ROUTER RESULT ", $this->_routerParams, __FILE__, __LINE__, 'red');
 
         if ($controller_path == false) {
-//            OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " ROUTE FOUND " . ($this->_routerParams['found'] ? "YES" : "No!!!!!"), __FILE__, __LINE__, TODO);
+//            \Opus\Diagnostics\Diagnostics::debug(__CLASS__ . "::" . __FUNCTION__ . " ROUTE FOUND " . ($this->_routerParams['found'] ? "YES" : "No!!!!!"), __FILE__, __LINE__, TODO);
             $this->_routeDebugLog('dispatch-404', array(
                 'requestUri' => $_SERVER['REQUEST_URI'] ?? '',
                 'routerParams' => $this->_routerParams,

@@ -36,8 +36,8 @@ class OPUS_MODEL_Model {
 
     protected function dbConnect() {
         $dbConf = $this->_app->config->getDatabase($this->_dbId);
-        OPUS_Debug::addDump(__CLASS__ . "::" . __FUNCTION__ . " INIT", $dbConf, __FILE__, __LINE__, TODO);
-                
+        \Opus\Diagnostics\Diagnostics::dump(__CLASS__ . "::" . __FUNCTION__ . " INIT", $dbConf, __FILE__, __LINE__, TODO);
+
         $adapter = $dbConf['adapter'] ?? '';
         if ($adapter === 'mysql') {
             $adapter = 'mysqli';

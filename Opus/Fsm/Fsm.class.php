@@ -71,8 +71,8 @@ class OPUS_FSM_Fsm Implements iFSM {
     protected $_finalState;
     protected $_dir;
 
-    public function __construct($id, $initialState, $finalState='', $presetMemory=array(), $presetStack=array(), $loadProgram=false) {     
- //       $this->_debug = OPUS_Debug::getInstance();
+    public function __construct($id, $initialState, $finalState='', $presetMemory=array(), $presetStack=array(), $loadProgram=false) {
+ //       $this->_debug = null;
         $this->_id = $id;
         $this->_currentState = $initialState;
         $this->_presetStack = $presetStack;
@@ -98,11 +98,11 @@ class OPUS_FSM_Fsm Implements iFSM {
 //		}
 		$this->loadState();
     }
-    
-    public function create(){throw new Exception("Method: create MUST BE IMPLEMENTED into the FSM");} 
-    	
+
+    public function create(){throw new Exception("Method: create MUST BE IMPLEMENTED into the FSM");}
+
     final public function __destruct() {
-        OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " FSM DESTRUCTOR (save state)", __FILE__, __LINE__, PROGRAM_COLOR);
+        \Opus\Diagnostics\Diagnostics::debug(__CLASS__ . "::" . __FUNCTION__ . " FSM DESTRUCTOR (save state)", __FILE__, __LINE__, PROGRAM_COLOR);
         $this->saveState();
     }
 
@@ -138,13 +138,13 @@ class OPUS_FSM_Fsm Implements iFSM {
     }
 
     final public function peek($name) {
-//		OPUS_Debug::addDump(__CLASS__."::".__FUNCTION__." name. $name", $this->_memory[$name], __FILE__, __LINE__, PROGRAM_COLOR);		
+//		\Opus\Diagnostics\Diagnostics::dump(__CLASS__."::".__FUNCTION__." name. $name", $this->_memory[$name], __FILE__, __LINE__, PROGRAM_COLOR);
         return $this->_memory[$name];
     }
 
     final public function poke($name, $value) {
         $this->_memory[$name] = $value;
-//		OPUS_Debug::addDump(__CLASS__."::".__FUNCTION__." name. $name", $value, __FILE__, __LINE__, PROGRAM_COLOR);		
+//		\Opus\Diagnostics\Diagnostics::dump(__CLASS__."::".__FUNCTION__." name. $name", $value, __FILE__, __LINE__, PROGRAM_COLOR);
     }
 
     // STACK
@@ -189,7 +189,7 @@ class OPUS_FSM_Fsm Implements iFSM {
 
     final public function push($value) {
         $this->_stack[] = $value;
-        OPUS_Debug::addDump('VALUE:', $value, __CLASS__ . "::" . __FUNCTION__, __FILE__, __LINE__, PROGRAM_COLOR);
+        \Opus\Diagnostics\Diagnostics::dump('VALUE:', $value, __CLASS__ . "::" . __FUNCTION__, __FILE__, __LINE__, PROGRAM_COLOR);
     }
 
     final protected function _setCurrentState($state) {
@@ -219,13 +219,13 @@ class OPUS_FSM_Fsm Implements iFSM {
     }
 
     final protected function _execute($method, $signal) {
-        OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . "::$method, signal: $signal", __FILE__, __LINE__, 'cyan');
+        \Opus\Diagnostics\Diagnostics::debug(__CLASS__ . "::" . __FUNCTION__ . "::$method, signal: $signal", __FILE__, __LINE__, 'cyan');
         return $this->{$method}($signal);
     }
 
     final protected function _getTransition($signal) {
         $state = $this->getCurrentState();
-        OPUS_Debug::add(__FUNCTION__ . " state: $state", __FILE__, __LINE__, 'cyan');
+        \Opus\Diagnostics\Diagnostics::debug(__FUNCTION__ . " state: $state", __FILE__, __LINE__, 'cyan');
         if (isset($this->_transitions["$signal,$state"])) {
             return $this->_transitions["$signal,$state"];
         } elseif (isset($this->_transitions["__any__,$state"])) {
@@ -238,24 +238,24 @@ class OPUS_FSM_Fsm Implements iFSM {
     final protected function process($signal) {
         $transition = $this->_getTransition($signal);
         $msg = __FUNCTION__ . " TRANSITION: [$signal," . $this->getCurrentState() . "] action: " . $transition->action;
-        OPUS_Debug::add($msg, __FILE__, __LINE__, 'cyan');
+        \Opus\Diagnostics\Diagnostics::debug($msg, __FILE__, __LINE__, 'cyan');
 
-        // Update the current state to this transition's exit state. 
+        // Update the current state to this transition's exit state.
 //		$fsm->setCurrentSignal($signal);
         if ($transition->signal != '__default__') {
             $this->_setCurrentState($transition->nextState);
         }
 
-        // If an action for this transition has been specified, execute it. 
+        // If an action for this transition has been specified, execute it.
         if ($transition->action != '')
             $receivedSignal = $this->_execute($transition->action, $signal);
 
         // If a new signal was returned process new signal, here the state can't change
         if (!is_null($receivedSignal)) {
-//			OPUS_Debug::add(  __CLASS__."::".__FUNCTION__." CHAIN-------------> $receivedSignal", __FILE__, __LINE__, PROGRAM_COLOR);
+//			\Opus\Diagnostics\Diagnostics::debug(  __CLASS__."::".__FUNCTION__." CHAIN-------------> $receivedSignal", __FILE__, __LINE__, PROGRAM_COLOR);
             $this->process($receivedSignal);
         }
-//		OPUS_Debug::add(  __CLASS__."::".__FUNCTION__." end", __FILE__, __LINE__, PROGRAM_COLOR);
+//		\Opus\Diagnostics\Diagnostics::debug(  __CLASS__."::".__FUNCTION__." end", __FILE__, __LINE__, PROGRAM_COLOR);
     }
 
     final protected function attachEvent($event, $handler) {
@@ -289,9 +289,9 @@ class OPUS_FSM_Fsm Implements iFSM {
     }
 
     final public function saveState() {
-//		$this->_lockExec('save');	
+//		$this->_lockExec('save');
         $file = $this->_dir . "/" . $this->_id . ".fsm";
-        OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " $file", __FILE__, __LINE__, PROGRAM_COLOR);
+        \Opus\Diagnostics\Diagnostics::debug(__CLASS__ . "::" . __FUNCTION__ . " $file", __FILE__, __LINE__, PROGRAM_COLOR);
 
         $timeLimit = time() + $this->getTimeout();
         $dump = array(
@@ -302,14 +302,14 @@ class OPUS_FSM_Fsm Implements iFSM {
             'memory' => $this->getMemory(),
             'stack' => $this->getStack()
         );
-        OPUS_Debug::addDump(__CLASS__ . "::" . __FUNCTION__ . " data:", $dump, __FILE__, __LINE__, PROGRAM_COLOR);
+        \Opus\Diagnostics\Diagnostics::dump(__CLASS__ . "::" . __FUNCTION__ . " data:", $dump, __FILE__, __LINE__, PROGRAM_COLOR);
         $s = serialize($dump);
         file_put_contents($file, $s);
     }
 
     final public function loadState() {
         $file = $this->_dir . "/" . $this->_id . ".fsm";
-        OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . " $file", __FILE__, __LINE__, PROGRAM_COLOR);
+        \Opus\Diagnostics\Diagnostics::debug(__CLASS__ . "::" . __FUNCTION__ . " $file", __FILE__, __LINE__, PROGRAM_COLOR);
         $t = time();
         if (is_file($file)) {
 //			while( !$s ) {
@@ -344,7 +344,7 @@ class OPUS_FSM_Fsm Implements iFSM {
         }
         /*
           else {
-          //			OPUS_Debug::add( __CLASS__."::".__FUNCTION__." (no file) STATE = ".$this->getCurrentState(), __FILE__, __LINE__, PROGRAM_COLOR);
+          //			\Opus\Diagnostics\Diagnostics::debug( __CLASS__."::".__FUNCTION__." (no file) STATE = ".$this->getCurrentState(), __FILE__, __LINE__, PROGRAM_COLOR);
           $this->create(); // reset
           $this->poke('timeLimit', time() + $this->getTimeout(), false);
           }
@@ -363,32 +363,32 @@ class OPUS_FSM_Fsm Implements iFSM {
     }
 
     final protected function _lockExec($cmd, $timeout=5) {
-        // Tache � effectuer ou non ? 
+        // Tache � effectuer ou non ?
         $lockFile = $this->_dir . "/" . $this->_id . ".sem";
-        OPUS_Debug::add(__CLASS__ . "::" . __FUNCTION__ . "LOCKFILE: $lockFile", __FILE__, __LINE__, PROGRAM_COLOR);
+        \Opus\Diagnostics\Diagnostics::debug(__CLASS__ . "::" . __FUNCTION__ . "LOCKFILE: $lockFile", __FILE__, __LINE__, PROGRAM_COLOR);
 
         if (!file_exists($lockFile)) {
-            // Fichier n'existe pas, pose du verrou mode bloquant. 
+            // Fichier n'existe pas, pose du verrou mode bloquant.
             if (!($fp_verrou = fopen($lockFile, "a"))) {
-                // Verrou apparemment pos�. 
-                // Il faut attendre que le fichier $verrou 
-                // n'existe plus. 
+                // Verrou apparemment pos�.
+                // Il faut attendre que le fichier $verrou
+                // n'existe plus.
                 while (file_exists($lockFile)) {
                     usleep(2);
                 }
             } else {
-                // Pose du verrou. 
+                // Pose du verrou.
                 if (!flock($fp_verrou, LOCK_EX)) {
-                    // Verrou apparemment d�pos�, 
-                    // Il faut attendre que le fichier verrou 
-                    // n'existe plus. 
+                    // Verrou apparemment d�pos�,
+                    // Il faut attendre que le fichier verrou
+                    // n'existe plus.
                     while (file_exists($lockFile)) {
                         usleep(2);
                     }
                 } else {
-                    // Le verrou est pos� correctement, 
-                    // ex�cution de la t�che. 
-                    // 
+                    // Le verrou est pos� correctement,
+                    // ex�cution de la t�che.
+                    //
 
                     switch ($cmd) {
                         case 'save':
@@ -398,12 +398,12 @@ class OPUS_FSM_Fsm Implements iFSM {
                             $result = $this->_loadState();
                     }
 
-                    // Fin de t�che, d�verrouillage 
-                    // du fichier verrou, 
-                    // puis effacement du fichier verrou 
+                    // Fin de t�che, d�verrouillage
+                    // du fichier verrou,
+                    // puis effacement du fichier verrou
                     flock($fp_verrou, LOCK_UN);
                     fclose($fp_verrou);
-                    // Effacement du fichier verrou. 
+                    // Effacement du fichier verrou.
                     unlink($lockFile);
 
                     return $result;

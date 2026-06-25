@@ -16,104 +16,104 @@ class OPUS_Html_Html {
 	protected $_scripts = array();
 	protected $_metas = array();
 	protected $_theme = '';
-	
+
 	function __construct() {
-		$this->_app = OPUS_Application::getInstance();	
-		$this->_controller = OPUS_Controller::getInstance();		
+		$this->_app = OPUS_Application::getInstance();
+		$this->_controller = OPUS_Controller::getInstance();
 		$theme = $this->_app->config->get('theme');
-		$this->applyTheme($theme);	
-		
-		$this->_i18n = OPUS_I18N_I18n::getInstance(null);	
-//		OPUS_Debug::addDump(__CLASS__.__FUNCTION__."   ",$this->_i18n->getDictionary(), __FILE__, __LINE__, 'blue');
-				
+		$this->applyTheme($theme);
+
+		$this->_i18n = OPUS_I18N_I18n::getInstance(null);
+//		\Opus\Diagnostics\Diagnostics::dump(__CLASS__.__FUNCTION__."   ",$this->_i18n->getDictionary(), __FILE__, __LINE__, 'blue');
+
 		$this->init();
-	}	
+	}
 //
-	
+
 	protected function init() {
 //		throw new OPUS_Exception(VIEW CLASS (to override));
 //		echo "<h1><font color='BLUE'>VIEW CLASS (to override)</font></h1>";
-	}	
-	
+	}
+
 	public function addPageScript($script) {
 	    $url  = $this->_app->getUrl()."application/";
 	    $url .= $this->_app->getPage()."/javascript/";
-	    $this->_scripts[] =  $url . $script;		
+	    $this->_scripts[] =  $url . $script;
 	}
-	
-	
+
+
 	public function require_script($script) { // ie: photos_photo.js or photos/photo.js
             $script = str_replace("_", "/", $script);
             list($page, $filename) = explode("/", $script);
-	    
+
             $url  = $this->_app->getUrl()."application/";
 	    $url .= $page."/javascript/".$filename;;
 
             $this->_scripts[] =  $url;
 	}
-	
-	private function _addAllCss() {			
+
+	private function _addAllCss() {
 	    $filenames = array();
 	    $path = $this->_app->getThemePath()."/css";
 	    if (!is_dir($path)) { return; }
 	    $iterator = new DirectoryIterator($path);
 	    foreach ($iterator as $fileinfo) {
 	        if ($fileinfo->isFile()) {
-	        	if( strtolower($fileinfo->getExtension()) == 'css')
-	        	$this->addStyleSheet($fileinfo->getFilename());
+		if( strtolower($fileinfo->getExtension()) == 'css')
+		$this->addStyleSheet($fileinfo->getFilename());
 	        }
-	    }		
-	}	
-	
+	    }
+	}
+
 	protected function _getHeader(){
 		$this->_addAllCss();
-		$header  = '';	
+		$header  = '';
 		$header .= '<!doctype html>';
 		$header .= '<html lang="fr">';
 		$header .= '   <head>';
 		$header .= '      <meta charset="'.$this->_encode.'" />';
 		$header .= '      <meta name="viewport" content="width=device-width, initial-scale=1" />';
 		$header .= '      <title>'.$this->getTitle().'</title>';
-		
-  		if(count($this->_metas) > 0){
+
+		if(count($this->_metas) > 0){
 			foreach($this->_metas as $name => $content) {
-				$header .= '      <meta name="'.$name.'" content="'.$content.'" />';			
+				$header .= '      <meta name="'.$name.'" content="'.$content.'" />';
 			}
-		}	
-		
+		}
+
 		if(count($this->_styleSheets) > 0){
 			foreach($this->_styleSheets as $num => $sheet) {
 				$href = rtrim($this->_app->getThemeUrl(), '/') . '/css/' . ltrim($sheet, '/');
 				$header .= '<link rel="stylesheet" href="'.$href.'" type="text/css" media="all" />';
 			}
 		}
-		
+
 		if(count($this->_scripts) > 0){
 			foreach($this->_scripts as $num => $script) {
 				$header .= '<script language="JavaScript" type="text/javascript" src="'.$script.'"></script>';
 			}
-		}		
-    
- 		$header .= '  </head>';	
- 		
+		}
+
+		$header .= '  </head>';
+
 		return $header;
 	}
-			
+
    final public function __call($methodName, $args) {
         if (preg_match('~^(new|set|get)([A-Z])(.*)$~', $methodName, $matches)) {
-        	$function = $matches[1];
-            $property = strtolower($matches[2]) . $matches[3]; 
+	$function = $matches[1];
+            $property = strtolower($matches[2]) . $matches[3];
             if($this->_controller) {
 	            if (!property_exists($this->_controller, $property) and $function != 'new') {
 	                throw new Exception('Property ' . $property . ' not exists');
-	            }            	
+	            }
             }  else {
 	            if (!property_exists($this, $property) and $function != 'new') {
 	                throw new Exception('Property ' . $property . ' not exists');
-	            }           	
-            }        
+	            }
+            }
             switch($function) {
-            	case 'new':
+	case 'new':
                 case 'set':
                     $this->checkArguments($args, 1, 1, $methodName);
                     return $this->set($property, $args[0]);
@@ -128,17 +128,17 @@ class OPUS_Html_Html {
 
     final protected function get($property) {
        if($this->_controller) {
-    	return $this->_controller->$property;
+	return $this->_controller->$property;
        } else {
-    	return $this->$property;       	
+	return $this->$property;
        }
     }
 
     final protected function set($property, $value) {
       if($this->_controller) {
-    	$this->_controller->$property = $value;
+	$this->_controller->$property = $value;
       } else {
-    	$this->$property = $value;     	
+	$this->$property = $value;
       }
         return $this;
     }
@@ -148,54 +148,54 @@ class OPUS_Html_Html {
         if ($argc < $min || $argc > $max) {
             throw new Exception('Method ' . $methodName . ' needs minimaly ' . $min . ' and maximaly ' . $max . ' arguments. ' . $argc . ' arguments given.');
         }
-    }   	
-	
+    }
+
 	public function add($output) {
 		$this->_output .= $output;
 	}
-	
+
 	public function applyTheme($theme='default') {
 		$this->_theme = $theme;
 	}
-	
+
 	public function currentTheme() {
 		return $this->_theme;
 	}
-	
+
 	public function addStyleSheet($sheet) {
 		$this->_styleSheets[] = $sheet;
 	}
-	
+
 	public function addMeta($meta) {
 		$this->_metas[] = $meta;
 	}
-	
+
 	public function addScript($script) {
 		$this->_scripts[] = $script;
-	}	
-		
+	}
+
 //	public function setTheme($theme){
 //		$this->newTheme($this->_controller->getUrl()."www/themes/".$theme);
 //	}
-	
+
 	public function setEncoding($encode){
 		$this->_encode = $encode;
 	}
-	
-	
-	
+
+
+
     public function draw() {
-    	$old_buffer = ob_get_contents();
-    	ob_end_clean();
-		
-  		echo $this->_getHeader();
- 		echo "<body>";
+	$old_buffer = ob_get_contents();
+	ob_end_clean();
+
+		echo $this->_getHeader();
+		echo "<body>";
 		echo  $this->_output;
-                echo OPUS_Debug::get();
+                echo \Opus\Diagnostics\Diagnostics::renderLegacyHtml();
                 if($this->_app->config->getEnv("debug")) echo "<div class='echo'>$old_buffer</div>"; // recupere les warnings etc... PHP
- 		echo "</body>";
- 		echo "</html>";
- 		
+		echo "</body>";
+		echo "</html>";
+
    }
 
 }

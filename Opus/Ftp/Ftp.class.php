@@ -15,7 +15,7 @@
 	define("FTP_USER_LOGGED_IN",230);
 	define("FTP_PASSWORD_NEEDED",331);
 	define("FTP_USER_NOT_LOGGED_IN",530);
-	
+
 	if (!defined("FTP_ASCII")) define("FTP_ASCII",0);
 	if (!defined("FTP_BINARY")) define("FTP_BINARY",1);
 
@@ -33,11 +33,11 @@ class OPUS_Ftp {
 		var $controlSocket = NULL;
 		var $newResult = FALSE;
 		var $lastResult = -1;
-		var $pasvAddr = NULL; 
-		
+		var $pasvAddr = NULL;
+
 		var $error_no = NULL;
 		var $error_msg = NULL;
-		
+
 		function FTP() {
 		}
 
@@ -46,24 +46,24 @@ class OPUS_Ftp {
 
 			$err_no = 0;
 			$err_msg = "";
-			$this->controlSocket = @fsockopen($host, $port, $err_no, $err_msg, $timeout) or $this->_setError(-1,"fsockopen failed"); 
+			$this->controlSocket = @fsockopen($host, $port, $err_no, $err_msg, $timeout) or $this->_setError(-1,"fsockopen failed");
 			if ($err_no<>0) $this->setError($err_no,$err_msg);
 
 			if ($this->_isError()) return false;
-			
+
 			@socket_set_timeout($this->controlSocket,$timeout) or $this->_setError(-1,"socket_set_timeout failed");
 			if ($this->_isError()) return false;
-			
+
 			$this->_waitForResult();
 			if ($this->_isError()) return false;
-			
+
 			return $this->getLastResult() == FTP_SERVICE_READY;
 		}
-		
+
 		function isConnected() {
 			return $this->controlSocket != NULL;
 		}
-		
+
 		function disconnect() {
 			if (!$this->isConnected()) return;
 			@fclose($this->controlSocket);
@@ -72,7 +72,7 @@ class OPUS_Ftp {
 		function close() { //Closes an FTP connection
 			$this->disconnect();
 		}
-		
+
 		function login($user, $pass) {  //Logs in to an FTP connection
 			$this->_resetError();
 
@@ -89,7 +89,7 @@ class OPUS_Ftp {
 				$this->_waitForResult();
 				if ($this->_isError()) return FALSE;
 			}
-			
+
 			$result = $this->getLastResult() == FTP_USER_LOGGED_IN;
 			return $result;
 		}
@@ -103,7 +103,7 @@ class OPUS_Ftp {
 			if ($this->_isError()) return FALSE;
 			return ($lr==FTP_FILE_ACTION_OK || $lr==FTP_COMMAND_OK);
 		}
-		
+
 		function cwd($path) {
 			$this->_resetError();
 
@@ -142,15 +142,15 @@ class OPUS_Ftp {
 
 		function fget($fp,$remote,$mode=FTP_BINARY,$resumepos=0) { //Downloads a file from the FTP server and saves to an open file
 			$this->_resetError();
-			
+
 			$type = "I";
 			if ($mode==FTP_ASCII) $type = "A";
-			
+
 			$this->_printCommand("TYPE $type");
 			$this->_waitForResult();
 			$lr = $this->getLastResult();
 			if ($this->_isError()) return FALSE;
-			
+
 			$result = $this->_download("RETR $remote");
 			if ($result) {
 				fwrite($fp,$result);
@@ -160,15 +160,15 @@ class OPUS_Ftp {
 
 		function fput($remote,$resource,$mode=FTP_BINARY,$startpos=0) { //Uploads from an open file to the FTP server
 			$this->_resetError();
-			
+
 			$type = "I";
 			if ($mode==FTP_ASCII) $type = "A";
-			
+
 			$this->_printCommand("TYPE $type");
 			$this->_waitForResult();
 			$lr = $this->getLastResult();
 			if ($this->_isError()) return FALSE;
-			
+
 			if ($startpos>0) fseek($resource,$startpos);
 			$result = $this->_uploadResource("STOR $remote",$resource);
 			return $result;
@@ -246,7 +246,7 @@ class OPUS_Ftp {
 			$result = $this->_download(trim("NLST $remote_filespec"));
 			return ($result !== FALSE) ? explode("\n",str_replace("\r","",trim($result))) : $result;
 		}
-		
+
 		function pasv($pasv) { //Turns passive mode on or off
 			if (!$pasv) {
 				$this->_setError("Active (PORT) mode is not supported");
@@ -294,7 +294,7 @@ class OPUS_Ftp {
 			$result = $this->_download(trim("LIST $remote_filespec"));
 			return ($result !== FALSE) ? explode("\n",str_replace("\r","",trim($result))) : $result;
 		}
-		
+
 		function ls($remote_filespec="") { //Returns a parsed rawlist in an assoc array
 			$a = $this->rawlist($remote_filespec);
 			if (!$a) return $a;
@@ -422,17 +422,17 @@ class OPUS_Ftp {
 			$this->newResult = FALSE;
 			return $this->lastResult;
 		}
-		
+
 		/* private */
 		function _hasNewResult() {
 			return $this->newResult;
 		}
-		
+
 		/* private */
 		function _waitForResult() {
 			while(!$this->_hasNewResult() && $this->_readln()!==FALSE && !$this->_isError()) { /* noop  */ }
 		}
-		
+
 		/* private */
 		function _readln() {
 			$line = fgets($this->controlSocket);
@@ -451,19 +451,19 @@ class OPUS_Ftp {
 					$this->_setError($this->lastResult,trim(substr($line,4)));
 				}
 			}
-	
+
 			$this->lastLine = trim($line);
 			$this->lastLines[] = "< ".trim($line);
 			return $line;
 		}
-		
+
 		/* private */
 		function _printCommand($line) {
 			$this->lastLines[] = "> ".$line;
 			fwrite($this->controlSocket,$line."\r\n");
 			fflush($this->controlSocket);
 		}
-		
+
 		/* private */
 		function _pasv() {
 			$this->_resetError();
@@ -476,10 +476,10 @@ class OPUS_Ftp {
 			$lucifer = array();
 			if (preg_match("/\\((\d{1,3}),(\d{1,3}),(\d{1,3}),(\d{1,3}),(\d{1,3}),(\d{1,3})\\)/",$subject,$lucifer)) {
 				$this->pasvAddr=$lucifer;
-				
+
 				$host = sprintf("%d.%d.%d.%d",$lucifer[1],$lucifer[2],$lucifer[3],$lucifer[4]);
 				$port = $lucifer[5]*256 + $lucifer[6];
-				
+
 				$err_no=0;
 				$err_msg="";
 				$passiveConnection = fsockopen($host,$port,$err_no,$err_msg, FTP_TIMEOUT);
@@ -492,7 +492,7 @@ class OPUS_Ftp {
 			}
 			return FALSE;
 		}
-		
+
 		/* private */
 		function _download($cmd) {
 			if (!($passiveConnection = $this->_pasv())) return FALSE;
@@ -535,7 +535,7 @@ class OPUS_Ftp {
 				return FALSE;
 			}
 		}
-		
+
 		/* private */
 		function _resetError() {
 			$this->error_no = NULL;
@@ -555,7 +555,7 @@ class OPUS_Ftp {
 				$this->error_msg = $msg;
 			}
 		}
-		
+
 		/* private */
 		function _isError() {
 			return ($this->error_no != NULL) && ($this->error_no !== 0);

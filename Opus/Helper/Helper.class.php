@@ -12,20 +12,20 @@ define('HELPER_COLOR', 'blue');
 class OPUS_HELPER_Helper {
 	protected $_app = null;
         protected $_controller = null;
- 	protected $_i18n = null;
-	
+	protected $_i18n = null;
+
 	function __construct() {
 		$this->_app = OPUS_Application::getInstance();
-		$this->_i18n = OPUS_I18N_I18n::getInstance(null, $controller);	
- 			
-		$this->_controller = OPUS_Controller::getInstance();	
-			
+		$this->_i18n = OPUS_I18N_I18n::getInstance(null, $controller);
+
+		$this->_controller = OPUS_Controller::getInstance();
+
 		$this->init();
-	}	
+	}
 
     protected function init() {}
-	
-    
+
+
 }
 
 ?>

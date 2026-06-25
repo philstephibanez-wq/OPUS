@@ -47,8 +47,8 @@ class OPUS_BDD_Mysql {
     }
 
     private function trace_query($sql, $script, $line): void {
-        if (class_exists('OPUS_Debug')) {
-            OPUS_Debug::add($sql, $script, $line, DBCOLOR);
+        if (class_exists(\Opus\Diagnostics\Diagnostics::class)) {
+            \Opus\Diagnostics\Diagnostics::debug($sql, $script, $line, DBCOLOR);
         }
     }
 
@@ -224,8 +224,8 @@ class OPUS_BDD_Mysql {
         $errorMsg .= '<tr><td align="right">Referer:</td><td>' . htmlspecialchars($_SERVER['HTTP_REFERER'] ?? '') . '</td></tr>';
         $errorMsg .= '<tr><td align="right">File:</td><td>Script: ' . htmlspecialchars(basename((string)$script)) . ', line: ' . (int)$line . '</td></tr>';
         $errorMsg .= '</table>';
-        if (class_exists('OPUS_Debug')) {
-            OPUS_Debug::add($errorMsg, __CLASS__ . '::' . __FUNCTION__, __LINE__, 'red');
+        if (class_exists(\Opus\Diagnostics\Diagnostics::class)) {
+            \Opus\Diagnostics\Diagnostics::debug($errorMsg, __CLASS__ . '::' . __FUNCTION__, __LINE__, 'red');
         }
         throw new OPUS_Exception(strip_tags($msg . ' ' . $this->_error), $this->_errno);
     }

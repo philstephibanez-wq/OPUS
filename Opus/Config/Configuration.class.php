@@ -22,7 +22,7 @@ class Route_Object {
         $this->conditions = $conditions;
         $this->menu = $menu;
         $this->method = $method;
-                        
+
         return $this;
     }
 
@@ -117,7 +117,7 @@ class OPUS_Configuration {
         }
         return $host;
     }
-    
+
     protected function _extends() {
 
         foreach ($this->_configArray['environments'] as $environment => $arr) {
@@ -129,9 +129,9 @@ class OPUS_Configuration {
             } else {
                 $this->_environments[$environment] = $arr;
             }
-        }    
-         unset($this->_configArray['environments']);    
-         $this->findEnv();    
+        }
+         unset($this->_configArray['environments']);
+         $this->findEnv();
     }
 
     public function get($key) {
@@ -204,7 +204,7 @@ protected function _detect_os(){
     if (preg_match('#playstation\sportable#i',$a))return('PlayStation Portable');
     if (preg_match('#iphone\sos\s[\s\/]([0-9v]{1,7}(?:[\._][0-9a-z]{1,7}){0,7})#i',$a,$c))return('iPhone OS version '.$c[1]);
     return 'OS non identifié';
-}       
+}
 
 public function get_os() {
     return $this->_os;
@@ -251,10 +251,10 @@ protected function _detect_browser(){
 public function get_browser() {
     return $this->_browser;
 }
-    
-    
-    
-    
+
+
+
+
 }
 
 ?>

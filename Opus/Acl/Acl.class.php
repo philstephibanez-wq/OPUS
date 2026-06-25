@@ -250,7 +250,7 @@ class Acl {
     public function getRoles() {
         return array_keys($this->_getRoles()->getRoles());
     }
-    
+
     public function allow($roles = null, $resources = null, $privileges = null, $conditions = null) {
         return $this->setRule('add', 'allowed', $roles, $resources, $privileges, $conditions);
     }
@@ -719,9 +719,9 @@ class Acl {
         $html .= '</ul>';
 
 //        $rules = $this->_rules;
-//$html .= "RULES<pre>".print_r($rules, true)."</pre>" ;      
+//$html .= "RULES<pre>".print_r($rules, true)."</pre>" ;
 //       $rulesAllResources = $rules['allResources'];
-//$html .= "rulesAllResources<pre>".print_r($rulesAllResources, true)."</pre>" ;      
+//$html .= "rulesAllResources<pre>".print_r($rulesAllResources, true)."</pre>" ;
 //         $html .= '<ul><h1>Available Rules for All Resources</h1>';
 //        foreach ($rulesAllResources as $rule => $ruleType) {
 //            $html .= '<li>' . $rule . '<br />';
@@ -731,7 +731,7 @@ class Acl {
 //                $html .= '</li>';
 //            }
 //        $html .= '</ul>';
-        
+
         return $html;
     }
 

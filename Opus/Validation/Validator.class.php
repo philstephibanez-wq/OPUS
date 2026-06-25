@@ -25,30 +25,30 @@ class OPUS_Validator {
 	protected $_label = '';
 	protected $_i18n = '';
 
-	
-	public function __construct($label, $toValidate, $controller, $args=null) { 
+
+	public function __construct($label, $toValidate, $controller, $args=null) {
             $this->_label = $label;
-            $this->_toValidate = $toValidate ;   
-            $this->_i18n = OPUS_I18N_I18n::getInstance(null, $this);	
- 
+            $this->_toValidate = $toValidate ;
+            $this->_i18n = OPUS_I18N_I18n::getInstance(null, $this);
+
         }
-	
+
 	/**
 	*
 	* @return 5this object to chain validations
-	*/	
-	protected function setResult($function, $result) { 
+	*/
+	protected function setResult($function, $result) {
 		if($result === false) $this->_messages[] = $this->_i18n->translate($this->_label). ' NOT '.$function;
 		$this->_valid =  $result;
 		return $this; // for chaining validations
 	}
-	
+
 	public function isValide() { return $this->_valid; }
 
 	public function getMessages() { return $this->_messages; }
 
 	public function is_true() {
-		$result = ($this->_toValidate === true) ? true : false;		
+		$result = ($this->_toValidate === true) ? true : false;
 		return $this->setResult(__FUNCTION__, $result);
 	}
 
@@ -58,12 +58,12 @@ class OPUS_Validator {
              } else {
                 $result = false;;
             }
- 	  return $this->setResult(__FUNCTION__, $result);         
+	  return $this->setResult(__FUNCTION__, $result);
         }
-        
-	public function is_false() {   
+
+	public function is_false() {
             $this->isBoolean();
-		$result = ($this->_toValidate === false) ? true : false;               
+		$result = ($this->_toValidate === false) ? true : false;
 		return $this->setResult(__FUNCTION__, $result);
 	}
 

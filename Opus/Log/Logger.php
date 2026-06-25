@@ -11,7 +11,7 @@ namespace Opus\Log;
  * - creates its log directory explicitly;
  * - writes one structured line per event;
  * - redacts common sensitive context keys;
- * - remains independent from legacy OPUS_Debug.
+ * - remains independent from legacy legacy debug.
  */
 final class Logger
 {

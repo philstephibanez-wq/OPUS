@@ -7,7 +7,7 @@ namespace Opus\Profiler;
  * OPUS profiler trace value object.
  *
  * A trace records dev-only diagnostic events for one execution flow.
- * It is intentionally independent from legacy OPUS_Debug.
+ * It is intentionally independent from legacy legacy debug.
  */
 final class Trace
 {

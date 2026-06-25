@@ -12,7 +12,7 @@ ini_set('display_errors', (DISPLAY_ERRORS)?(1):(0));
 ini_set('display_startup_errors', (DISPLAY_ERRORS)?(1):(0));
 error_reporting((DISPLAY_ERRORS)?(1):(0));
 ignore_user_abort (true);
-date_default_timezone_set('Europe/Bucharest'); 
+date_default_timezone_set('Europe/Bucharest');
 
 define('SMTP_SERVER','ssl://smtp.gmail.com');
 define('SMTP_SERVER_PORT',465);
@@ -30,7 +30,7 @@ require_once('SMTP4PHP.php');
 use SMTP4PHP\User;
 
 //NOTE: Only if backward compatibility is really needed.
-use SMTP4PHP\eMailUser; 
+use SMTP4PHP\eMailUser;
 
 use SMTP4PHP\eMail;
 use SMTP4PHP\SMTP;
@@ -46,15 +46,15 @@ $e->htmlMessage = 'This is a HTML message!<br><img src="'.$e->addImage('./image.
 $e->txtMessage = 'This is a TEXT message!';
 
 // EXAMPLE: add attachment example
-$e->addAttachment('Attachment.zip'); 
+$e->addAttachment('Attachment.zip');
 
 $smtp = new SMTP(SMTP_SERVER, SMTP_SERVER_PORT, SMTP_USER, SMTP_PASSWORD);
-// NOTE: ALL emails are sent through the same connection, speeding up transmission. 
-try { $smtp->send($e); 
+// NOTE: ALL emails are sent through the same connection, speeding up transmission.
+try { $smtp->send($e);
  // OR $smtp->send(array($e,$e2));
  }  catch(Exception $e) { }
-var_dump($smtp->SMTPlog); 
- 
+var_dump($smtp->SMTPlog);
+
  */
 
 
@@ -694,12 +694,12 @@ class SMTP extends Toolbox {
                 try {
                     $this->_exec('QUIT');
                 } catch (Exception $e) {
-                    
+
                 }
                 try {
                     fclose($this->smtpConnect);
                 } catch (Exception $e) {
-                    
+
                 }
             }
             $this->smtpConnect = NULL;
@@ -711,7 +711,7 @@ class SMTP extends Toolbox {
                 try {
                     $smtpResponse = trim($this->_read());
                 } catch (Exception $e) {
-                    
+
                 }
                 if (empty($this->smtpConnect)) {
                     throw new Exception('SMTP connection error!' . ($smtpResponse) ? (' (' . $smtpResponse . ')') : (''));
@@ -820,7 +820,7 @@ class SMTP extends Toolbox {
                         try {
                             $this->_exec('NOOP', '250');
                         } catch (Exception $e) {
-                            
+
                         }
                     }
                 }
