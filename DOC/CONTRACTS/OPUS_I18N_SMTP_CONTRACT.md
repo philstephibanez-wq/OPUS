@@ -81,6 +81,40 @@ No silent send failure.
 No silent local fallback.
 No hidden credentials in logs/traces.
 
+## P7A0J SMTP typed configuration extension
+
+The official SMTP configuration gate is `OPUS_SmtpConfig`.
+
+Before the PHPMailer adapter is configured, SMTP data must be normalized and validated by this official SMTP configuration gate.
+
+Required SMTP configuration:
+
+- `host`: non-empty string;
+- `port`: integer between 1 and 65535.
+
+Optional SMTP configuration:
+
+- `auth`: boolean-like value, default false;
+- `username`: required when `auth=true`;
+- `password`: required when `auth=true`;
+- `secure`, `smtp_secure` or `encryption`: empty, `tls` or `ssl`;
+- `debug`: integer between 0 and 4;
+- `timeout`: integer between 1 and 300.
+
+Failure behavior:
+
+- `OPUS_SMTP_CONFIG_MISSING` if mail delivery is requested without SMTP config;
+- `OPUS_SMTP_CONFIG_MISSING_HOST` if host is absent or empty;
+- `OPUS_SMTP_CONFIG_MISSING_PORT` if port is absent;
+- `OPUS_SMTP_CONFIG_MISSING_PASSWORD` if `auth=true` and no password is configured;
+- No implicit host, port or local mail fallback.
+
+Credential handling:
+
+- source code must not contain committed SMTP passwords;
+- logs, diagnostics and profiler traces must never expose credentials;
+- safe representation must redact credentials.
+
 ## Page contract extension
 
 The OPUS public page contract includes I18N:
