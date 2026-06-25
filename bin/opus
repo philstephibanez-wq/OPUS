@@ -23,6 +23,7 @@ if ($command === 'help' || $command === '--help' || $command === '-h') {
     echo "  php bin/opus help\n";
     echo "  php bin/opus create:site SITE_ID\n";
     echo "  php bin/opus create:page PAGE_ID\n";
+    echo "  php bin/opus validate:site SITE_ID\n";
     exit(0);
 }
 
@@ -51,6 +52,31 @@ if ($command === 'create:site') {
         exit(1);
     }
 }
+if ($command === 'validate:site') {
+    if ($target === '') {
+        fwrite(STDERR, "OPUS_CLI_VALIDATE_SITE_REQUIRES_SITE_ID\n");
+        exit(1);
+    }
 
+    $siteRoot = $root . DIRECTORY_SEPARATOR . 'sites' . DIRECTORY_SEPARATOR . $target;
+
+    if (!is_dir($siteRoot)) {
+        fwrite(STDERR, "OPUS_SITE_NOT_FOUND: {$target}\n");
+        exit(1);
+    }
+
+    $required = ['application', 'application/config', 'resources/i18n', 'public', 'public/index.php'];
+
+    foreach ($required as $relative) {
+        $path = $siteRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);
+        if (!file_exists($path)) {
+            fwrite(STDERR, "OPUS_SITE_REQUIRED_PATH_MISSING: {$relative}\n");
+            exit(1);
+        }
+    }
+
+    echo "OPUS_VALIDATE_SITE_OK: {$target}\n";
+    exit(0);
+}
 fwrite(STDERR, "OPUS_CLI_COMMAND_NOT_IMPLEMENTED: {$command}\n");
 exit(1);
