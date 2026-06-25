@@ -60,7 +60,7 @@ final class FullstackApplicationScaffoldPlan implements ScaffoldPlanInterface
         $entries[] = ScaffoldEntry::file("sites/{$app}/frontend/backoffice/fsm/transitions/backoffice.admin.transitions.json", $this->json($this->backofficeTransitionsContract()));
         $entries[] = ScaffoldEntry::file("sites/{$app}/middle/fsm/transitions/middle.rest_acl_sso.transitions.json", $this->json($this->middleRestAclSsoTransitionsContract()));
         $entries[] = ScaffoldEntry::file("sites/{$app}/backend/fsm/transitions/back.execution.transitions.json", $this->json($this->backExecutionTransitionsContract()));
-        $entries[] = ScaffoldEntry::file("sites/{$app}/backend/services/catalog/fsm/transitions/catalog.transitions.json", $this->json($this->catalogModuleTransitionsContract()));
+        $entries[] = ScaffoldEntry::file("sites/{$app}/backend/services/catalog/fsm/transitions/catalog.transitions.json", $this->json($this->catalogPageTransitionsContract()));
         $entries[] = ScaffoldEntry::file("sites/{$app}/docs/fsm-pipeline.md", $this->fsmPipelineDoc());
 
         foreach ($this->views() as $viewId => $view) {
@@ -334,7 +334,7 @@ final class FullstackApplicationScaffoldPlan implements ScaffoldPlanInterface
     }
 
     /** @return array<string,mixed> */
-    private function catalogModuleTransitionsContract(): array
+    private function catalogPageTransitionsContract(): array
     {
         return [
             'contract' => 'OPUS_BACK_PAGE_TRANSITIONS_V1',
