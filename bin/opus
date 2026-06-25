@@ -1,19 +1,55 @@
 <?php
 declare(strict_types=1);
 
+use Opus\Scaffold\ScaffoldWriter;
+use Opus\Scaffold\SiteScaffoldPlan;
+
+$root = dirname(__DIR__);
+$autoload = $root . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+
+if (!is_file($autoload)) {
+    fwrite(STDERR, "OPUS_CLI_COMPOSER_AUTOLOAD_MISSING\n");
+    exit(1);
+}
+
+require $autoload;
+
 $command = $argv[1] ?? 'help';
+$target = $argv[2] ?? '';
 
 if ($command === 'help' || $command === '--help' || $command === '-h') {
     echo "OPUS CLI\n";
     echo "Usage:\n";
     echo "  php bin/opus help\n";
-    echo "  php bin/opus create:site <site-id>\n";
-    echo "  php bin/opus create:page <page-id>\n";
-    echo "\n";
-    echo "Status:\n";
-    echo "  create:site = not implemented in P6F0B1\n";
-    echo "  create:page = not implemented in P6F0B1\n";
+    echo "  php bin/opus create:site SITE_ID\n";
+    echo "  php bin/opus create:page PAGE_ID\n";
     exit(0);
+}
+
+if ($command === 'create:site') {
+    if ($target === '') {
+        fwrite(STDERR, "OPUS_CLI_CREATE_SITE_REQUIRES_SITE_ID\n");
+        exit(1);
+    }
+
+    if (!preg_match('/^[A-Za-z0-9_-]+$/', $target)) {
+        fwrite(STDERR, "OPUS_CLI_INVALID_SITE_ID: {$target}\n");
+        exit(1);
+    }
+
+    try {
+        $writer = new ScaffoldWriter($root);
+        $plan = SiteScaffoldPlan::forSite($target);
+
+        $writer->assertPathDoesNotExist($plan->rootRelativePath());
+        $writer->writePlan($plan);
+
+        echo "OPUS_CREATE_SITE_OK: {$target}\n";
+        exit(0);
+    } catch (Throwable $exception) {
+        fwrite(STDERR, $exception->getMessage() . "\n");
+        exit(1);
+    }
 }
 
 fwrite(STDERR, "OPUS_CLI_COMMAND_NOT_IMPLEMENTED: {$command}\n");
