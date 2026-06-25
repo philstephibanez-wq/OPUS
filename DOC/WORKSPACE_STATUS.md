@@ -38,7 +38,7 @@ Status file maintained as the short handoff point for the OPUS workspace.
 - `P7A0D_PROFILER_ERROR_TRACE_COVERAGE`: OK in source and clean clone.
 - `P7A0E_DEBUG_SHIM_TO_LOGGER_PROFILER`: superseded by integrated diagnostics migration.
 - `P7A0FG_MIGRATE_DEBUG_AND_DELETE_LEGACY_CLASS`: OK in source. Legacy debug class removed, active calls migrated, diagnostics smoke OK, deletion gate OK.
-- `P7A0H_RUNTIME_DIAGNOSTICS_PROFILER_WIRING`: OK in source. Runtime/Application now configures Diagnostics and Profiler, starts/stops traces, records 404 and exception paths.
+- `P7A0H_RUNTIME_DIAGNOSTICS_PROFILER_WIRING`: OK in source and clean clone. Runtime/Application configures Diagnostics and Profiler, starts/stops traces, records 404 and exception paths.
 
 ## Current architecture decisions
 
@@ -52,9 +52,9 @@ Status file maintained as the short handoff point for the OPUS workspace.
 
 ## Next recommended milestones
 
-1. Validate P7A0H in clean clone.
-2. Add profiler viewer route later, after trace storage contract is stable.
-3. Add DB connection configuration contract and SQLite PDO model smoke.
+1. Add profiler viewer route later, after trace storage contract is stable.
+2. Add DB connection configuration contract and SQLite PDO model smoke.
+3. Prepare pdo_mysql enablement for MariaDB/MySQL support.
 4. Prepare `pdo_mysql` enablement for MariaDB/MySQL support.
 
 ## Operational rule
