@@ -6,10 +6,10 @@ Status file maintained as the short handoff point for the OPUS workspace.
 
 - Repository: `philstephibanez-wq/OPUS`
 - Branch: `master`
-- Latest validated milestone: `P7A0I_I18N_SMTP_CONTRACT`
-- Latest functional commit: `5e3032f`
-- Previous validated milestone: `P7A0H_RUNTIME_DIAGNOSTICS_PROFILER_WIRING`
-- Previous cleanup commit: `7a9f863`
+- Latest validated milestone: `P7A0J_CLEAN_CLONE_I18N_SMTP_GATES`
+- Latest functional commit: `3a03027`
+- Previous validated milestone: `P7A0I_I18N_SMTP_CONTRACT`
+- Previous cleanup commit: `6ce036d`
 
 ## Validated milestones
 
@@ -40,6 +40,7 @@ Status file maintained as the short handoff point for the OPUS workspace.
 - `P7A0FG_MIGRATE_DEBUG_AND_DELETE_LEGACY_CLASS`: OK in source. Legacy debug class removed, active calls migrated, diagnostics smoke OK, deletion gate OK.
 - `P7A0H_RUNTIME_DIAGNOSTICS_PROFILER_WIRING`: OK in source and clean clone. Runtime/Application configures Diagnostics and Profiler, starts/stops traces, records 404 and exception paths.
 - `P7A0I_I18N_SMTP_CONTRACT`: OK in source. I18N is mandatory for user-visible text, official SMTP is mandatory for mail-sending workflows, and direct mail delivery outside official infrastructure is forbidden.
+- `P7A0J_CLEAN_CLONE_I18N_SMTP_GATES`: OK in source and clean clone. P7A0I contract markers and direct-mail guards are validated from a clean checkout of HEAD.
 
 ## Current architecture decisions
 
@@ -55,10 +56,9 @@ Status file maintained as the short handoff point for the OPUS workspace.
 
 ## Next recommended milestones
 
-1. Validate P7A0I in clean clone.
-2. Add profiler viewer route later, after trace storage contract is stable.
-3. Add DB connection configuration contract and SQLite PDO model smoke.
-4. Prepare `pdo_mysql` enablement for MariaDB/MySQL support.
+1. Add profiler viewer route later, after trace storage contract is stable.
+2. Add DB connection configuration contract and SQLite PDO model smoke.
+3. Prepare `pdo_mysql` enablement for MariaDB/MySQL support.
 
 ## Operational rule
 
