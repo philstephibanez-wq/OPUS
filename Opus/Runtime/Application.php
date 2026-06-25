@@ -40,6 +40,10 @@ class OPUS_Application {
     private $_site = null;
     private $_sites = array();
     private $_bootFsm = null;
+    private $_runtimeProfiler = null;
+    private $_runtimeProfilerTraceId = null;
+    private $_runtimeDiagnosticsEnabled = false;
+
 
 
     /**
@@ -90,6 +94,133 @@ class OPUS_Application {
             throw new OPUS_Exception($message);
         }
         throw new RuntimeException($message);
+    }
+
+    private function _boolFlag($value): bool {
+        if (is_bool($value)) {
+            return $value;
+        }
+        if (is_int($value) || is_float($value)) {
+            return (int)$value !== 0;
+        }
+        if ($value === null || $value === false) {
+            return false;
+        }
+
+        $normalized = strtolower(trim((string)$value));
+        return in_array($normalized, array('1', 'true', 'yes', 'on', 'enabled'), true);
+    }
+
+    private function _requestFlag(string $name): bool {
+        if (!isset($_GET[$name])) {
+            return false;
+        }
+
+        return $this->_boolFlag($_GET[$name]);
+    }
+
+    private function _requestValue(string $name): string {
+        if (!isset($_GET[$name])) {
+            return '';
+        }
+
+        $value = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', (string)$_GET[$name]);
+        return is_string($value) ? trim($value) : '';
+    }
+
+    private function _runtimeDiagnosticsEnabled($debug): bool {
+        return $this->_boolFlag($debug)
+            || $this->_boolFlag($this->config->getEnv('diagnostics'))
+            || $this->_boolFlag(getenv('OPUS_DIAGNOSTICS'))
+            || $this->_runtimeProfilerEnabled($debug);
+    }
+
+    private function _runtimeProfilerEnabled($debug): bool {
+        return $this->_boolFlag($debug)
+            || $this->_boolFlag($this->config->getEnv('profiler'))
+            || $this->_boolFlag(getenv('OPUS_PROFILER'))
+            || $this->_requestFlag('profiler');
+    }
+
+    private function _resolveRuntimeProfilerDir(): string {
+        return rtrim($this->getSiteLogDir(), '/\\') . DIRECTORY_SEPARATOR . 'profiler';
+    }
+
+    private function _newRuntimeTraceId(): string {
+        $explicit = $this->_requestValue('trace_id');
+        if ($explicit === '') {
+            $envTraceId = getenv('OPUS_TRACE_ID');
+            $explicit = is_string($envTraceId) ? preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $envTraceId) : '';
+            $explicit = is_string($explicit) ? trim($explicit) : '';
+        }
+
+        return $explicit !== '' ? $explicit : 'runtime_' . bin2hex(random_bytes(8));
+    }
+
+    private function _initDiagnosticsProfiler($debug): void {
+        $this->_runtimeDiagnosticsEnabled = $this->_runtimeDiagnosticsEnabled($debug);
+
+        if (!$this->_runtimeDiagnosticsEnabled) {
+            \Opus\Diagnostics\Diagnostics::clear();
+            return;
+        }
+
+        $logDir = $this->getSiteLogDir();
+        \Opus\Diagnostics\Diagnostics::configure(true, $logDir);
+        \Opus\Diagnostics\Diagnostics::configureLogger(new \Opus\Log\Logger($logDir), null, 'runtime');
+
+        if ($this->_runtimeProfilerEnabled($debug)) {
+            $this->_runtimeProfilerTraceId = $this->_newRuntimeTraceId();
+            $this->_runtimeProfiler = new \Opus\Profiler\Profiler($this->_resolveRuntimeProfilerDir());
+            $this->_runtimeProfiler->start($this->_runtimeProfilerTraceId);
+            \Opus\Diagnostics\Diagnostics::configureProfiler($this->_runtimeProfiler);
+            \Opus\Diagnostics\Diagnostics::configureLogger(new \Opus\Log\Logger($logDir), $this->_runtimeProfilerTraceId, 'runtime');
+            $this->_profileEvent('runtime', 'diagnostics.profiler.started', array(
+                'site_id' => $this->getSiteId(),
+                'trace_id' => $this->_runtimeProfilerTraceId,
+            ));
+        }
+
+        \Opus\Diagnostics\Diagnostics::debug(__CLASS__ . "::" . __FUNCTION__ . " DIAGNOSTICS STARTED", __FILE__, __LINE__, TODO);
+    }
+
+    /** @param array<string,mixed> $context */
+    private function _profileEvent(string $category, string $name, array $context = array()): void {
+        if ($this->_runtimeProfiler === null) {
+            return;
+        }
+
+        $this->_runtimeProfiler->event($category, $name, $context + array(
+            'site_id' => $this->getSiteId(),
+            'controller' => $this->_controllerClass,
+        ));
+    }
+
+    private function _profileException(Throwable $exception): void {
+        $this->_profileEvent('runtime', 'exception', array(
+            'exception_class' => get_class($exception),
+            'message' => $exception->getMessage(),
+            'file' => $exception->getFile(),
+            'line' => $exception->getLine(),
+        ));
+    }
+
+    /** @param array<string,mixed> $summary */
+    private function _stopRuntimeProfiler(array $summary = array()): void {
+        if ($this->_runtimeProfiler === null) {
+            \Opus\Diagnostics\Diagnostics::clear();
+            return;
+        }
+
+        $summary = $summary + array(
+            'site_id' => $this->getSiteId(),
+            'controller' => $this->_controllerClass,
+            'trace_id' => $this->_runtimeProfilerTraceId,
+        );
+
+        $this->_runtimeProfiler->stop($summary);
+        $this->_runtimeProfiler = null;
+        \Opus\Diagnostics\Diagnostics::clear();
     }
 
     public function getBootFsm() {
@@ -163,11 +294,7 @@ class OPUS_Application {
         }
 
         $debug = $this->config->getEnv("debug");
-
-        if ($debug) {
-            \Opus\Diagnostics\Diagnostics::configure($debug, $this->getSiteLogDir());
-            \Opus\Diagnostics\Diagnostics::debug(__CLASS__ . "::" . __FUNCTION__ . " DEBUG IS STARTED !!!!!", __FILE__, __LINE__, TODO);
-        }
+        $this->_initDiagnosticsProfiler($debug);
 
         $configuredSiteDir = (string)$this->config->getEnv("siteDir");
         $autoSiteDir = $this->_detectBasePath();
@@ -240,7 +367,24 @@ class OPUS_Application {
         if (!($this->_bootFsm instanceof OPUS_FSM_Program) || !$this->_bootFsm->isReady()) {
             throw new OPUS_Exception('OPUS boot FSM did not reach BOOT_READY. Runtime dispatch is forbidden.');
         }
-        $this->dispatch();
+        try {
+            $this->_profileEvent('runtime', 'dispatch.start');
+            $this->dispatch();
+            $this->_profileEvent('runtime', 'dispatch.end', array(
+                'status' => 200,
+            ));
+            $this->_stopRuntimeProfiler(array(
+                'status' => 200,
+            ));
+        } catch (Throwable $exception) {
+            $this->_profileException($exception);
+            $this->_stopRuntimeProfiler(array(
+                'status' => 500,
+                'exception_class' => get_class($exception),
+                'message' => $exception->getMessage(),
+            ));
+            throw $exception;
+        }
     }
 
    public static function getInstance (){
@@ -660,6 +804,15 @@ class OPUS_Application {
     }
 
     public function error_404($url, $params) {
+        $this->_profileEvent('runtime', 'dispatch.404', array(
+            'url' => (string)$url,
+            'params' => $params,
+        ));
+        $this->_stopRuntimeProfiler(array(
+            'status' => 404,
+            'url' => (string)$url,
+        ));
+
         echo "<h1>DISPATCH erreur 404 : $url</h1>";
         echo "<pre>PARAMS " . print_r($params, true) . "</pre>";
         exit();
@@ -704,6 +857,7 @@ class OPUS_Application {
         $packagePath = ($this->_site instanceof OPUS_SITE_Site) ? $this->_site->getPackagePath() : '';
         $controller_path = rtrim($packagePath, '/\\') . '/controllers/' . $controllerName;
         $controller_path = str_replace('\\', '/', $controller_path);
+        $this->_profileEvent('runtime', 'process_url.controller.path', array('controller_path' => $controller_path));
         \Opus\Diagnostics\Diagnostics::debug(__CLASS__ . "::" . __FUNCTION__ . " PATH " . $controller_path, __FILE__, __LINE__, TODO);
 //echo "<br> PATH: $controller_path" ;
 //echo "<br> URL: ".$this->_routerParams['url'] ;
