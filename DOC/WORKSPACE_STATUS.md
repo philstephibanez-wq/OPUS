@@ -6,9 +6,10 @@ Status file maintained as the short handoff point for the OPUS workspace.
 
 - Repository: `philstephibanez-wq/OPUS`
 - Branch: `master`
-- Latest validated milestone: `P7A0H_RUNTIME_DIAGNOSTICS_PROFILER_WIRING`
+- Latest validated milestone: `P7A0I_I18N_SMTP_CONTRACT`
 - Latest functional commit: `b03ee80`
 - Latest workspace-status commit: pending
+- Previous validated milestone: `P7A0H_RUNTIME_DIAGNOSTICS_PROFILER_WIRING`
 - Previous cleanup commit: `7a9f863`
 
 ## Validated milestones
@@ -39,6 +40,7 @@ Status file maintained as the short handoff point for the OPUS workspace.
 - `P7A0E_DEBUG_SHIM_TO_LOGGER_PROFILER`: superseded by integrated diagnostics migration.
 - `P7A0FG_MIGRATE_DEBUG_AND_DELETE_LEGACY_CLASS`: OK in source. Legacy debug class removed, active calls migrated, diagnostics smoke OK, deletion gate OK.
 - `P7A0H_RUNTIME_DIAGNOSTICS_PROFILER_WIRING`: OK in source and clean clone. Runtime/Application configures Diagnostics and Profiler, starts/stops traces, records 404 and exception paths.
+- `P7A0I_I18N_SMTP_CONTRACT`: pending validation in this patch. I18N is mandatory for user-visible text; official SMTP is mandatory for mail-sending workflows.
 
 ## Current architecture decisions
 
@@ -49,11 +51,13 @@ Status file maintained as the short handoff point for the OPUS workspace.
 - Runtime/Application owns official diagnostics/profiler bootstrap when enabled.
 - Profiler uses `microtime(true)` for trace start, event elapsed time, finish time, and total duration.
 - Generated `create:site` runtime can write profiler traces with `?profiler=1` or `OPUS_PROFILER=1`.
+- I18N is mandatory for every user-visible public text, even for one-language sites.
+- Official OPUS SMTP/mailer service is mandatory for every mail-sending workflow; direct `mail()` is forbidden outside official infrastructure.
 
 ## Next recommended milestones
 
-1. Add profiler viewer route later, after trace storage contract is stable.
-2. Add DB connection configuration contract and SQLite PDO model smoke.
+1. Validate P7A0I in source.
+2. Add profiler viewer route later, after trace storage contract is stable.
 3. Prepare pdo_mysql enablement for MariaDB/MySQL support.
 4. Prepare `pdo_mysql` enablement for MariaDB/MySQL support.
 

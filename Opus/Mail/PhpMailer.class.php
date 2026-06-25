@@ -28,27 +28,6 @@ class OPUS_PhpMailer extends PHPMailer {
         }
     }
 
-    public function sample() {
-        $this->IsSMTP(); // telling the class to use SMTP
-        try {
-            $this->Host = "mail.yourdomain.com"; // SMTP server
-            $this->SMTPDebug = 2;                     // enables SMTP debug information (for testing)
-            $this->AddAddress('whoto@otherdomain.com', 'John Doe');
-            $this->SetFrom('name@yourdomain.com', 'First Last');
-            $this->AddReplyTo('name@yourdomain.com', 'First Last');
-            $this->Subject = 'PHPMailer Test Subject via mail(), advanced';
-            $this->AltBody = 'To view the message, please use an HTML compatible email viewer!'; // optional - MsgHTML will create an alternate automatically
-            $this->MsgHTML(@file_get_contents('contents.html'));
-//            $this->AddAttachment('images/phpmailer.gif');      // attachment
-//            $this->AddAttachment('images/phpmailer_mini.gif'); // attachment
-            $this->Send();
-            echo "Message Sent OK</p>\n";
-        } catch (phpmailerException $e) {
-            throw new OPUS_Exception( $e->errorMessage()); //Pretty error messages from PHPMailer
-        } catch (Exception $e) {
-            throw new OPUS_Exception( $e->getMessage()); //Boring error messages from anything else!
-        }
-    }
 
 }
 
