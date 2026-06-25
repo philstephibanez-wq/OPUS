@@ -964,6 +964,7 @@ declare(strict_types=1);
 
 require dirname(__DIR__, 3) . '/vendor/autoload.php';
 
+use Opus\Profiler\Profiler;
 use Opus\Template\ScoreTemplateRenderer;
 
 $siteRoot = dirname(__DIR__);
@@ -1075,11 +1076,57 @@ function opus_locale_sort_key(string $locale): string
     return $sortKeys[$locale] ?? $locale;
 }
 
+function opus_starter_profiler_requested(): bool
+{
+    return (($_GET['profiler'] ?? '') === '1') || (getenv('OPUS_PROFILER') === '1');
+}
+
+function opus_starter_profiler_start(string $siteRoot, string $path): ?Profiler
+{
+    if (!opus_starter_profiler_requested()) {
+        return null;
+    }
+
+    $profiler = new Profiler($siteRoot . '/var/profiler');
+    $profiler->start();
+    $profiler->event('request', 'request.received', [
+        'path' => $path,
+        'method' => (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'),
+    ]);
+
+    return $profiler;
+}
+
+function opus_starter_profiler_event(?Profiler $profiler, string $category, string $name, array $context = []): void
+{
+    if ($profiler === null) {
+        return;
+    }
+
+    $profiler->event($category, $name, $context);
+}
+
+function opus_starter_profiler_stop(?Profiler $profiler, array $summary = []): void
+{
+    if ($profiler === null) {
+        return;
+    }
+
+    $profiler->stop($summary);
+}
+
+$profiler = null;
+
 try {
+    $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+    $profiler = opus_starter_profiler_start($siteRoot, $path);
+
     $siteConfig = opus_read_json($siteRoot . '/application/config/site.json');
     $routesConfig = opus_read_json($siteRoot . '/application/config/routes.json');
-
-    $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+    opus_starter_profiler_event($profiler, 'config', 'config.loaded', [
+        'site_id' => (string) ($siteConfig['site_id'] ?? ''),
+        'route_count' => is_countable($routesConfig['routes'] ?? null) ? count($routesConfig['routes']) : 0,
+    ]);
     $route = null;
     foreach (($routesConfig['routes'] ?? []) as $candidate) {
         if (($candidate['path'] ?? null) === $path) {
@@ -1089,14 +1136,34 @@ try {
     }
 
     if (!is_array($route)) {
+        opus_starter_profiler_event($profiler, 'route', 'route.not_found', [
+            'path' => $path,
+        ]);
+        opus_starter_profiler_stop($profiler, [
+            'status' => 404,
+            'error' => 'OPUS_STARTER_ROUTE_NOT_FOUND',
+            'path' => $path,
+        ]);
         http_response_code(404);
         header('Content-Type: text/plain; charset=UTF-8');
         echo 'OPUS_STARTER_ROUTE_NOT_FOUND';
         exit;
     }
 
+    opus_starter_profiler_event($profiler, 'route', 'route.matched', [
+        'route_id' => (string) ($route['id'] ?? ''),
+        'page' => (string) ($route['page'] ?? ''),
+        'template' => (string) ($route['template'] ?? ''),
+    ]);
+
     $locales = $siteConfig['locales'] ?? [];
     if (!is_array($locales)) {
+        opus_starter_profiler_event($profiler, 'locale', 'locale.contract_invalid');
+        opus_starter_profiler_stop($profiler, [
+            'status' => 500,
+            'error' => 'OPUS_STARTER_LOCALES_CONTRACT_INVALID',
+            'path' => $path,
+        ]);
         http_response_code(500);
         header('Content-Type: text/plain; charset=UTF-8');
         echo 'OPUS_STARTER_LOCALES_CONTRACT_INVALID';
@@ -1117,11 +1184,24 @@ try {
     }
 
     if (!in_array($lang, $locales, true)) {
+        opus_starter_profiler_event($profiler, 'locale', 'locale.unavailable', [
+            'requested_locale' => $lang,
+        ]);
+        opus_starter_profiler_stop($profiler, [
+            'status' => 400,
+            'error' => 'OPUS_STARTER_LOCALE_UNAVAILABLE',
+            'path' => $path,
+            'locale' => $lang,
+        ]);
         http_response_code(400);
         header('Content-Type: text/plain; charset=UTF-8');
         echo 'OPUS_STARTER_LOCALE_UNAVAILABLE';
         exit;
     }
+
+    opus_starter_profiler_event($profiler, 'locale', 'locale.selected', [
+        'locale' => $lang,
+    ]);
 
     if ($queryLocale !== '') {
         setcookie('opus_starter_lang', $lang, [
@@ -1132,6 +1212,10 @@ try {
     }
 
     $i18n = opus_read_json($siteRoot . '/resources/i18n/' . $lang . '.json');
+    opus_starter_profiler_event($profiler, 'i18n', 'dictionary.loaded', [
+        'locale' => $lang,
+        'key_count' => count($i18n),
+    ]);
     $currentPageId = (string) ($route['page'] ?? '');
     $page = opus_starter_page_from_i18n($i18n, $currentPageId, (string) ($siteConfig['site_id'] ?? ''));
 
@@ -1176,6 +1260,9 @@ try {
         $menuHtml .= $renderer->render('application/common/templates/components/menu-item.score', $menuData);
     }
     $pageData['common']['menu'] = $menuHtml;
+    opus_starter_profiler_event($profiler, 'template', 'menu.rendered', [
+        'bytes' => strlen($menuHtml),
+    ]);
 
     $languageOptions = '';
     foreach ($locales as $locale) {
@@ -1207,16 +1294,43 @@ try {
         $rubricCards .= $renderer->render('application/common/templates/components/rubric-card.score', $rubricData);
     }
     $pageData['home']['rubric_cards'] = $rubricCards;
+    opus_starter_profiler_event($profiler, 'template', 'rubric_cards.rendered', [
+        'bytes' => strlen($rubricCards),
+    ]);
     $pageData['common']['powered_by'] = $renderer->render('application/common/templates/components/powered-by-opus.score', $pageData);
 
     $template = str_replace('\\', '/', (string) ($route['template'] ?? ''));
     $pageData['content'] = $renderer->render($template, $pageData);
+    opus_starter_profiler_event($profiler, 'template', 'page_template.rendered', [
+        'template' => $template,
+        'bytes' => strlen($pageData['content']),
+    ]);
     $pageData['common']['header'] = $renderer->render('application/common/templates/components/header.score', $pageData);
     $pageData['common']['footer'] = $renderer->render('application/common/templates/components/footer.score', $pageData);
 
+    $layoutHtml = $renderer->render('application/common/templates/layout.score', $pageData);
+    opus_starter_profiler_event($profiler, 'template', 'layout.rendered', [
+        'template' => 'application/common/templates/layout.score',
+        'bytes' => strlen($layoutHtml),
+    ]);
+    opus_starter_profiler_stop($profiler, [
+        'status' => 200,
+        'path' => $path,
+        'route_id' => (string) ($route['id'] ?? ''),
+        'locale' => $lang,
+    ]);
+
     header('Content-Type: text/html; charset=UTF-8');
-    echo $renderer->render('application/common/templates/layout.score', $pageData);
+    echo $layoutHtml;
 } catch (Throwable $exception) {
+    opus_starter_profiler_event($profiler, 'response', 'response.failed', [
+        'exception' => get_class($exception),
+        'message' => $exception->getMessage(),
+    ]);
+    opus_starter_profiler_stop($profiler, [
+        'status' => 500,
+        'error' => 'OPUS_STARTER_RENDER_FAILED',
+    ]);
     http_response_code(500);
     header('Content-Type: text/plain; charset=UTF-8');
     echo 'OPUS_STARTER_RENDER_FAILED: ' . $exception->getMessage();
