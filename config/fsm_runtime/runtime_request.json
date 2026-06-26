@@ -1,0 +1,28 @@
+{
+    "schema": "OPUS_FSM_RUNTIME_V1",
+    "id": "runtime_request",
+    "initial_state": "REQUEST_START",
+    "final_states": [
+        "RESPONSE_READY"
+    ],
+    "transitions": [
+        {
+            "from": "REQUEST_START",
+            "signal": "request.normalized",
+            "to": "REQUEST_READY",
+            "collector": "request"
+        },
+        {
+            "from": "REQUEST_READY",
+            "signal": "application.resolved",
+            "to": "APPLICATION_READY",
+            "collector": "routing"
+        },
+        {
+            "from": "APPLICATION_READY",
+            "signal": "route.dispatched",
+            "to": "RESPONSE_READY",
+            "collector": "routing"
+        }
+    ]
+}

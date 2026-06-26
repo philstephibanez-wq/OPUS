@@ -1,0 +1,28 @@
+{
+    "schema": "OPUS_FSM_RUNTIME_V1",
+    "id": "runtime_boot",
+    "initial_state": "BOOT_START",
+    "final_states": [
+        "BOOT_READY"
+    ],
+    "transitions": [
+        {
+            "from": "BOOT_START",
+            "signal": "diagnostics.registered",
+            "to": "BOOT_DIAGNOSTICS_READY",
+            "collector": "runtime"
+        },
+        {
+            "from": "BOOT_DIAGNOSTICS_READY",
+            "signal": "framework.loaded",
+            "to": "BOOT_FRAMEWORK_READY",
+            "collector": "runtime"
+        },
+        {
+            "from": "BOOT_FRAMEWORK_READY",
+            "signal": "kernel.started",
+            "to": "BOOT_READY",
+            "collector": "runtime"
+        }
+    ]
+}

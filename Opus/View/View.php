@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Opus\View;
 
-use Opus\Kernel;
+use Opus\Runtime\Kernel;
 
 use Opus\I18n\I18n;
 

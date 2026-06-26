@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace Opus\Runtime;
 
-
 use Opus\Http\Response;
 use Opus\Http\Request;
+use Opus\Runtime\Diagnostics\PhpErrorInterceptor;
 
 /**
  * Runtime bootstrap entry point for the modern Composer-driven OPUS kernel.
@@ -16,6 +16,8 @@ final class Bootstrap
  implements BootstrapInterface {
     public static function run(string $rootDir): void
     {
+        self::loadDiagnostics($rootDir);
+        PhpErrorInterceptor::register($rootDir);
         self::loadFramework($rootDir);
 
         try {
@@ -26,19 +28,58 @@ final class Bootstrap
         }
     }
 
+    private static function loadDiagnostics(string $rootDir): void
+    {
+        foreach ([
+            'Framework/OpusFrameworkComponentInterface.php',
+            'Framework/OpusExceptionAwareInterface.php',
+            'Framework/OpusExceptionContractInterface.php',
+            'Runtime/Diagnostics/PhpErrorExceptionInterface.php',
+            'Runtime/Diagnostics/PhpErrorException.php',
+            'Runtime/Diagnostics/ThrowableNormalizerInterface.php',
+            'Runtime/Diagnostics/ThrowableNormalizer.php',
+            'Runtime/Diagnostics/PhpErrorInterceptorInterface.php',
+            'Runtime/Diagnostics/PhpErrorInterceptor.php',
+        ] as $file) {
+            require_once $rootDir . '/Opus/' . $file;
+        }
+    }
+
     private static function loadFramework(string $rootDir): void
     {
         foreach ([
+            'Framework/OpusProfilerAwareInterface.php',
+            'Framework/OpusSelfDocumentingInterface.php',
             'Foundation/Support.php',
+            'Http/RequestInterface.php',
             'Http/Request.php',
+            'Http/ResponseInterface.php',
             'Http/Response.php',
+            'Application/ApplicationDefinitionInterface.php',
             'Application/ApplicationDefinition.php',
+            'Application/ApplicationRegistryInterface.php',
             'Application/ApplicationRegistry.php',
+            'I18n/I18nInterface.php',
             'I18n/I18n.php',
+            'View/ViewInterface.php',
             'View/View.php',
+            'Security/AclInterface.php',
             'Security/Acl.php',
-            'FSM/Fsm.php',
+            'Profiler/TraceInterface.php',
+            'Profiler/Trace.php',
+            'Profiler/ProfilerInterface.php',
+            'Profiler/Profiler.php',
+            'Profiler/TraceFileRepositoryInterface.php',
+            'Profiler/TraceFileRepository.php',
+            'Fsm/Runtime/FsmRuntimeConfigLoaderInterface.php',
+            'Fsm/Runtime/FsmRuntimeConfigLoader.php',
+            'Profiler/WebProfilerViewInterface.php',
+            'Profiler/WebProfilerView.php',
+            'Profiler/WebProfilerControllerInterface.php',
+            'Profiler/WebProfilerController.php',
+            'Routing/RouterInterface.php',
             'Routing/Router.php',
+            'Runtime/KernelInterface.php',
             'Runtime/Kernel.php',
         ] as $file) {
             require_once $rootDir . '/Opus/' . $file;

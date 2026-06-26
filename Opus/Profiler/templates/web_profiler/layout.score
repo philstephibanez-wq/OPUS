@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }}</title>
+<style>
+:root{--bg:#10131a;--panel:#171b25;--panel2:#202636;--line:#30384d;--txt:#eef3ff;--muted:#9ba7bd;--accent:#7cc7ff;--danger:#ff8a8a;--ok:#7dffa7}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif}a{color:var(--accent);text-decoration:none}.shell{display:grid;grid-template-columns:280px 1fr;min-height:100vh}.side{background:#0b0e14;border-right:1px solid var(--line);padding:22px;position:sticky;top:0;height:100vh;overflow:auto}.brand{font-size:22px;font-weight:800;letter-spacing:.04em}.muted{color:var(--muted)}.menu{display:flex;flex-direction:column;gap:8px;margin-top:22px}.menu a,.pill{display:flex;justify-content:space-between;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px}.main{padding:28px;overflow:auto}.hero{background:linear-gradient(135deg,#182033,#141925);border:1px solid var(--line);border-radius:20px;padding:24px;margin-bottom:22px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:18px}.table{width:100%;border-collapse:collapse}.table th,.table td{border-bottom:1px solid var(--line);padding:10px;vertical-align:top;text-align:left}.table th{color:var(--muted);font-size:12px;text-transform:uppercase}.code{white-space:pre-wrap;background:#090b10;border:1px solid var(--line);border-radius:10px;padding:10px;color:#dbe7ff;max-height:260px;overflow:auto}.badge{display:inline-flex;border-radius:999px;padding:4px 9px;background:var(--panel2);border:1px solid var(--line);font-size:12px}.ok{color:var(--ok)}.danger{color:var(--danger)}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="side">
+  <div class="brand">OPUS Profiler</div>
+  <p class="muted">Web profiler OPUS généré via template .score.</p>
+  <nav class="menu">
+    <a href="/_opus/profiler">Traces <span>index</span></a>
+    [[ foreach: panels as panel ]]
+    <a href="#{{ panel.id }}">{{ panel.label }} <span>{{ panel.count }}</span></a>
+    [[ endforeach ]]
+  </nav>
+  <h3>FSM runtime config</h3>
+  <div class="menu">
+    [[ foreach: fsm_maps as map ]]
+    <span class="pill">{{ map.id }}</span>
+    [[ endforeach ]]
+  </div>
+</aside>
+<main class="main">
+  <section class="hero">
+    <p class="badge">{{ mode }}</p>
+    <h1>{{ title }}</h1>
+    [[ if: has_trace ]]
+    <div class="grid">
+      <div class="panel"><strong>Trace</strong><br>{{ trace.trace_id }}</div>
+      <div class="panel"><strong>Démarrage</strong><br>{{ trace.started_at }}</div>
+      <div class="panel"><strong>Durée</strong><br>{{ trace.duration_ms }} ms</div>
+      <div class="panel"><strong>Events</strong><br>{{ trace.event_count }}</div>
+    </div>
+    [[ endif ]]
+  </section>
+
+  [[ if: has_trace ]]
+    [[ foreach: panels as panel ]]
+    <section class="panel" id="{{ panel.id }}">
+      <h2>{{ panel.label }} <span class="badge">{{ panel.count }}</span></h2>
+      <table class="table">
+        <thead><tr><th>#</th><th>Temps</th><th>+ms</th><th>Nom</th><th>Contexte</th></tr></thead>
+        <tbody>
+        [[ foreach: panel.events as event ]]
+          <tr><td>{{ event.index }}</td><td>{{ event.time }}</td><td>{{ event.elapsed_ms }}</td><td>{{ event.name }}</td><td><pre class="code">{{ event.context_json }}</pre></td></tr>
+        [[ endforeach ]]
+        </tbody>
+      </table>
+    </section>
+    [[ endforeach ]]
+  [[ else ]]
+    <section class="panel">
+      <h2>Traces disponibles</h2>
+      <table class="table">
+        <thead><tr><th>Trace</th><th>Démarrage</th><th>Durée</th><th>Events</th><th>Status</th></tr></thead>
+        <tbody>
+        [[ foreach: traces as item ]]
+          <tr><td><a href="/_opus/profiler/trace/{{ item.trace_id }}">{{ item.trace_id }}</a></td><td>{{ item.started_at }}</td><td>{{ item.duration_ms }}</td><td>{{ item.event_count }}</td><td>{{ item.status }}</td></tr>
+        [[ endforeach ]]
+        </tbody>
+      </table>
+    </section>
+  [[ endif ]]
+</main>
+</div>
+</body>
+</html>

@@ -4,17 +4,14 @@ declare(strict_types=1);
 namespace Opus\Routing;
 
 use Opus\Runtime\Kernel;
-
 use Opus\View\View;
-
-use Opus\FSM\Fsm;
 use Opus\Security\Acl;
 use Opus\Application\ApplicationDefinition;
 use Opus\Foundation\Support;
-
 use Opus\Http\Response;
-
 use Opus\Http\Request;
+use Opus\Profiler\Profiler;
+use Opus\Fsm\Runtime\FsmRuntimeConfigLoader;
 
 /**
  * Runtime router for integrated OPUS applications.
@@ -26,19 +23,22 @@ final class Router
     private Kernel $kernel;
     private View $view;
     private Acl $acl;
-    private Fsm $fsm;
+    private Profiler $profiler;
+    private FsmRuntimeConfigLoader $fsmRuntimeConfigLoader;
 
-    public function __construct(Kernel $kernel, View $view, Acl $acl, Fsm $fsm)
+    public function __construct(Kernel $kernel, View $view, Acl $acl, Profiler $profiler, FsmRuntimeConfigLoader $fsmRuntimeConfigLoader)
     {
         $this->kernel = $kernel;
         $this->view = $view;
         $this->acl = $acl;
-        $this->fsm = $fsm;
+        $this->profiler = $profiler;
+        $this->fsmRuntimeConfigLoader = $fsmRuntimeConfigLoader;
     }
 
     /** @param list<string> $segments */
     public function dispatch(ApplicationDefinition $application, array $segments, Request $request): Response
     {
+        $this->profiler->event('routing', 'dispatch.start', ['application' => $application->slug, 'segments' => $segments]);
         $routes = $application->routes();
 
         if (($segments[0] ?? '') === 'api') {
@@ -56,6 +56,7 @@ final class Router
         $routeKey = implode('/', $routeSegments);
         $langRoutes = (array)($routes[$lang] ?? []);
         $pageId = (string)($langRoutes[$routeKey] ?? '');
+        $this->profiler->event('routing', 'route.resolved', ['lang' => $lang, 'route' => $routeKey, 'page_id' => $pageId]);
 
         if ($pageId === '') {
             return $this->notFound($application, $lang, $request, $routeKey);
@@ -68,20 +69,26 @@ final class Router
         }
 
         if (!$this->acl->canView($page)) {
+            $this->profiler->event('routing', 'acl.forbidden', ['page_id' => $pageId]);
             return Response::html('<h1>403</h1><p>Forbidden</p>', 403);
         }
 
         if ($pageId === 'fsm') {
-            $page['flow'] = $this->fsm->demoFlow($lang);
+            $page['flow'] = $this->fsmRuntimeConfigLoader->flowForDisplay('runtime_request');
+            $this->profiler->event('runtime', 'fsm_runtime_config.loaded', ['id' => 'runtime_request']);
         }
 
-        return Response::html($this->view->render($application, $lang, $pageId, $page));
+        $this->profiler->event('template', 'view.render.start', ['page_id' => $pageId]);
+        $html = $this->view->render($application, $lang, $pageId, $page);
+        $this->profiler->event('template', 'view.render.done', ['page_id' => $pageId]);
+        return Response::html($html);
     }
 
     /** @param list<string> $segments */
     private function dispatchApi(ApplicationDefinition $application, array $segments, Request $request): Response
     {
         $endpoint = implode('/', $segments);
+        $this->profiler->event('routing', 'api.dispatch', ['application' => $application->slug, 'endpoint' => $endpoint]);
         if ($application->slug === 'demo' && $endpoint === 'ping') {
             return Response::json([
                 'ok' => true,
@@ -122,6 +129,7 @@ final class Router
 
     private function notFound(ApplicationDefinition $application, string $lang, Request $request, string $routeKey): Response
     {
+        $this->profiler->event('routing', 'route.not_found', ['path' => $request->path, 'route' => $routeKey]);
         $route = Support::e($routeKey);
         $path = Support::e($request->path);
         $home = $this->kernel->applicationUrl($application->slug, '', $lang);
