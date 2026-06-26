@@ -28,7 +28,7 @@ namespace Opus\Form;
  *   P112D4B
  */
 final class FormError
-{
+ implements FormErrorInterface {
     public function __construct(
         public readonly string $field,
         public readonly string $code

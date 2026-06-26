@@ -6,7 +6,7 @@
  *
  * Adds helper behavior around SimpleXML for OPUS XML processing.
  */
-class OPUS_SimpleXMLElementExtended extends SimpleXMLElement{
+class OPUS_SimpleXMLElementExtended extends SimpleXMLElement implements OPUS_SimpleXMLElementExtendedInterface {
 
 		public function getAttribute($name){
 		    $attrs = $this->attributes();

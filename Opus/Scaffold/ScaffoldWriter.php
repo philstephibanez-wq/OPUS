@@ -14,7 +14,7 @@ use Opus\Console\OpusConsoleException;
  * - target root must not already exist unless caller plan is designed for an existing site.
  */
 final class ScaffoldWriter
-{
+ implements ScaffoldWriterInterface {
     public function __construct(private readonly string $opusRoot)
     {
     }

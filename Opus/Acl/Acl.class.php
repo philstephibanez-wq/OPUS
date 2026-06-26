@@ -6,7 +6,7 @@
  *
  * Provides access-control checks for OPUS resources and roles.
  */
-class Acl {
+class Acl  implements AclInterface {
 
     protected static $_instance = NULL;     // php5.3
     protected $_resources = array();

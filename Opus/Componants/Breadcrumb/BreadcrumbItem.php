@@ -42,7 +42,7 @@ use Opus\RefBook\Contract\RefBookInspectableInterface;
  * Stores the label, URL and active state used by breadcrumb builders and view rendering.
  */
 final class BreadcrumbItem implements RefBookInspectableInterface
-{
+, BreadcrumbItemInterface {
     #[OpusRefBookMethod(
         role: 'Create one explicit breadcrumb item',
         behavior: 'Stores one label/link/current tuple after validating that it is render-ready.',

@@ -6,7 +6,7 @@
  *
  * Resolves the current site context for OPUS runtime execution.
  */
-class OPUS_SITE_SiteResolver {
+class OPUS_SITE_SiteResolver  implements OPUS_SITE_SiteResolverInterface {
     public static function resolve($packagesConfig, string $defaultSiteId = 'logandplay', string $basePath = '', ?array &$catalog = null): OPUS_SITE_Site {
         $packages = is_array($packagesConfig) ? $packagesConfig : array();
         $host = self::detectHost();

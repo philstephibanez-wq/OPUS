@@ -22,7 +22,7 @@ use Opus\Http\Request;
  * Resolves page routes and API endpoints from application definitions, applies access control and delegates HTML rendering to the view layer.
  */
 final class Router
-{
+ implements RouterInterface {
     private Kernel $kernel;
     private View $view;
     private Acl $acl;

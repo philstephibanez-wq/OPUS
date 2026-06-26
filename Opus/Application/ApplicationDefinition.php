@@ -9,7 +9,7 @@ namespace Opus\Application;
  * Describes the application identifier, title, base path, menu entries, routes, API endpoints and access policy used by the runtime kernel.
  */
 final class ApplicationDefinition
-{
+ implements ApplicationDefinitionInterface {
     public string $slug;
     public string $name;
     public string $dir;

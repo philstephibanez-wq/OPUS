@@ -14,7 +14,7 @@
  * Represents framework-specific exceptions raised by OPUS runtime components.
  */
 class OPUS_Exception extends Exception
-{
+ implements OPUS_ExceptionInterface {
     /**
      * @var null|Exception
      */

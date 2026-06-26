@@ -31,7 +31,7 @@ namespace Opus\Form;
  *   P112D4B
  */
 final class FormField
-{
+ implements FormFieldInterface {
     public function __construct(
         public readonly string $name,
         public readonly string $type = 'text',

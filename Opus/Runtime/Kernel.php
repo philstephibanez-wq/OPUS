@@ -23,7 +23,7 @@ use Opus\Http\Request;
  * Coordinates application registry, I18N, routing, ACL, FSM and URL generation for integrated OPUS applications.
  */
 final class Kernel
-{
+ implements KernelInterface {
     private string $rootDir;
     private ApplicationRegistry $applications;
     private I18n $i18n;

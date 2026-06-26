@@ -17,7 +17,7 @@ interface OPUS_CONTROLLER_iController {
  *
  * Provides the base controller surface used by OPUS runtime dispatch and application pages.
  */
-class  OPUS_Controller implements OPUS_CONTROLLER_iController {
+class  OPUS_Controller implements OPUS_CONTROLLER_iController , OPUS_ControllerInterface {
         public $response;
         private static $_instance = null;     // php5.3
         protected $_app = null;

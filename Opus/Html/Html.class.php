@@ -6,7 +6,7 @@
  *
  * Builds HTML fragments for OPUS rendering surfaces.
  */
-class OPUS_Html_Html {
+class OPUS_Html_Html  implements OPUS_Html_HtmlInterface {
 	protected $_app = null;
 	protected $_i18n = null;
 	protected $_controller=null;

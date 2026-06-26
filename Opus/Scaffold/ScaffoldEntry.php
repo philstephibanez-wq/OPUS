@@ -7,7 +7,7 @@ namespace Opus\Scaffold;
  * Single scaffold entry.
  */
 final class ScaffoldEntry
-{
+ implements ScaffoldEntryInterface {
     public const TYPE_DIRECTORY = 'directory';
     public const TYPE_FILE = 'file';
 

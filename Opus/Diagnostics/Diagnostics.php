@@ -17,7 +17,7 @@ use Opus\Profiler\Profiler;
  * - contains no project-specific business logic.
  */
 final class Diagnostics
-{
+ implements DiagnosticsInterface {
     /** @var array<int,object> */
     private static array $logs = [];
     private static string $root = '../';

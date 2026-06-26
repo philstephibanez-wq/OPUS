@@ -1,0 +1,540 @@
+{
+    "schema": "P7A1C_BIG_TOKENIZER_EXCEPTION_PROFILER_CONTRACT_MAP_V1",
+    "summary": {
+        "php_files": 79,
+        "class_like_total": 80,
+        "classes_total": 75,
+        "classes_concrete": 71,
+        "classes_abstract_exempt": 4,
+        "interfaces_existing_total": 5,
+        "traits_total": 0,
+        "interfaces_created": 71,
+        "classes_patched": 71,
+        "existing_interfaces_preserved": 0,
+        "php_lint_errors": 0
+    },
+    "classes": [
+        {
+            "fqcn": "Acl",
+            "file": "Opus/Acl/Acl.class.php",
+            "target_interface": "Opus/Acl/AclInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "ACL_Resource",
+            "file": "Opus/Acl/Acl_Resource.class.php",
+            "target_interface": "Opus/Acl/ACL_ResourceInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "ACL_Role",
+            "file": "Opus/Acl/Acl_Role.class.php",
+            "target_interface": "Opus/Acl/ACL_RoleInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "ACL_roles",
+            "file": "Opus/Acl/Roles.class.php",
+            "target_interface": "Opus/Acl/ACL_rolesInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Application\\ApplicationDefinition",
+            "file": "Opus/Application/ApplicationDefinition.php",
+            "target_interface": "Opus/Application/ApplicationDefinitionInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Application\\ApplicationRegistry",
+            "file": "Opus/Application/ApplicationRegistry.php",
+            "target_interface": "Opus/Application/ApplicationRegistryInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Breadcrumb\\BreadcrumbItem",
+            "file": "Opus/Componants/Breadcrumb/BreadcrumbItem.php",
+            "target_interface": "Opus/Componants/Breadcrumb/BreadcrumbItemInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Breadcrumb\\RouterBreadcrumbBuilder",
+            "file": "Opus/Componants/Breadcrumb/RouterBreadcrumbBuilder.php",
+            "target_interface": "Opus/Componants/Breadcrumb/RouterBreadcrumbBuilderInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Form\\FormDefinition",
+            "file": "Opus/Componants/Form/FormDefinition.php",
+            "target_interface": "Opus/Componants/Form/FormDefinitionInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Form\\FormError",
+            "file": "Opus/Componants/Form/FormError.php",
+            "target_interface": "Opus/Componants/Form/FormErrorInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Form\\FormException",
+            "file": "Opus/Componants/Form/FormException.php",
+            "target_interface": "Opus/Componants/Form/FormExceptionInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Form\\FormField",
+            "file": "Opus/Componants/Form/FormField.php",
+            "target_interface": "Opus/Componants/Form/FormFieldInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Form\\FormValidationResult",
+            "file": "Opus/Componants/Form/FormValidationResult.php",
+            "target_interface": "Opus/Componants/Form/FormValidationResultInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Form\\FormValidator",
+            "file": "Opus/Componants/Form/FormValidator.php",
+            "target_interface": "Opus/Componants/Form/FormValidatorInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Form\\SubmittedForm",
+            "file": "Opus/Componants/Form/SubmittedForm.php",
+            "target_interface": "Opus/Componants/Form/SubmittedFormInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_LINK_Link",
+            "file": "Opus/Componants/Link/Link.class.php",
+            "target_interface": "Opus/Componants/Link/OPUS_LINK_LinkInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Link\\Link",
+            "file": "Opus/Componants/Link/Link.php",
+            "target_interface": "Opus/Componants/Link/LinkInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_MENU_Menu",
+            "file": "Opus/Componants/Menu/Menu.class.php",
+            "target_interface": "Opus/Componants/Menu/OPUS_MENU_MenuInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Menu\\Menu",
+            "file": "Opus/Componants/Menu/Menu.php",
+            "target_interface": "Opus/Componants/Menu/MenuInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Menu\\MenuException",
+            "file": "Opus/Componants/Menu/MenuException.php",
+            "target_interface": "Opus/Componants/Menu/MenuExceptionInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Menu\\MenuItem",
+            "file": "Opus/Componants/Menu/MenuItem.php",
+            "target_interface": "Opus/Componants/Menu/MenuItemInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Menu\\MenuTree",
+            "file": "Opus/Componants/Menu/MenuTree.php",
+            "target_interface": "Opus/Componants/Menu/MenuTreeInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_ConfigLoader",
+            "file": "Opus/Config/ConfigLoader.class.php",
+            "target_interface": "Opus/Config/OPUS_ConfigLoaderInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Route_Object",
+            "file": "Opus/Config/Configuration.class.php",
+            "target_interface": "Opus/Config/Route_ObjectInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_Configuration",
+            "file": "Opus/Config/Configuration.class.php",
+            "target_interface": "Opus/Config/OPUS_ConfigurationInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Console\\OpusConsoleException",
+            "file": "Opus/Console/OpusConsoleException.php",
+            "target_interface": "Opus/Console/OpusConsoleExceptionInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_Controller",
+            "file": "Opus/Controller/Controller.class.php",
+            "target_interface": "Opus/Controller/OPUS_ControllerInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_BDD_Database",
+            "file": "Opus/Db/Database.class.php",
+            "target_interface": "Opus/Db/OPUS_BDD_DatabaseInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_BDD_Mysql",
+            "file": "Opus/Db/Mysql.class.php",
+            "target_interface": "Opus/Db/OPUS_BDD_MysqlInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_adodb5",
+            "file": "Opus/Db/adodb5.class.php",
+            "target_interface": "Opus/Db/OPUS_adodb5Interface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Diagnostics\\Diagnostics",
+            "file": "Opus/Diagnostics/Diagnostics.php",
+            "target_interface": "Opus/Diagnostics/DiagnosticsInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_Exception",
+            "file": "Opus/Exception/Exception.class.php",
+            "target_interface": "Opus/Exception/OPUS_ExceptionInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Foundation\\Support",
+            "file": "Opus/Foundation/Support.php",
+            "target_interface": "Opus/Foundation/SupportInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_FSM_Diagram",
+            "file": "Opus/Fsm/Diagram.class.php",
+            "target_interface": "Opus/Fsm/OPUS_FSM_DiagramInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Transition",
+            "file": "Opus/Fsm/Fsm.class.php",
+            "target_interface": "Opus/Fsm/TransitionInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_FSM_GraphViz",
+            "file": "Opus/Fsm/Fsm.class.php",
+            "target_interface": "Opus/Fsm/OPUS_FSM_GraphVizInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_FSM_Fsm",
+            "file": "Opus/Fsm/Fsm.class.php",
+            "target_interface": "Opus/Fsm/OPUS_FSM_FsmInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_FSM_Program",
+            "file": "Opus/Fsm/Program.class.php",
+            "target_interface": "Opus/Fsm/OPUS_FSM_ProgramInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_HELPER_Helper",
+            "file": "Opus/Helper/Helper.class.php",
+            "target_interface": "Opus/Helper/OPUS_HELPER_HelperInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_Html_Html",
+            "file": "Opus/Html/Html.class.php",
+            "target_interface": "Opus/Html/OPUS_Html_HtmlInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Http\\Request",
+            "file": "Opus/Http/Request.php",
+            "target_interface": "Opus/Http/RequestInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Http\\Response",
+            "file": "Opus/Http/Response.php",
+            "target_interface": "Opus/Http/ResponseInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_I18N_I18n",
+            "file": "Opus/I18n/I18n.class.php",
+            "target_interface": "Opus/I18n/OPUS_I18N_I18nInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\I18n\\I18n",
+            "file": "Opus/I18n/I18n.php",
+            "target_interface": "Opus/I18n/I18nInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Log\\Logger",
+            "file": "Opus/Log/Logger.php",
+            "target_interface": "Opus/Log/LoggerInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_Mail",
+            "file": "Opus/Mail/Mail.class.php",
+            "target_interface": "Opus/Mail/OPUS_MailInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_PhpMailer",
+            "file": "Opus/Mail/PhpMailer.class.php",
+            "target_interface": "Opus/Mail/OPUS_PhpMailerInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_MODEL_Model",
+            "file": "Opus/Model/Model.class.php",
+            "target_interface": "Opus/Model/OPUS_MODEL_ModelInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Profiler\\Profiler",
+            "file": "Opus/Profiler/Profiler.php",
+            "target_interface": "Opus/Profiler/ProfilerInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Profiler\\Trace",
+            "file": "Opus/Profiler/Trace.php",
+            "target_interface": "Opus/Profiler/TraceInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_Router",
+            "file": "Opus/Router/Router.class.php",
+            "target_interface": "Opus/Router/OPUS_RouterInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Routing\\Router",
+            "file": "Opus/Routing/Router.php",
+            "target_interface": "Opus/Routing/RouterInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_Application",
+            "file": "Opus/Runtime/Application.php",
+            "target_interface": "Opus/Runtime/OPUS_ApplicationInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Runtime\\Bootstrap",
+            "file": "Opus/Runtime/Bootstrap.php",
+            "target_interface": "Opus/Runtime/BootstrapInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Runtime\\Kernel",
+            "file": "Opus/Runtime/Kernel.php",
+            "target_interface": "Opus/Runtime/KernelInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Scaffold\\FullstackApplicationScaffoldPlan",
+            "file": "Opus/Scaffold/FullstackApplicationScaffoldPlan.php",
+            "target_interface": "Opus/Scaffold/FullstackApplicationScaffoldPlanInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Scaffold\\ScaffoldEntry",
+            "file": "Opus/Scaffold/ScaffoldEntry.php",
+            "target_interface": "Opus/Scaffold/ScaffoldEntryInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Scaffold\\ScaffoldWriter",
+            "file": "Opus/Scaffold/ScaffoldWriter.php",
+            "target_interface": "Opus/Scaffold/ScaffoldWriterInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Scaffold\\SiteScaffoldPlan",
+            "file": "Opus/Scaffold/SiteScaffoldPlan.php",
+            "target_interface": "Opus/Scaffold/SiteScaffoldPlanInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Template\\ScoreTemplateRenderer",
+            "file": "Opus/Score/ScoreTemplateRenderer.php",
+            "target_interface": "Opus/Score/ScoreTemplateRendererInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Template\\TemplateException",
+            "file": "Opus/Score/TemplateException.php",
+            "target_interface": "Opus/Score/TemplateExceptionInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\Security\\Acl",
+            "file": "Opus/Security/Acl.php",
+            "target_interface": "Opus/Security/AclInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_SITE_Site",
+            "file": "Opus/Site/Site.class.php",
+            "target_interface": "Opus/Site/OPUS_SITE_SiteInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_SITE_SiteResolver",
+            "file": "Opus/Site/SiteResolver.class.php",
+            "target_interface": "Opus/Site/OPUS_SITE_SiteResolverInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "SMTP4PHP\\User",
+            "file": "Opus/Smtp/Smtp.class.php",
+            "target_interface": "Opus/Smtp/UserInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "SMTP4PHP\\eMail",
+            "file": "Opus/Smtp/Smtp.class.php",
+            "target_interface": "Opus/Smtp/eMailInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "SMTP4PHP\\SMTP",
+            "file": "Opus/Smtp/Smtp.class.php",
+            "target_interface": "Opus/Smtp/SMTPInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_Url_Url",
+            "file": "Opus/Url/Url.class.php",
+            "target_interface": "Opus/Url/OPUS_Url_UrlInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_Validator",
+            "file": "Opus/Validation/Validator.class.php",
+            "target_interface": "Opus/Validation/OPUS_ValidatorInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Opus\\View\\View",
+            "file": "Opus/View/View.php",
+            "target_interface": "Opus/View/ViewInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "OPUS_SimpleXMLElementExtended",
+            "file": "Opus/Xml/SimpleXMLElementExtended.class.php",
+            "target_interface": "Opus/Xml/OPUS_SimpleXMLElementExtendedInterface.php",
+            "status": "CONCRETE_INTERFACE_AND_IMPLEMENTS_REQUIRED",
+            "interface_write": "CREATED"
+        },
+        {
+            "fqcn": "Acl_Conditions",
+            "file": "Opus/Acl/Acl_conditions.php",
+            "target_interface": null,
+            "status": "EXEMPT_ABSTRACT_CLASS"
+        },
+        {
+            "fqcn": "OPUS_Singleton",
+            "file": "Opus/Core/Singleton.class.php",
+            "target_interface": null,
+            "status": "EXEMPT_ABSTRACT_CLASS"
+        },
+        {
+            "fqcn": "OPUS_REST_Rest",
+            "file": "Opus/Rest/Rest.class.php",
+            "target_interface": null,
+            "status": "EXEMPT_ABSTRACT_CLASS"
+        },
+        {
+            "fqcn": "SMTP4PHP\\Toolbox",
+            "file": "Opus/Smtp/Smtp.class.php",
+            "target_interface": null,
+            "status": "EXEMPT_ABSTRACT_CLASS"
+        }
+    ],
+    "lint_errors": []
+}

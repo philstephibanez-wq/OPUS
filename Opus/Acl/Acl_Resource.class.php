@@ -6,7 +6,7 @@
  *
  * Represents a protected resource consumed by OPUS ACL checks.
  */
-class ACL_Resource {
+class ACL_Resource  implements ACL_ResourceInterface {
 
     protected $_resourceId;
 

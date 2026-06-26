@@ -31,7 +31,7 @@ namespace Opus\Menu;
  *   P112D4B
  */
 final class MenuTree
-{
+ implements MenuTreeInterface {
     /**
      * @param MenuItem[] $items Menu items.
      */

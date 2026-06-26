@@ -13,7 +13,7 @@ use Opus\Http\Request;
  * Loads the minimal framework surface required by the runtime kernel and converts fatal bootstrap failures into explicit HTTP responses.
  */
 final class Bootstrap
-{
+ implements BootstrapInterface {
     public static function run(string $rootDir): void
     {
         self::loadFramework($rootDir);

@@ -6,7 +6,7 @@
  *
  * Represents a role used by OPUS access-control rules.
  */
-class ACL_Role {
+class ACL_Role  implements ACL_RoleInterface {
 
     protected $_roleId;
 

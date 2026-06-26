@@ -30,7 +30,7 @@ use RuntimeException;
  *   P112D4B
  */
 final class FormException extends RuntimeException
-{
+ implements FormExceptionInterface {
     public static function because(string $code, string $detail = ''): self
     {
         return new self($detail === '' ? $code : $code . ': ' . $detail);

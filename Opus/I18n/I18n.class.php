@@ -6,7 +6,7 @@
  *
  * Loads and resolves translations for OPUS applications.
  */
-class OPUS_I18N_I18n {
+class OPUS_I18N_I18n  implements OPUS_I18N_I18nInterface {
 
     protected static $_instance = null;
     protected $_app = null;

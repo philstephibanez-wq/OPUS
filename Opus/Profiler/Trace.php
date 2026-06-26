@@ -10,7 +10,7 @@ namespace Opus\Profiler;
  * It is intentionally independent from legacy legacy debug.
  */
 final class Trace
-{
+ implements TraceInterface {
     private string $traceId;
     private float $startedAt;
     private ?float $endedAt = null;

@@ -18,7 +18,7 @@
  *
  * Provides validation helpers used by OPUS forms and data-processing code.
  */
-class OPUS_Validator {
+class OPUS_Validator  implements OPUS_ValidatorInterface {
 	protected $_valid = true;
 	protected $_messages = array();
 	protected $_toValidate = null;

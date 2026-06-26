@@ -14,7 +14,7 @@ namespace Opus\Log;
  * - remains independent from legacy legacy debug.
  */
 final class Logger
-{
+ implements LoggerInterface {
     private const LEVELS = ['debug', 'info', 'warning', 'error', 'critical'];
 
     private string $logFile;

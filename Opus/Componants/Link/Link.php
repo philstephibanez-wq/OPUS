@@ -38,7 +38,7 @@ namespace Opus\Link;
  *   P112P1 restores __toString/changeClass/changeId/getBlock/getMode.
  */
 final class Link
-{
+ implements LinkInterface {
     private string $class = '';
     private string $id = '';
 

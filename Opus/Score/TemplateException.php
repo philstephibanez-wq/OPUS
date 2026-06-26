@@ -30,7 +30,7 @@ use RuntimeException;
  *   P112D4C
  */
 final class TemplateException extends RuntimeException
-{
+ implements TemplateExceptionInterface {
     public static function because(string $code, string $detail = ''): self
     {
         return new self($detail === '' ? $code : $code . ': ' . $detail);

@@ -6,7 +6,7 @@
  *
  * Stores site-level configuration and context for OPUS applications.
  */
-class OPUS_SITE_Site {
+class OPUS_SITE_Site  implements OPUS_SITE_SiteInterface {
     protected string $_id;
     protected string $_label;
     protected array $_hosts;

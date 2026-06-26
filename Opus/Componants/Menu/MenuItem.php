@@ -31,7 +31,7 @@ namespace Opus\Menu;
  *   P112D4B
  */
 final class MenuItem
-{
+ implements MenuItemInterface {
     /**
      * @param MenuItem[] $children Child menu entries.
      */

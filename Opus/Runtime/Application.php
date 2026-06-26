@@ -9,7 +9,7 @@ define('TODO', 'red');
  *
  * Owns the boot FSM, site resolution, route bootstrap and request dispatch contract while OPUS progressively migrates toward namespaced runtime services.
  */
-class OPUS_Application {
+class OPUS_Application  implements OPUS_ApplicationInterface {
 
     private const ROUTE_DEBUG_ENABLED = false;
     private const ROUTE_DEBUG_LOG = '/logs/opus_route_debug.log';

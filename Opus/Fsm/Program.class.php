@@ -15,7 +15,7 @@
  *
  * Stores OPUS FSM program definitions and transition data.
  */
-class OPUS_FSM_Program {
+class OPUS_FSM_Program  implements OPUS_FSM_ProgramInterface {
     private string $_id;
     private string $_state;
     private string $_initialState;

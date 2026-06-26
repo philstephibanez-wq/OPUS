@@ -43,7 +43,7 @@ use Opus\Routing\RouteMatch;
  * Builds breadcrumb items from the current application, page route and request path for ScoreTemplate view models.
  */
 final class RouterBreadcrumbBuilder implements RefBookInspectableInterface
-{
+, RouterBreadcrumbBuilderInterface {
     public function __construct(
         private readonly string $homeLabel,
         private readonly string $homeHref

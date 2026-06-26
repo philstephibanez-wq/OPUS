@@ -6,7 +6,7 @@
  *
  * Provides the mail-sending surface used by OPUS pages.
  */
-class OPUS_Mail {
+class OPUS_Mail  implements OPUS_MailInterface {
     public function __construct($params = null, $controller = null) {
         // Historical factory class kept for BC. Use create() for explicit creation.
     }

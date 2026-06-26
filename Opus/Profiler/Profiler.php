@@ -14,7 +14,7 @@ namespace Opus\Profiler;
  * - explicit failure when storage cannot be created or written.
  */
 final class Profiler
-{
+ implements ProfilerInterface {
     private string $storageDir;
     private ?Trace $activeTrace = null;
 

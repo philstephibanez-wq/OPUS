@@ -12,7 +12,7 @@ if (!class_exists('ADOConnection') && defined('ROOT') && is_file(ROOT . '/framew
  *
  * Wraps ADODB-compatible database access for OPUS components.
  */
-class OPUS_adodb5 extends ADOConnection {
+class OPUS_adodb5 extends ADOConnection  implements OPUS_adodb5Interface {
 
     public static function ADONewConnection($adapter) {
         return self::newConnection($adapter);

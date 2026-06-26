@@ -9,7 +9,7 @@ namespace Opus\Http;
  * Stores status code, headers and body content before the front controller sends the response to the client.
  */
 final class Response
-{
+ implements ResponseInterface {
     private string $body;
     private int $status;
     /** @var array<string,string> */

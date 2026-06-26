@@ -8,7 +8,7 @@ define('MODEL_COLOR', 'green');
  *
  * Provides the base data model surface used by OPUS pages.
  */
-class OPUS_MODEL_Model {
+class OPUS_MODEL_Model  implements OPUS_MODEL_ModelInterface {
 
     protected $_app = null;
     protected $_controller = null;

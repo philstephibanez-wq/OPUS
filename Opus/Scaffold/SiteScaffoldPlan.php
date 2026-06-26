@@ -15,7 +15,7 @@ namespace Opus\Scaffold;
  * - never imports external dependencies.
  */
 final class SiteScaffoldPlan implements ScaffoldPlanInterface
-{
+, SiteScaffoldPlanInterface {
     /**
      * Starter pages generated with a new OPUS site.
      *

@@ -105,7 +105,7 @@ abstract class Toolbox {
  *
  * Stores SMTP user data used by the embedded mail workflow.
  */
-class User {
+class User  implements UserInterface {
 
         protected $name;
         protected $email;
@@ -180,7 +180,7 @@ class User {
  *
  * Represents an email message handled by the embedded SMTP implementation.
  */
-class eMail extends Toolbox {
+class eMail extends Toolbox  implements eMailInterface {
         const PRIORITY_LOW = 5;
         const PRIORITY_NORMAL = 3;
         const PRIORITY_HIGH = 1;
@@ -513,7 +513,7 @@ class eMail extends Toolbox {
  *
  * Provides SMTP protocol operations used by OPUS mail delivery.
  */
-class SMTP extends Toolbox {
+class SMTP extends Toolbox  implements SMTPInterface {
         const AUTH_AUTO_DETECT = '';
         const AUTH_CRAM_SHA1 = 'CRAM-SHA1';
         const AUTH_CRAM_MD5 = 'CRAM-MD5';

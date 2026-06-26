@@ -34,7 +34,7 @@ namespace Opus\Menu;
  *   P112D4C
  */
 final class Menu
-{
+ implements MenuInterface {
     /** @var array<int,array{label:string,href:string,active:bool}> */
     private array $items = [];
 

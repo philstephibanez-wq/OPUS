@@ -6,7 +6,7 @@
  *
  * Groups role definitions used by the OPUS ACL layer.
  */
-class ACL_roles {
+class ACL_roles  implements ACL_rolesInterface {
 
     protected $_roles = array();
 

@@ -11,7 +11,7 @@ use Opus\Foundation\Support;
  * Carries the resolved method, URI, query parameters and POST data consumed by routing and application dispatch.
  */
 final class Request
-{
+ implements RequestInterface {
     public string $host;
     public string $method;
     public string $basePath;

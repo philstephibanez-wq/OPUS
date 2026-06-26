@@ -10,7 +10,7 @@ use Opus\Application\ApplicationDefinition;
  * Loads and resolves translations for modern OPUS runtime applications.
  */
 final class I18n
-{
+ implements I18nInterface {
     /** @var array<string,array<string,string>> */
     private array $cache = [];
 

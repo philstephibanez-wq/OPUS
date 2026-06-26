@@ -6,7 +6,7 @@
  *
  * Represents a finite-state-machine transition in the OPUS FSM implementation.
  */
-class Transition {
+class Transition  implements TransitionInterface {
 
     public $signal;
     public $state;
@@ -29,7 +29,7 @@ class Transition {
  *
  * Builds graph representations of OPUS finite-state-machine definitions.
  */
-class OPUS_FSM_GraphViz {
+class OPUS_FSM_GraphViz  implements OPUS_FSM_GraphVizInterface {
     public static function export(&$fsm) {
         throw new OPUS_Exception('GraphViz export has been removed from OPUS PHP 8 demo. Use OPUS_FSM_Diagram instead.');
     }
@@ -57,7 +57,7 @@ define('PROGRAM_COLOR', 'blue');
  *
  * Executes state transitions and guards for OPUS workflow logic.
  */
-class OPUS_FSM_Fsm Implements iFSM {
+class OPUS_FSM_Fsm Implements iFSM , OPUS_FSM_FsmInterface {
 
     protected $_id;
     protected $_currentState;

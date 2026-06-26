@@ -9,7 +9,7 @@ define('HELPER_COLOR', 'blue');
  *
  * Provides shared helper utilities consumed by OPUS runtime components.
  */
-class OPUS_HELPER_Helper {
+class OPUS_HELPER_Helper  implements OPUS_HELPER_HelperInterface {
 	protected $_app = null;
         protected $_controller = null;
 	protected $_i18n = null;

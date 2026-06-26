@@ -8,7 +8,7 @@ define('DBCOLOR', 'lightgray');
  *
  * Implements MySQL-specific behavior for the OPUS database layer.
  */
-class OPUS_BDD_Mysql {
+class OPUS_BDD_Mysql  implements OPUS_BDD_MysqlInterface {
     protected string $_server = '';
     protected string $_user = '';
     protected string $_pass = '';

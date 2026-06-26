@@ -5,7 +5,7 @@
  *
  * Represents a link component used by OPUS rendering surfaces while the framework migrates to namespaced components.
  */
-class OPUS_LINK_Link{
+class OPUS_LINK_Link implements OPUS_LINK_LinkInterface {
     public $_HTMLLink = '';
     private $_url;
     private $_hasAnchor = false;

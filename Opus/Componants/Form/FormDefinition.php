@@ -31,7 +31,7 @@ namespace Opus\Form;
  *   P112D4B
  */
 final class FormDefinition
-{
+ implements FormDefinitionInterface {
     /** @var array<string,FormField> */
     private array $fields = [];
 

@@ -18,7 +18,7 @@ use Opus\Template\ScoreTemplateRenderer;
  * Builds the view model consumed by Score templates, including navigation, language switching, assets, body content and footer data.
  */
 final class View
-{
+ implements ViewInterface {
     private Kernel $kernel;
     private I18n $i18n;
 

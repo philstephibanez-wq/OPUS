@@ -6,7 +6,7 @@
  *
  * Provides the database abstraction surface used by OPUS data-access components.
  */
-class OPUS_BDD_Database {
+class OPUS_BDD_Database  implements OPUS_BDD_DatabaseInterface {
 
     function __construct($params=null) {
         if ($params == null)

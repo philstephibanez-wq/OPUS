@@ -9,7 +9,7 @@ namespace Opus\Foundation;
  * Centralizes small framework-level helpers used by the runtime while keeping application rendering and business logic out of utility code.
  */
 final class Support
-{
+ implements SupportInterface {
     public static function e(string $value): string
     {
         return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');

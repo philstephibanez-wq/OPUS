@@ -28,7 +28,7 @@ namespace Opus\Form;
  *   P112D4B
  */
 final class FormValidationResult
-{
+ implements FormValidationResultInterface {
     /**
      * @param FormError[] $errors Validation errors.
      */

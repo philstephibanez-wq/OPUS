@@ -31,7 +31,7 @@ namespace Opus\Form;
  *   P112D4B
  */
 final class SubmittedForm
-{
+ implements SubmittedFormInterface {
     /**
      * @param array<string,string> $values Submitted values.
      */

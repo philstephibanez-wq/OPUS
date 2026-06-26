@@ -30,7 +30,7 @@ use RuntimeException;
  *   P112D4B
  */
 final class MenuException extends RuntimeException
-{
+ implements MenuExceptionInterface {
     public static function because(string $code, string $detail = ''): self
     {
         return new self($detail === '' ? $code : $code . ': ' . $detail);

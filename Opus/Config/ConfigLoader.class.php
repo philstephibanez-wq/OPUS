@@ -6,7 +6,7 @@
  *
  * Loads configuration data for OPUS runtime surfaces while the framework migrates toward explicit configuration contracts.
  */
-class OPUS_ConfigLoader {
+class OPUS_ConfigLoader  implements OPUS_ConfigLoaderInterface {
     protected ?string $_env = null;
     protected string $_filename = '';
     protected $_xml = null;

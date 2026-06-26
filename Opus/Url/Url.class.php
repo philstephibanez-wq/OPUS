@@ -6,7 +6,7 @@
  *
  * Builds and resolves URLs for OPUS routing and navigation code.
  */
-class OPUS_Url_Url {
+class OPUS_Url_Url  implements OPUS_Url_UrlInterface {
     public $_protocol;
     public $_host;
     public $_path;

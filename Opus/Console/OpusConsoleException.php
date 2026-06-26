@@ -7,5 +7,5 @@ namespace Opus\Console;
  * Explicit OPUS CLI/console exception.
  */
 final class OpusConsoleException extends \RuntimeException
-{
+ implements OpusConsoleExceptionInterface {
 }

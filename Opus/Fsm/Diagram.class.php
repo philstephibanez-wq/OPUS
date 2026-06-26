@@ -6,7 +6,7 @@
  * This replaces the historical GraphViz/dot dependency with a self-contained
  * SVG renderer: no external binary, no exec(), no temporary image file.
  */
-class OPUS_FSM_Diagram {
+class OPUS_FSM_Diagram  implements OPUS_FSM_DiagramInterface {
     private string $_title;
     private string $_initialState;
     private string $_finalState;

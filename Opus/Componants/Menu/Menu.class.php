@@ -6,7 +6,7 @@
  *
  * Builds menu structures used by OPUS runtime references while modern menu classes continue the migration path.
  */
-class OPUS_MENU_Menu {
+class OPUS_MENU_Menu  implements OPUS_MENU_MenuInterface {
     protected $_class ;
     protected $_app = null;
     protected $_i18n = null;

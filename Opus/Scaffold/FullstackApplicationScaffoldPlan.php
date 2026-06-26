@@ -5,7 +5,7 @@ namespace Opus\Scaffold;
 
 /** Rich fullstack OPUS application scaffold plan. */
 final class FullstackApplicationScaffoldPlan implements ScaffoldPlanInterface
-{
+, FullstackApplicationScaffoldPlanInterface {
     private function __construct(private readonly string $applicationId)
     {
     }

@@ -6,7 +6,7 @@
  *
  * Routes OPUS requests before the modern runtime routing layer takes over.
  */
-class OPUS_Router {
+class OPUS_Router  implements OPUS_RouterInterface {
     private const ROUTE_DEBUG_ENABLED = false;
     private const ROUTE_DEBUG_LOG = '/logs/opus_route_debug.log';
     private const ROUTE_DEBUG_MAX_BYTES = 524288;

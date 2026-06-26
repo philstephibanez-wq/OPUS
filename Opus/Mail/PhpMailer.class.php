@@ -7,7 +7,7 @@ if (!class_exists('PHPMailer') && defined('ROOT') && is_file(ROOT . '/framework/
  *
  * Adapts PHPMailer behavior for OPUS mail delivery.
  */
-class OPUS_PhpMailer extends PHPMailer {
+class OPUS_PhpMailer extends PHPMailer  implements OPUS_PhpMailerInterface {
 
     public function __construct($exceptions=true) {
         parent::__construct($exceptions); // true for exceptions

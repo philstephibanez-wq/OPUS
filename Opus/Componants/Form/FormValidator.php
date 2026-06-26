@@ -34,7 +34,7 @@ namespace Opus\Form;
  *   P112D4B
  */
 final class FormValidator
-{
+ implements FormValidatorInterface {
     public function validate(SubmittedForm $form): FormValidationResult
     {
         $errors = [];

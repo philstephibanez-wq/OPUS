@@ -55,7 +55,7 @@ use Opus\Contract\ContractException;
  *   P116A
  */
 final class ScoreTemplateRenderer implements TemplateRendererInterface
-{
+, ScoreTemplateRendererInterface {
     private string $templateRoot;
 
     public function __construct(string $templateRoot)

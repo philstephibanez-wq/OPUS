@@ -10,7 +10,7 @@ use Opus\Http\Request;
  * Collects and exposes application definitions for runtime resolution, navigation, routing and discovery.
  */
 final class ApplicationRegistry
-{
+ implements ApplicationRegistryInterface {
     private string $sitesDir;
     /** @var array<string,ApplicationDefinition> */
     private array $applications = [];

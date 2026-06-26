@@ -6,7 +6,7 @@
  *
  * Carries route configuration fields used by OPUS configuration parsing.
  */
-class Route_Object {
+class Route_Object  implements Route_ObjectInterface {
 
     public $id = '';
     public $menu = '';
@@ -34,7 +34,7 @@ class Route_Object {
  *
  * Stores and exposes application, routing and runtime configuration loaded from OPUS configuration sources.
  */
-class OPUS_Configuration {
+class OPUS_Configuration  implements OPUS_ConfigurationInterface {
 
     protected $_env = null;
     protected $_configArray = array();
