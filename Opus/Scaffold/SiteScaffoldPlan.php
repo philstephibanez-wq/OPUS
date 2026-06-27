@@ -25,16 +25,31 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface
      *
      * @return list<array{id:string, path:string, route:string, role:string, label:string, order:int}>
      */
+    /**
+     * Starter pages generated with the official OPUS security demo.
+     *
+     * Contract:
+     * - visible labels are localized in i18n resources;
+     * - technical identifiers are stable lowercase slugs;
+     * - every page template is stored directly under application/pages as one .score file;
+     * - no page directory is generated under application/pages.
+     *
+     * @return list<array{id:string,path:string,route:string,role:string,label:string,order:int}>
+     */
     private function starterPages(): array
     {
         return [
-            ['id' => 'Home', 'path' => '/', 'route' => 'home.index', 'role' => 'starter-home', 'label' => 'menu.home', 'order' => 10],
-            ['id' => 'Pages', 'path' => '/pages', 'route' => 'pages.index', 'role' => 'starter-rubric', 'label' => 'menu.pages', 'order' => 20],
-            ['id' => 'Articles', 'path' => '/articles', 'route' => 'articles.index', 'role' => 'starter-rubric', 'label' => 'menu.articles', 'order' => 30],
-            ['id' => 'Rubriques', 'path' => '/rubriques', 'route' => 'rubriques.index', 'role' => 'starter-rubric', 'label' => 'menu.rubriques', 'order' => 40],
-            ['id' => 'Documentation', 'path' => '/documentation', 'route' => 'documentation.index', 'role' => 'starter-rubric', 'label' => 'menu.documentation', 'order' => 50],
+            ['id' => 'home', 'path' => '/', 'route' => 'home.index', 'role' => 'demo-home', 'label' => 'menu.home', 'order' => 10],
+            ['id' => 'security', 'path' => '/security', 'route' => 'security.index', 'role' => 'demo-security', 'label' => 'menu.security', 'order' => 20],
+            ['id' => 'lstsar', 'path' => '/lstsar', 'route' => 'lstsar.index', 'role' => 'demo-lstsar', 'label' => 'menu.lstsar', 'order' => 30],
+            ['id' => 'architecture', 'path' => '/architecture', 'route' => 'architecture.index', 'role' => 'demo-architecture', 'label' => 'menu.architecture', 'order' => 40],
+            ['id' => 'runtime', 'path' => '/runtime', 'route' => 'runtime.index', 'role' => 'demo-runtime', 'label' => 'menu.runtime', 'order' => 50],
+            ['id' => 'rendering', 'path' => '/rendering', 'route' => 'rendering.index', 'role' => 'demo-rendering', 'label' => 'menu.rendering', 'order' => 60],
+            ['id' => 'devtools', 'path' => '/devtools', 'route' => 'devtools.index', 'role' => 'demo-devtools', 'label' => 'menu.devtools', 'order' => 70],
+            ['id' => 'reference', 'path' => '/reference', 'route' => 'reference.index', 'role' => 'demo-reference', 'label' => 'menu.reference', 'order' => 80],
         ];
     }
+
 
     private function __construct(private readonly string $siteId)
     {
@@ -53,23 +68,17 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface
     /**
      * @return list<ScaffoldEntry>
      */
+    /**
+     * @return list<ScaffoldEntry>
+     */
     public function entries(): array
     {
         $site = $this->siteId;
 
         $directories = [
             "sites/{$site}/application/config",
-            "sites/{$site}/application/common/acl",
-            "sites/{$site}/application/common/helpers",
-            "sites/{$site}/application/common/assets",
-            "sites/{$site}/application/common/javascript",
-            "sites/{$site}/application/common/local",
-            "sites/{$site}/application/common/models",
-            "sites/{$site}/application/common/services",
-            "sites/{$site}/application/common/view-models",
-            "sites/{$site}/application/common/views",
-            "sites/{$site}/application/common/templates/partials",
             "sites/{$site}/application/common/templates/components",
+            "sites/{$site}/application/pages",
             "sites/{$site}/resources/i18n",
             "sites/{$site}/resources/themes",
             "sites/{$site}/resources/assets",
@@ -78,46 +87,26 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface
             "sites/{$site}/public/assets/img",
         ];
 
-        foreach ($this->starterPages() as $page) {
-            $pageId = $page['id'];
-            foreach ([
-                'acl',
-                'helpers',
-                'assets',
-                'javascript',
-                'local',
-                'models',
-                'services',
-                'controllers',
-                'view-models',
-                'views',
-                'templates/pages',
-                'templates/partials',
-                'templates/components',
-            ] as $subdir) {
-                $directories[] = "sites/{$site}/application/pages/{$pageId}/{$subdir}";
-            }
-        }
-
         $entries = array_map(static fn (string $directory): ScaffoldEntry => ScaffoldEntry::directory($directory), $directories);
 
         $entries[] = ScaffoldEntry::file("sites/{$site}/README.md", $this->readmeContent());
         $entries[] = ScaffoldEntry::file("sites/{$site}/START_HERE.md", $this->startHereContent());
         $entries[] = ScaffoldEntry::file("sites/{$site}/opus-site.json", $this->json([
             'site_id' => $site,
-            'type' => 'opus-site',
+            'type' => 'opus-demo-site',
             'contract' => 'OPUS_SITE_APPLICATION_V1',
-            'starter_contract' => 'OPUS_CREATE_SITE_SCORE_FIRST_MVC_STARTER_V1',
+            'starter_contract' => 'OPUS_DEMO_SECURITY_LSTSAR_SINGLE_LEVEL_V1',
             'external_dependencies_allowed' => false,
             'framework_duplication_allowed' => false,
             'created_by' => 'composer opus:create-site',
         ]));
         $entries[] = ScaffoldEntry::file("sites/{$site}/application/config/site.json", $this->json([
             'site_id' => $site,
-            'site_name' => 'Nouveau site ' . $site,
+            'site_name' => 'OPUS Demo ' . $site,
             'contract' => 'OPUS_SITE_APPLICATION_V1',
+            'starter_contract' => 'OPUS_DEMO_SECURITY_LSTSAR_SINGLE_LEVEL_V1',
             'default_locale' => 'fr',
-            'locales' => ['fr'],
+            'locales' => ['fr', 'en', 'es'],
             'public_root' => 'public',
             'application_root' => 'application',
             'resources_root' => 'resources',
@@ -140,33 +129,25 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface
         $entries[] = ScaffoldEntry::file("sites/{$site}/application/common/templates/components/rubric-card.score", $this->rubricCardScore());
 
         foreach ($this->starterPages() as $page) {
-            $pageId = $page['id'];
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/pages/{$pageId}/README.md", $this->pageReadmeContent($pageId, $page['role']));
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/pages/{$pageId}/page.json", $this->json([
-                'page_id' => $pageId,
-                'site_id' => $site,
-                'contract' => 'OPUS_APPLICATION_PAGE_V1',
-                'role' => $page['role'],
-                'route' => $page['route'],
-                'inherits_common_layer' => true,
-                'external_dependencies_allowed' => false,
-                'html_rendering' => 'score-template',
-                'created_by' => 'composer opus:create-site',
-            ]));
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/pages/{$pageId}/controllers/{$pageId}Controller.php", $this->controllerContent($pageId));
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/pages/{$pageId}/services/{$pageId}PageService.php", $this->serviceContent($pageId));
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/pages/{$pageId}/view-models/{$pageId}PageViewModel.php", $this->viewModelContent($pageId));
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/pages/{$pageId}/templates/layout.score", $this->pageLayoutScore($pageId));
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/pages/{$pageId}/templates/pages/index.score", $pageId === 'Home' ? $this->homePageScore() : $this->rubricPageScore());
+            $entries[] = ScaffoldEntry::file(
+                "sites/{$site}/application/pages/{$page['id']}.score",
+                $page['id'] === 'home' ? $this->homePageScore() : $this->rubricPageScore()
+            );
         }
 
         $entries[] = ScaffoldEntry::file("sites/{$site}/resources/i18n/fr.json", $this->json($this->i18nFr()));
+        $entries[] = ScaffoldEntry::file("sites/{$site}/resources/i18n/en.json", $this->json($this->i18nEn()));
+        $entries[] = ScaffoldEntry::file("sites/{$site}/resources/i18n/es.json", $this->json($this->i18nEs()));
         $entries[] = ScaffoldEntry::file("sites/{$site}/public/assets/css/starter.css", $this->starterCss());
         $entries[] = ScaffoldEntry::file("sites/{$site}/public/index.php", $this->frontControllerContent());
 
         return $entries;
     }
 
+
+    /**
+     * @return array<string, mixed>
+     */
     /**
      * @return array<string, mixed>
      */
@@ -174,17 +155,24 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface
     {
         return [
             'contract' => 'OPUS_PAGE_REGISTRY_V1',
+            'layout' => 'single-level-score-pages',
+            'pages_root' => 'application/pages',
             'pages' => array_map(static fn (array $page): array => [
                 'id' => $page['id'],
                 'enabled' => true,
                 'contract' => 'OPUS_APPLICATION_PAGE_V1',
                 'role' => $page['role'],
                 'route' => $page['route'],
+                'template' => 'application/pages/' . $page['id'] . '.score',
                 'created_by' => 'composer opus:create-site',
             ], $this->starterPages()),
         ];
     }
 
+
+    /**
+     * @return array<string, mixed>
+     */
     /**
      * @return array<string, mixed>
      */
@@ -196,18 +184,19 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface
                 'id' => $page['route'],
                 'path' => $page['path'],
                 'page' => $page['id'],
-                'controller' => $page['id'] . 'Controller',
+                'controller' => null,
                 'action' => 'index',
-                'template' => 'application/pages/' . $page['id'] . '/templates/pages/index.score',
-                    'label' => $page['label'],
+                'template' => 'application/pages/' . $page['id'] . '.score',
+                'label' => $page['label'],
                 'acl' => 'public',
-                'fsm_state' => strtoupper($page['id']),
+                'fsm_state' => strtoupper(str_replace('-', '_', $page['id'])),
                 'show_in_menu' => true,
-                'show_on_home' => $page['id'] !== 'Home',
+                'show_on_home' => $page['id'] !== 'home',
                 'order' => $page['order'],
             ], $this->starterPages()),
         ];
     }
+
 
     /**
      * @return array<string, mixed>
@@ -230,6 +219,9 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface
     /**
      * @return array<string, mixed>
      */
+    /**
+     * @return array<string, mixed>
+     */
     private function menuConfig(): array
     {
         return [
@@ -237,68 +229,92 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface
             'source' => 'application/config/routes.json',
             'items' => array_map(static fn (array $page): array => [
                 'route' => $page['route'],
+                'page' => $page['id'],
                 'label' => $page['label'],
                 'order' => $page['order'],
             ], $this->starterPages()),
         ];
     }
 
+
+    /**
+     * @return array<string, mixed>
+     */
     /**
      * @return array<string, mixed>
      */
     private function rubricsConfig(): array
     {
         return [
-            'contract' => 'OPUS_HOME_RUBRIC_ROUTE_PROJECTION_V1',
+            'contract' => 'OPUS_HOME_DEMO_CARD_ROUTE_PROJECTION_V1',
             'source' => 'application/config/routes.json',
             'rubrics' => array_values(array_map(static fn (array $page): array => [
                 'route' => $page['route'],
                 'page' => $page['id'],
                 'order' => $page['order'],
-            ], array_filter($this->starterPages(), static fn (array $page): bool => $page['id'] !== 'Home'))),
+            ], array_filter($this->starterPages(), static fn (array $page): bool => $page['id'] !== 'home'))),
         ];
     }
 
+
     private function readmeContent(): string
     {
-        return "# {$this->siteId}\n\nOPUS site/application scaffold generated by `composer opus:create-site`.\n\nThis is a professional starter site inspired by the historical OPUS modular demo model, without legacy esoteric sample content.\n\n## Contract\n\n- Application is modular.\n- Common application resources live under `application/common`.\n- Visible home rubrics are backed by declared pages/routes.\n- Business services live under `application/pages`.\n- Public entry point only resolves declared routes and renders `.score` templates.\n- HTML rendering must go through `.score` templates.\n- External dependencies are forbidden unless an explicit ADR allows them.\n\nRead `START_HERE.md` before modifying the site.\n";
+        return "# {$this->siteId}\n\nOPUS demo site generated by `composer opus:create-site`.\n\nThis scaffold is a professional OPUS demonstration focused on secure application architecture: FSM, ACL, SSO, LSTSAR, declared routes, .score rendering and local-only developer tools.\n\n## Contract\n\n- Application pages are single-level `.score` files under `application/pages`.\n- Visible menu labels are localized in `resources/i18n`.\n- Routes are declared in `application/config/routes.json`.\n- Security capabilities are demonstrated as contracts: FSM + ACL + SSO + audit.\n- LSTSAR means Load → Secure → Transform → Store → Audit → Report.\n- The profiler is a local development tool served by `composer opus:serve-site`, never a public site feature.\n- External dependencies are forbidden unless an explicit ADR allows them.\n\nRead `START_HERE.md` before modifying the site.\n";
     }
+
 
     private function startHereContent(): string
     {
         return str_replace('{{ site_id }}', $this->siteId, <<<'MD'
 # Start here
 
-This site was generated by `composer opus:create-site`.
+This OPUS demo site was generated by `composer opus:create-site`.
 
 ## Edit map
 
-Route -> page -> template -> i18n -> assets.
+Route -> single-level score page -> i18n -> assets.
 
 | Need | Source of truth | Generated path |
 | --- | --- | --- |
 | Public route | Route registry | `application/config/routes.json` |
 | Visible menu item | Route/menu projection | `application/config/menu.json` |
-| Home rubric card | Rubric projection | `application/config/rubrics.json` |
-| Page contract | Page manifest | `application/pages/<Page>/page.json` |
-| Page markup | Score template | `application/pages/<Page>/templates/pages/index.score` |
+| Home demo card | Rubric projection | `application/config/rubrics.json` |
+| Page markup | Score page | `application/pages/<slug>.score` |
 | Shared layout | Common score template | `application/common/templates/layout.score` |
 | Shared components | Common score components | `application/common/templates/components/*.score` |
-| Localized text | I18N resources | `resources/i18n/<locale>.json` |
+| Localized text | I18N resources | `resources/i18n/fr.json`, `en.json`, `es.json` |
 | Visual styling | Public asset | `public/assets/css/starter.css` |
 
-## First safe edits
+## Single-level pages
 
-1. Pick the public URL in `application/config/routes.json`.
-2. Read the `page`, `controller`, `action` and `template` fields for that route.
-3. Edit only the page template under `application/pages/<Page>/templates/pages/`.
-4. Edit the visible text in `resources/i18n/fr.json` or another locale file generated with `composer opus:add-language -- {{ site_id }} en --write`.
-5. Edit CSS in `public/assets/css/starter.css` or page-specific assets when the page owns the style.
-6. Keep `public/index.php` as the generated front controller. Do not add page business logic there.
-7. Keep HTML in `.score` templates.
-8. Keep business data preparation in page services/view-models.
-9. Keep common reusable components in `application/common/templates/components`.
-10. Keep page-specific resources inside `application/pages/<Page>`.
+The generated site intentionally keeps pages flat:
+
+```text
+application/pages/home.score
+application/pages/security.score
+application/pages/lstsar.score
+application/pages/architecture.score
+application/pages/runtime.score
+application/pages/rendering.score
+application/pages/devtools.score
+application/pages/reference.score
+```
+
+No page directory is generated under `application/pages`.
+
+## Security focus
+
+The demo presents OPUS as a secure application framework:
+
+- FSM controls allowed states and transitions.
+- ACL makes access rules explicit.
+- SSO centralizes identity and claims.
+- LSTSAR documents the data trust pipeline.
+- Audit and reports make decisions explainable.
+
+## LSTSAR
+
+Load → Secure → Transform → Store → Audit → Report.
 
 ## Score syntax reminder
 
@@ -311,13 +327,13 @@ Route -> page -> template -> i18n -> assets.
 
 - No wild page creation.
 - No route without a declared page.
-- No page outside a page.
-- No home card that is not backed by a page/route.
+- No page directory under `application/pages`.
 - No business HTML concatenation in controllers or services.
 - No duplicated framework.
 - No external dependency unless contractually approved.
 MD);
     }
+
 
     private function commonLayoutScore(): string
     {
@@ -350,18 +366,19 @@ SCORE;
       <span class="opus-brand__mark">OP</span>
       <span class="opus-brand__copy">
         <strong>{{ site.name }}</strong>
-        <span>{{ site.framework }} modular site</span>
+        <span>{{ site.framework }} secure app framework</span>
       </span>
     </a>
     <nav class="opus-nav" aria-label="{{ i18n.menu_label }}">
       {{{ common.menu }}}
     </nav>
     {{{ common.language_selector }}}
-    <a class="opus-cta" href="{{ routes.documentation }}">{{ i18n.header_cta }}</a>
+    <a class="opus-cta" href="{{ routes.reference }}">{{ i18n.header_cta }}</a>
   </div>
 </header>
 SCORE;
     }
+
 
     private function footerScore(): string
     {
@@ -547,17 +564,20 @@ SCORE;
       <h1>{{ page.title }}</h1>
       <p class="opus-lead">{{ page.subtitle }}</p>
       <div class="opus-hero__actions">
-        <a class="opus-button opus-button--primary" href="{{ routes.rubriques }}">{{ i18n.explore_rubrics }}</a>
-        <a class="opus-button" href="{{ routes.documentation }}">{{ i18n.read_skeleton }}</a>
+        <a class="opus-button opus-button--primary" href="{{ routes.security }}">{{ i18n.explore_security }}</a>
+        <a class="opus-button" href="{{ routes.lstsar }}">{{ i18n.explore_lstsar }}</a>
       </div>
     </div>
     <aside class="opus-hero__summary" aria-label="{{ i18n.contract_label }}">
       <p class="opus-card__label">{{ i18n.contract_label }}</p>
       <div class="opus-contract-list">
-        <span>{{ i18n.contract_page }}</span>
-        <span>{{ i18n.contract_score }}</span>
-        <span>{{ i18n.contract_routes }}</span>
+        <span>{{ i18n.contract_fsm }}</span>
+        <span>{{ i18n.contract_acl }}</span>
+        <span>{{ i18n.contract_sso }}</span>
+        <span>{{ i18n.contract_lstsar }}</span>
+        [[ignore]]
         <span>{{ i18n.contract_no_wild }}</span>
+        [[endignore]]
       </div>
     </aside>
   </div>
@@ -577,6 +597,7 @@ SCORE;
 </section>
 SCORE;
     }
+
 
     private function rubricPageScore(): string
     {
@@ -604,6 +625,10 @@ SCORE;
 SCORE;
     }
 
+
+    /**
+     * @return array<string, string>
+     */
     /**
      * @return array<string, string>
      */
@@ -612,72 +637,107 @@ SCORE;
         return [
             'menu_label' => 'Navigation principale',
             'menu.home' => 'Accueil',
-            'menu.pages' => 'Pages',
-            'menu.articles' => 'Articles',
-            'menu.rubriques' => 'Rubriques',
-            'menu.documentation' => 'Documentation',
-            'header_cta' => 'Démarrer',
-            'explore_rubrics' => 'Explorer les rubriques',
-            'read_skeleton' => 'Voir le squelette',
+            'menu.security' => 'Sécurité',
+            'menu.lstsar' => 'LSTSAR',
+            'menu.architecture' => 'Architecture',
+            'menu.runtime' => 'Runtime',
+            'menu.rendering' => 'Rendu',
+            'menu.devtools' => 'DevTools',
+            'menu.reference' => 'Référence',
+            'header_cta' => 'Référence',
+            'explore_security' => 'Voir la sécurité',
+            'explore_lstsar' => 'Découvrir LSTSAR',
             'contract_label' => 'Contrat OPUS',
-            'contract_page' => 'Rubriques = pages déclarés',
-            'contract_score' => 'Rendu via templates .score',
-            'contract_routes' => 'Menu basé sur les routes',
+            'contract_fsm' => 'FSM : états et transitions autorisés',
+            'contract_acl' => 'ACL : droits explicites par route',
+            'contract_sso' => 'SSO : identité et claims centralisés',
+            'contract_lstsar' => 'LSTSAR : pipeline de confiance des données',
             'contract_no_wild' => 'Aucune page sauvage',
-            'starter_map' => 'Structure générée',
-            'open_rubric' => 'Ouvrir la rubrique',
-            'footer_contract' => 'Site OPUS généré',
+            'starter_map' => 'Potentiel OPUS',
+            'open_rubric' => 'Explorer',
+            'footer_contract' => 'Démo OPUS sécurisée',
             'back_to_top' => 'Retour haut',
             'language_selector_label' => 'Sélecteur de langue',
             'language_short_label' => 'Langue',
             'language.fr' => 'Français',
             'language.en' => 'Anglais',
-            'language.de' => 'Allemand',
             'language.es' => 'Espagnol',
-            'language.it' => 'Italien',
-            'language.pl' => 'Polonais',
-            'language.uk' => 'Ukrainien',
-            'language.cs' => 'Tchèque',
-            'documentation.secondary_text' => 'Remplacez cette aide par votre documentation produit ou projet.',
-            'documentation.secondary_title' => 'À personnaliser',
-            'documentation.primary_text' => 'Ce page aide l’équipe à comprendre où placer sources, providers, services, view-models, templates et routes.',
-            'documentation.primary_title' => 'Responsabilité',
-            'documentation.description' => 'Structure pour aide développeur et documentation projet.',
-            'documentation.subtitle' => 'Point d’entrée pour expliquer la structure générée et guider l’implémentation.',
-            'documentation.title' => 'Documentation du site',
-            'documentation.kicker' => 'Page Documentation',
-            'rubriques.secondary_text' => 'Ajoutez vos pages métier avec composer opus:create-page, puis reliez-les par routes.',
-            'rubriques.secondary_title' => 'À personnaliser',
-            'rubriques.primary_text' => 'Une rubrique visible correspond à un page ou à une route de page déclaré.',
-            'rubriques.primary_title' => 'Responsabilité',
-            'rubriques.description' => 'Structure pour sections, catégories et espaces fonctionnels.',
-            'rubriques.subtitle' => 'Point d’entrée pour organiser les grandes zones métier du site.',
-            'rubriques.title' => 'Rubriques applicatives',
-            'rubriques.kicker' => 'Page Rubriques',
-            'articles.secondary_text' => 'Transformez cette rubrique en vrai flux éditorial, sans imposer de source de données.',
-            'articles.secondary_title' => 'À personnaliser',
-            'articles.primary_text' => 'Ce page démontre où placer les services de listing, view-models et templates d’article.',
-            'articles.primary_title' => 'Responsabilité',
-            'articles.description' => 'Structure pour futures publications et archives.',
-            'articles.subtitle' => 'Point d’entrée pour les notes, actualités, annonces produit ou publications longues.',
-            'articles.title' => 'Articles et publications',
-            'articles.kicker' => 'Page Articles',
-            'pages.secondary_text' => 'Adaptez le template .score et les chaînes i18n du page Pages. Les données métier viendront plus tard par providers/services/view-models.',
-            'pages.secondary_title' => 'À personnaliser',
-            'pages.primary_text' => 'Ce page porte les pages éditoriales du site, sans logique métier dispersée dans public/index.php.',
-            'pages.primary_title' => 'Responsabilité',
-            'pages.description' => 'Structure pour pages simples, propres et localisées.',
-            'pages.subtitle' => 'Point d’entrée pour les contenus statiques, présentations, informations légales ou pages institutionnelles.',
-            'pages.title' => 'Pages éditoriales',
-            'pages.kicker' => 'Page Pages',
-            'home.section_intro' => 'Chaque encadré ci-dessous est une route vers un page déclaré. Remplacez le contenu, gardez le contrat.',
-            'home.section_title' => 'Des rubriques prêtes à spécialiser.',
-            'home.subtitle' => 'Un squelette professionnel pour démarrer un site modulaire OPUS : pages, articles, rubriques et documentation, sans création sauvage.',
-            'home.title' => 'Nouveau site {{ site_id }}',
-            'home.kicker' => 'OPUS starter',
+
+            'home.kicker' => 'Framework applicatif sécurisé',
+            'home.title' => 'OPUS révèle le potentiel d’un site industriel',
+            'home.subtitle' => 'Une démo centrée sur la sécurité, les contrats, le runtime, le rendu .score, le profiler local et le pipeline LSTSAR.',
+            'home.section_title' => 'Une vitrine claire des capacités OPUS.',
+            'home.section_intro' => 'Chaque carte ouvre une capacité structurante du framework, sans mélanger l’arborescence technique et le vocabulaire produit.',
+
+            'security.kicker' => 'Sécurité',
+            'security.title' => 'FSM + ACL + SSO',
+            'security.subtitle' => 'OPUS traite une route comme un contrat sécurisé, pas comme une simple URL.',
+            'security.description' => 'États, droits, identité, claims et refus explicites.',
+            'security.primary_title' => 'Décision d’accès explicite',
+            'security.primary_text' => 'Une route peut être liée à un état FSM, une transition autorisée, une règle ACL, une identité SSO et une trace audit.',
+            'security.secondary_title' => 'Démo sans secret externe',
+            'security.secondary_text' => 'La démo présente les contrats SSO et les claims sans imposer de fournisseur OAuth2, OIDC ou SAML.',
+
+            'lstsar.kicker' => 'Pipeline de confiance',
+            'lstsar.title' => 'LSTSAR',
+            'lstsar.subtitle' => 'Load → Secure → Transform → Store → Audit → Report.',
+            'lstsar.description' => 'Un modèle de traitement sécurisé pour les données entrantes et sortantes.',
+            'lstsar.primary_title' => 'Aucune donnée ne traverse OPUS directement',
+            'lstsar.primary_text' => 'Chaque donnée est chargée, sécurisée, transformée, stockée, auditée puis rapportée selon un contrat explicite.',
+            'lstsar.secondary_title' => 'Statut architectural',
+            'lstsar.secondary_text' => 'LSTSAR est présenté comme pilier OPUS à implémenter dans le runtime, sans prétendre à un moteur déjà branché.',
+
+            'architecture.kicker' => 'Architecture',
+            'architecture.title' => 'Un framework modulaire',
+            'architecture.subtitle' => 'Kernel, runtime, routing, templates, modules, contrats et outils de développement restent séparés.',
+            'architecture.description' => 'Séparation stricte des responsabilités.',
+            'architecture.primary_title' => 'Lisibilité industrielle',
+            'architecture.primary_text' => 'Le site généré garde les pages à un seul niveau et place les composants communs dans une zone commune explicite.',
+            'architecture.secondary_title' => 'Pas de fallback silencieux',
+            'architecture.secondary_text' => 'Un contrat manquant, une locale absente ou une route inconnue doit produire une erreur claire.',
+
+            'runtime.kicker' => 'Runtime',
+            'runtime.title' => 'Routes déclarées et états maîtrisés',
+            'runtime.subtitle' => 'Le runtime relie requête, route, état, politique et rendu.',
+            'runtime.description' => 'Exécution explicite et traçable.',
+            'runtime.primary_title' => 'FSM configurée',
+            'runtime.primary_text' => 'Les états et transitions ne doivent pas être codés en dur dans le runtime mais déclarés par configuration.',
+            'runtime.secondary_title' => 'Refus compréhensible',
+            'runtime.secondary_text' => 'Une transition interdite ou une règle ACL non satisfaite doit expliquer la raison du refus.',
+
+            'rendering.kicker' => 'Rendu',
+            'rendering.title' => 'Templates .score',
+            'rendering.subtitle' => 'Le HTML appartient aux templates, les données aux view-models et aux services.',
+            'rendering.description' => 'Rendu contrôlé, composants et slots explicites.',
+            'rendering.primary_title' => 'Source lisible',
+            'rendering.primary_text' => 'Les pages de démonstration sont des fichiers .score plats, faciles à ouvrir et à modifier.',
+            'rendering.secondary_title' => 'Blocs conservés',
+            'rendering.secondary_text' => 'Les blocs [[ignore]] restent dans les fichiers générés pour documenter le template sans polluer le rendu.',
+
+            'devtools.kicker' => 'DevTools',
+            'devtools.title' => 'Profiler local',
+            'devtools.subtitle' => 'Comme Symfony, le profiler est un outil de développement, jamais une fonctionnalité publique.',
+            'devtools.description' => 'Serveur interne, toolbar sur demande et traces locales.',
+            'devtools.primary_title' => 'Activation volontaire',
+            'devtools.primary_text' => 'Le site reste propre sur / et la toolbar apparaît seulement avec ?profiler=1 sur le serveur local.',
+            'devtools.secondary_title' => 'Interface dédiée',
+            'devtools.secondary_text' => '/_opus/profiler expose les traces uniquement dans le contexte local/dev.',
+
+            'reference.kicker' => 'Référence',
+            'reference.title' => 'Contrats et documentation',
+            'reference.subtitle' => 'La référence rassemble les conventions de génération, de sécurité, de rendu et de runtime.',
+            'reference.description' => 'Point d’entrée pour la documentation développeur.',
+            'reference.primary_title' => 'Contrats visibles',
+            'reference.primary_text' => 'Routes, pages, menu, rubriques, locales et fichiers générés sont décrits par des manifests lisibles.',
+            'reference.secondary_title' => 'Base d’industrialisation',
+            'reference.secondary_text' => 'La démo doit rester honnête : elle montre les capacités branchées et les piliers architecturaux à implémenter.',
         ];
     }
 
+
+    /**
+     * @return array<string, string>
+     */
     /**
      * @return array<string, string>
      */
@@ -686,38 +746,212 @@ SCORE;
         return [
             'menu_label' => 'Main navigation',
             'menu.home' => 'Home',
-            'menu.pages' => 'Pages',
-            'menu.articles' => 'Articles',
-            'menu.rubriques' => 'Rubrics',
-            'menu.documentation' => 'Documentation',
-            'header_cta' => 'Start',
-            'explore_rubrics' => 'Explore rubrics',
-            'read_skeleton' => 'View skeleton',
+            'menu.security' => 'Security',
+            'menu.lstsar' => 'LSTSAR',
+            'menu.architecture' => 'Architecture',
+            'menu.runtime' => 'Runtime',
+            'menu.rendering' => 'Rendering',
+            'menu.devtools' => 'DevTools',
+            'menu.reference' => 'Reference',
+            'header_cta' => 'Reference',
+            'explore_security' => 'View security',
+            'explore_lstsar' => 'Discover LSTSAR',
             'contract_label' => 'OPUS contract',
-            'contract_page' => 'Rubrics = declared pages',
-            'contract_score' => 'Rendered through .score templates',
-            'contract_routes' => 'Route-based menu',
+            'contract_fsm' => 'FSM: authorized states and transitions',
+            'contract_acl' => 'ACL: explicit route permissions',
+            'contract_sso' => 'SSO: centralized identity and claims',
+            'contract_lstsar' => 'LSTSAR: trusted data pipeline',
             'contract_no_wild' => 'No wild pages',
-            'starter_map' => 'Generated structure',
-            'open_rubric' => 'Open rubric',
-            'footer_contract' => 'Generated OPUS site',
+            'starter_map' => 'OPUS potential',
+            'open_rubric' => 'Explore',
+            'footer_contract' => 'Secure OPUS demo',
             'back_to_top' => 'Back to top',
             'language_selector_label' => 'Language selector',
             'language_short_label' => 'Language',
             'language.fr' => 'French',
             'language.en' => 'English',
-            'language.de' => 'German',
             'language.es' => 'Spanish',
-            'language.it' => 'Italian',
-            'language.pl' => 'Polish',
-            'language.uk' => 'Ukrainian',
-            'language.cs' => 'Czech',
+
+            'home.kicker' => 'Secure application framework',
+            'home.title' => 'OPUS shows the potential of an industrial site',
+            'home.subtitle' => 'A demo focused on security, contracts, runtime, .score rendering, the local profiler and the LSTSAR pipeline.',
+            'home.section_title' => 'A clear showcase of OPUS capabilities.',
+            'home.section_intro' => 'Each card opens a structural framework capability without mixing technical tree names and product vocabulary.',
+
+            'security.kicker' => 'Security',
+            'security.title' => 'FSM + ACL + SSO',
+            'security.subtitle' => 'OPUS treats a route as a security contract, not just a URL.',
+            'security.description' => 'States, permissions, identity, claims and explicit denials.',
+            'security.primary_title' => 'Explicit access decision',
+            'security.primary_text' => 'A route can be linked to an FSM state, an authorized transition, an ACL rule, an SSO identity and an audit trace.',
+            'security.secondary_title' => 'Demo without external secrets',
+            'security.secondary_text' => 'The demo presents SSO contracts and claims without imposing an OAuth2, OIDC or SAML provider.',
+
+            'lstsar.kicker' => 'Trust pipeline',
+            'lstsar.title' => 'LSTSAR',
+            'lstsar.subtitle' => 'Load → Secure → Transform → Store → Audit → Report.',
+            'lstsar.description' => 'A secure processing model for inbound and outbound data.',
+            'lstsar.primary_title' => 'No data crosses OPUS directly',
+            'lstsar.primary_text' => 'Each piece of data is loaded, secured, transformed, stored, audited and reported through an explicit contract.',
+            'lstsar.secondary_title' => 'Architectural status',
+            'lstsar.secondary_text' => 'LSTSAR is presented as an OPUS pillar to implement in the runtime, without claiming that the engine is already connected.',
+
+            'architecture.kicker' => 'Architecture',
+            'architecture.title' => 'A modular framework',
+            'architecture.subtitle' => 'Kernel, runtime, routing, templates, modules, contracts and developer tools stay separated.',
+            'architecture.description' => 'Strict separation of responsibilities.',
+            'architecture.primary_title' => 'Industrial readability',
+            'architecture.primary_text' => 'The generated site keeps pages at one level and puts shared components in an explicit common area.',
+            'architecture.secondary_title' => 'No silent fallback',
+            'architecture.secondary_text' => 'A missing contract, locale or route must produce a clear error.',
+
+            'runtime.kicker' => 'Runtime',
+            'runtime.title' => 'Declared routes and controlled states',
+            'runtime.subtitle' => 'The runtime links request, route, state, policy and rendering.',
+            'runtime.description' => 'Explicit and traceable execution.',
+            'runtime.primary_title' => 'Configured FSM',
+            'runtime.primary_text' => 'States and transitions must not be hardcoded into the runtime; they belong in configuration.',
+            'runtime.secondary_title' => 'Understandable denial',
+            'runtime.secondary_text' => 'A forbidden transition or missing ACL rule must explain why access was denied.',
+
+            'rendering.kicker' => 'Rendering',
+            'rendering.title' => '.score templates',
+            'rendering.subtitle' => 'HTML belongs in templates; data belongs in view-models and services.',
+            'rendering.description' => 'Controlled rendering, components and explicit slots.',
+            'rendering.primary_title' => 'Readable source',
+            'rendering.primary_text' => 'Demo pages are flat .score files that are easy to open and edit.',
+            'rendering.secondary_title' => 'Preserved blocks',
+            'rendering.secondary_text' => '[[ignore]] blocks remain in generated files to document the template without polluting output.',
+
+            'devtools.kicker' => 'DevTools',
+            'devtools.title' => 'Local profiler',
+            'devtools.subtitle' => 'Like Symfony, the profiler is a development tool, never a public feature.',
+            'devtools.description' => 'Internal server, opt-in toolbar and local traces.',
+            'devtools.primary_title' => 'Voluntary activation',
+            'devtools.primary_text' => 'The site stays clean on / and the toolbar appears only with ?profiler=1 on the local server.',
+            'devtools.secondary_title' => 'Dedicated interface',
+            'devtools.secondary_text' => '/_opus/profiler exposes traces only in the local/dev context.',
+
+            'reference.kicker' => 'Reference',
+            'reference.title' => 'Contracts and documentation',
+            'reference.subtitle' => 'The reference gathers generation, security, rendering and runtime conventions.',
+            'reference.description' => 'Entry point for developer documentation.',
+            'reference.primary_title' => 'Visible contracts',
+            'reference.primary_text' => 'Routes, pages, menu, rubrics, locales and generated files are described by readable manifests.',
+            'reference.secondary_title' => 'Industrialization base',
+            'reference.secondary_text' => 'The demo must stay honest: it shows connected capabilities and architectural pillars still to implement.',
         ];
     }
+
 
     /**
      * @return array<string, string>
      */
+    /**
+     * @return array<string, string>
+     */
+    private function i18nEs(): array
+    {
+        return [
+            'menu_label' => 'Navegación principal',
+            'menu.home' => 'Inicio',
+            'menu.security' => 'Seguridad',
+            'menu.lstsar' => 'LSTSAR',
+            'menu.architecture' => 'Arquitectura',
+            'menu.runtime' => 'Runtime',
+            'menu.rendering' => 'Renderizado',
+            'menu.devtools' => 'DevTools',
+            'menu.reference' => 'Referencia',
+            'header_cta' => 'Referencia',
+            'explore_security' => 'Ver seguridad',
+            'explore_lstsar' => 'Descubrir LSTSAR',
+            'contract_label' => 'Contrato OPUS',
+            'contract_fsm' => 'FSM: estados y transiciones autorizadas',
+            'contract_acl' => 'ACL: permisos explícitos por ruta',
+            'contract_sso' => 'SSO: identidad y claims centralizados',
+            'contract_lstsar' => 'LSTSAR: pipeline de confianza de datos',
+            'contract_no_wild' => 'Sin páginas salvajes',
+            'starter_map' => 'Potencial OPUS',
+            'open_rubric' => 'Explorar',
+            'footer_contract' => 'Demo segura de OPUS',
+            'back_to_top' => 'Volver arriba',
+            'language_selector_label' => 'Selector de idioma',
+            'language_short_label' => 'Idioma',
+            'language.fr' => 'Francés',
+            'language.en' => 'Inglés',
+            'language.es' => 'Español',
+
+            'home.kicker' => 'Framework aplicativo seguro',
+            'home.title' => 'OPUS muestra el potencial de un sitio industrial',
+            'home.subtitle' => 'Una demo centrada en seguridad, contratos, runtime, renderizado .score, profiler local y pipeline LSTSAR.',
+            'home.section_title' => 'Una vitrina clara de las capacidades de OPUS.',
+            'home.section_intro' => 'Cada tarjeta abre una capacidad estructural del framework sin mezclar el árbol técnico con el vocabulario de producto.',
+
+            'security.kicker' => 'Seguridad',
+            'security.title' => 'FSM + ACL + SSO',
+            'security.subtitle' => 'OPUS trata una ruta como un contrato de seguridad, no como una simple URL.',
+            'security.description' => 'Estados, permisos, identidad, claims y rechazos explícitos.',
+            'security.primary_title' => 'Decisión de acceso explícita',
+            'security.primary_text' => 'Una ruta puede vincularse a un estado FSM, una transición autorizada, una regla ACL, una identidad SSO y una traza de auditoría.',
+            'security.secondary_title' => 'Demo sin secretos externos',
+            'security.secondary_text' => 'La demo presenta contratos SSO y claims sin imponer un proveedor OAuth2, OIDC o SAML.',
+
+            'lstsar.kicker' => 'Pipeline de confianza',
+            'lstsar.title' => 'LSTSAR',
+            'lstsar.subtitle' => 'Load → Secure → Transform → Store → Audit → Report.',
+            'lstsar.description' => 'Un modelo de procesamiento seguro para datos entrantes y salientes.',
+            'lstsar.primary_title' => 'Ningún dato cruza OPUS directamente',
+            'lstsar.primary_text' => 'Cada dato se carga, se protege, se transforma, se almacena, se audita y se reporta mediante un contrato explícito.',
+            'lstsar.secondary_title' => 'Estado arquitectónico',
+            'lstsar.secondary_text' => 'LSTSAR se presenta como un pilar OPUS por implementar en el runtime, sin afirmar que el motor ya esté conectado.',
+
+            'architecture.kicker' => 'Arquitectura',
+            'architecture.title' => 'Un framework modular',
+            'architecture.subtitle' => 'Kernel, runtime, routing, templates, módulos, contratos y herramientas de desarrollo permanecen separados.',
+            'architecture.description' => 'Separación estricta de responsabilidades.',
+            'architecture.primary_title' => 'Legibilidad industrial',
+            'architecture.primary_text' => 'El sitio generado mantiene las páginas en un solo nivel y coloca los componentes compartidos en una zona común explícita.',
+            'architecture.secondary_title' => 'Sin fallback silencioso',
+            'architecture.secondary_text' => 'Un contrato, locale o ruta ausente debe producir un error claro.',
+
+            'runtime.kicker' => 'Runtime',
+            'runtime.title' => 'Rutas declaradas y estados controlados',
+            'runtime.subtitle' => 'El runtime conecta petición, ruta, estado, política y renderizado.',
+            'runtime.description' => 'Ejecución explícita y trazable.',
+            'runtime.primary_title' => 'FSM configurada',
+            'runtime.primary_text' => 'Los estados y transiciones no deben estar codificados en el runtime; pertenecen a la configuración.',
+            'runtime.secondary_title' => 'Rechazo comprensible',
+            'runtime.secondary_text' => 'Una transición prohibida o una regla ACL ausente debe explicar por qué se denegó el acceso.',
+
+            'rendering.kicker' => 'Renderizado',
+            'rendering.title' => 'Templates .score',
+            'rendering.subtitle' => 'El HTML pertenece a los templates; los datos pertenecen a view-models y servicios.',
+            'rendering.description' => 'Renderizado controlado, componentes y slots explícitos.',
+            'rendering.primary_title' => 'Fuente legible',
+            'rendering.primary_text' => 'Las páginas de demo son archivos .score planos, fáciles de abrir y modificar.',
+            'rendering.secondary_title' => 'Bloques conservados',
+            'rendering.secondary_text' => 'Los bloques [[ignore]] permanecen en los archivos generados para documentar el template sin contaminar el renderizado.',
+
+            'devtools.kicker' => 'DevTools',
+            'devtools.title' => 'Profiler local',
+            'devtools.subtitle' => 'Como Symfony, el profiler es una herramienta de desarrollo, nunca una función pública.',
+            'devtools.description' => 'Servidor interno, toolbar bajo demanda y trazas locales.',
+            'devtools.primary_title' => 'Activación voluntaria',
+            'devtools.primary_text' => 'El sitio permanece limpio en / y la toolbar aparece solo con ?profiler=1 en el servidor local.',
+            'devtools.secondary_title' => 'Interfaz dedicada',
+            'devtools.secondary_text' => '/_opus/profiler expone las trazas únicamente en el contexto local/dev.',
+
+            'reference.kicker' => 'Referencia',
+            'reference.title' => 'Contratos y documentación',
+            'reference.subtitle' => 'La referencia reúne convenciones de generación, seguridad, renderizado y runtime.',
+            'reference.description' => 'Punto de entrada para documentación de desarrollo.',
+            'reference.primary_title' => 'Contratos visibles',
+            'reference.primary_text' => 'Rutas, páginas, menú, rúbricas, locales y archivos generados se describen mediante manifests legibles.',
+            'reference.secondary_title' => 'Base de industrialización',
+            'reference.secondary_text' => 'La demo debe ser honesta: muestra capacidades conectadas y pilares arquitectónicos aún por implementar.',
+        ];
+    }
+
     private function pageContentFr(string $site, string $pageId): array
     {
         $content = [

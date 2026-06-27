@@ -16,14 +16,267 @@ require $autoload;
 
 $command = $argv[1] ?? 'help';
 $target = $argv[2] ?? '';
+$args = array_slice($argv, 3);
+
+function opus_cli_option(array $args, string $name, ?string $default = null): ?string
+{
+    $prefix = '--' . $name . '=';
+    foreach ($args as $arg) {
+        if ($arg === '--' . $name) {
+            return '1';
+        }
+        if (str_starts_with($arg, $prefix)) {
+            return substr($arg, strlen($prefix));
+        }
+    }
+    return $default;
+}
+
+function opus_cli_has_option(array $args, string $name): bool
+{
+    return in_array('--' . $name, $args, true) || opus_cli_option($args, $name) !== null;
+}
+
+function opus_cli_normalize_path(string $path): string
+{
+    return str_replace('\\', '/', $path);
+}
+
+function opus_cli_validate_site_id(string $siteId): void
+{
+    if ($siteId === '') {
+        fwrite(STDERR, "OPUS_CLI_SITE_ID_REQUIRED\n");
+        exit(1);
+    }
+
+    if (!preg_match('/^[A-Za-z0-9_-]+$/', $siteId)) {
+        fwrite(STDERR, "OPUS_CLI_INVALID_SITE_ID: {$siteId}\n");
+        exit(1);
+    }
+}
+
+function opus_cli_site_root(string $root, string $siteId): string
+{
+    return $root . DIRECTORY_SEPARATOR . 'sites' . DIRECTORY_SEPARATOR . $siteId;
+}
+
+function opus_cli_public_root(string $siteRoot): string
+{
+    return $siteRoot . DIRECTORY_SEPARATOR . 'public';
+}
+
+function opus_cli_assert_site_exists(string $siteRoot, string $siteId): void
+{
+    if (!is_dir($siteRoot)) {
+        fwrite(STDERR, "OPUS_SITE_NOT_FOUND: {$siteId}\n");
+        exit(1);
+    }
+}
+
+function opus_cli_write_dev_router(string $root, string $siteId, string $siteRoot, string $publicRoot): string
+{
+    $routerDir = $root . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'dev-server';
+    if (!is_dir($routerDir) && !mkdir($routerDir, 0777, true) && !is_dir($routerDir)) {
+        fwrite(STDERR, "OPUS_DEV_SERVER_ROUTER_DIR_CREATE_FAILED\n");
+        exit(1);
+    }
+
+    $routerPath = $routerDir . DIRECTORY_SEPARATOR . $siteId . '-router.php';
+    $rootExport = var_export(opus_cli_normalize_path($root), true);
+    $siteRootExport = var_export(opus_cli_normalize_path($siteRoot), true);
+    $publicRootExport = var_export(opus_cli_normalize_path($publicRoot), true);
+
+    $router = <<<'PHP_ROUTER'
+<?php
+declare(strict_types=1);
+
+$opusProjectRoot = __OPUS_PROJECT_ROOT__;
+$opusSiteRoot = __OPUS_SITE_ROOT__;
+$opusPublicRoot = __OPUS_PUBLIC_ROOT__;
+
+$remoteAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+if (!in_array($remoteAddress, ['127.0.0.1', '::1', ''], true)) {
+    http_response_code(403);
+    header('Content-Type: text/plain; charset=UTF-8');
+    echo 'OPUS_PROFILER_DISABLED_OUTSIDE_DEV';
+    return true;
+}
+
+$path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
+$path = is_string($path) ? rawurldecode($path) : '/';
+$path = '/' . ltrim($path, '/');
+
+$profilerQuery = (string) ($_GET['profiler'] ?? '');
+$opusProfilerEnabled = $profilerQuery === '1';
+
+putenv('OPUS_ENV=dev');
+putenv('OPUS_DEBUG=1');
+putenv('OPUS_PROFILER=' . ($opusProfilerEnabled ? '1' : '0'));
+$_SERVER['OPUS_ENV'] = 'dev';
+$_SERVER['OPUS_DEBUG'] = '1';
+$_SERVER['OPUS_PROFILER'] = $opusProfilerEnabled ? '1' : '0';
+
+$staticFile = realpath($opusPublicRoot . $path);
+$publicRootReal = realpath($opusPublicRoot);
+if ($staticFile !== false && $publicRootReal !== false && str_starts_with(str_replace('\\', '/', $staticFile), str_replace('\\', '/', $publicRootReal) . '/') && is_file($staticFile)) {
+    return false;
+}
+
+require_once $opusProjectRoot . '/vendor/autoload.php';
+
+function opus_dev_profiler_html_escape(string $value): string
+{
+    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+function opus_dev_profiler_trace_files(string $siteRoot): array
+{
+    $files = glob($siteRoot . '/var/profiler/*.json') ?: [];
+    usort($files, static fn (string $left, string $right): int => filemtime($right) <=> filemtime($left));
+    return array_slice($files, 0, 80);
+}
+
+function opus_dev_profiler_read_trace(string $file): array
+{
+    $decoded = json_decode((string) @file_get_contents($file), true);
+    return is_array($decoded) ? $decoded : [];
+}
+
+function opus_dev_profiler_latest_trace_id(string $siteRoot): string
+{
+    $files = opus_dev_profiler_trace_files($siteRoot);
+    if (!$files) {
+        return '';
+    }
+    $trace = opus_dev_profiler_read_trace($files[0]);
+    return (string) ($trace['trace_id'] ?? pathinfo($files[0], PATHINFO_FILENAME));
+}
+
+function opus_dev_profiler_path_with_toggle(string $path, string $value): string
+{
+    return $path . '?profiler=' . rawurlencode($value);
+}
+
+function opus_dev_profiler_render_toolbar(string $siteRoot, string $path): string
+{
+    $traceId = opus_dev_profiler_latest_trace_id($siteRoot);
+    $traceLabel = $traceId !== '' ? $traceId : 'no-trace-yet';
+    $traceHref = '/_opus/profiler' . ($traceId !== '' ? '?trace=' . rawurlencode($traceId) : '');
+    $hideHref = opus_dev_profiler_path_with_toggle($path, '0');
+
+    return '<div data-opus-debug-toolbar="1" style="position:fixed;left:12px;right:12px;bottom:12px;z-index:2147483647;font:13px/1.35 Segoe UI,Arial,sans-serif;color:#eaf3ff;background:#08111f;border:1px solid rgba(110,210,255,.45);box-shadow:0 16px 50px rgba(0,0,0,.42);border-radius:14px;padding:10px 14px;display:flex;gap:14px;align-items:center;justify-content:space-between">'
+        . '<strong style="color:#6ce3ff">OPUS DEV</strong>'
+        . '<span>Profiler actif par URL</span>'
+        . '<span style="opacity:.75">' . opus_dev_profiler_html_escape($path) . '</span>'
+        . '<a style="color:#fff16a;font-weight:800" href="/_opus/profiler">Profiler</a>'
+        . '<a style="color:#72b8ff" href="' . opus_dev_profiler_html_escape($traceHref) . '">Trace ' . opus_dev_profiler_html_escape($traceLabel) . '</a>'
+        . '<a style="color:#ffb86c;font-weight:800" href="' . opus_dev_profiler_html_escape($hideHref) . '">Masquer</a>'
+        . '</div>';
+}
+
+function opus_dev_profiler_inject_toolbar(string $html, string $toolbar): string
+{
+    if (stripos($html, '</body>') !== false) {
+        return (string) preg_replace('/<\/body>/i', $toolbar . '</body>', $html, 1);
+    }
+    return $html . $toolbar;
+}
+
+function opus_dev_profiler_render_page(string $siteRoot): void
+{
+    $selectedTrace = isset($_GET['trace']) ? preg_replace('/[^a-zA-Z0-9_.-]/', '', (string) $_GET['trace']) : '';
+    $files = opus_dev_profiler_trace_files($siteRoot);
+    $selected = [];
+    foreach ($files as $file) {
+        $trace = opus_dev_profiler_read_trace($file);
+        $traceId = (string) ($trace['trace_id'] ?? pathinfo($file, PATHINFO_FILENAME));
+        if ($selectedTrace !== '' && $traceId === $selectedTrace) {
+            $selected = $trace;
+            break;
+        }
+        if ($selectedTrace === '' && !$selected) {
+            $selected = $trace;
+        }
+    }
+
+    header('Content-Type: text/html; charset=UTF-8');
+    echo '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OPUS Dev Profiler</title>';
+    echo '<style>body{margin:0;background:#07111f;color:#f6f8ff;font:14px/1.5 Segoe UI,Arial,sans-serif}.wrap{width:min(1180px,calc(100% - 32px));margin:30px auto}.top{display:flex;justify-content:space-between;gap:16px;align-items:center}.card{background:#101c2f;border:1px solid rgba(148,170,216,.25);border-radius:18px;padding:18px;margin:14px 0}.grid{display:grid;grid-template-columns:360px 1fr;gap:16px}.trace{display:block;color:#d7e8ff;text-decoration:none;padding:10px;border-radius:12px;border:1px solid rgba(148,170,216,.18);margin:8px 0}.trace:hover{border-color:#6ce3ff}.muted{color:#b8c5de}.pill{display:inline-flex;padding:4px 8px;border-radius:999px;background:#153456;color:#9ee8ff;font-weight:800}.event{border-top:1px solid rgba(148,170,216,.18);padding:10px 0}pre{white-space:pre-wrap;word-break:break-word;background:#07111f;border:1px solid rgba(148,170,216,.18);border-radius:12px;padding:10px;color:#d7e8ff}a{color:#6ce3ff}</style></head><body><main class="wrap">';
+    echo '<div class="top"><div><p class="pill">DEV ONLY</p><h1>OPUS Dev Profiler</h1><p class="muted">Visible uniquement via serveur local de développement, comportement Symfony-like.</p></div><a href="/">Retour site</a></div>';
+    echo '<section class="grid"><aside class="card"><h2>Traces</h2>';
+    if (!$files) {
+        echo '<p class="muted">Aucune trace. Ouvre le site avec ?profiler=1 puis recharge cette page.</p>';
+    }
+    foreach ($files as $file) {
+        $trace = opus_dev_profiler_read_trace($file);
+        $traceId = (string) ($trace['trace_id'] ?? pathinfo($file, PATHINFO_FILENAME));
+        $status = (string) ($trace['summary']['status'] ?? 'n/a');
+        $path = (string) ($trace['summary']['path'] ?? '');
+        echo '<a class="trace" href="/_opus/profiler?trace=' . rawurlencode($traceId) . '"><strong>' . opus_dev_profiler_html_escape($traceId) . '</strong><br><span class="muted">' . opus_dev_profiler_html_escape($status . ' ' . $path) . '</span></a>';
+    }
+    echo '</aside><section class="card"><h2>Détail</h2>';
+    if (!$selected) {
+        echo '<p class="muted">Sélectionne une trace.</p>';
+    } else {
+        echo '<p><strong>Trace:</strong> ' . opus_dev_profiler_html_escape((string) ($selected['trace_id'] ?? '')) . '</p>';
+        echo '<p class="muted">Events: ' . (int) ($selected['event_count'] ?? count((array) ($selected['events'] ?? []))) . ' · Durée: ' . opus_dev_profiler_html_escape((string) ($selected['duration_ms'] ?? '')) . ' ms</p>';
+        foreach ((array) ($selected['events'] ?? []) as $event) {
+            if (!is_array($event)) {
+                continue;
+            }
+            echo '<div class="event"><strong>' . opus_dev_profiler_html_escape((string) ($event['category'] ?? '')) . ' / ' . opus_dev_profiler_html_escape((string) ($event['name'] ?? '')) . '</strong>';
+            echo '<pre>' . opus_dev_profiler_html_escape(json_encode($event['context'] ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '{}') . '</pre></div>';
+        }
+    }
+    echo '</section></section></main></body></html>';
+}
+
+if ($path === '/_opus/profiler' || str_starts_with($path, '/_opus/profiler/')) {
+    opus_dev_profiler_render_page($opusSiteRoot);
+    return true;
+}
+
+$_SERVER['SCRIPT_NAME'] = '/index.php';
+$_SERVER['SCRIPT_FILENAME'] = $opusPublicRoot . '/index.php';
+
+ob_start();
+require $opusPublicRoot . '/index.php';
+$html = (string) ob_get_clean();
+$contentType = '';
+foreach (headers_list() as $header) {
+    if (stripos($header, 'Content-Type:') === 0) {
+        $contentType = strtolower($header);
+        break;
+    }
+}
+
+if ($opusProfilerEnabled && $html !== '' && (str_contains($contentType, 'text/html') || str_contains(ltrim($html), '<!doctype html') || str_contains(ltrim($html), '<html'))) {
+    $html = opus_dev_profiler_inject_toolbar($html, opus_dev_profiler_render_toolbar($opusSiteRoot, $path));
+}
+
+echo $html;
+return true;
+PHP_ROUTER;
+
+    $router = str_replace('__OPUS_PROJECT_ROOT__', $rootExport, $router);
+    $router = str_replace('__OPUS_SITE_ROOT__', $siteRootExport, $router);
+    $router = str_replace('__OPUS_PUBLIC_ROOT__', $publicRootExport, $router);
+
+    if (@file_put_contents($routerPath, $router) === false) {
+        fwrite(STDERR, "OPUS_DEV_SERVER_ROUTER_WRITE_FAILED\n");
+        exit(1);
+    }
+
+    return $routerPath;
+}
 
 if ($command === 'help' || $command === '--help' || $command === '-h') {
     echo "OPUS CLI\n";
     echo "Usage:\n";
     echo "  php bin/opus help\n";
     echo "  php bin/opus create:site SITE_ID\n";
-    echo "  php bin/opus create:page PAGE_ID\n";
     echo "  php bin/opus validate:site SITE_ID\n";
+    echo "  php bin/opus serve:site SITE_ID [--host=127.0.0.1] [--port=8090]\n";
     exit(0);
 }
 
@@ -52,13 +305,14 @@ if ($command === 'create:site') {
         exit(1);
     }
 }
+
 if ($command === 'validate:site') {
     if ($target === '') {
         fwrite(STDERR, "OPUS_CLI_VALIDATE_SITE_REQUIRES_SITE_ID\n");
         exit(1);
     }
 
-    $siteRoot = $root . DIRECTORY_SEPARATOR . 'sites' . DIRECTORY_SEPARATOR . $target;
+    $siteRoot = opus_cli_site_root($root, $target);
 
     if (!is_dir($siteRoot)) {
         fwrite(STDERR, "OPUS_SITE_NOT_FOUND: {$target}\n");
@@ -78,5 +332,48 @@ if ($command === 'validate:site') {
     echo "OPUS_VALIDATE_SITE_OK: {$target}\n";
     exit(0);
 }
+
+if ($command === 'serve:site') {
+    opus_cli_validate_site_id($target);
+    $siteRoot = opus_cli_site_root($root, $target);
+    opus_cli_assert_site_exists($siteRoot, $target);
+    $publicRoot = opus_cli_public_root($siteRoot);
+    if (!is_dir($publicRoot) || !is_file($publicRoot . DIRECTORY_SEPARATOR . 'index.php')) {
+        fwrite(STDERR, "OPUS_SITE_PUBLIC_FRONT_CONTROLLER_MISSING: {$target}\n");
+        exit(1);
+    }
+
+    $host = (string) opus_cli_option($args, 'host', getenv('OPUS_HOST') ?: '127.0.0.1');
+    $port = (int) (opus_cli_option($args, 'port', getenv('OPUS_PORT') ?: '8090'));
+    if ($host !== '127.0.0.1' && $host !== 'localhost') {
+        fwrite(STDERR, "OPUS_DEV_SERVER_LOCALHOST_ONLY\n");
+        exit(1);
+    }
+    if ($port < 1024 || $port > 65535) {
+        fwrite(STDERR, "OPUS_DEV_SERVER_INVALID_PORT: {$port}\n");
+        exit(1);
+    }
+
+    $router = opus_cli_write_dev_router($root, $target, $siteRoot, $publicRoot);
+    $address = $host . ':' . $port;
+    $commandLine = PHP_BINARY . ' -S ' . $address . ' -t ' . escapeshellarg($publicRoot) . ' ' . escapeshellarg($router);
+
+    echo "OPUS_DEV_SERVER_ONLY=1\n";
+    echo "OPUS_ENV=dev\n";
+    echo "OPUS_DEBUG=1\n";
+    echo "OPUS_SITE={$target}\n";
+    echo "OPUS_URL=http://{$address}/\n";
+    echo "OPUS_PROFILER_URL=http://{$address}/_opus/profiler\n";
+    echo "OPUS_PROFILER_TOGGLE=http://{$address}/?profiler=1\n";
+
+    if (opus_cli_has_option($args, 'dry-run')) {
+        echo "OPUS_DEV_SERVER_COMMAND={$commandLine}\n";
+        exit(0);
+    }
+
+    passthru($commandLine, $exitCode);
+    exit((int) $exitCode);
+}
+
 fwrite(STDERR, "OPUS_CLI_COMMAND_NOT_IMPLEMENTED: {$command}\n");
 exit(1);

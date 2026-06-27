@@ -4,27 +4,34 @@ declare(strict_types=1);
 namespace Opus\Application;
 
 use Opus\Http\Request;
+
 /**
  * Registry of integrated OPUS application definitions.
  *
- * Collects and exposes application definitions for runtime resolution, navigation, routing and discovery.
+ * Contract:
+ * - discovers available OPUS applications under /sites;
+ * - never requires a hardcoded application name;
+ * - resolves explicit application path segment first, then declared domains;
+ * - reports an explicit resolution failure when no application can be selected.
  */
-final class ApplicationRegistry
- implements ApplicationRegistryInterface {
+final class ApplicationRegistry implements ApplicationRegistryInterface
+{
     private string $sitesDir;
+
     /** @var array<string,ApplicationDefinition> */
     private array $applications = [];
 
     public function __construct(string $rootDir)
     {
-        $this->sitesDir = $rootDir . '/sites';
+        $this->sitesDir = rtrim($rootDir, '/\\') . '/sites';
         $this->load();
     }
 
     private function load(): void
     {
         if (!is_dir($this->sitesDir)) {
-            throw new \RuntimeException('Sites directory missing: ' . $this->sitesDir);
+            $this->applications = [];
+            return;
         }
 
         foreach (glob($this->sitesDir . '/*/application.php') ?: [] as $file) {
@@ -34,10 +41,6 @@ final class ApplicationRegistry
             }
             $application = new ApplicationDefinition(dirname($file), $config);
             $this->applications[$application->slug] = $application;
-        }
-
-        if (!isset($this->applications['logandplay'])) {
-            throw new \RuntimeException('Default application logandplay is required.');
         }
     }
 
@@ -59,7 +62,6 @@ final class ApplicationRegistry
     public function resolve(Request $request): array
     {
         $segments = $request->segments;
-        $explicitApplication = false;
 
         if (isset($segments[0]) && isset($this->applications[$segments[0]])) {
             $application = $this->applications[$segments[0]];
@@ -70,11 +72,18 @@ final class ApplicationRegistry
         foreach ($this->applications as $application) {
             foreach ($application->domains as $domain) {
                 if (strtolower($domain) === $request->host) {
-                    return [$application, $segments, $explicitApplication];
+                    return [$application, $segments, false];
                 }
             }
         }
 
-        return [$this->applications['logandplay'], $segments, $explicitApplication];
+        if (count($this->applications) === 1) {
+            $application = reset($this->applications);
+            if ($application instanceof ApplicationDefinition) {
+                return [$application, $segments, false];
+            }
+        }
+
+        throw new \RuntimeException('OPUS_APPLICATION_NOT_RESOLVED: no application matched host/path and no hardcoded default is allowed.');
     }
 }
