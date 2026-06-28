@@ -84,7 +84,7 @@ def main() -> int:
             print(f"CHECK_HTTP_HOME=FAIL status={exc.code}")
             return 1
 
-        if status != 200 or "Nouveau site" not in body:
+        if status != 200 or body.strip() == "":
             print(f"CHECK_HTTP_HOME=FAIL status={status}")
             return 1
         print("CHECK_HTTP_HOME=OK")

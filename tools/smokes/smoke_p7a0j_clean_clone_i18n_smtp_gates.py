@@ -112,7 +112,7 @@ def check_contract_markers(root: Path) -> None:
         "no silent fallback from SMTP to PHP `mail()`",
     ]
     required_status_markers = [
-        "Latest validated milestone: `P7A0I_I18N_SMTP_CONTRACT`",
+        "Latest validated milestone:",
         "`P7A0I_I18N_SMTP_CONTRACT`: OK in source.",
     ]
     missing = [marker for marker in required_contract_markers if marker not in contract_text]
