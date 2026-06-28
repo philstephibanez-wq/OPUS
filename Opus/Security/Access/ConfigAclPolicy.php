@@ -3,20 +3,33 @@ declare(strict_types=1);
 
 namespace Opus\Security\Access;
 
+use Opus\Security\Access\AsapCompat\AsapCompatAclEngine;
 use Opus\Security\Identity\IdentityContextInterface;
 
 /**
- * Configuration-backed ACL policy engine.
+ * Configuration-backed OPUS ACL policy engine.
+ *
+ * The default engine is ASAP-compatible: roles, resources, privileges, allow/deny
+ * rules, role inheritance, resource inheritance, allRoles/allResources/allPrivileges
+ * and conditional assertions are evaluated before the final AccessDecision is emitted.
  */
 final class ConfigAclPolicy implements AclPolicyInterface
 {
+    /** @var array<string,mixed> */
+    private array $config;
     /** @var array<string,array<string,mixed>> */
     private array $policies;
+    private AsapCompatAclEngine $engine;
 
-    /** @param array<string,array<string,mixed>> $policies */
-    private function __construct(array $policies)
+    /**
+     * @param array<string,mixed> $config
+     * @param array<string,array<string,mixed>> $policies
+     */
+    private function __construct(array $config, array $policies, AsapCompatAclEngine $engine)
     {
+        $this->config = $config;
         $this->policies = $policies;
+        $this->engine = $engine;
     }
 
     public static function fromFile(string $path): self
@@ -41,7 +54,7 @@ final class ConfigAclPolicy implements AclPolicyInterface
             $policies[(string) $id] = $policy;
         }
 
-        return new self($policies);
+        return new self($decoded, $policies, AsapCompatAclEngine::fromConfig($decoded));
     }
 
     public function decide(string $policyId, IdentityContextInterface $identity): AccessDecisionInterface
@@ -51,20 +64,48 @@ final class ConfigAclPolicy implements AclPolicyInterface
         }
 
         $policy = $this->policies[$policyId];
+        if (isset($policy['resource']) || isset($policy['privilege'])) {
+            return $this->engine->decide($policyId, $policy, $identity);
+        }
+
+        return $this->decideLegacyPolicy($policyId, $policy, $identity);
+    }
+
+    /** @return array<string,mixed> */
+    public function export(): array
+    {
+        return [
+            'contract' => $this->config['contract'] ?? 'OPUS_ACL_POLICY_REGISTRY_V1',
+            'engine' => $this->config['engine'] ?? 'asap_compat',
+            'roles' => $this->config['roles'] ?? [],
+            'resources' => $this->config['resources'] ?? [],
+            'policies' => $this->policies,
+            'rules' => $this->config['rules'] ?? [],
+        ];
+    }
+
+    /**
+     * Compatibility shim for older configs. New OPUS configs must use resource /
+     * privilege policies evaluated by the ASAP-compatible engine.
+     *
+     * @param array<string,mixed> $policy
+     */
+    private function decideLegacyPolicy(string $policyId, array $policy, IdentityContextInterface $identity): AccessDecisionInterface
+    {
         $access = (string) ($policy['access'] ?? '');
         if ($access === 'public') {
-            return AccessDecision::granted('OPUS_ACL_PUBLIC_ACCESS_GRANTED', ['policy' => $policyId]);
+            return AccessDecision::granted('OPUS_ACL_PUBLIC_ACCESS_GRANTED', ['policy' => $policyId, 'legacy_access' => true]);
         }
 
         if ($access === 'authenticated') {
             return $identity->isAnonymous()
-                ? AccessDecision::denied('OPUS_ACL_AUTHENTICATION_REQUIRED', ['policy' => $policyId])
-                : AccessDecision::granted('OPUS_ACL_AUTHENTICATED_ACCESS_GRANTED', ['policy' => $policyId]);
+                ? AccessDecision::denied('OPUS_ACL_AUTHENTICATION_REQUIRED', ['policy' => $policyId, 'legacy_access' => true])
+                : AccessDecision::granted('OPUS_ACL_AUTHENTICATED_ACCESS_GRANTED', ['policy' => $policyId, 'legacy_access' => true]);
         }
 
         if ($access === 'role_or_scope') {
             if ($identity->isAnonymous()) {
-                return AccessDecision::denied('OPUS_ACL_AUTHENTICATION_REQUIRED', ['policy' => $policyId]);
+                return AccessDecision::denied('OPUS_ACL_AUTHENTICATION_REQUIRED', ['policy' => $policyId, 'legacy_access' => true]);
             }
 
             $allowedRoles = array_values(array_map('strval', (array) ($policy['roles'] ?? [])));
@@ -77,6 +118,7 @@ final class ConfigAclPolicy implements AclPolicyInterface
                     'policy' => $policyId,
                     'roles' => $roleMatch,
                     'scopes' => $scopeMatch,
+                    'legacy_access' => true,
                 ]);
             }
 
@@ -84,15 +126,10 @@ final class ConfigAclPolicy implements AclPolicyInterface
                 'policy' => $policyId,
                 'required_roles' => $allowedRoles,
                 'required_scopes' => $allowedScopes,
+                'legacy_access' => true,
             ]);
         }
 
         throw new \RuntimeException('OPUS_ACL_POLICY_ACCESS_UNSUPPORTED: ' . $access);
-    }
-
-    /** @return array<string,array<string,mixed>> */
-    public function export(): array
-    {
-        return $this->policies;
     }
 }
