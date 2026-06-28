@@ -6,9 +6,9 @@ Status file maintained as the short handoff point for the OPUS workspace.
 
 - Repository: `philstephibanez-wq/OPUS`
 - Branch: `master`
-- Latest validated milestone: `P7_API_REST_SSO_SECURITY_CORE`
+- Latest validated milestone: `P7_LSTSAR_CONTRACT_CORE`
 - Latest functional commit: `3a03027`
-- Previous validated milestone: `P7_SCORETEMPLATE_CONTRACT_FINAL`
+- Previous validated milestone: `P7_API_REST_SSO_SECURITY_CORE`
 - Previous cleanup commit: `6ce036d`
 
 ## Validated milestones
@@ -43,6 +43,7 @@ Status file maintained as the short handoff point for the OPUS workspace.
 - `P7A0J_CLEAN_CLONE_I18N_SMTP_GATES`: OK in source and clean clone. P7A0I contract markers and direct-mail guards are validated from a clean checkout of HEAD.
 - `P7_SCORETEMPLATE_CONTRACT_FINAL`: OK in source. Native ScoreTemplate interpolation, include, conditional, loop, ignored blocks and explicit ignore diagnostics are validated.
 - `P7_API_REST_SSO_SECURITY_CORE`: OK in source. Existing `Opus\Api` dispatcher stack validates data-driven routes, SSO identity resolution, ACL delegation, FSM guard decisions and JSON responses.
+- `P7_LSTSAR_CONTRACT_CORE`: OK in source. Load, Secure, Transform, Store, Audit and Restore are validated with separate source/target type, length, byte-size and numeric constraints.
 
 ## Current architecture decisions
 
