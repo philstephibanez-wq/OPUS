@@ -103,6 +103,8 @@ final class ApiDispatcher
                 'api_routes' => $this->routes->export(),
                 'acl_policies' => $this->acl->export(),
                 'project_root' => $this->projectRoot,
+                'access_decision' => $accessDecision,
+                'fsm_decision' => $fsmDecision,
             ]);
         } catch (\Throwable $exception) {
             $this->profiler->event('api', 'dispatch.failed', ['error' => $exception->getMessage()]);

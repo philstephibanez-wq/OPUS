@@ -18,14 +18,21 @@ final class Request
     public string $path;
     /** @var list<string> */
     public array $segments;
+    private string $body;
 
-    private function __construct(string $host, string $method, string $basePath, string $path)
+    private function __construct(string $host, string $method, string $basePath, string $path, string $body = '')
     {
         $this->host = $host;
         $this->method = strtoupper($method);
         $this->basePath = $basePath;
         $this->path = $path;
         $this->segments = $path === '' ? [] : array_values(array_filter(explode('/', $path), static fn($v) => $v !== ''));
+        $this->body = $body;
+    }
+
+    public static function fromParts(string $host, string $method, string $basePath, string $path, string $body = ''): self
+    {
+        return new self($host, $method, $basePath, trim($path, '/'), $body);
     }
 
     public static function fromGlobals(string $rootDir): self
@@ -35,6 +42,8 @@ final class Request
         $method = (string)($_SERVER['REQUEST_METHOD'] ?? 'GET');
         $requestUri = (string)($_SERVER['REQUEST_URI'] ?? '/');
         $scriptName = (string)($_SERVER['SCRIPT_NAME'] ?? '/index.php');
+        $body = file_get_contents('php://input');
+        $body = is_string($body) ? $body : '';
 
         $rawPath = parse_url($requestUri, PHP_URL_PATH);
         $rawPath = is_string($rawPath) ? rawurldecode($rawPath) : '/';
@@ -53,6 +62,26 @@ final class Request
 
         $path = Support::trimSlashes($path);
 
-        return new self($host, $method, $basePath, $path);
+        return new self($host, $method, $basePath, $path, $body);
+    }
+
+    public function body(): string
+    {
+        return $this->body;
+    }
+
+    /** @return array<string,mixed> */
+    public function jsonBody(): array
+    {
+        if (trim($this->body) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($this->body, true);
+        if (!is_array($decoded)) {
+            throw new \RuntimeException('OPUS_HTTP_REQUEST_JSON_BODY_INVALID');
+        }
+
+        return $decoded;
     }
 }
