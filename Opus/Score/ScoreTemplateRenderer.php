@@ -193,7 +193,14 @@ final class ScoreTemplateRenderer implements TemplateRendererInterface
                 return [$nodes, $normalized];
             }
 
-            if ($normalized === 'else' || $normalized === 'endif' || $normalized === 'endforeach' || $normalized === 'endignore') {
+            if ($normalized === 'endignore') {
+                throw ContractException::because(
+                    'OPUS_SCORE_TEMPLATE_UNEXPECTED_ENDIGNORE',
+                    $value . ' in ' . $template . ':' . $token['line'] . ':' . $token['column']
+                );
+            }
+
+            if ($normalized === 'else' || $normalized === 'endif' || $normalized === 'endforeach') {
                 throw ContractException::because(
                     'OPUS_SCORE_TEMPLATE_UNEXPECTED_DIRECTIVE',
                     $value . ' in ' . $template . ':' . $token['line'] . ':' . $token['column']
@@ -294,7 +301,7 @@ final class ScoreTemplateRenderer implements TemplateRendererInterface
             $index++;
         }
 
-        throw ContractException::because('OPUS_SCORE_TEMPLATE_IGNORE_NOT_CLOSED', $template . ':' . $startLine);
+        throw ContractException::because('OPUS_SCORE_TEMPLATE_UNCLOSED_IGNORE', $template . ':' . $startLine);
     }
 
     /**

@@ -6,9 +6,9 @@ Status file maintained as the short handoff point for the OPUS workspace.
 
 - Repository: `philstephibanez-wq/OPUS`
 - Branch: `master`
-- Latest validated milestone: `P7A0J_CLEAN_CLONE_I18N_SMTP_GATES`
+- Latest validated milestone: `P7_SCORETEMPLATE_CONTRACT_FINAL`
 - Latest functional commit: `3a03027`
-- Previous validated milestone: `P7A0I_I18N_SMTP_CONTRACT`
+- Previous validated milestone: `P7A0J_CLEAN_CLONE_I18N_SMTP_GATES`
 - Previous cleanup commit: `6ce036d`
 
 ## Validated milestones
@@ -41,6 +41,7 @@ Status file maintained as the short handoff point for the OPUS workspace.
 - `P7A0H_RUNTIME_DIAGNOSTICS_PROFILER_WIRING`: OK in source and clean clone. Runtime/Application configures Diagnostics and Profiler, starts/stops traces, records 404 and exception paths.
 - `P7A0I_I18N_SMTP_CONTRACT`: OK in source. I18N is mandatory for user-visible text, official SMTP is mandatory for mail-sending workflows, and direct mail delivery outside official infrastructure is forbidden.
 - `P7A0J_CLEAN_CLONE_I18N_SMTP_GATES`: OK in source and clean clone. P7A0I contract markers and direct-mail guards are validated from a clean checkout of HEAD.
+- `P7_SCORETEMPLATE_CONTRACT_FINAL`: OK in source. Native ScoreTemplate interpolation, include, conditional, loop, ignored blocks and explicit ignore diagnostics are validated.
 
 ## Current architecture decisions
 
