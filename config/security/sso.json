@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_SSO_CONFIG_V1",
+    "adapter": "dev_header",
+    "anonymous_subject": "anonymous",
+    "headers": {
+        "subject": "X-OPUS-USER",
+        "roles": "X-OPUS-ROLES",
+        "scopes": "X-OPUS-SCOPES"
+    }
+}

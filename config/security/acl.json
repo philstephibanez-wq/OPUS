@@ -1,0 +1,22 @@
+{
+    "contract": "OPUS_ACL_POLICY_REGISTRY_V1",
+    "policies": {
+        "api.status.view": {
+            "access": "public"
+        },
+        "api.identity.view": {
+            "access": "authenticated"
+        },
+        "api.security.policies.view": {
+            "access": "role_or_scope",
+            "roles": [
+                "admin",
+                "developer"
+            ],
+            "scopes": [
+                "security:read",
+                "opus:admin"
+            ]
+        }
+    }
+}

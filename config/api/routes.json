@@ -1,0 +1,32 @@
+{
+    "contract": "OPUS_API_ROUTE_REGISTRY_V1",
+    "routes": [
+        {
+            "id": "core.status",
+            "method": "GET",
+            "path": "v1/status",
+            "endpoint": "Opus\\Api\\Endpoint\\StatusEndpoint",
+            "acl_policy": "api.status.view",
+            "fsm_flow": "runtime_request",
+            "fsm_signal": "route.dispatched"
+        },
+        {
+            "id": "core.identity.me",
+            "method": "GET",
+            "path": "v1/me",
+            "endpoint": "Opus\\Api\\Endpoint\\MeEndpoint",
+            "acl_policy": "api.identity.view",
+            "fsm_flow": "runtime_request",
+            "fsm_signal": "route.dispatched"
+        },
+        {
+            "id": "core.security.policies",
+            "method": "GET",
+            "path": "v1/security/policies",
+            "endpoint": "Opus\\Api\\Endpoint\\SecurityPoliciesEndpoint",
+            "acl_policy": "api.security.policies.view",
+            "fsm_flow": "runtime_request",
+            "fsm_signal": "route.dispatched"
+        }
+    ]
+}

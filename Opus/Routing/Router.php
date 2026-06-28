@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Opus\Routing;
 
+use Opus\Api\ApiDispatcher;
 use Opus\Runtime\Kernel;
 use Opus\View\View;
 use Opus\Security\Acl;
@@ -87,44 +88,9 @@ final class Router
     /** @param list<string> $segments */
     private function dispatchApi(ApplicationDefinition $application, array $segments, Request $request): Response
     {
-        $endpoint = implode('/', $segments);
-        $this->profiler->event('routing', 'api.dispatch', ['application' => $application->slug, 'endpoint' => $endpoint]);
-        if ($application->slug === 'demo' && $endpoint === 'ping') {
-            return Response::json([
-                'ok' => true,
-                'application' => $application->slug,
-                'host' => $request->host,
-                'base_path' => $request->basePath,
-                'path' => $request->path,
-                'time' => date(DATE_ATOM),
-            ]);
-        }
+        $dispatcher = ApiDispatcher::fromProjectRoot(dirname(__DIR__, 2), $this->profiler, $this->fsmRuntimeConfigLoader);
 
-        if ($application->slug === 'demo' && $endpoint === 'site') {
-            return Response::json([
-                'application' => $application->slug,
-                'name' => $application->name,
-                'languages' => $application->languages,
-                'paths' => [
-                    'application_dir' => $application->dir,
-                    'www' => $application->dir . '/www',
-                    'logs' => $application->dir . '/logs',
-                    'tmp' => $application->dir . '/tmp',
-                    'history' => $application->dir . '/history',
-                ],
-                'checks' => [
-                    'dynamic_paths' => true,
-                    'external_links_required' => false,
-                    'accented_url' => $this->kernel->applicationUrl('demo', 'démo-interne', 'fr'),
-                ],
-            ]);
-        }
-
-        return Response::json([
-            'ok' => false,
-            'error' => 'Unknown API endpoint',
-            'endpoint' => $endpoint,
-        ], 404);
+        return $dispatcher->dispatch($application, $segments, $request);
     }
 
     private function notFound(ApplicationDefinition $application, string $lang, Request $request, string $routeKey): Response
