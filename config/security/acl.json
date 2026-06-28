@@ -39,6 +39,18 @@
                 "lstsar:read",
                 "opus:admin"
             ]
+        },
+        "api.lstsar.engine.skeleton.view": {
+            "access": "role_or_scope",
+            "roles": [
+                "admin",
+                "developer"
+            ],
+            "scopes": [
+                "lstsar:read",
+                "lstsar:execute",
+                "opus:admin"
+            ]
         }
     }
 }

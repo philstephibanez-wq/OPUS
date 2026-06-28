@@ -46,6 +46,16 @@
             "fsm_flow": "runtime_request",
             "fsm_signal": "route.dispatched",
             "pipeline_id": "default"
+        },
+        {
+            "id": "lstsar.engine.skeleton",
+            "method": "GET",
+            "path": "v1/lstsar/engine/skeleton",
+            "endpoint": "Opus\\Api\\Endpoint\\LstsarEngineSkeletonEndpoint",
+            "acl_policy": "api.lstsar.engine.skeleton.view",
+            "fsm_flow": "runtime_request",
+            "fsm_signal": "route.dispatched",
+            "pipeline_id": "default"
         }
     ]
 }

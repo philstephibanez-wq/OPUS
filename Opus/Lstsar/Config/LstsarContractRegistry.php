@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Opus\Lstsar\Config;
 
+use Opus\Lstsar\Pipeline\DeclaredLstsarPipeline;
+
 /**
  * Data-driven LSTSAR contract registry.
  *
@@ -70,6 +72,16 @@ final class LstsarContractRegistry
         }
 
         return null;
+    }
+
+    public function declaredPipeline(string $id): ?DeclaredLstsarPipeline
+    {
+        $pipeline = $this->pipeline($id);
+        if ($pipeline === null) {
+            return null;
+        }
+
+        return new DeclaredLstsarPipeline($pipeline);
     }
 
     /**
