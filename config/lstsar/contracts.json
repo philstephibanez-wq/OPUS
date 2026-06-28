@@ -1,0 +1,76 @@
+{
+    "contract": "OPUS_LSTSAR_CONTRACT_REGISTRY_V1",
+    "version": 1,
+    "status": "contract_only",
+    "stages": [
+        {
+            "id": "load",
+            "interface": "Opus\\Lstsar\\Stage\\LoadStageInterface",
+            "responsibility": "Load a declared source and expose received type, length and size metadata before any transformation."
+        },
+        {
+            "id": "secure",
+            "interface": "Opus\\Lstsar\\Stage\\SecureStageInterface",
+            "responsibility": "Secure loaded data through OPUS Identity, SSO, ACL policy and optional FSM guard."
+        },
+        {
+            "id": "transform",
+            "interface": "Opus\\Lstsar\\Stage\\TransformStageInterface",
+            "responsibility": "Validate and transform type, length, byte-size and structure constraints before storage."
+        },
+        {
+            "id": "store",
+            "interface": "Opus\\Lstsar\\Stage\\StoreStageInterface",
+            "responsibility": "Store transformed data only into declared and authorized targets."
+        },
+        {
+            "id": "audit",
+            "interface": "Opus\\Lstsar\\Stage\\AuditStageInterface",
+            "responsibility": "Record decisions, denials, transformations, storage actions and report creation."
+        },
+        {
+            "id": "report",
+            "interface": "Opus\\Lstsar\\Stage\\ReportStageInterface",
+            "responsibility": "Produce explicit reports for JSON, HTML, log, documentation or future API representations."
+        }
+    ],
+    "pipelines": [
+        {
+            "id": "default",
+            "status": "contract_only",
+            "description": "Default OPUS LSTSAR contract. This declares the framework pipeline without executing a runtime job yet.",
+            "stages": [
+                "load",
+                "secure",
+                "transform",
+                "store",
+                "audit",
+                "report"
+            ],
+            "security": {
+                "uses_sso_contract": true,
+                "uses_identity_context": true,
+                "uses_acl_policy": true,
+                "uses_fsm_guard": true,
+                "forbids_silent_fallback": true
+            },
+            "constraints": {
+                "source_validation": [
+                    "type",
+                    "min_length",
+                    "max_length",
+                    "max_bytes",
+                    "format"
+                ],
+                "target_validation": [
+                    "type",
+                    "min_length",
+                    "max_length",
+                    "max_bytes",
+                    "precision",
+                    "scale"
+                ]
+            }
+        }
+    ]
+}

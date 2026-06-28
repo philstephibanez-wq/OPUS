@@ -26,8 +26,9 @@ final class ApiDispatcher
     private ConfigFsmGuard $fsmGuard;
     private Profiler $profiler;
     private ApiErrorResponseFactory $errors;
+    private string $projectRoot;
 
-    public function __construct(ApiRouteRegistry $routes, DevHeaderSsoAuthenticator $sso, ConfigAclPolicy $acl, ConfigFsmGuard $fsmGuard, Profiler $profiler, ApiErrorResponseFactory $errors)
+    public function __construct(ApiRouteRegistry $routes, DevHeaderSsoAuthenticator $sso, ConfigAclPolicy $acl, ConfigFsmGuard $fsmGuard, Profiler $profiler, ApiErrorResponseFactory $errors, string $projectRoot = '')
     {
         $this->routes = $routes;
         $this->sso = $sso;
@@ -35,11 +36,13 @@ final class ApiDispatcher
         $this->fsmGuard = $fsmGuard;
         $this->profiler = $profiler;
         $this->errors = $errors;
+        $this->projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
     }
 
     public static function fromProjectRoot(string $projectRoot, Profiler $profiler, FsmRuntimeConfigLoader $fsmRuntimeConfigLoader): self
     {
-        $configRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'config';
+        $projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
+        $configRoot = $projectRoot . DIRECTORY_SEPARATOR . 'config';
 
         return new self(
             ApiRouteRegistry::fromFile($configRoot . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'routes.json'),
@@ -47,7 +50,8 @@ final class ApiDispatcher
             ConfigAclPolicy::fromFile($configRoot . DIRECTORY_SEPARATOR . 'security' . DIRECTORY_SEPARATOR . 'acl.json'),
             new ConfigFsmGuard($fsmRuntimeConfigLoader),
             $profiler,
-            new ApiErrorResponseFactory()
+            new ApiErrorResponseFactory(),
+            $projectRoot
         );
     }
 
@@ -98,6 +102,7 @@ final class ApiDispatcher
             return $endpoint->handle($route, $application, $request, $identity, [
                 'api_routes' => $this->routes->export(),
                 'acl_policies' => $this->acl->export(),
+                'project_root' => $this->projectRoot,
             ]);
         } catch (\Throwable $exception) {
             $this->profiler->event('api', 'dispatch.failed', ['error' => $exception->getMessage()]);

@@ -27,6 +27,25 @@
             "acl_policy": "api.security.policies.view",
             "fsm_flow": "runtime_request",
             "fsm_signal": "route.dispatched"
+        },
+        {
+            "id": "lstsar.contracts",
+            "method": "GET",
+            "path": "v1/lstsar/contracts",
+            "endpoint": "Opus\\Api\\Endpoint\\LstsarContractsEndpoint",
+            "acl_policy": "api.lstsar.contracts.view",
+            "fsm_flow": "runtime_request",
+            "fsm_signal": "route.dispatched"
+        },
+        {
+            "id": "lstsar.pipeline.default",
+            "method": "GET",
+            "path": "v1/lstsar/pipelines/default",
+            "endpoint": "Opus\\Api\\Endpoint\\LstsarPipelineContractEndpoint",
+            "acl_policy": "api.lstsar.pipeline.view",
+            "fsm_flow": "runtime_request",
+            "fsm_signal": "route.dispatched",
+            "pipeline_id": "default"
         }
     ]
 }

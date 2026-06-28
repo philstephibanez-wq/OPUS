@@ -17,6 +17,28 @@
                 "security:read",
                 "opus:admin"
             ]
+        },
+        "api.lstsar.contracts.view": {
+            "access": "role_or_scope",
+            "roles": [
+                "admin",
+                "developer"
+            ],
+            "scopes": [
+                "lstsar:read",
+                "opus:admin"
+            ]
+        },
+        "api.lstsar.pipeline.view": {
+            "access": "role_or_scope",
+            "roles": [
+                "admin",
+                "developer"
+            ],
+            "scopes": [
+                "lstsar:read",
+                "opus:admin"
+            ]
         }
     }
 }
