@@ -23,7 +23,7 @@ abstract class OPUS_Singleton implements OPUS_AccessorInterface {
 
     /**
      * OPUS default pointer, kept for old code that inspects $_instance in
-     * subclasses or expects getInstance() to behave like the historical ASAP
+     * subclasses or expects getInstance() to behave like the historical singleton
      * singleton.
      */
     protected static $_instance = null;

@@ -24,7 +24,7 @@ FORBIDDEN_PATTERNS = [
 ]
 def should_scan(path: Path) -> bool:
     if not path.is_file(): return False
-    if path.suffix.lower() not in {".php", ".phtml", ".twig", ".html"}: return False
+    if path.suffix.lower() not in {".php", ".phtml", ".html"}: return False
     return not any(part in EXCLUDED_PARTS for part in path.parts)
 def main() -> int:
     print("P7A0I_I18N_SMTP_CONTRACT_SMOKE")

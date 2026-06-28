@@ -1,6 +1,6 @@
 {
     "name": "logandplay/opus",
-    "description": "OPUS framework core - As Simple As Possible",
+    "description": "OPUS lightweight modular framework core",
     "type": "library",
     "version": "8.1.0",
     "license": "proprietary",

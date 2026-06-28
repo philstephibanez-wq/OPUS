@@ -7,7 +7,7 @@ Read-only audit for OPUS reborn modern runtime wrappers.
 The goal is to decide, before any patch, whether Kernel/Package/Request/Response
 and the root namespace wrappers Acl/Fsm/I18n/Router belong in the framework root,
 should move under responsibility folders, or should be replaced by historical
-ASAP/OPUS classes.
+OPUS classes.
 """
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ ROOT_WRAPPERS = {
 }
 
 MODERN_RUNTIME = {
-    "Opus/Kernel.php": "Modern request orchestrator; not part of historical ASAP core.",
+    "Opus/Kernel.php": "Modern request orchestrator; not part of the historical OPUS core.",
     "Opus/Package.php": "Modern site/application package value object.",
     "Opus/PackageRepository.php": "Modern package resolver; currently tied to root /sites and logandplay.",
     "Opus/Request.php": "Modern HTTP request wrapper.",

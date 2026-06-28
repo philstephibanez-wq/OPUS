@@ -79,7 +79,7 @@ def iter_source_files() -> Iterable[Path]:
         parts = set(path.relative_to(ROOT).parts)
         if parts & EXCLUDED_DIRS:
             continue
-        if path.suffix.lower() not in {".php", ".py", ".cmd", ".md", ".json", ".xml", ".txt", ".score", ".twig"}:
+        if path.suffix.lower() not in {".php", ".py", ".cmd", ".md", ".json", ".xml", ".txt", ".score"}:
             continue
         if is_binary(path):
             continue

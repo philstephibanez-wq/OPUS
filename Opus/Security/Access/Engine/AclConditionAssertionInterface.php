@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus\Security\Access\AsapCompat;
+namespace Opus\Security\Access\Engine;
 
 use Opus\Security\Identity\IdentityContextInterface;
 

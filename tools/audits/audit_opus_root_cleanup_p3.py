@@ -5,7 +5,7 @@ P3_OPUS_ROOT_CLEANUP_AUDIT
 Read-only audit for OPUS reborn root cleanliness.
 
 This script intentionally does not modify files. It classifies files directly under
-Opus/ and root-level tools so the framework can return to an ASAP/OPUS-style
+Opus/ and root-level tools so the framework can return to an OPUS-style
 structure without deleting useful historical classes too early.
 """
 from __future__ import annotations
@@ -19,7 +19,7 @@ REPO = Path.cwd()
 OPUS = REPO / "Opus"
 
 KEEP_CORE = {
-    "Opus/Application.class.php": "Historical ASAP/OPUS application entry class.",
+    "Opus/Application.class.php": "Historical OPUS application entry class.",
     "Opus/Singleton.class.php": "Historical OPUS singleton/accessor base; restored in P2.",
     "Opus/AccessorInterface.class.php": "Accessor contract added for protected variables and auto getter/setter policy.",
     "Opus/Bootstrap.php": "Framework bootstrap/autoload entry.",
@@ -32,7 +32,7 @@ KEEP_FACADE_REVIEW = {
 }
 
 MODERN_LAYER_REVIEW = {
-    "Opus/Kernel.php": "Modern runtime orchestrator added during reborn; not present in historical ASAP. Review against OPUS_Application.",
+    "Opus/Kernel.php": "Modern runtime orchestrator added during reborn; not present in the historical OPUS core. Review against OPUS_Application.",
     "Opus/Package.php": "Modern site/application package object. Review before site extraction.",
     "Opus/PackageRepository.php": "Modern site package resolver currently tied to sites/. Review before site extraction.",
     "Opus/Request.php": "Modern HTTP request wrapper. Review whether framework needs it or site layer owns it.",

@@ -13,7 +13,7 @@ use Opus\Contract\ContractException;
  *   role: Class ScoreTemplateRenderer belongs to the TEMPLATE Opus framework domain.
  *   contract:
  *     - keeps responsibility limited to the TEMPLATE domain
- *     - renders validated view data without Twig or Symfony dependencies
+ *     - renders validated view data with the native OPUS ScoreTemplate engine
  *     - must not rely on silent fallback behavior
  *   examples:
  *     - score-template-foundation
@@ -33,7 +33,7 @@ use Opus\Contract\ContractException;
  * Contract:
  *   ScoreTemplate is explicit and dependency-free. It supports escaped and raw
  *   interpolation, includes, if/else blocks, foreach blocks, loop metadata and
- *   whitelisted deterministic filters. It does not parse Twig and it does not
+ *   whitelisted deterministic filters. It does not delegate to another template grammar and it does not
  *   silently fall back to another renderer.
  *
  * Syntax:

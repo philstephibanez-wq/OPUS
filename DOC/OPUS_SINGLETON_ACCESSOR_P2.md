@@ -6,7 +6,7 @@ Delivered as controlled tooling first.
 
 ## Why
 
-The historical ASAP idea is kept as an OPUS contract:
+The historical singleton idea is kept as an OPUS contract:
 
 - classes keep their internal state in protected properties;
 - external code must access state through getters/setters;

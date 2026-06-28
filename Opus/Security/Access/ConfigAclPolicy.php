@@ -3,13 +3,14 @@ declare(strict_types=1);
 
 namespace Opus\Security\Access;
 
-use Opus\Security\Access\AsapCompat\AsapCompatAclEngine;
+use Opus\Security\Access\Engine\AclRuleEngineInterface;
+use Opus\Security\Access\Engine\HierarchicalAclEngine;
 use Opus\Security\Identity\IdentityContextInterface;
 
 /**
  * Configuration-backed OPUS ACL policy engine.
  *
- * The default engine is ASAP-compatible: roles, resources, privileges, allow/deny
+ * The default engine is hierarchical and rule-based: roles, resources, privileges, allow/deny
  * rules, role inheritance, resource inheritance, allRoles/allResources/allPrivileges
  * and conditional assertions are evaluated before the final AccessDecision is emitted.
  */
@@ -19,13 +20,13 @@ final class ConfigAclPolicy implements AclPolicyInterface
     private array $config;
     /** @var array<string,array<string,mixed>> */
     private array $policies;
-    private AsapCompatAclEngine $engine;
+    private AclRuleEngineInterface $engine;
 
     /**
      * @param array<string,mixed> $config
      * @param array<string,array<string,mixed>> $policies
      */
-    private function __construct(array $config, array $policies, AsapCompatAclEngine $engine)
+    private function __construct(array $config, array $policies, AclRuleEngineInterface $engine)
     {
         $this->config = $config;
         $this->policies = $policies;
@@ -54,7 +55,7 @@ final class ConfigAclPolicy implements AclPolicyInterface
             $policies[(string) $id] = $policy;
         }
 
-        return new self($decoded, $policies, AsapCompatAclEngine::fromConfig($decoded));
+        return new self($decoded, $policies, HierarchicalAclEngine::fromConfig($decoded));
     }
 
     public function decide(string $policyId, IdentityContextInterface $identity): AccessDecisionInterface
@@ -76,7 +77,7 @@ final class ConfigAclPolicy implements AclPolicyInterface
     {
         return [
             'contract' => $this->config['contract'] ?? 'OPUS_ACL_POLICY_REGISTRY_V1',
-            'engine' => $this->config['engine'] ?? 'asap_compat',
+            'engine' => $this->config['engine'] ?? 'hierarchical_acl',
             'roles' => $this->config['roles'] ?? [],
             'resources' => $this->config['resources'] ?? [],
             'policies' => $this->policies,
@@ -86,7 +87,7 @@ final class ConfigAclPolicy implements AclPolicyInterface
 
     /**
      * Compatibility shim for older configs. New OPUS configs must use resource /
-     * privilege policies evaluated by the ASAP-compatible engine.
+     * privilege policies evaluated by the hierarchical OPUS ACL engine.
      *
      * @param array<string,mixed> $policy
      */

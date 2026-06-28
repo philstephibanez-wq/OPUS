@@ -6,7 +6,7 @@ from pathlib import Path
 PATCH_ID = "P4N3_REPAIR_APPLICATION_RUNTIME_REFS"
 ROOT = Path(__file__).resolve().parents[2]
 
-TEXT_SUFFIXES = {".php", ".cmd", ".py", ".md", ".score", ".twig", ".json", ".txt"}
+TEXT_SUFFIXES = {".php", ".cmd", ".py", ".md", ".score", ".json", ".txt"}
 SKIP_PARTS = {".git", "vendor", "node_modules"}
 
 

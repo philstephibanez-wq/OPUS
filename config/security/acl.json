@@ -1,6 +1,6 @@
 {
     "contract": "OPUS_ACL_POLICY_REGISTRY_V1",
-    "engine": "asap_compat",
+    "engine": "hierarchical_acl",
     "roles": {
         "visitor": {
             "parents": []
@@ -240,7 +240,7 @@
             "privileges": [
                 "view"
             ],
-            "description": "ASAP demo: public site view inherited by descendants."
+            "description": "OPUS demo: public site view inherited by descendants."
         },
         {
             "effect": "allow",
@@ -253,7 +253,7 @@
             "privileges": [
                 "read"
             ],
-            "description": "ASAP demo: visitor can read articles."
+            "description": "OPUS demo: visitor can read articles."
         },
         {
             "effect": "allow",
@@ -267,7 +267,7 @@
                 "edit",
                 "review"
             ],
-            "description": "ASAP demo: staff gets article edit/review."
+            "description": "OPUS demo: staff gets article edit/review."
         },
         {
             "effect": "allow",
@@ -281,7 +281,7 @@
                 "publish",
                 "archive"
             ],
-            "description": "ASAP demo: editor gets publish/archive."
+            "description": "OPUS demo: editor gets publish/archive."
         },
         {
             "effect": "allow",
@@ -301,7 +301,7 @@
                     "equals": true
                 }
             ],
-            "description": "ASAP demo: conditional newsletter send."
+            "description": "OPUS demo: conditional newsletter send."
         },
         {
             "effect": "allow",
@@ -310,7 +310,7 @@
             ],
             "resources": "*",
             "privileges": "*",
-            "description": "ASAP demo: admin all resources / all privileges."
+            "description": "OPUS demo: admin all resources / all privileges."
         },
         {
             "effect": "deny",
@@ -323,7 +323,7 @@
             "privileges": [
                 "view"
             ],
-            "description": "ASAP demo: explicit deny on admin panel."
+            "description": "OPUS demo: explicit deny on admin panel."
         }
     ]
 }

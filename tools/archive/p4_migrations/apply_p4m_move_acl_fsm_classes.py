@@ -20,7 +20,7 @@ IMPORT_REPLACEMENTS = [
 
 LEGACY_SYMBOLS = ["Opus\\Acl", "Opus\\Fsm"]
 NON_RUNTIME_ROOTS = {"DOC", "tools", "vendor", ".git"}
-TEXT_SUFFIXES = {".php", ".json", ".md", ".cmd", ".py", ".twig", ".score", ".txt"}
+TEXT_SUFFIXES = {".php", ".json", ".md", ".cmd", ".py", ".score", ".txt"}
 
 
 def fail(message: str) -> None:

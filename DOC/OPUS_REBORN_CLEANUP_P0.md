@@ -12,9 +12,9 @@ Regles:
 
 - Une classe issue de l'ancien framework doit rester reconnaissable.
 - Un patch de renommage ne change pas la logique.
-- La convention ASAP_* devient OPUS_* dans le framework.
-- Les namespaces modernes ASAP deviennent Opus.
-- Les chemins framework/ASAP deviennent le chemin reel Opus.
+- Les anciennes conventions de nommage deviennent OPUS_* dans le framework.
+- Les namespaces modernes du framework deviennent Opus.
+- Les anciens chemins framework deviennent le chemin reel Opus.
 - Controler devient Controller.
 - Scafold devient Scaffold.
 - Componants reste Componants pour ce palier.

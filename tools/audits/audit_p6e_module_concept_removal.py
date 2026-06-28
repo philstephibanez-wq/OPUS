@@ -3,7 +3,7 @@ import re
 import sys
 
 ROOT = Path.cwd()
-SCAN_EXTENSIONS = {".php", ".md", ".json", ".yml", ".yaml", ".score", ".twig", ".txt"}
+SCAN_EXTENSIONS = {".php", ".md", ".json", ".yml", ".yaml", ".score", ".txt"}
 EXCLUDED_PARTS = {".git", "vendor", "node_modules", ".idea", ".vscode", "sites"}
 TERMS = [
     "module",

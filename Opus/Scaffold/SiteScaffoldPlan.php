@@ -716,7 +716,7 @@ SCORE;
 
             'devtools.kicker' => 'DevTools',
             'devtools.title' => 'Profiler local',
-            'devtools.subtitle' => 'Comme Symfony, le profiler est un outil de développement, jamais une fonctionnalité publique.',
+            'devtools.subtitle' => 'Comme tout profiler professionnel, le profiler OPUS est un outil de développement, jamais une fonctionnalité publique.',
             'devtools.description' => 'Serveur interne, toolbar sur demande et traces locales.',
             'devtools.primary_title' => 'Activation volontaire',
             'devtools.primary_text' => 'Le site reste propre sur / et la toolbar apparaît seulement avec ?profiler=1 sur le serveur local.',
@@ -825,7 +825,7 @@ SCORE;
 
             'devtools.kicker' => 'DevTools',
             'devtools.title' => 'Local profiler',
-            'devtools.subtitle' => 'Like Symfony, the profiler is a development tool, never a public feature.',
+            'devtools.subtitle' => 'Like any professional profiler, the OPUS profiler is a development tool, never a public feature.',
             'devtools.description' => 'Internal server, opt-in toolbar and local traces.',
             'devtools.primary_title' => 'Voluntary activation',
             'devtools.primary_text' => 'The site stays clean on / and the toolbar appears only with ?profiler=1 on the local server.',
@@ -934,7 +934,7 @@ SCORE;
 
             'devtools.kicker' => 'DevTools',
             'devtools.title' => 'Profiler local',
-            'devtools.subtitle' => 'Como Symfony, el profiler es una herramienta de desarrollo, nunca una función pública.',
+            'devtools.subtitle' => 'Como todo profiler profesional, el profiler OPUS es una herramienta de desarrollo, nunca una función pública.',
             'devtools.description' => 'Servidor interno, toolbar bajo demanda y trazas locales.',
             'devtools.primary_title' => 'Activación voluntaria',
             'devtools.primary_text' => 'El sitio permanece limpio en / y la toolbar aparece solo con ?profiler=1 en el servidor local.',

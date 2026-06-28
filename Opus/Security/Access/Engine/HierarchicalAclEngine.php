@@ -1,19 +1,19 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus\Security\Access\AsapCompat;
+namespace Opus\Security\Access\Engine;
 
 use Opus\Security\Access\AccessDecision;
 use Opus\Security\Access\AccessDecisionInterface;
 use Opus\Security\Identity\IdentityContextInterface;
 
 /**
- * ASAP-compatible ACL engine for OPUS.
+ * Hierarchical OPUS ACL rule engine.
  *
  * Supports role/resource inheritance, privileges, allow/deny rules, wildcard roles,
  * wildcard resources, wildcard privileges, conditional assertions and default deny.
  */
-final class AsapCompatAclEngine
+final class HierarchicalAclEngine implements AclRuleEngineInterface
 {
     /** @var array<string,mixed> */
     private array $config;

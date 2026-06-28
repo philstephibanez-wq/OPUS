@@ -7,7 +7,7 @@ Ce palier ne modifie pas le runtime. Il audite les fichiers modernes introduits 
 La priorite reste :
 
 - OPUS doit rester **As Simple As Possible**.
-- Les classes heritees d'ASAP doivent rester reconnaissables.
+- Les classes historiques doivent rester reconnaissables jusqu'a leur revue contractuelle.
 - Le singleton par site/application et les getters/setters automatiques sont une piece centrale du contrat OPUS.
 - Aucun fichier ne doit etre supprime ou deplace sans comprendre ses dependances.
 

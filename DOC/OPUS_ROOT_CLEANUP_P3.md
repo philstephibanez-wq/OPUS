@@ -17,7 +17,7 @@ Aucun fichier framework, site, vendor, cache, log ou configuration n'est modifi�
 
 ## Pourquoi `Acl.php` à la racine est suspect
 
-Dans l'esprit ASAP/OPUS, les responsabilités doivent être rangées par domaine métier :
+Dans l'esprit OPUS, les responsabilités doivent être rangées par domaine métier :
 
 ```text
 Opus/Acl/
@@ -35,7 +35,7 @@ L'audit classe les fichiers directs sous `Opus/` en :
 
 - `KEEP_CORE` : cœur OPUS historique ou contrat central.
 - `KEEP_FACADE_REVIEW` : façade utile mais à confirmer.
-- `MODERN_LAYER_REVIEW` : couche ajoutée durant OPUS reborn, à comparer avec ASAP historique.
+- `MODERN_LAYER_REVIEW` : couche ajoutée durant OPUS reborn, à comparer avec le socle historique.
 - `ROOT_WRAPPER_REVIEW` : wrapper moderne à déplacer, fusionner ou supprimer.
 - `REVIEW_UNKNOWN` : fichier non classé, à examiner avant patch.
 

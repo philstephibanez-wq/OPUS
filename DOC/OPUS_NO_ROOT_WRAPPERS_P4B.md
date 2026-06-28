@@ -41,7 +41,7 @@ The valid architecture is now defined by the FSM-first contract:
 
 ## Historical classes remain source of truth
 
-Historical ASAP/OPUS classes remain the source of truth until individually reviewed:
+Historical OPUS classes remain the source of truth until individually reviewed:
 
 - `OPUS_Application`
 - `OPUS_Router`
