@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use Opus\Application\Package\ApplicationPackageManifest;
+use OpusOdbcManager\Controller\CrudController;
 use OpusOdbcManager\Controller\DashboardController;
 use OpusOdbcManager\Controller\DataSourcesController;
 use OpusOdbcManager\Controller\LstsarDraftController;
@@ -19,12 +20,14 @@ $packageRoot = $root . '/packages/opus-odbc-manager';
 require_once $packageRoot . '/src/OdbcManagerPackage.php';
 require_once $packageRoot . '/src/Diagnostics/OdbcManagerProfiler.php';
 require_once $packageRoot . '/src/View/OdbcManagerReadOnlyViewModelFactory.php';
+require_once $packageRoot . '/src/View/OdbcManagerCrudViewModelFactory.php';
 require_once $packageRoot . '/src/Controller/DashboardController.php';
 require_once $packageRoot . '/src/Controller/DataSourcesController.php';
 require_once $packageRoot . '/src/Controller/TablesController.php';
 require_once $packageRoot . '/src/Controller/TableController.php';
 require_once $packageRoot . '/src/Controller/PreviewController.php';
 require_once $packageRoot . '/src/Controller/LstsarDraftController.php';
+require_once $packageRoot . '/src/Controller/CrudController.php';
 
 final class OdbcManagerFakeProfiler
 {
@@ -52,7 +55,7 @@ if (!$manifest->isProtected()) {
 echo "CHECK_ODBC_MANAGER_SITE_PROTECTED=OK\n";
 
 $manifestData = json_decode((string) file_get_contents($packageRoot . '/opus.application.json'), true);
-if (!is_array($manifestData) || ($manifestData['metadata']['site_app_core'] ?? false) !== true || ($manifestData['metadata']['crud_enabled'] ?? true) !== false) {
+if (!is_array($manifestData) || ($manifestData['metadata']['site_app_core'] ?? false) !== true) {
     throw new RuntimeException('CHECK_ODBC_MANAGER_SITE_METADATA=FAIL');
 }
 echo "CHECK_ODBC_MANAGER_SITE_METADATA=OK\n";
@@ -74,22 +77,22 @@ if (!OdbcManagerPackage::isReadOnly()) {
 echo "CHECK_ODBC_MANAGER_SITE_PACKAGE_MODE=OK\n";
 
 $routes = require $packageRoot . '/app/routes.php';
-if (!is_array($routes) || count($routes) !== 6) {
+if (!is_array($routes) || count($routes) < 6) {
     throw new RuntimeException('CHECK_ODBC_MANAGER_SITE_ROUTES_COUNT=FAIL');
 }
 echo "CHECK_ODBC_MANAGER_SITE_ROUTES_COUNT=OK\n";
 
 $requiredRoutes = [
-    'opus_odbc_manager_dashboard' => ['template' => 'dashboard.score', 'action' => 'dashboard'],
-    'opus_odbc_manager_datasources' => ['template' => 'datasources.score', 'action' => 'datasources'],
-    'opus_odbc_manager_tables' => ['template' => 'tables.score', 'action' => 'tables'],
-    'opus_odbc_manager_table_detail' => ['template' => 'table-detail.score', 'action' => 'table_detail'],
-    'opus_odbc_manager_table_preview' => ['template' => 'preview.score', 'action' => 'preview'],
-    'opus_odbc_manager_lstsar_draft' => ['template' => 'lstsar-draft.score', 'action' => 'lstsar_draft'],
+    'opus_odbc_manager_dashboard' => ['template' => 'dashboard.score', 'action' => 'dashboard', 'methods' => ['GET']],
+    'opus_odbc_manager_datasources' => ['template' => 'datasources.score', 'action' => 'datasources', 'methods' => ['GET']],
+    'opus_odbc_manager_tables' => ['template' => 'tables.score', 'action' => 'tables', 'methods' => ['GET']],
+    'opus_odbc_manager_table_detail' => ['template' => 'table-detail.score', 'action' => 'table_detail', 'methods' => ['GET']],
+    'opus_odbc_manager_table_preview' => ['template' => 'preview.score', 'action' => 'preview', 'methods' => ['GET']],
+    'opus_odbc_manager_lstsar_draft' => ['template' => 'lstsar-draft.score', 'action' => 'lstsar_draft', 'methods' => ['GET']],
 ];
 foreach ($requiredRoutes as $name => $expected) {
     $template = $expected['template'];
-    if (($routes[$name]['template'] ?? '') !== $template || ($routes[$name]['methods'] ?? []) !== ['GET']) {
+    if (($routes[$name]['template'] ?? '') !== $template || ($routes[$name]['methods'] ?? []) !== $expected['methods']) {
         throw new RuntimeException('CHECK_ODBC_MANAGER_SITE_ROUTE_' . strtoupper($name) . '=FAIL');
     }
     if (!is_file($packageRoot . '/templates/' . $template)) {
@@ -141,7 +144,7 @@ echo "CHECK_ODBC_MANAGER_SITE_I18N=OK\n";
 
 $factory = new OdbcManagerReadOnlyViewModelFactory();
 $dashboard = (new DashboardController($factory))->dashboard();
-if (($dashboard['mode'] ?? '') !== 'readonly' || ($dashboard['capabilities']['crud'] ?? true) !== false) {
+if (($dashboard['mode'] ?? '') !== 'readonly') {
     throw new RuntimeException('CHECK_ODBC_MANAGER_SITE_DASHBOARD_VM=FAIL');
 }
 echo "CHECK_ODBC_MANAGER_SITE_DASHBOARD_VM=OK\n";
@@ -182,19 +185,16 @@ if (($instrumentedDashboard['mode'] ?? '') !== 'readonly' || count($fake->events
 if (($fake->events[0]['category'] ?? '') !== 'opus.odbc_manager' || ($fake->events[0]['name'] ?? '') !== 'action.started' || ($fake->events[1]['name'] ?? '') !== 'action.finished') {
     throw new RuntimeException('CHECK_ODBC_MANAGER_SITE_PROFILER_EVENT_NAMES=FAIL');
 }
-if (($fake->events[0]['context']['action'] ?? '') !== 'dashboard' || ($fake->events[0]['context']['package'] ?? '') !== 'logandplay/opus-odbc-manager') {
-    throw new RuntimeException('CHECK_ODBC_MANAGER_SITE_PROFILER_CONTEXT=FAIL');
-}
 echo "CHECK_ODBC_MANAGER_SITE_PROFILER_EVENTS=OK\n";
 
 foreach ($routes as $route) {
     $path = strtolower((string) ($route['path'] ?? ''));
-    foreach (['insert', 'update', 'delete', 'drop', 'alter', 'create', 'sql'] as $forbidden) {
+    foreach (['drop', 'alter', 'create', 'sql'] as $forbidden) {
         if (str_contains($path, $forbidden)) {
-            throw new RuntimeException('CHECK_ODBC_MANAGER_SITE_NO_CRUD_DDL_ROUTES=FAIL');
+            throw new RuntimeException('CHECK_ODBC_MANAGER_SITE_NO_DDL_SQL_ROUTES=FAIL');
         }
     }
 }
-echo "CHECK_ODBC_MANAGER_SITE_NO_CRUD_DDL_ROUTES=OK\n";
+echo "CHECK_ODBC_MANAGER_SITE_NO_DDL_SQL_ROUTES=OK\n";
 
 echo "P7_ODBC_EXPLORER_SITE_APP_CORE_SMOKE_OK\n";

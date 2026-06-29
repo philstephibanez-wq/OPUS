@@ -33,8 +33,13 @@
         "composer_installable": true,
         "site_app_core": true,
         "readonly_core": true,
-        "crud_enabled": false,
+        "crud_contract_core": true,
+        "crud_core": true,
+        "crud_ui_core": true,
+        "crud_enabled": true,
+        "crud_dry_run_required": true,
         "ddl_enabled": false,
-        "profiler_instrumented": true
+        "profiler_instrumented": true,
+        "raw_sql_allowed": false
     }
 }

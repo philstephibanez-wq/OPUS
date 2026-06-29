@@ -1,0 +1,8 @@
+<section class="opus-odbc-manager opus-odbc-manager-crud-form">
+  <h1>{{ title }}</h1>
+  <p>Action: {{ action }}</p>
+  <p>Table: {{ table }}</p>
+  <p>Permission: {{ permission }}</p>
+  <p>Confirmation required: {{ confirmation_required }}</p>
+  <p>Raw SQL allowed: {{ raw_sql_allowed }}</p>
+</section>

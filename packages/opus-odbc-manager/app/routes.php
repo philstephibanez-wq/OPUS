@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use OpusOdbcManager\Controller\CrudController;
 use OpusOdbcManager\Controller\DashboardController;
 use OpusOdbcManager\Controller\DataSourcesController;
 use OpusOdbcManager\Controller\LstsarDraftController;
@@ -56,5 +57,45 @@ return [
         'methods' => ['GET'],
         'permission' => 'opus.odbc_manager.lstsar_draft',
         'profiler' => ['category' => 'opus.odbc_manager', 'action' => 'lstsar_draft'],
+    ],
+    'opus_odbc_manager_crud' => [
+        'path' => '/opus-odbc-manager/crud',
+        'controller' => CrudController::class . '::overview',
+        'template' => 'crud.score',
+        'methods' => ['GET'],
+        'permission' => 'opus.odbc_manager.crud',
+        'profiler' => ['category' => 'opus.odbc_manager', 'action' => 'crud_overview'],
+    ],
+    'opus_odbc_manager_crud_insert' => [
+        'path' => '/opus-odbc-manager/tables/{table}/crud/insert',
+        'controller' => CrudController::class . '::insertForm',
+        'template' => 'crud-form.score',
+        'methods' => ['GET'],
+        'permission' => 'opus.odbc_manager.insert',
+        'profiler' => ['category' => 'opus.odbc_manager', 'action' => 'crud_insert_form'],
+    ],
+    'opus_odbc_manager_crud_update' => [
+        'path' => '/opus-odbc-manager/tables/{table}/crud/update',
+        'controller' => CrudController::class . '::updateForm',
+        'template' => 'crud-form.score',
+        'methods' => ['GET'],
+        'permission' => 'opus.odbc_manager.update',
+        'profiler' => ['category' => 'opus.odbc_manager', 'action' => 'crud_update_form'],
+    ],
+    'opus_odbc_manager_crud_delete' => [
+        'path' => '/opus-odbc-manager/tables/{table}/crud/delete',
+        'controller' => CrudController::class . '::deleteForm',
+        'template' => 'crud-form.score',
+        'methods' => ['GET'],
+        'permission' => 'opus.odbc_manager.delete',
+        'profiler' => ['category' => 'opus.odbc_manager', 'action' => 'crud_delete_form'],
+    ],
+    'opus_odbc_manager_crud_dry_run' => [
+        'path' => '/opus-odbc-manager/tables/{table}/crud/{action}/dry-run',
+        'controller' => CrudController::class . '::dryRun',
+        'template' => 'crud-dry-run.score',
+        'methods' => ['POST'],
+        'permission' => 'opus.odbc_manager.crud_dry_run',
+        'profiler' => ['category' => 'opus.odbc_manager', 'action' => 'crud_dry_run'],
     ],
 ];
