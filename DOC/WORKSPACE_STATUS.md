@@ -6,10 +6,10 @@ Status file maintained as the short handoff point for the OPUS workspace.
 
 - Repository: `philstephibanez-wq/OPUS`
 - Branch: `master`
-- Latest validated milestone: `P7_ODBC_EXPLORER_CRUD_CORE`
-- Latest functional commit: `b66d2d4`
-- Previous validated milestone: `P7_ODBC_EXPLORER_CRUD_CONTRACT_CORE`
-- Previous cleanup commit: `e413ce6`
+- Latest validated milestone: `P7_ODBC_EXPLORER_CRUD_UI_CORE`
+- Latest functional commit: `cb9d3b7`
+- Previous validated milestone: `P7_ODBC_EXPLORER_CRUD_CORE`
+- Previous cleanup commit: `cb9d3b7`
 
 ## Validated milestones
 
