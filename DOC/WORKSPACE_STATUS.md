@@ -6,10 +6,10 @@ Status file maintained as the short handoff point for the OPUS workspace.
 
 - Repository: `philstephibanez-wq/OPUS`
 - Branch: `master`
-- Latest validated milestone: `P7_ODBC_EXPLORER_CRUD_UI_CORE`
-- Latest functional commit: `d553994`
-- Previous validated milestone: `P7_ODBC_EXPLORER_CRUD_CORE`
-- Previous cleanup commit: `cb9d3b7`
+- Latest validated milestone: `P7_ODBC_MODEL_REFINEMENT_CORE`
+- Latest functional commit: `pending commit after P7_ODBC_MODEL_REFINEMENT_CORE smoke`
+- Previous validated milestone: `P7_ODBC_EXPLORER_CRUD_UI_CORE`
+- Previous cleanup commit: `b9f47d9`
 
 ## Validated milestones
 
@@ -47,6 +47,7 @@ Status file maintained as the short handoff point for the OPUS workspace.
 - `P7_LSTSAR_API_INTEGRATION_CORE`: OK in source. LSTSAR process/restore endpoints are integrated with OPUS API dispatcher, SSO identity, ACL decision, FSM guard and JSON-file storage.
 - `P7_MODEL_DATASOURCE_ODBC_CORE`: OK in source. OPUS Model is ODBC-backed: ODBC data sources, native ODBC connection boundary, table inspection, TableModel, ModelField, ModelRecord and OdbcModelAdapter are validated.
 - `P7_ODBC_EXPLORER_CONTRACT_CORE`: OK in source. OPUS ODBC Explorer contract is validated as the Adminer/phpMyAdmin-like OPUS database administration surface for ODBC + Model + LSTSAR, with destructive operations guarded for later milestones.
+- `P7_ODBC_MODEL_REFINEMENT_CORE`: OK in source. OPUS Model exposes table identity, field write profiles, mutation validation reports and insert/update/delete model validation for ODBC CRUD and future Model-driven LSTSAR.
 - `P7_ODBC_EXPLORER_CRUD_CONTRACT_CORE`: OK in source. Guarded CRUD contract is defined for INSERT/UPDATE/DELETE through TableModel, ModelRecord validation, structured predicates, capability checks, ACL, confirmation and audit preview; no write execution or UI CRUD is exposed yet.
 - `P7_OPUS_APP_PACKAGE_CONTRACT_CORE`: OK in source. Official OPUS applications are Composer-installable packages.
 - `P7_OPUS_PACKAGES_DIRECTORY_CONTRACT_CORE`: OK in source. Official OPUS application packages live under `packages/` during monorepo development.
@@ -73,6 +74,7 @@ Status file maintained as the short handoff point for the OPUS workspace.
 - OPUS ODBC Explorer is an admin/dev surface, not a public anonymous site.
 - OPUS ODBC Explorer must target Adminer/phpMyAdmin-style parity through ODBC capabilities: drivers/DSN, connection tests, catalogs/schemas/tables, columns, preview, SQL console, import/export, guarded CRUD, guarded DDL, Model generation and LSTSAR draft generation.
 - Destructive CRUD and DDL operations require explicit guards, dry-run where applicable, non-empty predicates, confirmation and audit-oriented design.
+- OPUS Model now carries explicit write profiles and mutation validation reports before ODBC CRUD or future LSTSAR storage executes writes.
 
 ## Next recommended milestones
 
@@ -80,3 +82,6 @@ Status file maintained as the short handoff point for the OPUS workspace.
 2. `P7_ODBC_MODEL_REFINEMENT_CORE`: refine Model validation for required fields, identity columns and driver metadata.
 3. `P7_ODBC_SCHEMA_BUILDER_CORE`: add Model-to-DDL dry-run, guarded DDL execution and driver capability checks.
 4. Pause and tell the user before returning to `P7_LSTSAR_MODEL_DRIVEN_ODBC_CORE`.
+## LSTSAR pause rule
+
+- Pause before `P7_LSTSAR_MODEL_DRIVEN_ODBC_CORE`: ODBC CRUD + Model must be announced as finished before restarting LSTSAR.
