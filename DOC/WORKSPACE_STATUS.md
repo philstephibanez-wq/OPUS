@@ -1,4 +1,4 @@
-# OPUS Workspace Status
+﻿# OPUS Workspace Status
 
 Status file maintained as the short handoff point for the OPUS workspace.
 
@@ -6,10 +6,10 @@ Status file maintained as the short handoff point for the OPUS workspace.
 
 - Repository: `philstephibanez-wq/OPUS`
 - Branch: `master`
-- Latest validated milestone: `P7_LSTSAR_API_INTEGRATION_CORE`
-- Latest functional commit: `3a03027`
-- Previous validated milestone: `P7_LSTSAR_CONTRACT_CORE`
-- Previous cleanup commit: `6ce036d`
+- Latest validated milestone: `P7_MODEL_DATASOURCE_ODBC_CORE`
+- Latest functional commit: `cfa9c64`
+- Previous validated milestone: `P7_LSTSAR_API_INTEGRATION_CORE`
+- Previous cleanup commit: `9af90c3`
 
 ## Validated milestones
 
