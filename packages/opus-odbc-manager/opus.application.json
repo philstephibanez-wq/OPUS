@@ -11,7 +11,10 @@
         "views": "templates",
         "i18n": "i18n",
         "assets": "assets",
-        "config": "config"
+        "config": "config",
+        "acl": "config/acl.php",
+        "navigation": "config/navigation.php",
+        "profiler": "config/profiler.php"
     },
     "integrations": {
         "scoretemplate": true,
@@ -21,10 +24,17 @@
         "profiler": true
     },
     "security": {
-        "protected": true
+        "protected": true,
+        "anonymous": false,
+        "denied_by_default": true
     },
     "metadata": {
         "source": "packages",
-        "composer_installable": true
+        "composer_installable": true,
+        "site_app_core": true,
+        "readonly_core": true,
+        "crud_enabled": false,
+        "ddl_enabled": false,
+        "profiler_instrumented": true
     }
 }

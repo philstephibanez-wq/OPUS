@@ -1,0 +1,5 @@
+<section class="opus-odbc-manager opus-odbc-manager-lstsar-draft">
+  <h1>{{ title }}</h1>
+  <p>Table: {{ table }}</p>
+  <p>ODBC-only LSTSAR draft.</p>
+</section>

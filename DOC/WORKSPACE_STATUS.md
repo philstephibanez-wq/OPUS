@@ -6,10 +6,10 @@ Status file maintained as the short handoff point for the OPUS workspace.
 
 - Repository: `philstephibanez-wq/OPUS`
 - Branch: `master`
-- Latest validated milestone: `P7_ODBC_EXPLORER_READONLY_CORE`
-- Latest functional commit: `5b8e04b`
-- Previous validated milestone: `P7_OPUS_PACKAGES_DIRECTORY_CONTRACT_CORE`
-- Previous cleanup commit: `6df37d4`
+- Latest validated milestone: `P7_ODBC_EXPLORER_SITE_APP_CORE`
+- Latest functional commit: `pending commit after P7_ODBC_EXPLORER_SITE_APP_CORE smoke`
+- Previous validated milestone: `P7_ODBC_EXPLORER_READONLY_CORE`
+- Previous cleanup commit: `d40300d`
 
 ## Validated milestones
 
@@ -47,6 +47,10 @@ Status file maintained as the short handoff point for the OPUS workspace.
 - `P7_LSTSAR_API_INTEGRATION_CORE`: OK in source. LSTSAR process/restore endpoints are integrated with OPUS API dispatcher, SSO identity, ACL decision, FSM guard and JSON-file storage.
 - `P7_MODEL_DATASOURCE_ODBC_CORE`: OK in source. OPUS Model is ODBC-backed: ODBC data sources, native ODBC connection boundary, table inspection, TableModel, ModelField, ModelRecord and OdbcModelAdapter are validated.
 - `P7_ODBC_EXPLORER_CONTRACT_CORE`: OK in source. OPUS ODBC Explorer contract is validated as the Adminer/phpMyAdmin-like OPUS database administration surface for ODBC + Model + LSTSAR, with destructive operations guarded for later milestones.
+- `P7_OPUS_APP_PACKAGE_CONTRACT_CORE`: OK in source. Official OPUS applications are Composer-installable packages.
+- `P7_OPUS_PACKAGES_DIRECTORY_CONTRACT_CORE`: OK in source. Official OPUS application packages live under `packages/` during monorepo development.
+- `P7_ODBC_EXPLORER_READONLY_CORE`: OK in source. ODBC Explorer read-only catalog, table inspection, preview, TableModel and LSTSAR draft core are validated.
+- `P7_ODBC_EXPLORER_SITE_APP_CORE`: pending smoke. ODBC Manager package gains protected site routes, controllers, ScoreTemplate views, I18N, ACL and navigation.
 
 ## Current architecture decisions
 
@@ -71,9 +75,9 @@ Status file maintained as the short handoff point for the OPUS workspace.
 
 ## Next recommended milestones
 
-1. `P7_OPUS_APP_PACKAGE_CONTRACT_CORE`: implement real read-only ODBC explorer capabilities: drivers/DSN inventory, connection test, list tables, inspect columns, preview rows, generate TableModel and LSTSAR draft.
-2. `P7_ODBC_EXPLORER_READONLY_CORE`: create the OPUS ODBC Explorer as a true OPUS site/application with routes, controllers, ScoreTemplate views, I18N, SSO/ACL and navigation.
-3. `P7_ODBC_EXPLORER_SITE_APP_CORE`: add guarded insert/update/delete through Model validation and explicit confirmation.
+1. `P7_ODBC_EXPLORER_CRUD_CONTRACT_CORE`: define guarded insert/update/delete contracts, commands, results, capability checks and audit requirements.
+2. `P7_ODBC_EXPLORER_CRUD_CORE`: implement guarded ODBC prepared insert/update/delete through Model validation.
+3. `P7_ODBC_EXPLORER_CRUD_UI_CORE`: add protected CRUD UI forms to `packages/opus-odbc-manager`.
 4. `P7_ODBC_SCHEMA_BUILDER_CORE`: add Model-to-DDL dry-run, guarded DDL execution and driver capability checks.
 5. `P7_LSTSAR_MODEL_DRIVEN_ODBC_CORE`: align LSTSAR with OPUS Model + ODBC for heterogeneous database table ingestion and storage.
 

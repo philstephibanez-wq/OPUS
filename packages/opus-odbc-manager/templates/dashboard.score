@@ -1,1 +1,5 @@
-OPUS ODBC Manager
+<section class="opus-odbc-manager opus-odbc-manager-dashboard">
+  <h1>{{ title }}</h1>
+  <p>Mode: {{ mode }}</p>
+  <p>Protected OPUS application package: {{ package }}</p>
+</section>
