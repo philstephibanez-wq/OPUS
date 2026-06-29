@@ -6,10 +6,10 @@ Status file maintained as the short handoff point for the OPUS workspace.
 
 - Repository: `philstephibanez-wq/OPUS`
 - Branch: `master`
-- Latest validated milestone: `P7_ODBC_EXPLORER_SITE_APP_CORE`
-- Latest functional commit: `ce1c4ee`
-- Previous validated milestone: `P7_ODBC_EXPLORER_READONLY_CORE`
-- Previous cleanup commit: `d40300d`
+- Latest validated milestone: `P7_ODBC_EXPLORER_CRUD_CONTRACT_CORE`
+- Latest functional commit: `pending commit after P7_ODBC_EXPLORER_CRUD_CONTRACT_CORE smoke`
+- Previous validated milestone: `P7_ODBC_EXPLORER_SITE_APP_CORE`
+- Previous cleanup commit: `7c8b609`
 
 ## Validated milestones
 
@@ -47,6 +47,7 @@ Status file maintained as the short handoff point for the OPUS workspace.
 - `P7_LSTSAR_API_INTEGRATION_CORE`: OK in source. LSTSAR process/restore endpoints are integrated with OPUS API dispatcher, SSO identity, ACL decision, FSM guard and JSON-file storage.
 - `P7_MODEL_DATASOURCE_ODBC_CORE`: OK in source. OPUS Model is ODBC-backed: ODBC data sources, native ODBC connection boundary, table inspection, TableModel, ModelField, ModelRecord and OdbcModelAdapter are validated.
 - `P7_ODBC_EXPLORER_CONTRACT_CORE`: OK in source. OPUS ODBC Explorer contract is validated as the Adminer/phpMyAdmin-like OPUS database administration surface for ODBC + Model + LSTSAR, with destructive operations guarded for later milestones.
+- `P7_ODBC_EXPLORER_CRUD_CONTRACT_CORE`: OK in source. Guarded CRUD contract is defined for INSERT/UPDATE/DELETE through TableModel, ModelRecord validation, structured predicates, capability checks, ACL, confirmation and audit preview; no write execution or UI CRUD is exposed yet.
 - `P7_OPUS_APP_PACKAGE_CONTRACT_CORE`: OK in source. Official OPUS applications are Composer-installable packages.
 - `P7_OPUS_PACKAGES_DIRECTORY_CONTRACT_CORE`: OK in source. Official OPUS application packages live under `packages/` during monorepo development.
 - `P7_ODBC_EXPLORER_READONLY_CORE`: OK in source. ODBC Explorer read-only catalog, table inspection, preview, TableModel and LSTSAR draft core are validated.
