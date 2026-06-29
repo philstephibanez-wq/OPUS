@@ -6,10 +6,10 @@ Status file maintained as the short handoff point for the OPUS workspace.
 
 - Repository: `philstephibanez-wq/OPUS`
 - Branch: `master`
-- Latest validated milestone: `P7_ODBC_EXPLORER_CONTRACT_CORE`
-- Latest functional commit: `e12b1dd`
-- Previous validated milestone: `P7_MODEL_DATASOURCE_ODBC_CORE`
-- Previous cleanup commit: `a976847`
+- Latest validated milestone: `P7_OPUS_APP_PACKAGE_CONTRACT_CORE`
+- Latest functional commit: `pending commit after P7_OPUS_APP_PACKAGE_CONTRACT_CORE smoke`
+- Previous validated milestone: `P7_ODBC_EXPLORER_CONTRACT_CORE`
+- Previous cleanup commit: `e12b1dd`
 
 ## Validated milestones
 
@@ -70,9 +70,9 @@ Status file maintained as the short handoff point for the OPUS workspace.
 
 ## Next recommended milestones
 
-1. `P7_ODBC_EXPLORER_READONLY_CORE`: implement real read-only ODBC explorer capabilities: drivers/DSN inventory, connection test, list tables, inspect columns, preview rows, generate TableModel and LSTSAR draft.
-2. `P7_ODBC_EXPLORER_SITE_APP_CORE`: create the OPUS ODBC Explorer as a true OPUS site/application with routes, controllers, ScoreTemplate views, I18N, SSO/ACL and navigation.
-3. `P7_ODBC_EXPLORER_CRUD_CORE`: add guarded insert/update/delete through Model validation and explicit confirmation.
+1. `P7_OPUS_APP_PACKAGE_CONTRACT_CORE`: implement real read-only ODBC explorer capabilities: drivers/DSN inventory, connection test, list tables, inspect columns, preview rows, generate TableModel and LSTSAR draft.
+2. `P7_ODBC_EXPLORER_READONLY_CORE`: create the OPUS ODBC Explorer as a true OPUS site/application with routes, controllers, ScoreTemplate views, I18N, SSO/ACL and navigation.
+3. `P7_ODBC_EXPLORER_SITE_APP_CORE`: add guarded insert/update/delete through Model validation and explicit confirmation.
 4. `P7_ODBC_SCHEMA_BUILDER_CORE`: add Model-to-DDL dry-run, guarded DDL execution and driver capability checks.
 5. `P7_LSTSAR_MODEL_DRIVEN_ODBC_CORE`: align LSTSAR with OPUS Model + ODBC for heterogeneous database table ingestion and storage.
 
