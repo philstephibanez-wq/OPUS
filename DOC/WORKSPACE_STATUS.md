@@ -6,10 +6,10 @@ Status file maintained as the short handoff point for the OPUS workspace.
 
 - Repository: `philstephibanez-wq/OPUS`
 - Branch: `master`
-- Latest validated milestone: `P7_OPUS_PACKAGES_DIRECTORY_CONTRACT_CORE`
-- Latest functional commit: `8b25ba2`
-- Previous validated milestone: `P7_ODBC_EXPLORER_CONTRACT_CORE`
-- Previous cleanup commit: `e12b1dd`
+- Latest validated milestone: `P7_ODBC_EXPLORER_READONLY_CORE`
+- Latest functional commit: `pending commit after P7_ODBC_EXPLORER_READONLY_CORE smoke`
+- Previous validated milestone: `P7_OPUS_PACKAGES_DIRECTORY_CONTRACT_CORE`
+- Previous cleanup commit: `6df37d4`
 
 ## Validated milestones
 
@@ -63,6 +63,7 @@ Status file maintained as the short handoff point for the OPUS workspace.
 - OPUS Model is the official representation layer for ODBC tables, rows, fields, types, lengths, nullability and metadata.
 - LSTSAR final target is Model-driven + ODBC-driven. The existing array/schema LSTSAR core is not the final BDD heterogeneous LSTSAR architecture until it is aligned with Model + ODBC.
 - OPUS ODBC Explorer must be a standalone OPUS site/application, not only a utility class.
+- The future LogAndPlay portal must also be delivered as a Composer-installable OPUS package under `packages/logandplay-portal`.
 - OPUS ODBC Explorer site must use normal OPUS routes, controllers, ScoreTemplate templates, I18N, SSO/ACL, diagnostics, profiler and logs.
 - OPUS ODBC Explorer is an admin/dev surface, not a public anonymous site.
 - OPUS ODBC Explorer must target Adminer/phpMyAdmin-style parity through ODBC capabilities: drivers/DSN, connection tests, catalogs/schemas/tables, columns, preview, SQL console, import/export, guarded CRUD, guarded DDL, Model generation and LSTSAR draft generation.
