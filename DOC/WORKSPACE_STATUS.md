@@ -85,3 +85,17 @@ Status file maintained as the short handoff point for the OPUS workspace.
 ## LSTSAR pause rule
 
 - Pause before `P7_LSTSAR_MODEL_DRIVEN_ODBC_CORE`: ODBC CRUD + Model must be announced as finished before restarting LSTSAR.
+
+## P7_LSTSAR_MODEL_DRIVEN_ODBC_CONTRACT_CORE
+
+Status: validated locally after smoke.
+Latest functional commit: `pending commit after P7_LSTSAR_MODEL_DRIVEN_ODBC_CONTRACT_CORE smoke`
+Tag target: `OPUS_P7_LSTSAR_MODEL_DRIVEN_ODBC_CONTRACT_CORE`
+
+Scope:
+- LSTSAR canonical meaning is now Load / Securize / Transform / Store / Archive / Report.
+- Six explicit historical stage files are populated: `01_Load.php`, `02_Secure.php`, `03_Transform.php`, `04_Store.php`, `05_Archive.php`, `06_Report.php`.
+- `LstsarEngine` exposes a six-stage class catalog while preserving the previous `process()` API.
+- Model-driven ODBC configuration declares source datasource/model, destination datasource/model, mapping, transform, security, archive and report policies.
+- Backoffice declaration contract is prepared for a future LSTSAR Manager package.
+- No heavy ODBC execution is introduced in this contract milestone.

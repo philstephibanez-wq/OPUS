@@ -8,7 +8,9 @@ use Opus\Security\Access\AccessDecisionInterface;
 /**
  * OPUS LSTSAR engine.
  *
- * LSTSAR means Load, Secure, Transform, Store, Audit, Restore.
+ * LSTSAR means Load, Securize, Transform, Store, Archive, Report.
+ * P7_LSTSAR_MODEL_DRIVEN_ODBC_CONTRACT_CORE preserves the legacy
+ * process() API while exposing the six explicit model-driven stages.
  * Security is not reimplemented here: callers must inject an already computed
  * OPUS access decision from the SSO/API/ACL layer.
  */
@@ -16,9 +18,33 @@ final class LstsarEngine
 {
     private LstsarStoreInterface $store;
 
-    public function __construct(LstsarStoreInterface $store)
+    /** @var array<string,class-string<LstsarStageInterface>> */
+    private array $stageClasses;
+
+    /** @param array<string,class-string<LstsarStageInterface>>|null $stageClasses */
+    public function __construct(LstsarStoreInterface $store, ?array $stageClasses = null)
     {
         $this->store = $store;
+        $this->stageClasses = $stageClasses ?? self::defaultStageClasses();
+    }
+
+    /** @return array<string,class-string<LstsarStageInterface>> */
+    public static function defaultStageClasses(): array
+    {
+        return [
+            LstsarStageName::LOAD => LoadStage::class,
+            LstsarStageName::SECURIZE => SecurizeStage::class,
+            LstsarStageName::TRANSFORM => TransformStage::class,
+            LstsarStageName::STORE => StoreStage::class,
+            LstsarStageName::ARCHIVE => ArchiveStage::class,
+            LstsarStageName::REPORT => ReportStage::class,
+        ];
+    }
+
+    /** @return array<string,class-string<LstsarStageInterface>> */
+    public function stageClasses(): array
+    {
+        return $this->stageClasses;
     }
 
     /**
