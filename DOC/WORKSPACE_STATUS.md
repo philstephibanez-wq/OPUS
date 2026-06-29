@@ -6,10 +6,10 @@ Status file maintained as the short handoff point for the OPUS workspace.
 
 - Repository: `philstephibanez-wq/OPUS`
 - Branch: `master`
-- Latest validated milestone: `P7_ODBC_EXPLORER_CRUD_CONTRACT_CORE`
-- Latest functional commit: `4786a66`
-- Previous validated milestone: `P7_ODBC_EXPLORER_SITE_APP_CORE`
-- Previous cleanup commit: `7c8b609`
+- Latest validated milestone: `P7_ODBC_EXPLORER_CRUD_CORE`
+- Latest functional commit: `pending commit after P7_ODBC_EXPLORER_CRUD_CORE smoke`
+- Previous validated milestone: `P7_ODBC_EXPLORER_CRUD_CONTRACT_CORE`
+- Previous cleanup commit: `e413ce6`
 
 ## Validated milestones
 
@@ -76,12 +76,7 @@ Status file maintained as the short handoff point for the OPUS workspace.
 
 ## Next recommended milestones
 
-1. `P7_ODBC_EXPLORER_CRUD_CONTRACT_CORE`: define guarded insert/update/delete contracts, commands, results, capability checks and audit requirements.
-2. `P7_ODBC_EXPLORER_CRUD_CORE`: implement guarded ODBC prepared insert/update/delete through Model validation.
-3. `P7_ODBC_EXPLORER_CRUD_UI_CORE`: add protected CRUD UI forms to `packages/opus-odbc-manager`.
-4. `P7_ODBC_SCHEMA_BUILDER_CORE`: add Model-to-DDL dry-run, guarded DDL execution and driver capability checks.
-5. `P7_LSTSAR_MODEL_DRIVEN_ODBC_CORE`: align LSTSAR with OPUS Model + ODBC for heterogeneous database table ingestion and storage.
-
-## Operational rule
-
-After every validated milestone, update this file or its successor so a new chat can resume without losing the current OPUS state.
+1. `P7_ODBC_EXPLORER_CRUD_UI_CORE`: expose guarded insert/update/delete through OPUS ODBC Manager routes, controllers, ScoreTemplate forms and profiler events.
+2. `P7_ODBC_MODEL_REFINEMENT_CORE`: refine Model validation for required fields, identity columns and driver metadata.
+3. `P7_ODBC_SCHEMA_BUILDER_CORE`: add Model-to-DDL dry-run, guarded DDL execution and driver capability checks.
+4. Pause and tell the user before returning to `P7_LSTSAR_MODEL_DRIVEN_ODBC_CORE`.
