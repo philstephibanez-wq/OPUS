@@ -89,7 +89,7 @@ Status file maintained as the short handoff point for the OPUS workspace.
 ## P7_LSTSAR_MODEL_DRIVEN_ODBC_CONTRACT_CORE
 
 Status: validated locally after smoke.
-Latest functional commit: `pending commit after P7_LSTSAR_MODEL_DRIVEN_ODBC_CONTRACT_CORE smoke`
+Latest functional commit: `68a7023`
 Tag target: `OPUS_P7_LSTSAR_MODEL_DRIVEN_ODBC_CONTRACT_CORE`
 
 Scope:
