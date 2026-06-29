@@ -20,15 +20,17 @@ final class TransformStage implements LstsarStageInterface
         $transforms = $context->config()->transform();
 
         foreach ($context->config()->mapping() as $sourceField => $destinationField) {
-            if (!array_key_exists($sourceField, $source)) {
-                continue;
-            }
-            $value = $source[$sourceField];
             $rules = $transforms[$destinationField] ?? [];
             if (!is_array($rules)) {
                 throw new \RuntimeException('OPUS_LSTSAR_TRANSFORM_RULES_INVALID: ' . $destinationField);
             }
-            $record[$destinationField] = $this->transformValue($value, $rules);
+            if (!array_key_exists($sourceField, $source)) {
+                if (array_key_exists('default', $rules)) {
+                    $record[$destinationField] = $rules['default'];
+                }
+                continue;
+            }
+            $record[$destinationField] = $this->transformValue($source[$sourceField], $rules);
         }
 
         return LstsarStageResult::success($this->name(), [
@@ -69,6 +71,12 @@ final class TransformStage implements LstsarStageInterface
         }
         if (isset($rules['round']) && (is_int($value) || is_float($value))) {
             $value = round((float) $value, (int) $rules['round']);
+        }
+        if (isset($rules['pad_right']) && is_string($value) && is_array($rules['pad_right'])) {
+            $value = str_pad($value, (int) ($rules['pad_right']['length'] ?? strlen($value)), (string) ($rules['pad_right']['char'] ?? ' '));
+        }
+        if (isset($rules['pad_left']) && is_string($value) && is_array($rules['pad_left'])) {
+            $value = str_pad($value, (int) ($rules['pad_left']['length'] ?? strlen($value)), (string) ($rules['pad_left']['char'] ?? ' '), STR_PAD_LEFT);
         }
 
         return $value;

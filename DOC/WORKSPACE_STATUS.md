@@ -99,3 +99,19 @@ Scope:
 - Model-driven ODBC configuration declares source datasource/model, destination datasource/model, mapping, transform, security, archive and report policies.
 - Backoffice declaration contract is prepared for a future LSTSAR Manager package.
 - No heavy ODBC execution is introduced in this contract milestone.
+
+## P7_LSTSAR_MODEL_DRIVEN_ODBC_CORE
+
+Status: validated locally before commit.
+
+Latest functional commit: `pending commit after P7_LSTSAR_MODEL_DRIVEN_ODBC_CORE smoke`
+
+Scope:
+
+- real six-stage LSTSAR model-driven ODBC engine;
+- Load / Securize / Transform / Store / Archive / Report stages preserved;
+- ODBC source reader boundary;
+- ODBC destination writer boundary;
+- destination writer can use guarded ODBC CRUD service;
+- deterministic in-memory readers/writers for smokes;
+- archive/report first-class stage outputs.
