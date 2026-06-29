@@ -104,7 +104,7 @@ Scope:
 
 Status: validated locally before commit.
 
-Latest functional commit: `pending commit after P7_LSTSAR_MODEL_DRIVEN_ODBC_CORE smoke`
+Latest functional commit: `473df50`
 
 Scope:
 
