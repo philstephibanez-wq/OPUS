@@ -7,7 +7,7 @@ Status file maintained as the short handoff point for the OPUS workspace.
 - Repository: `philstephibanez-wq/OPUS`
 - Branch: `master`
 - Latest validated milestone: `P7_ODBC_EXPLORER_SITE_APP_CORE`
-- Latest functional commit: `pending commit after P7_ODBC_EXPLORER_SITE_APP_CORE smoke`
+- Latest functional commit: `ce1c4ee`
 - Previous validated milestone: `P7_ODBC_EXPLORER_READONLY_CORE`
 - Previous cleanup commit: `d40300d`
 
