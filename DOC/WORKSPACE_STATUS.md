@@ -6,10 +6,10 @@ Status file maintained as the short handoff point for the OPUS workspace.
 
 - Repository: `philstephibanez-wq/OPUS`
 - Branch: `master`
-- Latest validated milestone: `P7_MODEL_DATASOURCE_ODBC_CORE`
+- Latest validated milestone: `P7_ODBC_EXPLORER_CONTRACT_CORE`
 - Latest functional commit: `cfa9c64`
-- Previous validated milestone: `P7_LSTSAR_API_INTEGRATION_CORE`
-- Previous cleanup commit: `9af90c3`
+- Previous validated milestone: `P7_MODEL_DATASOURCE_ODBC_CORE`
+- Previous cleanup commit: `a976847`
 
 ## Validated milestones
 
@@ -45,6 +45,7 @@ Status file maintained as the short handoff point for the OPUS workspace.
 - `P7_API_REST_SSO_SECURITY_CORE`: OK in source. Existing `Opus\Api` dispatcher stack validates data-driven routes, SSO identity resolution, ACL delegation, FSM guard decisions and JSON responses.
 - `P7_LSTSAR_CONTRACT_CORE`: OK in source. Load, Secure, Transform, Store, Audit and Restore are validated with separate source/target type, length, byte-size and numeric constraints.
 - `P7_LSTSAR_API_INTEGRATION_CORE`: OK in source. LSTSAR process/restore endpoints are integrated with OPUS API dispatcher, SSO identity, ACL decision, FSM guard and JSON-file storage.
+- `P7_MODEL_DATASOURCE_ODBC_CORE`: OK in source. OPUS Model is ODBC-backed: ODBC data sources, native ODBC connection boundary, table inspection, TableModel, ModelField, ModelRecord and OdbcModelAdapter are validated.
 
 ## Current architecture decisions
 
@@ -57,12 +58,14 @@ Status file maintained as the short handoff point for the OPUS workspace.
 - Generated `create:site` runtime can write profiler traces with `?profiler=1` or `OPUS_PROFILER=1`.
 - I18N is mandatory for every user-visible public text, even for one-language sites.
 - Official OPUS SMTP/mailer service is mandatory for every mail-sending workflow; direct mail delivery is forbidden outside official infrastructure.
+- OPUS database access is ODBC-only; Model and database-facing classes must use `Opus\Database\Odbc` as the official boundary.
+- OPUS ODBC Explorer is the official future database administration surface; destructive CRUD and DDL operations require explicit guards and dry-run milestones.
 
 ## Next recommended milestones
 
-1. Add profiler viewer route later, after trace storage contract is stable.
-2. Add DB connection configuration contract and SQLite PDO model smoke.
-3. Prepare `pdo_mysql` enablement for MariaDB/MySQL support.
+1. Add OPUS ODBC Explorer read-only runtime/UI.
+2. Add OPUS ODBC Explorer guarded CRUD.
+3. Add OPUS ODBC Schema Builder with dry-run-first DDL.
 
 ## Operational rule
 
