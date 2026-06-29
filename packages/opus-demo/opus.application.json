@@ -1,0 +1,30 @@
+{
+    "contract": "OPUS_APPLICATION_PACKAGE_MANIFEST_V1",
+    "package": "logandplay/opus-demo",
+    "application": {
+        "slug": "opus-demo",
+        "name": "OPUS Demo"
+    },
+    "paths": {
+        "application": "app",
+        "routes": "app/routes.php",
+        "views": "templates",
+        "i18n": "i18n",
+        "assets": "assets",
+        "config": "config"
+    },
+    "integrations": {
+        "scoretemplate": true,
+        "i18n": true,
+        "sso_acl": true,
+        "diagnostics": true,
+        "profiler": true
+    },
+    "security": {
+        "protected": false
+    },
+    "metadata": {
+        "source": "packages",
+        "composer_installable": true
+    }
+}

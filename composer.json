@@ -28,5 +28,20 @@
         "opus:list-routes": "@php bin/opus list:routes",
         "opus:create-page": "@php bin/opus create:page",
         "opus:create-rubric": "@php bin/opus create:rubric"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "packages/*",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
+    "extra": {
+        "opus": {
+            "packages_directory": "packages",
+            "application_package_type": "opus-application"
+        }
     }
 }

@@ -1,0 +1,20 @@
+{
+    "name": "logandplay/opus-demo",
+    "description": "OPUS Demo OPUS application package",
+    "type": "opus-application",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.0",
+        "logandplay/opus": "self.version"
+    },
+    "autoload": {
+        "psr-4": {
+            "OpusDemo\\": "src/"
+        }
+    },
+    "extra": {
+        "opus": {
+            "application_manifest": "opus.application.json"
+        }
+    }
+}

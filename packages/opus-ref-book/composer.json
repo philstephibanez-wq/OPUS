@@ -1,0 +1,20 @@
+{
+    "name": "logandplay/opus-ref-book",
+    "description": "OPUS RefBook OPUS application package",
+    "type": "opus-application",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.0",
+        "logandplay/opus": "self.version"
+    },
+    "autoload": {
+        "psr-4": {
+            "OpusRefBook\\": "src/"
+        }
+    },
+    "extra": {
+        "opus": {
+            "application_manifest": "opus.application.json"
+        }
+    }
+}
