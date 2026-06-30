@@ -1,0 +1,4 @@
+<section class="opus-lstsar-manager opus-lstsar-manager-archive-report">
+  <h1>{{ title }}</h1>
+  <p>Archive and Report are first-class LSTSAR stages.</p>
+</section>

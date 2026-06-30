@@ -115,3 +115,16 @@ Scope:
 - destination writer can use guarded ODBC CRUD service;
 - deterministic in-memory readers/writers for smokes;
 - archive/report first-class stage outputs.
+
+## P7_LSTSAR_MANAGER_PACKAGE_CORE
+
+Status: pending commit after smoke.
+Latest functional commit: `pending commit after P7_LSTSAR_MANAGER_PACKAGE_CORE smoke`
+Tag target: `OPUS_P7_LSTSAR_MANAGER_PACKAGE_CORE`
+Scope:
+- creates `packages/opus-lstsar-manager/`;
+- adds protected OPUS LSTSAR Manager application package;
+- declares source ODBC, destination ODBC, source model, destination model, mappings and policies;
+- exposes Securize / Transform / Store / Archive / Report declaration surfaces;
+- allows dry-run preview only;
+- forbids raw SQL, DDL and direct execution routes.

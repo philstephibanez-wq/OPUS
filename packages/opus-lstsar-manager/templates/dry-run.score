@@ -1,0 +1,4 @@
+<section class="opus-lstsar-manager opus-lstsar-manager-dry-run">
+  <h1>{{ title }}</h1>
+  <p>Execution enabled: {{ execution_enabled }}</p>
+</section>

@@ -1,0 +1,4 @@
+<section class="opus-lstsar-manager opus-lstsar-manager-declarations">
+  <h1>{{ title }}</h1>
+  <p>Declaration contract: {{ declaration.contract }}</p>
+</section>

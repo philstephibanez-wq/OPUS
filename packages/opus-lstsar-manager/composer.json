@@ -1,0 +1,20 @@
+{
+    "name": "logandplay/opus-lstsar-manager",
+    "description": "OPUS LSTSAR Manager OPUS application package",
+    "type": "opus-application",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.0",
+        "logandplay/opus": "self.version"
+    },
+    "autoload": {
+        "psr-4": {
+            "OpusLstsarManager\\": "src/"
+        }
+    },
+    "extra": {
+        "opus": {
+            "application_manifest": "opus.application.json"
+        }
+    }
+}

@@ -1,0 +1,4 @@
+<section class="opus-lstsar-manager opus-lstsar-manager-rules">
+  <h1>{{ title }}</h1>
+  <p>Stages: Load / Securize / Transform / Store / Archive / Report</p>
+</section>

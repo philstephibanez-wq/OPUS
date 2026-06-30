@@ -1,0 +1,4 @@
+<section class="opus-lstsar-manager opus-lstsar-manager-endpoint">
+  <h1>{{ title }}</h1>
+  <p>Endpoint type: {{ endpoint_type }}</p>
+</section>

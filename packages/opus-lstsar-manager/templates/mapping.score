@@ -1,0 +1,4 @@
+<section class="opus-lstsar-manager opus-lstsar-manager-mapping">
+  <h1>{{ title }}</h1>
+  <p>Mapping required: {{ mapping_required }}</p>
+</section>

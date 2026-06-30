@@ -1,0 +1,5 @@
+<section class="opus-lstsar-manager opus-lstsar-manager-dashboard">
+  <h1>{{ title }}</h1>
+  <p>Mode: {{ mode }}</p>
+  <p>Package: {{ package }}</p>
+</section>

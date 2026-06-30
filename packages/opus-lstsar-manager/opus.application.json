@@ -1,0 +1,46 @@
+{
+    "contract": "OPUS_APPLICATION_PACKAGE_MANIFEST_V1",
+    "package": "logandplay/opus-lstsar-manager",
+    "application": {
+        "slug": "opus-lstsar-manager",
+        "name": "OPUS LSTSAR Manager"
+    },
+    "paths": {
+        "application": "app",
+        "routes": "app/routes.php",
+        "views": "templates",
+        "i18n": "i18n",
+        "assets": "assets",
+        "config": "config",
+        "acl": "config/acl.php",
+        "navigation": "config/navigation.php",
+        "profiler": "config/profiler.php"
+    },
+    "integrations": {
+        "scoretemplate": true,
+        "i18n": true,
+        "sso_acl": true,
+        "diagnostics": true,
+        "profiler": true,
+        "lstsar": true,
+        "odbc": true,
+        "model": true
+    },
+    "security": {
+        "protected": true,
+        "anonymous": false,
+        "denied_by_default": true
+    },
+    "metadata": {
+        "source": "packages",
+        "composer_installable": true,
+        "lstsar_manager_package_core": true,
+        "model_driven_odbc": true,
+        "odbc_only": true,
+        "declarative_backoffice": true,
+        "dry_run_enabled": true,
+        "execution_enabled": false,
+        "raw_sql_allowed": false,
+        "ddl_enabled": false
+    }
+}
