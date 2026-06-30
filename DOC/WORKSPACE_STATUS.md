@@ -119,7 +119,7 @@ Scope:
 ## P7_LSTSAR_MANAGER_PACKAGE_CORE
 
 Status: pending commit after smoke.
-Latest functional commit: `pending commit after P7_LSTSAR_MANAGER_PACKAGE_CORE smoke`
+Latest functional commit: `9eef832`
 Tag target: `OPUS_P7_LSTSAR_MANAGER_PACKAGE_CORE`
 Scope:
 - creates `packages/opus-lstsar-manager/`;
