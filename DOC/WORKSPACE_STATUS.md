@@ -147,7 +147,7 @@ Scope:
 
 Status: applied locally, smoke pending.
 
-Latest functional commit: `pending commit after P7_LSTSAR_DESTINATION_ASSIGNMENTS_CORE smoke`
+Latest functional commit: `168265a`
 
 Scope:
 
