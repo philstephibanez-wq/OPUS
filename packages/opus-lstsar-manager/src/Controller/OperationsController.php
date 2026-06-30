@@ -7,9 +7,9 @@ use OpusLstsarManager\Diagnostics\LstsarManagerProfiler;
 use OpusLstsarManager\View\LstsarManagerViewModelFactory;
 
 /**
- * Dashboard endpoint for the protected OPUS LSTSAR Manager application.
+ * Site/client-scoped LSTSAR operations dashboard endpoint.
  */
-final class DashboardController
+final class OperationsController
 {
     private LstsarManagerViewModelFactory $views;
     private LstsarManagerProfiler $profiler;
@@ -21,10 +21,10 @@ final class DashboardController
     }
 
     /** @return array<string,mixed> */
-    public function dashboard(string $siteId = 'site-demo'): array
+    public function operations(string $siteId = 'site-demo'): array
     {
-        return $this->profiler->profile('dashboard', ['controller' => self::class, 'site_id' => $siteId], function () use ($siteId): array {
-            return $this->views->dashboard($siteId);
+        return $this->profiler->profile('operations', ['controller' => self::class, 'site_id' => $siteId], function () use ($siteId): array {
+            return $this->views->operations($siteId);
         });
     }
 }

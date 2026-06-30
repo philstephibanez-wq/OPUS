@@ -9,7 +9,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Opus\\": "Opus/"
+            "Opus\\": "Opus/",
+            "OpusLstsarManager\\": "packages/opus-lstsar-manager/src/"
         },
         "classmap": [
             "Opus/"

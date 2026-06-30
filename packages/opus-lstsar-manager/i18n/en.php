@@ -3,6 +3,13 @@ declare(strict_types=1);
 
 return [
     'lstsar_manager.title' => 'OPUS LSTSAR Manager',
+    'lstsar_manager.operations' => 'LSTSAR operations',
+    'lstsar_manager.dashboard_operations' => 'Client/site operations dashboard',
+    'lstsar_manager.operation_status' => 'Operation status',
+    'lstsar_manager.mapping_assignment_coverage' => 'Mapping and assignment coverage',
+    'lstsar_manager.next_run' => 'Next planned run',
+    'lstsar_manager.last_run' => 'Last run',
+    'lstsar_manager.last_dry_run' => 'Last dry-run',
     'lstsar_manager.declarations' => 'LSTSAR declarations',
     'lstsar_manager.sources' => 'ODBC sources',
     'lstsar_manager.destinations' => 'ODBC destinations',

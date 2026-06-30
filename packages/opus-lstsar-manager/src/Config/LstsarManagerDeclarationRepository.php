@@ -14,7 +14,8 @@ use Opus\Model\TableModel;
  * This repository stays in-memory for the current milestone. It already exposes
  * the same objects that a future persistence-backed manager will edit: source
  * endpoint, destination endpoint, source model, destination model, mapping,
- * securize policy, transform rules, archive policy and report policy.
+ * destination assignments, securize policy, transform rules, archive policy and
+ * report policy.
  */
 final class LstsarManagerDeclarationRepository
 {
@@ -64,6 +65,11 @@ final class LstsarManagerDeclarationRepository
             'transform' => [
                 'order_code' => ['trim' => true, 'uppercase' => true, 'pad_right' => ['length' => 4, 'char' => '0']],
                 'total_amount' => ['cast' => 'float', 'round' => 2],
+                'assignments' => [
+                    'client_id' => ['type' => 'constant', 'value' => 'client-demo'],
+                    'created_by' => ['type' => 'security', 'path' => 'actor_id', 'default' => 'lstsar-manager'],
+                    'row_hash' => ['type' => 'hash', 'source' => 'destination', 'algo' => 'sha256', 'fields' => ['order_code', 'total_amount']],
+                ],
             ],
             'archive' => [
                 'enabled' => true,
@@ -75,6 +81,8 @@ final class LstsarManagerDeclarationRepository
             ],
             'metadata' => [
                 'manager' => 'opus-lstsar-manager',
+                'site_id' => 'site-demo',
+                'client_id' => 'client-demo',
                 'dry_run_only' => true,
                 'direct_execute_allowed' => false,
                 'raw_sql_allowed' => false,
@@ -106,6 +114,9 @@ final class LstsarManagerDeclarationRepository
         return new TableModel('destination_orders_model', 'orders_destination', [
             new ModelField('order_code', 'string', false, 4),
             new ModelField('total_amount', 'decimal', false, null, 8, 2),
+            new ModelField('client_id', 'string', false, 32),
+            new ModelField('created_by', 'string', false, 80),
+            new ModelField('row_hash', 'string', false, 64),
         ], [
             'datasource' => 'destination_dsn',
             'driver' => 'odbc',

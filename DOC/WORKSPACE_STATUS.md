@@ -159,3 +159,14 @@ Scope:
 Validation:
 
 - `P7_LSTSAR_DESTINATION_ASSIGNMENTS_CORE_SMOKE_OK`
+## P7_LSTSAR_MANAGER_DASHBOARD_OPERATIONS_CORE
+
+Status: smoke-ready.
+Latest functional commit: `pending commit after P7_LSTSAR_MANAGER_DASHBOARD_OPERATIONS_CORE smoke`
+Scope:
+- Site/client-scoped LSTSAR operations dashboard.
+- Operation list with active/status/source/destination/mapping/assignments coverage.
+- Last dry-run, last run, next planned run, archive/report/declaration links.
+- Dry-run remains allowed.
+- Manual launch, scheduler launch, raw SQL and DDL remain disabled.
+

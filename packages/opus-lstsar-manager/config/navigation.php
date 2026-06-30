@@ -5,6 +5,7 @@ return [
     'application' => 'opus-lstsar-manager',
     'items' => [
         ['label' => 'Dashboard', 'route' => 'opus_lstsar_manager_dashboard', 'permission' => 'opus.lstsar_manager.access'],
+        ['label' => 'Operations', 'route' => 'opus_lstsar_manager_operations', 'permission' => 'opus.lstsar_manager.operations'],
         ['label' => 'Declarations', 'route' => 'opus_lstsar_manager_declarations', 'permission' => 'opus.lstsar_manager.declare'],
         ['label' => 'Sources', 'route' => 'opus_lstsar_manager_sources', 'permission' => 'opus.lstsar_manager.source'],
         ['label' => 'Destinations', 'route' => 'opus_lstsar_manager_destinations', 'permission' => 'opus.lstsar_manager.destination'],

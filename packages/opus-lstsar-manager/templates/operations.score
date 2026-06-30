@@ -1,0 +1,11 @@
+<section class="opus-lstsar-manager opus-lstsar-manager-operations">
+  <h1>{{ title }}</h1>
+  <p>Selected site: {{ selected_site.site_id }}</p>
+  <p>Client: {{ selected_site.client_id }}</p>
+  <p>Operations: {{ counters.operations }}</p>
+  <p>Active: {{ counters.active }}</p>
+  <p>Ready: {{ counters.ready }}</p>
+  <p>Dry-run enabled: true</p>
+  <p>Manual launch enabled: false</p>
+  <p>Scheduler launch enabled: false</p>
+</section>

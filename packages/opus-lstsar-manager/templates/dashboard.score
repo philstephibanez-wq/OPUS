@@ -1,5 +1,12 @@
 <section class="opus-lstsar-manager opus-lstsar-manager-dashboard">
   <h1>{{ title }}</h1>
   <p>Mode: {{ mode }}</p>
-  <p>Package: {{ package }}</p>
+  <p>Protected OPUS application package: {{ package }}</p>
+  <p>Selected site: {{ selected_site.site_id }}</p>
+  <p>Client: {{ selected_site.client_id }}</p>
+  <p>Operations: {{ operation_counters.operations }}</p>
+  <p>Active: {{ operation_counters.active }}</p>
+  <p>Ready: {{ operation_counters.ready }}</p>
+  <p>Manual launch enabled: false</p>
+  <p>Scheduler launch enabled: false</p>
 </section>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 use OpusLstsarManager\Controller\DashboardController;
 use OpusLstsarManager\Controller\DeclarationsController;
 use OpusLstsarManager\Controller\DryRunController;
+use OpusLstsarManager\Controller\OperationsController;
 
 return [
     'opus_lstsar_manager_dashboard' => [
@@ -13,6 +14,14 @@ return [
         'methods' => ['GET'],
         'permission' => 'opus.lstsar_manager.access',
         'profiler' => ['category' => 'opus.lstsar_manager', 'action' => 'dashboard'],
+    ],
+    'opus_lstsar_manager_operations' => [
+        'path' => '/opus-lstsar-manager/operations',
+        'controller' => OperationsController::class . '::operations',
+        'template' => 'operations.score',
+        'methods' => ['GET'],
+        'permission' => 'opus.lstsar_manager.operations',
+        'profiler' => ['category' => 'opus.lstsar_manager', 'action' => 'operations'],
     ],
     'opus_lstsar_manager_declarations' => [
         'path' => '/opus-lstsar-manager/declarations',

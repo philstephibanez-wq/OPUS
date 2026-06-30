@@ -6,6 +6,7 @@ return [
     'category' => 'opus.lstsar_manager',
     'actions' => [
         'dashboard',
+        'operations',
         'declarations',
         'sources',
         'destinations',

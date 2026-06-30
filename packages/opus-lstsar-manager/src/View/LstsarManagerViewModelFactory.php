@@ -5,6 +5,7 @@ namespace OpusLstsarManager\View;
 
 use OpusLstsarManager\Config\LstsarManagerDeclarationRepository;
 use OpusLstsarManager\DryRun\LstsarManagerDryRunService;
+use OpusLstsarManager\Operation\LstsarManagerOperationRepository;
 
 /**
  * Builds deterministic view-models for the protected LSTSAR Manager package.
@@ -15,16 +16,20 @@ final class LstsarManagerViewModelFactory
 
     private LstsarManagerDeclarationRepository $repository;
     private LstsarManagerDryRunService $dryRunService;
+    private LstsarManagerOperationRepository $operationRepository;
 
-    public function __construct(?LstsarManagerDeclarationRepository $repository = null, ?LstsarManagerDryRunService $dryRunService = null)
+    public function __construct(?LstsarManagerDeclarationRepository $repository = null, ?LstsarManagerDryRunService $dryRunService = null, ?LstsarManagerOperationRepository $operationRepository = null)
     {
         $this->repository = $repository ?? new LstsarManagerDeclarationRepository();
         $this->dryRunService = $dryRunService ?? new LstsarManagerDryRunService($this->repository);
+        $this->operationRepository = $operationRepository ?? new LstsarManagerOperationRepository($this->repository);
     }
 
     /** @return array<string,mixed> */
-    public function dashboard(): array
+    public function dashboard(string $siteId = 'site-demo'): array
     {
+        $operationsDashboard = $this->operationRepository->dashboardForSite($siteId);
+
         return [
             'title' => 'OPUS LSTSAR Manager',
             'mode' => self::MODE,
@@ -38,12 +43,39 @@ final class LstsarManagerViewModelFactory
                 'declare_models' => true,
                 'declare_mappings' => true,
                 'declare_rules' => true,
+                'dashboard_operations' => true,
+                'site_client_operations' => true,
+                'mapping_assignment_coverage' => true,
                 'dry_run' => true,
                 'dry_run_engine_integrated' => true,
                 'execute' => false,
+                'manual_launch' => false,
+                'scheduler_launch' => false,
                 'raw_sql' => false,
                 'ddl' => false,
             ],
+            'selected_site' => $operationsDashboard['selected_site'],
+            'operations_dashboard' => $operationsDashboard,
+            'operations' => $operationsDashboard['operations'],
+            'operation_counters' => $operationsDashboard['counters'],
+            'navigation' => $this->navigation(),
+        ];
+    }
+
+    /** @return array<string,mixed> */
+    public function operations(string $siteId = 'site-demo'): array
+    {
+        $dashboard = $this->operationRepository->dashboardForSite($siteId);
+
+        return [
+            'title' => 'LSTSAR operations',
+            'mode' => self::MODE,
+            'protected' => true,
+            'selected_site' => $dashboard['selected_site'],
+            'operations_dashboard' => $dashboard,
+            'operations' => $dashboard['operations'],
+            'counters' => $dashboard['counters'],
+            'launch_policy' => $dashboard['launch_policy'],
             'navigation' => $this->navigation(),
         ];
     }
@@ -88,6 +120,7 @@ final class LstsarManagerViewModelFactory
             'mode' => self::MODE,
             'mapping_required' => true,
             'mapping' => $declaration['config']['mapping'] ?? [],
+            'assignments' => $declaration['config']['transform']['assignments'] ?? [],
             'source_model' => $this->repository->sampleSourceModel()->toArray(),
             'destination_model' => $this->repository->sampleDestinationModel()->toArray(),
             'navigation' => $this->navigation(),
@@ -149,6 +182,7 @@ final class LstsarManagerViewModelFactory
     {
         return [
             ['label' => 'Dashboard', 'route' => 'opus_lstsar_manager_dashboard', 'path' => '/opus-lstsar-manager'],
+            ['label' => 'Operations', 'route' => 'opus_lstsar_manager_operations', 'path' => '/opus-lstsar-manager/operations'],
             ['label' => 'Declarations', 'route' => 'opus_lstsar_manager_declarations', 'path' => '/opus-lstsar-manager/declarations'],
             ['label' => 'Sources', 'route' => 'opus_lstsar_manager_sources', 'path' => '/opus-lstsar-manager/sources'],
             ['label' => 'Destinations', 'route' => 'opus_lstsar_manager_destinations', 'path' => '/opus-lstsar-manager/destinations'],
