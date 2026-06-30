@@ -3,13 +3,16 @@ declare(strict_types=1);
 
 return [
     'lstsar_manager.title' => 'OPUS LSTSAR Manager',
-    'lstsar_manager.dashboard' => 'Dashboard',
-    'lstsar_manager.declarations' => 'Declarations',
-    'lstsar_manager.sources' => 'Sources',
-    'lstsar_manager.destinations' => 'Destinations',
+    'lstsar_manager.declarations' => 'LSTSAR declarations',
+    'lstsar_manager.sources' => 'ODBC sources',
+    'lstsar_manager.destinations' => 'ODBC destinations',
     'lstsar_manager.mappings' => 'Mappings',
-    'lstsar_manager.rules' => 'Securize / Transform / Store rules',
-    'lstsar_manager.archive_report' => 'Archive and report policies',
+    'lstsar_manager.rules' => 'Rules',
+    'lstsar_manager.archive_report' => 'Archive and report',
     'lstsar_manager.dry_run' => 'Dry-run',
-    'lstsar_manager.no_raw_sql' => 'Raw SQL is forbidden in this manager.',
+    'lstsar_manager.dry_run_engine' => 'LSTSAR engine dry-run',
+    'lstsar_manager.dry_run_integrated' => 'Dry-run connected to the model-driven ODBC LSTSAR engine',
+    'lstsar_manager.no_raw_sql' => 'Raw SQL is forbidden',
+    'lstsar_manager.no_direct_execute' => 'Direct execution is forbidden for this milestone',
+    'lstsar_manager.odbc_only' => 'ODBC only',
 ];

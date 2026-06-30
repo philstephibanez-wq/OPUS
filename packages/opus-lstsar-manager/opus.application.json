@@ -22,9 +22,7 @@
         "sso_acl": true,
         "diagnostics": true,
         "profiler": true,
-        "lstsar": true,
-        "odbc": true,
-        "model": true
+        "lstsar_model_driven_odbc_engine": true
     },
     "security": {
         "protected": true,
@@ -35,12 +33,17 @@
         "source": "packages",
         "composer_installable": true,
         "lstsar_manager_package_core": true,
+        "lstsar_manager_dry_run_integration_core": true,
         "model_driven_odbc": true,
         "odbc_only": true,
         "declarative_backoffice": true,
         "dry_run_enabled": true,
+        "dry_run_engine_integrated": true,
+        "dry_run_uses_lstsar_model_driven_odbc_engine": true,
         "execution_enabled": false,
+        "direct_execute_allowed": false,
         "raw_sql_allowed": false,
-        "ddl_enabled": false
+        "ddl_enabled": false,
+        "profiler_instrumented": true
     }
 }

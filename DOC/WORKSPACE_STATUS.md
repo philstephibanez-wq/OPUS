@@ -128,3 +128,16 @@ Scope:
 - exposes Securize / Transform / Store / Archive / Report declaration surfaces;
 - allows dry-run preview only;
 - forbids raw SQL, DDL and direct execution routes.
+
+## P7_LSTSAR_MANAGER_DRY_RUN_INTEGRATION_CORE
+
+Status: applied locally, pending smoke/commit.
+Latest functional commit: `pending commit after P7_LSTSAR_MANAGER_DRY_RUN_INTEGRATION_CORE smoke`
+Tag target: `OPUS_P7_LSTSAR_MANAGER_DRY_RUN_INTEGRATION_CORE`
+
+Scope:
+- connect LSTSAR Manager dry-run to `LstsarModelDrivenOdbcEngine`;
+- keep direct execution forbidden;
+- keep raw SQL and DDL forbidden;
+- simulate source/destination/archive with in-memory ODBC boundaries;
+- expose run result/report/stages in the dry-run view-model.

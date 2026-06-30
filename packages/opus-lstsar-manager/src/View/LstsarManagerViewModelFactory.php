@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace OpusLstsarManager\View;
 
 use OpusLstsarManager\Config\LstsarManagerDeclarationRepository;
+use OpusLstsarManager\DryRun\LstsarManagerDryRunService;
 
 /**
  * Builds deterministic view-models for the protected LSTSAR Manager package.
@@ -13,10 +14,12 @@ final class LstsarManagerViewModelFactory
     public const MODE = 'lstsar_manager';
 
     private LstsarManagerDeclarationRepository $repository;
+    private LstsarManagerDryRunService $dryRunService;
 
-    public function __construct(?LstsarManagerDeclarationRepository $repository = null)
+    public function __construct(?LstsarManagerDeclarationRepository $repository = null, ?LstsarManagerDryRunService $dryRunService = null)
     {
         $this->repository = $repository ?? new LstsarManagerDeclarationRepository();
+        $this->dryRunService = $dryRunService ?? new LstsarManagerDryRunService($this->repository);
     }
 
     /** @return array<string,mixed> */
@@ -36,6 +39,7 @@ final class LstsarManagerViewModelFactory
                 'declare_mappings' => true,
                 'declare_rules' => true,
                 'dry_run' => true,
+                'dry_run_engine_integrated' => true,
                 'execute' => false,
                 'raw_sql' => false,
                 'ddl' => false,
@@ -69,6 +73,7 @@ final class LstsarManagerViewModelFactory
             'mode' => self::MODE,
             'endpoint_type' => $kind,
             'endpoint' => $declaration['config'][$kind] ?? [],
+            'model' => $kind === 'source' ? $this->repository->sampleSourceModel()->toArray() : $this->repository->sampleDestinationModel()->toArray(),
             'odbc_only' => true,
             'navigation' => $this->navigation(),
         ];
@@ -83,6 +88,8 @@ final class LstsarManagerViewModelFactory
             'mode' => self::MODE,
             'mapping_required' => true,
             'mapping' => $declaration['config']['mapping'] ?? [],
+            'source_model' => $this->repository->sampleSourceModel()->toArray(),
+            'destination_model' => $this->repository->sampleDestinationModel()->toArray(),
             'navigation' => $this->navigation(),
         ];
     }
@@ -119,19 +126,20 @@ final class LstsarManagerViewModelFactory
     /** @param array<string,mixed> $payload @return array<string,mixed> */
     public function dryRun(array $payload = []): array
     {
+        $preview = $this->dryRunService->preview($payload);
+
         return [
             'title' => 'LSTSAR dry-run',
             'mode' => self::MODE,
             'execution_enabled' => false,
             'dry_run' => true,
+            'dry_run_engine_integrated' => true,
             'raw_sql_allowed' => false,
             'ddl_allowed' => false,
             'payload' => $payload,
             'declaration' => $this->repository->sampleDeclarationArray(),
-            'preview' => [
-                'stages' => ['load', 'securize', 'transform', 'store', 'archive', 'report'],
-                'would_execute' => false,
-            ],
+            'preview' => $preview,
+            'run_result' => $preview['run_result'] ?? [],
             'navigation' => $this->navigation(),
         ];
     }

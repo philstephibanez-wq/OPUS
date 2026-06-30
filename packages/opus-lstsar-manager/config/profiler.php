@@ -14,6 +14,7 @@ return [
         'archive_report',
         'dry_run_form',
         'dry_run_preview',
+        'dry_run_engine_preview',
     ],
     'redact' => [
         'password',
@@ -23,7 +24,9 @@ return [
         'api_key',
         'apikey',
         'authorization',
+        'confirmation',
+        'confirmation_token',
         'dsn_password',
-        'connection_string',
+        'odbc_password',
     ],
 ];
