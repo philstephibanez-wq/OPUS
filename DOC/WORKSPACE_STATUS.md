@@ -141,3 +141,21 @@ Scope:
 - keep raw SQL and DDL forbidden;
 - simulate source/destination/archive with in-memory ODBC boundaries;
 - expose run result/report/stages in the dry-run view-model.
+
+
+## P7_LSTSAR_DESTINATION_ASSIGNMENTS_CORE
+
+Status: applied locally, smoke pending.
+
+Latest functional commit: `pending commit after P7_LSTSAR_DESTINATION_ASSIGNMENTS_CORE smoke`
+
+Scope:
+
+- destination-field assignments in `03_Transform.php`;
+- constants, metadata, security, source, transformed, hash, concat and hook assignments;
+- explicit pure transform hook registry;
+- LSTSAR script necessity audit.
+
+Validation:
+
+- `P7_LSTSAR_DESTINATION_ASSIGNMENTS_CORE_SMOKE_OK`
