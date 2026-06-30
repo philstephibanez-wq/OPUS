@@ -8,7 +8,8 @@ function ops_e(mixed $value): string
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-$path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+$rawPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+$path = $rawPath === '/' ? '/' : rtrim($rawPath, '/');
 $site = (string) ($_GET['site'] ?? 'site-alpha');
 $title = 'OPUS P7 OPS SITE';
 $data = [];
