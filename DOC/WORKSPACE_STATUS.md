@@ -132,7 +132,7 @@ Scope:
 ## P7_LSTSAR_MANAGER_DRY_RUN_INTEGRATION_CORE
 
 Status: applied locally, pending smoke/commit.
-Latest functional commit: `pending commit after P7_LSTSAR_MANAGER_DRY_RUN_INTEGRATION_CORE smoke`
+Latest functional commit: `2a3908c`
 Tag target: `OPUS_P7_LSTSAR_MANAGER_DRY_RUN_INTEGRATION_CORE`
 
 Scope:
