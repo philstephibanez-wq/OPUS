@@ -20,3 +20,10 @@ Routes:
 - Adds `/opus-lstsar-manager/command` and `/opus-lstsar-manager/command-center`.
 - Provides OPS summary, operations table, quick action links and diagnostics.
 - Keeps command previews read-only with `side_effects=false`.
+
+## P7_OPS_NAVIGATION_POLISH_CORE
+
+- Adds shared OPS navigation styling through public/ops-ui.css.
+- Adds /opus-lstsar-manager/navigation and /opus-lstsar-manager/navigation-polish.
+- Keeps action links visible with wrapped quick-action clusters.
+- Keeps action previews read-only with side_effects=false.

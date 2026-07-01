@@ -131,6 +131,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#030813;border:1px sol
 .error{border-color:#8a3750}
 @media(max-width:900px){.metrics{grid-template-columns:1fr}}
 </style>
+<link rel="stylesheet" href="/ops-ui.css" data-contract="P7_OPS_NAVIGATION_POLISH_CORE">
 </head>
 <body>
 <main>

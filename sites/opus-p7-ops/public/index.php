@@ -75,6 +75,7 @@ code{color:#ffdf99}
 details summary{cursor:pointer;color:#69e3ff;font-weight:900}
 @media(max-width:900px){.ops-metrics{grid-template-columns:1fr}.ops-table{display:block;overflow:auto}}
 </style>
+<link rel="stylesheet" href="/ops-ui.css" data-contract="P7_OPS_NAVIGATION_POLISH_CORE">
 </head>
 <body>
 <main class="shell">
