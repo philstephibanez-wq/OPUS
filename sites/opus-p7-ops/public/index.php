@@ -144,7 +144,7 @@ $destination = $operation['destination'] ?? ($operation['destination_id'] ?? '')
 <td><span class="ops-status"><?= ops_e($status) ?></span></td>
 <td><?= ops_e(is_array($source) ? json_encode($source, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : $source) ?></td>
 <td><?= ops_e(is_array($destination) ? json_encode($destination, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : $destination) ?></td>
-<td><div class="ops-actions"><a href="?site=<?= ops_e($site) ?>&operation=<?= ops_e($operationId) ?>&action=preview">Preview</a><a href="?site=<?= ops_e($site) ?>&operation=<?= ops_e($operationId) ?>&action=dry-run">Dry-run</a><a href="?site=<?= ops_e($site) ?>&operation=<?= ops_e($operationId) ?>&action=audit">Audit</a></div></td>
+<td><div class="ops-actions"><a href="/opus-lstsar-manager/action?site=<?= ops_e($site) ?>&operation=<?= ops_e($operationId) ?>&action=preview">Preview</a><a href="/opus-lstsar-manager/action?site=<?= ops_e($site) ?>&operation=<?= ops_e($operationId) ?>&action=dry-run">Dry-run</a><a href="/opus-lstsar-manager/action?site=<?= ops_e($site) ?>&operation=<?= ops_e($operationId) ?>&action=audit">Audit</a></div></td>
 </tr>
 <?php endforeach; ?>
 </tbody>
