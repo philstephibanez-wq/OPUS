@@ -14,3 +14,9 @@ Routes:
 - All actions are read-only in this harness: `side_effects=false`.
 - Unknown action returns HTTP 400.
 - Unknown operation returns HTTP 404.
+
+## P7_OPS_COMMAND_CENTER_CORE
+
+- Adds `/opus-lstsar-manager/command` and `/opus-lstsar-manager/command-center`.
+- Provides OPS summary, operations table, quick action links and diagnostics.
+- Keeps command previews read-only with `side_effects=false`.
