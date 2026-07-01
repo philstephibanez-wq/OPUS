@@ -1,6 +1,26 @@
 <?php
 declare(strict_types=1);
 
+$root = getcwd();
+$publicDir = $root . '/sites/opus-p7-ops/public';
+$siteDir = $root . '/sites/opus-p7-ops';
+
+$indexFile = $publicDir . '/index.php';
+$routerFile = $publicDir . '/router.php';
+$actionFile = $publicDir . '/action.php';
+$readmeFile = $siteDir . '/README.md';
+
+foreach ([$indexFile, $routerFile, $readmeFile] as $requiredFile) {
+    if (!is_file($requiredFile)) {
+        fwrite(STDERR, 'OPS_REQUIRED_FILE_NOT_FOUND: ' . $requiredFile . PHP_EOL);
+        exit(1);
+    }
+}
+
+$actionSource = <<<'PHP'
+<?php
+declare(strict_types=1);
+
 if (!function_exists('ops_action_e')) {
     function ops_action_e(mixed $value): string
     {
@@ -161,3 +181,77 @@ pre{white-space:pre-wrap;word-break:break-word;background:#030813;border:1px sol
 </main>
 </body>
 </html
+PHP;
+
+$routerSource = <<<'PHP'
+<?php
+declare(strict_types=1);
+
+$path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+$path = $path === '/' ? '/' : rtrim($path, '/');
+
+if ($path === '/opus-lstsar-manager/action') {
+    require __DIR__ . '/action.php';
+    return true;
+}
+
+$requestedFile = __DIR__ . str_replace('/', DIRECTORY_SEPARATOR, $path);
+if ($path !== '/' && is_file($requestedFile)) {
+    return false;
+}
+
+require __DIR__ . '/index.php';
+return true;
+PHP;
+
+if (file_put_contents($actionFile, $actionSource) === false) {
+    fwrite(STDERR, 'OPS_ACTION_WRITE_FAILED' . PHP_EOL);
+    exit(1);
+}
+
+if (file_put_contents($routerFile, $routerSource) === false) {
+    fwrite(STDERR, 'OPS_ROUTER_WRITE_FAILED' . PHP_EOL);
+    exit(1);
+}
+
+$indexSource = file_get_contents($indexFile);
+if ($indexSource === false) {
+    fwrite(STDERR, 'OPS_INDEX_READ_FAILED' . PHP_EOL);
+    exit(1);
+}
+
+if (!str_contains($indexSource, '/opus-lstsar-manager/action?site=')) {
+    $updatedIndex = str_replace('href="?site=', 'href="/opus-lstsar-manager/action?site=', $indexSource);
+    if ($updatedIndex === $indexSource) {
+        fwrite(STDERR, 'OPS_ACTION_LINK_ANCHOR_NOT_FOUND' . PHP_EOL);
+        exit(1);
+    }
+
+    if (file_put_contents($indexFile, $updatedIndex) === false) {
+        fwrite(STDERR, 'OPS_INDEX_WRITE_FAILED' . PHP_EOL);
+        exit(1);
+    }
+}
+
+$readmeSource = file_get_contents($readmeFile);
+if ($readmeSource === false) {
+    fwrite(STDERR, 'OPS_README_READ_FAILED' . PHP_EOL);
+    exit(1);
+}
+
+if (!str_contains($readmeSource, 'P7_OPS_ACTIONS_SUITE_CORE')) {
+    $readmeSource = rtrim($readmeSource) . PHP_EOL . PHP_EOL
+        . '## P7_OPS_ACTIONS_SUITE_CORE' . PHP_EOL . PHP_EOL
+        . '- `/opus-lstsar-manager/action` exposes controlled OPS actions.' . PHP_EOL
+        . '- Supported actions: `preview`, `dry-run`, `audit`.' . PHP_EOL
+        . '- All actions are read-only in this harness: `side_effects=false`.' . PHP_EOL
+        . '- Unknown action returns HTTP 400.' . PHP_EOL
+        . '- Unknown operation returns HTTP 404.' . PHP_EOL;
+
+    if (file_put_contents($readmeFile, $readmeSource) === false) {
+        fwrite(STDERR, 'OPS_README_WRITE_FAILED' . PHP_EOL);
+        exit(1);
+    }
+}
+
+echo 'P7_OPS_ACTIONS_SUITE_CORE_UPDATED' . PHP_EOL;

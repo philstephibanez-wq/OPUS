@@ -6,3 +6,11 @@ Routes:
 
 - http://127.0.0.1:8078/opus-lstsar-manager
 - http://127.0.0.1:8078/opus-lstsar-manager/operations
+
+## P7_OPS_ACTIONS_SUITE_CORE
+
+- `/opus-lstsar-manager/action` exposes controlled OPS actions.
+- Supported actions: `preview`, `dry-run`, `audit`.
+- All actions are read-only in this harness: `side_effects=false`.
+- Unknown action returns HTTP 400.
+- Unknown operation returns HTTP 404.
