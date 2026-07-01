@@ -87,7 +87,7 @@ details summary{cursor:pointer;color:#69e3ff;font-weight:900}
 <nav class="nav">
 <a href="/opus-lstsar-manager">Dashboard</a>
 <a href="/opus-lstsar-manager/operations">Operations</a>
-</nav>
+<a href="/opus-lstsar-manager/diagnostics?site=site-alpha">Diagnostics</a></nav>
 </div>
 <section class="panel">
 <span class="badge"><?= ops_e($path) ?></span>

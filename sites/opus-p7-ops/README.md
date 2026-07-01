@@ -27,3 +27,9 @@ Routes:
 - Adds /opus-lstsar-manager/navigation and /opus-lstsar-manager/navigation-polish.
 - Keeps action links visible with wrapped quick-action clusters.
 - Keeps action previews read-only with side_effects=false.
+
+## P7_OPS_RUNTIME_DIAGNOSTICS_CORE
+
+- Adds /opus-lstsar-manager/diagnostics and /opus-lstsar-manager/runtime-diagnostics.
+- Reports PHP runtime, Composer autoload, public files, routes and operations view-model status.
+- Keeps diagnostics read-only with side_effects=false.
