@@ -110,3 +110,78 @@ Routes:
 - Covers the operations-console sentence, counters, cards, statuses and table labels.
 - Technical operation identifiers and source/destination path values remain untranslated.
 - Covered by `tools/smokes/smoke_p7_ops_i18n_en_visible_leak_lock_core.php`.
+
+## P7_OPS_ACCESS_LOG_MINIMUM_CORE
+
+- Adds a minimum JSON-lines access log for URLs reaching the OPS router.
+- Target file: `var/logs/opus_lstsar-manager/access.log`.
+- Logged fields: timestamp, event, method, URI, decoded path, query string, remote address and user agent.
+- `ERR_CONNECTION_REFUSED` cannot be logged by the app because no PHP process receives the request.
+- Covered by `tools/smokes/smoke_p7_ops_access_log_minimum_core.php`.
+
+## P7_OPS_EN_NAVIGATION_AND_PROFESSIONAL_TEXT_CORE
+
+- Locks English navigation pages against remaining French UI fragments.
+- Adds professional text-length handling for tables, key/value cards and technical identifiers.
+- Keeps technical values such as operation names, DSNs, model names and table names unchanged.
+- Covered by `tools/smokes/smoke_p7_ops_en_navigation_profiler_text_core.php`.
+
+## P7_OPS_PROFILER_AND_ACCESS_LOG_CORE
+
+- Adds `var/logs/opus_lstsar-manager/access.log` with one JSON line per routed request.
+- Adds `var/logs/opus_lstsar-manager/profiler.log` with duration, status and peak memory per routed request.
+- The app cannot log `ERR_CONNECTION_REFUSED` because no PHP process receives that request.
+
+## P7_OPS_CHAIN_AUTH_ENV_CORE
+
+- Adds controlled login/logout/sign-in for OPS pages.
+- Adds minimum environment management with `config/environment.dev.php`, `config/environment.prod.example.php` and active `config/environment.php`.
+- Adds the full dependency chain: SSO/AuthN, RBAC, FSM, CL, Models, Database/tables, ODBC Manager, LSTSAR, logs/profiler.
+- Adds `access.log`, `auth.log` and `profiler.log` under `var/logs/opus_lstsar-manager`.
+- Dev login default: `admin` / `admin`; production must replace the password hash explicitly.
+
+## P7_OPS_CHAIN_AUTH_ENV_FIX_CORE
+
+- Fixes the chain auth environment smoke marker for `environment.prod.example.php`.
+- Replaces profiler clock math with `microtime(true)` to avoid float-to-int warnings on PHP/Windows.
+
+## P7_OPS_CHAIN_AUTH_ENV_UI_FIX_CORE
+
+- Fixes `environment.prod.example.php` smoke marker after the chain/auth/env delivery.
+- Replaces profiler timing math with `microtime(true)` to avoid PHP/Windows float-to-int warnings.
+- Prevents header navigation and language selector overlap.
+- Keeps runtime logs under `var/logs/opus_lstsar-manager/` while excluding `.log` files from Git.
+
+## P7_OPS_SYMFONY_STYLE_PROFILER_SESSION_CORE
+
+- Replaces the mini profiler display with a Symfony-style toolbar and typed profiler page.
+- `profiler=1` is stored in session as `p7ops_sf_profiler_enabled` and remains active until `/opus-lstsar-manager/profiler/exit` or `profiler=0`.
+- Adds profiler panels: Request, Performance, Session, Auth/SSO, OPS Chain, Logs and Config.
+- Clarifies the full chain: Auth/SSO, RBAC, FSM, CL, Models, Database/tables, ODBC Manager, LSTSAR, Actions, Logs/Profiler.
+- Improves technical identifier rendering by avoiding ugly forced breaks in DSN/model/table values.
+
+## P7_OPS_PROFILER_CHAIN_CLEANUP_CORE
+
+- Replaces the confusing profiler attempts with one clean typed profiler implementation.
+- `profiler=1` is stored in session as `p7ops_clean_profiler_enabled` until `/opus-lstsar-manager/profiler/exit` or `profiler=0`.
+- Static assets such as `/favicon.ico` and `/ops-ui.css` are never captured as profiler pages.
+- Clarifies the OPS chain: Auth/SSO, RBAC, FSM, CL, Models, Database/Tables, ODBC Manager, LSTSAR, Actions, Logs/Profiler.
+
+## P7_OPS_UNIFIED_ERGONOMIC_NAVIGATION_CORE
+
+- Adds one stable professional navigation for every OPS page.
+- Groups routes into Pilotage, Chaîne and Observabilité instead of random back/other links.
+- Preserves site, lang and session profiler context across navigation.
+- Removes legacy floating language/navigation headers from rendered pages.
+
+## P7_OPS_PROFILER_EXIT_FIX_CORE
+
+- Fixes profiler exit by clearing all legacy and current profiler session flags.
+- Sanitizes the redirect target by removing `profiler`, `profile` and `_profiler` query parameters.
+- Prevents profiler/navigation output buffers from starting on the profiler exit route.
+
+## P7_OPS_PROFILER_VISIBLE_MODE_CORE
+
+- Makes profiler mode visually obvious: page outline, amber debug background and persistent bottom ribbon.
+- The ribbon shows current path, request duration, Open profiler and Exit actions.
+- Static assets are excluded from visible profiler decoration.

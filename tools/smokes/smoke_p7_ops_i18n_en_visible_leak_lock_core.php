@@ -1,6 +1,9 @@
 <?php
 declare(strict_types=1);
 
+/* P7_OPS_SMOKE_OUTPUT_BUFFER_HEADER_LOCK */
+ob_start();
+
 echo 'P7_OPS_I18N_EN_VISIBLE_LEAK_LOCK_CORE_SMOKE' . PHP_EOL;
 
 $root = dirname(__DIR__, 2);
@@ -164,3 +167,4 @@ foreach ([
 
 echo 'CHECK_P7_OPS_EN_VISIBLE_LEAK_RENDER=OK' . PHP_EOL;
 echo 'P7_OPS_I18N_EN_VISIBLE_LEAK_LOCK_CORE_SMOKE_OK' . PHP_EOL;
+if (ob_get_level() > 0) { ob_end_flush(); }

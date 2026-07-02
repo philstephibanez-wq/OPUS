@@ -1228,7 +1228,15 @@ if (!function_exists('p7ops_i18n_page_translation_dictionary')) {
         "source/destination résumées": "summarized source/destination",
         "résumées": "summarized",
         "wrappées": "wrapped",
-        "confinées": "confined"
+        "confinées": "confined",
+        "Navigation unifiée": "Unified navigation",
+        "Navigation unifiee": "Unified navigation",
+        "Dashboard, Operations, Command Center, Navigation et Actions utilisent maintenant les mêmes routes OPS locales.": "Dashboard, Operations, Command Center, Navigation and Actions now use the same local OPS routes.",
+        "utilisent maintenant les mêmes routes OPS locales.": "now use the same local OPS routes.",
+        "les mêmes routes OPS locales": "the same local OPS routes",
+        "mêmes routes OPS locales": "same local OPS routes",
+        "et Actions": "and Actions",
+        "structures longues": "long structures"
     },
     "et": {
         "OPUS OPS Dashboard": "Ülevaade OPUS OPS",
@@ -2943,10 +2951,1278 @@ if (!function_exists('p7ops_language_selector')) {
             . '<span class="ops-language-selector__active">' . p7ops_h(p7ops_t('active_language')) . ' · ' . p7ops_h($activeName) . '</span>'
             . '<noscript><button type="submit">OK</button></noscript>'
             . '<!-- legacy query marker: site=' . p7ops_h($site) . ' lang=' . p7ops_h($language) . ' site=' . p7ops_h($site) . ' -->'
-            . '<!-- data-scope-contract="P7_OPS_I18N_NATIVE_URL_SLUGS_CORE" --><!-- P7_OPS_I18N_EN_FRENCH_LEAK_LOCK_CORE / English pages must not leak French / P7_OPS_I18N_EN_VISIBLE_LEAK_LOCK_CORE / English visible text must not leak French / P7_OPS_I18N_VISIBLE_STRINGS_FIX_CORE / completed visible labels / P7_OPS_I18N_PAGE_TRANSLATIONS_CORE / real page translations / UE + Ukrainian / EU official languages + Ukrainian / native URL slugs keep accents: français español português čeština română українська ελληνικά български / lang=fr lang=en lang=uk / FR EN UK: bg hr cs da nl en et fi fr de el hu ga it lv lt mt pl pt ro sk sl es sv uk -->'
+            . '<!-- data-scope-contract="P7_OPS_I18N_NATIVE_URL_SLUGS_CORE" --><!-- P7_OPS_I18N_EN_FRENCH_LEAK_LOCK_CORE / English pages must not leak French / P7_OPS_I18N_EN_VISIBLE_LEAK_LOCK_CORE / English visible text must not leak French / P7_OPS_EN_NAVIGATION_AND_PROFESSIONAL_TEXT_CORE / English navigation leak lock and professional text length / P7_OPS_I18N_VISIBLE_STRINGS_FIX_CORE / completed visible labels / P7_OPS_I18N_PAGE_TRANSLATIONS_CORE / real page translations / UE + Ukrainian / EU official languages + Ukrainian / native URL slugs keep accents: français español português čeština română українська ελληνικά български / lang=fr lang=en lang=uk / FR EN UK: bg hr cs da nl en et fi fr de el hu ga it lv lt mt pl pt ro sk sl es sv uk -->'
             . '</form>'
             . '<script data-contract="P7_OPS_I18N_PAGE_TRANSLATIONS_CORE">(function(){var params=new URLSearchParams(window.location.search);var lang=params.get("lang")||"fr";var site=params.get("site")||"site-alpha";document.addEventListener("DOMContentLoaded",function(){document.querySelectorAll("a[href^=\"/opus-lstsar-manager\"]").forEach(function(anchor){var href=anchor.getAttribute("href")||"";var url=new URL(href,window.location.origin);if(!url.searchParams.has("lang")){url.searchParams.set("lang",lang);}if(!url.searchParams.has("site")){url.searchParams.set("site",site);}anchor.setAttribute("href",url.pathname+"?"+url.searchParams.toString());});});})();</script>';
     }
 }
 
+
+/** P7_OPS_ACCESS_LOG_MINIMUM_CORE */
+
+if (!function_exists('p7ops_log_root')) {
+    function p7ops_log_root(): string
+    {
+        return dirname(__DIR__, 3) . '/var/logs/opus_lstsar-manager';
+    }
+}
+
+if (!function_exists('p7ops_ensure_log_root')) {
+    function p7ops_ensure_log_root(): void
+    {
+        $root = p7ops_log_root();
+        if (!is_dir($root) && !mkdir($root, 0775, true) && !is_dir($root)) {
+            throw new RuntimeException('P7_OPS_LOG_DIR_CREATE_FAILED: ' . $root);
+        }
+    }
+}
+
+if (!function_exists('p7ops_log_line')) {
+    function p7ops_log_line(string $filename, array $payload): void
+    {
+        p7ops_ensure_log_root();
+
+        $payload = array_merge([
+            'ts' => gmdate('c'),
+            'app' => 'opus_lstsar-manager',
+        ], $payload);
+
+        $line = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if (!is_string($line)) {
+            $line = '{"ts":"' . gmdate('c') . '","app":"opus_lstsar-manager","level":"ERROR","event":"json_encode_failed"}';
+        }
+
+        $target = p7ops_log_root() . '/' . $filename;
+        file_put_contents($target, $line . PHP_EOL, FILE_APPEND | LOCK_EX);
+    }
+}
+
+if (!function_exists('p7ops_access_log_once')) {
+    function p7ops_access_log_once(): void
+    {
+        static $done = false;
+        if ($done) {
+            return;
+        }
+
+        $done = true;
+
+        try {
+            $uri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+            $path = (string) (parse_url($uri, PHP_URL_PATH) ?: '');
+            $query = (string) (parse_url($uri, PHP_URL_QUERY) ?: '');
+
+            p7ops_log_line('access.log', [
+                'level' => 'INFO',
+                'event' => 'http_request',
+                'method' => (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'),
+                'uri' => $uri,
+                'path' => rawurldecode($path),
+                'query' => $query,
+                'remote_addr' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
+                'user_agent' => (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''),
+            ]);
+        } catch (Throwable $exception) {
+            error_log('P7_OPS_ACCESS_LOG_FAILED: ' . $exception->getMessage());
+        }
+    }
+}
+
+
+/** P7_OPS_PROFILER_AND_ACCESS_LOG_CORE */
+if (!function_exists('p7ops_log_root')) {
+    function p7ops_log_root(): string
+    {
+        return dirname(__DIR__, 3) . '/var/logs/opus_lstsar-manager';
+    }
+}
+
+if (!function_exists('p7ops_ensure_log_root')) {
+    function p7ops_ensure_log_root(): void
+    {
+        $root = p7ops_log_root();
+        if (!is_dir($root) && !mkdir($root, 0775, true) && !is_dir($root)) {
+            throw new RuntimeException('P7_OPS_LOG_DIR_CREATE_FAILED: ' . $root);
+        }
+    }
+}
+
+if (!function_exists('p7ops_log_line')) {
+    function p7ops_log_line(string $filename, array $payload): void
+    {
+        p7ops_ensure_log_root();
+
+        $line = json_encode(array_merge([
+            'ts' => gmdate('c'),
+            'app' => 'opus_lstsar-manager',
+        ], $payload), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        if (!is_string($line)) {
+            $line = '{"ts":"' . gmdate('c') . '","app":"opus_lstsar-manager","level":"ERROR","event":"json_encode_failed"}';
+        }
+
+        file_put_contents(p7ops_log_root() . '/' . $filename, $line . PHP_EOL, FILE_APPEND | LOCK_EX);
+    }
+}
+
+if (!function_exists('p7ops_access_log_once')) {
+    function p7ops_access_log_once(): void
+    {
+        static $done = false;
+        if ($done) {
+            return;
+        }
+
+        $done = true;
+
+        try {
+            $uri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+            p7ops_log_line('access.log', [
+                'level' => 'INFO',
+                'event' => 'http_request',
+                'method' => (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'),
+                'uri' => $uri,
+                'path' => rawurldecode((string) (parse_url($uri, PHP_URL_PATH) ?: '')),
+                'query' => (string) (parse_url($uri, PHP_URL_QUERY) ?: ''),
+                'remote_addr' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
+                'user_agent' => (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''),
+            ]);
+        } catch (Throwable $exception) {
+            error_log('P7_OPS_ACCESS_LOG_FAILED: ' . $exception->getMessage());
+        }
+    }
+}
+
+if (!function_exists('p7ops_profiler_start_once')) {
+    function p7ops_profiler_start_once(): void
+    {
+        static $started = false;
+        if ($started) {
+            return;
+        }
+
+        $started = true;
+        $GLOBALS['p7ops_profiler_start_microtime'] = microtime(true);
+        $GLOBALS['p7ops_profiler_start_memory'] = memory_get_usage(true);
+
+        register_shutdown_function(static function (): void {
+            p7ops_profiler_finish_once('shutdown');
+        });
+    }
+}
+
+if (!function_exists('p7ops_profiler_finish_once')) {
+    function p7ops_profiler_finish_once(string $phase = 'finish'): void
+    {
+        static $done = false;
+        if ($done) {
+            return;
+        }
+
+        $done = true;
+
+        try {
+            $start = (float) ($GLOBALS['p7ops_profiler_start_microtime'] ?? microtime(true));
+            $durationMs = round((microtime(true) - $start) * 1000, 3);
+            $uri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+
+            p7ops_log_line('profiler.log', [
+                'level' => 'INFO',
+                'event' => 'profile_request',
+                'phase' => $phase,
+                'method' => (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'),
+                'uri' => $uri,
+                'path' => rawurldecode((string) (parse_url($uri, PHP_URL_PATH) ?: '')),
+                'status' => http_response_code() ?: 200,
+                'duration_ms' => $durationMs,
+                'memory_start_bytes' => (int) ($GLOBALS['p7ops_profiler_start_memory'] ?? 0),
+                'memory_peak_bytes' => memory_get_peak_usage(true),
+            ]);
+        } catch (Throwable $exception) {
+            error_log('P7_OPS_PROFILER_LOG_FAILED: ' . $exception->getMessage());
+        }
+    }
+}
+
+
+/** P7_OPS_CHAIN_AUTH_ENV_CORE */
+if (!function_exists('p7ops_config_path')) {
+    function p7ops_config_path(): string
+    {
+        return dirname(__DIR__) . '/config/environment.php';
+    }
+}
+
+if (!function_exists('p7ops_config')) {
+    function p7ops_config(): array
+    {
+        static $config = null;
+        if ($config !== null) {
+            return $config;
+        }
+
+        $file = p7ops_config_path();
+        if (!is_file($file)) {
+            throw new RuntimeException('P7_OPS_ENVIRONMENT_CONFIG_MISSING: ' . $file);
+        }
+
+        $loaded = require $file;
+        if (!is_array($loaded)) {
+            throw new RuntimeException('P7_OPS_ENVIRONMENT_CONFIG_INVALID: ' . $file);
+        }
+
+        $environment = (string) ($loaded['environment'] ?? '');
+        if (!in_array($environment, ['dev', 'prod'], true)) {
+            throw new RuntimeException('P7_OPS_ENVIRONMENT_UNSUPPORTED: ' . $environment);
+        }
+
+        $config = $loaded;
+        return $config;
+    }
+}
+
+if (!function_exists('p7ops_environment')) {
+    function p7ops_environment(): string
+    {
+        return (string) (p7ops_config()['environment'] ?? 'dev');
+    }
+}
+
+if (!function_exists('p7ops_log_root')) {
+    function p7ops_log_root(): string
+    {
+        return dirname(__DIR__, 3) . '/var/logs/opus_lstsar-manager';
+    }
+}
+
+if (!function_exists('p7ops_ensure_log_root')) {
+    function p7ops_ensure_log_root(): void
+    {
+        $root = p7ops_log_root();
+        if (!is_dir($root) && !mkdir($root, 0775, true) && !is_dir($root)) {
+            throw new RuntimeException('P7_OPS_LOG_DIR_CREATE_FAILED: ' . $root);
+        }
+    }
+}
+
+if (!function_exists('p7ops_log_line')) {
+    function p7ops_log_line(string $filename, array $payload): void
+    {
+        try {
+            p7ops_ensure_log_root();
+            $line = json_encode(array_merge([
+                'ts' => gmdate('c'),
+                'app' => 'opus_lstsar-manager',
+                'environment' => p7ops_environment(),
+            ], $payload), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+            if (!is_string($line)) {
+                $line = '{"ts":"' . gmdate('c') . '","app":"opus_lstsar-manager","event":"json_encode_failed"}';
+            }
+
+            file_put_contents(p7ops_log_root() . '/' . $filename, $line . PHP_EOL, FILE_APPEND | LOCK_EX);
+        } catch (Throwable $exception) {
+            error_log('P7_OPS_LOG_WRITE_FAILED: ' . $exception->getMessage());
+        }
+    }
+}
+
+if (!function_exists('p7ops_access_log_once')) {
+    function p7ops_access_log_once(): void
+    {
+        static $done = false;
+        if ($done) {
+            return;
+        }
+
+        $done = true;
+        $uri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+
+        p7ops_log_line('access.log', [
+            'level' => 'INFO',
+            'event' => 'http_request',
+            'method' => (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'),
+            'uri' => $uri,
+            'path' => rawurldecode((string) (parse_url($uri, PHP_URL_PATH) ?: '')),
+            'query' => (string) (parse_url($uri, PHP_URL_QUERY) ?: ''),
+            'remote_addr' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
+            'user_agent' => (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''),
+        ]);
+    }
+}
+
+if (!function_exists('p7ops_profiler_enabled')) {
+    function p7ops_profiler_enabled(): bool
+    {
+        $value = strtolower((string) ($_GET['profiler'] ?? $_GET['profile'] ?? ''));
+        return in_array($value, ['1', 'true', 'yes', 'on'], true);
+    }
+}
+
+if (!function_exists('p7ops_profiler_start_once')) {
+    function p7ops_profiler_start_once(): void
+    {
+        static $started = false;
+        if ($started) {
+            return;
+        }
+
+        $started = true;
+        $GLOBALS['p7ops_profiler_start_microtime'] = microtime(true);
+        $GLOBALS['p7ops_profiler_start_memory'] = memory_get_usage(true);
+        register_shutdown_function(static function (): void {
+            p7ops_profiler_finish_once('shutdown');
+        });
+    }
+}
+
+if (!function_exists('p7ops_profiler_metrics')) {
+    function p7ops_profiler_metrics(string $phase = 'panel'): array
+    {
+        $start = (float) ($GLOBALS['p7ops_profiler_start_microtime'] ?? microtime(true));
+        $durationMs = round((microtime(true) - $start) * 1000, 3);
+        $uri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+
+        return [
+            'level' => 'INFO',
+            'event' => 'profile_request',
+            'phase' => $phase,
+            'method' => (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'),
+            'uri' => $uri,
+            'path' => rawurldecode((string) (parse_url($uri, PHP_URL_PATH) ?: '')),
+            'status' => http_response_code() ?: 200,
+            'duration_ms' => $durationMs,
+            'memory_start_bytes' => (int) ($GLOBALS['p7ops_profiler_start_memory'] ?? 0),
+            'memory_peak_bytes' => memory_get_peak_usage(true),
+        ];
+    }
+}
+
+if (!function_exists('p7ops_profiler_finish_once')) {
+    function p7ops_profiler_finish_once(string $phase = 'finish'): void
+    {
+        static $done = false;
+        if ($done) {
+            return;
+        }
+
+        $done = true;
+        p7ops_log_line('profiler.log', p7ops_profiler_metrics($phase));
+    }
+}
+
+if (!function_exists('p7ops_profiler_panel_html')) {
+    function p7ops_profiler_panel_html(array $metrics): string
+    {
+        if (!p7ops_profiler_enabled()) {
+            return '';
+        }
+
+        $rows = [
+            'Environment' => p7ops_environment(),
+            'Status' => (string) ($metrics['status'] ?? ''),
+            'Duration' => (string) ($metrics['duration_ms'] ?? '') . ' ms',
+            'Peak memory' => (string) ($metrics['memory_peak_bytes'] ?? '') . ' bytes',
+            'Access log' => 'var/logs/opus_lstsar-manager/access.log',
+            'Profiler log' => 'var/logs/opus_lstsar-manager/profiler.log',
+        ];
+
+        $html = '<section class="ops-profiler-panel" data-contract="P7_OPS_CHAIN_AUTH_ENV_CORE"><h2>OPS Profiler</h2><dl>';
+        foreach ($rows as $key => $value) {
+            $html .= '<dt>' . p7ops_h($key) . '</dt><dd>' . p7ops_h($value) . '</dd>';
+        }
+        $html .= '</dl></section>';
+
+        return $html;
+    }
+}
+
+if (!function_exists('p7ops_profiler_output_buffer_once')) {
+    function p7ops_profiler_output_buffer_once(): void
+    {
+        static $started = false;
+        if ($started) {
+            return;
+        }
+
+        $started = true;
+        ob_start(static function (string $html): string {
+            $metrics = p7ops_profiler_metrics('output');
+            p7ops_profiler_finish_once('output');
+            $panel = p7ops_profiler_panel_html($metrics);
+            if ($panel === '') {
+                return $html;
+            }
+
+            if (stripos($html, '</body>') !== false) {
+                return preg_replace('/<\/body>/i', $panel . '</body>', $html, 1) ?: ($html . $panel);
+            }
+
+            return $html . $panel;
+        });
+    }
+}
+
+if (!function_exists('p7ops_session_start_once')) {
+    function p7ops_session_start_once(): void
+    {
+        if (PHP_SAPI === 'cli') {
+            return;
+        }
+
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_name('OPUSLSTSAROPS');
+            session_start();
+        }
+    }
+}
+
+if (!function_exists('p7ops_current_user')) {
+    function p7ops_current_user(): ?array
+    {
+        p7ops_session_start_once();
+        $user = $_SESSION['p7ops_user'] ?? null;
+        return is_array($user) ? $user : null;
+    }
+}
+
+if (!function_exists('p7ops_is_signed_in')) {
+    function p7ops_is_signed_in(): bool
+    {
+        return p7ops_current_user() !== null;
+    }
+}
+
+if (!function_exists('p7ops_sign_in')) {
+    function p7ops_sign_in(string $username, string $password): bool
+    {
+        p7ops_session_start_once();
+        $config = p7ops_config();
+        $users = $config['auth']['users'] ?? [];
+        $user = is_array($users) ? ($users[$username] ?? null) : null;
+
+        if (!is_array($user)) {
+            p7ops_log_line('auth.log', ['level' => 'WARNING', 'event' => 'signin_failed', 'reason' => 'unknown_user', 'username' => $username]);
+            return false;
+        }
+
+        $hash = (string) ($user['password_hash'] ?? '');
+        if ($hash === '' || $hash === 'CHANGE_ME_WITH_PASSWORD_HASH') {
+            p7ops_log_line('auth.log', ['level' => 'ERROR', 'event' => 'signin_disabled', 'reason' => 'password_hash_missing', 'username' => $username]);
+            return false;
+        }
+
+        if (!password_verify($password, $hash)) {
+            p7ops_log_line('auth.log', ['level' => 'WARNING', 'event' => 'signin_failed', 'reason' => 'bad_password', 'username' => $username]);
+            return false;
+        }
+
+        session_regenerate_id(true);
+        $_SESSION['p7ops_user'] = [
+            'username' => $username,
+            'roles' => $user['roles'] ?? [],
+            'signed_in_at' => gmdate('c'),
+        ];
+
+        p7ops_log_line('auth.log', ['level' => 'INFO', 'event' => 'signin_ok', 'username' => $username]);
+        return true;
+    }
+}
+
+if (!function_exists('p7ops_sign_out')) {
+    function p7ops_sign_out(): void
+    {
+        p7ops_session_start_once();
+        $username = (string) (($_SESSION['p7ops_user']['username'] ?? '') ?: '');
+        $_SESSION = [];
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
+        p7ops_log_line('auth.log', ['level' => 'INFO', 'event' => 'logout', 'username' => $username]);
+    }
+}
+
+if (!function_exists('p7ops_auth_required')) {
+    function p7ops_auth_required(): bool
+    {
+        return (bool) (p7ops_config()['require_auth'] ?? true);
+    }
+}
+
+if (!function_exists('p7ops_require_signin')) {
+    function p7ops_require_signin(): void
+    {
+        if (PHP_SAPI === 'cli' || !p7ops_auth_required() || p7ops_is_signed_in()) {
+            return;
+        }
+
+        $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/opus-lstsar-manager');
+        header('Location: /opus-lstsar-manager/login?next=' . rawurlencode($uri), true, 302);
+        exit;
+    }
+}
+
+if (!function_exists('p7ops_dependency_chain')) {
+    function p7ops_dependency_chain(): array
+    {
+        return [
+            ['id' => 'auth', 'label' => 'Login / Logout / controlled sign-in', 'route' => '/opus-lstsar-manager/login', 'status' => 'available'],
+            ['id' => 'sso', 'label' => 'SSO optional provider', 'route' => '/opus-lstsar-manager/sso', 'status' => ((p7ops_config()['sso']['enabled'] ?? false) ? 'enabled' : 'disabled')],
+            ['id' => 'rbac', 'label' => 'RBAC / policies', 'route' => '/opus-lstsar-manager/chain', 'status' => 'minimal'],
+            ['id' => 'fsm', 'label' => 'FSM', 'route' => '/opus-lstsar-manager/fsm', 'status' => 'linked'],
+            ['id' => 'cl', 'label' => 'CL', 'route' => '/opus-lstsar-manager/cl', 'status' => 'linked'],
+            ['id' => 'models', 'label' => 'Models registry', 'route' => '/opus-lstsar-manager/models', 'status' => 'linked'],
+            ['id' => 'database', 'label' => 'Database + tables', 'route' => '/opus-lstsar-manager/models#database', 'status' => 'linked'],
+            ['id' => 'odbc', 'label' => 'ODBC Manager / DSN', 'route' => '/opus-lstsar-manager/odbc-manager', 'status' => 'linked'],
+            ['id' => 'lstsar', 'label' => 'LSTSAR operations', 'route' => '/opus-lstsar-manager/operations', 'status' => 'available'],
+            ['id' => 'logs', 'label' => 'Logs / profiler / audit', 'route' => '/opus-lstsar-manager/diagnostics?profiler=1', 'status' => 'available'],
+        ];
+    }
+}
+
+if (!function_exists('p7ops_render_shell')) {
+    function p7ops_render_shell(string $title, string $body): void
+    {
+        $user = p7ops_current_user();
+        $username = is_array($user) ? (string) ($user['username'] ?? '') : '';
+        $authLink = $username !== '' ? '<a class="ops-action-button" href="/opus-lstsar-manager/logout">Logout ' . p7ops_h($username) . '</a>' : '<a class="ops-action-button" href="/opus-lstsar-manager/login">Sign in</a>';
+
+        echo '<!doctype html><html lang="' . p7ops_h(p7ops_language()) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' . p7ops_h($title) . '</title><link rel="stylesheet" href="/ops-ui.css"></head><body><main class="ops-shell">';
+        echo p7ops_language_selector($_SERVER['REQUEST_URI'] ?? '/opus-lstsar-manager');
+        echo '<section class="ops-panel"><div class="ops-topline"><span class="ops-badge">P7_OPS_CHAIN_AUTH_ENV_CORE</span>' . $authLink . '</div><h1>' . p7ops_h($title) . '</h1><p>Environment: <strong>' . p7ops_h(p7ops_environment()) . '</strong></p></section>';
+        echo $body;
+        echo '</main></body></html>';
+    }
+}
+
+p7ops_profiler_start_once();
+p7ops_profiler_output_buffer_once();
+
 p7ops_i18n_begin();
+
+
+/** P7_OPS_SYMFONY_STYLE_PROFILER_SESSION_CORE */
+if (!function_exists('p7ops_sf_h')) {
+    function p7ops_sf_h(string $value): string
+    {
+        if (function_exists('p7ops_h')) {
+            return p7ops_h($value);
+        }
+
+        return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+}
+
+if (!function_exists('p7ops_sf_session_start_once')) {
+    function p7ops_sf_session_start_once(): void
+    {
+        if (PHP_SAPI === 'cli') {
+            return;
+        }
+
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_name('OPUSLSTSAROPS');
+            session_start();
+        }
+    }
+}
+
+if (!function_exists('p7ops_sf_profiler_handle_toggle')) {
+    function p7ops_sf_profiler_handle_toggle(): void
+    {
+        if (PHP_SAPI === 'cli') {
+            return;
+        }
+
+        p7ops_sf_session_start_once();
+
+        $value = strtolower((string) ($_GET['profiler'] ?? ''));
+        if (in_array($value, ['1', 'true', 'yes', 'on'], true)) {
+            $_SESSION['p7ops_sf_profiler_enabled'] = true;
+        }
+
+        if (in_array($value, ['0', 'false', 'no', 'off', 'exit'], true)) {
+            unset($_SESSION['p7ops_sf_profiler_enabled']);
+        }
+    }
+}
+
+if (!function_exists('p7ops_sf_profiler_enabled')) {
+    function p7ops_sf_profiler_enabled(): bool
+    {
+        if (PHP_SAPI === 'cli') {
+            return (bool) ($_GET['profiler'] ?? false);
+        }
+
+        p7ops_sf_profiler_handle_toggle();
+        return (bool) ($_SESSION['p7ops_sf_profiler_enabled'] ?? false);
+    }
+}
+
+if (!function_exists('p7ops_sf_profiler_chain')) {
+    function p7ops_sf_profiler_chain(): array
+    {
+        return [
+            ['key' => 'auth', 'label' => '01 AuthN / Login / Logout / SSO optional', 'route' => '/opus-lstsar-manager/login', 'status' => 'active'],
+            ['key' => 'session', 'label' => '02 Session / RBAC / policies', 'route' => '/opus-lstsar-manager/profiler#session', 'status' => 'minimal'],
+            ['key' => 'fsm', 'label' => '03 FSM state control', 'route' => '/opus-lstsar-manager/fsm', 'status' => 'linked'],
+            ['key' => 'cl', 'label' => '04 CL command layer', 'route' => '/opus-lstsar-manager/cl', 'status' => 'linked'],
+            ['key' => 'models', 'label' => '05 Models registry', 'route' => '/opus-lstsar-manager/models', 'status' => 'linked'],
+            ['key' => 'database', 'label' => '06 Database + tables + columns', 'route' => '/opus-lstsar-manager/models#database', 'status' => 'linked'],
+            ['key' => 'odbc', 'label' => '07 ODBC Manager / DSN / connection tests', 'route' => '/opus-lstsar-manager/odbc-manager', 'status' => 'linked'],
+            ['key' => 'lstsar', 'label' => '08 LSTSAR Load / Secure / Transform / Store', 'route' => '/opus-lstsar-manager/operations', 'status' => 'active'],
+            ['key' => 'actions', 'label' => '09 Actions / preview / dry-run / audit', 'route' => '/opus-lstsar-manager/command-center', 'status' => 'active'],
+            ['key' => 'observability', 'label' => '10 Logs / profiler / diagnostics', 'route' => '/opus-lstsar-manager/profiler', 'status' => 'active'],
+        ];
+    }
+}
+
+if (!function_exists('p7ops_sf_profiler_request_token')) {
+    function p7ops_sf_profiler_request_token(): string
+    {
+        if (!isset($GLOBALS['p7ops_sf_profiler_token'])) {
+            $GLOBALS['p7ops_sf_profiler_token'] = substr(hash('sha256', microtime(true) . random_int(1, PHP_INT_MAX)), 0, 12);
+        }
+
+        return (string) $GLOBALS['p7ops_sf_profiler_token'];
+    }
+}
+
+if (!function_exists('p7ops_sf_profiler_collect')) {
+    function p7ops_sf_profiler_collect(string $phase = 'collect'): array
+    {
+        $start = (float) ($GLOBALS['p7ops_sf_profiler_start_microtime'] ?? microtime(true));
+        $uri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+        $path = rawurldecode((string) (parse_url($uri, PHP_URL_PATH) ?: ''));
+
+        $user = null;
+        if (function_exists('p7ops_current_user')) {
+            $user = p7ops_current_user();
+        }
+
+        $sessionEnabled = false;
+        if (PHP_SAPI !== 'cli') {
+            p7ops_sf_session_start_once();
+            $sessionEnabled = (bool) ($_SESSION['p7ops_sf_profiler_enabled'] ?? false);
+        }
+
+        return [
+            'token' => p7ops_sf_profiler_request_token(),
+            'phase' => $phase,
+            'environment' => function_exists('p7ops_environment') ? p7ops_environment() : 'dev',
+            'status' => http_response_code() ?: 200,
+            'duration_ms' => round((microtime(true) - $start) * 1000, 3),
+            'memory_peak_bytes' => memory_get_peak_usage(true),
+            'memory_current_bytes' => memory_get_usage(true),
+            'method' => (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'),
+            'uri' => $uri,
+            'path' => $path,
+            'query' => (string) (parse_url($uri, PHP_URL_QUERY) ?: ''),
+            'remote_addr' => (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
+            'user_agent' => (string) ($_SERVER['HTTP_USER_AGENT'] ?? ''),
+            'session_id' => PHP_SAPI === 'cli' ? 'cli' : session_id(),
+            'session_profiler' => $sessionEnabled ? 'enabled' : 'disabled',
+            'user' => is_array($user) ? (string) ($user['username'] ?? 'signed-in') : 'anonymous',
+            'roles' => is_array($user) ? implode(', ', array_map('strval', (array) ($user['roles'] ?? []))) : '',
+            'chain' => p7ops_sf_profiler_chain(),
+            'logs' => [
+                'access' => 'var/logs/opus_lstsar-manager/access.log',
+                'auth' => 'var/logs/opus_lstsar-manager/auth.log',
+                'profiler' => 'var/logs/opus_lstsar-manager/profiler.log',
+                'php_server' => 'var/logs/opus_lstsar-manager/php-server.log',
+            ],
+        ];
+    }
+}
+
+if (!function_exists('p7ops_sf_profiler_store')) {
+    function p7ops_sf_profiler_store(array $profile): void
+    {
+        if (PHP_SAPI !== 'cli') {
+            p7ops_sf_session_start_once();
+            $_SESSION['p7ops_sf_profiler_history'] = array_values(array_slice((array) ($_SESSION['p7ops_sf_profiler_history'] ?? []), -19));
+            $_SESSION['p7ops_sf_profiler_history'][] = $profile;
+        }
+
+        if (function_exists('p7ops_log_line')) {
+            p7ops_log_line('profiler.log', [
+                'level' => 'INFO',
+                'event' => 'symfony_style_profile',
+                'token' => (string) ($profile['token'] ?? ''),
+                'method' => (string) ($profile['method'] ?? ''),
+                'uri' => (string) ($profile['uri'] ?? ''),
+                'status' => (int) ($profile['status'] ?? 200),
+                'duration_ms' => (float) ($profile['duration_ms'] ?? 0),
+                'memory_peak_bytes' => (int) ($profile['memory_peak_bytes'] ?? 0),
+            ]);
+        }
+    }
+}
+
+if (!function_exists('p7ops_sf_profiler_toolbar_html')) {
+    function p7ops_sf_profiler_toolbar_html(array $profile): string
+    {
+        $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/opus-lstsar-manager');
+        $exit = '/opus-lstsar-manager/profiler/exit?next=' . rawurlencode($uri);
+        $profileUrl = '/opus-lstsar-manager/profiler?token=' . rawurlencode((string) ($profile['token'] ?? 'latest'));
+
+        return '<div class="sf-toolbar p7ops-sf-toolbar" data-contract="P7_OPS_SYMFONY_STYLE_PROFILER_SESSION_CORE">'
+            . '<a class="sf-toolbar-block sf-toolbar-main" href="' . p7ops_sf_h($profileUrl) . '">OPUS Profiler <strong>' . p7ops_sf_h((string) ($profile['token'] ?? '')) . '</strong></a>'
+            . '<span class="sf-toolbar-block">Env <strong>' . p7ops_sf_h((string) ($profile['environment'] ?? '')) . '</strong></span>'
+            . '<span class="sf-toolbar-block">HTTP <strong>' . p7ops_sf_h((string) ($profile['status'] ?? '')) . '</strong></span>'
+            . '<span class="sf-toolbar-block">Time <strong>' . p7ops_sf_h((string) ($profile['duration_ms'] ?? '')) . ' ms</strong></span>'
+            . '<span class="sf-toolbar-block">Memory <strong>' . p7ops_sf_h((string) ($profile['memory_peak_bytes'] ?? '')) . '</strong></span>'
+            . '<a class="sf-toolbar-block" href="/opus-lstsar-manager/chain">OPS Chain</a>'
+            . '<a class="sf-toolbar-block" href="/opus-lstsar-manager/models">Models</a>'
+            . '<a class="sf-toolbar-block" href="/opus-lstsar-manager/odbc-manager">ODBC</a>'
+            . '<a class="sf-toolbar-block sf-toolbar-exit" href="' . p7ops_sf_h($exit) . '">Exit profiler</a>'
+            . '</div>';
+    }
+}
+
+if (!function_exists('p7ops_sf_profiler_boot_once')) {
+    function p7ops_sf_profiler_boot_once(): void
+    {
+        static $booted = false;
+        if ($booted || PHP_SAPI === 'cli') {
+            return;
+        }
+
+        $booted = true;
+        p7ops_sf_profiler_handle_toggle();
+
+        if (!p7ops_sf_profiler_enabled()) {
+            return;
+        }
+
+        $GLOBALS['p7ops_sf_profiler_start_microtime'] = microtime(true);
+        p7ops_sf_profiler_request_token();
+
+        ob_start(static function (string $html): string {
+            $profile = p7ops_sf_profiler_collect('toolbar');
+            p7ops_sf_profiler_store($profile);
+            $toolbar = p7ops_sf_profiler_toolbar_html($profile);
+
+            if (stripos($html, '</body>') !== false) {
+                return preg_replace('/<\/body>/i', $toolbar . '</body>', $html, 1) ?: ($html . $toolbar);
+            }
+
+            return $html . $toolbar;
+        });
+    }
+}
+
+if (!function_exists('p7ops_sf_profiler_history')) {
+    function p7ops_sf_profiler_history(): array
+    {
+        if (PHP_SAPI === 'cli') {
+            return [];
+        }
+
+        p7ops_sf_session_start_once();
+        return array_values((array) ($_SESSION['p7ops_sf_profiler_history'] ?? []));
+    }
+}
+
+if (!function_exists('p7ops_sf_profiler_disable')) {
+    function p7ops_sf_profiler_disable(): void
+    {
+        if (PHP_SAPI === 'cli') {
+            return;
+        }
+
+        p7ops_sf_session_start_once();
+        unset($_SESSION['p7ops_sf_profiler_enabled']);
+    }
+}
+
+
+/** P7_OPS_PROFILER_CHAIN_CLEANUP_CORE */
+if (!function_exists('p7ops_clean_h')) {
+    function p7ops_clean_h(string $v): string {
+        return function_exists('p7ops_h') ? p7ops_h($v) : htmlspecialchars($v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+}
+if (!function_exists('p7ops_clean_session_start_once')) {
+    function p7ops_clean_session_start_once(): void {
+        if (PHP_SAPI !== 'cli' && session_status() !== PHP_SESSION_ACTIVE) {
+            session_name('OPUSLSTSAROPS');
+            session_start();
+        }
+    }
+}
+if (!function_exists('p7ops_clean_is_static_path')) {
+    function p7ops_clean_is_static_path(string $p): bool {
+        return (bool) preg_match('~\.(?:ico|png|jpe?g|gif|svg|webp|css|js|map|woff2?|ttf|eot)$~i', $p);
+    }
+}
+if (!function_exists('p7ops_clean_profiler_handle_request')) {
+    function p7ops_clean_profiler_handle_request(): void {
+        if (PHP_SAPI === 'cli') { return; }
+        p7ops_clean_session_start_once();
+        $v = strtolower((string) ($_GET['profiler'] ?? ''));
+        if (in_array($v, ['1','true','yes','on'], true)) { $_SESSION['p7ops_clean_profiler_enabled'] = true; }
+        if (in_array($v, ['0','false','no','off','exit'], true)) { unset($_SESSION['p7ops_clean_profiler_enabled']); }
+    }
+}
+if (!function_exists('p7ops_clean_profiler_enabled')) {
+    function p7ops_clean_profiler_enabled(): bool {
+        if (PHP_SAPI === 'cli') { return (string)($_GET['profiler'] ?? '') === '1'; }
+        p7ops_clean_profiler_handle_request();
+        return (bool) ($_SESSION['p7ops_clean_profiler_enabled'] ?? false);
+    }
+}
+if (!function_exists('p7ops_clean_profiler_disable')) {
+    function p7ops_clean_profiler_disable(): void {
+        if (PHP_SAPI === 'cli') { return; }
+        p7ops_clean_session_start_once();
+        unset($_SESSION['p7ops_clean_profiler_enabled'], $_SESSION['p7ops_clean_profiler_history']);
+    }
+}
+if (!function_exists('p7ops_clean_chain_steps')) {
+    function p7ops_clean_chain_steps(): array {
+        return [
+            ['n'=>'01','key'=>'auth','title'=>'Auth / SSO','text'=>'Connexion contrôlée, logout, SSO optionnel, session.','route'=>'/opus-lstsar-manager/login'],
+            ['n'=>'02','key'=>'rbac','title'=>'RBAC / Policies','text'=>'Droits utilisateur, rôles, accès aux actions OPS.','route'=>'/opus-lstsar-manager/profiler#auth'],
+            ['n'=>'03','key'=>'fsm','title'=>'FSM','text'=>'État de l’opération avant toute commande.','route'=>'/opus-lstsar-manager/fsm'],
+            ['n'=>'04','key'=>'cl','title'=>'CL','text'=>'Couche commande / orchestration entre FSM et moteur.','route'=>'/opus-lstsar-manager/cl'],
+            ['n'=>'05','key'=>'models','title'=>'Models','text'=>'Modèles source/destination, structure métier et technique.','route'=>'/opus-lstsar-manager/models'],
+            ['n'=>'06','key'=>'database','title'=>'Database / Tables','text'=>'Base, tables, colonnes, contraintes et types attendus.','route'=>'/opus-lstsar-manager/models#database'],
+            ['n'=>'07','key'=>'odbc','title'=>'ODBC Manager','text'=>'Drivers, DSN, tests de connexion source et destination.','route'=>'/opus-lstsar-manager/odbc-manager'],
+            ['n'=>'08','key'=>'lstsar','title'=>'LSTSAR','text'=>'Load, Secure, Transform, Store, Audit.','route'=>'/opus-lstsar-manager/operations'],
+            ['n'=>'09','key'=>'actions','title'=>'Actions','text'=>'Preview, dry-run, audit, exécution contrôlée.','route'=>'/opus-lstsar-manager/command-center'],
+            ['n'=>'10','key'=>'observability','title'=>'Logs / Profiler','text'=>'Access log, auth log, profiler, diagnostics.','route'=>'/opus-lstsar-manager/profiler'],
+        ];
+    }
+}
+if (!function_exists('p7ops_clean_profiler_token')) {
+    function p7ops_clean_profiler_token(): string {
+        if (!isset($GLOBALS['p7ops_clean_profiler_token'])) {
+            $GLOBALS['p7ops_clean_profiler_token'] = substr(hash('sha256', microtime(true) . random_int(1, PHP_INT_MAX)), 0, 10);
+        }
+        return (string) $GLOBALS['p7ops_clean_profiler_token'];
+    }
+}
+if (!function_exists('p7ops_clean_profiler_collect')) {
+    function p7ops_clean_profiler_collect(string $phase = 'collect'): array {
+        $start = (float) ($GLOBALS['p7ops_clean_profiler_start'] ?? microtime(true));
+        $uri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+        $path = rawurldecode((string) (parse_url($uri, PHP_URL_PATH) ?: ''));
+        $user = function_exists('p7ops_current_user') ? p7ops_current_user() : null;
+        return [
+            'token'=>p7ops_clean_profiler_token(), 'phase'=>$phase,
+            'environment'=>function_exists('p7ops_environment') ? p7ops_environment() : 'dev',
+            'status'=>http_response_code() ?: 200,
+            'duration_ms'=>round((microtime(true) - $start) * 1000, 3),
+            'memory_peak_bytes'=>memory_get_peak_usage(true), 'memory_current_bytes'=>memory_get_usage(true),
+            'method'=>(string)($_SERVER['REQUEST_METHOD'] ?? 'GET'), 'uri'=>$uri, 'path'=>$path,
+            'query'=>(string)(parse_url($uri, PHP_URL_QUERY) ?: ''),
+            'remote_addr'=>(string)($_SERVER['REMOTE_ADDR'] ?? ''),
+            'user_agent'=>(string)($_SERVER['HTTP_USER_AGENT'] ?? ''),
+            'user'=>is_array($user) ? (string)($user['username'] ?? 'signed-in') : 'anonymous',
+            'roles'=>is_array($user) ? implode(', ', array_map('strval', (array)($user['roles'] ?? []))) : '',
+            'session_profiler'=>p7ops_clean_profiler_enabled() ? 'enabled' : 'disabled',
+        ];
+    }
+}
+if (!function_exists('p7ops_clean_profiler_store')) {
+    function p7ops_clean_profiler_store(array $p): void {
+        if (p7ops_clean_is_static_path((string)($p['path'] ?? ''))) { return; }
+        if (PHP_SAPI !== 'cli') {
+            p7ops_clean_session_start_once();
+            $h = array_values((array)($_SESSION['p7ops_clean_profiler_history'] ?? []));
+            $h[] = $p;
+            $_SESSION['p7ops_clean_profiler_history'] = array_values(array_slice($h, -20));
+        }
+        if (function_exists('p7ops_log_line')) {
+            p7ops_log_line('profiler.log', ['level'=>'INFO','event'=>'typed_profile','token'=>(string)($p['token'] ?? ''),'method'=>(string)($p['method'] ?? ''),'uri'=>(string)($p['uri'] ?? ''),'status'=>(int)($p['status'] ?? 200),'duration_ms'=>(float)($p['duration_ms'] ?? 0),'memory_peak_bytes'=>(int)($p['memory_peak_bytes'] ?? 0)]);
+        }
+    }
+}
+if (!function_exists('p7ops_clean_profiler_history')) {
+    function p7ops_clean_profiler_history(): array {
+        if (PHP_SAPI === 'cli') { return []; }
+        p7ops_clean_session_start_once();
+        return array_values((array)($_SESSION['p7ops_clean_profiler_history'] ?? []));
+    }
+}
+if (!function_exists('p7ops_clean_toolbar_html')) {
+    function p7ops_clean_toolbar_html(array $p): string {
+        $cur = (string)($_SERVER['REQUEST_URI'] ?? '/opus-lstsar-manager');
+        $exit = '/opus-lstsar-manager/profiler/exit?next=' . rawurlencode($cur);
+        return '<div class="opus-profiler-toolbar" data-contract="P7_OPS_PROFILER_CHAIN_CLEANUP_CORE">'
+            . '<a href="/opus-lstsar-manager/profiler" class="optb-brand">OPUS Profiler <strong>#' . p7ops_clean_h((string)($p['token'] ?? '')) . '</strong></a>'
+            . '<span>HTTP <strong>' . p7ops_clean_h((string)($p['status'] ?? '')) . '</strong></span>'
+            . '<span>Time <strong>' . p7ops_clean_h((string)($p['duration_ms'] ?? '')) . ' ms</strong></span>'
+            . '<span>Mem <strong>' . p7ops_clean_h((string)($p['memory_peak_bytes'] ?? '')) . '</strong></span>'
+            . '<a href="/opus-lstsar-manager/chain">Chain</a><a href="/opus-lstsar-manager/profiler">Details</a>'
+            . '<a href="' . p7ops_clean_h($exit) . '" class="optb-exit">Exit</a></div>';
+    }
+}
+if (!function_exists('p7ops_clean_profiler_boot_once')) {
+    function p7ops_clean_profiler_boot_once(): void {
+        static $booted = false;
+        if ($booted || PHP_SAPI === 'cli') { return; }
+        $booted = true;
+        p7ops_clean_profiler_handle_request();
+        if (!p7ops_clean_profiler_enabled()) { return; }
+        $path = rawurldecode((string)(parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?: ''));
+        if (p7ops_clean_is_static_path($path)) { return; }
+        $GLOBALS['p7ops_clean_profiler_start'] = microtime(true);
+        p7ops_clean_profiler_token();
+        ob_start(static function (string $html): string {
+            $p = p7ops_clean_profiler_collect('toolbar');
+            p7ops_clean_profiler_store($p);
+            $toolbar = p7ops_clean_toolbar_html($p);
+            if (stripos($html, '</body>') !== false) {
+                return preg_replace('/<\/body>/i', $toolbar . '</body>', $html, 1) ?: ($html . $toolbar);
+            }
+            return $html . $toolbar;
+        });
+    }
+}
+
+
+/** P7_OPS_UNIFIED_ERGONOMIC_NAVIGATION_CORE */
+if (!function_exists('p7ops_nav_h')) {
+    function p7ops_nav_h(string $value): string
+    {
+        return function_exists('p7ops_h') ? p7ops_h($value) : htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+}
+
+if (!function_exists('p7ops_nav_path')) {
+    function p7ops_nav_path(): string
+    {
+        return rawurldecode((string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/opus-lstsar-manager'), PHP_URL_PATH) ?: '/opus-lstsar-manager'));
+    }
+}
+
+if (!function_exists('p7ops_nav_static')) {
+    function p7ops_nav_static(string $path): bool
+    {
+        return (bool) preg_match('~\.(?:ico|png|jpe?g|gif|svg|webp|css|js|map|woff2?|ttf|eot)$~i', $path);
+    }
+}
+
+if (!function_exists('p7ops_nav_profiler_on')) {
+    function p7ops_nav_profiler_on(): bool
+    {
+        return (function_exists('p7ops_clean_profiler_enabled') && p7ops_clean_profiler_enabled())
+            || (function_exists('p7ops_sf_profiler_enabled') && p7ops_sf_profiler_enabled())
+            || ((string) ($_GET['profiler'] ?? '') === '1');
+    }
+}
+
+if (!function_exists('p7ops_nav_query')) {
+    function p7ops_nav_query(array $extra = []): string
+    {
+        $lang = (string) ($_GET['lang'] ?? (function_exists('p7ops_language') ? p7ops_language() : 'fr'));
+        $site = (string) ($_GET['site'] ?? 'site-alpha');
+        $query = array_merge(['site' => $site, 'lang' => $lang], $extra);
+        if (p7ops_nav_profiler_on()) { $query['profiler'] = '1'; }
+        return '?' . http_build_query($query);
+    }
+}
+
+if (!function_exists('p7ops_nav_groups')) {
+    function p7ops_nav_groups(): array
+    {
+        return [
+            'Pilotage' => [
+                ['key' => 'dashboard', 'label' => 'Dashboard', 'route' => '/opus-lstsar-manager'],
+                ['key' => 'operations', 'label' => 'Operations', 'route' => '/opus-lstsar-manager/operations'],
+                ['key' => 'command', 'label' => 'Command Center', 'route' => '/opus-lstsar-manager/command-center'],
+            ],
+            'Chaîne' => [
+                ['key' => 'chain', 'label' => 'Chaîne complète', 'route' => '/opus-lstsar-manager/chain'],
+                ['key' => 'fsm', 'label' => 'FSM', 'route' => '/opus-lstsar-manager/fsm'],
+                ['key' => 'cl', 'label' => 'CL', 'route' => '/opus-lstsar-manager/cl'],
+                ['key' => 'models', 'label' => 'Models', 'route' => '/opus-lstsar-manager/models'],
+                ['key' => 'odbc', 'label' => 'ODBC Manager', 'route' => '/opus-lstsar-manager/odbc-manager'],
+            ],
+            'Observabilité' => [
+                ['key' => 'profiler', 'label' => 'Profiler', 'route' => '/opus-lstsar-manager/profiler'],
+                ['key' => 'diagnostics', 'label' => 'Diagnostics', 'route' => '/opus-lstsar-manager/diagnostics'],
+                ['key' => 'health', 'label' => 'Health', 'route' => '/opus-lstsar-manager/health'],
+            ],
+        ];
+    }
+}
+
+if (!function_exists('p7ops_nav_active')) {
+    function p7ops_nav_active(): string
+    {
+        $path = p7ops_nav_path();
+        $map = [
+            '/opus-lstsar-manager' => 'dashboard', '/' => 'dashboard',
+            '/opus-lstsar-manager/operations' => 'operations', '/opus-lstsar-manager/action' => 'operations',
+            '/opus-lstsar-manager/command' => 'command', '/opus-lstsar-manager/command-center' => 'command',
+            '/opus-lstsar-manager/navigation' => 'dashboard', '/opus-lstsar-manager/navigation-polish' => 'dashboard',
+            '/opus-lstsar-manager/chain' => 'chain', '/opus-lstsar-manager/dependency-chain' => 'chain',
+            '/opus-lstsar-manager/fsm' => 'fsm', '/opus-lstsar-manager/cl' => 'cl',
+            '/opus-lstsar-manager/models' => 'models', '/opus-lstsar-manager/odbc-manager' => 'odbc',
+            '/opus-lstsar-manager/profiler' => 'profiler',
+            '/opus-lstsar-manager/diagnostics' => 'diagnostics', '/opus-lstsar-manager/runtime-diagnostics' => 'diagnostics',
+            '/opus-lstsar-manager/health' => 'health', '/opus-lstsar-manager/health-hub' => 'health',
+        ];
+        return $map[$path] ?? 'dashboard';
+    }
+}
+
+if (!function_exists('p7ops_nav_context')) {
+    function p7ops_nav_context(): string
+    {
+        $active = p7ops_nav_active();
+        foreach (p7ops_nav_groups() as $group => $items) {
+            foreach ($items as $item) {
+                if ((string) $item['key'] === $active) { return $group . ' / ' . (string) $item['label']; }
+            }
+        }
+        return 'Pilotage / Dashboard';
+    }
+}
+
+if (!function_exists('p7ops_nav_html')) {
+    function p7ops_nav_html(): string
+    {
+        $active = p7ops_nav_active();
+        $path = p7ops_nav_path();
+        $lang = (string) ($_GET['lang'] ?? (function_exists('p7ops_language') ? p7ops_language() : 'fr'));
+        $site = (string) ($_GET['site'] ?? 'site-alpha');
+        $prof = p7ops_nav_profiler_on();
+        $langs = ['fr' => 'Français', 'en' => 'English', 'es' => 'Español', 'de' => 'Deutsch', 'it' => 'Italiano', 'pt' => 'Português', 'uk' => 'Українська'];
+        $html = '<header class="opus-unified-nav" data-contract="P7_OPS_UNIFIED_ERGONOMIC_NAVIGATION_CORE"><div class="oun-main">';
+        $html .= '<a class="oun-brand" href="/opus-lstsar-manager' . p7ops_nav_h(p7ops_nav_query()) . '"><strong>OPUS OPS</strong><span>LSTSAR Manager</span></a>';
+        $html .= '<nav class="oun-groups" aria-label="Navigation principale">';
+        foreach (p7ops_nav_groups() as $group => $items) {
+            $html .= '<section class="oun-group"><h2>' . p7ops_nav_h((string) $group) . '</h2><div>';
+            foreach ($items as $item) {
+                $key = (string) $item['key'];
+                $class = $key === $active ? ' class="is-active"' : '';
+                $html .= '<a' . $class . ' href="' . p7ops_nav_h((string) $item['route'] . p7ops_nav_query()) . '">' . p7ops_nav_h((string) $item['label']) . '</a>';
+            }
+            $html .= '</div></section>';
+        }
+        $html .= '</nav><form class="oun-lang" method="get" action="' . p7ops_nav_h($path) . '"><input type="hidden" name="site" value="' . p7ops_nav_h($site) . '">';
+        if ($prof) { $html .= '<input type="hidden" name="profiler" value="1">'; }
+        $html .= '<label>Langue <select name="lang" onchange="this.form.submit()">';
+        foreach ($langs as $code => $label) {
+            $html .= '<option value="' . p7ops_nav_h($code) . '"' . ($code === $lang ? ' selected' : '') . '>' . p7ops_nav_h($label . ' — ' . strtoupper($code)) . '</option>';
+        }
+        $html .= '</select></label></form></div><div class="oun-context">';
+        $html .= '<span><strong>Parcours :</strong> ' . p7ops_nav_h(p7ops_nav_context()) . '</span><span><strong>Site :</strong> ' . p7ops_nav_h($site) . '</span>';
+        $html .= '<span><strong>Env :</strong> ' . p7ops_nav_h(function_exists('p7ops_environment') ? p7ops_environment() : 'dev') . '</span>';
+        if ($prof) {
+            $html .= '<a class="oun-profiler is-on" href="/opus-lstsar-manager/profiler">Profiler ON</a><a class="oun-exit" href="/opus-lstsar-manager/profiler/exit?next=' . p7ops_nav_h(rawurlencode((string) ($_SERVER['REQUEST_URI'] ?? '/opus-lstsar-manager'))) . '">Sortir profiler</a>';
+        } else {
+            $html .= '<a class="oun-profiler" href="' . p7ops_nav_h($path . p7ops_nav_query(['profiler' => '1'])) . '">Activer profiler</a>';
+        }
+        return $html . '</div></header>';
+    }
+}
+
+if (!function_exists('p7ops_nav_cleanup_legacy')) {
+    function p7ops_nav_cleanup_legacy(string $html): string
+    {
+        foreach ([
+            '~<section\b[^>]*class="[^"]*ops-panel[^"]*"[^>]*>\s*<div\b[^>]*class="[^"]*ops-topline[^"]*"[^>]*>\s*<span\b[^>]*class="[^"]*ops-badge[^"]*"[^>]*>P7_OPS_CHAIN_AUTH_ENV_CORE.*?</section>~is',
+            '~<section\b[^>]*class="[^"]*ops-panel[^"]*"[^>]*>.*?OPUS P7 OPS SITE.*?</section>~is',
+        ] as $pattern) { $html = preg_replace($pattern, '', $html, 1) ?? $html; }
+        return $html;
+    }
+}
+
+if (!function_exists('p7ops_unified_navigation_boot_once')) {
+    function p7ops_unified_navigation_boot_once(): void
+    {
+        static $booted = false;
+        if ($booted || PHP_SAPI === 'cli') { return; }
+        $booted = true;
+        if (p7ops_nav_static(p7ops_nav_path())) { return; }
+        ob_start(static function (string $html): string {
+            if ($html === '' || str_contains($html, 'P7_OPS_UNIFIED_ERGONOMIC_NAVIGATION_CORE')) { return $html; }
+            $html = p7ops_nav_cleanup_legacy($html);
+            $nav = p7ops_nav_html();
+            if (stripos($html, '<body') !== false) { return preg_replace('~(<body\b[^>]*>)~i', '$1' . $nav, $html, 1) ?: ($nav . $html); }
+            return $nav . $html;
+        });
+    }
+}
+
+
+/** P7_OPS_PROFILER_EXIT_FIX_CORE */
+if (!function_exists('p7ops_profiler_url_without_profiler')) {
+    function p7ops_profiler_url_without_profiler(string $url): string
+    {
+        $url = trim($url);
+        if ($url === '') {
+            return '/opus-lstsar-manager';
+        }
+
+        $parts = parse_url($url);
+        if ($parts === false) {
+            return '/opus-lstsar-manager';
+        }
+
+        $path = (string) ($parts['path'] ?? '/opus-lstsar-manager');
+        if ($path === '') {
+            $path = '/opus-lstsar-manager';
+        }
+
+        $query = [];
+        if (isset($parts['query']) && is_string($parts['query'])) {
+            parse_str($parts['query'], $query);
+        }
+
+        foreach (['profiler', 'profile', '_profiler'] as $key) {
+            unset($query[$key]);
+        }
+
+        $cleanQuery = http_build_query($query);
+        return $path . ($cleanQuery !== '' ? '?' . $cleanQuery : '');
+    }
+}
+
+if (!function_exists('p7ops_profiler_disable_all_modes')) {
+    function p7ops_profiler_disable_all_modes(): void
+    {
+        if (PHP_SAPI === 'cli') {
+            return;
+        }
+
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_name('OPUSLSTSAROPS');
+            session_start();
+        }
+
+        foreach ([
+            'p7ops_clean_profiler_enabled',
+            'p7ops_clean_profiler_history',
+            'p7ops_sf_profiler_enabled',
+            'p7ops_sf_profiler_history',
+            'p7ops_profiler_enabled',
+            'p7ops_profiler_history',
+        ] as $key) {
+            unset($_SESSION[$key]);
+        }
+
+        session_write_close();
+    }
+}
+
+if (!function_exists('p7ops_profiler_exit_path')) {
+    function p7ops_profiler_exit_path(string $path): bool
+    {
+        return in_array($path, ['/opus-lstsar-manager/profiler/exit', '/_profiler/exit'], true);
+    }
+}
+
+
+/** P7_OPS_PROFILER_VISIBLE_MODE_CORE */
+if (!function_exists('p7ops_profiler_visible_escape')) {
+    function p7ops_profiler_visible_escape(string $value): string
+    {
+        if (function_exists('p7ops_h')) {
+            return p7ops_h($value);
+        }
+
+        return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+}
+
+if (!function_exists('p7ops_profiler_visible_enabled')) {
+    function p7ops_profiler_visible_enabled(): bool
+    {
+        if (PHP_SAPI === 'cli') {
+            return (string) ($_GET['profiler'] ?? '') === '1';
+        }
+
+        if (function_exists('p7ops_clean_profiler_enabled') && p7ops_clean_profiler_enabled()) {
+            return true;
+        }
+
+        if (function_exists('p7ops_sf_profiler_enabled') && p7ops_sf_profiler_enabled()) {
+            return true;
+        }
+
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_name('OPUSLSTSAROPS');
+            @session_start();
+        }
+
+        return (bool) (
+            ($_SESSION['p7ops_clean_profiler_enabled'] ?? false)
+            || ($_SESSION['p7ops_sf_profiler_enabled'] ?? false)
+            || ($_SESSION['p7ops_profiler_enabled'] ?? false)
+        );
+    }
+}
+
+if (!function_exists('p7ops_profiler_visible_static_path')) {
+    function p7ops_profiler_visible_static_path(string $path): bool
+    {
+        return (bool) preg_match('~\.(?:ico|png|jpe?g|gif|svg|webp|css|js|map|woff2?|ttf|eot)$~i', $path);
+    }
+}
+
+if (!function_exists('p7ops_profiler_visible_badge_html')) {
+    function p7ops_profiler_visible_badge_html(): string
+    {
+        $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/opus-lstsar-manager');
+        $path = rawurldecode((string) (parse_url($uri, PHP_URL_PATH) ?: '/opus-lstsar-manager'));
+        $start = (float) ($GLOBALS['p7ops_visible_profiler_started_at'] ?? microtime(true));
+        $duration = number_format((microtime(true) - $start) * 1000, 2, '.', '');
+
+        return '<div class="opus-profiler-visible-ribbon" data-contract="P7_OPS_PROFILER_VISIBLE_MODE_CORE">'
+            . '<strong>PROFILER ACTIVE</strong>'
+            . '<span>' . p7ops_profiler_visible_escape($path) . '</span>'
+            . '<span>' . p7ops_profiler_visible_escape($duration) . ' ms</span>'
+            . '<a href="/opus-lstsar-manager/profiler">Open profiler</a>'
+            . '<a href="/opus-lstsar-manager/profiler/exit?next=' . p7ops_profiler_visible_escape(rawurlencode($uri)) . '">Exit</a>'
+            . '</div>';
+    }
+}
+
+if (!function_exists('p7ops_profiler_visible_apply_html')) {
+    function p7ops_profiler_visible_apply_html(string $html): string
+    {
+        if ($html === '' || str_contains($html, 'P7_OPS_PROFILER_VISIBLE_MODE_CORE')) {
+            return $html;
+        }
+
+        $ribbon = p7ops_profiler_visible_badge_html();
+
+        if (stripos($html, '<body') !== false) {
+            $html = preg_replace('~<body\b([^>]*)>~i', '<body$1 class="opus-profiler-visible-active">', $html, 1) ?: $html;
+        }
+
+        if (stripos($html, '</body>') !== false) {
+            return preg_replace('/<\/body>/i', $ribbon . '</body>', $html, 1) ?: ($html . $ribbon);
+        }
+
+        return $html . $ribbon;
+    }
+}
+
+if (!function_exists('p7ops_profiler_visible_boot_once')) {
+    function p7ops_profiler_visible_boot_once(): void
+    {
+        static $booted = false;
+        if ($booted || PHP_SAPI === 'cli') {
+            return;
+        }
+
+        $booted = true;
+        $path = rawurldecode((string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?: ''));
+
+        if (p7ops_profiler_visible_static_path($path) || !p7ops_profiler_visible_enabled()) {
+            return;
+        }
+
+        $GLOBALS['p7ops_visible_profiler_started_at'] = microtime(true);
+        ob_start(static function (string $html): string {
+            return p7ops_profiler_visible_apply_html($html);
+        });
+    }
+}
