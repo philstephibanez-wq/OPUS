@@ -55,3 +55,28 @@ Routes:
 - Propagates `site` and `lang` to OPS navigation links.
 - Provides explicit translation helpers for navigation labels.
 - Covered by `tools/smokes/smoke_p7_ops_language_selector_core.php`.
+
+## P7_OPS_LANGUAGE_SELECTOR_EUROPEAN_CORE
+
+- Replaces the two-button FR/EN language selector with a scalable select dropdown.
+- The default site language registry is European languages + Ukrainian.
+- Preserves the current `site` and other safe query parameters while switching `lang`.
+- Keeps the existing FR/EN contract markers for backward compatibility.
+- Covered by `tools/smokes/smoke_p7_ops_language_selector_european_core.php`.
+
+## P7_OPS_LANGUAGE_SELECTOR_EU_UKRAINIAN_CORE
+
+- Replaces the two-button FR/EN language selector with a scalable select dropdown.
+- Scope is strictly the 24 official EU languages + Ukrainian.
+- Preserves the current `site` and other safe query parameters while switching `lang`.
+- Keeps the previous `P7_OPS_LANGUAGE_SELECTOR_CORE` contract marker for backward compatibility.
+- Covered by `tools/smokes/smoke_p7_ops_language_selector_eu_ukrainian_core.php`.
+
+## P7_OPS_I18N_NATIVE_URL_SLUGS_CORE
+
+- Keeps readable localized URL slugs in native characters when the language uses accents or non-Latin scripts.
+- Scope is the 24 official EU languages + Ukrainian.
+- Examples: `/français/opérations`, `/español/panel`, `/português/operações`, `/čeština/přehled`, `/українська/операції`.
+- Canonical technical query codes remain short ISO-like values such as `lang=fr`, `lang=es`, `lang=pt`, `lang=cs`, `lang=uk`.
+- Router accepts both visible native Unicode paths and percent-encoded UTF-8 paths.
+- Covered by `tools/smokes/smoke_p7_ops_i18n_native_url_slugs_core.php`.

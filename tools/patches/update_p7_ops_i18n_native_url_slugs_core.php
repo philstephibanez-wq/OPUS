@@ -1,6 +1,55 @@
 <?php
 declare(strict_types=1);
 
+$root = getcwd();
+$publicDir = $root . '/sites/opus-p7-ops/public';
+$siteDir = $root . '/sites/opus-p7-ops';
+
+if (!is_dir($publicDir)) {
+    fwrite(STDERR, 'P7_OPS_PUBLIC_DIR_MISSING' . PHP_EOL);
+    exit(1);
+}
+
+function p7native_read(string $file): string
+{
+    $source = file_get_contents($file);
+    if ($source === false) {
+        throw new RuntimeException('P7_NATIVE_URL_READ_FAILED: ' . $file);
+    }
+
+    return $source;
+}
+
+function p7native_write(string $file, string $source): void
+{
+    if (file_put_contents($file, $source) === false) {
+        throw new RuntimeException('P7_NATIVE_URL_WRITE_FAILED: ' . $file);
+    }
+}
+
+function p7native_strip_prefix(string $source): string
+{
+    $position = strpos($source, '<?php');
+    if ($position === false) {
+        return $source;
+    }
+
+    return $position > 0 ? substr($source, $position) : $source;
+}
+
+foreach ([
+    $root . '/tools/patches/update_p7_ops_language_selector_european_core.php',
+    $root . '/tools/smokes/smoke_p7_ops_language_selector_european_core.php',
+] as $staleFile) {
+    if (is_file($staleFile)) {
+        unlink($staleFile);
+    }
+}
+
+$languageSource = <<<'PHP'
+<?php
+declare(strict_types=1);
+
 /**
  * P7_OPS_I18N_NATIVE_URL_SLUGS_CORE
  *
@@ -374,3 +423,148 @@ if (!function_exists('p7ops_language_selector')) {
             . '<script data-contract="P7_OPS_I18N_NATIVE_URL_SLUGS_CORE">(function(){var params=new URLSearchParams(window.location.search);var lang=params.get("lang")||"fr";var site=params.get("site")||"site-alpha";document.addEventListener("DOMContentLoaded",function(){document.querySelectorAll("a[href^=\"/opus-lstsar-manager\"]").forEach(function(anchor){var href=anchor.getAttribute("href")||"";var url=new URL(href,window.location.origin);if(!url.searchParams.has("lang")){url.searchParams.set("lang",lang);}if(!url.searchParams.has("site")){url.searchParams.set("site",site);}anchor.setAttribute("href",url.pathname+"?"+url.searchParams.toString());});});})();</script>';
     }
 }
+
+PHP;
+
+p7native_write($publicDir . '/language.php', $languageSource);
+
+$routerFile = $publicDir . '/router.php';
+$routerSource = <<<'PHP'
+<?php
+declare(strict_types=1);
+
+require_once __DIR__ . '/language.php';
+
+$rawPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+$decodedPath = rawurldecode($rawPath);
+$path = $decodedPath === '/' ? '/' : rtrim($decodedPath, '/');
+
+$nativeRoute = p7ops_resolve_native_route($path);
+if ($nativeRoute !== null) {
+    $_GET['lang'] = (string) $nativeRoute['lang'];
+    $_GET['site'] = $_GET['site'] ?? 'site-alpha';
+    $path = (string) $nativeRoute['canonical'];
+}
+
+$file = __DIR__ . str_replace('/', DIRECTORY_SEPARATOR, $path);
+if ($path !== '/' && is_file($file)) {
+    return false;
+}
+
+if ($path === '/opus-lstsar-manager' || $path === '/opus-lstsar-manager/operations') {
+    require __DIR__ . '/index.php';
+    return true;
+}
+
+if ($path === '/opus-lstsar-manager/action') {
+    require __DIR__ . '/action.php';
+    return true;
+}
+
+if ($path === '/opus-lstsar-manager/command' || $path === '/opus-lstsar-manager/command-center') {
+    require __DIR__ . '/command.php';
+    return true;
+}
+
+if ($path === '/opus-lstsar-manager/navigation' || $path === '/opus-lstsar-manager/navigation-polish') {
+    require __DIR__ . '/navigation.php';
+    return true;
+}
+
+if ($path === '/opus-lstsar-manager/diagnostics' || $path === '/opus-lstsar-manager/runtime-diagnostics') {
+    require __DIR__ . '/diagnostics.php';
+    return true;
+}
+
+if ($path === '/opus-lstsar-manager/health' || $path === '/opus-lstsar-manager/health-hub') {
+    require __DIR__ . '/health.php';
+    return true;
+}
+
+require __DIR__ . '/index.php';
+return true;
+PHP;
+
+p7native_write($routerFile, $routerSource);
+
+$pageFiles = [
+    $publicDir . '/index.php',
+    $publicDir . '/action.php',
+    $publicDir . '/command.php',
+    $publicDir . '/navigation.php',
+    $publicDir . '/diagnostics.php',
+    $publicDir . '/health.php',
+];
+
+$requireLine = "require_once __DIR__ . '/language.php';";
+$selectorNeedle = 'p7ops_language_selector(';
+$selectorLine = "<?= p7ops_language_selector(\$_SERVER['REQUEST_URI'] ?? '/opus-lstsar-manager') ?>" . PHP_EOL;
+
+foreach ($pageFiles as $pageFile) {
+    if (!is_file($pageFile)) {
+        throw new RuntimeException('P7_NATIVE_URL_PAGE_MISSING: ' . $pageFile);
+    }
+
+    $source = p7native_strip_prefix(p7native_read($pageFile));
+
+    if (!str_contains($source, $requireLine)) {
+        $source = preg_replace(
+            '/<\?php\s+declare\(strict_types=1\);\s*/',
+            "<?php" . PHP_EOL . "declare(strict_types=1);" . PHP_EOL . PHP_EOL . $requireLine . PHP_EOL . PHP_EOL,
+            $source,
+            1,
+            $count
+        );
+
+        if ($count !== 1) {
+            $source = str_replace('<?php', '<?php' . PHP_EOL . $requireLine . PHP_EOL, $source);
+        }
+    }
+
+    if (!str_contains($source, $selectorNeedle)) {
+        $source = preg_replace('/(<main\b[^>]*>)/i', $selectorLine . '$1', $source, 1, $mainCount);
+
+        if ($mainCount !== 1) {
+            $source = preg_replace('/(<body\b[^>]*>)/i', '$1' . PHP_EOL . $selectorLine, $source, 1, $bodyCount);
+
+            if ($bodyCount !== 1) {
+                $source .= PHP_EOL . '?>' . PHP_EOL . $selectorLine;
+            }
+        }
+    }
+
+    p7native_write($pageFile, $source);
+}
+
+$cssFile = $publicDir . '/ops-ui.css';
+$css = is_file($cssFile) ? p7native_read($cssFile) : '';
+
+if (!str_contains($css, 'P7_OPS_I18N_NATIVE_URL_SLUGS_CORE')) {
+    $css .= PHP_EOL;
+    $css .= '/* P7_OPS_I18N_NATIVE_URL_SLUGS_CORE */' . PHP_EOL;
+    $css .= '.ops-language-selector--select{position:fixed;top:18px;right:18px;z-index:1000;display:flex;align-items:center;gap:.55rem;padding:.45rem .55rem;border:1px solid rgba(148,163,184,.32);border-radius:999px;background:rgba(15,23,42,.94);box-shadow:0 12px 30px rgba(0,0,0,.22);backdrop-filter:blur(10px);font-size:.82rem}' . PHP_EOL;
+    $css .= '.ops-language-selector--select .ops-language-selector__label{color:#cbd5e1;white-space:nowrap;font-weight:700}' . PHP_EOL;
+    $css .= '.ops-language-selector__select{max-width:12.5rem;min-width:8.5rem;border:1px solid rgba(148,163,184,.4);border-radius:999px;background:#e2e8f0;color:#0f172a;font-weight:800;padding:.35rem 2rem .35rem .7rem;cursor:pointer}' . PHP_EOL;
+    $css .= '.ops-language-selector--select .ops-language-selector__active{display:none;color:#cbd5e1;white-space:nowrap}' . PHP_EOL;
+    $css .= '@media (max-width:760px){.ops-language-selector--select{position:static;margin:1rem auto;max-width:calc(100% - 2rem);border-radius:1rem;flex-wrap:wrap;justify-content:center}.ops-language-selector__select{max-width:100%;min-width:12rem}.ops-language-selector--select .ops-language-selector__active{display:block;width:100%;text-align:center}}' . PHP_EOL;
+}
+
+p7native_write($cssFile, $css);
+
+$readmeFile = $siteDir . '/README.md';
+$readme = is_file($readmeFile) ? p7native_read($readmeFile) : '# OPUS P7 OPS' . PHP_EOL;
+
+if (!str_contains($readme, 'P7_OPS_I18N_NATIVE_URL_SLUGS_CORE')) {
+    $readme .= PHP_EOL;
+    $readme .= '## P7_OPS_I18N_NATIVE_URL_SLUGS_CORE' . PHP_EOL . PHP_EOL;
+    $readme .= '- Keeps readable localized URL slugs in native characters when the language uses accents or non-Latin scripts.' . PHP_EOL;
+    $readme .= '- Scope is the 24 official EU languages + Ukrainian.' . PHP_EOL;
+    $readme .= '- Examples: `/français/opérations`, `/español/panel`, `/português/operações`, `/čeština/přehled`, `/українська/операції`.' . PHP_EOL;
+    $readme .= '- Canonical technical query codes remain short ISO-like values such as `lang=fr`, `lang=es`, `lang=pt`, `lang=cs`, `lang=uk`.' . PHP_EOL;
+    $readme .= '- Router accepts both visible native Unicode paths and percent-encoded UTF-8 paths.' . PHP_EOL;
+    $readme .= '- Covered by `tools/smokes/smoke_p7_ops_i18n_native_url_slugs_core.php`.' . PHP_EOL;
+}
+
+p7native_write($readmeFile, $readme);
+
+echo 'P7_OPS_I18N_NATIVE_URL_SLUGS_CORE_UPDATED' . PHP_EOL;
