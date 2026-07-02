@@ -1,0 +1,30 @@
+/* OPUS_MANAGER_CONTROLLER_SHELL_REUSE_CORE */
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#e5edf7;background:#07111f}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at top left,rgba(56,189,248,.18),transparent 32rem),#07111f;color:#e5edf7}
+a{color:#bae6fd}
+.om-hero{width:min(1440px,calc(100vw - 2rem));margin:1rem auto;display:flex;justify-content:space-between;gap:1rem;align-items:stretch;padding:1.2rem;border:1px solid rgba(125,211,252,.35);border-radius:24px;background:linear-gradient(180deg,rgba(15,23,42,.98),rgba(2,6,23,.96));box-shadow:0 22px 70px rgba(0,0,0,.35)}
+.om-kicker{margin:0 0 .35rem;color:#67e8f9;text-transform:uppercase;letter-spacing:.12em;font-weight:900}
+.om-hero h1{margin:.1rem 0;font-size:clamp(1.8rem,3vw,3.2rem)}
+.om-hero p{margin:.25rem 0;color:#cbd5e1}
+.om-env{display:grid;align-content:center;gap:.5rem;min-width:18rem}
+.om-env span{border:1px solid rgba(125,211,252,.28);border-radius:999px;padding:.55rem .75rem;background:#020617;font-weight:800}
+.om-prod-lock{color:#fecaca!important;border-color:#f87171!important;background:#450a0a!important}
+.om-dev-note{color:#bbf7d0!important;border-color:#4ade80!important;background:#052e16!important}
+.om-layout{width:min(1440px,calc(100vw - 2rem));margin:0 auto 2rem;display:grid;grid-template-columns:minmax(18rem,24rem) minmax(0,1fr);gap:1rem}
+.om-nav{display:grid;gap:.75rem;align-content:start}
+.om-nav-group{border:1px solid rgba(125,211,252,.25);border-radius:20px;background:rgba(2,6,23,.75);padding:.75rem}
+.om-nav-group h2{margin:0 0 .55rem;color:#93c5fd;font-size:.78rem;text-transform:uppercase;letter-spacing:.1em}
+.om-nav-group div{display:grid;gap:.45rem}
+.om-nav-group a{display:flex;justify-content:space-between;align-items:center;gap:.5rem;text-decoration:none;border:1px solid rgba(125,211,252,.22);border-radius:14px;padding:.65rem .75rem;background:#0f172a;color:#f8fafc}
+.om-nav-group a.is-active{border-color:#22d3ee;background:#155e75}
+.om-nav-group a span{font-size:.72rem;color:#fde68a;border:1px solid rgba(251,191,36,.45);border-radius:999px;padding:.15rem .4rem}
+.om-content{min-width:0;display:grid;gap:1rem}
+.om-card,.om-steps article{border:1px solid rgba(125,211,252,.25);border-radius:22px;background:rgba(15,23,42,.82);padding:1rem;box-shadow:0 16px 45px rgba(0,0,0,.22)}
+.om-card h2,.om-steps strong{margin-top:0;color:#67e8f9}
+.om-card p,.om-card li,.om-steps p{color:#cbd5e1}
+.om-primary{border-color:#22d3ee;background:linear-gradient(180deg,rgba(8,47,73,.95),rgba(15,23,42,.85))}
+.om-actions{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:.8rem}
+.om-actions a{display:inline-flex;border:1px solid rgba(125,211,252,.45);border-radius:999px;background:#075985;color:#ecfeff;text-decoration:none;font-weight:900;padding:.55rem .8rem}
+.om-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem}
+@media(max-width:1000px){.om-layout,.om-hero{grid-template-columns:1fr;display:grid}.om-env{min-width:0}}

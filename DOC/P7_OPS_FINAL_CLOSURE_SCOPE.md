@@ -200,3 +200,12 @@ Objectif : audit final, documentation RefBook/UserBook, tests installation serve
 ## OPUS_MANAGER_CREATE_SITE_WIZARD_UX_CORE_FIX2
 
 - Correction du smoke Create Site Wizard : phrase exacte controller ajoutée.
+
+## OPUS_MANAGER_CONTROLLER_SHELL_REUSE_CORE
+
+- Crée le shell OPUS Manager.
+- L’entrée principale utilisateur est `Créer un site avec OPUS`.
+- Un controller par fonctionnalité/page.
+- ODBC Manager et LSTSAR Manager sont réutilisés via les routes OPUS existantes.
+- Le shell n’importe aucune pile externe.
+- En prod : aucun profiler/debug.
