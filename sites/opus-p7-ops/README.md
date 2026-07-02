@@ -96,3 +96,10 @@ Routes:
 - Covers counters, statuses, table headers, dashboard overview/digest, summary cards and next-step instructions.
 - Keeps technical operation identifiers, source paths and destination paths unchanged.
 - Covered by `tools/smokes/smoke_p7_ops_i18n_visible_strings_fix_core.php`.
+
+## P7_OPS_I18N_EN_FRENCH_LEAK_LOCK_CORE
+
+- Adds an English anti-leak translation layer for French fragments that remain in OPS pages.
+- Renders OPS public pages with `lang=en` and rejects visible French UI fragments.
+- Language names in the selector and technical operation/path identifiers are intentionally allowed.
+- Covered by `tools/smokes/smoke_p7_ops_i18n_en_french_leak_lock_core.php`.
