@@ -33,3 +33,10 @@ Routes:
 - Adds /opus-lstsar-manager/diagnostics and /opus-lstsar-manager/runtime-diagnostics.
 - Reports PHP runtime, Composer autoload, public files, routes and operations view-model status.
 - Keeps diagnostics read-only with side_effects=false.
+
+## P7_OPS_SITE_HEALTH_HUB_CORE
+
+- Adds `/opus-lstsar-manager/health` and `/opus-lstsar-manager/health-hub`.
+- Summarizes Dashboard, Operations, Command Center, Navigation and Diagnostics readiness.
+- Reports route matrix, public file matrix and regression smoke matrix.
+- Keeps the health page read-only with `side_effects=false`.
