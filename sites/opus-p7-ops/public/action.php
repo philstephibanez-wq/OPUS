@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/language.php';
+
 if (!function_exists('ops_action_e')) {
     function ops_action_e(mixed $value): string
     {
@@ -134,6 +136,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#030813;border:1px sol
 <link rel="stylesheet" href="/ops-ui.css" data-contract="P7_OPS_NAVIGATION_POLISH_CORE">
 </head>
 <body>
+<?= p7ops_language_selector($_SERVER['REQUEST_URI'] ?? '/opus-lstsar-manager') ?>
 <main>
 <p><a href="/opus-lstsar-manager/operations?site=<?= ops_action_e($site) ?>">Retour operations</a></p>
 

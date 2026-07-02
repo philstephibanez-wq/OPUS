@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/language.php';
+
 /* OPS_SITE_ROUTE_NORMALIZATION_COMPAT */
 $rawPath = parse_url($_SERVER["REQUEST_URI"] ?? "/", PHP_URL_PATH) ?: "/";
 $requestPath = $rawPath === "/" ? "/" : rtrim($rawPath, "/");
@@ -110,6 +112,7 @@ $legacySmokeMarkers = ['OPUS LSTSAR Operations', 'Operations table', 'Compteurs 
 <link rel="stylesheet" href="/ops-ui.css" data-contract="P7_OPS_UI_DISTINCTION_WRAP_CORE">
 </head>
 <body>
+<?= p7ops_language_selector($_SERVER['REQUEST_URI'] ?? '/opus-lstsar-manager') ?>
 <main class="<?= $isOperations ? 'ops-page-operations' : 'ops-page-dashboard' ?>">
 <header class="ops-topbar"><div class="brand">OPUS P7 OPS SITE<small>sites/opus-p7-ops/public</small></div><?= p7ui_nav($site, $active) ?></header>
 <section class="ops-hero">

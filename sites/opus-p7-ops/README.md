@@ -47,3 +47,11 @@ Routes:
 - Dashboard now shows overview, quick access and compact digest.
 - Operations now shows a detailed console with source/destination summaries.
 - Global CSS wraps long technical values and prevents table overflow.
+
+## P7_OPS_LANGUAGE_SELECTOR_CORE
+
+- Adds a global FR / EN selector to the OPS pages.
+- Preserves the current `site` value while switching `lang=fr` / `lang=en`.
+- Propagates `site` and `lang` to OPS navigation links.
+- Provides explicit translation helpers for navigation labels.
+- Covered by `tools/smokes/smoke_p7_ops_language_selector_core.php`.

@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
+
+require_once __DIR__ . '/language.php';
+
 function p7diag_e(mixed $v): string{if(is_array($v)){$v=json_encode($v,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE)?:'';}if(is_bool($v)){$v=$v?'true':'false';}if($v===null){$v='null';}return htmlspecialchars((string)$v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}
 $root=dirname(__DIR__,3);
 $site=(string)($_GET['site']??'site-alpha');
@@ -52,7 +55,8 @@ $report=[
  'error'=>$vmError,
  'side_effects'=>false,
 ];
-?><!doctype html><html lang="fr"><head><meta charset="utf-8"><title>OPUS OPS Runtime Diagnostics</title><link rel="stylesheet" href="/ops-ui.css" data-contract="P7_OPS_RUNTIME_DIAGNOSTICS_CORE"><style>body{margin:0;background:#07111f;color:#e7eefc;font-family:Segoe UI,Arial,sans-serif}main{max-width:1200px;margin:auto;padding:32px}a{color:#69e3ff}.panel{background:#0b1728;border:1px solid #29405f;border-radius:18px;padding:20px;margin:18px 0}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{background:#030813;border:1px solid #29405f;border-radius:14px;padding:14px}.card strong{display:block;color:#69e3ff;font-size:1.4rem}.ok{color:#7dffb2}.fail{color:#ff8fa3}pre{white-space:pre-wrap;background:#030813;border:1px solid #29405f;border-radius:14px;padding:14px;color:#ffdf99}@media(max-width:900px){.grid{grid-template-columns:1fr}}</style></head><body><main>
+?><!doctype html><html lang="fr"><head><meta charset="utf-8"><title>OPUS OPS Runtime Diagnostics</title><link rel="stylesheet" href="/ops-ui.css" data-contract="P7_OPS_RUNTIME_DIAGNOSTICS_CORE"><style>body{margin:0;background:#07111f;color:#e7eefc;font-family:Segoe UI,Arial,sans-serif}main{max-width:1200px;margin:auto;padding:32px}a{color:#69e3ff}.panel{background:#0b1728;border:1px solid #29405f;border-radius:18px;padding:20px;margin:18px 0}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{background:#030813;border:1px solid #29405f;border-radius:14px;padding:14px}.card strong{display:block;color:#69e3ff;font-size:1.4rem}.ok{color:#7dffb2}.fail{color:#ff8fa3}pre{white-space:pre-wrap;background:#030813;border:1px solid #29405f;border-radius:14px;padding:14px;color:#ffdf99}@media(max-width:900px){.grid{grid-template-columns:1fr}}</style></head><body><?= p7ops_language_selector($_SERVER['REQUEST_URI'] ?? '/opus-lstsar-manager') ?>
+<main>
 <nav class="ops-main-nav p7-ops-runtime-diagnostics" data-contract="P7_OPS_RUNTIME_DIAGNOSTICS_CORE"><a href="/opus-lstsar-manager?site=<?=p7diag_e($site)?>">Dashboard</a><a href="/opus-lstsar-manager/operations?site=<?=p7diag_e($site)?>">Operations</a><a href="/opus-lstsar-manager/command?site=<?=p7diag_e($site)?>">Command Center</a><a href="/opus-lstsar-manager/navigation?site=<?=p7diag_e($site)?>">Navigation</a><a href="/opus-lstsar-manager/diagnostics?site=<?=p7diag_e($site)?>">Diagnostics</a><a href="/opus-lstsar-manager/health?site=site-alpha">Health Hub</a></nav>
 <section class="panel"><h1>OPUS OPS Runtime Diagnostics</h1><p><span class="ops-badge">P7_OPS_RUNTIME_DIAGNOSTICS_CORE</span></p><div class="grid"><div class="card"><strong><?=p7diag_e(PHP_VERSION)?></strong>PHP runtime</div><div class="card"><strong><?=p7diag_e(PHP_SAPI)?></strong>SAPI</div><div class="card"><strong><?=p7diag_e($files['vendor/autoload.php'])?></strong>Composer autoload</div><div class="card"><strong><?=p7diag_e(count($operations))?></strong>Operations view-model</div></div></section>
 <section class="panel"><h2>Public files</h2><pre><?=p7diag_e($files)?></pre></section>

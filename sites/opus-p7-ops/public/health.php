@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/language.php';
+
 function p7health_e(mixed $value): string
 {
     if (is_array($value)) {
@@ -136,6 +138,7 @@ th{color:#69e3ff}
 </style>
 </head>
 <body>
+<?= p7ops_language_selector($_SERVER['REQUEST_URI'] ?? '/opus-lstsar-manager') ?>
 <main>
 <nav class="ops-main-nav p7-ops-health-hub" data-contract="P7_OPS_SITE_HEALTH_HUB_CORE">
 <a href="/opus-lstsar-manager?site=<?= p7health_e($site) ?>">Dashboard</a>
