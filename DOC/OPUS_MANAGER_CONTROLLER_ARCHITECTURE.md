@@ -82,3 +82,10 @@ Objectif : créer le shell backoffice OPUS Manager et y brancher les controllers
 ## OPUS_MANAGER_CONTROLLER_ARCHITECTURE_CORE_FIX
 
 - Ajoute la formulation canonique smokeable : `un controller par fonctionnalité/page`.
+
+## OPUS_MANAGER_CREATE_SITE_WIZARD_UX_CORE
+
+- L’architecture reste `un controller par fonctionnalité/page`.
+- L’expérience utilisateur principale commence par `Créer un site avec OPUS`.
+- `CreateSiteController` devient l’entrée prioritaire du parcours utilisateur.
+- Les controllers FSM, ACL/RBAC, SSO, ODBC, LSTSAR et Composer restent des modules internes ou experts.

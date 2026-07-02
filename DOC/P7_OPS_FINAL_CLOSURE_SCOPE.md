@@ -183,3 +183,11 @@ Objectif : audit final, documentation RefBook/UserBook, tests installation serve
 ## OPUS_MANAGER_CONTROLLER_ARCHITECTURE_CORE_FIX
 
 - La règle canonique OPUS Manager est : `un controller par fonctionnalité/page`.
+
+## OPUS_MANAGER_CREATE_SITE_WIZARD_UX_CORE
+
+- OPUS Manager reste modulaire, mais l’entrée utilisateur principale est `Créer un site avec OPUS`.
+- Les modules FSM, ACL/RBAC, SSO, ODBC, LSTSAR et Composer sont orchestrés derrière un Create Site Wizard.
+- Le user ne doit pas commencer par les composants internes.
+- `CreateSiteController` pilote le parcours et délègue aux briques OPUS existantes.
+- Le wizard doit produire site installable Composer, Ref Book, User Book, smokes et diagnostic.
