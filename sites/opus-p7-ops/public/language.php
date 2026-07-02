@@ -1220,7 +1220,15 @@ if (!function_exists('p7ops_i18n_page_translation_dictionary')) {
         "colonnes techniques longues": "long technical columns",
         "sans JSON brut": "without raw JSON",
         "pour le détail": "for details",
-        "matrice globale": "global matrix"
+        "matrice globale": "global matrix",
+        "Table détaillée avec source/destination résumées. Les structures longues sont wrappées et confinées dans le panel.": "Detailed table with summarized source/destination. Long structures are wrapped and confined in the panel.",
+        "Table détaillée avec source/destination résumées.": "Detailed table with summarized source/destination.",
+        "Les structures longues sont wrappées et confinées dans le panel.": "Long structures are wrapped and confined in the panel.",
+        "Table détaillée": "Detailed table",
+        "source/destination résumées": "summarized source/destination",
+        "résumées": "summarized",
+        "wrappées": "wrapped",
+        "confinées": "confined"
     },
     "et": {
         "OPUS OPS Dashboard": "Ülevaade OPUS OPS",
@@ -2935,7 +2943,7 @@ if (!function_exists('p7ops_language_selector')) {
             . '<span class="ops-language-selector__active">' . p7ops_h(p7ops_t('active_language')) . ' · ' . p7ops_h($activeName) . '</span>'
             . '<noscript><button type="submit">OK</button></noscript>'
             . '<!-- legacy query marker: site=' . p7ops_h($site) . ' lang=' . p7ops_h($language) . ' site=' . p7ops_h($site) . ' -->'
-            . '<!-- data-scope-contract="P7_OPS_I18N_NATIVE_URL_SLUGS_CORE" --><!-- P7_OPS_I18N_EN_FRENCH_LEAK_LOCK_CORE / English pages must not leak French / P7_OPS_I18N_VISIBLE_STRINGS_FIX_CORE / completed visible labels / P7_OPS_I18N_PAGE_TRANSLATIONS_CORE / real page translations / UE + Ukrainian / EU official languages + Ukrainian / native URL slugs keep accents: français español português čeština română українська ελληνικά български / lang=fr lang=en lang=uk / FR EN UK: bg hr cs da nl en et fi fr de el hu ga it lv lt mt pl pt ro sk sl es sv uk -->'
+            . '<!-- data-scope-contract="P7_OPS_I18N_NATIVE_URL_SLUGS_CORE" --><!-- P7_OPS_I18N_EN_FRENCH_LEAK_LOCK_CORE / English pages must not leak French / P7_OPS_I18N_EN_VISIBLE_LEAK_LOCK_CORE / English visible text must not leak French / P7_OPS_I18N_VISIBLE_STRINGS_FIX_CORE / completed visible labels / P7_OPS_I18N_PAGE_TRANSLATIONS_CORE / real page translations / UE + Ukrainian / EU official languages + Ukrainian / native URL slugs keep accents: français español português čeština română українська ελληνικά български / lang=fr lang=en lang=uk / FR EN UK: bg hr cs da nl en et fi fr de el hu ga it lv lt mt pl pt ro sk sl es sv uk -->'
             . '</form>'
             . '<script data-contract="P7_OPS_I18N_PAGE_TRANSLATIONS_CORE">(function(){var params=new URLSearchParams(window.location.search);var lang=params.get("lang")||"fr";var site=params.get("site")||"site-alpha";document.addEventListener("DOMContentLoaded",function(){document.querySelectorAll("a[href^=\"/opus-lstsar-manager\"]").forEach(function(anchor){var href=anchor.getAttribute("href")||"";var url=new URL(href,window.location.origin);if(!url.searchParams.has("lang")){url.searchParams.set("lang",lang);}if(!url.searchParams.has("site")){url.searchParams.set("site",site);}anchor.setAttribute("href",url.pathname+"?"+url.searchParams.toString());});});})();</script>';
     }

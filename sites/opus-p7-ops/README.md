@@ -103,3 +103,10 @@ Routes:
 - Renders OPS public pages with `lang=en` and rejects visible French UI fragments.
 - Language names in the selector and technical operation/path identifiers are intentionally allowed.
 - Covered by `tools/smokes/smoke_p7_ops_i18n_en_french_leak_lock_core.php`.
+
+## P7_OPS_I18N_EN_VISIBLE_LEAK_LOCK_CORE
+
+- Locks English OPS pages against remaining visible French fragments.
+- Covers the operations-console sentence, counters, cards, statuses and table labels.
+- Technical operation identifiers and source/destination path values remain untranslated.
+- Covered by `tools/smokes/smoke_p7_ops_i18n_en_visible_leak_lock_core.php`.
