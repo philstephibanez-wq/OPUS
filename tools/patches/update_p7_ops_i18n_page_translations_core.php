@@ -1,6 +1,35 @@
 <?php
 declare(strict_types=1);
 
+$root = getcwd();
+$publicDir = $root . '/sites/opus-p7-ops/public';
+$siteDir = $root . '/sites/opus-p7-ops';
+
+if (!is_dir($publicDir)) {
+    fwrite(STDERR, 'P7_OPS_PUBLIC_DIR_MISSING' . PHP_EOL);
+    exit(1);
+}
+
+function p7tr_write(string $file, string $source): void
+{
+    if (file_put_contents($file, $source) === false) {
+        throw new RuntimeException('P7_PAGE_TRANSLATIONS_WRITE_FAILED: ' . $file);
+    }
+}
+
+function p7tr_read(string $file): string
+{
+    $source = file_get_contents($file);
+    if ($source === false) {
+        throw new RuntimeException('P7_PAGE_TRANSLATIONS_READ_FAILED: ' . $file);
+    }
+    return $source;
+}
+
+$languageSource = <<<'PHP'
+<?php
+declare(strict_types=1);
+
 /**
  * P7_OPS_I18N_PAGE_TRANSLATIONS_CORE
  *
@@ -2434,3 +2463,106 @@ if (!function_exists('p7ops_language_selector')) {
 }
 
 p7ops_i18n_begin();
+
+PHP;
+
+p7tr_write($publicDir . '/language.php', $languageSource);
+
+$routerFile = $publicDir . '/router.php';
+$routerSource = p7tr_read($routerFile);
+if (!str_contains($routerSource, "require_once __DIR__ . '/language.php';")) {
+    $routerSource = preg_replace(
+        '/<\?php\s+declare\(strict_types=1\);\s*/',
+        "<?php" . PHP_EOL . "declare(strict_types=1);" . PHP_EOL . PHP_EOL . "require_once __DIR__ . '/language.php';" . PHP_EOL . PHP_EOL,
+        $routerSource,
+        1,
+        $count
+    );
+    if ($count !== 1) {
+        $routerSource = str_replace('<?php', "<?php" . PHP_EOL . "require_once __DIR__ . '/language.php';" . PHP_EOL, $routerSource);
+    }
+}
+
+if (!str_contains($routerSource, 'p7ops_resolve_native_route($path)')) {
+    $needle = "\$path = \$decodedPath === '/' ? '/' : rtrim(\$decodedPath, '/');";
+    $insert = $needle . PHP_EOL . PHP_EOL
+        . "\$nativeRoute = p7ops_resolve_native_route(\$path);" . PHP_EOL
+        . "if (\$nativeRoute !== null) {" . PHP_EOL
+        . "    \$_GET['lang'] = (string) \$nativeRoute['lang'];" . PHP_EOL
+        . "    \$_GET['site'] = \$_GET['site'] ?? 'site-alpha';" . PHP_EOL
+        . "    \$path = (string) \$nativeRoute['canonical'];" . PHP_EOL
+        . "}" . PHP_EOL;
+    $routerSource = str_replace($needle, $insert, $routerSource);
+}
+
+p7tr_write($routerFile, $routerSource);
+
+$pageFiles = [
+    $publicDir . '/index.php',
+    $publicDir . '/action.php',
+    $publicDir . '/command.php',
+    $publicDir . '/navigation.php',
+    $publicDir . '/diagnostics.php',
+    $publicDir . '/health.php',
+];
+
+foreach ($pageFiles as $pageFile) {
+    if (!is_file($pageFile)) {
+        continue;
+    }
+
+    $source = p7tr_read($pageFile);
+    if (!str_contains($source, "require_once __DIR__ . '/language.php';")) {
+        $source = preg_replace(
+            '/<\?php\s+declare\(strict_types=1\);\s*/',
+            "<?php" . PHP_EOL . "declare(strict_types=1);" . PHP_EOL . PHP_EOL . "require_once __DIR__ . '/language.php';" . PHP_EOL . PHP_EOL,
+            $source,
+            1,
+            $count
+        );
+        if ($count !== 1) {
+            $source = str_replace('<?php', "<?php" . PHP_EOL . "require_once __DIR__ . '/language.php';" . PHP_EOL, $source);
+        }
+    }
+
+    if (!str_contains($source, 'p7ops_language_selector(')) {
+        $selectorLine = "<?= p7ops_language_selector(\$_SERVER['REQUEST_URI'] ?? '/opus-lstsar-manager') ?>" . PHP_EOL;
+        $source = preg_replace('/(<main\b[^>]*>)/i', $selectorLine . '$1', $source, 1, $mainCount);
+        if ($mainCount !== 1) {
+            $source = preg_replace('/(<body\b[^>]*>)/i', '$1' . PHP_EOL . $selectorLine, $source, 1, $bodyCount);
+            if ($bodyCount !== 1) {
+                $source .= PHP_EOL . '?>' . PHP_EOL . $selectorLine;
+            }
+        }
+    }
+
+    p7tr_write($pageFile, $source);
+}
+
+$cssFile = $publicDir . '/ops-ui.css';
+$css = is_file($cssFile) ? p7tr_read($cssFile) : '';
+if (!str_contains($css, 'P7_OPS_I18N_PAGE_TRANSLATIONS_CORE')) {
+    $css .= PHP_EOL . '/* P7_OPS_I18N_PAGE_TRANSLATIONS_CORE */' . PHP_EOL;
+    $css .= '.ops-language-selector--select{position:fixed;top:18px;right:18px;z-index:1000;display:flex;align-items:center;gap:.55rem;padding:.45rem .55rem;border:1px solid rgba(148,163,184,.32);border-radius:999px;background:rgba(15,23,42,.94);box-shadow:0 12px 30px rgba(0,0,0,.22);backdrop-filter:blur(10px);font-size:.82rem}' . PHP_EOL;
+    $css .= '.ops-language-selector--select .ops-language-selector__label{color:#cbd5e1;white-space:nowrap;font-weight:700}' . PHP_EOL;
+    $css .= '.ops-language-selector__select{max-width:12.5rem;min-width:8.5rem;border:1px solid rgba(148,163,184,.4);border-radius:999px;background:#e2e8f0;color:#0f172a;font-weight:800;padding:.35rem 2rem .35rem .7rem;cursor:pointer}' . PHP_EOL;
+    $css .= '.ops-language-selector--select .ops-language-selector__active{display:none;color:#cbd5e1;white-space:nowrap}' . PHP_EOL;
+    $css .= '@media (max-width:760px){.ops-language-selector--select{position:static;margin:1rem auto;max-width:calc(100% - 2rem);border-radius:1rem;flex-wrap:wrap;justify-content:center}.ops-language-selector__select{max-width:100%;min-width:12rem}.ops-language-selector--select .ops-language-selector__active{display:block;width:100%;text-align:center}}' . PHP_EOL;
+}
+p7tr_write($cssFile, $css);
+
+$readmeFile = $siteDir . '/README.md';
+$readme = is_file($readmeFile) ? p7tr_read($readmeFile) : '# OPUS P7 OPS' . PHP_EOL;
+if (!str_contains($readme, 'P7_OPS_I18N_PAGE_TRANSLATIONS_CORE')) {
+    $readme .= PHP_EOL;
+    $readme .= '## P7_OPS_I18N_PAGE_TRANSLATIONS_CORE' . PHP_EOL . PHP_EOL;
+    $readme .= '- Adds a real visible translation layer for OPS pages when `lang` is explicit or a native URL is used.' . PHP_EOL;
+    $readme .= '- Covers the 24 official EU languages + Ukrainian.' . PHP_EOL;
+    $readme .= '- Translates visible OPS labels across Dashboard, Operations, Command Center, Navigation, Diagnostics and Health Hub.' . PHP_EOL;
+    $readme .= '- Keeps technical values and operation identifiers unchanged.' . PHP_EOL;
+    $readme .= '- Preserves native URL slugs with accents/non-Latin characters.' . PHP_EOL;
+    $readme .= '- Covered by `tools/smokes/smoke_p7_ops_i18n_page_translations_core.php`.' . PHP_EOL;
+}
+p7tr_write($readmeFile, $readme);
+
+echo 'P7_OPS_I18N_PAGE_TRANSLATIONS_CORE_UPDATED' . PHP_EOL;

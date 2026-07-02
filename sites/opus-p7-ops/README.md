@@ -80,3 +80,12 @@ Routes:
 - Canonical technical query codes remain short ISO-like values such as `lang=fr`, `lang=es`, `lang=pt`, `lang=cs`, `lang=uk`.
 - Router accepts both visible native Unicode paths and percent-encoded UTF-8 paths.
 - Covered by `tools/smokes/smoke_p7_ops_i18n_native_url_slugs_core.php`.
+
+## P7_OPS_I18N_PAGE_TRANSLATIONS_CORE
+
+- Adds a real visible translation layer for OPS pages when `lang` is explicit or a native URL is used.
+- Covers the 24 official EU languages + Ukrainian.
+- Translates visible OPS labels across Dashboard, Operations, Command Center, Navigation, Diagnostics and Health Hub.
+- Keeps technical values and operation identifiers unchanged.
+- Preserves native URL slugs with accents/non-Latin characters.
+- Covered by `tools/smokes/smoke_p7_ops_i18n_page_translations_core.php`.
