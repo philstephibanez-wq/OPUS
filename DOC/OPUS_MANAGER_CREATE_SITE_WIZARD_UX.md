@@ -191,3 +191,11 @@ Le wizard "Créer un site" est l'entrée principale pour un utilisateur qui veut
 ## OPUS_MANAGER_CREATE_SITE_WIZARD_UX_CORE_FIX2
 
 - Aligné avec `Règle canonique : un controller par fonctionnalité/page.`.
+
+## OPUS_MANAGER_CREATE_SITE_TECH_TYPE_FIRST_CORE
+
+- La première question de `Créer un site` est l’architecture technique : Fullstack, Frontend ou Backend.
+- L’espace fonctionnel vient ensuite : portail public, frontoffice, backoffice, mixte, admin ou utilisateur.
+- `Frontend` ne signifie pas `frontoffice` ; `backend` ne signifie pas `backoffice`.
+- Si le choix est `Frontend`, un backend associé et un contrat API sont obligatoires.
+- Le plan Composer doit être commun à la CLI et à OPUS Manager.

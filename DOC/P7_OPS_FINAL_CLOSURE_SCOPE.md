@@ -234,3 +234,13 @@ Objectif : audit final, documentation RefBook/UserBook, tests installation serve
 - LogAndPlay reste le cas de référence fullstack / portail de contenu.
 - Le futur KB reste le cas de référence client/server frontend + backend.
 - Le Create Site Wizard doit demander séparément espace fonctionnel et architecture technique.
+
+## OPUS_MANAGER_CREATE_SITE_TECH_TYPE_FIRST_CORE
+
+- Dans `Créer un site`, la première question est l’architecture technique : Fullstack, Frontend ou Backend.
+- L’espace fonctionnel vient ensuite seulement.
+- Le wizard doit conserver deux axes indépendants : architecture technique et espace fonctionnel.
+- Frontend ne signifie pas frontoffice ; backend ne signifie pas backoffice.
+- Frontend impose backend associé + API + ACL/RBAC consommés + SSO/session fédérée.
+- Backend porte API, métier, données, ACL/RBAC, SSO, health/version/logs.
+- Fullstack reste adapté aux portails de contenu comme LogAndPlay.
