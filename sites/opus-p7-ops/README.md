@@ -89,3 +89,10 @@ Routes:
 - Keeps technical values and operation identifiers unchanged.
 - Preserves native URL slugs with accents/non-Latin characters.
 - Covered by `tools/smokes/smoke_p7_ops_i18n_page_translations_core.php`.
+
+## P7_OPS_I18N_VISIBLE_STRINGS_FIX_CORE
+
+- Completes visible OPS page fragments that remained mixed after the first page-translation pass.
+- Covers counters, statuses, table headers, dashboard overview/digest, summary cards and next-step instructions.
+- Keeps technical operation identifiers, source paths and destination paths unchanged.
+- Covered by `tools/smokes/smoke_p7_ops_i18n_visible_strings_fix_core.php`.
