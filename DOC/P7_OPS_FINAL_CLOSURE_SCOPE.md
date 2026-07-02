@@ -244,3 +244,11 @@ Objectif : audit final, documentation RefBook/UserBook, tests installation serve
 - Frontend impose backend associé + API + ACL/RBAC consommés + SSO/session fédérée.
 - Backend porte API, métier, données, ACL/RBAC, SSO, health/version/logs.
 - Fullstack reste adapté aux portails de contenu comme LogAndPlay.
+
+## OPUS_MANAGER_AUTH_I18N_FINALIZE_CORE
+
+- Finalise OPUS Manager auth/sign-in/logout/i18n.
+- Sign in dev : `admin / admin`.
+- Le selecteur de langue suffit ; aucune repetition `Langue : ...`.
+- En prod, profiler/debug ne sont pas activables par URL.
+- Router protege les routes OPUS Manager et redirige vers Sign in.
