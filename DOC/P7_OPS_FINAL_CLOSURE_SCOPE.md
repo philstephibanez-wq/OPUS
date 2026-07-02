@@ -209,3 +209,28 @@ Objectif : audit final, documentation RefBook/UserBook, tests installation serve
 - ODBC Manager et LSTSAR Manager sont réutilisés via les routes OPUS existantes.
 - Le shell n’importe aucune pile externe.
 - En prod : aucun profiler/debug.
+
+## OPUS_MANAGER_SHELL_AUTH_PROD_I18N_CORE
+
+- OPUS Manager fait partie de la livraison dev OPUS.
+- Auth centrale minimale ajoutée au shell.
+- `SignInController` et `LogoutController` sont des controllers dédiés.
+- En production : aucun profiler/debug, même avec `profiler=1`.
+- I18N prête pour toutes les langues officielles UE + ukrainien (`uk`).
+
+## OPUS_MANAGER_LANGUAGE_SELECTOR_DEDUP_CORE
+
+- Le sélecteur de langue suffit.
+- Le shell OPUS Manager ne doit pas répéter `Langue : ...` quand le selecteur est visible.
+- Sign in conserve le selecteur, sans badge langue redondant.
+
+## OPUS_MANAGER_ARCHITECTURE_AXES_CORE
+
+- OPUS Manager doit traiter deux axes indépendants : axe technique et axe fonctionnel.
+- Axe technique : frontend, backend, API, services, données.
+- Axe fonctionnel : frontoffice, backoffice, portail, espace admin, espace utilisateur.
+- Frontend ne signifie pas frontoffice ; backend ne signifie pas backoffice.
+- Un backoffice peut être client/server ; un frontoffice peut aussi être client/server.
+- LogAndPlay reste le cas de référence fullstack / portail de contenu.
+- Le futur KB reste le cas de référence client/server frontend + backend.
+- Le Create Site Wizard doit demander séparément espace fonctionnel et architecture technique.
