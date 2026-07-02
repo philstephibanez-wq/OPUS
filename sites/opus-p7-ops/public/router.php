@@ -1,4 +1,5 @@
 <?php
+/** P7_OPS_PROFILER_OPEN_CONTEXT_CORE */
 /** P7_OPS_PROFILER_VISIBLE_MODE_CORE */
 /** P7_OPS_PROFILER_EXIT_FIX_CORE */
 /** P7_OPS_UNIFIED_ERGONOMIC_NAVIGATION_CORE */
@@ -27,6 +28,7 @@ if (!p7ops_profiler_exit_path($path)) {
 if (!p7ops_profiler_exit_path($path)) {
     p7ops_unified_navigation_boot_once();
 p7ops_profiler_visible_boot_once();
+p7ops_profiler_context_store_app_uri();
 }
 
 $nativeRoute = p7ops_resolve_native_route($path);

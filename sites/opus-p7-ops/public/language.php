@@ -4174,11 +4174,17 @@ if (!function_exists('p7ops_profiler_visible_badge_html')) {
         $start = (float) ($GLOBALS['p7ops_visible_profiler_started_at'] ?? microtime(true));
         $duration = number_format((microtime(true) - $start) * 1000, 2, '.', '');
 
-        return '<div class="opus-profiler-visible-ribbon" data-contract="P7_OPS_PROFILER_VISIBLE_MODE_CORE">'
+        $isProfilerPage = function_exists('p7ops_profiler_context_is_profiler_page') && p7ops_profiler_context_is_profiler_page($path);
+        $primaryHref = $isProfilerPage && function_exists('p7ops_profiler_context_last_app_uri')
+            ? p7ops_profiler_context_last_app_uri()
+            : '/opus-lstsar-manager/profiler';
+        $primaryLabel = $isProfilerPage ? 'Back to app' : 'Open profiler';
+
+        return '<div class="opus-profiler-visible-ribbon" data-contract="P7_OPS_PROFILER_VISIBLE_MODE_CORE P7_OPS_PROFILER_OPEN_CONTEXT_CORE">'
             . '<strong>PROFILER ACTIVE</strong>'
             . '<span>' . p7ops_profiler_visible_escape($path) . '</span>'
             . '<span>' . p7ops_profiler_visible_escape($duration) . ' ms</span>'
-            . '<a href="/opus-lstsar-manager/profiler">Open profiler</a>'
+            . '<a href="' . p7ops_profiler_visible_escape($primaryHref) . '">' . p7ops_profiler_visible_escape($primaryLabel) . '</a>'
             . '<a href="/opus-lstsar-manager/profiler/exit?next=' . p7ops_profiler_visible_escape(rawurlencode($uri)) . '">Exit</a>'
             . '</div>';
     }
@@ -4224,5 +4230,78 @@ if (!function_exists('p7ops_profiler_visible_boot_once')) {
         ob_start(static function (string $html): string {
             return p7ops_profiler_visible_apply_html($html);
         });
+    }
+}
+
+
+/** P7_OPS_PROFILER_OPEN_CONTEXT_CORE */
+if (!function_exists('p7ops_profiler_context_is_profiler_page')) {
+    function p7ops_profiler_context_is_profiler_page(?string $path = null): bool
+    {
+        $path = $path ?? rawurldecode((string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?: ''));
+        return in_array($path, ['/opus-lstsar-manager/profiler', '/_profiler'], true);
+    }
+}
+
+if (!function_exists('p7ops_profiler_context_is_profiler_exit')) {
+    function p7ops_profiler_context_is_profiler_exit(?string $path = null): bool
+    {
+        $path = $path ?? rawurldecode((string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?: ''));
+        return in_array($path, ['/opus-lstsar-manager/profiler/exit', '/_profiler/exit'], true);
+    }
+}
+
+if (!function_exists('p7ops_profiler_context_default_app_uri')) {
+    function p7ops_profiler_context_default_app_uri(): string
+    {
+        $site = (string) ($_GET['site'] ?? 'site-alpha');
+        $lang = (string) ($_GET['lang'] ?? (function_exists('p7ops_language') ? p7ops_language() : 'fr'));
+        return '/opus-lstsar-manager/operations?' . http_build_query(['site' => $site, 'lang' => $lang, 'profiler' => '1']);
+    }
+}
+
+if (!function_exists('p7ops_profiler_context_store_app_uri')) {
+    function p7ops_profiler_context_store_app_uri(): void
+    {
+        if (PHP_SAPI === 'cli') {
+            return;
+        }
+
+        $uri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+        $path = rawurldecode((string) (parse_url($uri, PHP_URL_PATH) ?: ''));
+
+        $isStatic = function_exists('p7ops_profiler_visible_static_path')
+            ? p7ops_profiler_visible_static_path($path)
+            : (bool) preg_match('~\.(?:ico|png|jpe?g|gif|svg|webp|css|js|map|woff2?|ttf|eot)$~i', $path);
+
+        if ($uri === '' || $isStatic || p7ops_profiler_context_is_profiler_page($path) || p7ops_profiler_context_is_profiler_exit($path)) {
+            return;
+        }
+
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_name('OPUSLSTSAROPS');
+            @session_start();
+        }
+
+        $_SESSION['p7ops_profiler_last_app_uri'] = $uri;
+    }
+}
+
+if (!function_exists('p7ops_profiler_context_last_app_uri')) {
+    function p7ops_profiler_context_last_app_uri(): string
+    {
+        if (PHP_SAPI !== 'cli') {
+            if (session_status() !== PHP_SESSION_ACTIVE) {
+                session_name('OPUSLSTSAROPS');
+                @session_start();
+            }
+
+            $uri = (string) ($_SESSION['p7ops_profiler_last_app_uri'] ?? '');
+            if ($uri !== '') {
+                return $uri;
+            }
+        }
+
+        return p7ops_profiler_context_default_app_uri();
     }
 }

@@ -185,3 +185,9 @@ Routes:
 - Makes profiler mode visually obvious: page outline, amber debug background and persistent bottom ribbon.
 - The ribbon shows current path, request duration, Open profiler and Exit actions.
 - Static assets are excluded from visible profiler decoration.
+
+## P7_OPS_PROFILER_OPEN_CONTEXT_CORE
+
+- Stores the last non-profiler application URL in session.
+- On profiler pages, the visible profiler ribbon shows `Back to app` instead of a no-op `Open profiler` link.
+- On application pages, the same ribbon still opens `/opus-lstsar-manager/profiler`.
