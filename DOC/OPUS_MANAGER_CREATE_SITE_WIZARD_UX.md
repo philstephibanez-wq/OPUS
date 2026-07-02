@@ -183,3 +183,11 @@ OPUS Manager n'est pas une collection de pages techniques.
 OPUS Manager est un backoffice clair, précis, ergonomique et intuitif.
 
 Le wizard "Créer un site" est l'entrée principale pour un utilisateur qui veut produire un site avec OPUS.
+
+## OPUS_MANAGER_CREATE_SITE_WIZARD_UX_CORE_FIX
+
+- Alignement avec la règle d’architecture : `un controller par fonctionnalité/page`.
+
+## OPUS_MANAGER_CREATE_SITE_WIZARD_UX_CORE_FIX2
+
+- Aligné avec `Règle canonique : un controller par fonctionnalité/page.`.

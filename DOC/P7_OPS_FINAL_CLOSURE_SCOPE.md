@@ -191,3 +191,12 @@ Objectif : audit final, documentation RefBook/UserBook, tests installation serve
 - Le user ne doit pas commencer par les composants internes.
 - `CreateSiteController` pilote le parcours et délègue aux briques OPUS existantes.
 - Le wizard doit produire site installable Composer, Ref Book, User Book, smokes et diagnostic.
+
+## OPUS_MANAGER_CREATE_SITE_WIZARD_UX_CORE_FIX
+
+- Verrouille la formulation canonique : `un controller par fonctionnalité/page`.
+- Le wizard reste l’entrée utilisateur principale, les controllers restent séparés par fonctionnalité.
+
+## OPUS_MANAGER_CREATE_SITE_WIZARD_UX_CORE_FIX2
+
+- Correction du smoke Create Site Wizard : phrase exacte controller ajoutée.

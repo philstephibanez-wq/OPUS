@@ -4,6 +4,8 @@ Contrat : `OPUS_MANAGER_CONTROLLER_ARCHITECTURE_CORE`
 
 ## Règle
 
+Règle canonique : un controller par fonctionnalité/page.
+
 OPUS Manager doit avoir autant de controllers dédiés que de pages/fonctionnalités métier.
 
 Aucun gros controller fourre-tout ne doit porter Users, FSM, ACL, SSO, ODBC, LSTSAR et Composer en même temps.
@@ -89,3 +91,12 @@ Objectif : créer le shell backoffice OPUS Manager et y brancher les controllers
 - L’expérience utilisateur principale commence par `Créer un site avec OPUS`.
 - `CreateSiteController` devient l’entrée prioritaire du parcours utilisateur.
 - Les controllers FSM, ACL/RBAC, SSO, ODBC, LSTSAR et Composer restent des modules internes ou experts.
+
+## OPUS_MANAGER_CREATE_SITE_WIZARD_UX_CORE_FIX
+
+- Ajoute le marqueur canonique exact : `un controller par fonctionnalité/page`.
+- Rattache la règle controller au parcours utilisateur `Créer un site avec OPUS`.
+
+## OPUS_MANAGER_CREATE_SITE_WIZARD_UX_CORE_FIX2
+
+- Verrouille la phrase exacte attendue par le smoke : `Règle canonique : un controller par fonctionnalité/page.`.
