@@ -1,1 +1,0 @@
-<a href="{{ menu_item.path }}">{{ menu_item.label }}</a>

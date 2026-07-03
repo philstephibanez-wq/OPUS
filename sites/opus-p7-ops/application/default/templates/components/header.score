@@ -1,1 +1,0 @@
-<header><h1>{{ site.name }}</h1>{{{ common.menu }}}</header>
