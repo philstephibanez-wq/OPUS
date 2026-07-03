@@ -28,7 +28,8 @@
         "opus:validate-site": "@php bin/opus validate:site",
         "opus:list-routes": "@php bin/opus list:routes",
         "opus:create-page": "@php bin/opus create:page",
-        "opus:create-rubric": "@php bin/opus create:rubric"
+        "opus:create-rubric": "@php bin/opus create:rubric",
+        "opus:smoke-site-contract": "@php tools/smoke_opus_site_contract_eternal.php"
     },
     "repositories": [
         {

@@ -62,7 +62,7 @@ function opus_cli_site_root(string $root, string $siteId): string
 
 function opus_cli_public_root(string $siteRoot): string
 {
-    return $siteRoot . DIRECTORY_SEPARATOR . 'public';
+    return $siteRoot . DIRECTORY_SEPARATOR . 'www';
 }
 
 function opus_cli_assert_site_exists(string $siteRoot, string $siteId): void
@@ -319,7 +319,7 @@ if ($command === 'validate:site') {
         exit(1);
     }
 
-    $required = ['application', 'application/config', 'resources/i18n', 'public', 'public/index.php'];
+    $required = ['config', 'config/site.json', 'config/routes.json', 'application', 'application/default', 'application/default/acl', 'application/default/helpers', 'application/default/css', 'application/default/javascript', 'application/default/local', 'application/default/models', 'application/default/templates', 'application/default/views', 'www', 'www/index.php', 'www/asset', 'www/asset/css', 'www/asset/js', 'www/asset/themes'];
 
     foreach ($required as $relative) {
         $path = $siteRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);
@@ -339,7 +339,7 @@ if ($command === 'serve:site') {
     opus_cli_assert_site_exists($siteRoot, $target);
     $publicRoot = opus_cli_public_root($siteRoot);
     if (!is_dir($publicRoot) || !is_file($publicRoot . DIRECTORY_SEPARATOR . 'index.php')) {
-        fwrite(STDERR, "OPUS_SITE_PUBLIC_FRONT_CONTROLLER_MISSING: {$target}\n");
+        fwrite(STDERR, "OPUS_SITE_WWW_FRONT_CONTROLLER_MISSING: {$target}\n");
         exit(1);
     }
 
