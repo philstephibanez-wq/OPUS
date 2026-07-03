@@ -1,0 +1,90 @@
+{
+    "contract": "OPUS_HOME_DEMO_CARD_ROUTE_PROJECTION_V1",
+    "rubrics": [
+        {
+            "route": "action.index",
+            "controller": "action",
+            "order": 20
+        },
+        {
+            "route": "chain.index",
+            "controller": "chain",
+            "order": 30
+        },
+        {
+            "route": "cl.index",
+            "controller": "cl",
+            "order": 40
+        },
+        {
+            "route": "command.index",
+            "controller": "command",
+            "order": 50
+        },
+        {
+            "route": "diagnostics.index",
+            "controller": "diagnostics",
+            "order": 60
+        },
+        {
+            "route": "fsm.index",
+            "controller": "fsm",
+            "order": 70
+        },
+        {
+            "route": "health.index",
+            "controller": "health",
+            "order": 80
+        },
+        {
+            "route": "language.index",
+            "controller": "language",
+            "order": 90
+        },
+        {
+            "route": "login.index",
+            "controller": "login",
+            "order": 100
+        },
+        {
+            "route": "logout.index",
+            "controller": "logout",
+            "order": 110
+        },
+        {
+            "route": "models.index",
+            "controller": "models",
+            "order": 120
+        },
+        {
+            "route": "navigation.index",
+            "controller": "navigation",
+            "order": 130
+        },
+        {
+            "route": "odbc-manager.index",
+            "controller": "odbc-manager",
+            "order": 140
+        },
+        {
+            "route": "profiler-exit.index",
+            "controller": "profiler-exit",
+            "order": 150
+        },
+        {
+            "route": "profiler.index",
+            "controller": "profiler",
+            "order": 160
+        },
+        {
+            "route": "router.index",
+            "controller": "router",
+            "order": 170
+        },
+        {
+            "route": "sso.index",
+            "controller": "sso",
+            "order": 180
+        }
+    ]
+}

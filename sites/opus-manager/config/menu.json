@@ -1,0 +1,17 @@
+{
+    "contract": "OPUS_MENU_ROUTE_PROJECTION_V1",
+    "items": [
+        {
+            "route": "home.index",
+            "controller": "home",
+            "label": "menu.home",
+            "order": 10
+        },
+        {
+            "route": "router.index",
+            "controller": "router",
+            "label": "menu.router",
+            "order": 20
+        }
+    ]
+}

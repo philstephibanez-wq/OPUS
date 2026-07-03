@@ -1,0 +1,31 @@
+{
+    "contract": "OPUS_ROUTE_REGISTRY_V1",
+    "routes": [
+        {
+            "id": "home.index",
+            "path": "/",
+            "controller": "home",
+            "action": "index",
+            "template": "application/home/templates/index.score",
+            "label": "menu.home",
+            "acl": "public",
+            "fsm_state": "HOME",
+            "show_in_menu": true,
+            "show_on_home": false,
+            "order": 10
+        },
+        {
+            "id": "router.index",
+            "path": "/router",
+            "controller": "router",
+            "action": "index",
+            "template": "application/router/templates/index.score",
+            "label": "menu.router",
+            "acl": "public",
+            "fsm_state": "ROUTER",
+            "show_in_menu": true,
+            "show_on_home": true,
+            "order": 20
+        }
+    ]
+}

@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_HOME_DEMO_CARD_ROUTE_PROJECTION_V1",
+    "rubrics": [
+        {
+            "route": "router.index",
+            "controller": "router",
+            "order": 20
+        }
+    ]
+}

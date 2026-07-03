@@ -1,0 +1,15 @@
+{
+    "contract": "OPUS_FSM_REGISTRY_V1",
+    "initial_state": "HOME",
+    "states": [
+        {
+            "id": "HOME",
+            "controller": "home"
+        },
+        {
+            "id": "ROUTER",
+            "controller": "router"
+        }
+    ],
+    "transitions": []
+}

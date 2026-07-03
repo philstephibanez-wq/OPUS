@@ -1,0 +1,28 @@
+{
+    "site_id": "opus-p7-ops",
+    "site_name": "OPUS opus-p7-ops",
+    "contract": "OPUS_SITE_APPLICATION_TREE_V1_ETERNAL",
+    "default_locale": "fr",
+    "locales": [
+        "fr",
+        "en",
+        "es"
+    ],
+    "theme": "starter",
+    "application_root": "application",
+    "default_root": "application/default",
+    "controller_root_pattern": "application/<controller>",
+    "public_root": "www",
+    "asset_root": "www/asset",
+    "theme_root_pattern": "www/asset/themes/<theme>",
+    "css_inheritance": [
+        "application/default/css",
+        "www/asset/themes/<theme>/css",
+        "application/<controller>/css"
+    ],
+    "js_inheritance": [
+        "application/default/javascript",
+        "www/asset/themes/<theme>/js",
+        "application/<controller>/javascript"
+    ]
+}
