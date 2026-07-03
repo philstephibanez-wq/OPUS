@@ -1,1 +1,1 @@
-document.documentElement.dataset.opusControllerLayer='home';
+document.documentElement.dataset.opusManagerController = 'home';

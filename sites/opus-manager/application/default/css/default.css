@@ -1,1 +1,1 @@
-body{font-family:system-ui,Segoe UI,Arial,sans-serif}.opus-card{padding:1rem;border:1px solid #ddd}
+body.opus-manager-site{margin:0;font-family:system-ui,Segoe UI,Arial,sans-serif;background:#eef3f8;color:#172033}.opus-manager-card{margin:32px auto;padding:24px;width:min(1120px,calc(100% - 32px));background:#fff;border:1px solid #d7e0eb;border-radius:18px}

@@ -1,5 +1,4 @@
 {
-    "page.title": "HOME",
-    "page.subtitle": "Controller OPUS/ASAP: home",
-    "menu.home": "home"
+    "page.title": "Dashboard",
+    "page.group": "Accueil"
 }

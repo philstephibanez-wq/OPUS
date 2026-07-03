@@ -1,1 +1,1 @@
-<section class="opus-card"><h2>{{ page.title }}</h2><p>{{ page.subtitle }}</p></section>
+<section class="opus-manager-card"><h2>{{ page.title }}</h2><p>Dashboard</p></section>

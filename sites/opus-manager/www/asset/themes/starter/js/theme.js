@@ -1,1 +1,1 @@
-document.documentElement.dataset.opusThemeLayer='starter';
+document.documentElement.dataset.opusManagerTheme='starter';

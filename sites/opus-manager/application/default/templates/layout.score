@@ -1,2 +1,13 @@
 <!doctype html>
-<html lang="{{ lang }}"><head><meta charset="utf-8"><title>{{ page.title }}</title>{{{ assets.css }}}</head><body class="opus-asap-site">{{{ common.header }}}<main>{{{ content }}}</main>{{{ common.footer }}}{{{ assets.js }}}</body></html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ page.title }}</title>
+  {{{ assets.css }}}
+</head>
+<body class="opus-manager-site">
+  {{{ content }}}
+  {{{ assets.js }}}
+</body>
+</html>

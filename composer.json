@@ -13,7 +13,8 @@
             "OpusLstsarManager\\": "packages/opus-lstsar-manager/src/"
         },
         "classmap": [
-            "Opus/"
+            "Opus/",
+            "sites/opus-manager/application/"
         ]
     },
     "bin": [

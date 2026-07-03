@@ -1,10 +1,143 @@
 {
-    "contract": "OPUS_HOME_DEMO_CARD_ROUTE_PROJECTION_V1",
+    "contract": "OPUS_MANAGER_RUBRIC_REGISTRY_V1",
     "rubrics": [
         {
-            "route": "router.index",
-            "controller": "router",
+            "controller": "home",
+            "route": "home.index",
+            "group": "Accueil",
+            "order": 150
+        },
+        {
+            "controller": "acl",
+            "route": "acl.index",
+            "group": "Identité",
+            "order": 10
+        },
+        {
+            "controller": "auth-audit",
+            "route": "auth-audit.index",
+            "group": "Identité",
             "order": 20
+        },
+        {
+            "controller": "cl",
+            "route": "cl.index",
+            "group": "Moteurs",
+            "order": 30
+        },
+        {
+            "controller": "composer",
+            "route": "composer.index",
+            "group": "Installation",
+            "order": 40
+        },
+        {
+            "controller": "create-package",
+            "route": "create-package.index",
+            "group": "Créer",
+            "order": 50
+        },
+        {
+            "controller": "create-site",
+            "route": "create-site.index",
+            "group": "Créer",
+            "order": 60
+        },
+        {
+            "controller": "database",
+            "route": "database.index",
+            "group": "Données",
+            "order": 70
+        },
+        {
+            "controller": "diagnostics",
+            "route": "diagnostics.index",
+            "group": "Exploitation",
+            "order": 80
+        },
+        {
+            "controller": "fsm",
+            "route": "fsm.index",
+            "group": "Moteurs",
+            "order": 90
+        },
+        {
+            "controller": "logout",
+            "route": "logout.index",
+            "group": "Identity",
+            "order": 100
+        },
+        {
+            "controller": "logs",
+            "route": "logs.index",
+            "group": "Exploitation",
+            "order": 110
+        },
+        {
+            "controller": "lstsar",
+            "route": "lstsar.index",
+            "group": "Données",
+            "order": 120
+        },
+        {
+            "controller": "models",
+            "route": "models.index",
+            "group": "Moteurs",
+            "order": 130
+        },
+        {
+            "controller": "odbc",
+            "route": "odbc.index",
+            "group": "Données",
+            "order": 140
+        },
+        {
+            "controller": "rbac",
+            "route": "rbac.index",
+            "group": "Identité",
+            "order": 160
+        },
+        {
+            "controller": "ref-book",
+            "route": "ref-book.index",
+            "group": "Documentation",
+            "order": 170
+        },
+        {
+            "controller": "router",
+            "route": "router.index",
+            "group": "OPUS Manager",
+            "order": 230
+        },
+        {
+            "controller": "sessions",
+            "route": "sessions.index",
+            "group": "Identité",
+            "order": 180
+        },
+        {
+            "controller": "sign-in",
+            "route": "sign-in.index",
+            "group": "Identity",
+            "order": 190
+        },
+        {
+            "controller": "sso",
+            "route": "sso.index",
+            "group": "Identité",
+            "order": 200
+        },
+        {
+            "controller": "user-book",
+            "route": "user-book.index",
+            "group": "Documentation",
+            "order": 210
+        },
+        {
+            "controller": "users",
+            "route": "users.index",
+            "group": "Identité",
+            "order": 220
         }
     ]
 }

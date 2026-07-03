@@ -4,11 +4,118 @@
     "states": [
         {
             "id": "HOME",
-            "controller": "home"
+            "controller": "home",
+            "route": "home.index"
+        },
+        {
+            "id": "ACL",
+            "controller": "acl",
+            "route": "acl.index"
+        },
+        {
+            "id": "AUTH_AUDIT",
+            "controller": "auth-audit",
+            "route": "auth-audit.index"
+        },
+        {
+            "id": "CL",
+            "controller": "cl",
+            "route": "cl.index"
+        },
+        {
+            "id": "COMPOSER",
+            "controller": "composer",
+            "route": "composer.index"
+        },
+        {
+            "id": "CREATE_PACKAGE",
+            "controller": "create-package",
+            "route": "create-package.index"
+        },
+        {
+            "id": "CREATE_SITE",
+            "controller": "create-site",
+            "route": "create-site.index"
+        },
+        {
+            "id": "DATABASE",
+            "controller": "database",
+            "route": "database.index"
+        },
+        {
+            "id": "DIAGNOSTICS",
+            "controller": "diagnostics",
+            "route": "diagnostics.index"
+        },
+        {
+            "id": "FSM",
+            "controller": "fsm",
+            "route": "fsm.index"
+        },
+        {
+            "id": "LOGOUT",
+            "controller": "logout",
+            "route": "logout.index"
+        },
+        {
+            "id": "LOGS",
+            "controller": "logs",
+            "route": "logs.index"
+        },
+        {
+            "id": "LSTSAR",
+            "controller": "lstsar",
+            "route": "lstsar.index"
+        },
+        {
+            "id": "MODELS",
+            "controller": "models",
+            "route": "models.index"
+        },
+        {
+            "id": "ODBC",
+            "controller": "odbc",
+            "route": "odbc.index"
+        },
+        {
+            "id": "RBAC",
+            "controller": "rbac",
+            "route": "rbac.index"
+        },
+        {
+            "id": "REF_BOOK",
+            "controller": "ref-book",
+            "route": "ref-book.index"
         },
         {
             "id": "ROUTER",
-            "controller": "router"
+            "controller": "router",
+            "route": "router.index"
+        },
+        {
+            "id": "SESSIONS",
+            "controller": "sessions",
+            "route": "sessions.index"
+        },
+        {
+            "id": "SIGN_IN",
+            "controller": "sign-in",
+            "route": "sign-in.index"
+        },
+        {
+            "id": "SSO",
+            "controller": "sso",
+            "route": "sso.index"
+        },
+        {
+            "id": "USER_BOOK",
+            "controller": "user-book",
+            "route": "user-book.index"
+        },
+        {
+            "id": "USERS",
+            "controller": "users",
+            "route": "users.index"
         }
     ],
     "transitions": []
