@@ -23,13 +23,6 @@
             "order": 20
         },
         {
-            "route": "cl.index",
-            "controller": "cl",
-            "label": "menu.cl",
-            "group": "Moteurs",
-            "order": 30
-        },
-        {
             "route": "composer.index",
             "controller": "composer",
             "label": "menu.composer",

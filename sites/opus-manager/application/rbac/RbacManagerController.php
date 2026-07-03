@@ -13,7 +13,7 @@ final class RbacManagerController extends AbstractOpusManagerController
 
     public function title(): string
     {
-        return 'RBAC';
+        return 'Rôles & habilitations (RBAC)';
     }
 
     public function group(): string
@@ -28,7 +28,7 @@ final class RbacManagerController extends AbstractOpusManagerController
 
     public function render(array $context = []): string
     {
-        return $this->shell($this->title(), $this->moduleCard('Rôles métiers, héritage et assignations.', array (
+        return $this->shell($this->title(), $this->moduleCard('Gestion des rôles, héritages de rôles et assignations aux utilisateurs.', array (
 )), $context);
     }
 }

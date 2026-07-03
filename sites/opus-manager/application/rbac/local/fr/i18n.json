@@ -1,4 +1,5 @@
 {
-    "page.title": "RBAC",
-    "page.group": "Identité"
+    "page.title": "Rôles & habilitations (RBAC)",
+    "page.group": "Identité",
+    "page.subtitle": "Gestion des rôles, héritages de rôles et assignations aux utilisateurs."
 }

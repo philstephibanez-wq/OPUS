@@ -20,12 +20,6 @@
             "order": 20
         },
         {
-            "controller": "cl",
-            "route": "cl.index",
-            "group": "Moteurs",
-            "order": 30
-        },
-        {
             "controller": "composer",
             "route": "composer.index",
             "group": "Installation",

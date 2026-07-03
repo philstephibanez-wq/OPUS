@@ -18,11 +18,6 @@
             "route": "auth-audit.index"
         },
         {
-            "id": "CL",
-            "controller": "cl",
-            "route": "cl.index"
-        },
-        {
             "id": "COMPOSER",
             "controller": "composer",
             "route": "composer.index"

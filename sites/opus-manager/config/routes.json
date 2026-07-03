@@ -35,17 +35,6 @@
             "order": 20
         },
         {
-            "id": "cl.index",
-            "path": "/opus-manager/cl",
-            "controller": "cl",
-            "class": "Opus\\Manager\\Controller\\ClManagerController",
-            "template": "application/cl/templates/index.score",
-            "label": "menu.cl",
-            "group": "Moteurs",
-            "show_in_menu": true,
-            "order": 30
-        },
-        {
             "id": "composer.index",
             "path": "/opus-manager/composer",
             "controller": "composer",

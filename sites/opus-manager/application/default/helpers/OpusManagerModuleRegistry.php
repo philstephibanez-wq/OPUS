@@ -57,11 +57,11 @@ final class OpusManagerModuleRegistry
   5 => 
   array (
     'controller' => 'RbacManagerController',
-    'title' => 'RBAC',
+    'title' => 'Rôles & habilitations (RBAC)',
     'route' => '/opus-manager/rbac',
     'group' => 'Identité',
     'expert' => true,
-    'summary' => 'Rôles métiers, héritage et assignations.',
+    'summary' => 'Gestion des rôles, héritages de rôles et assignations aux utilisateurs.',
   ),
   6 => 
   array (
@@ -98,15 +98,6 @@ final class OpusManagerModuleRegistry
     'group' => 'Moteurs',
     'expert' => true,
     'summary' => 'Machines d’état, transitions et diagnostics FSM.',
-  ),
-  10 => 
-  array (
-    'controller' => 'ClManagerController',
-    'title' => 'CL',
-    'route' => '/opus-manager/cl',
-    'group' => 'Moteurs',
-    'expert' => true,
-    'summary' => 'CL et orchestration des couches OPUS associées.',
   ),
   11 => 
   array (
