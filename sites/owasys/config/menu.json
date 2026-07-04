@@ -4,156 +4,58 @@
         {
             "route": "home.index",
             "controller": "home",
+            "path": "/",
             "label": "menu.home",
-            "group": "Accueil",
-            "order": 150
-        },
-        {
-            "route": "acl.index",
-            "controller": "acl",
-            "label": "menu.acl",
-            "group": "Identité",
+            "group": "OWASYS",
             "order": 10
         },
         {
-            "route": "auth-audit.index",
-            "controller": "auth-audit",
-            "label": "menu.auth-audit",
-            "group": "Identité",
+            "route": "applications.index",
+            "controller": "applications",
+            "path": "/applications",
+            "label": "menu.applications",
+            "group": "OWASYS",
             "order": 20
         },
         {
-            "route": "composer.index",
-            "controller": "composer",
-            "label": "menu.composer",
-            "group": "Installation",
+            "route": "structure.index",
+            "controller": "structure",
+            "path": "/structure",
+            "label": "menu.structure",
+            "group": "OWASYS",
+            "order": 30
+        },
+        {
+            "route": "data.index",
+            "controller": "data",
+            "path": "/data",
+            "label": "menu.data",
+            "group": "OWASYS",
             "order": 40
         },
         {
-            "route": "create-package.index",
-            "controller": "create-package",
-            "label": "menu.create-package",
-            "group": "Créer",
+            "route": "workflows.index",
+            "controller": "workflows",
+            "path": "/workflows",
+            "label": "menu.workflows",
+            "group": "OWASYS",
             "order": 50
         },
         {
-            "route": "create-site.index",
-            "controller": "create-site",
-            "label": "menu.create-site",
-            "group": "Créer",
+            "route": "security.index",
+            "controller": "security",
+            "path": "/security",
+            "label": "menu.security",
+            "group": "OWASYS",
             "order": 60
         },
         {
-            "route": "database.index",
-            "controller": "database",
-            "label": "menu.database",
-            "group": "Données",
+            "route": "build.index",
+            "controller": "build",
+            "path": "/build",
+            "label": "menu.build",
+            "group": "OWASYS",
             "order": 70
-        },
-        {
-            "route": "diagnostics.index",
-            "controller": "diagnostics",
-            "label": "menu.diagnostics",
-            "group": "Exploitation",
-            "order": 80
-        },
-        {
-            "route": "fsm.index",
-            "controller": "fsm",
-            "label": "menu.fsm",
-            "group": "Moteurs",
-            "order": 90
-        },
-        {
-            "route": "logout.index",
-            "controller": "logout",
-            "label": "menu.logout",
-            "group": "Identity",
-            "order": 100
-        },
-        {
-            "route": "logs.index",
-            "controller": "logs",
-            "label": "menu.logs",
-            "group": "Exploitation",
-            "order": 110
-        },
-        {
-            "route": "lstsar.index",
-            "controller": "lstsar",
-            "label": "menu.lstsar",
-            "group": "Données",
-            "order": 120
-        },
-        {
-            "route": "models.index",
-            "controller": "models",
-            "label": "menu.models",
-            "group": "Moteurs",
-            "order": 130
-        },
-        {
-            "route": "odbc.index",
-            "controller": "odbc",
-            "label": "menu.odbc",
-            "group": "Données",
-            "order": 140
-        },
-        {
-            "route": "rbac.index",
-            "controller": "rbac",
-            "label": "menu.rbac",
-            "group": "Identité",
-            "order": 160
-        },
-        {
-            "route": "ref-book.index",
-            "controller": "ref-book",
-            "label": "menu.ref-book",
-            "group": "Documentation",
-            "order": 170
-        },
-        {
-            "route": "router.index",
-            "controller": "router",
-            "label": "menu.router",
-            "group": "OPUS Manager",
-            "order": 230
-        },
-        {
-            "route": "sessions.index",
-            "controller": "sessions",
-            "label": "menu.sessions",
-            "group": "Identité",
-            "order": 180
-        },
-        {
-            "route": "sign-in.index",
-            "controller": "sign-in",
-            "label": "menu.sign-in",
-            "group": "Identity",
-            "order": 190
-        },
-        {
-            "route": "sso.index",
-            "controller": "sso",
-            "label": "menu.sso",
-            "group": "Identité",
-            "order": 200
-        },
-        {
-            "route": "user-book.index",
-            "controller": "user-book",
-            "label": "menu.user-book",
-            "group": "Documentation",
-            "order": 210
-        },
-        {
-            "route": "users.index",
-            "controller": "users",
-            "label": "menu.users",
-            "group": "Identité",
-            "order": 220
         }
     ]
 }

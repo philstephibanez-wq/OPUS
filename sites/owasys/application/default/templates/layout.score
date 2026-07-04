@@ -1,13 +1,5 @@
 <!doctype html>
 <html lang="{{ lang }}">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ page.title }}</title>
-  {{{ assets.css }}}
-</head>
-<body class="opus-manager-site">
-  {{{ content }}}
-  {{{ assets.js }}}
-</body>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ page.title }} — OWASYS</title>{{{ assets.css }}}</head>
+<body>{{{ body }}}{{{ assets.js }}}</body>
 </html>

@@ -1,0 +1,61 @@
+{
+    "contract": "OPUS_MODEL_SCHEMA_V1",
+    "model": "owasys_application_registry",
+    "storage": {
+        "datasource": "owasys_registry",
+        "access": "model_then_odbc",
+        "engine": "sqlite3"
+    },
+    "fields": {
+        "id": {
+            "type": "string",
+            "required": true,
+            "max_length": 64
+        },
+        "name": {
+            "type": "string",
+            "required": true,
+            "max_length": 160
+        },
+        "kind": {
+            "type": "enum",
+            "values": [
+                "fullstack",
+                "frontend",
+                "backend",
+                "package"
+            ]
+        },
+        "root_path": {
+            "type": "path",
+            "required": true
+        },
+        "local_url": {
+            "type": "url",
+            "required": false
+        },
+        "status": {
+            "type": "enum",
+            "values": [
+                "draft",
+                "configured",
+                "validated",
+                "generated",
+                "exported",
+                "archived"
+            ]
+        },
+        "opus_version": {
+            "type": "string",
+            "required": true
+        },
+        "created_at": {
+            "type": "datetime",
+            "required": true
+        },
+        "updated_at": {
+            "type": "datetime",
+            "required": true
+        }
+    }
+}

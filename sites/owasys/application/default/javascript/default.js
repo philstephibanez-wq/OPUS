@@ -1,1 +1,1 @@
-document.documentElement.dataset.opusManagerDefaultLayer='loaded';
+document.documentElement.dataset.owasys='standard-opus-application';

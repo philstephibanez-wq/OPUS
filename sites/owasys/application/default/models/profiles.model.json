@@ -1,0 +1,33 @@
+{
+    "contract": "OPUS_MODEL_SCHEMA_V1",
+    "model": "owasys_profiles",
+    "storage": {
+        "datasource": "owasys_registry",
+        "access": "model_then_odbc",
+        "engine": "sqlite3"
+    },
+    "profiles": {
+        "admin": {
+            "label": "Administrator",
+            "permissions": [
+                "registry.create",
+                "registry.update",
+                "registry.delete",
+                "config.global",
+                "build.export",
+                "validate.run"
+            ]
+        },
+        "dev": {
+            "label": "Developer",
+            "permissions": [
+                "registry.create_draft",
+                "structure.update",
+                "data.update",
+                "workflows.update",
+                "security.configure_draft",
+                "validate.run"
+            ]
+        }
+    }
+}

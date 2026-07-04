@@ -1,0 +1,15 @@
+{
+    "contract": "OPUS_DATASOURCE_REGISTRY_V1",
+    "datasources": [
+        {
+            "id": "owasys_registry",
+            "label": "OWASYS Application Registry",
+            "engine": "sqlite3",
+            "access": "odbc",
+            "dsn": "OWASYS_REGISTRY_SQLITE",
+            "database": "var/registry/owasys.sqlite",
+            "model_required": true,
+            "silent_fallback": false
+        }
+    ]
+}

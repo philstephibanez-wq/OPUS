@@ -1,0 +1,12 @@
+{
+    "language": "Finnish",
+    "product.name": "OWASYS",
+    "product.long_name": "OPUS Web Application System",
+    "menu.home": "Home",
+    "menu.applications": "Applications",
+    "menu.structure": "Structure",
+    "menu.data": "Data Sources",
+    "menu.workflows": "Workflows",
+    "menu.security": "Security",
+    "menu.build": "Build & Validate"
+}

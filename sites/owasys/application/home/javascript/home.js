@@ -1,1 +1,1 @@
-document.documentElement.dataset.opusManagerController = 'home';
+document.documentElement.dataset.owasysPage="home";

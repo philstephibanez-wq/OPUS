@@ -1,0 +1,106 @@
+{
+    "contract": "OPUS_I18N_LANGUAGE_REGISTRY_V1",
+    "default": "fr",
+    "languages": [
+        {
+            "code": "bg",
+            "label": "Bulgarian"
+        },
+        {
+            "code": "hr",
+            "label": "Croatian"
+        },
+        {
+            "code": "cs",
+            "label": "Czech"
+        },
+        {
+            "code": "da",
+            "label": "Danish"
+        },
+        {
+            "code": "nl",
+            "label": "Dutch"
+        },
+        {
+            "code": "en",
+            "label": "English"
+        },
+        {
+            "code": "et",
+            "label": "Estonian"
+        },
+        {
+            "code": "fi",
+            "label": "Finnish"
+        },
+        {
+            "code": "fr",
+            "label": "Français"
+        },
+        {
+            "code": "de",
+            "label": "Deutsch"
+        },
+        {
+            "code": "el",
+            "label": "Greek"
+        },
+        {
+            "code": "hu",
+            "label": "Hungarian"
+        },
+        {
+            "code": "ga",
+            "label": "Irish"
+        },
+        {
+            "code": "it",
+            "label": "Italiano"
+        },
+        {
+            "code": "lv",
+            "label": "Latvian"
+        },
+        {
+            "code": "lt",
+            "label": "Lithuanian"
+        },
+        {
+            "code": "mt",
+            "label": "Maltese"
+        },
+        {
+            "code": "pl",
+            "label": "Polish"
+        },
+        {
+            "code": "pt",
+            "label": "Português"
+        },
+        {
+            "code": "ro",
+            "label": "Romanian"
+        },
+        {
+            "code": "sk",
+            "label": "Slovak"
+        },
+        {
+            "code": "sl",
+            "label": "Slovenian"
+        },
+        {
+            "code": "es",
+            "label": "Español"
+        },
+        {
+            "code": "sv",
+            "label": "Swedish"
+        },
+        {
+            "code": "uk",
+            "label": "Українська"
+        }
+    ]
+}

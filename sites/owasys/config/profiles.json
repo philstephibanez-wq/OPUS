@@ -1,0 +1,15 @@
+{
+    "contract": "OPUS_PROFILE_REGISTRY_V1",
+    "profiles": [
+        {
+            "id": "admin",
+            "label": "Administrator",
+            "scope": "owasys"
+        },
+        {
+            "id": "dev",
+            "label": "Developer",
+            "scope": "owasys"
+        }
+    ]
+}

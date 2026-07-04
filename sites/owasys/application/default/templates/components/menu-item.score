@@ -1,1 +1,1 @@
-<a href="{{ menu_item.path }}">{{ menu_item.label }}</a>
+<a href="{{ route.path }}">{{ route.label }}</a>

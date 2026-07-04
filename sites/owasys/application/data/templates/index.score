@@ -1,0 +1,1 @@
+<section class="ow-card ow-page-data"><h2>{{ page.title }}</h2><p>{{ page.summary }}</p></section>

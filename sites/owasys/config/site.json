@@ -1,20 +1,64 @@
 {
-    "site_id": "opus-manager",
-    "site_name": "OPUS Manager",
     "contract": "OPUS_SITE_APPLICATION_TREE_V1_ETERNAL",
-    "role": "single-packaged-site-manager",
-    "managed_scope": "all-sites-created-with-opus",
+    "site_id": "owasys",
+    "site_name": "OPUS OWASYS",
+    "long_name": "OPUS Web Application System",
+    "role": "standard-opus-application",
+    "purpose": "Registry, configuration, scaffolding, generation and validation of OPUS web applications.",
     "default_locale": "fr",
     "locales": [
-        "fr",
+        "bg",
+        "hr",
+        "cs",
+        "da",
+        "nl",
         "en",
-        "es"
+        "et",
+        "fi",
+        "fr",
+        "de",
+        "el",
+        "hu",
+        "ga",
+        "it",
+        "lv",
+        "lt",
+        "mt",
+        "pl",
+        "pt",
+        "ro",
+        "sk",
+        "sl",
+        "es",
+        "sv",
+        "uk"
     ],
-    "theme": "starter",
+    "theme": "owasys",
     "public_root": "www",
     "application_root": "application",
     "default_root": "application/default",
     "asset_root": "www/asset",
     "theme_root_pattern": "www/asset/themes/<theme>",
-    "src_directory_allowed": false
+    "menu_items": 7,
+    "application_roots": [
+        "default",
+        "home",
+        "applications",
+        "structure",
+        "data",
+        "workflows",
+        "security",
+        "build"
+    ],
+    "src_directory_allowed": false,
+    "css_inheritance": [
+        "application/default/css",
+        "www/asset/themes/<theme>/css",
+        "application/<controller>/css"
+    ],
+    "js_inheritance": [
+        "application/default/javascript",
+        "www/asset/themes/<theme>/js",
+        "application/<controller>/javascript"
+    ]
 }

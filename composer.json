@@ -13,8 +13,7 @@
             "OpusLstsarManager\\": "packages/opus-lstsar-manager/src/"
         },
         "classmap": [
-            "Opus/",
-            "sites/opus-manager/application/"
+            "Opus/"
         ]
     },
     "bin": [
@@ -30,8 +29,7 @@
         "opus:list-routes": "@php bin/opus list:routes",
         "opus:create-page": "@php bin/opus create:page",
         "opus:create-rubric": "@php bin/opus create:rubric",
-        "opus:smoke-site-contract": "@php tools/smoke_opus_site_contract_eternal.php",
-        "opus:migrate-sites-eternal-contract": "@php tools/opus_full_reorganize_sites_eternal_contract.php"
+        "opus:smoke-site-contract": "@php tools/smoke_opus_site_contract_eternal.php"
     },
     "repositories": [
         {
@@ -45,7 +43,11 @@
     "extra": {
         "opus": {
             "packages_directory": "packages",
-            "application_package_type": "opus-application"
+            "application_package_type": "opus-application",
+            "owasys": {
+                "site_id": "owasys",
+                "contract": "OWASYS_STANDARD_OPUS_APPLICATION"
+            }
         }
     }
 }
