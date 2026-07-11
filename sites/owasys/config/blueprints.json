@@ -1,0 +1,37 @@
+{
+    "contract": "OWASYS_BLUEPRINT_REGISTRY_V1",
+    "blueprints": [
+        {
+            "id": "opus-site-standard",
+            "label": "Standard OPUS site",
+            "application_type": "fullstack",
+            "creates": [
+                "config/site.json",
+                "config/routes.json",
+                "application/default",
+                "application/home",
+                "www/index.php",
+                "www/asset"
+            ],
+            "forbidden": [
+                "src",
+                "public",
+                "resources"
+            ]
+        },
+        {
+            "id": "opus-refbook-app",
+            "label": "Reference Book application",
+            "application_type": "fullstack",
+            "note": "Generated as a separate OPUS site, never as an OWASYS internal page.",
+            "forbidden_inside_owasys": true
+        },
+        {
+            "id": "opus-userbook-app",
+            "label": "User Book application",
+            "application_type": "fullstack",
+            "note": "Generated as a separate OPUS site, never as an OWASYS internal page.",
+            "forbidden_inside_owasys": true
+        }
+    ]
+}
