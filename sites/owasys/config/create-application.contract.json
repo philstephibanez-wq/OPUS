@@ -1,0 +1,90 @@
+{
+    "contract": "OWASYS_CREATE_APPLICATION_CONTRACT_V1",
+    "purpose": "Describe the complete, explicit request required to create an OPUS application from OWASYS.",
+    "silent_fallback": false,
+    "required_fields": [
+        "id",
+        "slug",
+        "name",
+        "kind",
+        "root_path",
+        "blueprint",
+        "default_locale",
+        "theme",
+        "routes",
+        "controllers",
+        "datasources",
+        "security_profiles",
+        "workflows"
+    ],
+    "field_constraints": {
+        "id": {
+            "type": "string",
+            "min_length": 3,
+            "max_length": 64,
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+        },
+        "slug": {
+            "type": "slug",
+            "min_length": 3,
+            "max_length": 96,
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "name": {
+            "type": "string",
+            "min_length": 3,
+            "max_length": 160
+        },
+        "kind": {
+            "type": "enum",
+            "values": [
+                "fullstack",
+                "frontend",
+                "backend",
+                "package"
+            ]
+        },
+        "root_path": {
+            "type": "path",
+            "min_length": 3,
+            "max_length": 260,
+            "forbidden_segments": [
+                "..",
+                "public",
+                "src",
+                "resources"
+            ]
+        },
+        "default_locale": {
+            "type": "locale",
+            "exact_length": 2
+        },
+        "theme": {
+            "type": "string",
+            "min_length": 3,
+            "max_length": 96
+        }
+    },
+    "generation_steps": [
+        "validate-request",
+        "reserve-registry-entry",
+        "resolve-blueprint",
+        "generate-scaffold-plan",
+        "write-site-tree",
+        "write-config-contracts",
+        "write-view-models",
+        "write-assets",
+        "validate-generated-site",
+        "write-manifest",
+        "export-deliverable"
+    ],
+    "forbidden_output_roots": [
+        "public",
+        "src",
+        "resources"
+    ],
+    "validation_commands": [
+        "php tools/smoke_opus_site_contract_eternal.php",
+        "php bin/opus validate:site <generated-site>"
+    ]
+}
