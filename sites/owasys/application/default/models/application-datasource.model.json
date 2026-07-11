@@ -1,0 +1,41 @@
+{
+    "contract": "OPUS_MODEL_SCHEMA_V1",
+    "model": "owasys_application_datasource",
+    "storage": {
+        "datasource": "owasys_registry",
+        "access": "model_then_odbc",
+        "engine": "sqlite3",
+        "table": "owasys_application_datasources"
+    },
+    "fields": {
+        "id": {
+            "type": "string",
+            "required": true,
+            "max_length": 96
+        },
+        "application_id": {
+            "type": "string",
+            "required": true,
+            "max_length": 64
+        },
+        "label": {
+            "type": "string",
+            "required": true,
+            "max_length": 160
+        },
+        "engine": {
+            "type": "string",
+            "required": true,
+            "max_length": 64
+        },
+        "access": {
+            "type": "string",
+            "required": true,
+            "max_length": 64
+        },
+        "silent_fallback": {
+            "type": "boolean",
+            "required": true
+        }
+    }
+}
