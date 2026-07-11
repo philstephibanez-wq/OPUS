@@ -7,41 +7,55 @@ declare(strict_types=1);
  */
 return [
     'title' => 'Build & Validate',
-    'badge' => 'Build',
-    'summary' => 'Generation, validation and export of OPUS application skeletons.',
+    'badge' => 'Creation contracts',
+    'summary' => 'Generate, validate and export OPUS application skeletons through explicit OWASYS contracts.',
     'sections' => [
-        'Skeleton generation',
+        'Creation request',
+        'Scaffold plan',
         'Validation',
         'Manifest',
         'Export',
     ],
     'cards' => [
         [
-            'title' => 'Validation commands',
-            'body' => 'OWASYS keeps generated site validation explicit and reproducible.',
+            'title' => 'Creation request contract',
+            'body' => 'OWASYS now has a typed contract for OPUS application creation requests before any file is generated.',
             'items' => [
-                'php tools/smoke_opus_site_contract_eternal.php',
-                'php bin/opus validate:site <site>',
+                'config/create-application.contract.json',
+                'application/default/models/application-request.model.json',
+                'silent_fallback: false',
             ],
         ],
         [
-            'title' => 'Clean deliverables',
-            'body' => 'Generated deliverables must exclude caches, temporary extraction folders and runtime mutable databases.',
+            'title' => 'Scaffold plan',
+            'body' => 'Generation is split into a plan phase before write operations, so directories and files can be validated first.',
             'items' => [
-                'no cache',
-                'no temporary folders',
+                'config/scaffold-plan.schema.json',
+                'application/default/models/scaffold-plan.model.json',
+                'forbidden roots: public, src, resources',
+            ],
+        ],
+        [
+            'title' => 'Clean export policy',
+            'body' => 'Generated deliverables must exclude caches, temporary extraction folders, logs and runtime mutable databases.',
+            'items' => [
+                'config/export-policy.json',
                 'runtime SQLite excluded',
+                'manifest required',
             ],
         ],
     ],
     'contracts' => [
-        'OWASYS_VALIDATION_POLICY_V1',
+        'OWASYS_CREATE_APPLICATION_CONTRACT_V1',
+        'OWASYS_SCAFFOLD_PLAN_SCHEMA_V1',
+        'OWASYS_EXPORT_POLICY_V1',
         'OPUS_SITE_APPLICATION_TREE_V1_ETERNAL',
     ],
     'actions' => [
-        'Generate skeleton',
-        'Run validation',
-        'Create manifest',
-        'Create export zip',
+        'Validate application creation request',
+        'Generate scaffold plan',
+        'Write standard OPUS site tree',
+        'Run OPUS site validation',
+        'Create clean export manifest and zip',
     ],
 ];
