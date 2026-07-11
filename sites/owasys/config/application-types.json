@@ -1,0 +1,46 @@
+{
+    "contract": "OWASYS_APPLICATION_TYPES_V1",
+    "types": [
+        {
+            "id": "fullstack",
+            "label": "Fullstack OPUS application",
+            "description": "Application with OPUS backend, templates, public entry and assets.",
+            "roots": [
+                "config",
+                "application",
+                "www",
+                "var"
+            ]
+        },
+        {
+            "id": "frontend",
+            "label": "Frontend OPUS application",
+            "description": "Presentation application consuming existing services or APIs.",
+            "roots": [
+                "config",
+                "application",
+                "www"
+            ]
+        },
+        {
+            "id": "backend",
+            "label": "Backend OPUS application",
+            "description": "API or service application exposing typed contracts.",
+            "roots": [
+                "config",
+                "application",
+                "www",
+                "var"
+            ]
+        },
+        {
+            "id": "package",
+            "label": "OPUS package",
+            "description": "Reusable package installed through the OPUS package directory.",
+            "roots": [
+                "config",
+                "application"
+            ]
+        }
+    ]
+}
