@@ -1,0 +1,34 @@
+{
+    "contract": "OPUS_MODEL_SCHEMA_V1",
+    "model": "owasys_security_profile",
+    "storage": {
+        "datasource": "owasys_registry",
+        "access": "model_then_odbc",
+        "engine": "sqlite3",
+        "table": "owasys_security_profiles"
+    },
+    "fields": {
+        "id": {
+            "type": "string",
+            "required": true,
+            "max_length": 96
+        },
+        "application_id": {
+            "type": "string",
+            "required": true,
+            "max_length": 64
+        },
+        "profile": {
+            "type": "enum",
+            "values": [
+                "admin",
+                "dev"
+            ]
+        },
+        "permissions_json": {
+            "type": "json",
+            "required": true,
+            "max_bytes": 65535
+        }
+    }
+}
