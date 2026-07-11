@@ -4,13 +4,19 @@
     "storage": {
         "datasource": "owasys_registry",
         "access": "model_then_odbc",
-        "engine": "sqlite3"
+        "engine": "sqlite3",
+        "table": "owasys_applications"
     },
     "fields": {
         "id": {
             "type": "string",
             "required": true,
             "max_length": 64
+        },
+        "slug": {
+            "type": "slug",
+            "required": true,
+            "max_length": 96
         },
         "name": {
             "type": "string",
@@ -28,11 +34,43 @@
         },
         "root_path": {
             "type": "path",
-            "required": true
+            "required": true,
+            "max_length": 260
+        },
+        "public_root": {
+            "type": "string",
+            "required": true,
+            "max_length": 64
+        },
+        "default_locale": {
+            "type": "locale",
+            "required": true,
+            "exact_length": 2
+        },
+        "theme": {
+            "type": "string",
+            "required": true,
+            "max_length": 96
         },
         "local_url": {
             "type": "url",
-            "required": false
+            "required": false,
+            "max_length": 255
+        },
+        "git_remote": {
+            "type": "url",
+            "required": false,
+            "max_length": 255
+        },
+        "git_branch": {
+            "type": "string",
+            "required": false,
+            "max_length": 96
+        },
+        "composer_package": {
+            "type": "string",
+            "required": false,
+            "max_length": 160
         },
         "status": {
             "type": "enum",
@@ -44,10 +82,6 @@
                 "exported",
                 "archived"
             ]
-        },
-        "opus_version": {
-            "type": "string",
-            "required": true
         },
         "created_at": {
             "type": "datetime",
