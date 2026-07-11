@@ -1,0 +1,64 @@
+{
+    "contract": "OPUS_MODEL_SCHEMA_V1",
+    "model": "owasys_scaffold_plan",
+    "storage": {
+        "source": "config/scaffold-plan.schema.json",
+        "runtime_table": "owasys_scaffold_plans",
+        "datasource": "owasys_registry",
+        "access": "model_then_odbc",
+        "engine": "sqlite3"
+    },
+    "fields": {
+        "id": {
+            "type": "string",
+            "required": true,
+            "max_length": 96
+        },
+        "application_request_id": {
+            "type": "string",
+            "required": true,
+            "max_length": 64
+        },
+        "site_id": {
+            "type": "string",
+            "required": true,
+            "max_length": 64
+        },
+        "site_root": {
+            "type": "path",
+            "required": true,
+            "max_length": 260
+        },
+        "contract": {
+            "type": "string",
+            "required": true,
+            "exact_value": "OPUS_SITE_APPLICATION_TREE_V1_ETERNAL"
+        },
+        "directories_json": {
+            "type": "json",
+            "required": true,
+            "max_bytes": 65535
+        },
+        "files_json": {
+            "type": "json",
+            "required": true,
+            "max_bytes": 1048576
+        },
+        "validation_commands_json": {
+            "type": "json",
+            "required": true,
+            "max_bytes": 65535
+        },
+        "status": {
+            "type": "enum",
+            "values": [
+                "draft",
+                "planned",
+                "written",
+                "validated",
+                "exported",
+                "failed"
+            ]
+        }
+    }
+}
