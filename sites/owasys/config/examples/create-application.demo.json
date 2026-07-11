@@ -1,0 +1,36 @@
+{
+    "id": "demo_app",
+    "slug": "demo-app",
+    "name": "Demo OPUS Application",
+    "kind": "fullstack",
+    "root_path": "sites/demo-app",
+    "blueprint": "opus-site-standard",
+    "default_locale": "fr",
+    "theme": "starter",
+    "controllers": [
+        "home",
+        "articles"
+    ],
+    "routes": [
+        {
+            "id": "home.index",
+            "path": "/",
+            "controller": "home"
+        },
+        {
+            "id": "articles.index",
+            "path": "/articles",
+            "controller": "articles"
+        }
+    ],
+    "datasources": [],
+    "security_profiles": [
+        {
+            "id": "admin",
+            "permissions": [
+                "*"
+            ]
+        }
+    ],
+    "workflows": []
+}
