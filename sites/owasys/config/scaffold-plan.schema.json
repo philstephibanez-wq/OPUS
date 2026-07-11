@@ -1,0 +1,87 @@
+{
+    "contract": "OWASYS_SCAFFOLD_PLAN_SCHEMA_V1",
+    "purpose": "Define the typed scaffold plan generated from an OWASYS application creation request before files are written.",
+    "silent_fallback": false,
+    "plan_fields": {
+        "site_id": {
+            "type": "string",
+            "required": true,
+            "max_length": 64
+        },
+        "site_root": {
+            "type": "path",
+            "required": true,
+            "max_length": 260
+        },
+        "contract": {
+            "type": "string",
+            "required": true,
+            "exact_value": "OPUS_SITE_APPLICATION_TREE_V1_ETERNAL"
+        },
+        "directories": {
+            "type": "list[path]",
+            "required": true,
+            "min_items": 8
+        },
+        "files": {
+            "type": "list[object]",
+            "required": true,
+            "min_items": 4,
+            "item_fields": {
+                "path": {
+                    "type": "path",
+                    "required": true,
+                    "max_length": 260
+                },
+                "kind": {
+                    "type": "enum",
+                    "values": [
+                        "json",
+                        "php-view-model",
+                        "score-template",
+                        "css",
+                        "javascript",
+                        "gitkeep",
+                        "sql",
+                        "markdown"
+                    ]
+                },
+                "content_source": {
+                    "type": "enum",
+                    "values": [
+                        "generated",
+                        "blueprint",
+                        "user-request",
+                        "static-contract"
+                    ]
+                }
+            }
+        }
+    },
+    "required_directories": [
+        "config",
+        "application",
+        "application/default",
+        "application/default/acl",
+        "application/default/helpers",
+        "application/default/css",
+        "application/default/javascript",
+        "application/default/local/fr",
+        "application/default/models",
+        "application/default/templates",
+        "application/default/views",
+        "www",
+        "www/asset",
+        "www/asset/css",
+        "www/asset/js",
+        "www/asset/themes/<theme>"
+    ],
+    "forbidden_directories": [
+        "public",
+        "src",
+        "resources",
+        "application/common",
+        "application/pages",
+        "application/config"
+    ]
+}
