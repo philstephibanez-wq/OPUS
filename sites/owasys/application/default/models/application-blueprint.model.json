@@ -1,0 +1,28 @@
+{
+    "contract": "OPUS_MODEL_SCHEMA_V1",
+    "model": "owasys_application_blueprint",
+    "storage": {
+        "source": "config/blueprints.json"
+    },
+    "fields": {
+        "id": {
+            "type": "string",
+            "required": true,
+            "max_length": 96
+        },
+        "label": {
+            "type": "string",
+            "required": true,
+            "max_length": 160
+        },
+        "application_type": {
+            "type": "string",
+            "required": true,
+            "max_length": 64
+        },
+        "forbidden_inside_owasys": {
+            "type": "boolean",
+            "required": false
+        }
+    }
+}
