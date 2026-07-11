@@ -8,8 +8,11 @@
             "access": "odbc",
             "dsn": "OWASYS_REGISTRY_SQLITE",
             "database": "var/registry/owasys.sqlite",
+            "schema": "config/registry.schema.sql",
+            "seed": "config/registry.seed.json",
             "model_required": true,
-            "silent_fallback": false
+            "silent_fallback": false,
+            "commit_runtime_database": false
         }
     ]
 }
