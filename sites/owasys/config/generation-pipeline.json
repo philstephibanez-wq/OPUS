@@ -1,0 +1,30 @@
+{
+    "contract": "OWASYS_GENERATION_PIPELINE_V1",
+    "pipeline": [
+        {
+            "id": "load-request",
+            "label": "Load requested application specification"
+        },
+        {
+            "id": "secure-request",
+            "label": "Validate identity, profile and permissions"
+        },
+        {
+            "id": "transform-blueprint",
+            "label": "Transform blueprint into OPUS site tree"
+        },
+        {
+            "id": "store-registry",
+            "label": "Store generated application metadata in registry"
+        },
+        {
+            "id": "validate-site",
+            "label": "Run OPUS site validation"
+        },
+        {
+            "id": "export",
+            "label": "Export installable deliverable"
+        }
+    ],
+    "silent_fallback": false
+}
