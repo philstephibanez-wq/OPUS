@@ -1,0 +1,51 @@
+{
+    "contract": "OWASYS_EXPORT_POLICY_V1",
+    "purpose": "Guarantee that generated OPUS application deliverables are clean, reproducible and free of runtime residue.",
+    "silent_fallback": false,
+    "include": [
+        "config/**",
+        "application/**",
+        "www/index.php",
+        "www/asset/**",
+        "composer.json",
+        "README.md",
+        "DOC/**"
+    ],
+    "exclude": [
+        "vendor/**",
+        "var/cache/**",
+        "var/tmp/**",
+        "var/log/**",
+        "var/registry/*.sqlite",
+        "var/registry/*.sqlite-shm",
+        "var/registry/*.sqlite-wal",
+        "*.zip",
+        "*.bak",
+        "*.tmp"
+    ],
+    "manifest": {
+        "required": true,
+        "path": "MANIFEST.json",
+        "fields": [
+            "application_id",
+            "application_name",
+            "opus_version",
+            "contract",
+            "generated_at",
+            "source_blueprint",
+            "validation_status",
+            "files"
+        ]
+    },
+    "validation_before_export": [
+        "php tools/smoke_opus_site_contract_eternal.php",
+        "php bin/opus validate:site <generated-site>"
+    ],
+    "forbidden_after_export": [
+        "cache directories",
+        "temporary extraction folders",
+        "runtime SQLite database",
+        "logs",
+        "local machine absolute paths"
+    ]
+}
