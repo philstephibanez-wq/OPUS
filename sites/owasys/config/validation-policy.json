@@ -1,0 +1,15 @@
+{
+    "contract": "OWASYS_VALIDATION_POLICY_V1",
+    "required_checks": [
+        "OPUS_SITE_APPLICATION_TREE_V1_ETERNAL",
+        "no_src_directory",
+        "no_public_directory",
+        "routes_resolve_to_application_controllers",
+        "menu_contains_exactly_7_owasys_items",
+        "runtime_database_not_committed"
+    ],
+    "commands": [
+        "php tools/smoke_opus_site_contract_eternal.php",
+        "php bin/opus validate:site owasys"
+    ]
+}
