@@ -1,0 +1,85 @@
+{
+    "contract": "OPUS_MODEL_SCHEMA_V1",
+    "model": "owasys_application_request",
+    "storage": {
+        "source": "config/create-application.contract.json",
+        "runtime_table": "owasys_application_requests",
+        "datasource": "owasys_registry",
+        "access": "model_then_odbc",
+        "engine": "sqlite3"
+    },
+    "fields": {
+        "id": {
+            "type": "string",
+            "required": true,
+            "min_length": 3,
+            "max_length": 64
+        },
+        "slug": {
+            "type": "slug",
+            "required": true,
+            "min_length": 3,
+            "max_length": 96
+        },
+        "name": {
+            "type": "string",
+            "required": true,
+            "min_length": 3,
+            "max_length": 160
+        },
+        "kind": {
+            "type": "enum",
+            "values": [
+                "fullstack",
+                "frontend",
+                "backend",
+                "package"
+            ]
+        },
+        "root_path": {
+            "type": "path",
+            "required": true,
+            "max_length": 260
+        },
+        "blueprint": {
+            "type": "string",
+            "required": true,
+            "max_length": 96
+        },
+        "default_locale": {
+            "type": "locale",
+            "required": true,
+            "exact_length": 2
+        },
+        "theme": {
+            "type": "string",
+            "required": true,
+            "max_length": 96
+        },
+        "routes_json": {
+            "type": "json",
+            "required": true,
+            "max_bytes": 65535
+        },
+        "controllers_json": {
+            "type": "json",
+            "required": true,
+            "max_bytes": 65535
+        },
+        "datasources_json": {
+            "type": "json",
+            "required": true,
+            "max_bytes": 65535
+        },
+        "security_profiles_json": {
+            "type": "json",
+            "required": true,
+            "max_bytes": 65535
+        },
+        "workflows_json": {
+            "type": "json",
+            "required": true,
+            "max_bytes": 65535
+        }
+    }
+}
