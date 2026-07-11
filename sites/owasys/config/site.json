@@ -60,5 +60,23 @@
         "application/default/javascript",
         "www/asset/themes/<theme>/js",
         "application/<controller>/javascript"
+    ],
+    "owasys_stage": "registry-foundation",
+    "registry": {
+        "datasource": "owasys_registry",
+        "schema": "config/registry.schema.sql",
+        "seed": "config/registry.seed.json",
+        "model": "application/default/models/application-registry.model.json",
+        "runtime_database": "var/registry/owasys.sqlite",
+        "commit_runtime_database": false
+    },
+    "capabilities": [
+        "application_registry",
+        "application_blueprints",
+        "structure_configuration",
+        "datasource_configuration",
+        "workflow_configuration",
+        "security_profiles",
+        "build_validation"
     ]
 }
