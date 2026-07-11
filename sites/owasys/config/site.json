@@ -61,7 +61,7 @@
         "www/asset/themes/<theme>/js",
         "application/<controller>/javascript"
     ],
-    "owasys_stage": "registry-foundation",
+    "owasys_stage": "application-creation-contracts",
     "registry": {
         "datasource": "owasys_registry",
         "schema": "config/registry.schema.sql",
@@ -70,13 +70,24 @@
         "runtime_database": "var/registry/owasys.sqlite",
         "commit_runtime_database": false
     },
+    "creation": {
+        "contract": "config/create-application.contract.json",
+        "scaffold_plan_schema": "config/scaffold-plan.schema.json",
+        "export_policy": "config/export-policy.json",
+        "request_model": "application/default/models/application-request.model.json",
+        "plan_model": "application/default/models/scaffold-plan.model.json",
+        "runtime_execution": "explicit-command-only"
+    },
     "capabilities": [
         "application_registry",
         "application_blueprints",
+        "application_creation_contracts",
+        "scaffold_plans",
         "structure_configuration",
         "datasource_configuration",
         "workflow_configuration",
         "security_profiles",
-        "build_validation"
+        "build_validation",
+        "export_policy"
     ]
 }
