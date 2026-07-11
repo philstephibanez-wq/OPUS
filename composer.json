@@ -29,7 +29,8 @@
         "opus:list-routes": "@php bin/opus list:routes",
         "opus:create-page": "@php bin/opus create:page",
         "opus:create-rubric": "@php bin/opus create:rubric",
-        "opus:smoke-site-contract": "@php tools/smoke_opus_site_contract_eternal.php"
+        "opus:smoke-site-contract": "@php tools/smoke_opus_site_contract_eternal.php",
+        "owasys:smoke-scaffold-plan": "@php tools/smoke_owasys_scaffold_plan_builder.php"
     },
     "repositories": [
         {
