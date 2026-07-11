@@ -1,0 +1,16 @@
+{
+    "contract": "OWASYS_REGISTRY_SEED_V1",
+    "applications": [
+        {
+            "id": "owasys",
+            "slug": "owasys",
+            "name": "OPUS OWASYS",
+            "kind": "fullstack",
+            "root_path": "sites/owasys",
+            "public_root": "www",
+            "default_locale": "fr",
+            "theme": "owasys",
+            "status": "validated"
+        }
+    ]
+}
