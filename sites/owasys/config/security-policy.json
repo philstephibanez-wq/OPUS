@@ -1,0 +1,28 @@
+{
+    "contract": "OWASYS_SECURITY_POLICY_V1",
+    "profiles": {
+        "admin": {
+            "can": [
+                "registry.create",
+                "registry.update",
+                "registry.delete",
+                "blueprint.configure",
+                "build.generate",
+                "build.validate",
+                "export.create"
+            ]
+        },
+        "dev": {
+            "can": [
+                "registry.create_draft",
+                "structure.configure",
+                "data.configure",
+                "workflows.configure",
+                "security.configure_draft",
+                "build.validate"
+            ]
+        }
+    },
+    "session_strategy": "explicit",
+    "audit_strategy": "mandatory_for_write_actions"
+}
