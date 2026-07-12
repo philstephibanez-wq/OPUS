@@ -1,0 +1,48 @@
+{
+    "id": "showcase-app",
+    "slug": "showcase-app",
+    "name": "OPUS Showcase Application",
+    "kind": "fullstack",
+    "root_path": "sites/showcase-app",
+    "blueprint": "opus-demo-standard",
+    "default_locale": "fr",
+    "theme": "starter",
+    "controllers": [
+        "home",
+        "articles",
+        "about",
+        "contact"
+    ],
+    "routes": [
+        {
+            "id": "home.index",
+            "path": "/",
+            "controller": "home"
+        },
+        {
+            "id": "articles.index",
+            "path": "/articles",
+            "controller": "articles"
+        },
+        {
+            "id": "about.index",
+            "path": "/about",
+            "controller": "about"
+        },
+        {
+            "id": "contact.index",
+            "path": "/contact",
+            "controller": "contact"
+        }
+    ],
+    "datasources": [],
+    "security_profiles": [
+        {
+            "id": "admin",
+            "permissions": [
+                "*"
+            ]
+        }
+    ],
+    "workflows": []
+}
