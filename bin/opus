@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use Opus\Owasys\ApplicationCreator;
+use Opus\Owasys\ApplicationExporter;
 use Opus\Scaffold\ScaffoldWriter;
 use Opus\Scaffold\SiteScaffoldPlan;
 
@@ -300,6 +301,14 @@ function opus_cli_print_application_create_result(array $result, bool $write): v
     }
 }
 
+function opus_cli_print_application_export_result(array $summary): void
+{
+    echo "OWASYS_APPLICATION_EXPORT_OK: " . (string) ($summary['output_zip'] ?? '') . "\n";
+    echo "OWASYS_APPLICATION_EXPORT_FILES=" . (int) ($summary['files'] ?? 0) . "\n";
+    echo "OWASYS_APPLICATION_EXPORT_BYTES=" . (int) ($summary['bytes'] ?? 0) . "\n";
+    echo "OWASYS_APPLICATION_EXPORT_MANIFEST=" . (string) ($summary['manifest_path'] ?? '') . "\n";
+}
+
 if ($command === 'help' || $command === '--help' || $command === '-h') {
     echo "OPUS CLI\n";
     echo "Usage:\n";
@@ -308,6 +317,7 @@ if ($command === 'help' || $command === '--help' || $command === '-h') {
     echo "  php bin/opus validate:site SITE_ID\n";
     echo "  php bin/opus serve:site SITE_ID [--host=127.0.0.1] [--port=8090]\n";
     echo "  php bin/opus owasys:create REQUEST_JSON [--dry-run|--write] [--validate]\n";
+    echo "  php bin/opus owasys:export SITE_ID [OUTPUT_ZIP] [--overwrite]\n";
     exit(0);
 }
 
@@ -340,6 +350,37 @@ if ($command === 'owasys:create') {
     try {
         $result = (new ApplicationCreator($root))->create($request, $write, $validate);
         opus_cli_print_application_create_result($result, $write);
+        exit(0);
+    } catch (Throwable $exception) {
+        fwrite(STDERR, $exception->getMessage() . "\n");
+        exit(1);
+    }
+}
+
+if ($command === 'owasys:export') {
+    if ($target === '') {
+        fwrite(STDERR, "OWASYS_APPLICATION_EXPORT_SITE_ID_REQUIRED\n");
+        exit(1);
+    }
+
+    opus_cli_validate_site_id($target);
+
+    $overwrite = in_array('--overwrite', $args, true);
+    $outputZip = '';
+    foreach ($args as $arg) {
+        if (str_starts_with($arg, '--')) {
+            continue;
+        }
+        $outputZip = (string) $arg;
+        break;
+    }
+    if ($outputZip === '') {
+        $outputZip = 'var/owasys-export/' . $target . '.zip';
+    }
+
+    try {
+        $summary = (new ApplicationExporter($root))->export($target, $outputZip, $overwrite);
+        opus_cli_print_application_export_result($summary);
         exit(0);
     } catch (Throwable $exception) {
         fwrite(STDERR, $exception->getMessage() . "\n");
