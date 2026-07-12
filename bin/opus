@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use Opus\Owasys\ApplicationCreator;
 use Opus\Scaffold\ScaffoldWriter;
 use Opus\Scaffold\SiteScaffoldPlan;
 
@@ -211,8 +212,8 @@ function opus_dev_profiler_render_page(string $siteRoot): void
         $trace = opus_dev_profiler_read_trace($file);
         $traceId = (string) ($trace['trace_id'] ?? pathinfo($file, PATHINFO_FILENAME));
         $status = (string) ($trace['summary']['status'] ?? 'n/a');
-        $path = (string) ($trace['summary']['path'] ?? '');
-        echo '<a class="trace" href="/_opus/profiler?trace=' . rawurlencode($traceId) . '"><strong>' . opus_dev_profiler_html_escape($traceId) . '</strong><br><span class="muted">' . opus_dev_profiler_html_escape($status . ' ' . $path) . '</span></a>';
+        $tracePath = (string) ($trace['summary']['path'] ?? '');
+        echo '<a class="trace" href="/_opus/profiler?trace=' . rawurlencode($traceId) . '"><strong>' . opus_dev_profiler_html_escape($traceId) . '</strong><br><span class="muted">' . opus_dev_profiler_html_escape($status . ' ' . $tracePath) . '</span></a>';
     }
     echo '</aside><section class="card"><h2>Détail</h2>';
     if (!$selected) {
@@ -270,6 +271,35 @@ PHP_ROUTER;
     return $routerPath;
 }
 
+function opus_cli_print_application_create_result(array $result, bool $write): void
+{
+    $siteRoot = (string) ($result['site_root'] ?? '');
+    $dryRunSummary = is_array($result['dry_run'] ?? null) ? $result['dry_run'] : [];
+
+    if (!$write) {
+        echo "OWASYS_APPLICATION_CREATE_DRY_RUN_OK: {$siteRoot}\n";
+        echo "OWASYS_APPLICATION_CREATE_DIRECTORIES=" . (int) ($dryRunSummary['directories'] ?? 0) . "\n";
+        echo "OWASYS_APPLICATION_CREATE_FILES=" . (int) ($dryRunSummary['files'] ?? 0) . "\n";
+        return;
+    }
+
+    $writeSummary = is_array($result['write'] ?? null) ? $result['write'] : [];
+    $validation = is_array($result['validation'] ?? null) ? $result['validation'] : [];
+    $manifest = is_array($result['manifest'] ?? null) ? $result['manifest'] : [];
+
+    echo "OWASYS_APPLICATION_CREATE_WRITE_OK: {$siteRoot}\n";
+    echo "OWASYS_APPLICATION_CREATE_DIRECTORIES=" . (int) ($writeSummary['directories'] ?? 0) . "\n";
+    echo "OWASYS_APPLICATION_CREATE_FILES=" . (int) ($writeSummary['files'] ?? 0) . "\n";
+
+    if (($validation['status'] ?? null) === 'ok') {
+        echo "OWASYS_APPLICATION_CREATE_VALIDATE_OK: " . (string) ($validation['site_id'] ?? '') . "\n";
+    }
+
+    if (isset($manifest['path'])) {
+        echo "OWASYS_APPLICATION_CREATE_MANIFEST=" . (string) $manifest['path'] . "\n";
+    }
+}
+
 if ($command === 'help' || $command === '--help' || $command === '-h') {
     echo "OPUS CLI\n";
     echo "Usage:\n";
@@ -277,7 +307,44 @@ if ($command === 'help' || $command === '--help' || $command === '-h') {
     echo "  php bin/opus create:site SITE_ID\n";
     echo "  php bin/opus validate:site SITE_ID\n";
     echo "  php bin/opus serve:site SITE_ID [--host=127.0.0.1] [--port=8090]\n";
+    echo "  php bin/opus owasys:create REQUEST_JSON [--dry-run|--write] [--validate]\n";
     exit(0);
+}
+
+if ($command === 'owasys:create') {
+    if ($target === '') {
+        fwrite(STDERR, "OWASYS_APPLICATION_CREATE_REQUEST_REQUIRED\n");
+        exit(1);
+    }
+
+    $write = in_array('--write', $args, true);
+    $dryRun = in_array('--dry-run', $args, true);
+    $validate = in_array('--validate', $args, true);
+
+    if ($write && $dryRun) {
+        fwrite(STDERR, "OWASYS_APPLICATION_CREATE_MODE_CONFLICT\n");
+        exit(1);
+    }
+
+    if (!is_file($target)) {
+        fwrite(STDERR, "OWASYS_APPLICATION_CREATE_REQUEST_NOT_FOUND: {$target}\n");
+        exit(1);
+    }
+
+    $request = json_decode((string) file_get_contents($target), true);
+    if (!is_array($request)) {
+        fwrite(STDERR, "OWASYS_APPLICATION_CREATE_REQUEST_JSON_INVALID: {$target}\n");
+        exit(1);
+    }
+
+    try {
+        $result = (new ApplicationCreator($root))->create($request, $write, $validate);
+        opus_cli_print_application_create_result($result, $write);
+        exit(0);
+    } catch (Throwable $exception) {
+        fwrite(STDERR, $exception->getMessage() . "\n");
+        exit(1);
+    }
 }
 
 if ($command === 'create:site') {
