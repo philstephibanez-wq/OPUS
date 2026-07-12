@@ -1,5 +1,5 @@
 {
-    "id": "demo_app",
+    "id": "demo-app",
     "slug": "demo-app",
     "name": "Demo OPUS Application",
     "kind": "fullstack",
