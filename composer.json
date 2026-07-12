@@ -38,7 +38,8 @@
         "owasys:smoke-bin-opus-create": "@php tools/smoke_owasys_bin_opus_create.php",
         "owasys:smoke-application-exporter": "@php tools/smoke_owasys_application_exporter.php",
         "owasys:smoke-bin-opus-export": "@php tools/smoke_owasys_bin_opus_export.php",
-        "owasys:smoke-registry-naming": "@php tools/smoke_owasys_registry_naming.php"
+        "owasys:smoke-registry-naming": "@php tools/smoke_owasys_registry_naming.php",
+        "owasys:smoke-showcase-blueprint": "@php tools/smoke_owasys_showcase_blueprint.php"
     },
     "repositories": [
         {
