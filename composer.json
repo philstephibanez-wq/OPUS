@@ -23,6 +23,7 @@
         "opus": "@php bin/opus",
         "opus:create-application": "@php bin/opus create:application",
         "opus:create-site": "@php bin/opus create:site",
+        "opus:owasys-create": "@php bin/opus owasys:create",
         "opus:add-language": "@php bin/opus add:language",
         "opus:serve-site": "@php bin/opus serve:site",
         "opus:validate-site": "@php bin/opus validate:site",
@@ -32,7 +33,8 @@
         "opus:smoke-site-contract": "@php tools/smoke_opus_site_contract_eternal.php",
         "owasys:smoke-scaffold-plan": "@php tools/smoke_owasys_scaffold_plan_builder.php",
         "owasys:smoke-scaffold-writer": "@php tools/smoke_owasys_application_scaffold_writer.php",
-        "owasys:smoke-application-creator": "@php tools/smoke_owasys_application_creator.php"
+        "owasys:smoke-application-creator": "@php tools/smoke_owasys_application_creator.php",
+        "owasys:smoke-bin-opus-create": "@php tools/smoke_owasys_bin_opus_create.php"
     },
     "repositories": [
         {
