@@ -24,6 +24,7 @@
         "opus:create-application": "@php bin/opus create:application",
         "opus:create-site": "@php bin/opus create:site",
         "opus:owasys-create": "@php bin/opus owasys:create",
+        "opus:owasys-export": "@php bin/opus owasys:export",
         "opus:add-language": "@php bin/opus add:language",
         "opus:serve-site": "@php bin/opus serve:site",
         "opus:validate-site": "@php bin/opus validate:site",
@@ -35,7 +36,8 @@
         "owasys:smoke-scaffold-writer": "@php tools/smoke_owasys_application_scaffold_writer.php",
         "owasys:smoke-application-creator": "@php tools/smoke_owasys_application_creator.php",
         "owasys:smoke-bin-opus-create": "@php tools/smoke_owasys_bin_opus_create.php",
-        "owasys:smoke-application-exporter": "@php tools/smoke_owasys_application_exporter.php"
+        "owasys:smoke-application-exporter": "@php tools/smoke_owasys_application_exporter.php",
+        "owasys:smoke-bin-opus-export": "@php tools/smoke_owasys_bin_opus_export.php"
     },
     "repositories": [
         {
