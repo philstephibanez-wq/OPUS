@@ -20,6 +20,35 @@
             ]
         },
         {
+            "id": "opus-demo-standard",
+            "label": "Presentable OPUS demo site",
+            "application_type": "fullstack",
+            "purpose": "Generate a more complete showcase app with navigation, content sections, cards, theme styling and 404 rendering.",
+            "recommended_controllers": [
+                "home",
+                "articles",
+                "about",
+                "contact"
+            ],
+            "creates": [
+                "config/site.json",
+                "config/routes.json",
+                "config/menu.json",
+                "application/default",
+                "application/home",
+                "application/articles",
+                "application/about",
+                "application/contact",
+                "www/index.php",
+                "www/asset/themes/starter"
+            ],
+            "forbidden": [
+                "src",
+                "public",
+                "resources"
+            ]
+        },
+        {
             "id": "opus-refbook-app",
             "label": "Reference Book application",
             "application_type": "fullstack",
