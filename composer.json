@@ -31,7 +31,8 @@
         "opus:create-rubric": "@php bin/opus create:rubric",
         "opus:smoke-site-contract": "@php tools/smoke_opus_site_contract_eternal.php",
         "owasys:smoke-scaffold-plan": "@php tools/smoke_owasys_scaffold_plan_builder.php",
-        "owasys:smoke-scaffold-writer": "@php tools/smoke_owasys_application_scaffold_writer.php"
+        "owasys:smoke-scaffold-writer": "@php tools/smoke_owasys_application_scaffold_writer.php",
+        "owasys:smoke-application-creator": "@php tools/smoke_owasys_application_creator.php"
     },
     "repositories": [
         {
