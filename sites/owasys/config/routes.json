@@ -14,12 +14,12 @@
             "order": 10
         },
         {
-            "id": "applications.index",
+            "id": "registry.index",
             "path": "/applications",
-            "controller": "applications",
+            "controller": "registry",
             "class": null,
-            "template": "application/applications/templates/index.score",
-            "view": "application/applications/views/index.php",
+            "template": "application/registry/templates/index.score",
+            "view": "application/registry/views/index.php",
             "label": "menu.applications",
             "group": "OWASYS",
             "show_in_menu": true,
