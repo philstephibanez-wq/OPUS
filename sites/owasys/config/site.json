@@ -43,7 +43,7 @@
     "application_roots": [
         "default",
         "home",
-        "applications",
+        "registry",
         "structure",
         "data",
         "workflows",
