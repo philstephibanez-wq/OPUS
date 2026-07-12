@@ -32,6 +32,7 @@ final class ScaffoldPlanBuilder
         $name = $this->requiredString($request, 'name', 3, 160);
         $kind = $this->requiredEnum($request, 'kind', self::ALLOWED_KINDS);
         $rootPath = $this->requiredPath($request, 'root_path', 3, 260);
+        $this->assertSiteRootMatchesSiteId($id, $rootPath);
         $blueprint = $this->requiredString($request, 'blueprint', 3, 96);
         $defaultLocale = $this->requiredPattern($request, 'default_locale', '/^[a-z]{2}$/', 2, 2);
         $theme = $this->requiredPattern($request, 'theme', '/^[a-z0-9][a-z0-9_-]*$/', 3, 96);
@@ -72,6 +73,17 @@ final class ScaffoldPlanBuilder
             ],
             'forbidden_output_roots' => ['public', 'src', 'resources'],
         ];
+    }
+
+    /**
+     * Ensures OWASYS site identifiers and OPUS site folders stay aligned.
+     */
+    private function assertSiteRootMatchesSiteId(string $siteId, string $rootPath): void
+    {
+        $expected = 'sites/' . $siteId;
+        if ($rootPath !== $expected) {
+            throw new InvalidArgumentException('OWASYS_SITE_ROOT_MUST_MATCH_SITE_ID: ' . $expected);
+        }
     }
 
     /**
