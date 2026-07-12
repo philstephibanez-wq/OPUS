@@ -1,0 +1,30 @@
+{
+    "contract": "OPUS_SITE_APPLICATION_TREE_V1_ETERNAL",
+    "site_id": "demo-app",
+    "site_name": "Demo OPUS Application",
+    "role": "generated-opus-application",
+    "kind": "fullstack",
+    "blueprint": "opus-site-standard",
+    "default_locale": "fr",
+    "locales": [
+        "fr"
+    ],
+    "theme": "starter",
+    "public_root": "www",
+    "application_root": "application",
+    "default_root": "application/default",
+    "asset_root": "www/asset",
+    "theme_root_pattern": "www/asset/themes/<theme>",
+    "src_directory_allowed": false,
+    "css_inheritance": [
+        "application/default/css",
+        "www/asset/themes/<theme>/css",
+        "application/<controller>/css"
+    ],
+    "js_inheritance": [
+        "application/default/javascript",
+        "www/asset/themes/<theme>/js",
+        "application/<controller>/javascript"
+    ],
+    "generated_by": "owasys"
+}

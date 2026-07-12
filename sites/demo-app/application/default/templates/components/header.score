@@ -1,0 +1,1 @@
+<header class="opus-header"><h1>{{ site.name }}</h1><nav>{{{ common.menu }}}</nav></header>

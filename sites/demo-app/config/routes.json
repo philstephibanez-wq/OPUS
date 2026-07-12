@@ -1,0 +1,27 @@
+{
+    "contract": "OPUS_ROUTE_REGISTRY_V1",
+    "routes": [
+        {
+            "id": "home.index",
+            "path": "/",
+            "controller": "home",
+            "class": null,
+            "template": "application/home/templates/index.score",
+            "view": "application/home/views/index.php",
+            "label": "menu.home",
+            "show_in_menu": true,
+            "order": 10
+        },
+        {
+            "id": "articles.index",
+            "path": "/articles",
+            "controller": "articles",
+            "class": null,
+            "template": "application/articles/templates/index.score",
+            "view": "application/articles/views/index.php",
+            "label": "menu.articles",
+            "show_in_menu": true,
+            "order": 20
+        }
+    ]
+}

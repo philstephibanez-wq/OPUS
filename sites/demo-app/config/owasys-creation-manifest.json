@@ -1,0 +1,36 @@
+{
+    "contract": "OWASYS_APPLICATION_CREATION_MANIFEST_V1",
+    "generator": "Opus\\Owasys\\ApplicationCreator",
+    "generated_at_utc": "2026-07-12T09:46:50+00:00",
+    "site_id": "demo-app",
+    "site_root": "sites/demo-app",
+    "site_contract": "OPUS_SITE_APPLICATION_TREE_V1_ETERNAL",
+    "owasys_plan_contract": "OWASYS_SCAFFOLD_PLAN_V1",
+    "blueprint": "opus-site-standard",
+    "dry_run": {
+        "mode": "dry-run",
+        "site_id": "demo-app",
+        "site_root": "sites/demo-app",
+        "directories": 43,
+        "files": 24
+    },
+    "write": {
+        "mode": "write",
+        "site_id": "demo-app",
+        "site_root": "sites/demo-app",
+        "directories": 43,
+        "files": 24
+    },
+    "validation": {
+        "status": "ok",
+        "site_id": "demo-app",
+        "site_root": "sites/demo-app",
+        "required_paths": 19,
+        "command": "php bin/opus validate:site demo-app"
+    },
+    "forbidden_output_roots": [
+        "public",
+        "src",
+        "resources"
+    ]
+}
