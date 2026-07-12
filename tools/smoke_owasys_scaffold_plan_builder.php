@@ -7,7 +7,7 @@ use Opus\Owasys\ScaffoldPlanBuilder;
 
 $builder = new ScaffoldPlanBuilder();
 $plan = $builder->build([
-    'id' => 'demo_app',
+    'id' => 'demo-app',
     'slug' => 'demo-app',
     'name' => 'Demo OPUS Application',
     'kind' => 'fullstack',
@@ -30,7 +30,7 @@ $plan = $builder->build([
 $required = [
     'contract' => 'OPUS_SITE_APPLICATION_TREE_V1_ETERNAL',
     'owasys_contract' => 'OWASYS_SCAFFOLD_PLAN_V1',
-    'site_id' => 'demo_app',
+    'site_id' => 'demo-app',
     'site_root' => 'sites/demo-app',
 ];
 foreach ($required as $key => $expected) {
@@ -65,6 +65,31 @@ foreach (array_merge($directories, $filePaths) as $path) {
             fwrite(STDERR, "OWASYS_SCAFFOLD_PLAN_FORBIDDEN_PATH: {$path}\n");
             exit(1);
         }
+    }
+}
+
+try {
+    $builder->build([
+        'id' => 'bad_id',
+        'slug' => 'bad-id',
+        'name' => 'Bad OPUS Application',
+        'kind' => 'fullstack',
+        'root_path' => 'sites/bad-id',
+        'blueprint' => 'opus-site-standard',
+        'default_locale' => 'fr',
+        'theme' => 'starter',
+        'controllers' => ['home'],
+        'routes' => [['id' => 'home.index', 'path' => '/', 'controller' => 'home']],
+        'datasources' => [],
+        'security_profiles' => [],
+        'workflows' => [],
+    ]);
+    fwrite(STDERR, "OWASYS_SCAFFOLD_PLAN_ID_ROOT_MISMATCH_NOT_REJECTED\n");
+    exit(1);
+} catch (InvalidArgumentException $exception) {
+    if ($exception->getMessage() !== 'OWASYS_SITE_ROOT_MUST_MATCH_SITE_ID: sites/bad_id') {
+        fwrite(STDERR, $exception->getMessage() . "\n");
+        exit(1);
     }
 }
 
