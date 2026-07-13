@@ -16,12 +16,14 @@ final class ApplicationCreator
 {
     private const RESULT_CONTRACT = 'OWASYS_APPLICATION_CREATION_RESULT_V1';
     private const SITE_CONTRACT = 'OPUS_SITE_APPLICATION_TREE_V1_ETERNAL';
+    private const APPLICATION_FSM_CONTRACT = 'OPUS_APPLICATION_FSM_V1';
 
     /** @var list<string> */
     private const REQUIRED_SITE_PATHS = [
         'config',
         'config/site.json',
         'config/routes.json',
+        'config/application.fsm.json',
         'application',
         'application/default',
         'application/default/acl',
@@ -69,6 +71,7 @@ final class ApplicationCreator
             'mode' => $write ? 'write' : 'dry-run',
             'site_id' => (string) $plan['site_id'],
             'site_root' => (string) $plan['site_root'],
+            'application_fsm' => (string) $plan['site_root'] . '/config/application.fsm.json',
             'dry_run' => $dryRunSummary,
             'write' => null,
             'validation' => ['status' => 'not-run'],
@@ -126,11 +129,24 @@ final class ApplicationCreator
         if (!is_array($siteConfig) || ($siteConfig['contract'] ?? null) !== self::SITE_CONTRACT) {
             throw new RuntimeException('OWASYS_CREATED_SITE_CONTRACT_INVALID');
         }
+        if (($siteConfig['application_fsm'] ?? null) !== 'config/application.fsm.json') {
+            throw new RuntimeException('OWASYS_CREATED_SITE_APPLICATION_FSM_POINTER_INVALID');
+        }
+
+        $fsmFile = $absoluteSiteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'application.fsm.json';
+        $fsm = json_decode((string) file_get_contents($fsmFile), true);
+        if (!is_array($fsm) || ($fsm['contract'] ?? null) !== self::APPLICATION_FSM_CONTRACT) {
+            throw new RuntimeException('OWASYS_CREATED_SITE_APPLICATION_FSM_INVALID');
+        }
+        if (($fsm['site_id'] ?? null) !== $siteId || empty($fsm['states']) || !array_key_exists('initial_state', $fsm) || !isset($fsm['transitions']) || !is_array($fsm['transitions'])) {
+            throw new RuntimeException('OWASYS_CREATED_SITE_APPLICATION_FSM_INCOMPLETE');
+        }
 
         return [
             'status' => 'ok',
             'site_id' => $siteId,
             'site_root' => $siteRoot,
+            'application_fsm' => $siteRoot . '/config/application.fsm.json',
             'required_paths' => count(self::REQUIRED_SITE_PATHS),
             'command' => 'php bin/opus validate:site ' . $siteId,
         ];
@@ -152,6 +168,8 @@ final class ApplicationCreator
             'site_id' => (string) $plan['site_id'],
             'site_root' => (string) $plan['site_root'],
             'site_contract' => self::SITE_CONTRACT,
+            'application_fsm' => (string) $plan['site_root'] . '/config/application.fsm.json',
+            'application_fsm_contract' => self::APPLICATION_FSM_CONTRACT,
             'owasys_plan_contract' => (string) ($plan['owasys_contract'] ?? ''),
             'blueprint' => (string) ($plan['blueprint'] ?? ''),
             'dry_run' => $dryRunSummary,
