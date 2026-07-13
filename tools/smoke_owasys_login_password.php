@@ -5,18 +5,21 @@ $root = dirname(__DIR__);
 $siteRoot = $root . DIRECTORY_SEPARATOR . 'sites' . DIRECTORY_SEPARATOR . 'owasys';
 
 $siteFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'site.json';
+$routesFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'routes.json';
 $securityFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'security-policy.json';
 $frontFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php';
 $cssFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'asset' . DIRECTORY_SEPARATOR . 'css' . DIRECTORY_SEPARATOR . 'owasys.css';
 $loginView = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'login' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php';
+$accountView = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'account' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php';
 $bootstrapTool = $root . DIRECTORY_SEPARATOR . 'tools' . DIRECTORY_SEPARATOR . 'owasys_auth_bootstrap_local_user.php';
 $gitignoreFile = $root . DIRECTORY_SEPARATOR . '.gitignore';
 $composerFile = $root . DIRECTORY_SEPARATOR . 'composer.json';
 
 $site = json_decode((string) file_get_contents($siteFile), true);
+$routes = json_decode((string) file_get_contents($routesFile), true);
 $security = json_decode((string) file_get_contents($securityFile), true);
 $composer = json_decode((string) file_get_contents($composerFile), true);
-if (!is_array($site) || !is_array($security) || !is_array($composer)) {
+if (!is_array($site) || !is_array($routes) || !is_array($security) || !is_array($composer)) {
     fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_CONFIG_INVALID\n");
     exit(1);
 }
@@ -44,6 +47,44 @@ if (($auth['protected_routes'] ?? null) !== 'all_except_anonymous_routes') {
 
 if (($auth['anonymous_routes'] ?? null) !== ['/login']) {
     fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_ANONYMOUS_ROUTES_INVALID\n");
+    exit(1);
+}
+
+if (($auth['password_change_route'] ?? null) !== '/account/password') {
+    fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_CHANGE_ROUTE_INVALID\n");
+    exit(1);
+}
+
+if (($auth['must_change_password_on_bootstrap'] ?? null) !== true) {
+    fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_BOOTSTRAP_MUST_CHANGE_INVALID\n");
+    exit(1);
+}
+
+if (($auth['minimum_password_length'] ?? null) !== 12) {
+    fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_MINIMUM_LENGTH_INVALID\n");
+    exit(1);
+}
+
+$roots = is_array($site['application_roots'] ?? null) ? $site['application_roots'] : [];
+if (!in_array('account', $roots, true)) {
+    fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_ACCOUNT_ROOT_MISSING\n");
+    exit(1);
+}
+
+$accountRoute = null;
+foreach ((array) ($routes['routes'] ?? []) as $route) {
+    if (is_array($route) && ($route['path'] ?? null) === '/account/password') {
+        $accountRoute = $route;
+        break;
+    }
+}
+if (!is_array($accountRoute) || ($accountRoute['controller'] ?? null) !== 'account' || ($accountRoute['show_in_menu'] ?? null) !== false) {
+    fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_ACCOUNT_ROUTE_INVALID\n");
+    exit(1);
+}
+
+if (!is_file($accountView)) {
+    fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_ACCOUNT_VIEW_MISSING\n");
     exit(1);
 }
 
@@ -77,6 +118,14 @@ foreach ([
     '$anonymousRoutes = [\'/login\'];',
     'if (!$isAuthenticated && !in_array($path, $anonymousRoutes, true))',
     '$redirect(\'/login\');',
+    "'/account/password'",
+    'must_change_password',
+    'change-password',
+    'owasys_current_password',
+    'owasys_new_password',
+    'owasys_confirm_password',
+    'OWASYS_PASSWORD_CHANGE_ACTION_INVALID',
+    'New password must contain at least 12 characters.',
 ] as $needle) {
     if (!str_contains($front, $needle)) {
         fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_FRONT_MARKER_MISSING: {$needle}\n");
@@ -99,8 +148,16 @@ foreach (['runtime-password-store', 'Username', 'Password', 'OWASYS_LOCAL_USER_S
     }
 }
 
+$account = (string) file_get_contents($accountView);
+foreach (['Account password', 'must_change_password', 'OWASYS_LOCAL_USER_STORE_V1'] as $needle) {
+    if (!str_contains($account, $needle)) {
+        fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_ACCOUNT_VIEW_MARKER_MISSING: {$needle}\n");
+        exit(1);
+    }
+}
+
 $css = (string) file_get_contents($cssFile);
-foreach (['.ow-login-form input', '.ow-login-error', '.ow-login-warning'] as $needle) {
+foreach (['.ow-login-form input', '.ow-password-form input', '.ow-auth-warning', '.ow-login-error', '.ow-login-warning'] as $needle) {
     if (!str_contains($css, $needle)) {
         fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_CSS_MARKER_MISSING: {$needle}\n");
         exit(1);
@@ -108,7 +165,7 @@ foreach (['.ow-login-form input', '.ow-login-error', '.ow-login-warning'] as $ne
 }
 
 $bootstrap = (string) file_get_contents($bootstrapTool);
-foreach (['password_hash($password, PASSWORD_DEFAULT)', 'OWASYS_LOCAL_USER_STORE_V1', 'OWASYS_AUTH_BOOTSTRAP_USER_OK'] as $needle) {
+foreach (['password_hash($password, PASSWORD_DEFAULT)', 'OWASYS_LOCAL_USER_STORE_V1', 'OWASYS_AUTH_BOOTSTRAP_USER_OK', 'must_change_password', 'OWASYS_AUTH_BOOTSTRAP_MUST_CHANGE_PASSWORD'] as $needle) {
     if (!str_contains($bootstrap, $needle)) {
         fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_BOOTSTRAP_MARKER_MISSING: {$needle}\n");
         exit(1);
@@ -116,7 +173,7 @@ foreach (['password_hash($password, PASSWORD_DEFAULT)', 'OWASYS_LOCAL_USER_STORE
 }
 
 foreach (['ChangeMe', 'password123', 'admin123'] as $forbidden) {
-    if (str_contains($bootstrap, $forbidden) || str_contains($front, $forbidden) || str_contains($login, $forbidden)) {
+    if (str_contains($bootstrap, $forbidden) || str_contains($front, $forbidden) || str_contains($login, $forbidden) || str_contains($account, $forbidden)) {
         fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_FORBIDDEN_SAMPLE_PASSWORD_PRESENT\n");
         exit(1);
     }
