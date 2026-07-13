@@ -8,7 +8,6 @@
   --ow-accent: #6ce3ff;
   --ow-ok: #4ade80;
   --ow-warn: #fbbf24;
-  --ow-danger: #fb7185;
 }
 * { box-sizing: border-box; }
 body {
@@ -19,7 +18,6 @@ body {
   font: 15px/1.55 Segoe UI, Arial, sans-serif;
 }
 a { color: inherit; }
-code { color: var(--ow-accent); }
 .ow-shell { min-height: 100vh; display: grid; grid-template-columns: 290px 1fr; }
 .ow-sidebar {
   padding: 24px;
@@ -40,6 +38,7 @@ code { color: var(--ow-accent); }
 }
 .ow-auth-status strong { display: inline-flex; gap: 8px; align-items: center; }
 .ow-auth-status small { color: var(--ow-muted); }
+.ow-auth-status .ow-auth-warning { color: #fde68a; font-weight: 850; }
 .ow-auth-status a { color: var(--ow-accent); font-weight: 800; text-decoration: none; }
 .ow-auth-dot { width: 9px; height: 9px; border-radius: 999px; background: var(--ow-ok); display: inline-block; box-shadow: 0 0 18px rgba(74,222,128,.9); }
 .ow-auth-dot.is-off { background: var(--ow-warn); box-shadow: 0 0 18px rgba(251,191,36,.65); }
@@ -91,9 +90,12 @@ code { color: var(--ow-accent); }
   border-color: rgba(108, 227, 255, .45);
   background: linear-gradient(180deg, rgba(18,52,86,.82), rgba(12,23,40,.96));
 }
-.ow-login-form { display: grid; gap: 14px; align-items: start; margin-top: 18px; max-width: 430px; }
-.ow-login-form label { display: grid; gap: 6px; color: var(--ow-muted); font-weight: 800; }
-.ow-login-form input {
+.ow-login-form,
+.ow-password-form { display: grid; gap: 14px; align-items: start; margin-top: 18px; max-width: 430px; }
+.ow-login-form label,
+.ow-password-form label { display: grid; gap: 6px; color: var(--ow-muted); font-weight: 800; }
+.ow-login-form input,
+.ow-password-form input {
   width: 100%;
   border: 1px solid var(--ow-line);
   border-radius: 13px;
@@ -103,7 +105,8 @@ code { color: var(--ow-accent); }
   font: inherit;
   outline: none;
 }
-.ow-login-form input:focus { border-color: var(--ow-accent); box-shadow: 0 0 0 3px rgba(108,227,255,.16); }
+.ow-login-form input:focus,
+.ow-password-form input:focus { border-color: var(--ow-accent); box-shadow: 0 0 0 3px rgba(108,227,255,.16); }
 .ow-login-error,
 .ow-login-warning {
   padding: 11px 13px;
