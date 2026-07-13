@@ -62,7 +62,7 @@
         "www/asset/themes/<theme>/js",
         "application/<controller>/javascript"
     ],
-    "owasys_stage": "runtime-password-login-foundation",
+    "owasys_stage": "authenticated-runtime-password-login",
     "registry": {
         "datasource": "owasys_registry",
         "schema": "config/registry.schema.sql",
@@ -85,6 +85,10 @@
         "user_store": "var/auth/local-users.json",
         "login_route": "/login",
         "logout_route": "/logout",
+        "anonymous_routes": [
+            "/login"
+        ],
+        "protected_routes": "all_except_anonymous_routes",
         "write_actions_require_auth": true,
         "password_hash_algorithm": "PASSWORD_DEFAULT",
         "committed_passwords_allowed": false
@@ -100,6 +104,7 @@
         "security_profiles",
         "build_validation",
         "export_policy",
-        "runtime_password_login_foundation"
+        "runtime_password_login_foundation",
+        "auth_access_guard"
     ]
 }
