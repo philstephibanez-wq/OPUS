@@ -60,7 +60,7 @@ if (($auth['must_change_password_on_bootstrap'] ?? null) !== true) {
     exit(1);
 }
 
-if (($auth['minimum_password_length'] ?? null) !== 12) {
+if (($auth['minimum_password_length'] ?? null) !== 10) {
     fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_MINIMUM_LENGTH_INVALID\n");
     exit(1);
 }
@@ -125,7 +125,8 @@ foreach ([
     'owasys_new_password',
     'owasys_confirm_password',
     'OWASYS_PASSWORD_CHANGE_ACTION_INVALID',
-    'New password must contain at least 12 characters.',
+    'New password must contain at least 10 characters.',
+    'minlength="10"',
 ] as $needle) {
     if (!str_contains($front, $needle)) {
         fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_FRONT_MARKER_MISSING: {$needle}\n");
@@ -133,7 +134,7 @@ foreach ([
     }
 }
 
-foreach (['local-dev-signin', 'Start local dev session'] as $forbidden) {
+foreach (['local-dev-signin', 'Start local dev session', 'at least 12 characters', 'minlength="12"'] as $forbidden) {
     if (str_contains($front, $forbidden)) {
         fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_FORBIDDEN_BOOTSTRAP_MARKER_PRESENT: {$forbidden}\n");
         exit(1);
@@ -149,7 +150,7 @@ foreach (['runtime-password-store', 'Username', 'Password', 'OWASYS_LOCAL_USER_S
 }
 
 $account = (string) file_get_contents($accountView);
-foreach (['Account password', 'must_change_password', 'OWASYS_LOCAL_USER_STORE_V1'] as $needle) {
+foreach (['Account password', 'must_change_password', 'OWASYS_LOCAL_USER_STORE_V1', 'at least 10 characters'] as $needle) {
     if (!str_contains($account, $needle)) {
         fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_ACCOUNT_VIEW_MARKER_MISSING: {$needle}\n");
         exit(1);
