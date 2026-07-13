@@ -46,10 +46,10 @@ $request = [
     'theme' => 'starter',
     'controllers' => ['home', 'articles', 'about', 'contact'],
     'routes' => [
-        ['id' => 'home.index', 'path' => '/', 'controller' => 'home'],
-        ['id' => 'articles.index', 'path' => '/articles', 'controller' => 'articles'],
-        ['id' => 'about.index', 'path' => '/about', 'controller' => 'about'],
-        ['id' => 'contact.index', 'path' => '/contact', 'controller' => 'contact'],
+        ['id' => 'home.index', 'path' => '/', 'state' => 'home', 'controller' => 'home'],
+        ['id' => 'articles.index', 'path' => '/articles', 'state' => 'articles', 'controller' => 'articles'],
+        ['id' => 'about.index', 'path' => '/about', 'state' => 'about', 'controller' => 'about'],
+        ['id' => 'contact.index', 'path' => '/contact', 'state' => 'contact', 'controller' => 'contact'],
     ],
     'datasources' => [],
     'security_profiles' => [['id' => 'admin', 'permissions' => ['*']]],
@@ -81,10 +81,10 @@ try {
         'config/routes.json',
         'config/application.fsm.json',
         'config/fsm.json',
-        'application/home/views/index.php',
-        'application/articles/views/index.php',
-        'application/about/views/index.php',
-        'application/contact/views/index.php',
+        'application/states/home/views/index.php',
+        'application/states/articles/views/index.php',
+        'application/states/about/views/index.php',
+        'application/states/contact/views/index.php',
         'www/index.php',
         'www/asset/themes/starter/css/theme.css',
     ];
@@ -93,14 +93,17 @@ try {
             throw new RuntimeException('OWASYS_SHOWCASE_BLUEPRINT_REQUIRED_FILE_MISSING: ' . $relative);
         }
     }
+    if (is_dir($siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'home')) {
+        throw new RuntimeException('OWASYS_SHOWCASE_BLUEPRINT_LEGACY_STATE_ROOT_PRESENT');
+    }
 
     $fsm = json_decode((string) file_get_contents($siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'application.fsm.json'), true);
-    if (!is_array($fsm) || ($fsm['contract'] ?? null) !== 'OPUS_APPLICATION_FSM_V1' || count((array) ($fsm['states'] ?? [])) < 4 || count((array) ($fsm['transitions'] ?? [])) < 4) {
+    if (!is_array($fsm) || ($fsm['contract'] ?? null) !== 'OPUS_APPLICATION_FSM_V1' || ($fsm['dispatch_model'] ?? null) !== 'state-first' || count((array) ($fsm['states'] ?? [])) < 4 || count((array) ($fsm['transitions'] ?? [])) < 4) {
         throw new RuntimeException('OWASYS_SHOWCASE_BLUEPRINT_APPLICATION_FSM_INVALID');
     }
 
     $front = (string) file_get_contents($siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php');
-    foreach (['opus-nav', 'opus-hero', 'opus-grid', 'Page not found', 'OPUS_APPLICATION_FSM_V1', 'data-opus-state'] as $needle) {
+    foreach (['opus-nav', 'opus-hero', 'opus-grid', 'Page not found', 'OPUS_APPLICATION_FSM_V1', 'data-opus-state', 'data-opus-dispatch'] as $needle) {
         if (!str_contains($front, $needle)) {
             throw new RuntimeException('OWASYS_SHOWCASE_BLUEPRINT_FRONT_MARKER_MISSING: ' . $needle);
         }
@@ -113,7 +116,7 @@ try {
         }
     }
 
-    $homeView = (string) file_get_contents($siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'home' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php');
+    $homeView = (string) file_get_contents($siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'states' . DIRECTORY_SEPARATOR . 'home' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php');
     foreach (['cards', 'actions', 'OWASYS pipeline'] as $needle) {
         if (!str_contains($homeView, $needle)) {
             throw new RuntimeException('OWASYS_SHOWCASE_BLUEPRINT_VIEW_MARKER_MISSING: ' . $needle);
