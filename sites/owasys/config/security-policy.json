@@ -9,7 +9,8 @@
                 "blueprint.configure",
                 "build.generate",
                 "build.validate",
-                "export.create"
+                "export.create",
+                "account.password.change"
             ]
         },
         "dev": {
@@ -19,7 +20,8 @@
                 "data.configure",
                 "workflows.configure",
                 "security.configure_draft",
-                "build.validate"
+                "build.validate",
+                "account.password.change"
             ]
         }
     },
@@ -31,7 +33,10 @@
         "password_hash_required": true,
         "plain_text_passwords_forbidden": true,
         "committed_credentials_forbidden": true,
-        "bootstrap_tool": "tools/owasys_auth_bootstrap_local_user.php"
+        "bootstrap_tool": "tools/owasys_auth_bootstrap_local_user.php",
+        "must_change_password_on_bootstrap": true,
+        "password_change_route": "/account/password",
+        "minimum_password_length": 12
     },
     "committed_passwords_allowed": false,
     "audit_strategy": "mandatory_for_write_actions"
