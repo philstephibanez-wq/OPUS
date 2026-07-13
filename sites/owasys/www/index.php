@@ -5,7 +5,7 @@ declare(strict_types=1);
  * OWASYS public entry.
  *
  * Standard OPUS site entry for the OWASYS application.
- * It renders data-only view-models stored in application/<controller>/views/index.php.
+ * It renders data-only view-models and drives navigation from the OWASYS FSM config.
  */
 
 $siteRoot = dirname(__DIR__);
@@ -21,6 +21,21 @@ if (!is_array($routesConfig) || !isset($routesConfig['routes']) || !is_array($ro
 if (!is_array($siteConfig)) {
     http_response_code(500);
     echo 'OWASYS_SITE_CONFIG_INVALID';
+    exit;
+}
+
+$navigationConfig = is_array($siteConfig['navigation'] ?? null) ? $siteConfig['navigation'] : [];
+$fsmRelative = trim(str_replace('\\', '/', (string) ($navigationConfig['fsm'] ?? 'config/owasys-navigation.fsm.json')), '/');
+if ($fsmRelative === '' || str_contains($fsmRelative, '..')) {
+    http_response_code(500);
+    echo 'OWASYS_NAVIGATION_FSM_PATH_INVALID';
+    exit;
+}
+$fsmFile = $siteRoot . '/' . $fsmRelative;
+$fsmConfig = is_file($fsmFile) ? json_decode((string) file_get_contents($fsmFile), true) : null;
+if (!is_array($fsmConfig) || ($fsmConfig['contract'] ?? null) !== 'OWASYS_NAVIGATION_FSM_V1') {
+    http_response_code(500);
+    echo 'OWASYS_NAVIGATION_FSM_INVALID';
     exit;
 }
 
@@ -112,6 +127,23 @@ $redirect = static function (string $routePath) use ($link): void {
     header('Location: ' . $link($routePath), true, 303);
     exit;
 };
+
+$statesByRoute = [];
+$statesById = [];
+foreach ((array) ($fsmConfig['states'] ?? []) as $state) {
+    if (!is_array($state)) {
+        continue;
+    }
+    $stateId = (string) ($state['id'] ?? '');
+    if ($stateId === '') {
+        continue;
+    }
+    $statesById[$stateId] = $state;
+    $stateRoute = (string) ($state['route'] ?? '');
+    if ($stateRoute !== '') {
+        $statesByRoute[$stateRoute] = $state;
+    }
+}
 
 $loginError = null;
 $passwordChangeError = null;
@@ -245,6 +277,7 @@ if (!is_array($page)) {
 }
 
 $currentApp = is_array($_SESSION['owasys_current_app'] ?? null) ? $_SESSION['owasys_current_app'] : null;
+$currentState = $statesByRoute[$path] ?? null;
 $findRegistryEntry = static function (array $entries, string $id): ?array {
     foreach ($entries as $entry) {
         if (is_array($entry) && (string) ($entry['id'] ?? '') === $id) {
@@ -280,7 +313,7 @@ if ($controller === 'registry' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POS
 }
 
 $currentApp = is_array($_SESSION['owasys_current_app'] ?? null) ? $_SESSION['owasys_current_app'] : null;
-$requiresCurrentApp = in_array($path, ['/structure', '/data', '/workflows', '/security'], true);
+$requiresCurrentApp = is_array($currentState) && (($currentState['requires_current_app'] ?? false) === true);
 if ($isAuthenticated && $requiresCurrentApp && $currentApp === null) {
     $redirect('/applications');
 }
@@ -336,46 +369,117 @@ $renderAppTags = static function (?array $app) use ($h): string {
     return $html . '</div>';
 };
 
-$buildMermaidDiagram = static function (?array $app) use ($link, $mermaidLabel): string {
-    $appLabel = $app === null
-        ? 'No application selected'
-        : $mermaidLabel((string) ($app['name'] ?? $app['id'] ?? 'Current application'));
-    $appKind = $app === null ? 'choose in Registry' : $mermaidLabel((string) ($app['kind'] ?? 'unknown'));
+$renderAppTree = static function (array $entries, ?array $currentApp) use ($h): string {
+    $groups = [
+        'fullstack' => [],
+        'frontend' => [],
+        'backend' => [],
+        'package' => [],
+    ];
+    foreach ($entries as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+        $kind = (string) ($entry['kind'] ?? 'fullstack');
+        if (!array_key_exists($kind, $groups)) {
+            $kind = 'fullstack';
+        }
+        $groups[$kind][] = $entry;
+    }
 
-    return implode("\n", [
-        'flowchart LR',
-        '    registry["Registry<br/>choose or create"]:::primary',
-        '    current["' . $appLabel . '<br/>' . $appKind . '"]:::current',
-        '    structure["Structure"]:::work',
-        '    data["Data"]:::work',
-        '    workflows["Workflows"]:::work',
-        '    security["Security"]:::work',
-        '    build["Build & Validate"]:::work',
-        '    registry --> current',
-        '    current --> structure',
-        '    current --> data',
-        '    current --> workflows',
-        '    current --> security',
-        '    current --> build',
-        '    registry --> build',
-        '    click registry "' . $link('/applications') . '" "Open Registry"',
-        '    click structure "' . $link('/structure') . '" "Open Structure"',
-        '    click data "' . $link('/data') . '" "Open Data"',
-        '    click workflows "' . $link('/workflows') . '" "Open Workflows"',
-        '    click security "' . $link('/security') . '" "Open Security"',
-        '    click build "' . $link('/build') . '" "Open Build"',
-        '    classDef primary fill:#123456,stroke:#6ce3ff,color:#f6f8ff,stroke-width:2px',
-        '    classDef current fill:#164e63,stroke:#4ade80,color:#f6f8ff,stroke-width:3px',
-        '    classDef work fill:#101c2f,stroke:#94aad8,color:#f6f8ff,stroke-width:1px',
-    ]);
+    $html = '<section class="ow-card ow-app-tree" data-context="OWASYS_REGISTRY_APP_TREE">';
+    $html .= '<h2>Application tree</h2>';
+    $html .= '<p class="ow-muted">Click an application to make it the current OWASYS context, or create a new OPUS application.</p>';
+    $html .= '<div class="ow-tree-root"><strong>OWASYS Registry</strong>';
+    $html .= '<form method="post" class="ow-inline-form"><input type="hidden" name="owasys_action" value="create-new-app"><button class="ow-button" type="submit">Create new application</button></form>';
+    $html .= '</div>';
+    $html .= '<div class="ow-tree-branches">';
+    foreach ($groups as $kind => $apps) {
+        $html .= '<div class="ow-tree-kind"><h3>' . $h($kind) . '</h3>';
+        if ($apps === []) {
+            $html .= '<p class="ow-muted">No registered application.</p>';
+        }
+        foreach ($apps as $entry) {
+            $entryId = (string) ($entry['id'] ?? '');
+            $isCurrent = $currentApp !== null && (string) ($currentApp['id'] ?? '') === $entryId;
+            $html .= '<form method="post" class="ow-tree-app' . ($isCurrent ? ' is-current' : '') . '">';
+            $html .= '<input type="hidden" name="owasys_action" value="select-app">';
+            $html .= '<input type="hidden" name="owasys_app_id" value="' . $h($entryId) . '">';
+            $html .= '<button type="submit">';
+            $html .= '<strong>' . $h((string) ($entry['name'] ?? $entryId)) . '</strong>';
+            $html .= '<span>' . $h((string) ($entry['root_path'] ?? 'unknown')) . '</span>';
+            $html .= '<em>' . ($isCurrent ? 'current context' : 'click to work on this app') . '</em>';
+            $html .= '</button></form>';
+        }
+        $html .= '</div>';
+    }
+    $html .= '</div></section>';
+    return $html;
+};
+
+$buildMermaidDiagram = static function (array $fsm, ?array $app, ?string $currentStateId) use ($link, $mermaidLabel): string {
+    $states = [];
+    foreach ((array) ($fsm['states'] ?? []) as $state) {
+        if (!is_array($state)) {
+            continue;
+        }
+        $id = (string) ($state['id'] ?? '');
+        if ($id !== '') {
+            $states[$id] = $state;
+        }
+    }
+
+    $lines = ['flowchart LR'];
+    foreach ($states as $id => $state) {
+        if ($id === 'login' || $id === 'account') {
+            continue;
+        }
+        $class = $id === $currentStateId ? 'active' : (($state['requires_current_app'] ?? false) === true ? 'work' : 'primary');
+        $label = $mermaidLabel((string) ($state['label'] ?? $id));
+        if ($id === 'registry') {
+            $label .= '<br/>choose or create';
+        }
+        if ($id === 'structure' && $app !== null) {
+            $label .= '<br/>' . $mermaidLabel((string) ($app['name'] ?? $app['id'] ?? 'current app'));
+        }
+        $lines[] = '    ' . $id . '["' . $label . '"]:::' . $class;
+    }
+
+    foreach ((array) ($fsm['transitions'] ?? []) as $transition) {
+        if (!is_array($transition) || ($transition['visual'] ?? false) !== true) {
+            continue;
+        }
+        $from = (string) ($transition['from'] ?? '');
+        $to = (string) ($transition['to'] ?? '');
+        if ($from === '' || $to === '' || !isset($states[$from], $states[$to]) || $from === 'login' || $from === 'account' || $to === 'login' || $to === 'account') {
+            continue;
+        }
+        $event = $mermaidLabel((string) ($transition['event'] ?? 'event'));
+        $lines[] = '    ' . $from . ' -->|' . $event . '| ' . $to;
+    }
+
+    foreach ($states as $id => $state) {
+        if ($id === 'login' || $id === 'account') {
+            continue;
+        }
+        $route = (string) ($state['route'] ?? '');
+        if ($route !== '') {
+            $lines[] = '    click ' . $id . ' "' . $link($route) . '" "Open ' . $mermaidLabel((string) ($state['label'] ?? $id)) . '"';
+        }
+    }
+
+    $lines[] = '    classDef primary fill:#123456,stroke:#6ce3ff,color:#f6f8ff,stroke-width:2px';
+    $lines[] = '    classDef active fill:#164e63,stroke:#4ade80,color:#f6f8ff,stroke-width:4px';
+    $lines[] = '    classDef work fill:#101c2f,stroke:#94aad8,color:#f6f8ff,stroke-width:1px';
+    return implode("\n", $lines);
 };
 
 $renderMermaidPanel = static function (string $diagram) use ($h): string {
     return '<section class="ow-card ow-mermaid-panel" data-context="OWASYS_MERMAID_NAVIGATION">'
-        . '<h2>Visual navigation</h2>'
-        . '<p class="ow-muted">Clickable Mermaid map of the current OWASYS application context.</p>'
+        . '<h2>Visual FSM navigation</h2>'
+        . '<p class="ow-muted">Clickable Mermaid map generated from <code>OWASYS_NAVIGATION_FSM_V1</code>.</p>'
         . '<pre class="mermaid">' . $h($diagram) . '</pre>'
-        . '<p class="ow-muted ow-mermaid-fallback">If Mermaid is unavailable, use the sidebar and Registry buttons.</p>'
+        . '<p class="ow-muted ow-mermaid-fallback">If Mermaid is unavailable, use the sidebar and Registry tree.</p>'
         . '</section>';
 };
 
@@ -442,7 +546,8 @@ if ($isAuthenticated) {
 }
 
 if ($isAuthenticated && !in_array($controller, ['login', 'account'], true)) {
-    $body .= $renderMermaidPanel($buildMermaidDiagram($currentApp));
+    $currentStateId = is_array($currentState) ? (string) ($currentState['id'] ?? '') : null;
+    $body .= $renderMermaidPanel($buildMermaidDiagram($fsmConfig, $currentApp, $currentStateId));
 }
 
 if ($currentApp !== null && !in_array($controller, ['login', 'account', 'registry'], true)) {
@@ -509,11 +614,11 @@ if ($controller === 'registry') {
     }
     $body .= '<p>Select an existing OPUS application to edit it, or start the creation flow for a new one.</p>';
     $body .= $renderAppTags($currentApp);
-    $body .= '<form method="post" class="ow-inline-form"><input type="hidden" name="owasys_action" value="create-new-app"><button class="ow-button" type="submit">Create new application</button></form>';
     if ($currentApp !== null) {
         $body .= '<form method="post" class="ow-inline-form"><input type="hidden" name="owasys_action" value="clear-app-context"><button class="ow-button ow-button-secondary" type="submit">Clear current context</button></form>';
     }
     $body .= '</section>';
+    $body .= $renderAppTree($entries, $currentApp);
 
     $body .= '<section class="ow-grid ow-registry-grid">';
     foreach ($entries as $entry) {
