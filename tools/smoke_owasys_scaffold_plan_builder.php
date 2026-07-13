@@ -17,8 +17,8 @@ $plan = $builder->build([
     'theme' => 'starter',
     'controllers' => ['home', 'articles'],
     'routes' => [
-        ['id' => 'home.index', 'path' => '/', 'controller' => 'home'],
-        ['id' => 'articles.index', 'path' => '/articles', 'controller' => 'articles'],
+        ['id' => 'home.index', 'path' => '/', 'state' => 'home', 'controller' => 'home'],
+        ['id' => 'articles.index', 'path' => '/articles', 'state' => 'articles', 'controller' => 'articles'],
     ],
     'datasources' => [],
     'security_profiles' => [
@@ -32,6 +32,7 @@ $required = [
     'owasys_contract' => 'OWASYS_SCAFFOLD_PLAN_V1',
     'site_id' => 'demo-app',
     'site_root' => 'sites/demo-app',
+    'dispatch_model' => 'state-first',
 ];
 foreach ($required as $key => $expected) {
     if (($plan[$key] ?? null) !== $expected) {
@@ -41,7 +42,7 @@ foreach ($required as $key => $expected) {
 }
 
 $directories = $plan['directories'] ?? [];
-if (!is_array($directories) || !in_array('sites/demo-app/application/default/templates', $directories, true) || !in_array('sites/demo-app/www/asset/themes/starter/css', $directories, true)) {
+if (!is_array($directories) || !in_array('sites/demo-app/application/default/templates', $directories, true) || !in_array('sites/demo-app/application/states/home/views', $directories, true) || !in_array('sites/demo-app/www/asset/themes/starter/css', $directories, true)) {
     fwrite(STDERR, "OWASYS_SCAFFOLD_PLAN_REQUIRED_DIRECTORIES_MISSING\n");
     exit(1);
 }
@@ -52,7 +53,7 @@ if (!is_array($files)) {
     exit(1);
 }
 $filePaths = array_map(static fn (array $file): string => (string) ($file['path'] ?? ''), $files);
-foreach (['sites/demo-app/config/site.json', 'sites/demo-app/config/routes.json', 'sites/demo-app/config/application.fsm.json', 'sites/demo-app/config/fsm.json', 'sites/demo-app/www/index.php', 'sites/demo-app/application/home/views/index.php'] as $path) {
+foreach (['sites/demo-app/config/site.json', 'sites/demo-app/config/routes.json', 'sites/demo-app/config/application.fsm.json', 'sites/demo-app/config/fsm.json', 'sites/demo-app/www/index.php', 'sites/demo-app/application/states/home/views/index.php'] as $path) {
     if (!in_array($path, $filePaths, true)) {
         fwrite(STDERR, "OWASYS_SCAFFOLD_PLAN_REQUIRED_FILE_MISSING: {$path}\n");
         exit(1);
@@ -60,7 +61,7 @@ foreach (['sites/demo-app/config/site.json', 'sites/demo-app/config/routes.json'
 }
 
 foreach (array_merge($directories, $filePaths) as $path) {
-    foreach (['/public/', '/src/', '/resources/'] as $forbidden) {
+    foreach (['/public/', '/src/', '/resources/', '/application/home/'] as $forbidden) {
         if (str_contains('/' . $path . '/', $forbidden)) {
             fwrite(STDERR, "OWASYS_SCAFFOLD_PLAN_FORBIDDEN_PATH: {$path}\n");
             exit(1);
@@ -79,7 +80,7 @@ try {
         'default_locale' => 'fr',
         'theme' => 'starter',
         'controllers' => ['home'],
-        'routes' => [['id' => 'home.index', 'path' => '/', 'controller' => 'home']],
+        'routes' => [['id' => 'home.index', 'path' => '/', 'state' => 'home', 'controller' => 'home']],
         'datasources' => [],
         'security_profiles' => [],
         'workflows' => [],
