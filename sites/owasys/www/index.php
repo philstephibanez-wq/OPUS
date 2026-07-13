@@ -125,6 +125,10 @@ if ($path === '/login' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
 $user = is_array($_SESSION['owasys_user'] ?? null) ? $_SESSION['owasys_user'] : null;
 $isAuthenticated = is_array($user);
+$anonymousRoutes = ['/login'];
+if (!$isAuthenticated && !in_array($path, $anonymousRoutes, true)) {
+    $redirect('/login');
+}
 
 $route = null;
 foreach ($routesConfig['routes'] as $candidate) {
