@@ -10,8 +10,9 @@ $seedFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . '
 $registryView = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'registry' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php';
 $frontFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php';
 $cssFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'asset' . DIRECTORY_SEPARATOR . 'css' . DIRECTORY_SEPARATOR . 'owasys.css';
+$jsFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'asset' . DIRECTORY_SEPARATOR . 'js' . DIRECTORY_SEPARATOR . 'owasys.js';
 
-foreach ([$siteFile, $routesFile, $seedFile, $registryView, $frontFile, $cssFile] as $requiredFile) {
+foreach ([$siteFile, $routesFile, $seedFile, $registryView, $frontFile, $cssFile, $jsFile] as $requiredFile) {
     if (!is_file($requiredFile)) {
         fwrite(STDERR, "OWASYS_REGISTRY_NAMING_REQUIRED_FILE_MISSING: {$requiredFile}\n");
         exit(1);
@@ -155,11 +156,19 @@ foreach ([
     'create-new-app',
     'Work on this app',
     'Current application',
+    'OWASYS_CURRENT_APP_CONTEXT',
+    'YOU ARE WORKING ON',
+    'Visual navigation',
+    'OWASYS_MERMAID_NAVIGATION',
+    'flowchart LR',
+    'click registry',
+    'click structure',
     'Application context',
     "'/structure'",
     "'/data'",
     "'/workflows'",
     "'/security'",
+    'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js',
 ] as $needle) {
     if (!str_contains($front, $needle)) {
         fwrite(STDERR, "OWASYS_REGISTRY_NAMING_CONTEXT_MARKER_MISSING: {$needle}\n");
@@ -168,9 +177,17 @@ foreach ([
 }
 
 $css = (string) file_get_contents($cssFile);
-foreach (['.ow-current-app', '.ow-context-panel', '.ow-registry-card', '.ow-inline-form'] as $needle) {
+foreach (['.ow-current-app', '.ow-current-app-hero', '.ow-context-panel', '.ow-mermaid-panel', '.ow-registry-card', '.ow-inline-form'] as $needle) {
     if (!str_contains($css, $needle)) {
         fwrite(STDERR, "OWASYS_REGISTRY_NAMING_CONTEXT_CSS_MARKER_MISSING: {$needle}\n");
+        exit(1);
+    }
+}
+
+$js = (string) file_get_contents($jsFile);
+foreach (['window.mermaid', 'securityLevel', 'loose', 'startOnLoad'] as $needle) {
+    if (!str_contains($js, $needle)) {
+        fwrite(STDERR, "OWASYS_REGISTRY_NAMING_CONTEXT_JS_MARKER_MISSING: {$needle}\n");
         exit(1);
     }
 }
