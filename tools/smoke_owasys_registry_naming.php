@@ -6,9 +6,11 @@ $siteRoot = $root . DIRECTORY_SEPARATOR . 'sites' . DIRECTORY_SEPARATOR . 'owasy
 
 $siteFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'site.json';
 $routesFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'routes.json';
+$seedFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'registry.seed.json';
 
 $site = json_decode((string) file_get_contents($siteFile), true);
 $routes = json_decode((string) file_get_contents($routesFile), true);
+$seed = json_decode((string) file_get_contents($seedFile), true);
 
 if (!is_array($site)) {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_SITE_JSON_INVALID\n");
@@ -17,6 +19,11 @@ if (!is_array($site)) {
 
 if (!is_array($routes)) {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_ROUTES_JSON_INVALID\n");
+    exit(1);
+}
+
+if (!is_array($seed) || ($seed['contract'] ?? null) !== 'OWASYS_REGISTRY_SEED_V1') {
+    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_SEED_INVALID\n");
     exit(1);
 }
 
@@ -66,6 +73,62 @@ foreach ((array) ($routes['routes'] ?? []) as $route) {
 
 if (!$matched) {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_APPLICATIONS_ROUTE_MISSING\n");
+    exit(1);
+}
+
+$seedDemo = null;
+foreach ((array) ($seed['applications'] ?? []) as $application) {
+    if (is_array($application) && ($application['id'] ?? null) === 'demo-app') {
+        $seedDemo = $application;
+        break;
+    }
+}
+if (!is_array($seedDemo) || ($seedDemo['kind'] ?? null) !== 'fullstack') {
+    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_DEMO_APP_SEED_MISSING\n");
+    exit(1);
+}
+
+$page = require $registryView;
+if (!is_array($page)) {
+    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_VIEW_MODEL_INVALID\n");
+    exit(1);
+}
+
+$entries = is_array($page['registry_entries'] ?? null) ? $page['registry_entries'] : [];
+$demo = null;
+foreach ($entries as $entry) {
+    if (is_array($entry) && ($entry['id'] ?? null) === 'demo-app') {
+        $demo = $entry;
+        break;
+    }
+}
+
+if (!is_array($demo)) {
+    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_DEMO_APP_ENTRY_MISSING\n");
+    exit(1);
+}
+
+if (($demo['kind'] ?? null) !== 'fullstack') {
+    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_DEMO_APP_KIND_INVALID\n");
+    exit(1);
+}
+
+if (($demo['root_path'] ?? null) !== 'sites/demo-app') {
+    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_DEMO_APP_ROOT_INVALID\n");
+    exit(1);
+}
+
+$cards = is_array($page['cards'] ?? null) ? $page['cards'] : [];
+$renderedDemoCard = false;
+foreach ($cards as $card) {
+    $items = is_array($card['items'] ?? null) ? implode('\n', $card['items']) : '';
+    if (is_array($card) && str_contains((string) ($card['title'] ?? ''), 'Demo OPUS Application') && str_contains($items, 'kind: fullstack')) {
+        $renderedDemoCard = true;
+        break;
+    }
+}
+if (!$renderedDemoCard) {
+    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_DEMO_APP_CARD_MISSING\n");
     exit(1);
 }
 
