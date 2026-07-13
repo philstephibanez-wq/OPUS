@@ -8,8 +8,9 @@ use RuntimeException;
 /**
  * Writes a validated OWASYS scaffold plan to disk.
  *
- * OWASYS now treats the application state as the canonical dispatch node. The
- * old controller name remains only as a legacy alias for the application tree.
+ * OWASYS treats the application state as the canonical dispatch node. State
+ * directories live under application/states/<state>; controller remains only a
+ * legacy alias in generated metadata.
  */
 final class ApplicationScaffoldWriter
 {
@@ -85,13 +86,13 @@ final class ApplicationScaffoldWriter
         $siteRoot = $this->relativePathField($plan, 'site_root');
         $controllers = $this->stringListField($plan, 'controllers');
         if (!in_array('home', $controllers, true)) {
-            throw new RuntimeException('OWASYS_SCAFFOLD_HOME_CONTROLLER_REQUIRED');
+            throw new RuntimeException('OWASYS_SCAFFOLD_HOME_STATE_REQUIRED');
         }
 
         $directories = $this->pathListField($plan, 'directories', $siteRoot);
         $files = $this->fileListField($plan, 'files', $siteRoot);
 
-        foreach (['config', 'application/default', 'www', 'www/index.php', 'www/asset', 'config/application.fsm.json'] as $required) {
+        foreach (['config', 'application/default', 'application/states', 'www', 'www/index.php', 'www/asset', 'config/application.fsm.json'] as $required) {
             $needle = $siteRoot . '/' . $required;
             if (str_contains($required, '.')) {
                 if (!$this->fileExistsInPlan($files, $needle)) {
@@ -218,6 +219,7 @@ final class ApplicationScaffoldWriter
             'theme' => $plan['theme'],
             'public_root' => 'www',
             'application_root' => 'application',
+            'states_root' => 'application/states',
             'default_root' => 'application/default',
             'asset_root' => 'www/asset',
             'theme_root_pattern' => 'www/asset/themes/<theme>',
@@ -227,8 +229,8 @@ final class ApplicationScaffoldWriter
             'dispatch_model' => 'state-first',
             'controller_field' => 'legacy_alias',
             'src_directory_allowed' => false,
-            'css_inheritance' => ['application/default/css', 'www/asset/themes/<theme>/css', 'application/<state>/css'],
-            'js_inheritance' => ['application/default/javascript', 'www/asset/themes/<theme>/js', 'application/<state>/javascript'],
+            'css_inheritance' => ['application/default/css', 'www/asset/themes/<theme>/css', 'application/states/<state>/css'],
+            'js_inheritance' => ['application/default/javascript', 'www/asset/themes/<theme>/js', 'application/states/<state>/javascript'],
             'generated_by' => 'owasys',
         ];
     }
@@ -247,8 +249,8 @@ final class ApplicationScaffoldWriter
                 'controller' => $state,
                 'controller_legacy_alias' => true,
                 'class' => null,
-                'template' => 'application/' . $state . '/templates/index.score',
-                'view' => 'application/' . $state . '/views/index.php',
+                'template' => 'application/states/' . $state . '/templates/index.score',
+                'view' => 'application/states/' . $state . '/views/index.php',
                 'label' => 'menu.' . $state,
                 'fsm_state' => $this->stateId($state),
                 'dispatch_action' => 'render_route',
@@ -421,7 +423,7 @@ final class ApplicationScaffoldWriter
                 'kicker' => 'About this app',
                 'title' => 'About',
                 'subtitle' => 'A generated application without public/src/resources roots.',
-                'summary' => 'OWASYS keeps OPUS structure explicit: config, application/default, application/<state>, www and application.fsm.json.',
+                'summary' => 'OWASYS keeps OPUS structure explicit: config, application/default, application/states/<state>, www and application.fsm.json.',
             ],
             'contact' => [
                 'kicker' => 'Contact page',
@@ -439,9 +441,9 @@ final class ApplicationScaffoldWriter
     {
         if ($state === 'home') {
             return [
-                ['title' => 'Standard OPUS tree', 'body' => 'The site uses config, application/default, application/<state> and www only.'],
+                ['title' => 'Standard OPUS tree', 'body' => 'The site uses config, application/default, application/states/<state> and www only.'],
                 ['title' => 'FSM-first application', 'body' => 'The canonical application FSM is stored in config/application.fsm.json.'],
-                ['title' => 'State-first dispatch', 'body' => 'Routes and view-models are now dispatched by FSM state; controller remains a legacy alias.'],
+                ['title' => 'State-first dispatch', 'body' => 'Routes and view-models are dispatched by FSM state; controller remains a legacy alias.'],
             ];
         }
 
@@ -530,7 +532,7 @@ if (!is_array($route)) {
         exit;
     }
 
-    $viewFile = $siteRoot . '/application/' . $state . '/views/index.php';
+    $viewFile = $siteRoot . '/application/states/' . $state . '/views/index.php';
     $page = is_file($viewFile) ? require $viewFile : ['state' => $state, 'title' => $state, 'subtitle' => 'Generated by OWASYS'];
     if (!is_array($page)) {
         $page = ['state' => $state, 'title' => $state, 'subtitle' => 'Generated by OWASYS'];
@@ -596,10 +598,10 @@ CSS;
 
     private function stateFromPath(string $path): ?string
     {
-        if (preg_match('#/application/([a-z0-9_-]+)/#', $path, $matches) !== 1) {
+        if (preg_match('#/application/states/([a-z0-9_-]+)/#', $path, $matches) !== 1) {
             return null;
         }
-        return $matches[1] === 'default' ? null : $matches[1];
+        return $matches[1];
     }
 
     /** @param array<string,mixed> $source */
