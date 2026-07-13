@@ -35,7 +35,11 @@
 /var/logs/*
 !/var/logs/.gitkeep
 
-# SQLite runtime sidecars
+# Site runtime state and local auth stores
+/sites/*/var/
+
+# SQLite runtime sidecars and runtime databases
+*.sqlite
 *.sqlite-wal
 *.sqlite-shm
 *.sqlite-journal
