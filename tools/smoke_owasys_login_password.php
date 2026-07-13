@@ -37,6 +37,16 @@ if (($auth['committed_passwords_allowed'] ?? null) !== false) {
     exit(1);
 }
 
+if (($auth['protected_routes'] ?? null) !== 'all_except_anonymous_routes') {
+    fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_PROTECTED_ROUTES_INVALID\n");
+    exit(1);
+}
+
+if (($auth['anonymous_routes'] ?? null) !== ['/login']) {
+    fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_ANONYMOUS_ROUTES_INVALID\n");
+    exit(1);
+}
+
 $localCredentials = is_array($security['local_credentials'] ?? null) ? $security['local_credentials'] : [];
 foreach ([
     'store_contract' => 'OWASYS_LOCAL_USER_STORE_V1',
@@ -64,6 +74,9 @@ foreach ([
     'password_verify',
     'OWASYS_LOCAL_USER_STORE_V1',
     'Runtime user store missing',
+    '$anonymousRoutes = [\'/login\'];',
+    'if (!$isAuthenticated && !in_array($path, $anonymousRoutes, true))',
+    '$redirect(\'/login\');',
 ] as $needle) {
     if (!str_contains($front, $needle)) {
         fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_FRONT_MARKER_MISSING: {$needle}\n");
