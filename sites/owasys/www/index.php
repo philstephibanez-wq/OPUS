@@ -38,6 +38,26 @@ if (session_status() === PHP_SESSION_NONE) {
 
 $h = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
+$authStoreRelative = trim(str_replace('\\', '/', (string) ($authConfig['user_store'] ?? 'var/auth/local-users.json')), '/');
+if ($authStoreRelative === '' || str_contains($authStoreRelative, '..')) {
+    http_response_code(500);
+    echo 'OWASYS_AUTH_USER_STORE_PATH_INVALID';
+    exit;
+}
+$authStoreFile = $siteRoot . '/' . $authStoreRelative;
+
+$loadRuntimeUsers = static function (string $storeFile): array {
+    if (!is_file($storeFile)) {
+        return [];
+    }
+    $store = json_decode((string) file_get_contents($storeFile), true);
+    if (!is_array($store) || ($store['contract'] ?? null) !== 'OWASYS_LOCAL_USER_STORE_V1') {
+        return [];
+    }
+    $users = $store['users'] ?? [];
+    return is_array($users) ? $users : [];
+};
+
 $requestPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
 $requestPath = is_string($requestPath) ? rawurldecode($requestPath) : '/';
 $requestPath = '/' . trim($requestPath, '/');
@@ -63,6 +83,8 @@ $redirect = static function (string $routePath) use ($link): void {
     exit;
 };
 
+$loginError = null;
+
 if ($path === '/logout') {
     unset($_SESSION['owasys_user']);
     session_regenerate_id(true);
@@ -71,20 +93,34 @@ if ($path === '/logout') {
 
 if ($path === '/login' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     $action = (string) ($_POST['owasys_action'] ?? '');
-    if ($action !== 'local-dev-signin') {
+    if ($action !== 'password-signin') {
         http_response_code(400);
         echo 'OWASYS_LOGIN_ACTION_INVALID';
         exit;
     }
-    session_regenerate_id(true);
-    $_SESSION['owasys_user'] = [
-        'id' => 'local-dev',
-        'label' => 'Local Dev',
-        'profile' => 'dev',
-        'mode' => 'local-dev-bootstrap',
-        'started_at' => gmdate('c'),
-    ];
-    $redirect('/');
+
+    $username = trim((string) ($_POST['owasys_username'] ?? ''));
+    $password = (string) ($_POST['owasys_password'] ?? '');
+    if ($username === '' || $password === '') {
+        $loginError = 'Username and password are required.';
+    } else {
+        $users = $loadRuntimeUsers($authStoreFile);
+        $candidate = is_array($users[$username] ?? null) ? $users[$username] : null;
+        $passwordHash = is_array($candidate) ? (string) ($candidate['password_hash'] ?? '') : '';
+        if ($candidate === null || $passwordHash === '' || !password_verify($password, $passwordHash)) {
+            $loginError = 'Invalid username or password.';
+        } else {
+            session_regenerate_id(true);
+            $_SESSION['owasys_user'] = [
+                'id' => (string) ($candidate['id'] ?? $username),
+                'label' => (string) ($candidate['label'] ?? $username),
+                'profile' => (string) ($candidate['profile'] ?? 'dev'),
+                'mode' => 'runtime-password-store',
+                'started_at' => gmdate('c'),
+            ];
+            $redirect('/');
+        }
+    }
 }
 
 $user = is_array($_SESSION['owasys_user'] ?? null) ? $_SESSION['owasys_user'] : null;
@@ -166,7 +202,7 @@ if ($isAuthenticated) {
     $body .= '<a href="' . $h($link('/logout')) . '">Logout</a>';
 } else {
     $body .= '<span class="ow-auth-dot is-off" aria-hidden="true"></span><strong>Not signed in</strong>';
-    $body .= '<small>local session inactive</small>';
+    $body .= '<small>password session inactive</small>';
     $body .= '<a href="' . $h($link('/login')) . '">Login</a>';
 }
 $body .= '</div>';
@@ -191,13 +227,24 @@ if ($controller === 'login') {
     $body .= '<section class="ow-card ow-auth-panel">';
     if ($isAuthenticated) {
         $body .= '<h2>Session active</h2>';
-        $body .= '<p>You are signed in for this local OWASYS development session.</p>';
+        $body .= '<p>You are signed in for this local OWASYS session.</p>';
         $body .= '<div class="ow-tags"><span>profile: ' . $h((string) ($user['profile'] ?? 'unknown')) . '</span><span>mode: ' . $h((string) ($user['mode'] ?? 'unknown')) . '</span></div>';
         $body .= '<p><a class="ow-button" href="' . $h($link('/logout')) . '">Logout</a><a class="ow-button ow-button-secondary" href="' . $h($link('/')) . '">Dashboard</a></p>';
     } else {
-        $body .= '<h2>Start local dev session</h2>';
-        $body .= '<p>This bootstrap creates a local <strong>dev</strong> session only. No committed password is used or accepted here.</p>';
-        $body .= '<form method="post" class="ow-login-form"><input type="hidden" name="owasys_action" value="local-dev-signin"><button class="ow-button" type="submit">Start local dev session</button></form>';
+        $body .= '<h2>Sign in</h2>';
+        $body .= '<p>Use a runtime local OWASYS user. Credentials are generated locally and are not committed to Git.</p>';
+        if ($loginError !== null) {
+            $body .= '<p class="ow-login-error">' . $h($loginError) . '</p>';
+        }
+        if (!is_file($authStoreFile)) {
+            $body .= '<p class="ow-login-warning">Runtime user store missing. Run <code>php tools\\owasys_auth_bootstrap_local_user.php</code> from the OPUS root.</p>';
+        }
+        $body .= '<form method="post" class="ow-login-form">';
+        $body .= '<input type="hidden" name="owasys_action" value="password-signin">';
+        $body .= '<label>Username<input name="owasys_username" autocomplete="username" required></label>';
+        $body .= '<label>Password<input name="owasys_password" type="password" autocomplete="current-password" required></label>';
+        $body .= '<button class="ow-button" type="submit">Sign in</button>';
+        $body .= '</form>';
     }
     $body .= '</section>';
 }
