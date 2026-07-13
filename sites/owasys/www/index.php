@@ -5,7 +5,7 @@ declare(strict_types=1);
  * OWASYS public entry.
  *
  * Standard OPUS site entry for the OWASYS application.
- * It renders data-only view-models and drives navigation from the OWASYS FSM config.
+ * It renders data-only state view-models and drives navigation from OWASYS_NAVIGATION_FSM_V1.
  */
 
 $siteRoot = dirname(__DIR__);
@@ -21,6 +21,11 @@ if (!is_array($routesConfig) || !isset($routesConfig['routes']) || !is_array($ro
 if (!is_array($siteConfig)) {
     http_response_code(500);
     echo 'OWASYS_SITE_CONFIG_INVALID';
+    exit;
+}
+if (($siteConfig['states_root'] ?? null) !== 'application/states' || ($siteConfig['dispatch_model'] ?? null) !== 'state-first') {
+    http_response_code(500);
+    echo 'OWASYS_STATE_ROOT_INVALID';
     exit;
 }
 
@@ -255,17 +260,23 @@ if (!is_array($route)) {
     exit;
 }
 
-$controller = (string) ($route['controller'] ?? '');
+$state = (string) ($route['state'] ?? ($route['controller'] ?? ''));
+$controller = (string) ($route['controller'] ?? $state);
+if (!preg_match('/^[a-z0-9_-]+$/', $state)) {
+    http_response_code(500);
+    echo 'OWASYS_STATE_INVALID';
+    exit;
+}
 if (!preg_match('/^[a-z0-9_-]+$/', $controller)) {
     http_response_code(500);
     echo 'OWASYS_CONTROLLER_INVALID';
     exit;
 }
 
-$viewFile = $siteRoot . '/application/' . $controller . '/views/index.php';
+$viewFile = $siteRoot . '/application/states/' . $state . '/views/index.php';
 if (!is_file($viewFile)) {
     http_response_code(500);
-    echo 'OWASYS_VIEW_MISSING: ' . $h($controller);
+    echo 'OWASYS_VIEW_MISSING: ' . $h($state);
     exit;
 }
 
@@ -288,7 +299,7 @@ $findRegistryEntry = static function (array $entries, string $id): ?array {
     return null;
 };
 
-if ($controller === 'registry' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+if ($state === 'registry' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     $action = (string) ($_POST['owasys_action'] ?? '');
     if ($action === 'select-app') {
         $appId = trim((string) ($_POST['owasys_app_id'] ?? ''));
@@ -545,12 +556,12 @@ if ($isAuthenticated) {
     $body .= '</section>';
 }
 
-if ($isAuthenticated && !in_array($controller, ['login', 'account'], true)) {
+if ($isAuthenticated && !in_array($state, ['login', 'account'], true)) {
     $currentStateId = is_array($currentState) ? (string) ($currentState['id'] ?? '') : null;
     $body .= $renderMermaidPanel($buildMermaidDiagram($fsmConfig, $currentApp, $currentStateId));
 }
 
-if ($currentApp !== null && !in_array($controller, ['login', 'account', 'registry'], true)) {
+if ($currentApp !== null && !in_array($state, ['login', 'account', 'registry'], true)) {
     $body .= '<section class="ow-card ow-context-panel">';
     $body .= '<h2>Application context</h2>';
     $body .= '<p>All configuration changes in this section target the selected OPUS application.</p>';
@@ -559,7 +570,7 @@ if ($currentApp !== null && !in_array($controller, ['login', 'account', 'registr
     $body .= '</section>';
 }
 
-if ($controller === 'login') {
+if ($state === 'login') {
     $body .= '<section class="ow-card ow-auth-panel">';
     if ($isAuthenticated) {
         $body .= '<h2>Session active</h2>';
@@ -585,7 +596,7 @@ if ($controller === 'login') {
     $body .= '</section>';
 }
 
-if ($controller === 'account') {
+if ($state === 'account') {
     $body .= '<section class="ow-card ow-auth-panel">';
     $body .= '<h2>Change password</h2>';
     $body .= '<p>Update the runtime password for the current OWASYS user. This is required for bootstrap users before accessing the dashboard.</p>';
@@ -605,7 +616,7 @@ if ($controller === 'account') {
     $body .= '</section>';
 }
 
-if ($controller === 'registry') {
+if ($state === 'registry') {
     $entries = (array) ($page['registry_entries'] ?? []);
     $body .= '<section class="ow-card ow-context-panel">';
     $body .= '<h2>Application context</h2>';
@@ -641,7 +652,7 @@ if ($controller === 'registry') {
     $body .= '</section>';
 }
 
-$cards = $controller === 'registry' ? [] : (array) ($page['cards'] ?? []);
+$cards = $state === 'registry' ? [] : (array) ($page['cards'] ?? []);
 if ($cards !== []) {
     $body .= '<section class="ow-grid">';
     foreach ($cards as $card) {
@@ -655,10 +666,10 @@ if ($cards !== []) {
         $body .= '</article>';
     }
     $body .= '</section>';
-} elseif ($controller !== 'registry') {
+} elseif ($state !== 'registry') {
     $body .= '<section class="ow-grid">';
     foreach ((array) ($page['sections'] ?? []) as $section) {
-        $body .= '<article class="ow-card"><h2>' . $h((string) $section) . '</h2><p class="ow-muted">Configuration through standard OPUS application folders, models, ODBC datasources and validation contracts.</p></article>';
+        $body .= '<article class="ow-card"><h2>' . $h((string) $section) . '</h2><p class="ow-muted">Configuration through standard OPUS application folders, states, models, ODBC datasources and validation contracts.</p></article>';
     }
     $body .= '</section>';
 }
@@ -688,7 +699,7 @@ echo '<!doctype html>'
     . '<link rel="stylesheet" href="' . $h($asset('/asset/css/owasys.css')) . '">'
     . '<link rel="stylesheet" href="' . $h($asset('/asset/themes/owasys/css/theme.css')) . '">'
     . '</head>'
-    . '<body>' . $body
+    . '<body data-opus-dispatch="state-first" data-opus-state="' . $h($state) . '">' . $body
     . '<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>'
     . '<script src="' . $h($asset('/asset/js/owasys.js')) . '"></script>'
     . '<script src="' . $h($asset('/asset/themes/owasys/js/theme.js')) . '"></script>'
