@@ -1,25 +1,34 @@
 {
     "contract": "OPUS_ROUTE_REGISTRY_V1",
+    "dispatch_model": "state-first",
     "routes": [
         {
             "id": "home.index",
             "path": "/",
+            "state": "home",
             "controller": "home",
+            "controller_legacy_alias": true,
             "class": null,
             "template": "application/home/templates/index.score",
             "view": "application/home/views/index.php",
             "label": "menu.home",
+            "fsm_state": "home",
+            "dispatch_action": "render_route",
             "show_in_menu": true,
             "order": 10
         },
         {
             "id": "articles.index",
             "path": "/articles",
+            "state": "articles",
             "controller": "articles",
+            "controller_legacy_alias": true,
             "class": null,
             "template": "application/articles/templates/index.score",
             "view": "application/articles/views/index.php",
             "label": "menu.articles",
+            "fsm_state": "articles",
+            "dispatch_action": "render_route",
             "show_in_menu": true,
             "order": 20
         }
