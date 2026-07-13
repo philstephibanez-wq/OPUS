@@ -37,6 +37,11 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $h = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+$mermaidLabel = static function (string $value): string {
+    $clean = preg_replace('/[^A-Za-z0-9 _.:\/\-]/', '', $value);
+    $clean = trim(is_string($clean) ? $clean : '');
+    return $clean === '' ? 'unknown' : $clean;
+};
 
 $authStoreRelative = trim(str_replace('\\', '/', (string) ($authConfig['user_store'] ?? 'var/auth/local-users.json')), '/');
 if ($authStoreRelative === '' || str_contains($authStoreRelative, '..')) {
@@ -331,6 +336,49 @@ $renderAppTags = static function (?array $app) use ($h): string {
     return $html . '</div>';
 };
 
+$buildMermaidDiagram = static function (?array $app) use ($link, $mermaidLabel): string {
+    $appLabel = $app === null
+        ? 'No application selected'
+        : $mermaidLabel((string) ($app['name'] ?? $app['id'] ?? 'Current application'));
+    $appKind = $app === null ? 'choose in Registry' : $mermaidLabel((string) ($app['kind'] ?? 'unknown'));
+
+    return implode("\n", [
+        'flowchart LR',
+        '    registry["Registry<br/>choose or create"]:::primary',
+        '    current["' . $appLabel . '<br/>' . $appKind . '"]:::current',
+        '    structure["Structure"]:::work',
+        '    data["Data"]:::work',
+        '    workflows["Workflows"]:::work',
+        '    security["Security"]:::work',
+        '    build["Build & Validate"]:::work',
+        '    registry --> current',
+        '    current --> structure',
+        '    current --> data',
+        '    current --> workflows',
+        '    current --> security',
+        '    current --> build',
+        '    registry --> build',
+        '    click registry "' . $link('/applications') . '" "Open Registry"',
+        '    click structure "' . $link('/structure') . '" "Open Structure"',
+        '    click data "' . $link('/data') . '" "Open Data"',
+        '    click workflows "' . $link('/workflows') . '" "Open Workflows"',
+        '    click security "' . $link('/security') . '" "Open Security"',
+        '    click build "' . $link('/build') . '" "Open Build"',
+        '    classDef primary fill:#123456,stroke:#6ce3ff,color:#f6f8ff,stroke-width:2px',
+        '    classDef current fill:#164e63,stroke:#4ade80,color:#f6f8ff,stroke-width:3px',
+        '    classDef work fill:#101c2f,stroke:#94aad8,color:#f6f8ff,stroke-width:1px',
+    ]);
+};
+
+$renderMermaidPanel = static function (string $diagram) use ($h): string {
+    return '<section class="ow-card ow-mermaid-panel" data-context="OWASYS_MERMAID_NAVIGATION">'
+        . '<h2>Visual navigation</h2>'
+        . '<p class="ow-muted">Clickable Mermaid map of the current OWASYS application context.</p>'
+        . '<pre class="mermaid">' . $h($diagram) . '</pre>'
+        . '<p class="ow-muted ow-mermaid-fallback">If Mermaid is unavailable, use the sidebar and Registry buttons.</p>'
+        . '</section>';
+};
+
 $body = '<div class="ow-shell">';
 $body .= '<aside class="ow-sidebar">';
 $body .= '<div class="ow-brand"><strong>OWASYS</strong><span>OPUS Web Application System</span></div>';
@@ -378,6 +426,24 @@ $body .= '<div><span class="ow-pill">' . $h((string) ($page['badge'] ?? 'OWASYS'
 $body .= '<h1>' . $h((string) ($page['title'] ?? 'OWASYS')) . '</h1>';
 $body .= '<p class="ow-muted">' . $h((string) ($page['summary'] ?? '')) . '</p></div>';
 $body .= '</header>';
+
+if ($isAuthenticated) {
+    $body .= '<section class="ow-current-app-hero" data-context="OWASYS_CURRENT_APP_CONTEXT">';
+    $body .= '<small>YOU ARE WORKING ON</small>';
+    if ($currentApp !== null) {
+        $body .= '<strong>' . $h((string) ($currentApp['name'] ?? $currentApp['id'] ?? 'unknown')) . '</strong>';
+        $body .= $renderAppTags($currentApp);
+    } else {
+        $body .= '<strong>No application selected</strong>';
+        $body .= '<p>Choose an existing OPUS application in the Registry, or create a new one.</p>';
+    }
+    $body .= '<p><a class="ow-button ow-button-secondary" href="' . $h($link('/applications')) . '">Change application</a></p>';
+    $body .= '</section>';
+}
+
+if ($isAuthenticated && !in_array($controller, ['login', 'account'], true)) {
+    $body .= $renderMermaidPanel($buildMermaidDiagram($currentApp));
+}
 
 if ($currentApp !== null && !in_array($controller, ['login', 'account', 'registry'], true)) {
     $body .= '<section class="ow-card ow-context-panel">';
@@ -518,6 +584,7 @@ echo '<!doctype html>'
     . '<link rel="stylesheet" href="' . $h($asset('/asset/themes/owasys/css/theme.css')) . '">'
     . '</head>'
     . '<body>' . $body
+    . '<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>'
     . '<script src="' . $h($asset('/asset/js/owasys.js')) . '"></script>'
     . '<script src="' . $h($asset('/asset/themes/owasys/js/theme.js')) . '"></script>'
     . '</body></html>';
