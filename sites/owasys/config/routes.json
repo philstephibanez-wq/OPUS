@@ -86,6 +86,18 @@
             "order": 70
         },
         {
+            "id": "account.password",
+            "path": "/account/password",
+            "controller": "account",
+            "class": null,
+            "template": "application/account/templates/index.score",
+            "view": "application/account/views/index.php",
+            "label": "menu.account",
+            "group": "OWASYS",
+            "show_in_menu": false,
+            "order": 880
+        },
+        {
             "id": "login.index",
             "path": "/login",
             "controller": "login",
