@@ -15,11 +15,13 @@ $demoTransition = $demoProcessor->transition('home', 'open_articles', []);
 
 $seen = [];
 $dispatcher = new FsmActionDispatcher([
-    'render_route' => static function (string $action, array $transitionResult) use (&$seen): array {
+    'render_route' => static function (string $action, array $transitionResult, array $context, FsmActionDispatcher $dispatcher) use (&$seen): array {
         $seen[] = $action;
         return [
             'rendered_state' => (string) ($transitionResult['to_state'] ?? ''),
             'view' => (string) (($transitionResult['target_state']['view'] ?? '') ?: ''),
+            'request_path' => (string) ($context['request_path'] ?? ''),
+            'dispatcher_ready' => $dispatcher->hasHandler($action),
         ];
     },
 ]);
@@ -66,13 +68,13 @@ if (!$invalidResultFailed) {
 
 $order = [];
 $multiDispatcher = new FsmActionDispatcher();
-$multiDispatcher->register('first_action', static function (string $action) use (&$order): string {
+$multiDispatcher->register('first_action', static function (string $action, array $transitionResult, array $context, FsmActionDispatcher $dispatcher) use (&$order): string {
     $order[] = $action;
-    return 'first-ok';
+    return $dispatcher->hasHandler($action) ? 'first-ok' : 'first-missing';
 });
-$multiDispatcher->register('second_action', static function (string $action) use (&$order): string {
+$multiDispatcher->register('second_action', static function (string $action, array $transitionResult, array $context, FsmActionDispatcher $dispatcher) use (&$order): string {
     $order[] = $action;
-    return 'second-ok';
+    return $dispatcher->hasHandler($action) ? 'second-ok' : 'second-missing';
 });
 $multiDispatch = $multiDispatcher->dispatch([
     'contract' => 'OPUS_FSM_PROCESSOR_RESULT_V1',
@@ -103,9 +105,10 @@ if (($emptyDispatch['count'] ?? null) !== 0 || ($emptyDispatch['executed'] ?? nu
 $owasysProcessor = FsmSiteLoader::forRepository($root)->processorForSite('owasys');
 $owasysTransition = $owasysProcessor->transition('registry', 'select_app', ['app_exists' => true]);
 $owasysDispatcher = new FsmActionDispatcher([
-    'set_current_app' => static fn (string $action, array $transitionResult, array $context): array => [
+    'set_current_app' => static fn (string $action, array $transitionResult, array $context, FsmActionDispatcher $dispatcher): array => [
         'selected_app' => (string) ($context['selected_app'] ?? 'demo-app'),
         'target_state' => (string) ($transitionResult['to_state'] ?? ''),
+        'handler_registered' => $dispatcher->hasHandler($action),
     ],
 ]);
 $owasysDispatch = $owasysDispatcher->dispatch($owasysTransition, ['selected_app' => 'demo-app']);
