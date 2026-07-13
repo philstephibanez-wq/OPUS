@@ -34,6 +34,19 @@ foreach ($siteDirectories as $siteDirectory) {
         exit(1);
     }
 
+    $role = (string) ($siteConfig['role'] ?? '');
+    $canonicalApplicationFsm = $configDirectory . DIRECTORY_SEPARATOR . 'application.fsm.json';
+    if ($role === 'generated-opus-application') {
+        if (!is_file($canonicalApplicationFsm)) {
+            fwrite(STDERR, "OPUS_FSM_CONTRACT_APPLICATION_FSM_MISSING: {$siteId}\n");
+            exit(1);
+        }
+        if (($siteConfig['application_fsm'] ?? null) !== 'config/application.fsm.json') {
+            fwrite(STDERR, "OPUS_FSM_CONTRACT_APPLICATION_FSM_POINTER_INVALID: {$siteId}\n");
+            exit(1);
+        }
+    }
+
     $candidates = [];
     $navigation = is_array($siteConfig['navigation'] ?? null) ? $siteConfig['navigation'] : [];
     $navigationFsm = str_replace('\\', '/', (string) ($navigation['fsm'] ?? ''));
@@ -41,7 +54,7 @@ foreach ($siteDirectories as $siteDirectory) {
         $candidates[] = $siteDirectory . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, trim($navigationFsm, '/'));
     }
 
-    $candidates[] = $configDirectory . DIRECTORY_SEPARATOR . 'application.fsm.json';
+    $candidates[] = $canonicalApplicationFsm;
     $candidates[] = $configDirectory . DIRECTORY_SEPARATOR . 'fsm.json';
     $candidates[] = $configDirectory . DIRECTORY_SEPARATOR . 'owasys-navigation.fsm.json';
     $candidates = array_values(array_unique($candidates));
@@ -68,6 +81,11 @@ foreach ($siteDirectories as $siteDirectory) {
     $contract = (string) ($fsm['contract'] ?? '');
     if (!isset($allowedContracts[$contract])) {
         fwrite(STDERR, "OPUS_FSM_CONTRACT_INVALID: {$siteId}:{$contract}\n");
+        exit(1);
+    }
+
+    if ($role === 'generated-opus-application' && $contract !== 'OPUS_APPLICATION_FSM_V1') {
+        fwrite(STDERR, "OPUS_FSM_CONTRACT_APPLICATION_FSM_NOT_CANONICAL: {$siteId}\n");
         exit(1);
     }
 
