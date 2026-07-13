@@ -36,6 +36,7 @@
         "opus:smoke-fsm-processor": "@php tools/smoke_opus_fsm_processor.php",
         "opus:smoke-fsm-site-loader": "@php tools/smoke_opus_fsm_site_loader.php",
         "opus:smoke-fsm-action-dispatcher": "@php tools/smoke_opus_fsm_action_dispatcher.php",
+        "opus:smoke-fsm-transition-cli": "@php tools/smoke_opus_fsm_transition_cli.php",
         "opus:smoke-validate-site-cli-fsm": "@php tools/smoke_opus_validate_site_cli_fsm.php",
         "owasys:auth-bootstrap": "@php tools/owasys_auth_bootstrap_local_user.php",
         "owasys:smoke-scaffold-plan": "@php tools/smoke_owasys_scaffold_plan_builder.php",
