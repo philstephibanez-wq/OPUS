@@ -6,15 +6,17 @@ namespace Opus\Scaffold;
 /**
  * OPUS site scaffold.
  *
- * Eternal ASAP contract:
+ * Eternal OPUS contract:
  * sites/<site>/config
  * sites/<site>/application/default
- * sites/<site>/application/<controller>
+ * sites/<site>/application/states/<state>
  * sites/<site>/www/asset/themes/<theme>
  */
 final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanInterface
 {
     private const CONTRACT = 'OPUS_SITE_APPLICATION_TREE_V1_ETERNAL';
+    private const APPLICATION_FSM_CONTRACT = 'OPUS_APPLICATION_FSM_V1';
+    private const LEGACY_FSM_CONTRACT = 'OPUS_FSM_REGISTRY_V1';
 
     private function __construct(private readonly string $siteId)
     {
@@ -36,7 +38,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
     public function entries(): array
     {
         $site = $this->siteId;
-        $controllers = ['home', 'architecture', 'router', 'modules', 'controllers', 'views', 'models', 'i18n'];
+        $states = ['home', 'architecture', 'router', 'modules', 'controllers', 'views', 'models', 'i18n'];
         $directories = [
             "sites/{$site}/config",
             "sites/{$site}/application",
@@ -53,6 +55,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             "sites/{$site}/application/default/templates",
             "sites/{$site}/application/default/templates/components",
             "sites/{$site}/application/default/views",
+            "sites/{$site}/application/states",
             "sites/{$site}/www",
             "sites/{$site}/www/asset",
             "sites/{$site}/www/asset/css",
@@ -64,9 +67,9 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             "sites/{$site}/www/asset/themes/starter/img",
         ];
 
-        foreach ($controllers as $controller) {
+        foreach ($states as $state) {
             foreach (['', '/acl', '/helpers', '/css', '/javascript', '/local', '/local/fr', '/local/en', '/local/es', '/models', '/templates', '/views'] as $suffix) {
-                $directories[] = "sites/{$site}/application/{$controller}{$suffix}";
+                $directories[] = "sites/{$site}/application/states/{$state}{$suffix}";
             }
         }
 
@@ -78,13 +81,15 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
         $entries[] = ScaffoldEntry::file("sites/{$site}/opus-site.json", $this->json([
             'site_id' => $site,
             'contract' => self::CONTRACT,
-            'asap_reference' => 'https://asap.logandplay.org/ASAP_PHP_DEMO/fr/articles',
+            'states_root' => 'application/states',
+            'dispatch_model' => 'state-first',
         ]));
         $entries[] = ScaffoldEntry::file("sites/{$site}/config/site.json", $this->json($this->siteConfig($site)));
-        $entries[] = ScaffoldEntry::file("sites/{$site}/config/routes.json", $this->json($this->routesConfig($controllers)));
-        $entries[] = ScaffoldEntry::file("sites/{$site}/config/menu.json", $this->json($this->menuConfig($controllers)));
-        $entries[] = ScaffoldEntry::file("sites/{$site}/config/fsm.json", $this->json($this->fsmConfig($controllers)));
-        $entries[] = ScaffoldEntry::file("sites/{$site}/config/rubrics.json", $this->json($this->rubricsConfig($controllers)));
+        $entries[] = ScaffoldEntry::file("sites/{$site}/config/routes.json", $this->json($this->routesConfig($states)));
+        $entries[] = ScaffoldEntry::file("sites/{$site}/config/menu.json", $this->json($this->menuConfig($states)));
+        $entries[] = ScaffoldEntry::file("sites/{$site}/config/application.fsm.json", $this->json($this->applicationFsmConfig($site, $states)));
+        $entries[] = ScaffoldEntry::file("sites/{$site}/config/fsm.json", $this->json($this->legacyFsmConfig($site, $states)));
+        $entries[] = ScaffoldEntry::file("sites/{$site}/config/rubrics.json", $this->json($this->rubricsConfig($states)));
         $entries[] = ScaffoldEntry::file("sites/{$site}/application/default/templates/layout.score", "<!doctype html>\n<html lang=\"{{ lang }}\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>{{ page.title }}</title>\n{{{ assets.css }}}\n</head>\n<body class=\"opus-asap-site\">\n{{{ common.header }}}\n<main id=\"main-content\" class=\"opus-shell\">{{{ content }}}</main>\n{{{ common.footer }}}\n{{{ assets.js }}}\n</body>\n</html>\n");
         $entries[] = ScaffoldEntry::file("sites/{$site}/application/default/templates/components/header.score", "<header class=\"opus-header\"><h1>{{ site.name }}</h1><nav>{{{ common.menu }}}</nav></header>\n");
         $entries[] = ScaffoldEntry::file("sites/{$site}/application/default/templates/components/footer.score", "<footer class=\"opus-footer\">{{ site.contract }}</footer>\n");
@@ -98,13 +103,15 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
         $entries[] = ScaffoldEntry::file("sites/{$site}/www/asset/themes/starter/js/theme.js", "document.documentElement.dataset.opusThemeLayer='starter';\n");
         $entries[] = ScaffoldEntry::file("sites/{$site}/www/index.php", $this->frontController());
 
-        foreach ($controllers as $controller) {
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/{$controller}/templates/index.score", "<section class=\"opus-card\"><h2>{{ page.title }}</h2><p>{{ page.subtitle }}</p></section>\n");
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/{$controller}/css/{$controller}.css", "/* {$controller} */\n");
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/{$controller}/javascript/{$controller}.js", "document.documentElement.dataset.opusControllerLayer='{$controller}';\n");
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/{$controller}/local/fr/i18n.json", $this->json($this->controllerI18n($controller, 'fr')));
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/{$controller}/local/en/i18n.json", $this->json($this->controllerI18n($controller, 'en')));
-            $entries[] = ScaffoldEntry::file("sites/{$site}/application/{$controller}/local/es/i18n.json", $this->json($this->controllerI18n($controller, 'es')));
+        foreach ($states as $state) {
+            $base = "sites/{$site}/application/states/{$state}";
+            $entries[] = ScaffoldEntry::file($base . "/templates/index.score", "<section class=\"opus-card\"><h2>{{ page.title }}</h2><p>{{ page.subtitle }}</p></section>\n");
+            $entries[] = ScaffoldEntry::file($base . "/views/index.php", $this->stateViewModel($state));
+            $entries[] = ScaffoldEntry::file($base . "/css/{$state}.css", "/* {$state} */\n");
+            $entries[] = ScaffoldEntry::file($base . "/javascript/{$state}.js", "document.documentElement.dataset.opusStateLayer='{$state}';\n");
+            $entries[] = ScaffoldEntry::file($base . "/local/fr/i18n.json", $this->json($this->stateI18n($state, 'fr')));
+            $entries[] = ScaffoldEntry::file($base . "/local/en/i18n.json", $this->json($this->stateI18n($state, 'en')));
+            $entries[] = ScaffoldEntry::file($base . "/local/es/i18n.json", $this->json($this->stateI18n($state, 'es')));
         }
 
         return $entries;
@@ -121,54 +128,120 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             'locales' => ['fr', 'en', 'es'],
             'theme' => 'starter',
             'application_root' => 'application',
+            'states_root' => 'application/states',
             'default_root' => 'application/default',
-            'controller_root_pattern' => 'application/<controller>',
+            'application_fsm' => 'config/application.fsm.json',
+            'fsm_legacy_projection' => 'config/fsm.json',
+            'fsm_contract' => self::APPLICATION_FSM_CONTRACT,
+            'dispatch_model' => 'state-first',
+            'controller_field' => 'legacy_alias',
             'public_root' => 'www',
             'asset_root' => 'www/asset',
             'theme_root_pattern' => 'www/asset/themes/<theme>',
-            'css_inheritance' => ['application/default/css', 'www/asset/themes/<theme>/css', 'application/<controller>/css'],
-            'js_inheritance' => ['application/default/javascript', 'www/asset/themes/<theme>/js', 'application/<controller>/javascript'],
+            'css_inheritance' => ['application/default/css', 'www/asset/themes/<theme>/css', 'application/states/<state>/css'],
+            'js_inheritance' => ['application/default/javascript', 'www/asset/themes/<theme>/js', 'application/states/<state>/javascript'],
         ];
     }
 
-    /** @param list<string> $controllers @return array<string,mixed> */
-    private function routesConfig(array $controllers): array
+    /** @param list<string> $states @return array<string,mixed> */
+    private function routesConfig(array $states): array
     {
         $routes = [];
-        foreach ($controllers as $index => $controller) {
+        foreach ($states as $index => $state) {
             $routes[] = [
-                'id' => $controller . '.index',
-                'path' => $controller === 'home' ? '/' : '/' . $controller,
-                'controller' => $controller,
+                'id' => $state . '.index',
+                'path' => $state === 'home' ? '/' : '/' . $state,
+                'state' => $state,
+                'controller' => $state,
+                'controller_legacy_alias' => true,
                 'action' => 'index',
-                'template' => 'application/' . $controller . '/templates/index.score',
-                'label' => 'menu.' . $controller,
+                'template' => 'application/states/' . $state . '/templates/index.score',
+                'view' => 'application/states/' . $state . '/views/index.php',
+                'label' => 'menu.' . $state,
                 'acl' => 'public',
-                'fsm_state' => strtoupper(str_replace('-', '_', $controller)),
+                'fsm_state' => $state,
+                'dispatch_action' => 'render_route',
                 'show_in_menu' => true,
-                'show_on_home' => $controller !== 'home',
+                'show_on_home' => $state !== 'home',
                 'order' => ($index + 1) * 10,
             ];
         }
-        return ['contract' => 'OPUS_ROUTE_REGISTRY_V1', 'routes' => $routes];
+        return ['contract' => 'OPUS_ROUTE_REGISTRY_V1', 'dispatch_model' => 'state-first', 'routes' => $routes];
     }
 
-    /** @param list<string> $controllers @return array<string,mixed> */
-    private function menuConfig(array $controllers): array
+    /** @param list<string> $states @return array<string,mixed> */
+    private function menuConfig(array $states): array
     {
-        return ['contract' => 'OPUS_MENU_ROUTE_PROJECTION_V1', 'items' => array_map(static fn (string $c): array => ['route' => $c . '.index', 'controller' => $c, 'label' => 'menu.' . $c], $controllers)];
+        return [
+            'contract' => 'OPUS_MENU_ROUTE_PROJECTION_V1',
+            'source_fsm' => 'config/application.fsm.json',
+            'dispatch_model' => 'state-first',
+            'items' => array_map(static fn (string $state): array => ['route' => $state . '.index', 'state' => $state, 'controller' => $state, 'label' => 'menu.' . $state], $states),
+        ];
     }
 
-    /** @param list<string> $controllers @return array<string,mixed> */
-    private function fsmConfig(array $controllers): array
+    /** @param list<string> $states @return array<string,mixed> */
+    private function applicationFsmConfig(string $site, array $states): array
     {
-        return ['contract' => 'OPUS_FSM_REGISTRY_V1', 'initial_state' => 'HOME', 'states' => array_map(static fn (string $c): array => ['id' => strtoupper(str_replace('-', '_', $c)), 'controller' => $c], $controllers), 'transitions' => []];
+        $fsmStates = array_map(static fn (string $state): array => [
+            'id' => $state,
+            'state' => $state,
+            'controller' => $state,
+            'controller_legacy_alias' => true,
+            'route' => $state === 'home' ? '/' : '/' . $state,
+            'view' => 'application/states/' . $state . '/views/index.php',
+            'template' => 'application/states/' . $state . '/templates/index.score',
+            'dispatch' => ['action' => 'render_route', 'target' => $state],
+            'visual' => true,
+        ], $states);
+
+        $transitions = [];
+        foreach ($states as $from) {
+            foreach ($states as $to) {
+                if ($from === $to) {
+                    continue;
+                }
+                $transitions[] = [
+                    'from' => $from,
+                    'event' => 'open_' . $to,
+                    'to' => $to,
+                    'guard' => 'route_exists',
+                    'action' => 'render_route',
+                    'dispatch' => ['action' => 'render_route', 'target_state' => $to],
+                    'visual' => true,
+                ];
+            }
+        }
+
+        return [
+            'contract' => self::APPLICATION_FSM_CONTRACT,
+            'source_of_truth' => 'config',
+            'site_id' => $site,
+            'dispatch_model' => 'state-first',
+            'controller_field' => 'legacy_alias',
+            'initial_state' => 'home',
+            'states' => $fsmStates,
+            'transitions' => $transitions,
+        ];
     }
 
-    /** @param list<string> $controllers @return array<string,mixed> */
-    private function rubricsConfig(array $controllers): array
+    /** @param list<string> $states @return array<string,mixed> */
+    private function legacyFsmConfig(string $site, array $states): array
     {
-        return ['contract' => 'OPUS_HOME_DEMO_CARD_ROUTE_PROJECTION_V1', 'rubrics' => array_values(array_map(static fn (string $c): array => ['controller' => $c, 'route' => $c . '.index'], array_filter($controllers, static fn (string $c): bool => $c !== 'home')))];
+        return [
+            'contract' => self::LEGACY_FSM_CONTRACT,
+            'source_of_truth' => 'config/application.fsm.json',
+            'site_id' => $site,
+            'initial_state' => 'HOME',
+            'states' => array_map(static fn (string $state): array => ['id' => strtoupper(str_replace('-', '_', $state)), 'state' => $state, 'controller' => $state], $states),
+            'transitions' => [],
+        ];
+    }
+
+    /** @param list<string> $states @return array<string,mixed> */
+    private function rubricsConfig(array $states): array
+    {
+        return ['contract' => 'OPUS_HOME_DEMO_CARD_ROUTE_PROJECTION_V1', 'dispatch_model' => 'state-first', 'rubrics' => array_values(array_map(static fn (string $state): array => ['state' => $state, 'controller' => $state, 'route' => $state . '.index'], array_filter($states, static fn (string $state): bool => $state !== 'home')))];
     }
 
     /** @return array<string,string> */
@@ -178,9 +251,14 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
     }
 
     /** @return array<string,string> */
-    private function controllerI18n(string $controller, string $locale): array
+    private function stateI18n(string $state, string $locale): array
     {
-        return ['page.title' => strtoupper($controller), 'page.subtitle' => 'OPUS ASAP contract controller: ' . $controller];
+        return ['page.title' => strtoupper($state), 'page.subtitle' => 'OPUS state-first node: ' . $state];
+    }
+
+    private function stateViewModel(string $state): string
+    {
+        return "<?php\ndeclare(strict_types=1);\n\nreturn [\n    'state' => " . var_export($state, true) . ",\n    'title' => " . var_export(strtoupper($state), true) . ",\n    'subtitle' => " . var_export('OPUS state-first node: ' . $state, true) . ",\n];\n";
     }
 
     private function frontController(): string
@@ -190,25 +268,38 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
 declare(strict_types=1);
 
 $siteRoot = dirname(__DIR__);
+$routesFile = $siteRoot . '/config/routes.json';
+$routesConfig = json_decode((string) file_get_contents($routesFile), true);
+if (!is_array($routesConfig) || !is_array($routesConfig['routes'] ?? null)) {
+    http_response_code(500);
+    echo 'OPUS_ROUTES_INVALID';
+    exit;
+}
 $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/';
 $path = '/' . trim($path, '/');
-if ($path === '/') {
-    $controller = 'home';
-} else {
-    $controller = preg_replace('/\.php$/', '', basename($path)) ?: 'home';
+$route = null;
+foreach ($routesConfig['routes'] as $candidate) {
+    if (is_array($candidate) && ($candidate['path'] ?? null) === $path) {
+        $route = $candidate;
+        break;
+    }
 }
-if (!preg_match('/^[A-Za-z0-9_-]+$/', $controller)) {
+if (!is_array($route)) {
+    http_response_code(404);
+    echo 'OPUS_ROUTE_NOT_FOUND';
+    exit;
+}
+$state = (string) ($route['state'] ?? $route['controller'] ?? 'home');
+if (!preg_match('/^[A-Za-z0-9_-]+$/', $state)) {
     http_response_code(400);
-    echo 'OPUS_CONTROLLER_INVALID';
+    echo 'OPUS_STATE_INVALID';
     exit;
 }
-$legacy = $siteRoot . '/application/' . $controller . '/views/legacy-public-entry.php';
-if (is_file($legacy)) {
-    require $legacy;
-    exit;
-}
+$view = $siteRoot . '/application/states/' . $state . '/views/index.php';
+$page = is_file($view) ? require $view : ['title' => $state, 'subtitle' => 'OPUS state'];
+$h = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 header('Content-Type: text/html; charset=UTF-8');
-echo '<!doctype html><html><head><meta charset="utf-8"><title>OPUS</title><link rel="stylesheet" href="/asset/css/default-default.css"><link rel="stylesheet" href="/asset/themes/starter/css/theme.css"></head><body class="opus-asap-site"><main class="opus-shell"><h1>OPUS</h1><p>Controller: ' . htmlspecialchars($controller, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</p></main></body></html>';
+echo '<!doctype html><html><head><meta charset="utf-8"><title>OPUS</title><link rel="stylesheet" href="/asset/themes/starter/css/theme.css"></head><body class="opus-asap-site" data-opus-dispatch="state-first" data-opus-state="' . $h($state) . '"><main class="opus-shell"><h1>' . $h((string) ($page['title'] ?? $state)) . '</h1><p>' . $h((string) ($page['subtitle'] ?? '')) . '</p></main></body></html>';
 PHP;
     }
 
