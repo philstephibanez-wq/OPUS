@@ -27,7 +27,8 @@ a { color: inherit; }
 }
 .ow-brand strong { display: block; font-size: 25px; letter-spacing: .06em; }
 .ow-brand span { color: var(--ow-muted); }
-.ow-auth-status {
+.ow-auth-status,
+.ow-current-app {
   display: grid;
   gap: 4px;
   margin: 20px 0 0;
@@ -37,9 +38,13 @@ a { color: inherit; }
   background: rgba(255,255,255,.035);
 }
 .ow-auth-status strong { display: inline-flex; gap: 8px; align-items: center; }
-.ow-auth-status small { color: var(--ow-muted); }
+.ow-auth-status small,
+.ow-current-app small,
+.ow-current-app span { color: var(--ow-muted); }
+.ow-current-app strong { color: var(--ow-text); }
 .ow-auth-status .ow-auth-warning { color: #fde68a; font-weight: 850; }
-.ow-auth-status a { color: var(--ow-accent); font-weight: 800; text-decoration: none; }
+.ow-auth-status a,
+.ow-current-app a { color: var(--ow-accent); font-weight: 800; text-decoration: none; }
 .ow-auth-dot { width: 9px; height: 9px; border-radius: 999px; background: var(--ow-ok); display: inline-block; box-shadow: 0 0 18px rgba(74,222,128,.9); }
 .ow-auth-dot.is-off { background: var(--ow-warn); box-shadow: 0 0 18px rgba(251,191,36,.65); }
 .ow-nav { display: grid; gap: 8px; margin-top: 26px; }
@@ -86,6 +91,12 @@ a { color: inherit; }
   background: rgba(255,255,255,.04);
   color: var(--ow-muted);
 }
+.ow-context-panel {
+  border-color: rgba(108, 227, 255, .35);
+  background: linear-gradient(180deg, rgba(15,40,70,.80), rgba(12,23,40,.96));
+}
+.ow-registry-card { position: relative; }
+.ow-inline-form { display: inline-flex; gap: 8px; margin: 10px 8px 0 0; }
 .ow-auth-panel {
   border-color: rgba(108, 227, 255, .45);
   background: linear-gradient(180deg, rgba(18,52,86,.82), rgba(12,23,40,.96));
