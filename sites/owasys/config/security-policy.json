@@ -24,12 +24,14 @@
         }
     },
     "session_strategy": "explicit",
-    "local_bootstrap": {
+    "local_credentials": {
         "enabled": true,
-        "profile": "dev",
-        "route": "/login",
-        "logout_route": "/logout",
-        "purpose": "Local development session foundation only; production authentication and admin credentials are not committed."
+        "store": "var/auth/local-users.json",
+        "store_contract": "OWASYS_LOCAL_USER_STORE_V1",
+        "password_hash_required": true,
+        "plain_text_passwords_forbidden": true,
+        "committed_credentials_forbidden": true,
+        "bootstrap_tool": "tools/owasys_auth_bootstrap_local_user.php"
     },
     "committed_passwords_allowed": false,
     "audit_strategy": "mandatory_for_write_actions"
