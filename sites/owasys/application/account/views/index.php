@@ -41,7 +41,7 @@ return [
     ],
     'actions' => [
         'Enter current password',
-        'Choose a new password of at least 12 characters',
+        'Choose a new password of at least 10 characters',
         'Return to dashboard after successful password change',
     ],
 ];
