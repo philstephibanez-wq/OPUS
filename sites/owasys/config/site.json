@@ -62,7 +62,7 @@
         "www/asset/themes/<theme>/js",
         "application/<controller>/javascript"
     ],
-    "owasys_stage": "local-session-foundation",
+    "owasys_stage": "runtime-password-login-foundation",
     "registry": {
         "datasource": "owasys_registry",
         "schema": "config/registry.schema.sql",
@@ -81,10 +81,12 @@
     },
     "auth": {
         "session_name": "OWASYS_LOCAL_SESSION",
-        "mode": "local-dev-bootstrap",
+        "mode": "runtime-password-store",
+        "user_store": "var/auth/local-users.json",
         "login_route": "/login",
         "logout_route": "/logout",
         "write_actions_require_auth": true,
+        "password_hash_algorithm": "PASSWORD_DEFAULT",
         "committed_passwords_allowed": false
     },
     "capabilities": [
@@ -98,6 +100,6 @@
         "security_profiles",
         "build_validation",
         "export_policy",
-        "local_session_foundation"
+        "runtime_password_login_foundation"
     ]
 }
