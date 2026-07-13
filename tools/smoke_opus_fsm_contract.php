@@ -28,11 +28,23 @@ foreach ($siteDirectories as $siteDirectory) {
         continue;
     }
 
-    $candidates = [
-        $configDirectory . DIRECTORY_SEPARATOR . 'application.fsm.json',
-        $configDirectory . DIRECTORY_SEPARATOR . 'fsm.json',
-        $configDirectory . DIRECTORY_SEPARATOR . 'owasys-navigation.fsm.json',
-    ];
+    $siteConfig = json_decode((string) file_get_contents($siteConfigFile), true);
+    if (!is_array($siteConfig)) {
+        fwrite(STDERR, "OPUS_FSM_CONTRACT_SITE_JSON_INVALID: {$siteId}\n");
+        exit(1);
+    }
+
+    $candidates = [];
+    $navigation = is_array($siteConfig['navigation'] ?? null) ? $siteConfig['navigation'] : [];
+    $navigationFsm = str_replace('\\', '/', (string) ($navigation['fsm'] ?? ''));
+    if ($navigationFsm !== '' && !str_contains($navigationFsm, '..')) {
+        $candidates[] = $siteDirectory . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, trim($navigationFsm, '/'));
+    }
+
+    $candidates[] = $configDirectory . DIRECTORY_SEPARATOR . 'application.fsm.json';
+    $candidates[] = $configDirectory . DIRECTORY_SEPARATOR . 'fsm.json';
+    $candidates[] = $configDirectory . DIRECTORY_SEPARATOR . 'owasys-navigation.fsm.json';
+    $candidates = array_values(array_unique($candidates));
 
     $found = null;
     foreach ($candidates as $candidate) {
