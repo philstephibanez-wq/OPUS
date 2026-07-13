@@ -17,6 +17,8 @@ use RuntimeException;
 final class ApplicationScaffoldWriter
 {
     private const SITE_CONTRACT = 'OPUS_SITE_APPLICATION_TREE_V1_ETERNAL';
+    private const APPLICATION_FSM_CONTRACT = 'OPUS_APPLICATION_FSM_V1';
+    private const LEGACY_FSM_CONTRACT = 'OPUS_FSM_REGISTRY_V1';
     private const FORBIDDEN_SEGMENTS = ['..', 'public', 'src', 'resources'];
 
     public function __construct(private readonly string $opusRoot)
@@ -92,9 +94,9 @@ final class ApplicationScaffoldWriter
         $directories = $this->pathListField($plan, 'directories', $siteRoot);
         $files = $this->fileListField($plan, 'files', $siteRoot);
 
-        foreach (['config', 'application/default', 'www', 'www/index.php', 'www/asset'] as $required) {
+        foreach (['config', 'application/default', 'www', 'www/index.php', 'www/asset', 'config/application.fsm.json'] as $required) {
             $needle = $siteRoot . '/' . $required;
-            if ($required === 'www/index.php') {
+            if (str_contains($required, '.')) {
                 if (!$this->fileExistsInPlan($files, $needle)) {
                     throw new RuntimeException('OWASYS_SCAFFOLD_REQUIRED_FILE_MISSING: ' . $needle);
                 }
@@ -151,8 +153,11 @@ final class ApplicationScaffoldWriter
         if (str_ends_with($path, '/config/menu.json')) {
             return $this->json($this->menuConfig($plan));
         }
+        if (str_ends_with($path, '/config/application.fsm.json')) {
+            return $this->json($this->applicationFsmConfig($plan));
+        }
         if (str_ends_with($path, '/config/fsm.json')) {
-            return $this->json($this->fsmConfig($plan));
+            return $this->json($this->legacyFsmConfig($plan));
         }
         if (str_ends_with($path, '/config/rubrics.json')) {
             return $this->json($this->rubricsConfig($plan));
@@ -219,6 +224,9 @@ final class ApplicationScaffoldWriter
             'default_root' => 'application/default',
             'asset_root' => 'www/asset',
             'theme_root_pattern' => 'www/asset/themes/<theme>',
+            'application_fsm' => 'config/application.fsm.json',
+            'fsm_legacy_projection' => 'config/fsm.json',
+            'fsm_contract' => self::APPLICATION_FSM_CONTRACT,
             'src_directory_allowed' => false,
             'css_inheritance' => ['application/default/css', 'www/asset/themes/<theme>/css', 'application/<controller>/css'],
             'js_inheritance' => ['application/default/javascript', 'www/asset/themes/<theme>/js', 'application/<controller>/javascript'],
@@ -241,6 +249,7 @@ final class ApplicationScaffoldWriter
                 'template' => 'application/' . $controller . '/templates/index.score',
                 'view' => 'application/' . $controller . '/views/index.php',
                 'label' => 'menu.' . $controller,
+                'fsm_state' => $this->stateId($controller),
                 'show_in_menu' => true,
                 'order' => ($index + 1) * 10,
             ];
@@ -253,18 +262,87 @@ final class ApplicationScaffoldWriter
     {
         return [
             'contract' => 'OPUS_MENU_ROUTE_PROJECTION_V1',
+            'source_fsm' => 'config/application.fsm.json',
             'items' => array_map(static fn (string $controller): array => ['route' => $controller . '.index', 'controller' => $controller, 'label' => 'menu.' . $controller], $plan['controllers']),
         ];
     }
 
     /** @param array<string,mixed> $plan @return array<string,mixed> */
-    private function fsmConfig(array $plan): array
+    private function applicationFsmConfig(array $plan): array
     {
+        $states = [];
+        $routes = $this->routesConfig($plan)['routes'];
+        foreach ($routes as $route) {
+            $controller = (string) ($route['controller'] ?? 'home');
+            $states[] = [
+                'id' => $this->stateId($controller),
+                'label' => ucfirst(str_replace('-', ' ', $controller)),
+                'controller' => $controller,
+                'route' => (string) ($route['path'] ?? '/'),
+                'view' => (string) ($route['view'] ?? ''),
+                'template' => (string) ($route['template'] ?? ''),
+                'visual' => true,
+            ];
+        }
+
+        $initial = $states[0]['id'] ?? 'home';
+        foreach ($states as $state) {
+            if (($state['controller'] ?? '') === 'home') {
+                $initial = (string) $state['id'];
+                break;
+            }
+        }
+
+        $transitions = [];
+        foreach ($states as $from) {
+            foreach ($states as $to) {
+                if (($from['id'] ?? '') === ($to['id'] ?? '')) {
+                    continue;
+                }
+                $transitions[] = [
+                    'from' => (string) $from['id'],
+                    'event' => 'open_' . (string) $to['id'],
+                    'to' => (string) $to['id'],
+                    'guard' => 'route_exists',
+                    'action' => 'render_route',
+                    'visual' => true,
+                ];
+            }
+        }
+
         return [
-            'contract' => 'OPUS_FSM_REGISTRY_V1',
-            'initial_state' => 'HOME',
-            'states' => array_map(static fn (string $controller): array => ['id' => strtoupper(str_replace('-', '_', $controller)), 'controller' => $controller], $plan['controllers']),
-            'transitions' => [],
+            'contract' => self::APPLICATION_FSM_CONTRACT,
+            'source_of_truth' => 'config',
+            'generated_by' => 'owasys',
+            'site_id' => $plan['site_id'],
+            'initial_state' => $initial,
+            'states' => $states,
+            'transitions' => $transitions,
+            'runtime_state' => [
+                'storage' => 'site-runtime',
+                'history' => 'future-processor',
+            ],
+        ];
+    }
+
+    /** @param array<string,mixed> $plan @return array<string,mixed> */
+    private function legacyFsmConfig(array $plan): array
+    {
+        $applicationFsm = $this->applicationFsmConfig($plan);
+        return [
+            'contract' => self::LEGACY_FSM_CONTRACT,
+            'source_of_truth' => 'config/application.fsm.json',
+            'initial_state' => strtoupper((string) ($applicationFsm['initial_state'] ?? 'home')),
+            'states' => array_map(static fn (array $state): array => [
+                'id' => strtoupper((string) ($state['id'] ?? '')),
+                'controller' => (string) ($state['controller'] ?? ''),
+                'route' => (string) ($state['route'] ?? ''),
+            ], (array) ($applicationFsm['states'] ?? [])),
+            'transitions' => array_map(static fn (array $transition): array => [
+                'from' => strtoupper((string) ($transition['from'] ?? '')),
+                'event' => (string) ($transition['event'] ?? ''),
+                'to' => strtoupper((string) ($transition['to'] ?? '')),
+            ], (array) ($applicationFsm['transitions'] ?? [])),
         ];
     }
 
@@ -305,8 +383,8 @@ final class ApplicationScaffoldWriter
         $defaults = [
             'kicker' => 'Generated by OWASYS',
             'title' => ucfirst(str_replace('-', ' ', $controller)),
-            'subtitle' => 'Generated OPUS section',
-            'summary' => 'This page was generated from an OWASYS scaffold plan.',
+            'subtitle' => 'Generated OPUS FSM state',
+            'summary' => 'This page is a rendered state from the generated OPUS application FSM.',
         ];
 
         $labels = [
@@ -314,19 +392,19 @@ final class ApplicationScaffoldWriter
                 'kicker' => 'OPUS generated application',
                 'title' => $siteName,
                 'subtitle' => 'A clean OPUS application generated by OWASYS.',
-                'summary' => 'This demo proves the OPUS application tree, routing, assets, view-models, validation and export chain.',
+                'summary' => 'This demo proves the OPUS application tree, routing, assets, view-models, validation, export chain and FSM contract.',
             ],
             'articles' => [
                 'kicker' => 'Content demo',
                 'title' => 'Articles',
-                'subtitle' => 'A starter content section for OPUS pages.',
-                'summary' => 'Use this section as a first model for list pages, editorial content and generated navigation.',
+                'subtitle' => 'A starter content state for OPUS pages.',
+                'summary' => 'Use this section as a first model for list pages, editorial content and generated navigation transitions.',
             ],
             'about' => [
                 'kicker' => 'About this app',
                 'title' => 'About',
                 'subtitle' => 'A generated application without public/src/resources roots.',
-                'summary' => 'OWASYS keeps OPUS structure explicit: config, application/default, application/<controller> and www.',
+                'summary' => 'OWASYS keeps OPUS structure explicit: config, application/default, application/<controller>, www and application.fsm.json.',
             ],
             'contact' => [
                 'kicker' => 'Contact page',
@@ -345,8 +423,8 @@ final class ApplicationScaffoldWriter
         if ($controller === 'home') {
             return [
                 ['title' => 'Standard OPUS tree', 'body' => 'The site uses config, application/default, application/<controller> and www only.'],
-                ['title' => 'OWASYS pipeline', 'body' => 'Request, plan, write, validate and export are now connected.'],
-                ['title' => 'Ready for extension', 'body' => 'Add models, routes, data sources, workflows and security profiles from OWASYS.'],
+                ['title' => 'FSM-first application', 'body' => 'The canonical application FSM is stored in config/application.fsm.json.'],
+                ['title' => 'OWASYS pipeline', 'body' => 'Request, plan, write, validate and export are connected.'],
             ];
         }
 
@@ -390,11 +468,18 @@ declare(strict_types=1);
 $siteRoot = dirname(__DIR__);
 $routesFile = $siteRoot . '/config/routes.json';
 $siteFile = $siteRoot . '/config/site.json';
+$fsmFile = $siteRoot . '/config/application.fsm.json';
 $routesConfig = json_decode((string) file_get_contents($routesFile), true);
 $siteConfig = json_decode((string) file_get_contents($siteFile), true);
+$fsmConfig = is_file($fsmFile) ? json_decode((string) file_get_contents($fsmFile), true) : null;
 if (!is_array($routesConfig) || !isset($routesConfig['routes']) || !is_array($routesConfig['routes'])) {
     http_response_code(500);
     echo 'OPUS_GENERATED_ROUTES_INVALID';
+    exit;
+}
+if (!is_array($fsmConfig) || ($fsmConfig['contract'] ?? null) !== 'OPUS_APPLICATION_FSM_V1' || empty($fsmConfig['states'])) {
+    http_response_code(500);
+    echo 'OPUS_GENERATED_FSM_INVALID';
     exit;
 }
 
@@ -410,11 +495,11 @@ foreach ($routesConfig['routes'] as $candidate) {
 }
 if (!is_array($route)) {
     http_response_code(404);
-    $route = ['controller' => 'not-found', 'path' => $path];
+    $route = ['controller' => 'not-found', 'path' => $path, 'fsm_state' => 'not_found'];
     $page = [
         'title' => 'Page not found',
         'subtitle' => 'No OPUS route matched this path.',
-        'summary' => 'Return to the generated home page or add a route in config/routes.json.',
+        'summary' => 'Return to the generated home page or add a route in config/routes.json and config/application.fsm.json.',
         'kicker' => '404',
         'cards' => [],
         'actions' => [['label' => 'Home', 'href' => '/']],
@@ -439,10 +524,11 @@ usort($routes, static fn (array $left, array $right): int => ((int) ($left['orde
 $h = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 $siteName = is_array($siteConfig) ? (string) ($siteConfig['site_name'] ?? 'OPUS Application') : 'OPUS Application';
 $theme = is_array($siteConfig) ? (string) ($siteConfig['theme'] ?? 'starter') : 'starter';
+$currentState = (string) ($route['fsm_state'] ?? 'unknown');
 $cards = array_values(array_filter((array) ($page['cards'] ?? []), 'is_array'));
 $actions = array_values(array_filter((array) ($page['actions'] ?? []), 'is_array'));
 
-echo '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' . $h((string) ($page['title'] ?? $siteName)) . '</title><link rel="stylesheet" href="/asset/themes/' . $h($theme) . '/css/theme.css"></head><body class="opus-generated-site"><header class="opus-top"><a class="opus-brand" href="/">' . $h($siteName) . '</a><nav class="opus-nav">';
+echo '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' . $h((string) ($page['title'] ?? $siteName)) . '</title><link rel="stylesheet" href="/asset/themes/' . $h($theme) . '/css/theme.css"></head><body class="opus-generated-site" data-opus-fsm="OPUS_APPLICATION_FSM_V1" data-opus-state="' . $h($currentState) . '"><header class="opus-top"><a class="opus-brand" href="/">' . $h($siteName) . '</a><nav class="opus-nav">';
 foreach ($routes as $menuRoute) {
     $href = (string) ($menuRoute['path'] ?? '/');
     $label = ucfirst(str_replace('-', ' ', (string) ($menuRoute['controller'] ?? 'home')));
@@ -453,11 +539,11 @@ echo '</nav></header><main class="opus-shell"><section class="opus-hero"><p clas
 foreach ($actions as $action) {
     echo '<a class="opus-button" href="' . $h((string) ($action['href'] ?? '#')) . '">' . $h((string) ($action['label'] ?? 'Open')) . '</a>';
 }
-echo '</div></section><section class="opus-grid">';
+echo '</div><p class="opus-fsm-badge">FSM state: ' . $h($currentState) . '</p></section><section class="opus-grid">';
 foreach ($cards as $card) {
     echo '<article class="opus-card"><h2>' . $h((string) ($card['title'] ?? 'Section')) . '</h2><p>' . $h((string) ($card['body'] ?? '')) . '</p></article>';
 }
-echo '</section></main><footer class="opus-footer">Generated by OWASYS · OPUS site contract</footer><script src="/asset/themes/' . $h($theme) . '/js/theme.js"></script></body></html>';
+echo '</section></main><footer class="opus-footer">Generated by OWASYS · OPUS_APPLICATION_FSM_V1</footer><script src="/asset/themes/' . $h($theme) . '/js/theme.js"></script></body></html>';
 PHP;
     }
 
@@ -470,8 +556,13 @@ PHP;
     {
         return <<<CSS
 :root{--opus-blue:#15395f;--opus-accent:#4fd1ff;--opus-ink:#122033;--opus-muted:#64748b;--opus-surface:#ffffff;--opus-line:#d8e3ef;--opus-bg:#eef5fb}
-*{box-sizing:border-box}body.opus-generated-site{margin:0;font-family:Inter,Segoe UI,system-ui,Arial,sans-serif;background:radial-gradient(circle at top left,#dff7ff 0,#eef5fb 36%,#f7fafc 100%);color:var(--opus-ink)}.opus-top{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:22px clamp(20px,5vw,64px);background:rgba(255,255,255,.82);backdrop-filter:blur(18px);border-bottom:1px solid rgba(98,127,164,.22);position:sticky;top:0;z-index:10}.opus-brand{font-weight:900;color:var(--opus-blue);text-decoration:none;letter-spacing:-.03em}.opus-nav{display:flex;flex-wrap:wrap;gap:10px}.opus-nav a{color:#25415f;text-decoration:none;font-weight:750;padding:9px 12px;border-radius:999px}.opus-nav a:hover,.opus-nav a[aria-current=page]{background:#15395f;color:#fff}.opus-shell{width:min(1120px,calc(100% - 32px));margin:0 auto;padding:58px 0 44px}.opus-hero{border:1px solid rgba(98,127,164,.22);background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(236,250,255,.88));border-radius:30px;padding:clamp(28px,5vw,58px);box-shadow:0 24px 70px rgba(21,57,95,.13)}.opus-kicker{display:inline-flex;margin:0 0 16px;padding:7px 12px;border-radius:999px;background:#dff7ff;color:#0d5a7a;font-weight:900;text-transform:uppercase;letter-spacing:.08em;font-size:12px}.opus-hero h1{font-size:clamp(38px,7vw,72px);line-height:.95;margin:0 0 18px;color:#10233b;letter-spacing:-.065em}.opus-lead{font-size:clamp(18px,2.6vw,24px);line-height:1.45;max-width:820px;color:#475569;margin:0}.opus-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}.opus-button{display:inline-flex;align-items:center;justify-content:center;padding:12px 16px;border-radius:14px;text-decoration:none;background:var(--opus-blue);color:#fff;font-weight:850;box-shadow:0 10px 28px rgba(21,57,95,.24)}.opus-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-top:22px}.opus-card{background:rgba(255,255,255,.92);border:1px solid rgba(98,127,164,.22);border-radius:22px;padding:22px;box-shadow:0 16px 42px rgba(21,57,95,.08)}.opus-card h2{margin:0 0 10px;font-size:20px;color:#15395f}.opus-card p{margin:0;color:#64748b;line-height:1.55}.opus-footer{text-align:center;padding:30px;color:#64748b}
+*{box-sizing:border-box}body.opus-generated-site{margin:0;font-family:Inter,Segoe UI,system-ui,Arial,sans-serif;background:radial-gradient(circle at top left,#dff7ff 0,#eef5fb 36%,#f7fafc 100%);color:var(--opus-ink)}.opus-top{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:22px clamp(20px,5vw,64px);background:rgba(255,255,255,.82);backdrop-filter:blur(18px);border-bottom:1px solid rgba(98,127,164,.22);position:sticky;top:0;z-index:10}.opus-brand{font-weight:900;color:var(--opus-blue);text-decoration:none;letter-spacing:-.03em}.opus-nav{display:flex;flex-wrap:wrap;gap:10px}.opus-nav a{color:#25415f;text-decoration:none;font-weight:750;padding:9px 12px;border-radius:999px}.opus-nav a:hover,.opus-nav a[aria-current=page]{background:#15395f;color:#fff}.opus-shell{width:min(1120px,calc(100% - 32px));margin:0 auto;padding:58px 0 44px}.opus-hero{border:1px solid rgba(98,127,164,.22);background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(236,250,255,.88));border-radius:30px;padding:clamp(28px,5vw,58px);box-shadow:0 24px 70px rgba(21,57,95,.13)}.opus-kicker,.opus-fsm-badge{display:inline-flex;margin:0 0 16px;padding:7px 12px;border-radius:999px;background:#dff7ff;color:#0d5a7a;font-weight:900;text-transform:uppercase;letter-spacing:.08em;font-size:12px}.opus-fsm-badge{margin:24px 0 0;background:#e7fbe9;color:#126b31}.opus-hero h1{font-size:clamp(38px,7vw,72px);line-height:.95;margin:0 0 18px;color:#10233b;letter-spacing:-.065em}.opus-lead{font-size:clamp(18px,2.6vw,24px);line-height:1.45;max-width:820px;color:#475569;margin:0}.opus-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}.opus-button{display:inline-flex;align-items:center;justify-content:center;padding:12px 16px;border-radius:14px;text-decoration:none;background:var(--opus-blue);color:#fff;font-weight:850;box-shadow:0 10px 28px rgba(21,57,95,.24)}.opus-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-top:22px}.opus-card{background:rgba(255,255,255,.92);border:1px solid rgba(98,127,164,.22);border-radius:22px;padding:22px;box-shadow:0 16px 42px rgba(21,57,95,.08)}.opus-card h2{margin:0 0 10px;font-size:20px;color:#15395f}.opus-card p{margin:0;color:#64748b;line-height:1.55}.opus-footer{text-align:center;padding:30px;color:#64748b}
 CSS;
+    }
+
+    private function stateId(string $controller): string
+    {
+        return strtolower(str_replace('-', '_', $controller));
     }
 
     private function controllerFromPath(string $path): ?string
