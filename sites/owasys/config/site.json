@@ -48,7 +48,8 @@
         "data",
         "workflows",
         "security",
-        "build"
+        "build",
+        "login"
     ],
     "src_directory_allowed": false,
     "css_inheritance": [
@@ -61,7 +62,7 @@
         "www/asset/themes/<theme>/js",
         "application/<controller>/javascript"
     ],
-    "owasys_stage": "application-creation-contracts",
+    "owasys_stage": "local-session-foundation",
     "registry": {
         "datasource": "owasys_registry",
         "schema": "config/registry.schema.sql",
@@ -78,6 +79,14 @@
         "plan_model": "application/default/models/scaffold-plan.model.json",
         "runtime_execution": "explicit-command-only"
     },
+    "auth": {
+        "session_name": "OWASYS_LOCAL_SESSION",
+        "mode": "local-dev-bootstrap",
+        "login_route": "/login",
+        "logout_route": "/logout",
+        "write_actions_require_auth": true,
+        "committed_passwords_allowed": false
+    },
     "capabilities": [
         "application_registry",
         "application_blueprints",
@@ -88,6 +97,7 @@
         "workflow_configuration",
         "security_profiles",
         "build_validation",
-        "export_policy"
+        "export_policy",
+        "local_session_foundation"
     ]
 }
