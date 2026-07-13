@@ -67,6 +67,9 @@ try {
     if (($dryRun['site_root'] ?? null) !== 'sites/' . $siteId) {
         throw new RuntimeException('OWASYS_SHOWCASE_BLUEPRINT_DRY_RUN_ROOT_INVALID');
     }
+    if (($dryRun['application_fsm'] ?? null) !== 'sites/' . $siteId . '/config/application.fsm.json') {
+        throw new RuntimeException('OWASYS_SHOWCASE_BLUEPRINT_DRY_RUN_FSM_INVALID');
+    }
 
     $created = $creator->create($request, true, true);
     if (($created['validation']['status'] ?? null) !== 'ok') {
@@ -76,6 +79,8 @@ try {
     $requiredFiles = [
         'config/site.json',
         'config/routes.json',
+        'config/application.fsm.json',
+        'config/fsm.json',
         'application/home/views/index.php',
         'application/articles/views/index.php',
         'application/about/views/index.php',
@@ -89,15 +94,20 @@ try {
         }
     }
 
+    $fsm = json_decode((string) file_get_contents($siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'application.fsm.json'), true);
+    if (!is_array($fsm) || ($fsm['contract'] ?? null) !== 'OPUS_APPLICATION_FSM_V1' || count((array) ($fsm['states'] ?? [])) < 4 || count((array) ($fsm['transitions'] ?? [])) < 4) {
+        throw new RuntimeException('OWASYS_SHOWCASE_BLUEPRINT_APPLICATION_FSM_INVALID');
+    }
+
     $front = (string) file_get_contents($siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php');
-    foreach (['opus-nav', 'opus-hero', 'opus-grid', 'Page not found'] as $needle) {
+    foreach (['opus-nav', 'opus-hero', 'opus-grid', 'Page not found', 'OPUS_APPLICATION_FSM_V1', 'data-opus-state'] as $needle) {
         if (!str_contains($front, $needle)) {
             throw new RuntimeException('OWASYS_SHOWCASE_BLUEPRINT_FRONT_MARKER_MISSING: ' . $needle);
         }
     }
 
     $theme = (string) file_get_contents($siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'asset' . DIRECTORY_SEPARATOR . 'themes' . DIRECTORY_SEPARATOR . 'starter' . DIRECTORY_SEPARATOR . 'css' . DIRECTORY_SEPARATOR . 'theme.css');
-    foreach (['.opus-top', '.opus-hero', '.opus-card', '.opus-button'] as $needle) {
+    foreach (['.opus-top', '.opus-hero', '.opus-card', '.opus-button', '.opus-fsm-badge'] as $needle) {
         if (!str_contains($theme, $needle)) {
             throw new RuntimeException('OWASYS_SHOWCASE_BLUEPRINT_THEME_MARKER_MISSING: ' . $needle);
         }
