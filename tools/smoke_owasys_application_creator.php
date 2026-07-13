@@ -47,8 +47,8 @@ $request = [
     'theme' => 'starter',
     'controllers' => ['home', 'articles'],
     'routes' => [
-        ['id' => 'home.index', 'path' => '/', 'controller' => 'home'],
-        ['id' => 'articles.index', 'path' => '/articles', 'controller' => 'articles'],
+        ['id' => 'home.index', 'path' => '/', 'state' => 'home', 'controller' => 'home'],
+        ['id' => 'articles.index', 'path' => '/articles', 'state' => 'articles', 'controller' => 'articles'],
     ],
     'datasources' => [],
     'security_profiles' => [['id' => 'admin', 'permissions' => ['*']]],
@@ -82,11 +82,14 @@ try {
         throw new RuntimeException('OWASYS_CREATOR_VALIDATION_FSM_RESULT_INVALID');
     }
 
-    foreach (['config/site.json', 'config/routes.json', 'config/application.fsm.json', 'config/fsm.json', 'config/owasys-creation-manifest.json', 'application/default', 'application/home/views/index.php', 'www/index.php'] as $required) {
+    foreach (['config/site.json', 'config/routes.json', 'config/application.fsm.json', 'config/fsm.json', 'config/owasys-creation-manifest.json', 'application/default', 'application/states/home/views/index.php', 'www/index.php'] as $required) {
         $path = $absoluteRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $required);
         if (!file_exists($path)) {
             throw new RuntimeException('OWASYS_CREATOR_REQUIRED_OUTPUT_MISSING: ' . $required);
         }
+    }
+    if (file_exists($absoluteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'home')) {
+        throw new RuntimeException('OWASYS_CREATOR_LEGACY_STATE_ROOT_PRESENT');
     }
 
     $manifest = json_decode((string) file_get_contents($absoluteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'owasys-creation-manifest.json'), true);
