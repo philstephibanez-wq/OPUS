@@ -107,6 +107,28 @@ a { color: inherit; }
 }
 .ow-login-form input:focus,
 .ow-password-form input:focus { border-color: var(--ow-accent); box-shadow: 0 0 0 3px rgba(108,227,255,.16); }
+.ow-password-field {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+.ow-password-field input { min-width: 0; }
+.ow-password-eye {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--ow-line);
+  border-radius: 13px;
+  background: rgba(255,255,255,.07);
+  color: var(--ow-text);
+  cursor: pointer;
+  font: inherit;
+}
+.ow-password-eye:hover,
+.ow-password-eye[aria-pressed="true"] {
+  border-color: var(--ow-accent);
+  background: rgba(108,227,255,.12);
+}
 .ow-login-error,
 .ow-login-warning {
   padding: 11px 13px;
