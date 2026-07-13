@@ -84,6 +84,18 @@
             "group": "OWASYS",
             "show_in_menu": true,
             "order": 70
+        },
+        {
+            "id": "login.index",
+            "path": "/login",
+            "controller": "login",
+            "class": null,
+            "template": "application/login/templates/index.score",
+            "view": "application/login/views/index.php",
+            "label": "menu.login",
+            "group": "OWASYS",
+            "show_in_menu": false,
+            "order": 900
         }
     ]
 }
