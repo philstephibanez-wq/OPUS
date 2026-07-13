@@ -24,6 +24,7 @@ $required = [
     'sites/__contract_probe/config',
     'sites/__contract_probe/config/site.json',
     'sites/__contract_probe/config/routes.json',
+    'sites/__contract_probe/config/fsm.json',
     'sites/__contract_probe/application',
     'sites/__contract_probe/application/default',
     'sites/__contract_probe/application/default/acl',
@@ -82,6 +83,11 @@ if (($site['css_inheritance'] ?? []) !== ['application/default/css', 'www/asset/
 }
 if (($site['js_inheritance'] ?? []) !== ['application/default/javascript', 'www/asset/themes/<theme>/js', 'application/<controller>/javascript']) {
     fwrite(STDERR, "OPUS_ETERNAL_CONTRACT_JS_INHERITANCE_INVALID\n");
+    exit(1);
+}
+$fsm = json_decode($contents['sites/__contract_probe/config/fsm.json'] ?? '', true);
+if (!is_array($fsm) || ($fsm['contract'] ?? '') !== 'OPUS_FSM_REGISTRY_V1' || empty($fsm['states']) || !array_key_exists('transitions', $fsm)) {
+    fwrite(STDERR, "OPUS_ETERNAL_CONTRACT_FSM_INVALID\n");
     exit(1);
 }
 $layout = $contents['sites/__contract_probe/application/default/templates/layout.score'] ?? '';
