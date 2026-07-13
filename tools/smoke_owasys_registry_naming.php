@@ -8,7 +8,7 @@ $siteFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . '
 $routesFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'routes.json';
 $seedFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'registry.seed.json';
 $fsmFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'owasys-navigation.fsm.json';
-$registryView = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'registry' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php';
+$registryView = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'states' . DIRECTORY_SEPARATOR . 'registry' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php';
 $frontFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php';
 $cssFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'asset' . DIRECTORY_SEPARATOR . 'css' . DIRECTORY_SEPARATOR . 'owasys.css';
 $jsFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'asset' . DIRECTORY_SEPARATOR . 'js' . DIRECTORY_SEPARATOR . 'owasys.js';
@@ -41,7 +41,12 @@ if (!is_array($site)) {
     exit(1);
 }
 
-if (!is_array($routes)) {
+if (($site['states_root'] ?? null) !== 'application/states' || ($site['dispatch_model'] ?? null) !== 'state-first') {
+    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_STATE_ROOT_INVALID\n");
+    exit(1);
+}
+
+if (!is_array($routes) || ($routes['dispatch_model'] ?? null) !== 'state-first') {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_ROUTES_JSON_INVALID\n");
     exit(1);
 }
@@ -113,12 +118,12 @@ if (!$hasSelectTransition || !$hasCreateTransition) {
 }
 
 $roots = $site['application_roots'] ?? [];
-if (!is_array($roots) || !in_array('registry', $roots, true)) {
+if (!is_array($roots) || !in_array('states/registry', $roots, true)) {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_ROOT_MISSING\n");
     exit(1);
 }
 
-if (in_array('applications', $roots, true)) {
+if (in_array('applications', $roots, true) || in_array('registry', $roots, true)) {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_AMBIGUOUS_ROOT_PRESENT\n");
     exit(1);
 }
@@ -136,11 +141,11 @@ foreach ((array) ($routes['routes'] ?? []) as $route) {
     }
 
     $matched = true;
-    if (($route['controller'] ?? null) !== 'registry') {
-        fwrite(STDERR, "OWASYS_REGISTRY_NAMING_ROUTE_CONTROLLER_INVALID\n");
+    if (($route['state'] ?? null) !== 'registry' || ($route['controller'] ?? null) !== 'registry') {
+        fwrite(STDERR, "OWASYS_REGISTRY_NAMING_ROUTE_STATE_INVALID\n");
         exit(1);
     }
-    if (($route['view'] ?? null) !== 'application/registry/views/index.php') {
+    if (($route['view'] ?? null) !== 'application/states/registry/views/index.php') {
         fwrite(STDERR, "OWASYS_REGISTRY_NAMING_ROUTE_VIEW_INVALID\n");
         exit(1);
     }
@@ -168,7 +173,7 @@ if (!is_array($seedDemo) || ($seedDemo['kind'] ?? null) !== 'fullstack') {
 }
 
 $page = require $registryView;
-if (!is_array($page)) {
+if (!is_array($page) || ($page['state'] ?? null) !== 'registry') {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_VIEW_MODEL_INVALID\n");
     exit(1);
 }
