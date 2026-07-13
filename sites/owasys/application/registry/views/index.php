@@ -1,11 +1,6 @@
 <?php
 declare(strict_types=1);
 
-/**
- * OWASYS registry view-model.
- * Data only: discovers OPUS applications from sites/*/config/site.json and merges the OWASYS registry seed.
- */
-
 $owasysSiteRoot = isset($siteRoot) && is_string($siteRoot) ? $siteRoot : dirname(__DIR__, 3);
 $repoRoot = dirname($owasysSiteRoot, 2);
 $seedFile = $owasysSiteRoot . '/config/registry.seed.json';
@@ -17,7 +12,7 @@ $kindLabels = [
     'package' => 'Package',
 ];
 
-$normalizeKind = static function (mixed $kind): string {
+$normalizeKind = static function ($kind): string {
     $value = strtolower(trim((string) $kind));
     if (in_array($value, ['fullstack', 'frontend', 'backend', 'package'], true)) {
         return $value;
