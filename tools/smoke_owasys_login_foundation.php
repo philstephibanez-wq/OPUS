@@ -71,10 +71,10 @@ if (!is_file($loginView)) {
 
 $front = (string) file_get_contents($frontFile);
 foreach ([
-    "session_name($sessionName)",
-    "local-dev-signin",
-    "OWASYS_LOGIN_ACTION_INVALID",
-    "owasys_user",
+    'session_name($sessionName)',
+    'local-dev-signin',
+    'OWASYS_LOGIN_ACTION_INVALID',
+    'owasys_user',
     "'/logout'",
 ] as $needle) {
     if (!str_contains($front, $needle)) {
