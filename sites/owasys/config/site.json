@@ -63,7 +63,15 @@
         "www/asset/themes/<theme>/js",
         "application/<controller>/javascript"
     ],
-    "owasys_stage": "password-change-enforced-login",
+    "owasys_stage": "fsm-driven-navigation-context",
+    "navigation": {
+        "fsm": "config/owasys-navigation.fsm.json",
+        "source_of_truth": "config",
+        "runtime_state_database": "var/registry/owasys.sqlite",
+        "runtime_context_table": "owasys_runtime_context",
+        "transition_history_table": "owasys_transition_history",
+        "transition_drafts_table": "owasys_transition_drafts"
+    },
     "registry": {
         "datasource": "owasys_registry",
         "schema": "config/registry.schema.sql",
@@ -110,6 +118,7 @@
         "export_policy",
         "runtime_password_login_foundation",
         "auth_access_guard",
-        "forced_password_change"
+        "forced_password_change",
+        "fsm_driven_navigation"
     ]
 }
