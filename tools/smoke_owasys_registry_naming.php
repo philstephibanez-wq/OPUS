@@ -7,6 +7,23 @@ $siteRoot = $root . DIRECTORY_SEPARATOR . 'sites' . DIRECTORY_SEPARATOR . 'owasy
 $siteFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'site.json';
 $routesFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'routes.json';
 $seedFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'registry.seed.json';
+$registryView = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'registry' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php';
+
+foreach ([$siteFile, $routesFile, $seedFile, $registryView] as $requiredFile) {
+    if (!is_file($requiredFile)) {
+        fwrite(STDERR, "OWASYS_REGISTRY_NAMING_REQUIRED_FILE_MISSING: {$requiredFile}\n");
+        exit(1);
+    }
+}
+
+$lintCommand = PHP_BINARY . ' -l ' . escapeshellarg($registryView) . ' 2>&1';
+$lintOutput = [];
+$lintCode = 0;
+exec($lintCommand, $lintOutput, $lintCode);
+if ($lintCode !== 0) {
+    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_REGISTRY_VIEW_PARSE_ERROR\n" . implode("\n", $lintOutput) . "\n");
+    exit(1);
+}
 
 $site = json_decode((string) file_get_contents($siteFile), true);
 $routes = json_decode((string) file_get_contents($routesFile), true);
@@ -41,12 +58,6 @@ if (in_array('applications', $roots, true)) {
 $applicationApplications = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'applications';
 if (file_exists($applicationApplications)) {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_AMBIGUOUS_DIRECTORY_PRESENT\n");
-    exit(1);
-}
-
-$registryView = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'registry' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php';
-if (!is_file($registryView)) {
-    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_REGISTRY_VIEW_MISSING\n");
     exit(1);
 }
 
