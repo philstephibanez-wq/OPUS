@@ -1,15 +1,31 @@
 {
     "contract": "OPUS_FSM_REGISTRY_V1",
+    "source_of_truth": "config/application.fsm.json",
     "initial_state": "HOME",
     "states": [
         {
             "id": "HOME",
-            "controller": "home"
+            "state": "home",
+            "controller": "home",
+            "route": "/"
         },
         {
             "id": "ARTICLES",
-            "controller": "articles"
+            "state": "articles",
+            "controller": "articles",
+            "route": "/articles"
         }
     ],
-    "transitions": []
+    "transitions": [
+        {
+            "from": "HOME",
+            "event": "open_articles",
+            "to": "ARTICLES"
+        },
+        {
+            "from": "ARTICLES",
+            "event": "open_home",
+            "to": "HOME"
+        }
+    ]
 }
