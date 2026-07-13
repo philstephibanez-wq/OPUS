@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use Opus\Fsm\FsmSiteLoader;
 use Opus\Owasys\ApplicationCreator;
 use Opus\Owasys\ApplicationExporter;
 use Opus\Scaffold\ScaffoldWriter;
@@ -83,6 +84,30 @@ function opus_cli_read_json(string $path, string $error): array
         exit(1);
     }
     return $data;
+}
+
+function opus_cli_fsm_transition_context(string $contextInput): array
+{
+    if ($contextInput === '') {
+        return [];
+    }
+
+    if (str_starts_with($contextInput, '@')) {
+        $contextFile = substr($contextInput, 1);
+        if ($contextFile === '' || !is_file($contextFile)) {
+            fwrite(STDERR, "OPUS_FSM_TRANSITION_CONTEXT_FILE_MISSING\n");
+            exit(1);
+        }
+        $contextInput = (string) file_get_contents($contextFile);
+    }
+
+    $decoded = json_decode($contextInput, true);
+    if (!is_array($decoded)) {
+        fwrite(STDERR, "OPUS_FSM_TRANSITION_CONTEXT_JSON_INVALID\n");
+        exit(1);
+    }
+
+    return $decoded;
 }
 
 function opus_cli_assert_state_root(string $siteRoot, string $siteId, array $siteConfig): void
@@ -312,16 +337,61 @@ function opus_cli_print_application_export_result(array $summary): void
     echo "OWASYS_APPLICATION_EXPORT_MANIFEST=" . (string) ($summary['manifest_path'] ?? '') . "\n";
 }
 
+function opus_cli_print_fsm_transition_result(string $siteId, string $currentState, string $event, array $transition): void
+{
+    $output = [
+        'contract' => 'OPUS_FSM_TRANSITION_CLI_RESULT_V1',
+        'site_id' => $siteId,
+        'current_state' => $currentState,
+        'event' => $event,
+        'result' => $transition,
+        'mutation' => false,
+        'actions_dispatched' => false,
+    ];
+
+    echo json_encode($output, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n";
+}
+
 if ($command === 'help' || $command === '--help' || $command === '-h') {
     echo "OPUS CLI\n";
     echo "Usage:\n";
     echo "  php bin/opus help\n";
     echo "  php bin/opus create:site SITE_ID\n";
     echo "  php bin/opus validate:site SITE_ID\n";
+    echo "  php bin/opus fsm:transition SITE_ID CURRENT_STATE EVENT [CONTEXT_JSON|@CONTEXT_JSON_FILE]\n";
     echo "  php bin/opus serve:site SITE_ID [--host=127.0.0.1] [--port=8090]\n";
     echo "  php bin/opus owasys:create REQUEST_JSON [--dry-run|--write] [--validate]\n";
     echo "  php bin/opus owasys:export SITE_ID [OUTPUT_ZIP] [--overwrite]\n";
     exit(0);
+}
+
+if ($command === 'fsm:transition') {
+    if ($target === '') {
+        fwrite(STDERR, "OPUS_FSM_TRANSITION_SITE_ID_REQUIRED\n");
+        exit(1);
+    }
+
+    $currentState = (string) ($args[0] ?? '');
+    $event = (string) ($args[1] ?? '');
+    $contextInput = (string) ($args[2] ?? '');
+
+    if ($currentState === '' || $event === '') {
+        fwrite(STDERR, "OPUS_FSM_TRANSITION_USAGE: php bin/opus fsm:transition SITE_ID CURRENT_STATE EVENT [CONTEXT_JSON|@CONTEXT_JSON_FILE]\n");
+        exit(1);
+    }
+
+    opus_cli_validate_site_id($target);
+
+    try {
+        $context = opus_cli_fsm_transition_context($contextInput);
+        $processor = FsmSiteLoader::processorForSite($root, $target);
+        $transition = $processor->transition($currentState, $event, $context);
+        opus_cli_print_fsm_transition_result($target, $currentState, $event, $transition);
+        exit(0);
+    } catch (Throwable $exception) {
+        fwrite(STDERR, $exception->getMessage() . "\n");
+        exit(1);
+    }
 }
 
 if ($command === 'owasys:create') {
