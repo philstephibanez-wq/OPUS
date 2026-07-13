@@ -178,8 +178,8 @@ if ($isAuthenticated && $path === '/account/password' && ($_SERVER['REQUEST_METH
         $passwordChangeError = 'Runtime user is missing from the local user store.';
     } elseif ($currentPassword === '' || !password_verify($currentPassword, $passwordHash)) {
         $passwordChangeError = 'Current password is invalid.';
-    } elseif (strlen($newPassword) < 12) {
-        $passwordChangeError = 'New password must contain at least 12 characters.';
+    } elseif (strlen($newPassword) < 10) {
+        $passwordChangeError = 'New password must contain at least 10 characters.';
     } elseif ($newPassword !== $confirmPassword) {
         $passwordChangeError = 'New password confirmation does not match.';
     } elseif (password_verify($newPassword, $passwordHash)) {
@@ -345,8 +345,8 @@ if ($controller === 'account') {
     $body .= '<form method="post" class="ow-password-form">';
     $body .= '<input type="hidden" name="owasys_action" value="change-password">';
     $body .= '<label>Current password<input name="owasys_current_password" type="password" autocomplete="current-password" required></label>';
-    $body .= '<label>New password<input name="owasys_new_password" type="password" autocomplete="new-password" minlength="12" required></label>';
-    $body .= '<label>Confirm new password<input name="owasys_confirm_password" type="password" autocomplete="new-password" minlength="12" required></label>';
+    $body .= '<label>New password<input name="owasys_new_password" type="password" autocomplete="new-password" minlength="10" required></label>';
+    $body .= '<label>Confirm new password<input name="owasys_confirm_password" type="password" autocomplete="new-password" minlength="10" required></label>';
     $body .= '<button class="ow-button" type="submit">Change password</button>';
     $body .= '</form>';
     $body .= '</section>';
