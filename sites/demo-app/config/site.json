@@ -12,6 +12,7 @@
     "theme": "starter",
     "public_root": "www",
     "application_root": "application",
+    "states_root": "application/states",
     "default_root": "application/default",
     "asset_root": "www/asset",
     "theme_root_pattern": "www/asset/themes/<theme>",
@@ -24,12 +25,12 @@
     "css_inheritance": [
         "application/default/css",
         "www/asset/themes/<theme>/css",
-        "application/<state>/css"
+        "application/states/<state>/css"
     ],
     "js_inheritance": [
         "application/default/javascript",
         "www/asset/themes/<theme>/js",
-        "application/<state>/javascript"
+        "application/states/<state>/javascript"
     ],
     "generated_by": "owasys"
 }
