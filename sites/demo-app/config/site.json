@@ -18,16 +18,18 @@
     "application_fsm": "config/application.fsm.json",
     "fsm_legacy_projection": "config/fsm.json",
     "fsm_contract": "OPUS_APPLICATION_FSM_V1",
+    "dispatch_model": "state-first",
+    "controller_field": "legacy_alias",
     "src_directory_allowed": false,
     "css_inheritance": [
         "application/default/css",
         "www/asset/themes/<theme>/css",
-        "application/<controller>/css"
+        "application/<state>/css"
     ],
     "js_inheritance": [
         "application/default/javascript",
         "www/asset/themes/<theme>/js",
-        "application/<controller>/javascript"
+        "application/<state>/javascript"
     ],
     "generated_by": "owasys"
 }
