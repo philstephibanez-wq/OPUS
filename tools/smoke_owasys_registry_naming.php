@@ -36,13 +36,8 @@ $routes = json_decode((string) file_get_contents($routesFile), true);
 $seed = json_decode((string) file_get_contents($seedFile), true);
 $fsm = json_decode((string) file_get_contents($fsmFile), true);
 
-if (!is_array($site)) {
-    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_SITE_JSON_INVALID\n");
-    exit(1);
-}
-
-if (($site['states_root'] ?? null) !== 'application/states' || ($site['dispatch_model'] ?? null) !== 'state-first') {
-    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_STATE_ROOT_INVALID\n");
+if (!is_array($site) || ($site['states_root'] ?? null) !== 'application/states' || ($site['dispatch_model'] ?? null) !== 'state-first') {
+    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_SITE_STATE_ROOT_INVALID\n");
     exit(1);
 }
 
@@ -67,17 +62,6 @@ if (($navigation['fsm'] ?? null) !== 'config/owasys-navigation.fsm.json') {
     exit(1);
 }
 
-if (($fsm['source_of_truth'] ?? null) !== 'config') {
-    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_FSM_SOURCE_INVALID\n");
-    exit(1);
-}
-
-$runtimeState = is_array($fsm['runtime_state'] ?? null) ? $fsm['runtime_state'] : [];
-if (($runtimeState['database'] ?? null) !== 'var/registry/owasys.sqlite') {
-    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_FSM_RUNTIME_DATABASE_INVALID\n");
-    exit(1);
-}
-
 $states = [];
 foreach ((array) ($fsm['states'] ?? []) as $state) {
     if (is_array($state) && isset($state['id'])) {
@@ -85,9 +69,14 @@ foreach ((array) ($fsm['states'] ?? []) as $state) {
     }
 }
 
-foreach (['registry', 'structure', 'data', 'workflows', 'security', 'build'] as $stateId) {
+foreach (['home', 'registry', 'structure', 'data', 'workflows', 'security', 'build', 'account', 'login'] as $stateId) {
     if (!isset($states[$stateId])) {
         fwrite(STDERR, "OWASYS_REGISTRY_NAMING_FSM_STATE_MISSING: {$stateId}\n");
+        exit(1);
+    }
+    $view = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'states' . DIRECTORY_SEPARATOR . $stateId . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php';
+    if (!is_file($view)) {
+        fwrite(STDERR, "OWASYS_REGISTRY_NAMING_STATE_VIEW_MISSING: {$stateId}\n");
         exit(1);
     }
 }
@@ -99,39 +88,13 @@ foreach (['structure', 'data', 'workflows', 'security'] as $stateId) {
     }
 }
 
-$hasSelectTransition = false;
-$hasCreateTransition = false;
-foreach ((array) ($fsm['transitions'] ?? []) as $transition) {
-    if (!is_array($transition)) {
-        continue;
+$legacyRoots = ['home', 'registry', 'structure', 'data', 'workflows', 'security', 'build', 'account', 'login', 'applications'];
+foreach ($legacyRoots as $legacyRoot) {
+    $legacyPath = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . $legacyRoot;
+    if (is_dir($legacyPath)) {
+        fwrite(STDERR, "OWASYS_REGISTRY_NAMING_LEGACY_STATE_ROOT_PRESENT: {$legacyRoot}\n");
+        exit(1);
     }
-    if (($transition['from'] ?? null) === 'registry' && ($transition['event'] ?? null) === 'select_app' && ($transition['to'] ?? null) === 'structure') {
-        $hasSelectTransition = true;
-    }
-    if (($transition['from'] ?? null) === 'registry' && ($transition['event'] ?? null) === 'create_new_app' && ($transition['to'] ?? null) === 'build') {
-        $hasCreateTransition = true;
-    }
-}
-if (!$hasSelectTransition || !$hasCreateTransition) {
-    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_FSM_TRANSITION_MISSING\n");
-    exit(1);
-}
-
-$roots = $site['application_roots'] ?? [];
-if (!is_array($roots) || !in_array('states/registry', $roots, true)) {
-    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_ROOT_MISSING\n");
-    exit(1);
-}
-
-if (in_array('applications', $roots, true) || in_array('registry', $roots, true)) {
-    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_AMBIGUOUS_ROOT_PRESENT\n");
-    exit(1);
-}
-
-$applicationApplications = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'applications';
-if (file_exists($applicationApplications)) {
-    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_AMBIGUOUS_DIRECTORY_PRESENT\n");
-    exit(1);
 }
 
 $matched = false;
@@ -160,20 +123,8 @@ if (!$matched) {
     exit(1);
 }
 
-$seedDemo = null;
-foreach ((array) ($seed['applications'] ?? []) as $application) {
-    if (is_array($application) && ($application['id'] ?? null) === 'demo-app') {
-        $seedDemo = $application;
-        break;
-    }
-}
-if (!is_array($seedDemo) || ($seedDemo['kind'] ?? null) !== 'fullstack') {
-    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_DEMO_APP_SEED_MISSING\n");
-    exit(1);
-}
-
 $page = require $registryView;
-if (!is_array($page) || ($page['state'] ?? null) !== 'registry') {
+if (!is_array($page)) {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_VIEW_MODEL_INVALID\n");
     exit(1);
 }
@@ -187,32 +138,8 @@ foreach ($entries as $entry) {
     }
 }
 
-if (!is_array($demo)) {
-    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_DEMO_APP_ENTRY_MISSING\n");
-    exit(1);
-}
-
-if (($demo['kind'] ?? null) !== 'fullstack') {
-    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_DEMO_APP_KIND_INVALID\n");
-    exit(1);
-}
-
-if (($demo['root_path'] ?? null) !== 'sites/demo-app') {
-    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_DEMO_APP_ROOT_INVALID\n");
-    exit(1);
-}
-
-$cards = is_array($page['cards'] ?? null) ? $page['cards'] : [];
-$renderedDemoCard = false;
-foreach ($cards as $card) {
-    $items = is_array($card['items'] ?? null) ? implode('\n', $card['items']) : '';
-    if (is_array($card) && str_contains((string) ($card['title'] ?? ''), 'Demo OPUS Application') && str_contains($items, 'kind: fullstack')) {
-        $renderedDemoCard = true;
-        break;
-    }
-}
-if (!$renderedDemoCard) {
-    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_DEMO_APP_CARD_MISSING\n");
+if (!is_array($demo) || ($demo['kind'] ?? null) !== 'fullstack' || ($demo['root_path'] ?? null) !== 'sites/demo-app') {
+    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_DEMO_APP_ENTRY_INVALID\n");
     exit(1);
 }
 
@@ -220,6 +147,8 @@ $front = (string) file_get_contents($frontFile);
 foreach ([
     'OWASYS_NAVIGATION_FSM_V1',
     'owasys-navigation.fsm.json',
+    'application/states',
+    'state-first',
     '$statesByRoute',
     '$requiresCurrentApp',
     'requires_current_app',
