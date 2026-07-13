@@ -24,6 +24,12 @@ if ($storeRelative === '' || str_contains($storeRelative, '..')) {
     exit(1);
 }
 
+$minimumPasswordLength = (int) ($auth['minimum_password_length'] ?? 12);
+if ($minimumPasswordLength < 8) {
+    $minimumPasswordLength = 8;
+}
+$mustChangePassword = ($auth['must_change_password_on_bootstrap'] ?? true) === true;
+
 $storeFile = $siteRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $storeRelative);
 $username = trim((string) ($argv[1] ?? ''));
 $password = (string) ($argv[2] ?? '');
@@ -44,7 +50,7 @@ if (preg_match('/^[a-zA-Z0-9_.-]{3,64}$/', $username) !== 1) {
     exit(1);
 }
 
-if (strlen($password) < 8) {
+if (strlen($password) < $minimumPasswordLength) {
     fwrite(STDERR, "OWASYS_AUTH_BOOTSTRAP_PASSWORD_TOO_SHORT\n");
     exit(1);
 }
@@ -88,6 +94,9 @@ $store['users'][$username] = [
     'label' => $username,
     'profile' => $profile,
     'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+    'must_change_password' => $mustChangePassword,
+    'password_created_at' => gmdate('c'),
+    'password_changed_at' => null,
     'updated_at' => gmdate('c'),
 ];
 
@@ -98,4 +107,5 @@ if (!is_string($encoded) || file_put_contents($storeFile, $encoded . "\n") === f
 }
 
 fwrite(STDOUT, "OWASYS_AUTH_BOOTSTRAP_USER_OK: {$username}\n");
+fwrite(STDOUT, "OWASYS_AUTH_BOOTSTRAP_MUST_CHANGE_PASSWORD: " . ($mustChangePassword ? 'true' : 'false') . "\n");
 fwrite(STDOUT, "OWASYS_AUTH_BOOTSTRAP_STORE: sites/owasys/{$storeRelative}\n");
