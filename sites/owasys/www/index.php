@@ -58,7 +58,7 @@ if ($requestPath === '/') {
 }
 
 $link = static fn (string $routePath): string => $mount . ($routePath === '/' ? '/' : $routePath);
-$redirect = static function (string $routePath) use ($link): never {
+$redirect = static function (string $routePath) use ($link): void {
     header('Location: ' . $link($routePath), true, 303);
     exit;
 };
