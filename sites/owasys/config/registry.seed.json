@@ -11,6 +11,19 @@
             "default_locale": "fr",
             "theme": "owasys",
             "status": "validated"
+        },
+        {
+            "id": "demo-app",
+            "slug": "demo-app",
+            "name": "Demo OPUS Application",
+            "kind": "fullstack",
+            "root_path": "sites/demo-app",
+            "public_root": "www",
+            "default_locale": "fr",
+            "theme": "starter",
+            "status": "validated",
+            "blueprint": "opus-site-standard",
+            "generated_by": "owasys"
         }
     ]
 }
