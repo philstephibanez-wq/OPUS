@@ -9,6 +9,7 @@ $routesFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR .
 $securityFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'security-policy.json';
 $frontFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php';
 $cssFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'asset' . DIRECTORY_SEPARATOR . 'css' . DIRECTORY_SEPARATOR . 'owasys.css';
+$jsFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'asset' . DIRECTORY_SEPARATOR . 'js' . DIRECTORY_SEPARATOR . 'owasys.js';
 $loginView = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'login' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php';
 $accountView = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'account' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php';
 $bootstrapTool = $root . DIRECTORY_SEPARATOR . 'tools' . DIRECTORY_SEPARATOR . 'owasys_auth_bootstrap_local_user.php';
@@ -158,9 +159,17 @@ foreach (['Account password', 'must_change_password', 'OWASYS_LOCAL_USER_STORE_V
 }
 
 $css = (string) file_get_contents($cssFile);
-foreach (['.ow-login-form input', '.ow-password-form input', '.ow-auth-warning', '.ow-login-error', '.ow-login-warning'] as $needle) {
+foreach (['.ow-login-form input', '.ow-password-form input', '.ow-auth-warning', '.ow-login-error', '.ow-login-warning', '.ow-password-field', '.ow-password-eye'] as $needle) {
     if (!str_contains($css, $needle)) {
         fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_CSS_MARKER_MISSING: {$needle}\n");
+        exit(1);
+    }
+}
+
+$js = (string) file_get_contents($jsFile);
+foreach (['owasysPasswordToggle', 'ow-password-eye', 'Afficher le mot de passe', 'Masquer le mot de passe', "input[type=\"password\"]"] as $needle) {
+    if (!str_contains($js, $needle)) {
+        fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_JS_MARKER_MISSING: {$needle}\n");
         exit(1);
     }
 }
