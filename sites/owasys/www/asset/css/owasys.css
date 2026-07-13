@@ -8,6 +8,7 @@
   --ow-accent: #6ce3ff;
   --ow-ok: #4ade80;
   --ow-warn: #fbbf24;
+  --ow-danger: #fb7185;
 }
 * { box-sizing: border-box; }
 body {
@@ -18,6 +19,7 @@ body {
   font: 15px/1.55 Segoe UI, Arial, sans-serif;
 }
 a { color: inherit; }
+code { color: var(--ow-accent); }
 .ow-shell { min-height: 100vh; display: grid; grid-template-columns: 290px 1fr; }
 .ow-sidebar {
   padding: 24px;
@@ -89,7 +91,28 @@ a { color: inherit; }
   border-color: rgba(108, 227, 255, .45);
   background: linear-gradient(180deg, rgba(18,52,86,.82), rgba(12,23,40,.96));
 }
-.ow-login-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 18px; }
+.ow-login-form { display: grid; gap: 14px; align-items: start; margin-top: 18px; max-width: 430px; }
+.ow-login-form label { display: grid; gap: 6px; color: var(--ow-muted); font-weight: 800; }
+.ow-login-form input {
+  width: 100%;
+  border: 1px solid var(--ow-line);
+  border-radius: 13px;
+  background: rgba(255,255,255,.07);
+  color: var(--ow-text);
+  padding: 12px 13px;
+  font: inherit;
+  outline: none;
+}
+.ow-login-form input:focus { border-color: var(--ow-accent); box-shadow: 0 0 0 3px rgba(108,227,255,.16); }
+.ow-login-error,
+.ow-login-warning {
+  padding: 11px 13px;
+  border-radius: 13px;
+  border: 1px solid rgba(251,113,133,.48);
+  background: rgba(251,113,133,.12);
+  color: #fecdd3;
+}
+.ow-login-warning { border-color: rgba(251,191,36,.46); background: rgba(251,191,36,.10); color: #fde68a; }
 .ow-button {
   display: inline-flex;
   justify-content: center;
