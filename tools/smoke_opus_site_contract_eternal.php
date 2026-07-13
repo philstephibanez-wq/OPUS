@@ -24,6 +24,7 @@ $required = [
     'sites/__contract_probe/config',
     'sites/__contract_probe/config/site.json',
     'sites/__contract_probe/config/routes.json',
+    'sites/__contract_probe/config/application.fsm.json',
     'sites/__contract_probe/config/fsm.json',
     'sites/__contract_probe/application',
     'sites/__contract_probe/application/default',
@@ -38,15 +39,17 @@ $required = [
     'sites/__contract_probe/application/default/templates/layout.score',
     'sites/__contract_probe/application/default/templates/components/header.score',
     'sites/__contract_probe/application/default/views',
-    'sites/__contract_probe/application/architecture',
-    'sites/__contract_probe/application/architecture/acl',
-    'sites/__contract_probe/application/architecture/helpers',
-    'sites/__contract_probe/application/architecture/css/architecture.css',
-    'sites/__contract_probe/application/architecture/javascript/architecture.js',
-    'sites/__contract_probe/application/architecture/local/fr/i18n.json',
-    'sites/__contract_probe/application/architecture/models',
-    'sites/__contract_probe/application/architecture/templates/index.score',
-    'sites/__contract_probe/application/architecture/views',
+    'sites/__contract_probe/application/states',
+    'sites/__contract_probe/application/states/architecture',
+    'sites/__contract_probe/application/states/architecture/acl',
+    'sites/__contract_probe/application/states/architecture/helpers',
+    'sites/__contract_probe/application/states/architecture/css/architecture.css',
+    'sites/__contract_probe/application/states/architecture/javascript/architecture.js',
+    'sites/__contract_probe/application/states/architecture/local/fr/i18n.json',
+    'sites/__contract_probe/application/states/architecture/models',
+    'sites/__contract_probe/application/states/architecture/templates/index.score',
+    'sites/__contract_probe/application/states/architecture/views',
+    'sites/__contract_probe/application/states/architecture/views/index.php',
     'sites/__contract_probe/www',
     'sites/__contract_probe/www/index.php',
     'sites/__contract_probe/www/asset/css',
@@ -61,7 +64,7 @@ foreach ($required as $path) {
     }
 }
 foreach (array_keys($paths) as $path) {
-    foreach (['sites/__contract_probe/public', 'sites/__contract_probe/resources', 'sites/__contract_probe/application/common', 'sites/__contract_probe/application/pages', 'sites/__contract_probe/application/config'] as $forbidden) {
+    foreach (['sites/__contract_probe/public', 'sites/__contract_probe/resources', 'sites/__contract_probe/application/common', 'sites/__contract_probe/application/pages', 'sites/__contract_probe/application/config', 'sites/__contract_probe/application/home', 'sites/__contract_probe/application/architecture'] as $forbidden) {
         if ($path === $forbidden || str_starts_with($path, $forbidden . '/')) {
             fwrite(STDERR, "OPUS_ETERNAL_CONTRACT_FORBIDDEN_PATH: {$path}\n");
             exit(1);
@@ -73,16 +76,36 @@ if (!is_array($site) || ($site['contract'] ?? '') !== 'OPUS_SITE_APPLICATION_TRE
     fwrite(STDERR, "OPUS_ETERNAL_CONTRACT_SITE_JSON_INVALID\n");
     exit(1);
 }
-if (($site['public_root'] ?? '') !== 'www' || ($site['asset_root'] ?? '') !== 'www/asset' || ($site['default_root'] ?? '') !== 'application/default') {
+if (($site['public_root'] ?? '') !== 'www' || ($site['asset_root'] ?? '') !== 'www/asset' || ($site['default_root'] ?? '') !== 'application/default' || ($site['states_root'] ?? '') !== 'application/states') {
     fwrite(STDERR, "OPUS_ETERNAL_CONTRACT_SITE_ROOTS_INVALID\n");
     exit(1);
 }
-if (($site['css_inheritance'] ?? []) !== ['application/default/css', 'www/asset/themes/<theme>/css', 'application/<controller>/css']) {
+if (($site['dispatch_model'] ?? '') !== 'state-first') {
+    fwrite(STDERR, "OPUS_ETERNAL_CONTRACT_DISPATCH_MODEL_INVALID\n");
+    exit(1);
+}
+if (($site['css_inheritance'] ?? []) !== ['application/default/css', 'www/asset/themes/<theme>/css', 'application/states/<state>/css']) {
     fwrite(STDERR, "OPUS_ETERNAL_CONTRACT_CSS_INHERITANCE_INVALID\n");
     exit(1);
 }
-if (($site['js_inheritance'] ?? []) !== ['application/default/javascript', 'www/asset/themes/<theme>/js', 'application/<controller>/javascript']) {
+if (($site['js_inheritance'] ?? []) !== ['application/default/javascript', 'www/asset/themes/<theme>/js', 'application/states/<state>/javascript']) {
     fwrite(STDERR, "OPUS_ETERNAL_CONTRACT_JS_INHERITANCE_INVALID\n");
+    exit(1);
+}
+$routes = json_decode($contents['sites/__contract_probe/config/routes.json'] ?? '', true);
+if (!is_array($routes) || ($routes['dispatch_model'] ?? '') !== 'state-first') {
+    fwrite(STDERR, "OPUS_ETERNAL_CONTRACT_ROUTES_INVALID\n");
+    exit(1);
+}
+foreach ((array) ($routes['routes'] ?? []) as $route) {
+    if (!is_array($route) || !isset($route['state']) || !str_contains((string) ($route['view'] ?? ''), 'application/states/')) {
+        fwrite(STDERR, "OPUS_ETERNAL_CONTRACT_ROUTE_STATE_INVALID\n");
+        exit(1);
+    }
+}
+$applicationFsm = json_decode($contents['sites/__contract_probe/config/application.fsm.json'] ?? '', true);
+if (!is_array($applicationFsm) || ($applicationFsm['contract'] ?? '') !== 'OPUS_APPLICATION_FSM_V1' || ($applicationFsm['dispatch_model'] ?? '') !== 'state-first' || empty($applicationFsm['states']) || !array_key_exists('transitions', $applicationFsm)) {
+    fwrite(STDERR, "OPUS_ETERNAL_CONTRACT_APPLICATION_FSM_INVALID\n");
     exit(1);
 }
 $fsm = json_decode($contents['sites/__contract_probe/config/fsm.json'] ?? '', true);
