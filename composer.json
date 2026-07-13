@@ -32,6 +32,7 @@
         "opus:create-page": "@php bin/opus create:page",
         "opus:create-rubric": "@php bin/opus create:rubric",
         "opus:smoke-site-contract": "@php tools/smoke_opus_site_contract_eternal.php",
+        "owasys:auth-bootstrap": "@php tools/owasys_auth_bootstrap_local_user.php",
         "owasys:smoke-scaffold-plan": "@php tools/smoke_owasys_scaffold_plan_builder.php",
         "owasys:smoke-scaffold-writer": "@php tools/smoke_owasys_application_scaffold_writer.php",
         "owasys:smoke-application-creator": "@php tools/smoke_owasys_application_creator.php",
@@ -40,7 +41,8 @@
         "owasys:smoke-bin-opus-export": "@php tools/smoke_owasys_bin_opus_export.php",
         "owasys:smoke-registry-naming": "@php tools/smoke_owasys_registry_naming.php",
         "owasys:smoke-showcase-blueprint": "@php tools/smoke_owasys_showcase_blueprint.php",
-        "owasys:smoke-login-foundation": "@php tools/smoke_owasys_login_foundation.php"
+        "owasys:smoke-login-foundation": "@php tools/smoke_owasys_login_foundation.php",
+        "owasys:smoke-login-password": "@php tools/smoke_owasys_login_password.php"
     },
     "repositories": [
         {
