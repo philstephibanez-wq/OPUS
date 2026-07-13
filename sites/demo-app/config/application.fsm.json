@@ -14,8 +14,8 @@
             "controller": "home",
             "controller_legacy_alias": true,
             "route": "/",
-            "view": "application/home/views/index.php",
-            "template": "application/home/templates/index.score",
+            "view": "application/states/home/views/index.php",
+            "template": "application/states/home/templates/index.score",
             "dispatch": {
                 "action": "render_route",
                 "target": "home"
@@ -29,8 +29,8 @@
             "controller": "articles",
             "controller_legacy_alias": true,
             "route": "/articles",
-            "view": "application/articles/views/index.php",
-            "template": "application/articles/templates/index.score",
+            "view": "application/states/articles/views/index.php",
+            "template": "application/states/articles/templates/index.score",
             "dispatch": {
                 "action": "render_route",
                 "target": "articles"
