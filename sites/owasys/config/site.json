@@ -36,12 +36,14 @@
     "theme": "owasys",
     "public_root": "www",
     "application_root": "application",
+    "states_root": "application/states",
     "default_root": "application/default",
     "asset_root": "www/asset",
     "theme_root_pattern": "www/asset/themes/<theme>",
+    "dispatch_model": "state-first",
+    "controller_field": "legacy_alias",
     "menu_items": 7,
-    "application_roots": [
-        "default",
+    "states": [
         "home",
         "registry",
         "structure",
@@ -52,16 +54,28 @@
         "account",
         "login"
     ],
+    "application_roots": [
+        "default",
+        "states/home",
+        "states/registry",
+        "states/structure",
+        "states/data",
+        "states/workflows",
+        "states/security",
+        "states/build",
+        "states/account",
+        "states/login"
+    ],
     "src_directory_allowed": false,
     "css_inheritance": [
         "application/default/css",
         "www/asset/themes/<theme>/css",
-        "application/<controller>/css"
+        "application/states/<state>/css"
     ],
     "js_inheritance": [
         "application/default/javascript",
         "www/asset/themes/<theme>/js",
-        "application/<controller>/javascript"
+        "application/states/<state>/javascript"
     ],
     "owasys_stage": "fsm-driven-navigation-context",
     "navigation": {
@@ -119,6 +133,7 @@
         "runtime_password_login_foundation",
         "auth_access_guard",
         "forced_password_change",
-        "fsm_driven_navigation"
+        "fsm_driven_navigation",
+        "state_first_dispatch"
     ]
 }
