@@ -54,6 +54,7 @@ try {
         'application/default/models',
         'application/default/templates',
         'application/default/views',
+        'application/states',
         'www/asset/css',
         'www/asset/js',
         'www/asset/themes/starter/css',
@@ -72,14 +73,16 @@ try {
         'role' => 'generated-opus-application',
         'public_root' => 'www',
         'application_root' => 'application',
+        'states_root' => 'application/states',
         'default_root' => 'application/default',
         'asset_root' => 'www/asset',
+        'dispatch_model' => 'state-first',
     ]);
-    opus_cli_fsm_smoke_write_json($siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'routes.json', ['contract' => 'OPUS_ROUTE_REGISTRY_V1', 'routes' => []]);
+    opus_cli_fsm_smoke_write_json($siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'routes.json', ['contract' => 'OPUS_ROUTE_REGISTRY_V1', 'dispatch_model' => 'state-first', 'routes' => []]);
     opus_cli_fsm_smoke_write_json($siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'fsm.json', [
         'contract' => 'OPUS_FSM_REGISTRY_V1',
         'initial_state' => 'HOME',
-        'states' => [['id' => 'HOME', 'controller' => 'home']],
+        'states' => [['id' => 'HOME', 'state' => 'home', 'controller' => 'home']],
         'transitions' => [],
     ]);
     file_put_contents($siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php', "<?php echo 'ok';\n");
