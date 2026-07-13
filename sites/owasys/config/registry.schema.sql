@@ -48,3 +48,37 @@ CREATE TABLE IF NOT EXISTS owasys_security_profiles (
     permissions_json TEXT NOT NULL,
     FOREIGN KEY(application_id) REFERENCES owasys_applications(id)
 );
+
+CREATE TABLE IF NOT EXISTS owasys_runtime_context (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    current_state TEXT NOT NULL,
+    current_application_id TEXT,
+    context_json TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS owasys_transition_history (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    from_state TEXT NOT NULL,
+    event TEXT NOT NULL,
+    to_state TEXT NOT NULL,
+    application_id TEXT,
+    guards_json TEXT NOT NULL,
+    actions_json TEXT NOT NULL,
+    result TEXT NOT NULL CHECK (result IN ('accepted', 'rejected', 'error')),
+    message TEXT,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS owasys_transition_drafts (
+    id TEXT PRIMARY KEY,
+    label TEXT NOT NULL,
+    source_contract TEXT NOT NULL DEFAULT 'OWASYS_NAVIGATION_FSM_V1',
+    draft_json TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('draft', 'review', 'promoted', 'rejected')),
+    created_by TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
