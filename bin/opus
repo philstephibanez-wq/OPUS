@@ -75,6 +75,78 @@ function opus_cli_assert_site_exists(string $siteRoot, string $siteId): void
     }
 }
 
+function opus_cli_assert_site_fsm(string $siteRoot, string $siteId): void
+{
+    $siteConfigFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'site.json';
+    $siteConfig = json_decode((string) file_get_contents($siteConfigFile), true);
+    if (!is_array($siteConfig)) {
+        fwrite(STDERR, "OPUS_SITE_FSM_SITE_JSON_INVALID: {$siteId}\n");
+        exit(1);
+    }
+
+    $configDirectory = $siteRoot . DIRECTORY_SEPARATOR . 'config';
+    $candidates = [];
+    $navigation = is_array($siteConfig['navigation'] ?? null) ? $siteConfig['navigation'] : [];
+    $navigationFsm = str_replace('\\', '/', (string) ($navigation['fsm'] ?? ''));
+    if ($navigationFsm !== '') {
+        if (str_contains($navigationFsm, '..')) {
+            fwrite(STDERR, "OPUS_SITE_FSM_PATH_INVALID: {$siteId}\n");
+            exit(1);
+        }
+        $candidates[] = $siteRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, trim($navigationFsm, '/'));
+    }
+
+    $candidates[] = $configDirectory . DIRECTORY_SEPARATOR . 'application.fsm.json';
+    $candidates[] = $configDirectory . DIRECTORY_SEPARATOR . 'fsm.json';
+    $candidates[] = $configDirectory . DIRECTORY_SEPARATOR . 'owasys-navigation.fsm.json';
+    $candidates = array_values(array_unique($candidates));
+
+    $fsmFile = null;
+    foreach ($candidates as $candidate) {
+        if (is_file($candidate)) {
+            $fsmFile = $candidate;
+            break;
+        }
+    }
+
+    if ($fsmFile === null) {
+        fwrite(STDERR, "OPUS_SITE_FSM_MISSING: {$siteId}\n");
+        exit(1);
+    }
+
+    $fsm = json_decode((string) file_get_contents($fsmFile), true);
+    if (!is_array($fsm)) {
+        fwrite(STDERR, "OPUS_SITE_FSM_JSON_INVALID: {$siteId}\n");
+        exit(1);
+    }
+
+    $allowedContracts = [
+        'OPUS_APPLICATION_FSM_V1' => true,
+        'OPUS_FSM_REGISTRY_V1' => true,
+        'OWASYS_NAVIGATION_FSM_V1' => true,
+    ];
+    $contract = (string) ($fsm['contract'] ?? '');
+    if (!isset($allowedContracts[$contract])) {
+        fwrite(STDERR, "OPUS_SITE_FSM_CONTRACT_INVALID: {$siteId}:{$contract}\n");
+        exit(1);
+    }
+
+    if (!is_array($fsm['states'] ?? null) || $fsm['states'] === []) {
+        fwrite(STDERR, "OPUS_SITE_FSM_STATES_MISSING: {$siteId}\n");
+        exit(1);
+    }
+
+    if (!array_key_exists('initial_state', $fsm)) {
+        fwrite(STDERR, "OPUS_SITE_FSM_INITIAL_STATE_MISSING: {$siteId}\n");
+        exit(1);
+    }
+
+    if (!array_key_exists('transitions', $fsm) || !is_array($fsm['transitions'])) {
+        fwrite(STDERR, "OPUS_SITE_FSM_TRANSITIONS_MISSING: {$siteId}\n");
+        exit(1);
+    }
+}
+
 function opus_cli_write_dev_router(string $root, string $siteId, string $siteRoot, string $publicRoot): string
 {
     $routerDir = $root . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'dev-server';
@@ -436,6 +508,8 @@ if ($command === 'validate:site') {
             exit(1);
         }
     }
+
+    opus_cli_assert_site_fsm($siteRoot, $target);
 
     echo "OPUS_VALIDATE_SITE_OK: {$target}\n";
     exit(0);
