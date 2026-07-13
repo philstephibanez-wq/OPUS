@@ -32,6 +32,7 @@
         "opus:create-page": "@php bin/opus create:page",
         "opus:create-rubric": "@php bin/opus create:rubric",
         "opus:smoke-site-contract": "@php tools/smoke_opus_site_contract_eternal.php",
+        "opus:smoke-fsm-contract": "@php tools/smoke_opus_fsm_contract.php",
         "owasys:auth-bootstrap": "@php tools/owasys_auth_bootstrap_local_user.php",
         "owasys:smoke-scaffold-plan": "@php tools/smoke_owasys_scaffold_plan_builder.php",
         "owasys:smoke-scaffold-writer": "@php tools/smoke_owasys_application_scaffold_writer.php",
