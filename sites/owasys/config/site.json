@@ -49,6 +49,7 @@
         "workflows",
         "security",
         "build",
+        "account",
         "login"
     ],
     "src_directory_allowed": false,
@@ -62,7 +63,7 @@
         "www/asset/themes/<theme>/js",
         "application/<controller>/javascript"
     ],
-    "owasys_stage": "authenticated-runtime-password-login",
+    "owasys_stage": "password-change-enforced-login",
     "registry": {
         "datasource": "owasys_registry",
         "schema": "config/registry.schema.sql",
@@ -85,10 +86,13 @@
         "user_store": "var/auth/local-users.json",
         "login_route": "/login",
         "logout_route": "/logout",
+        "password_change_route": "/account/password",
         "anonymous_routes": [
             "/login"
         ],
         "protected_routes": "all_except_anonymous_routes",
+        "must_change_password_on_bootstrap": true,
+        "minimum_password_length": 12,
         "write_actions_require_auth": true,
         "password_hash_algorithm": "PASSWORD_DEFAULT",
         "committed_passwords_allowed": false
@@ -105,6 +109,7 @@
         "build_validation",
         "export_policy",
         "runtime_password_login_foundation",
-        "auth_access_guard"
+        "auth_access_guard",
+        "forced_password_change"
     ]
 }
