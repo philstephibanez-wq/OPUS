@@ -37,4 +37,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     wrapper.appendChild(button);
   });
+
+  if (window.mermaid) {
+    window.mermaid.initialize({
+      startOnLoad: true,
+      securityLevel: 'loose',
+      theme: 'dark'
+    });
+  }
 });
