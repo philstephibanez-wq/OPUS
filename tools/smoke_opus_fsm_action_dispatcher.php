@@ -102,7 +102,7 @@ if (($emptyDispatch['count'] ?? null) !== 0 || ($emptyDispatch['executed'] ?? nu
     throw new RuntimeException('OPUS_FSM_ACTION_DISPATCHER_EMPTY_ACTIONS_INVALID');
 }
 
-$owasysProcessor = FsmSiteLoader::forRepository($root)->processorForSite('owasys');
+$owasysProcessor = FsmSiteLoader::processorForSite($root, 'owasys');
 $owasysTransition = $owasysProcessor->transition('registry', 'select_app', ['app_exists' => true]);
 $owasysDispatcher = new FsmActionDispatcher([
     'set_current_app' => static fn (string $action, array $transitionResult, array $context, FsmActionDispatcher $dispatcher): array => [
