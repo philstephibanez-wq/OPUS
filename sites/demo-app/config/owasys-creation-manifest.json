@@ -5,6 +5,8 @@
     "site_id": "demo-app",
     "site_root": "sites/demo-app",
     "site_contract": "OPUS_SITE_APPLICATION_TREE_V1_ETERNAL",
+    "application_fsm": "sites/demo-app/config/application.fsm.json",
+    "application_fsm_contract": "OPUS_APPLICATION_FSM_V1",
     "owasys_plan_contract": "OWASYS_SCAFFOLD_PLAN_V1",
     "blueprint": "opus-site-standard",
     "dry_run": {
@@ -12,20 +14,21 @@
         "site_id": "demo-app",
         "site_root": "sites/demo-app",
         "directories": 43,
-        "files": 24
+        "files": 25
     },
     "write": {
         "mode": "write",
         "site_id": "demo-app",
         "site_root": "sites/demo-app",
         "directories": 43,
-        "files": 24
+        "files": 25
     },
     "validation": {
         "status": "ok",
         "site_id": "demo-app",
         "site_root": "sites/demo-app",
-        "required_paths": 19,
+        "application_fsm": "sites/demo-app/config/application.fsm.json",
+        "required_paths": 20,
         "command": "php bin/opus validate:site demo-app"
     },
     "forbidden_output_roots": [
