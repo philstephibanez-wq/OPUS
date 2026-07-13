@@ -231,7 +231,7 @@ foreach ([
     'Visual FSM navigation',
     'OWASYS_MERMAID_NAVIGATION',
     'flowchart LR',
-    'click structure',
+    'click ' . "' . \$id",
     'Application context',
     'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js',
 ] as $needle) {
