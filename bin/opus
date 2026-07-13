@@ -85,10 +85,38 @@ function opus_cli_read_json(string $path, string $error): array
     return $data;
 }
 
-function opus_cli_assert_site_fsm(string $siteRoot, string $siteId): void
+function opus_cli_assert_state_root(string $siteRoot, string $siteId, array $siteConfig): void
 {
-    $siteConfigFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'site.json';
-    $siteConfig = opus_cli_read_json($siteConfigFile, "OPUS_SITE_FSM_SITE_JSON_INVALID: {$siteId}");
+    if (($siteConfig['states_root'] ?? null) !== 'application/states') {
+        fwrite(STDERR, "OPUS_SITE_STATES_ROOT_INVALID: {$siteId}\n");
+        exit(1);
+    }
+
+    if (($siteConfig['dispatch_model'] ?? null) !== 'state-first') {
+        fwrite(STDERR, "OPUS_SITE_DISPATCH_MODEL_INVALID: {$siteId}\n");
+        exit(1);
+    }
+
+    $statesRoot = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'states';
+    if (!is_dir($statesRoot)) {
+        fwrite(STDERR, "OPUS_SITE_REQUIRED_PATH_MISSING: application/states\n");
+        exit(1);
+    }
+
+    $applicationRoot = $siteRoot . DIRECTORY_SEPARATOR . 'application';
+    foreach (scandir($applicationRoot) ?: [] as $entry) {
+        if ($entry === '.' || $entry === '..' || $entry === 'default' || $entry === 'states') {
+            continue;
+        }
+        if (is_dir($applicationRoot . DIRECTORY_SEPARATOR . $entry)) {
+            fwrite(STDERR, "OPUS_SITE_LEGACY_STATE_ROOT_PRESENT: application/{$entry}\n");
+            exit(1);
+        }
+    }
+}
+
+function opus_cli_assert_site_fsm(string $siteRoot, string $siteId, array $siteConfig): void
+{
     $configDirectory = $siteRoot . DIRECTORY_SEPARATOR . 'config';
 
     $role = (string) ($siteConfig['role'] ?? '');
@@ -243,6 +271,9 @@ function opus_cli_print_application_create_result(array $result, bool $write): v
         echo "OWASYS_APPLICATION_CREATE_DRY_RUN_OK: {$siteRoot}\n";
         echo "OWASYS_APPLICATION_CREATE_DIRECTORIES=" . (int) ($dryRunSummary['directories'] ?? 0) . "\n";
         echo "OWASYS_APPLICATION_CREATE_FILES=" . (int) ($dryRunSummary['files'] ?? 0) . "\n";
+        if (isset($result['states_root'])) {
+            echo "OWASYS_APPLICATION_CREATE_STATES_ROOT=" . (string) $result['states_root'] . "\n";
+        }
         if (isset($result['application_fsm'])) {
             echo "OWASYS_APPLICATION_CREATE_APPLICATION_FSM=" . (string) $result['application_fsm'] . "\n";
         }
@@ -261,6 +292,9 @@ function opus_cli_print_application_create_result(array $result, bool $write): v
         echo "OWASYS_APPLICATION_CREATE_VALIDATE_OK: " . (string) ($validation['site_id'] ?? '') . "\n";
     }
 
+    if (isset($result['states_root'])) {
+        echo "OWASYS_APPLICATION_CREATE_STATES_ROOT=" . (string) $result['states_root'] . "\n";
+    }
     if (isset($result['application_fsm'])) {
         echo "OWASYS_APPLICATION_CREATE_APPLICATION_FSM=" . (string) $result['application_fsm'] . "\n";
     }
@@ -390,7 +424,7 @@ if ($command === 'validate:site') {
     $siteRoot = opus_cli_site_root($root, $target);
     opus_cli_assert_site_exists($siteRoot, $target);
 
-    $required = ['config', 'config/site.json', 'config/routes.json', 'application', 'application/default', 'application/default/acl', 'application/default/helpers', 'application/default/css', 'application/default/javascript', 'application/default/local', 'application/default/models', 'application/default/templates', 'application/default/views', 'www', 'www/index.php', 'www/asset', 'www/asset/css', 'www/asset/js', 'www/asset/themes'];
+    $required = ['config', 'config/site.json', 'config/routes.json', 'application', 'application/default', 'application/default/acl', 'application/default/helpers', 'application/default/css', 'application/default/javascript', 'application/default/local', 'application/default/models', 'application/default/templates', 'application/default/views', 'application/states', 'www', 'www/index.php', 'www/asset', 'www/asset/css', 'www/asset/js', 'www/asset/themes'];
 
     foreach ($required as $relative) {
         $path = $siteRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative);
@@ -400,7 +434,10 @@ if ($command === 'validate:site') {
         }
     }
 
-    opus_cli_assert_site_fsm($siteRoot, $target);
+    $siteConfigFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'site.json';
+    $siteConfig = opus_cli_read_json($siteConfigFile, "OPUS_SITE_CONFIG_JSON_INVALID: {$target}");
+    opus_cli_assert_state_root($siteRoot, $target, $siteConfig);
+    opus_cli_assert_site_fsm($siteRoot, $target, $siteConfig);
 
     echo "OPUS_VALIDATE_SITE_OK: {$target}\n";
     exit(0);
