@@ -32,13 +32,13 @@ function owasys_smoke_remove_tree(string $path): void
 }
 
 $root = dirname(__DIR__);
-$id = 'owasys_smoke_site_' . bin2hex(random_bytes(3));
-$relativeRoot = 'var/owasys-smoke/' . $id;
+$id = 'owasys-smoke-site-' . bin2hex(random_bytes(3));
+$relativeRoot = 'sites/' . $id;
 $absoluteRoot = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativeRoot);
 
 $request = [
     'id' => $id,
-    'slug' => str_replace('_', '-', $id),
+    'slug' => $id,
     'name' => 'OWASYS Smoke Site',
     'kind' => 'fullstack',
     'root_path' => $relativeRoot,
@@ -71,7 +71,7 @@ try {
         throw new RuntimeException('OWASYS_WRITER_WRITE_SUMMARY_INVALID');
     }
 
-    foreach (['config/site.json', 'config/routes.json', 'application/default', 'application/home/views/index.php', 'www/index.php', 'www/asset/themes/starter/css/theme.css'] as $required) {
+    foreach (['config/site.json', 'config/routes.json', 'config/application.fsm.json', 'config/fsm.json', 'application/default', 'application/home/views/index.php', 'www/index.php', 'www/asset/themes/starter/css/theme.css'] as $required) {
         $path = $absoluteRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $required);
         if (!file_exists($path)) {
             throw new RuntimeException('OWASYS_WRITER_REQUIRED_OUTPUT_MISSING: ' . $required);
@@ -81,6 +81,14 @@ try {
     $site = json_decode((string) file_get_contents($absoluteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'site.json'), true);
     if (!is_array($site) || ($site['contract'] ?? null) !== 'OPUS_SITE_APPLICATION_TREE_V1_ETERNAL') {
         throw new RuntimeException('OWASYS_WRITER_SITE_CONTRACT_INVALID');
+    }
+    if (($site['application_fsm'] ?? null) !== 'config/application.fsm.json') {
+        throw new RuntimeException('OWASYS_WRITER_SITE_FSM_POINTER_INVALID');
+    }
+
+    $fsm = json_decode((string) file_get_contents($absoluteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'application.fsm.json'), true);
+    if (!is_array($fsm) || ($fsm['contract'] ?? null) !== 'OPUS_APPLICATION_FSM_V1' || empty($fsm['states']) || !isset($fsm['transitions'])) {
+        throw new RuntimeException('OWASYS_WRITER_APPLICATION_FSM_INVALID');
     }
 } finally {
     owasys_smoke_remove_tree($absoluteRoot);
