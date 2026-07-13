@@ -8,21 +8,25 @@ $siteFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . '
 $routesFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'routes.json';
 $seedFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'registry.seed.json';
 $registryView = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'registry' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php';
+$frontFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php';
+$cssFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'asset' . DIRECTORY_SEPARATOR . 'css' . DIRECTORY_SEPARATOR . 'owasys.css';
 
-foreach ([$siteFile, $routesFile, $seedFile, $registryView] as $requiredFile) {
+foreach ([$siteFile, $routesFile, $seedFile, $registryView, $frontFile, $cssFile] as $requiredFile) {
     if (!is_file($requiredFile)) {
         fwrite(STDERR, "OWASYS_REGISTRY_NAMING_REQUIRED_FILE_MISSING: {$requiredFile}\n");
         exit(1);
     }
 }
 
-$lintCommand = PHP_BINARY . ' -l ' . escapeshellarg($registryView) . ' 2>&1';
-$lintOutput = [];
-$lintCode = 0;
-exec($lintCommand, $lintOutput, $lintCode);
-if ($lintCode !== 0) {
-    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_REGISTRY_VIEW_PARSE_ERROR\n" . implode("\n", $lintOutput) . "\n");
-    exit(1);
+foreach ([$registryView, $frontFile] as $lintFile) {
+    $lintCommand = PHP_BINARY . ' -l ' . escapeshellarg($lintFile) . ' 2>&1';
+    $lintOutput = [];
+    $lintCode = 0;
+    exec($lintCommand, $lintOutput, $lintCode);
+    if ($lintCode !== 0) {
+        fwrite(STDERR, "OWASYS_REGISTRY_NAMING_PARSE_ERROR: {$lintFile}\n" . implode("\n", $lintOutput) . "\n");
+        exit(1);
+    }
 }
 
 $site = json_decode((string) file_get_contents($siteFile), true);
@@ -141,6 +145,34 @@ foreach ($cards as $card) {
 if (!$renderedDemoCard) {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_DEMO_APP_CARD_MISSING\n");
     exit(1);
+}
+
+$front = (string) file_get_contents($frontFile);
+foreach ([
+    'owasys_current_app',
+    'select-app',
+    'clear-app-context',
+    'create-new-app',
+    'Work on this app',
+    'Current application',
+    'Application context',
+    "'/structure'",
+    "'/data'",
+    "'/workflows'",
+    "'/security'",
+] as $needle) {
+    if (!str_contains($front, $needle)) {
+        fwrite(STDERR, "OWASYS_REGISTRY_NAMING_CONTEXT_MARKER_MISSING: {$needle}\n");
+        exit(1);
+    }
+}
+
+$css = (string) file_get_contents($cssFile);
+foreach (['.ow-current-app', '.ow-context-panel', '.ow-registry-card', '.ow-inline-form'] as $needle) {
+    if (!str_contains($css, $needle)) {
+        fwrite(STDERR, "OWASYS_REGISTRY_NAMING_CONTEXT_CSS_MARKER_MISSING: {$needle}\n");
+        exit(1);
+    }
 }
 
 echo "OWASYS_REGISTRY_NAMING_SMOKE_OK\n";
