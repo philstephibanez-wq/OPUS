@@ -97,13 +97,28 @@ try {
         throw new RuntimeException('OWASYS_SHOWCASE_BLUEPRINT_LEGACY_STATE_ROOT_PRESENT');
     }
 
+    $siteConfig = json_decode((string) file_get_contents($siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'site.json'), true);
+    if (!is_array($siteConfig) || ($siteConfig['states_root'] ?? null) !== 'application/states' || ($siteConfig['dispatch_model'] ?? null) !== 'state-first') {
+        throw new RuntimeException('OWASYS_SHOWCASE_BLUEPRINT_SITE_STATE_ROOT_INVALID');
+    }
+
+    $routes = json_decode((string) file_get_contents($siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'routes.json'), true);
+    if (!is_array($routes) || ($routes['dispatch_model'] ?? null) !== 'state-first') {
+        throw new RuntimeException('OWASYS_SHOWCASE_BLUEPRINT_ROUTES_DISPATCH_MODEL_INVALID');
+    }
+    foreach ((array) ($routes['routes'] ?? []) as $route) {
+        if (!is_array($route) || !isset($route['state']) || !isset($route['fsm_state']) || !str_contains((string) ($route['view'] ?? ''), 'application/states/')) {
+            throw new RuntimeException('OWASYS_SHOWCASE_BLUEPRINT_ROUTE_STATE_INVALID');
+        }
+    }
+
     $fsm = json_decode((string) file_get_contents($siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'application.fsm.json'), true);
     if (!is_array($fsm) || ($fsm['contract'] ?? null) !== 'OPUS_APPLICATION_FSM_V1' || ($fsm['dispatch_model'] ?? null) !== 'state-first' || count((array) ($fsm['states'] ?? [])) < 4 || count((array) ($fsm['transitions'] ?? [])) < 4) {
         throw new RuntimeException('OWASYS_SHOWCASE_BLUEPRINT_APPLICATION_FSM_INVALID');
     }
 
     $front = (string) file_get_contents($siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php');
-    foreach (['opus-nav', 'opus-hero', 'opus-grid', 'Page not found', 'OPUS_APPLICATION_FSM_V1', 'data-opus-state', 'data-opus-dispatch'] as $needle) {
+    foreach (['opus-nav', 'opus-hero', 'opus-grid', 'Page not found', 'OPUS_APPLICATION_FSM_V1', 'data-opus-state', 'data-opus-dispatch', 'application/states/'] as $needle) {
         if (!str_contains($front, $needle)) {
             throw new RuntimeException('OWASYS_SHOWCASE_BLUEPRINT_FRONT_MARKER_MISSING: ' . $needle);
         }
@@ -117,7 +132,7 @@ try {
     }
 
     $homeView = (string) file_get_contents($siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'states' . DIRECTORY_SEPARATOR . 'home' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php');
-    foreach (['cards', 'actions', 'OWASYS pipeline'] as $needle) {
+    foreach (['state', 'cards', 'actions', 'State-first dispatch'] as $needle) {
         if (!str_contains($homeView, $needle)) {
             throw new RuntimeException('OWASYS_SHOWCASE_BLUEPRINT_VIEW_MARKER_MISSING: ' . $needle);
         }
