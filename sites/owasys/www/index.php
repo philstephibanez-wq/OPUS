@@ -46,16 +46,41 @@ if ($authStoreRelative === '' || str_contains($authStoreRelative, '..')) {
 }
 $authStoreFile = $siteRoot . '/' . $authStoreRelative;
 
-$loadRuntimeUsers = static function (string $storeFile): array {
+$readRuntimeStore = static function (string $storeFile): array {
     if (!is_file($storeFile)) {
-        return [];
+        return ['contract' => 'OWASYS_LOCAL_USER_STORE_V1', 'committed' => false, 'users' => []];
     }
     $store = json_decode((string) file_get_contents($storeFile), true);
     if (!is_array($store) || ($store['contract'] ?? null) !== 'OWASYS_LOCAL_USER_STORE_V1') {
-        return [];
+        return ['contract' => 'OWASYS_LOCAL_USER_STORE_V1', 'committed' => false, 'users' => []];
     }
-    $users = $store['users'] ?? [];
-    return is_array($users) ? $users : [];
+    if (!isset($store['users']) || !is_array($store['users'])) {
+        $store['users'] = [];
+    }
+    return $store;
+};
+
+$loadRuntimeUsers = static function (string $storeFile) use ($readRuntimeStore): array {
+    $store = $readRuntimeStore($storeFile);
+    return is_array($store['users'] ?? null) ? $store['users'] : [];
+};
+
+$writeRuntimeStore = static function (string $storeFile, array $store): void {
+    $parent = dirname($storeFile);
+    if (!is_dir($parent) && !mkdir($parent, 0775, true) && !is_dir($parent)) {
+        http_response_code(500);
+        echo 'OWASYS_AUTH_USER_STORE_DIRECTORY_FAILED';
+        exit;
+    }
+    $store['contract'] = 'OWASYS_LOCAL_USER_STORE_V1';
+    $store['committed'] = false;
+    $store['updated_at'] = gmdate('c');
+    $encoded = json_encode($store, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    if (!is_string($encoded) || file_put_contents($storeFile, $encoded . "\n") === false) {
+        http_response_code(500);
+        echo 'OWASYS_AUTH_USER_STORE_WRITE_FAILED';
+        exit;
+    }
 };
 
 $requestPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
@@ -84,6 +109,7 @@ $redirect = static function (string $routePath) use ($link): void {
 };
 
 $loginError = null;
+$passwordChangeError = null;
 
 if ($path === '/logout') {
     unset($_SESSION['owasys_user']);
@@ -116,9 +142,10 @@ if ($path === '/login' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 'label' => (string) ($candidate['label'] ?? $username),
                 'profile' => (string) ($candidate['profile'] ?? 'dev'),
                 'mode' => 'runtime-password-store',
+                'must_change_password' => ($candidate['must_change_password'] ?? false) === true,
                 'started_at' => gmdate('c'),
             ];
-            $redirect('/');
+            $redirect(($_SESSION['owasys_user']['must_change_password'] ?? false) === true ? '/account/password' : '/');
         }
     }
 }
@@ -128,6 +155,53 @@ $isAuthenticated = is_array($user);
 $anonymousRoutes = ['/login'];
 if (!$isAuthenticated && !in_array($path, $anonymousRoutes, true)) {
     $redirect('/login');
+}
+
+if ($isAuthenticated && $path === '/account/password' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+    $action = (string) ($_POST['owasys_action'] ?? '');
+    if ($action !== 'change-password') {
+        http_response_code(400);
+        echo 'OWASYS_PASSWORD_CHANGE_ACTION_INVALID';
+        exit;
+    }
+
+    $currentPassword = (string) ($_POST['owasys_current_password'] ?? '');
+    $newPassword = (string) ($_POST['owasys_new_password'] ?? '');
+    $confirmPassword = (string) ($_POST['owasys_confirm_password'] ?? '');
+    $userId = (string) ($user['id'] ?? '');
+    $store = $readRuntimeStore($authStoreFile);
+    $users = is_array($store['users'] ?? null) ? $store['users'] : [];
+    $candidate = is_array($users[$userId] ?? null) ? $users[$userId] : null;
+    $passwordHash = is_array($candidate) ? (string) ($candidate['password_hash'] ?? '') : '';
+
+    if ($candidate === null || $passwordHash === '') {
+        $passwordChangeError = 'Runtime user is missing from the local user store.';
+    } elseif ($currentPassword === '' || !password_verify($currentPassword, $passwordHash)) {
+        $passwordChangeError = 'Current password is invalid.';
+    } elseif (strlen($newPassword) < 12) {
+        $passwordChangeError = 'New password must contain at least 12 characters.';
+    } elseif ($newPassword !== $confirmPassword) {
+        $passwordChangeError = 'New password confirmation does not match.';
+    } elseif (password_verify($newPassword, $passwordHash)) {
+        $passwordChangeError = 'New password must be different from the current password.';
+    } else {
+        $candidate['password_hash'] = password_hash($newPassword, PASSWORD_DEFAULT);
+        $candidate['must_change_password'] = false;
+        $candidate['password_changed_at'] = gmdate('c');
+        $candidate['updated_at'] = gmdate('c');
+        $store['users'][$userId] = $candidate;
+        $writeRuntimeStore($authStoreFile, $store);
+        $_SESSION['owasys_user']['must_change_password'] = false;
+        $_SESSION['owasys_user']['password_changed_at'] = $candidate['password_changed_at'];
+        $redirect('/');
+    }
+}
+
+$user = is_array($_SESSION['owasys_user'] ?? null) ? $_SESSION['owasys_user'] : null;
+$isAuthenticated = is_array($user);
+$mustChangePassword = $isAuthenticated && (($user['must_change_password'] ?? false) === true);
+if ($mustChangePassword && !in_array($path, ['/account/password', '/logout'], true)) {
+    $redirect('/account/password');
 }
 
 $route = null;
@@ -183,6 +257,7 @@ $labelMap = [
     'security' => 'Security',
     'build' => 'Build & Validate',
     'login' => 'Login',
+    'account' => 'Account',
 ];
 
 $renderList = static function (array $items) use ($h): string {
@@ -203,6 +278,10 @@ $body .= '<div class="ow-auth-status">';
 if ($isAuthenticated) {
     $body .= '<span class="ow-auth-dot" aria-hidden="true"></span><strong>' . $h((string) ($user['label'] ?? 'User')) . '</strong>';
     $body .= '<small>profile: ' . $h((string) ($user['profile'] ?? 'unknown')) . '</small>';
+    if ($mustChangePassword) {
+        $body .= '<small class="ow-auth-warning">password change required</small>';
+    }
+    $body .= '<a href="' . $h($link('/account/password')) . '">Password</a>';
     $body .= '<a href="' . $h($link('/logout')) . '">Logout</a>';
 } else {
     $body .= '<span class="ow-auth-dot is-off" aria-hidden="true"></span><strong>Not signed in</strong>';
@@ -250,6 +329,26 @@ if ($controller === 'login') {
         $body .= '<button class="ow-button" type="submit">Sign in</button>';
         $body .= '</form>';
     }
+    $body .= '</section>';
+}
+
+if ($controller === 'account') {
+    $body .= '<section class="ow-card ow-auth-panel">';
+    $body .= '<h2>Change password</h2>';
+    $body .= '<p>Update the runtime password for the current OWASYS user. This is required for bootstrap users before accessing the dashboard.</p>';
+    if ($mustChangePassword) {
+        $body .= '<p class="ow-login-warning">Password change required before continuing.</p>';
+    }
+    if ($passwordChangeError !== null) {
+        $body .= '<p class="ow-login-error">' . $h($passwordChangeError) . '</p>';
+    }
+    $body .= '<form method="post" class="ow-password-form">';
+    $body .= '<input type="hidden" name="owasys_action" value="change-password">';
+    $body .= '<label>Current password<input name="owasys_current_password" type="password" autocomplete="current-password" required></label>';
+    $body .= '<label>New password<input name="owasys_new_password" type="password" autocomplete="new-password" minlength="12" required></label>';
+    $body .= '<label>Confirm new password<input name="owasys_confirm_password" type="password" autocomplete="new-password" minlength="12" required></label>';
+    $body .= '<button class="ow-button" type="submit">Change password</button>';
+    $body .= '</form>';
     $body .= '</section>';
 }
 
