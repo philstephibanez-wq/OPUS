@@ -10,11 +10,30 @@ declare(strict_types=1);
 
 $siteRoot = dirname(__DIR__);
 $configFile = $siteRoot . '/config/routes.json';
+$siteFile = $siteRoot . '/config/site.json';
 $routesConfig = json_decode((string) file_get_contents($configFile), true);
+$siteConfig = json_decode((string) file_get_contents($siteFile), true);
 if (!is_array($routesConfig) || !isset($routesConfig['routes']) || !is_array($routesConfig['routes'])) {
     http_response_code(500);
     echo 'OWASYS_ROUTES_CONFIG_INVALID';
     exit;
+}
+if (!is_array($siteConfig)) {
+    http_response_code(500);
+    echo 'OWASYS_SITE_CONFIG_INVALID';
+    exit;
+}
+
+$authConfig = is_array($siteConfig['auth'] ?? null) ? $siteConfig['auth'] : [];
+$sessionName = (string) ($authConfig['session_name'] ?? 'OWASYS_LOCAL_SESSION');
+if (preg_match('/^[A-Za-z0-9_-]+$/', $sessionName) !== 1) {
+    http_response_code(500);
+    echo 'OWASYS_SESSION_NAME_INVALID';
+    exit;
+}
+if (session_status() === PHP_SESSION_NONE) {
+    session_name($sessionName);
+    session_start();
 }
 
 $h = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -37,6 +56,39 @@ if ($requestPath === '/') {
     $path = $requestPath;
     $mount = '';
 }
+
+$link = static fn (string $routePath): string => $mount . ($routePath === '/' ? '/' : $routePath);
+$redirect = static function (string $routePath) use ($link): never {
+    header('Location: ' . $link($routePath), true, 303);
+    exit;
+};
+
+if ($path === '/logout') {
+    unset($_SESSION['owasys_user']);
+    session_regenerate_id(true);
+    $redirect('/login');
+}
+
+if ($path === '/login' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+    $action = (string) ($_POST['owasys_action'] ?? '');
+    if ($action !== 'local-dev-signin') {
+        http_response_code(400);
+        echo 'OWASYS_LOGIN_ACTION_INVALID';
+        exit;
+    }
+    session_regenerate_id(true);
+    $_SESSION['owasys_user'] = [
+        'id' => 'local-dev',
+        'label' => 'Local Dev',
+        'profile' => 'dev',
+        'mode' => 'local-dev-bootstrap',
+        'started_at' => gmdate('c'),
+    ];
+    $redirect('/');
+}
+
+$user = is_array($_SESSION['owasys_user'] ?? null) ? $_SESSION['owasys_user'] : null;
+$isAuthenticated = is_array($user);
 
 $route = null;
 foreach ($routesConfig['routes'] as $candidate) {
@@ -81,7 +133,6 @@ foreach ($routesConfig['routes'] as $candidate) {
 usort($menu, static fn (array $a, array $b): int => ((int) ($a['order'] ?? 0)) <=> ((int) ($b['order'] ?? 0)));
 
 $asset = static fn (string $assetPath): string => $mount . '/' . ltrim($assetPath, '/');
-$link = static fn (string $routePath): string => $mount . ($routePath === '/' ? '/' : $routePath);
 
 $labelMap = [
     'home' => 'Home',
@@ -91,6 +142,7 @@ $labelMap = [
     'workflows' => 'Workflows',
     'security' => 'Security',
     'build' => 'Build & Validate',
+    'login' => 'Login',
 ];
 
 $renderList = static function (array $items) use ($h): string {
@@ -107,6 +159,17 @@ $renderList = static function (array $items) use ($h): string {
 $body = '<div class="ow-shell">';
 $body .= '<aside class="ow-sidebar">';
 $body .= '<div class="ow-brand"><strong>OWASYS</strong><span>OPUS Web Application System</span></div>';
+$body .= '<div class="ow-auth-status">';
+if ($isAuthenticated) {
+    $body .= '<span class="ow-auth-dot" aria-hidden="true"></span><strong>' . $h((string) ($user['label'] ?? 'User')) . '</strong>';
+    $body .= '<small>profile: ' . $h((string) ($user['profile'] ?? 'unknown')) . '</small>';
+    $body .= '<a href="' . $h($link('/logout')) . '">Logout</a>';
+} else {
+    $body .= '<span class="ow-auth-dot is-off" aria-hidden="true"></span><strong>Not signed in</strong>';
+    $body .= '<small>local session inactive</small>';
+    $body .= '<a href="' . $h($link('/login')) . '">Login</a>';
+}
+$body .= '</div>';
 $body .= '<nav class="ow-nav">';
 foreach ($menu as $item) {
     $labelKey = str_replace('menu.', '', (string) ($item['label'] ?? ''));
@@ -123,6 +186,21 @@ $body .= '<div><span class="ow-pill">' . $h((string) ($page['badge'] ?? 'OWASYS'
 $body .= '<h1>' . $h((string) ($page['title'] ?? 'OWASYS')) . '</h1>';
 $body .= '<p class="ow-muted">' . $h((string) ($page['summary'] ?? '')) . '</p></div>';
 $body .= '</header>';
+
+if ($controller === 'login') {
+    $body .= '<section class="ow-card ow-auth-panel">';
+    if ($isAuthenticated) {
+        $body .= '<h2>Session active</h2>';
+        $body .= '<p>You are signed in for this local OWASYS development session.</p>';
+        $body .= '<div class="ow-tags"><span>profile: ' . $h((string) ($user['profile'] ?? 'unknown')) . '</span><span>mode: ' . $h((string) ($user['mode'] ?? 'unknown')) . '</span></div>';
+        $body .= '<p><a class="ow-button" href="' . $h($link('/logout')) . '">Logout</a><a class="ow-button ow-button-secondary" href="' . $h($link('/')) . '">Dashboard</a></p>';
+    } else {
+        $body .= '<h2>Start local dev session</h2>';
+        $body .= '<p>This bootstrap creates a local <strong>dev</strong> session only. No committed password is used or accepted here.</p>';
+        $body .= '<form method="post" class="ow-login-form"><input type="hidden" name="owasys_action" value="local-dev-signin"><button class="ow-button" type="submit">Start local dev session</button></form>';
+    }
+    $body .= '</section>';
+}
 
 $cards = (array) ($page['cards'] ?? []);
 if ($cards !== []) {
