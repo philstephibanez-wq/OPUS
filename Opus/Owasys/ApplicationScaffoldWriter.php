@@ -8,11 +8,8 @@ use RuntimeException;
 /**
  * Writes a validated OWASYS scaffold plan to disk.
  *
- * Safety contract:
- * - default caller mode should be dry-run;
- * - actual write refuses an existing target root;
- * - every output path must stay below the scaffold site root;
- * - public, src and resources roots remain forbidden.
+ * OWASYS now treats the application state as the canonical dispatch node. The
+ * old controller name remains only as a legacy alias for the application tree.
  */
 final class ApplicationScaffoldWriter
 {
@@ -142,7 +139,7 @@ final class ApplicationScaffoldWriter
     private function contentForFile(array $plan, array $file): string
     {
         $path = $file['path'];
-        $controller = $this->controllerFromPath($path);
+        $state = $this->stateFromPath($path);
 
         if (str_ends_with($path, '/config/site.json')) {
             return $this->json($this->siteConfig($plan));
@@ -186,20 +183,20 @@ final class ApplicationScaffoldWriter
         if (str_ends_with($path, '/theme.js')) {
             return "document.documentElement.dataset.opusThemeLayer='" . $plan['theme'] . "';\n";
         }
-        if ($controller !== null && str_ends_with($path, '/templates/index.score')) {
+        if ($state !== null && str_ends_with($path, '/templates/index.score')) {
             return "<section class=\"opus-card\"><h2>{{ page.title }}</h2><p>{{ page.summary }}</p></section>\n";
         }
-        if ($controller !== null && str_ends_with($path, '/views/index.php')) {
-            return $this->viewModel($controller, $plan);
+        if ($state !== null && str_ends_with($path, '/views/index.php')) {
+            return $this->viewModel($state, $plan);
         }
-        if ($controller !== null && str_ends_with($path, '/' . $controller . '.css')) {
-            return "/* " . $controller . " */\n";
+        if ($state !== null && str_ends_with($path, '/' . $state . '.css')) {
+            return "/* " . $state . " */\n";
         }
-        if ($controller !== null && str_ends_with($path, '/' . $controller . '.js')) {
-            return "document.documentElement.dataset.opusControllerLayer='" . $controller . "';\n";
+        if ($state !== null && str_ends_with($path, '/' . $state . '.js')) {
+            return "document.documentElement.dataset.opusStateLayer='" . $state . "';\n";
         }
         if (str_ends_with($path, '/i18n.json')) {
-            $labels = $this->pageLabels($controller ?? 'default', $plan);
+            $labels = $this->pageLabels($state ?? 'default', $plan);
             return $this->json(['page.title' => $labels['title'], 'page.summary' => $labels['summary']]);
         }
 
@@ -227,9 +224,11 @@ final class ApplicationScaffoldWriter
             'application_fsm' => 'config/application.fsm.json',
             'fsm_legacy_projection' => 'config/fsm.json',
             'fsm_contract' => self::APPLICATION_FSM_CONTRACT,
+            'dispatch_model' => 'state-first',
+            'controller_field' => 'legacy_alias',
             'src_directory_allowed' => false,
-            'css_inheritance' => ['application/default/css', 'www/asset/themes/<theme>/css', 'application/<controller>/css'],
-            'js_inheritance' => ['application/default/javascript', 'www/asset/themes/<theme>/js', 'application/<controller>/javascript'],
+            'css_inheritance' => ['application/default/css', 'www/asset/themes/<theme>/css', 'application/<state>/css'],
+            'js_inheritance' => ['application/default/javascript', 'www/asset/themes/<theme>/js', 'application/<state>/javascript'],
             'generated_by' => 'owasys',
         ];
     }
@@ -239,22 +238,25 @@ final class ApplicationScaffoldWriter
     {
         $routes = [];
         foreach ($plan['routes'] as $index => $route) {
-            $controller = (string) ($route['controller'] ?? 'home');
-            $path = (string) ($route['path'] ?? ($controller === 'home' ? '/' : '/' . $controller));
+            $state = $this->stateFromRoute($route);
+            $path = (string) ($route['path'] ?? ($state === 'home' ? '/' : '/' . $state));
             $routes[] = [
-                'id' => (string) ($route['id'] ?? $controller . '.index'),
+                'id' => (string) ($route['id'] ?? $state . '.index'),
                 'path' => $path,
-                'controller' => $controller,
+                'state' => $state,
+                'controller' => $state,
+                'controller_legacy_alias' => true,
                 'class' => null,
-                'template' => 'application/' . $controller . '/templates/index.score',
-                'view' => 'application/' . $controller . '/views/index.php',
-                'label' => 'menu.' . $controller,
-                'fsm_state' => $this->stateId($controller),
+                'template' => 'application/' . $state . '/templates/index.score',
+                'view' => 'application/' . $state . '/views/index.php',
+                'label' => 'menu.' . $state,
+                'fsm_state' => $this->stateId($state),
+                'dispatch_action' => 'render_route',
                 'show_in_menu' => true,
                 'order' => ($index + 1) * 10,
             ];
         }
-        return ['contract' => 'OPUS_ROUTE_REGISTRY_V1', 'routes' => $routes];
+        return ['contract' => 'OPUS_ROUTE_REGISTRY_V1', 'dispatch_model' => 'state-first', 'routes' => $routes];
     }
 
     /** @param array<string,mixed> $plan @return array<string,mixed> */
@@ -263,7 +265,8 @@ final class ApplicationScaffoldWriter
         return [
             'contract' => 'OPUS_MENU_ROUTE_PROJECTION_V1',
             'source_fsm' => 'config/application.fsm.json',
-            'items' => array_map(static fn (string $controller): array => ['route' => $controller . '.index', 'controller' => $controller, 'label' => 'menu.' . $controller], $plan['controllers']),
+            'dispatch_model' => 'state-first',
+            'items' => array_map(static fn (string $state): array => ['route' => $state . '.index', 'state' => $state, 'controller' => $state, 'label' => 'menu.' . $state], $plan['controllers']),
         ];
     }
 
@@ -273,21 +276,27 @@ final class ApplicationScaffoldWriter
         $states = [];
         $routes = $this->routesConfig($plan)['routes'];
         foreach ($routes as $route) {
-            $controller = (string) ($route['controller'] ?? 'home');
+            $state = (string) ($route['state'] ?? $route['controller'] ?? 'home');
             $states[] = [
-                'id' => $this->stateId($controller),
-                'label' => ucfirst(str_replace('-', ' ', $controller)),
-                'controller' => $controller,
+                'id' => $this->stateId($state),
+                'label' => ucfirst(str_replace('-', ' ', $state)),
+                'state' => $state,
+                'controller' => $state,
+                'controller_legacy_alias' => true,
                 'route' => (string) ($route['path'] ?? '/'),
                 'view' => (string) ($route['view'] ?? ''),
                 'template' => (string) ($route['template'] ?? ''),
+                'dispatch' => [
+                    'action' => 'render_route',
+                    'target' => $state,
+                ],
                 'visual' => true,
             ];
         }
 
         $initial = $states[0]['id'] ?? 'home';
         foreach ($states as $state) {
-            if (($state['controller'] ?? '') === 'home') {
+            if (($state['state'] ?? '') === 'home') {
                 $initial = (string) $state['id'];
                 break;
             }
@@ -305,6 +314,10 @@ final class ApplicationScaffoldWriter
                     'to' => (string) $to['id'],
                     'guard' => 'route_exists',
                     'action' => 'render_route',
+                    'dispatch' => [
+                        'action' => 'render_route',
+                        'target_state' => (string) $to['id'],
+                    ],
                     'visual' => true,
                 ];
             }
@@ -315,6 +328,8 @@ final class ApplicationScaffoldWriter
             'source_of_truth' => 'config',
             'generated_by' => 'owasys',
             'site_id' => $plan['site_id'],
+            'dispatch_model' => 'state-first',
+            'controller_field' => 'legacy_alias',
             'initial_state' => $initial,
             'states' => $states,
             'transitions' => $transitions,
@@ -335,6 +350,7 @@ final class ApplicationScaffoldWriter
             'initial_state' => strtoupper((string) ($applicationFsm['initial_state'] ?? 'home')),
             'states' => array_map(static fn (array $state): array => [
                 'id' => strtoupper((string) ($state['id'] ?? '')),
+                'state' => (string) ($state['state'] ?? ''),
                 'controller' => (string) ($state['controller'] ?? ''),
                 'route' => (string) ($state['route'] ?? ''),
             ], (array) ($applicationFsm['states'] ?? [])),
@@ -350,23 +366,24 @@ final class ApplicationScaffoldWriter
     private function rubricsConfig(array $plan): array
     {
         $rubrics = [];
-        foreach ($plan['controllers'] as $controller) {
-            if ($controller === 'home') {
+        foreach ($plan['controllers'] as $state) {
+            if ($state === 'home') {
                 continue;
             }
-            $rubrics[] = ['controller' => $controller, 'route' => $controller . '.index'];
+            $rubrics[] = ['state' => $state, 'controller' => $state, 'route' => $state . '.index'];
         }
-        return ['contract' => 'OPUS_HOME_DEMO_CARD_ROUTE_PROJECTION_V1', 'rubrics' => $rubrics];
+        return ['contract' => 'OPUS_HOME_DEMO_CARD_ROUTE_PROJECTION_V1', 'dispatch_model' => 'state-first', 'rubrics' => $rubrics];
     }
 
     /** @param array<string,mixed> $plan */
-    private function viewModel(string $controller, array $plan): string
+    private function viewModel(string $state, array $plan): string
     {
-        $labels = $this->pageLabels($controller, $plan);
-        $cards = $this->pageCards($controller);
-        $actions = $this->pageActions($controller, $plan);
+        $labels = $this->pageLabels($state, $plan);
+        $cards = $this->pageCards($state);
+        $actions = $this->pageActions($state, $plan);
 
         return "<?php\ndeclare(strict_types=1);\n\nreturn [\n"
+            . "    'state' => " . var_export($state, true) . ",\n"
             . "    'title' => " . var_export($labels['title'], true) . ",\n"
             . "    'subtitle' => " . var_export($labels['subtitle'], true) . ",\n"
             . "    'summary' => " . var_export($labels['summary'], true) . ",\n"
@@ -377,12 +394,12 @@ final class ApplicationScaffoldWriter
     }
 
     /** @param array<string,mixed> $plan @return array{kicker:string,title:string,subtitle:string,summary:string} */
-    private function pageLabels(string $controller, array $plan): array
+    private function pageLabels(string $state, array $plan): array
     {
         $siteName = (string) $plan['name'];
         $defaults = [
             'kicker' => 'Generated by OWASYS',
-            'title' => ucfirst(str_replace('-', ' ', $controller)),
+            'title' => ucfirst(str_replace('-', ' ', $state)),
             'subtitle' => 'Generated OPUS FSM state',
             'summary' => 'This page is a rendered state from the generated OPUS application FSM.',
         ];
@@ -398,62 +415,62 @@ final class ApplicationScaffoldWriter
                 'kicker' => 'Content demo',
                 'title' => 'Articles',
                 'subtitle' => 'A starter content state for OPUS pages.',
-                'summary' => 'Use this section as a first model for list pages, editorial content and generated navigation transitions.',
+                'summary' => 'Use this state as a first model for list pages, editorial content and generated navigation transitions.',
             ],
             'about' => [
                 'kicker' => 'About this app',
                 'title' => 'About',
                 'subtitle' => 'A generated application without public/src/resources roots.',
-                'summary' => 'OWASYS keeps OPUS structure explicit: config, application/default, application/<controller>, www and application.fsm.json.',
+                'summary' => 'OWASYS keeps OPUS structure explicit: config, application/default, application/<state>, www and application.fsm.json.',
             ],
             'contact' => [
                 'kicker' => 'Contact page',
                 'title' => 'Contact',
                 'subtitle' => 'A presentable placeholder for a future form.',
-                'summary' => 'This section is ready for a real contact model, validation rules and delivery workflow.',
+                'summary' => 'This state is ready for a real contact model, validation rules and delivery workflow.',
             ],
         ];
 
-        return $labels[$controller] ?? $defaults;
+        return $labels[$state] ?? $defaults;
     }
 
     /** @return list<array{title:string,body:string}> */
-    private function pageCards(string $controller): array
+    private function pageCards(string $state): array
     {
-        if ($controller === 'home') {
+        if ($state === 'home') {
             return [
-                ['title' => 'Standard OPUS tree', 'body' => 'The site uses config, application/default, application/<controller> and www only.'],
+                ['title' => 'Standard OPUS tree', 'body' => 'The site uses config, application/default, application/<state> and www only.'],
                 ['title' => 'FSM-first application', 'body' => 'The canonical application FSM is stored in config/application.fsm.json.'],
-                ['title' => 'OWASYS pipeline', 'body' => 'Request, plan, write, validate and export are connected.'],
+                ['title' => 'State-first dispatch', 'body' => 'Routes and view-models are now dispatched by FSM state; controller remains a legacy alias.'],
             ];
         }
 
-        if ($controller === 'articles') {
+        if ($state === 'articles') {
             return [
                 ['title' => 'First generated article', 'body' => 'This card is static seed content generated by the blueprint.'],
-                ['title' => 'Second generated article', 'body' => 'The next step is connecting this section to a typed OPUS model.'],
+                ['title' => 'Second generated article', 'body' => 'The next step is connecting this state to a typed OPUS model.'],
                 ['title' => 'Publication workflow', 'body' => 'Draft, review and publish states can be added through the workflow section.'],
             ];
         }
 
         return [
-            ['title' => 'Controller ready', 'body' => 'The generated section has its own view-model, template, CSS, JavaScript and I18N directory.'],
+            ['title' => 'State ready', 'body' => 'The generated state has its own view-model, template, CSS, JavaScript and I18N directory.'],
             ['title' => 'Contract preserved', 'body' => 'No hidden wrapper, no public directory, no src directory and no resources directory.'],
         ];
     }
 
     /** @param array<string,mixed> $plan @return list<array{label:string,href:string}> */
-    private function pageActions(string $controller, array $plan): array
+    private function pageActions(string $state, array $plan): array
     {
         $actions = [['label' => 'Home', 'href' => '/']];
         foreach ($plan['routes'] as $route) {
             if (!is_array($route)) {
                 continue;
             }
-            $routeController = (string) ($route['controller'] ?? '');
+            $routeState = $this->stateFromRoute($route);
             $path = (string) ($route['path'] ?? '');
-            if ($routeController !== $controller && $path !== '') {
-                $actions[] = ['label' => ucfirst(str_replace('-', ' ', $routeController)), 'href' => $path];
+            if ($routeState !== $state && $path !== '') {
+                $actions[] = ['label' => ucfirst(str_replace('-', ' ', $routeState)), 'href' => $path];
             }
         }
         return array_values(array_unique($actions, SORT_REGULAR));
@@ -495,27 +512,28 @@ foreach ($routesConfig['routes'] as $candidate) {
 }
 if (!is_array($route)) {
     http_response_code(404);
-    $route = ['controller' => 'not-found', 'path' => $path, 'fsm_state' => 'not_found'];
+    $route = ['state' => 'not-found', 'controller' => 'not-found', 'path' => $path, 'fsm_state' => 'not_found'];
     $page = [
+        'state' => 'not-found',
         'title' => 'Page not found',
         'subtitle' => 'No OPUS route matched this path.',
-        'summary' => 'Return to the generated home page or add a route in config/routes.json and config/application.fsm.json.',
+        'summary' => 'Return to the generated home page or add a state route in config/routes.json and config/application.fsm.json.',
         'kicker' => '404',
         'cards' => [],
         'actions' => [['label' => 'Home', 'href' => '/']],
     ];
 } else {
-    $controller = (string) ($route['controller'] ?? 'home');
-    if (!preg_match('/^[a-z0-9][a-z0-9_-]*$/', $controller)) {
+    $state = (string) ($route['state'] ?? ($route['controller'] ?? 'home'));
+    if (!preg_match('/^[a-z0-9][a-z0-9_-]*$/', $state)) {
         http_response_code(500);
-        echo 'OPUS_GENERATED_CONTROLLER_INVALID';
+        echo 'OPUS_GENERATED_STATE_INVALID';
         exit;
     }
 
-    $viewFile = $siteRoot . '/application/' . $controller . '/views/index.php';
-    $page = is_file($viewFile) ? require $viewFile : ['title' => $controller, 'subtitle' => 'Generated by OWASYS'];
+    $viewFile = $siteRoot . '/application/' . $state . '/views/index.php';
+    $page = is_file($viewFile) ? require $viewFile : ['state' => $state, 'title' => $state, 'subtitle' => 'Generated by OWASYS'];
     if (!is_array($page)) {
-        $page = ['title' => $controller, 'subtitle' => 'Generated by OWASYS'];
+        $page = ['state' => $state, 'title' => $state, 'subtitle' => 'Generated by OWASYS'];
     }
 }
 
@@ -524,14 +542,15 @@ usort($routes, static fn (array $left, array $right): int => ((int) ($left['orde
 $h = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 $siteName = is_array($siteConfig) ? (string) ($siteConfig['site_name'] ?? 'OPUS Application') : 'OPUS Application';
 $theme = is_array($siteConfig) ? (string) ($siteConfig['theme'] ?? 'starter') : 'starter';
-$currentState = (string) ($route['fsm_state'] ?? 'unknown');
+$currentState = (string) ($route['fsm_state'] ?? ($route['state'] ?? 'unknown'));
 $cards = array_values(array_filter((array) ($page['cards'] ?? []), 'is_array'));
 $actions = array_values(array_filter((array) ($page['actions'] ?? []), 'is_array'));
 
-echo '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' . $h((string) ($page['title'] ?? $siteName)) . '</title><link rel="stylesheet" href="/asset/themes/' . $h($theme) . '/css/theme.css"></head><body class="opus-generated-site" data-opus-fsm="OPUS_APPLICATION_FSM_V1" data-opus-state="' . $h($currentState) . '"><header class="opus-top"><a class="opus-brand" href="/">' . $h($siteName) . '</a><nav class="opus-nav">';
+echo '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' . $h((string) ($page['title'] ?? $siteName)) . '</title><link rel="stylesheet" href="/asset/themes/' . $h($theme) . '/css/theme.css"></head><body class="opus-generated-site" data-opus-fsm="OPUS_APPLICATION_FSM_V1" data-opus-dispatch="state-first" data-opus-state="' . $h($currentState) . '"><header class="opus-top"><a class="opus-brand" href="/">' . $h($siteName) . '</a><nav class="opus-nav">';
 foreach ($routes as $menuRoute) {
     $href = (string) ($menuRoute['path'] ?? '/');
-    $label = ucfirst(str_replace('-', ' ', (string) ($menuRoute['controller'] ?? 'home')));
+    $state = (string) ($menuRoute['state'] ?? ($menuRoute['controller'] ?? 'home'));
+    $label = ucfirst(str_replace('-', ' ', $state));
     $active = $href === $path ? ' aria-current="page"' : '';
     echo '<a' . $active . ' href="' . $h($href) . '">' . $h($label) . '</a>';
 }
@@ -543,7 +562,7 @@ echo '</div><p class="opus-fsm-badge">FSM state: ' . $h($currentState) . '</p></
 foreach ($cards as $card) {
     echo '<article class="opus-card"><h2>' . $h((string) ($card['title'] ?? 'Section')) . '</h2><p>' . $h((string) ($card['body'] ?? '')) . '</p></article>';
 }
-echo '</section></main><footer class="opus-footer">Generated by OWASYS · OPUS_APPLICATION_FSM_V1</footer><script src="/asset/themes/' . $h($theme) . '/js/theme.js"></script></body></html>';
+echo '</section></main><footer class="opus-footer">Generated by OWASYS · state-first OPUS_APPLICATION_FSM_V1</footer><script src="/asset/themes/' . $h($theme) . '/js/theme.js"></script></body></html>';
 PHP;
     }
 
@@ -560,12 +579,22 @@ PHP;
 CSS;
     }
 
-    private function stateId(string $controller): string
+    private function stateId(string $state): string
     {
-        return strtolower(str_replace('-', '_', $controller));
+        return strtolower(str_replace('-', '_', $state));
     }
 
-    private function controllerFromPath(string $path): ?string
+    /** @param array<string,mixed> $route */
+    private function stateFromRoute(array $route): string
+    {
+        $state = (string) ($route['state'] ?? ($route['controller'] ?? 'home'));
+        if ($state === '' || preg_match('/^[a-z0-9][a-z0-9_-]*$/', $state) !== 1) {
+            throw new RuntimeException('OWASYS_SCAFFOLD_ROUTE_STATE_INVALID');
+        }
+        return $state;
+    }
+
+    private function stateFromPath(string $path): ?string
     {
         if (preg_match('#/application/([a-z0-9_-]+)/#', $path, $matches) !== 1) {
             return null;
