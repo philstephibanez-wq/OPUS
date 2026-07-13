@@ -8,9 +8,9 @@ use InvalidArgumentException;
 /**
  * Builds a typed OWASYS scaffold plan from a validated application creation request.
  *
- * This engine is intentionally plan-only: it does not write files, does not create
- * directories, and does not mutate the registry. Disk writes belong to a later
- * writer component once this plan has been validated.
+ * The plan is state-first: generated application nodes live below
+ * application/states/<state>. The request field controllers is still accepted as
+ * a temporary legacy alias for the state list.
  */
 final class ScaffoldPlanBuilder
 {
@@ -36,18 +36,18 @@ final class ScaffoldPlanBuilder
         $blueprint = $this->requiredString($request, 'blueprint', 3, 96);
         $defaultLocale = $this->requiredPattern($request, 'default_locale', '/^[a-z]{2}$/', 2, 2);
         $theme = $this->requiredPattern($request, 'theme', '/^[a-z0-9][a-z0-9_-]*$/', 3, 96);
-        $controllers = $this->requiredStringList($request, 'controllers', 1, 32, '/^[a-z0-9][a-z0-9_-]*$/');
+        $states = $this->requiredStringList($request, 'controllers', 1, 32, '/^[a-z0-9][a-z0-9_-]*$/');
         $routes = $this->requiredArray($request, 'routes');
         $datasources = $this->requiredArray($request, 'datasources');
         $securityProfiles = $this->requiredArray($request, 'security_profiles');
         $workflows = $this->requiredArray($request, 'workflows');
 
-        if (!in_array('home', $controllers, true)) {
-            throw new InvalidArgumentException('OWASYS_PLAN_HOME_CONTROLLER_REQUIRED');
+        if (!in_array('home', $states, true)) {
+            throw new InvalidArgumentException('OWASYS_PLAN_HOME_STATE_REQUIRED');
         }
 
-        $directories = $this->directories($rootPath, $controllers, $theme, $defaultLocale);
-        $files = $this->files($rootPath, $controllers, $theme, $defaultLocale);
+        $directories = $this->directories($rootPath, $states, $theme, $defaultLocale);
+        $files = $this->files($rootPath, $states, $theme, $defaultLocale);
 
         return [
             'contract' => self::SITE_CONTRACT,
@@ -60,7 +60,10 @@ final class ScaffoldPlanBuilder
             'site_root' => $rootPath,
             'default_locale' => $defaultLocale,
             'theme' => $theme,
-            'controllers' => $controllers,
+            'states' => $states,
+            'controllers' => $states,
+            'controller_field' => 'legacy_alias',
+            'dispatch_model' => 'state-first',
             'routes' => $routes,
             'datasources' => $datasources,
             'security_profiles' => $securityProfiles,
@@ -87,10 +90,10 @@ final class ScaffoldPlanBuilder
     }
 
     /**
-     * @param list<string> $controllers
+     * @param list<string> $states
      * @return list<string>
      */
-    private function directories(string $rootPath, array $controllers, string $theme, string $defaultLocale): array
+    private function directories(string $rootPath, array $states, string $theme, string $defaultLocale): array
     {
         $directories = [
             $rootPath,
@@ -107,6 +110,7 @@ final class ScaffoldPlanBuilder
             $rootPath . '/application/default/templates',
             $rootPath . '/application/default/templates/components',
             $rootPath . '/application/default/views',
+            $rootPath . '/application/states',
             $rootPath . '/www',
             $rootPath . '/www/asset',
             $rootPath . '/www/asset/css',
@@ -118,9 +122,9 @@ final class ScaffoldPlanBuilder
             $rootPath . '/www/asset/themes/' . $theme . '/img',
         ];
 
-        foreach ($controllers as $controller) {
+        foreach ($states as $state) {
             foreach (['', '/acl', '/helpers', '/css', '/javascript', '/local', '/local/' . $defaultLocale, '/models', '/templates', '/views'] as $suffix) {
-                $directories[] = $rootPath . '/application/' . $controller . $suffix;
+                $directories[] = $rootPath . '/application/states/' . $state . $suffix;
             }
         }
 
@@ -128,10 +132,10 @@ final class ScaffoldPlanBuilder
     }
 
     /**
-     * @param list<string> $controllers
+     * @param list<string> $states
      * @return list<array<string,string>>
      */
-    private function files(string $rootPath, array $controllers, string $theme, string $defaultLocale): array
+    private function files(string $rootPath, array $states, string $theme, string $defaultLocale): array
     {
         $files = [
             $this->file($rootPath . '/config/site.json', 'json', 'generated'),
@@ -151,12 +155,13 @@ final class ScaffoldPlanBuilder
             $this->file($rootPath . '/www/asset/themes/' . $theme . '/js/theme.js', 'javascript', 'blueprint'),
         ];
 
-        foreach ($controllers as $controller) {
-            $files[] = $this->file($rootPath . '/application/' . $controller . '/templates/index.score', 'score-template', 'blueprint');
-            $files[] = $this->file($rootPath . '/application/' . $controller . '/views/index.php', 'php-view-model', 'generated');
-            $files[] = $this->file($rootPath . '/application/' . $controller . '/css/' . $controller . '.css', 'css', 'blueprint');
-            $files[] = $this->file($rootPath . '/application/' . $controller . '/javascript/' . $controller . '.js', 'javascript', 'blueprint');
-            $files[] = $this->file($rootPath . '/application/' . $controller . '/local/' . $defaultLocale . '/i18n.json', 'json', 'generated');
+        foreach ($states as $state) {
+            $base = $rootPath . '/application/states/' . $state;
+            $files[] = $this->file($base . '/templates/index.score', 'score-template', 'blueprint');
+            $files[] = $this->file($base . '/views/index.php', 'php-view-model', 'generated');
+            $files[] = $this->file($base . '/css/' . $state . '.css', 'css', 'blueprint');
+            $files[] = $this->file($base . '/javascript/' . $state . '.js', 'javascript', 'blueprint');
+            $files[] = $this->file($base . '/local/' . $defaultLocale . '/i18n.json', 'json', 'generated');
         }
 
         return $files;
