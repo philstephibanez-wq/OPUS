@@ -52,7 +52,7 @@ if (!is_array($files)) {
     exit(1);
 }
 $filePaths = array_map(static fn (array $file): string => (string) ($file['path'] ?? ''), $files);
-foreach (['sites/demo-app/config/site.json', 'sites/demo-app/config/routes.json', 'sites/demo-app/www/index.php', 'sites/demo-app/application/home/views/index.php'] as $path) {
+foreach (['sites/demo-app/config/site.json', 'sites/demo-app/config/routes.json', 'sites/demo-app/config/application.fsm.json', 'sites/demo-app/config/fsm.json', 'sites/demo-app/www/index.php', 'sites/demo-app/application/home/views/index.php'] as $path) {
     if (!in_array($path, $filePaths, true)) {
         fwrite(STDERR, "OWASYS_SCAFFOLD_PLAN_REQUIRED_FILE_MISSING: {$path}\n");
         exit(1);
