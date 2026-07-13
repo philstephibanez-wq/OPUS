@@ -137,6 +137,7 @@ final class ScaffoldPlanBuilder
             $this->file($rootPath . '/config/site.json', 'json', 'generated'),
             $this->file($rootPath . '/config/routes.json', 'json', 'generated'),
             $this->file($rootPath . '/config/menu.json', 'json', 'generated'),
+            $this->file($rootPath . '/config/application.fsm.json', 'json', 'generated'),
             $this->file($rootPath . '/config/fsm.json', 'json', 'generated'),
             $this->file($rootPath . '/config/rubrics.json', 'json', 'generated'),
             $this->file($rootPath . '/application/default/templates/layout.score', 'score-template', 'blueprint'),
