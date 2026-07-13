@@ -25,6 +25,13 @@ if (!is_array($site) || !is_array($routes) || !is_array($security) || !is_array(
     exit(1);
 }
 
+foreach ([$frontFile, $loginView, $accountView, $bootstrapTool, $cssFile, $jsFile, $gitignoreFile] as $requiredFile) {
+    if (!is_file($requiredFile)) {
+        fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_REQUIRED_FILE_MISSING: {$requiredFile}\n");
+        exit(1);
+    }
+}
+
 $auth = is_array($site['auth'] ?? null) ? $site['auth'] : [];
 if (($auth['mode'] ?? null) !== 'runtime-password-store') {
     fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_MODE_INVALID\n");
@@ -84,11 +91,6 @@ if (!is_array($accountRoute) || ($accountRoute['controller'] ?? null) !== 'accou
     exit(1);
 }
 
-if (!is_file($accountView)) {
-    fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_ACCOUNT_VIEW_MISSING\n");
-    exit(1);
-}
-
 $localCredentials = is_array($security['local_credentials'] ?? null) ? $security['local_credentials'] : [];
 foreach ([
     'store_contract' => 'OWASYS_LOCAL_USER_STORE_V1',
@@ -113,6 +115,8 @@ foreach ([
     'password-signin',
     'owasys_username',
     'owasys_password',
+    'Username<input name="owasys_username"',
+    'Password<input name="owasys_password" type="password"',
     'password_verify',
     'OWASYS_LOCAL_USER_STORE_V1',
     'Runtime user store missing',
@@ -143,7 +147,7 @@ foreach (['local-dev-signin', 'Start local dev session', 'at least 12 characters
 }
 
 $login = (string) file_get_contents($loginView);
-foreach (['runtime-password-store', 'Username', 'Password', 'OWASYS_LOCAL_USER_STORE_V1'] as $needle) {
+foreach (['runtime-password-store', 'username and password', 'OWASYS_LOCAL_USER_STORE_V1'] as $needle) {
     if (!str_contains($login, $needle)) {
         fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_VIEW_MARKER_MISSING: {$needle}\n");
         exit(1);
