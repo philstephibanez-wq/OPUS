@@ -12,7 +12,7 @@ $event = (string) ($argv[3] ?? '');
 $contextInput = (string) ($argv[4] ?? '');
 
 if ($siteId === '' || $currentState === '' || $event === '') {
-    fwrite(STDERR, "OPUS_FSM_TRANSITION_USAGE: php tools/opus_fsm_transition.php SITE_ID CURRENT_STATE EVENT [CONTEXT_JSON]\n");
+    fwrite(STDERR, "OPUS_FSM_TRANSITION_USAGE: php tools/opus_fsm_transition.php SITE_ID CURRENT_STATE EVENT [CONTEXT_JSON|@CONTEXT_JSON_FILE]\n");
     exit(1);
 }
 
@@ -23,6 +23,15 @@ if (!preg_match('/^[A-Za-z0-9_-]+$/', $siteId)) {
 
 $context = [];
 if ($contextInput !== '') {
+    if (str_starts_with($contextInput, '@')) {
+        $contextFile = substr($contextInput, 1);
+        if ($contextFile === '' || !is_file($contextFile)) {
+            fwrite(STDERR, "OPUS_FSM_TRANSITION_CONTEXT_FILE_MISSING\n");
+            exit(1);
+        }
+        $contextInput = (string) file_get_contents($contextFile);
+    }
+
     $decoded = json_decode($contextInput, true);
     if (!is_array($decoded)) {
         fwrite(STDERR, "OPUS_FSM_TRANSITION_CONTEXT_JSON_INVALID\n");
