@@ -96,11 +96,16 @@ try {
         throw new RuntimeException('OWASYS_BIN_OPUS_VALIDATE_FAILED');
     }
 
-    foreach (['config/site.json', 'config/routes.json', 'config/owasys-creation-manifest.json', 'application/default', 'application/home/views/index.php', 'www/index.php'] as $required) {
+    foreach (['config/site.json', 'config/routes.json', 'config/application.fsm.json', 'config/fsm.json', 'config/owasys-creation-manifest.json', 'application/default', 'application/home/views/index.php', 'www/index.php'] as $required) {
         $path = $absoluteRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $required);
         if (!file_exists($path)) {
             throw new RuntimeException('OWASYS_BIN_OPUS_REQUIRED_OUTPUT_MISSING: ' . $required);
         }
+    }
+
+    $fsm = json_decode((string) file_get_contents($absoluteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'application.fsm.json'), true);
+    if (!is_array($fsm) || ($fsm['contract'] ?? null) !== 'OPUS_APPLICATION_FSM_V1') {
+        throw new RuntimeException('OWASYS_BIN_OPUS_APPLICATION_FSM_INVALID');
     }
 } finally {
     owasys_bin_opus_remove_tree($absoluteRoot);
