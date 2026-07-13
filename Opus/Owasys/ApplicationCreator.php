@@ -34,6 +34,7 @@ final class ApplicationCreator
         'application/default/models',
         'application/default/templates',
         'application/default/views',
+        'application/states',
         'www',
         'www/index.php',
         'www/asset',
@@ -71,6 +72,7 @@ final class ApplicationCreator
             'mode' => $write ? 'write' : 'dry-run',
             'site_id' => (string) $plan['site_id'],
             'site_root' => (string) $plan['site_root'],
+            'states_root' => (string) $plan['site_root'] . '/application/states',
             'application_fsm' => (string) $plan['site_root'] . '/config/application.fsm.json',
             'dry_run' => $dryRunSummary,
             'write' => null,
@@ -124,6 +126,10 @@ final class ApplicationCreator
             }
         }
 
+        if (file_exists($absoluteSiteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'home')) {
+            throw new RuntimeException('OWASYS_CREATED_SITE_LEGACY_STATE_ROOT_PRESENT');
+        }
+
         $siteConfigFile = $absoluteSiteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'site.json';
         $siteConfig = json_decode((string) file_get_contents($siteConfigFile), true);
         if (!is_array($siteConfig) || ($siteConfig['contract'] ?? null) !== self::SITE_CONTRACT) {
@@ -132,13 +138,16 @@ final class ApplicationCreator
         if (($siteConfig['application_fsm'] ?? null) !== 'config/application.fsm.json') {
             throw new RuntimeException('OWASYS_CREATED_SITE_APPLICATION_FSM_POINTER_INVALID');
         }
+        if (($siteConfig['states_root'] ?? null) !== 'application/states' || ($siteConfig['dispatch_model'] ?? null) !== 'state-first') {
+            throw new RuntimeException('OWASYS_CREATED_SITE_STATE_ROOT_INVALID');
+        }
 
         $fsmFile = $absoluteSiteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'application.fsm.json';
         $fsm = json_decode((string) file_get_contents($fsmFile), true);
         if (!is_array($fsm) || ($fsm['contract'] ?? null) !== self::APPLICATION_FSM_CONTRACT) {
             throw new RuntimeException('OWASYS_CREATED_SITE_APPLICATION_FSM_INVALID');
         }
-        if (($fsm['site_id'] ?? null) !== $siteId || empty($fsm['states']) || !array_key_exists('initial_state', $fsm) || !isset($fsm['transitions']) || !is_array($fsm['transitions'])) {
+        if (($fsm['site_id'] ?? null) !== $siteId || ($fsm['dispatch_model'] ?? null) !== 'state-first' || empty($fsm['states']) || !array_key_exists('initial_state', $fsm) || !isset($fsm['transitions']) || !is_array($fsm['transitions'])) {
             throw new RuntimeException('OWASYS_CREATED_SITE_APPLICATION_FSM_INCOMPLETE');
         }
 
@@ -146,6 +155,7 @@ final class ApplicationCreator
             'status' => 'ok',
             'site_id' => $siteId,
             'site_root' => $siteRoot,
+            'states_root' => $siteRoot . '/application/states',
             'application_fsm' => $siteRoot . '/config/application.fsm.json',
             'required_paths' => count(self::REQUIRED_SITE_PATHS),
             'command' => 'php bin/opus validate:site ' . $siteId,
@@ -168,6 +178,7 @@ final class ApplicationCreator
             'site_id' => (string) $plan['site_id'],
             'site_root' => (string) $plan['site_root'],
             'site_contract' => self::SITE_CONTRACT,
+            'states_root' => (string) $plan['site_root'] . '/application/states',
             'application_fsm' => (string) $plan['site_root'] . '/config/application.fsm.json',
             'application_fsm_contract' => self::APPLICATION_FSM_CONTRACT,
             'owasys_plan_contract' => (string) ($plan['owasys_contract'] ?? ''),
@@ -186,36 +197,26 @@ final class ApplicationCreator
     private function writeCreationManifest(array $plan, array $manifest): string
     {
         $siteRoot = $this->normalizeRelativePath((string) ($plan['site_root'] ?? ''));
-        $relativeManifestPath = $siteRoot . '/config/owasys-creation-manifest.json';
-        $absoluteManifestPath = $this->absolutePath($relativeManifestPath);
-
-        if (file_exists($absoluteManifestPath)) {
-            throw new RuntimeException('OWASYS_CREATION_MANIFEST_ALREADY_EXISTS: ' . $relativeManifestPath);
+        $path = $this->absolutePath($siteRoot . '/config/owasys-creation-manifest.json');
+        if (file_put_contents($path, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n") === false) {
+            throw new RuntimeException('OWASYS_CREATION_MANIFEST_WRITE_FAILED');
         }
 
-        $json = json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        if (!is_string($json)) {
-            throw new RuntimeException('OWASYS_CREATION_MANIFEST_JSON_ENCODE_FAILED');
-        }
-
-        if (file_put_contents($absoluteManifestPath, $json . "\n") === false) {
-            throw new RuntimeException('OWASYS_CREATION_MANIFEST_WRITE_FAILED: ' . $relativeManifestPath);
-        }
-
-        return $relativeManifestPath;
+        return $siteRoot . '/config/owasys-creation-manifest.json';
     }
 
     private function normalizeRelativePath(string $path): string
     {
         $path = trim(str_replace('\\', '/', $path), '/');
-        if ($path === '' || str_starts_with($path, '/') || preg_match('/^[A-Za-z]:\//', $path) === 1) {
-            throw new RuntimeException('OWASYS_RELATIVE_PATH_INVALID: ' . $path);
+        if ($path === '' || str_starts_with($path, '/') || preg_match('/^[A-Za-z]:/', $path) === 1 || str_contains($path, '..')) {
+            throw new RuntimeException('OWASYS_CREATED_SITE_PATH_INVALID');
         }
+
         return $path;
     }
 
     private function absolutePath(string $relativePath): string
     {
-        return rtrim($this->opusRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $this->normalizeRelativePath($relativePath));
+        return rtrim($this->opusRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
     }
 }
