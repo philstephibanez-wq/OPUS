@@ -64,6 +64,9 @@ try {
     if (($dryRun['mode'] ?? null) !== 'dry-run') {
         throw new RuntimeException('OWASYS_CREATOR_DRY_RUN_RESULT_INVALID');
     }
+    if (($dryRun['application_fsm'] ?? null) !== $siteRoot . '/config/application.fsm.json') {
+        throw new RuntimeException('OWASYS_CREATOR_DRY_RUN_FSM_RESULT_INVALID');
+    }
     if (file_exists($absoluteRoot)) {
         throw new RuntimeException('OWASYS_CREATOR_DRY_RUN_MUTATED_DISK');
     }
@@ -75,12 +78,20 @@ try {
     if (($write['validation']['status'] ?? null) !== 'ok') {
         throw new RuntimeException('OWASYS_CREATOR_VALIDATION_RESULT_INVALID');
     }
+    if (($write['validation']['application_fsm'] ?? null) !== $siteRoot . '/config/application.fsm.json') {
+        throw new RuntimeException('OWASYS_CREATOR_VALIDATION_FSM_RESULT_INVALID');
+    }
 
-    foreach (['config/site.json', 'config/routes.json', 'config/owasys-creation-manifest.json', 'application/default', 'application/home/views/index.php', 'www/index.php'] as $required) {
+    foreach (['config/site.json', 'config/routes.json', 'config/application.fsm.json', 'config/fsm.json', 'config/owasys-creation-manifest.json', 'application/default', 'application/home/views/index.php', 'www/index.php'] as $required) {
         $path = $absoluteRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $required);
         if (!file_exists($path)) {
             throw new RuntimeException('OWASYS_CREATOR_REQUIRED_OUTPUT_MISSING: ' . $required);
         }
+    }
+
+    $manifest = json_decode((string) file_get_contents($absoluteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'owasys-creation-manifest.json'), true);
+    if (!is_array($manifest) || ($manifest['application_fsm'] ?? null) !== $siteRoot . '/config/application.fsm.json') {
+        throw new RuntimeException('OWASYS_CREATOR_MANIFEST_FSM_MISSING');
     }
 
     $command = PHP_BINARY . ' ' . escapeshellarg($root . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'opus') . ' validate:site ' . escapeshellarg($siteId);
