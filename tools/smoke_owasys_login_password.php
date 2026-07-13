@@ -10,8 +10,8 @@ $securityFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR
 $frontFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php';
 $cssFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'asset' . DIRECTORY_SEPARATOR . 'css' . DIRECTORY_SEPARATOR . 'owasys.css';
 $jsFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'asset' . DIRECTORY_SEPARATOR . 'js' . DIRECTORY_SEPARATOR . 'owasys.js';
-$loginView = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'login' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php';
-$accountView = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'account' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php';
+$loginView = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'states' . DIRECTORY_SEPARATOR . 'login' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php';
+$accountView = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'states' . DIRECTORY_SEPARATOR . 'account' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php';
 $bootstrapTool = $root . DIRECTORY_SEPARATOR . 'tools' . DIRECTORY_SEPARATOR . 'owasys_auth_bootstrap_local_user.php';
 $gitignoreFile = $root . DIRECTORY_SEPARATOR . '.gitignore';
 $composerFile = $root . DIRECTORY_SEPARATOR . 'composer.json';
@@ -30,6 +30,11 @@ foreach ([$frontFile, $loginView, $accountView, $bootstrapTool, $cssFile, $jsFil
         fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_REQUIRED_FILE_MISSING: {$requiredFile}\n");
         exit(1);
     }
+}
+
+if (($site['states_root'] ?? null) !== 'application/states' || ($site['dispatch_model'] ?? null) !== 'state-first') {
+    fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_SITE_STATE_ROOT_INVALID\n");
+    exit(1);
 }
 
 $auth = is_array($site['auth'] ?? null) ? $site['auth'] : [];
@@ -74,7 +79,7 @@ if (($auth['minimum_password_length'] ?? null) !== 10) {
 }
 
 $roots = is_array($site['application_roots'] ?? null) ? $site['application_roots'] : [];
-if (!in_array('account', $roots, true)) {
+if (!in_array('states/account', $roots, true) || !in_array('states/login', $roots, true)) {
     fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_ACCOUNT_ROOT_MISSING\n");
     exit(1);
 }
@@ -86,7 +91,7 @@ foreach ((array) ($routes['routes'] ?? []) as $route) {
         break;
     }
 }
-if (!is_array($accountRoute) || ($accountRoute['controller'] ?? null) !== 'account' || ($accountRoute['show_in_menu'] ?? null) !== false) {
+if (!is_array($accountRoute) || ($accountRoute['state'] ?? null) !== 'account' || ($accountRoute['controller'] ?? null) !== 'account' || ($accountRoute['view'] ?? null) !== 'application/states/account/views/index.php' || ($accountRoute['show_in_menu'] ?? null) !== false) {
     fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_ACCOUNT_ROUTE_INVALID\n");
     exit(1);
 }
@@ -132,6 +137,8 @@ foreach ([
     'OWASYS_PASSWORD_CHANGE_ACTION_INVALID',
     'New password must contain at least 10 characters.',
     'minlength="10"',
+    'application/states',
+    'state-first',
 ] as $needle) {
     if (!str_contains($front, $needle)) {
         fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_FRONT_MARKER_MISSING: {$needle}\n");
