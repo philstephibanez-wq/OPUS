@@ -24,5 +24,13 @@
         }
     },
     "session_strategy": "explicit",
+    "local_bootstrap": {
+        "enabled": true,
+        "profile": "dev",
+        "route": "/login",
+        "logout_route": "/logout",
+        "purpose": "Local development session foundation only; production authentication and admin credentials are not committed."
+    },
+    "committed_passwords_allowed": false,
     "audit_strategy": "mandatory_for_write_actions"
 }
