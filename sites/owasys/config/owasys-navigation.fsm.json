@@ -18,7 +18,9 @@
             "id": "login",
             "label": "Login",
             "route": "/login",
+            "state": "login",
             "controller": "login",
+            "controller_legacy_alias": true,
             "requires_auth": false,
             "requires_current_app": false
         },
@@ -26,7 +28,19 @@
             "id": "account",
             "label": "Account password",
             "route": "/account/password",
+            "state": "account",
             "controller": "account",
+            "controller_legacy_alias": true,
+            "requires_auth": true,
+            "requires_current_app": false
+        },
+        {
+            "id": "home",
+            "label": "Home",
+            "route": "/",
+            "state": "home",
+            "controller": "home",
+            "controller_legacy_alias": true,
             "requires_auth": true,
             "requires_current_app": false
         },
@@ -34,7 +48,9 @@
             "id": "registry",
             "label": "Registry",
             "route": "/applications",
+            "state": "registry",
             "controller": "registry",
+            "controller_legacy_alias": true,
             "requires_auth": true,
             "requires_current_app": false
         },
@@ -42,7 +58,9 @@
             "id": "structure",
             "label": "Structure",
             "route": "/structure",
+            "state": "structure",
             "controller": "structure",
+            "controller_legacy_alias": true,
             "requires_auth": true,
             "requires_current_app": true
         },
@@ -50,7 +68,9 @@
             "id": "data",
             "label": "Data",
             "route": "/data",
+            "state": "data",
             "controller": "data",
+            "controller_legacy_alias": true,
             "requires_auth": true,
             "requires_current_app": true
         },
@@ -58,7 +78,9 @@
             "id": "workflows",
             "label": "Workflows",
             "route": "/workflows",
+            "state": "workflows",
             "controller": "workflows",
+            "controller_legacy_alias": true,
             "requires_auth": true,
             "requires_current_app": true
         },
@@ -66,7 +88,9 @@
             "id": "security",
             "label": "Security",
             "route": "/security",
+            "state": "security",
             "controller": "security",
+            "controller_legacy_alias": true,
             "requires_auth": true,
             "requires_current_app": true
         },
@@ -74,7 +98,9 @@
             "id": "build",
             "label": "Build & Validate",
             "route": "/build",
+            "state": "build",
             "controller": "build",
+            "controller_legacy_alias": true,
             "requires_auth": true,
             "requires_current_app": false,
             "guards": [
@@ -96,6 +122,10 @@
             "label": "Password changed"
         },
         {
+            "id": "open_home",
+            "label": "Open home"
+        },
+        {
             "id": "select_app",
             "label": "Select app"
         },
@@ -110,6 +140,10 @@
         {
             "id": "create_new_app",
             "label": "Create new app"
+        },
+        {
+            "id": "open_registry",
+            "label": "Open registry"
         },
         {
             "id": "open_structure",
@@ -138,13 +172,27 @@
     ],
     "transitions": [
         {
-            "id": "t_login_success_registry",
+            "id": "t_login_success_home",
             "from": "login",
             "event": "login_success",
-            "to": "registry",
+            "to": "home",
             "actions": [
                 "start_session"
             ],
+            "visual": true
+        },
+        {
+            "id": "t_home_registry",
+            "from": "home",
+            "event": "open_registry",
+            "to": "registry",
+            "visual": true
+        },
+        {
+            "id": "t_registry_home",
+            "from": "registry",
+            "event": "open_home",
+            "to": "home",
             "visual": true
         },
         {
@@ -161,10 +209,10 @@
             "visual": true
         },
         {
-            "id": "t_password_changed_registry",
+            "id": "t_password_changed_home",
             "from": "account",
             "event": "password_changed",
-            "to": "registry",
+            "to": "home",
             "actions": [
                 "update_runtime_password_hash",
                 "clear_must_change_password"
