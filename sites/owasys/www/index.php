@@ -110,9 +110,10 @@ $redirect = static function (string $routePath) use ($link): void {
 
 $loginError = null;
 $passwordChangeError = null;
+$registryActionError = null;
 
 if ($path === '/logout') {
-    unset($_SESSION['owasys_user']);
+    unset($_SESSION['owasys_user'], $_SESSION['owasys_current_app']);
     session_regenerate_id(true);
     $redirect('/login');
 }
@@ -145,7 +146,7 @@ if ($path === '/login' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 'must_change_password' => ($candidate['must_change_password'] ?? false) === true,
                 'started_at' => gmdate('c'),
             ];
-            $redirect(($_SESSION['owasys_user']['must_change_password'] ?? false) === true ? '/account/password' : '/');
+            $redirect(($_SESSION['owasys_user']['must_change_password'] ?? false) === true ? '/account/password' : '/applications');
         }
     }
 }
@@ -193,7 +194,7 @@ if ($isAuthenticated && $path === '/account/password' && ($_SERVER['REQUEST_METH
         $writeRuntimeStore($authStoreFile, $store);
         $_SESSION['owasys_user']['must_change_password'] = false;
         $_SESSION['owasys_user']['password_changed_at'] = $candidate['password_changed_at'];
-        $redirect('/');
+        $redirect('/applications');
     }
 }
 
@@ -238,6 +239,47 @@ if (!is_array($page)) {
     exit;
 }
 
+$currentApp = is_array($_SESSION['owasys_current_app'] ?? null) ? $_SESSION['owasys_current_app'] : null;
+$findRegistryEntry = static function (array $entries, string $id): ?array {
+    foreach ($entries as $entry) {
+        if (is_array($entry) && (string) ($entry['id'] ?? '') === $id) {
+            return $entry;
+        }
+    }
+
+    return null;
+};
+
+if ($controller === 'registry' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+    $action = (string) ($_POST['owasys_action'] ?? '');
+    if ($action === 'select-app') {
+        $appId = trim((string) ($_POST['owasys_app_id'] ?? ''));
+        $entry = $findRegistryEntry((array) ($page['registry_entries'] ?? []), $appId);
+        if ($entry === null) {
+            $registryActionError = 'Selected application is not registered.';
+        } else {
+            $_SESSION['owasys_current_app'] = $entry;
+            $redirect('/structure');
+        }
+    } elseif ($action === 'clear-app-context') {
+        unset($_SESSION['owasys_current_app']);
+        $redirect('/applications');
+    } elseif ($action === 'create-new-app') {
+        unset($_SESSION['owasys_current_app']);
+        $redirect('/build');
+    } else {
+        http_response_code(400);
+        echo 'OWASYS_REGISTRY_ACTION_INVALID';
+        exit;
+    }
+}
+
+$currentApp = is_array($_SESSION['owasys_current_app'] ?? null) ? $_SESSION['owasys_current_app'] : null;
+$requiresCurrentApp = in_array($path, ['/structure', '/data', '/workflows', '/security'], true);
+if ($isAuthenticated && $requiresCurrentApp && $currentApp === null) {
+    $redirect('/applications');
+}
+
 $menu = [];
 foreach ($routesConfig['routes'] as $candidate) {
     if (is_array($candidate) && ($candidate['show_in_menu'] ?? false) === true) {
@@ -271,6 +313,24 @@ $renderList = static function (array $items) use ($h): string {
     return $html . '</ul>';
 };
 
+$renderAppTags = static function (?array $app) use ($h): string {
+    if ($app === null) {
+        return '<div class="ow-tags"><span>No current application</span></div>';
+    }
+
+    $items = [
+        'id: ' . (string) ($app['id'] ?? 'unknown'),
+        'type: ' . (string) ($app['kind'] ?? 'unknown'),
+        'root: ' . (string) ($app['root_path'] ?? 'unknown'),
+        'status: ' . (string) ($app['status'] ?? 'unknown'),
+    ];
+    $html = '<div class="ow-tags">';
+    foreach ($items as $item) {
+        $html .= '<span>' . $h($item) . '</span>';
+    }
+    return $html . '</div>';
+};
+
 $body = '<div class="ow-shell">';
 $body .= '<aside class="ow-sidebar">';
 $body .= '<div class="ow-brand"><strong>OWASYS</strong><span>OPUS Web Application System</span></div>';
@@ -289,6 +349,19 @@ if ($isAuthenticated) {
     $body .= '<a href="' . $h($link('/login')) . '">Login</a>';
 }
 $body .= '</div>';
+if ($isAuthenticated) {
+    $body .= '<div class="ow-current-app">';
+    $body .= '<small>Current application</small>';
+    if ($currentApp !== null) {
+        $body .= '<strong>' . $h((string) ($currentApp['name'] ?? $currentApp['id'] ?? 'unknown')) . '</strong>';
+        $body .= '<span>' . $h((string) ($currentApp['kind'] ?? 'unknown')) . ' · ' . $h((string) ($currentApp['root_path'] ?? 'unknown')) . '</span>';
+    } else {
+        $body .= '<strong>None selected</strong>';
+        $body .= '<span>Choose an app in Registry.</span>';
+    }
+    $body .= '<a href="' . $h($link('/applications')) . '">Change application</a>';
+    $body .= '</div>';
+}
 $body .= '<nav class="ow-nav">';
 foreach ($menu as $item) {
     $labelKey = str_replace('menu.', '', (string) ($item['label'] ?? ''));
@@ -306,13 +379,22 @@ $body .= '<h1>' . $h((string) ($page['title'] ?? 'OWASYS')) . '</h1>';
 $body .= '<p class="ow-muted">' . $h((string) ($page['summary'] ?? '')) . '</p></div>';
 $body .= '</header>';
 
+if ($currentApp !== null && !in_array($controller, ['login', 'account', 'registry'], true)) {
+    $body .= '<section class="ow-card ow-context-panel">';
+    $body .= '<h2>Application context</h2>';
+    $body .= '<p>All configuration changes in this section target the selected OPUS application.</p>';
+    $body .= $renderAppTags($currentApp);
+    $body .= '<p><a class="ow-button ow-button-secondary" href="' . $h($link('/applications')) . '">Change application</a></p>';
+    $body .= '</section>';
+}
+
 if ($controller === 'login') {
     $body .= '<section class="ow-card ow-auth-panel">';
     if ($isAuthenticated) {
         $body .= '<h2>Session active</h2>';
         $body .= '<p>You are signed in for this local OWASYS session.</p>';
         $body .= '<div class="ow-tags"><span>profile: ' . $h((string) ($user['profile'] ?? 'unknown')) . '</span><span>mode: ' . $h((string) ($user['mode'] ?? 'unknown')) . '</span></div>';
-        $body .= '<p><a class="ow-button" href="' . $h($link('/logout')) . '">Logout</a><a class="ow-button ow-button-secondary" href="' . $h($link('/')) . '">Dashboard</a></p>';
+        $body .= '<p><a class="ow-button" href="' . $h($link('/logout')) . '">Logout</a><a class="ow-button ow-button-secondary" href="' . $h($link('/applications')) . '">Registry</a></p>';
     } else {
         $body .= '<h2>Sign in</h2>';
         $body .= '<p>Use a runtime local OWASYS user. Credentials are generated locally and are not committed to Git.</p>';
@@ -352,7 +434,43 @@ if ($controller === 'account') {
     $body .= '</section>';
 }
 
-$cards = (array) ($page['cards'] ?? []);
+if ($controller === 'registry') {
+    $entries = (array) ($page['registry_entries'] ?? []);
+    $body .= '<section class="ow-card ow-context-panel">';
+    $body .= '<h2>Application context</h2>';
+    if ($registryActionError !== null) {
+        $body .= '<p class="ow-login-error">' . $h($registryActionError) . '</p>';
+    }
+    $body .= '<p>Select an existing OPUS application to edit it, or start the creation flow for a new one.</p>';
+    $body .= $renderAppTags($currentApp);
+    $body .= '<form method="post" class="ow-inline-form"><input type="hidden" name="owasys_action" value="create-new-app"><button class="ow-button" type="submit">Create new application</button></form>';
+    if ($currentApp !== null) {
+        $body .= '<form method="post" class="ow-inline-form"><input type="hidden" name="owasys_action" value="clear-app-context"><button class="ow-button ow-button-secondary" type="submit">Clear current context</button></form>';
+    }
+    $body .= '</section>';
+
+    $body .= '<section class="ow-grid ow-registry-grid">';
+    foreach ($entries as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+        $entryId = (string) ($entry['id'] ?? '');
+        $isCurrent = $currentApp !== null && (string) ($currentApp['id'] ?? '') === $entryId;
+        $body .= '<article class="ow-card ow-registry-card">';
+        $body .= '<h2>' . $h((string) ($entry['name'] ?? $entryId)) . '</h2>';
+        $body .= '<p>Registered OPUS target: ' . $h((string) ($entry['root_path'] ?? 'unknown')) . '</p>';
+        $body .= $renderAppTags($entry);
+        $body .= '<form method="post" class="ow-inline-form">';
+        $body .= '<input type="hidden" name="owasys_action" value="select-app">';
+        $body .= '<input type="hidden" name="owasys_app_id" value="' . $h($entryId) . '">';
+        $body .= '<button class="ow-button" type="submit">' . ($isCurrent ? 'Current app' : 'Work on this app') . '</button>';
+        $body .= '</form>';
+        $body .= '</article>';
+    }
+    $body .= '</section>';
+}
+
+$cards = $controller === 'registry' ? [] : (array) ($page['cards'] ?? []);
 if ($cards !== []) {
     $body .= '<section class="ow-grid">';
     foreach ($cards as $card) {
@@ -366,7 +484,7 @@ if ($cards !== []) {
         $body .= '</article>';
     }
     $body .= '</section>';
-} else {
+} elseif ($controller !== 'registry') {
     $body .= '<section class="ow-grid">';
     foreach ((array) ($page['sections'] ?? []) as $section) {
         $body .= '<article class="ow-card"><h2>' . $h((string) $section) . '</h2><p class="ow-muted">Configuration through standard OPUS application folders, models, ODBC datasources and validation contracts.</p></article>';
