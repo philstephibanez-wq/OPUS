@@ -92,7 +92,7 @@
         ],
         "protected_routes": "all_except_anonymous_routes",
         "must_change_password_on_bootstrap": true,
-        "minimum_password_length": 12,
+        "minimum_password_length": 10,
         "write_actions_require_auth": true,
         "password_hash_algorithm": "PASSWORD_DEFAULT",
         "committed_passwords_allowed": false
