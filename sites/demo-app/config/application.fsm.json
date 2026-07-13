@@ -1,0 +1,49 @@
+{
+    "contract": "OPUS_APPLICATION_FSM_V1",
+    "source_of_truth": "config",
+    "generated_by": "owasys",
+    "site_id": "demo-app",
+    "initial_state": "home",
+    "states": [
+        {
+            "id": "home",
+            "label": "Home",
+            "controller": "home",
+            "route": "/",
+            "view": "application/home/views/index.php",
+            "template": "application/home/templates/index.score",
+            "visual": true
+        },
+        {
+            "id": "articles",
+            "label": "Articles",
+            "controller": "articles",
+            "route": "/articles",
+            "view": "application/articles/views/index.php",
+            "template": "application/articles/templates/index.score",
+            "visual": true
+        }
+    ],
+    "transitions": [
+        {
+            "from": "home",
+            "event": "open_articles",
+            "to": "articles",
+            "guard": "route_exists",
+            "action": "render_route",
+            "visual": true
+        },
+        {
+            "from": "articles",
+            "event": "open_home",
+            "to": "home",
+            "guard": "route_exists",
+            "action": "render_route",
+            "visual": true
+        }
+    ],
+    "runtime_state": {
+        "storage": "site-runtime",
+        "history": "future-processor"
+    }
+}
