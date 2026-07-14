@@ -63,6 +63,8 @@ final class FsmSiteLoader
         $siteId = (string) ($siteConfig['site_id'] ?? basename($siteRoot));
         $role = (string) ($siteConfig['role'] ?? '');
 
+        self::assertStateTreeContract($siteRoot, $siteId, $siteConfig);
+
         $candidates = [];
         $navigation = is_array($siteConfig['navigation'] ?? null) ? $siteConfig['navigation'] : [];
         $navigationFsm = str_replace('\\', '/', (string) ($navigation['fsm'] ?? ''));
@@ -116,6 +118,33 @@ final class FsmSiteLoader
             throw new RuntimeException($error);
         }
         return $decoded;
+    }
+
+    /** @param array<string,mixed> $siteConfig */
+    private static function assertStateTreeContract(string $siteRoot, string $siteId, array $siteConfig): void
+    {
+        if (($siteConfig['states_root'] ?? null) !== 'application/states') {
+            throw new RuntimeException('OPUS_FSM_SITE_STATES_ROOT_INVALID: ' . $siteId);
+        }
+
+        if (($siteConfig['dispatch_model'] ?? null) !== 'state-first') {
+            throw new RuntimeException('OPUS_FSM_SITE_DISPATCH_MODEL_INVALID: ' . $siteId);
+        }
+
+        $applicationRoot = $siteRoot . DIRECTORY_SEPARATOR . 'application';
+        $statesRoot = $applicationRoot . DIRECTORY_SEPARATOR . 'states';
+        if (!is_dir($statesRoot)) {
+            throw new RuntimeException('OPUS_FSM_SITE_STATES_DIRECTORY_MISSING: ' . $siteId);
+        }
+
+        foreach (scandir($applicationRoot) ?: [] as $entry) {
+            if ($entry === '.' || $entry === '..' || $entry === 'default' || $entry === 'states') {
+                continue;
+            }
+            if (is_dir($applicationRoot . DIRECTORY_SEPARATOR . $entry)) {
+                throw new RuntimeException('OPUS_FSM_SITE_LEGACY_STATE_ROOT_PRESENT: ' . $siteId . ':application/' . $entry);
+            }
+        }
     }
 
     private static function assertSafeRelativePath(string $path, string $error): void
