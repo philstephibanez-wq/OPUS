@@ -55,6 +55,7 @@
         "owasys:smoke-structure-drafts": "@php tools/smoke_owasys_structure_drafts.php",
         "owasys:smoke-structure-draft-ui": "@php tools/smoke_owasys_structure_draft_ui.php",
         "owasys:smoke-structure-draft-apply": "@php tools/smoke_owasys_structure_draft_apply.php",
+        "owasys:smoke-structure-write-plan": "@php tools/smoke_owasys_structure_write_plan.php",
         "owasys:smoke-structure-draft-apply-ui-http": "@php tools/smoke_owasys_structure_draft_apply_ui_http.php",
         "owasys:smoke-registry-naming": "@php tools/smoke_owasys_registry_naming.php",
         "owasys:smoke-navigation-fsm": "@php tools/smoke_owasys_navigation_fsm.php",
