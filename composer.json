@@ -40,6 +40,7 @@
         "opus:smoke-bin-fsm-transition": "@php tools/smoke_opus_bin_fsm_transition.php",
         "opus:smoke-validate-site-cli-fsm": "@php tools/smoke_opus_validate_site_cli_fsm.php",
         "owasys:auth-bootstrap": "@php tools/owasys_auth_bootstrap_local_user.php",
+        "owasys:apply-runtime-fsm-patch": "@php tools/owasys_apply_runtime_fsm_patch.php",
         "owasys:smoke-scaffold-plan": "@php tools/smoke_owasys_scaffold_plan_builder.php",
         "owasys:smoke-scaffold-writer": "@php tools/smoke_owasys_application_scaffold_writer.php",
         "owasys:smoke-application-creator": "@php tools/smoke_owasys_application_creator.php",
@@ -50,7 +51,8 @@
         "owasys:smoke-navigation-fsm": "@php tools/smoke_owasys_navigation_fsm.php",
         "owasys:smoke-showcase-blueprint": "@php tools/smoke_owasys_showcase_blueprint.php",
         "owasys:smoke-login-foundation": "@php tools/smoke_owasys_login_foundation.php",
-        "owasys:smoke-login-password": "@php tools/smoke_owasys_login_password.php"
+        "owasys:smoke-login-password": "@php tools/smoke_owasys_login_password.php",
+        "owasys:smoke-runtime-fsm": "@php tools/smoke_owasys_runtime_fsm.php"
     },
     "repositories": [
         {
