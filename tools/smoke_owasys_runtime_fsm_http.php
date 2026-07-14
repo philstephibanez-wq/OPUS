@@ -10,6 +10,7 @@ $registryDatabase = $siteRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY
 $tmpRoot = $root . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'owasys-runtime-http-smoke';
 $router = $tmpRoot . DIRECTORY_SEPARATOR . 'router.php';
 $backup = $tmpRoot . DIRECTORY_SEPARATOR . 'local-users.backup.json';
+$draftStateRoot = $root . DIRECTORY_SEPARATOR . 'sites' . DIRECTORY_SEPARATOR . 'demo-app' . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'states' . DIRECTORY_SEPARATOR . 'httpdraft';
 
 if (!function_exists('proc_open')) {
     fwrite(STDERR, "OWASYS_RUNTIME_FSM_HTTP_PROC_OPEN_UNAVAILABLE\n");
@@ -17,6 +18,10 @@ if (!function_exists('proc_open')) {
 }
 if (!class_exists(SQLite3::class)) {
     fwrite(STDERR, "OWASYS_RUNTIME_FSM_HTTP_SQLITE3_EXTENSION_MISSING\n");
+    exit(1);
+}
+if (is_dir($draftStateRoot)) {
+    fwrite(STDERR, "OWASYS_RUNTIME_FSM_HTTP_DRAFT_STATE_PREEXISTS\n");
     exit(1);
 }
 
@@ -139,7 +144,7 @@ foreach ([$siteRoot, $publicRoot] as $requiredDir) {
     }
 }
 
-owasys_runtime_fsm_http_remove_tree($tmpRoot);
+oWASYS_runtime_fsm_http_remove_tree($tmpRoot);
 owasys_runtime_fsm_http_remove_registry_database($registryDatabase);
 if (!is_dir($tmpRoot) && !mkdir($tmpRoot, 0775, true) && !is_dir($tmpRoot)) {
     fwrite(STDERR, "OWASYS_RUNTIME_FSM_HTTP_TMP_CREATE_FAILED\n");
@@ -240,7 +245,7 @@ PHP;
     }
 
     $structure = owasys_runtime_fsm_http_request($baseUrl, 'GET', '/structure', '', $cookie);
-    if (($structure['status'] ?? 0) !== 200 || !str_contains((string) ($structure['body'] ?? ''), 'OWASYS_CURRENT_APP_CONTEXT') || !str_contains((string) ($structure['body'] ?? ''), 'OWASYS_APPLICATION_INSPECTION')) {
+    if (($structure['status'] ?? 0) !== 200 || !str_contains((string) ($structure['body'] ?? ''), 'OWASYS_CURRENT_APP_CONTEXT') || !str_contains((string) ($structure['body'] ?? ''), 'OWASYS_APPLICATION_INSPECTION') || !str_contains((string) ($structure['body'] ?? ''), 'OWASYS_STRUCTURE_ADD_STATE_DRAFT_FORM')) {
         throw new RuntimeException('OWASYS_RUNTIME_FSM_HTTP_STRUCTURE_RENDER_INVALID');
     }
 
@@ -254,6 +259,21 @@ PHP;
     $validationJson = (string) owasys_runtime_fsm_http_sqlite_value($registryDatabase, "SELECT value_json FROM owasys_runtime_context WHERE key = 'last_structure_validation'");
     if (!str_contains($validationJson, 'demo-app') || !str_contains($validationJson, 'OWASYS_STRUCTURE_VALIDATION_RESULT_V1')) {
         throw new RuntimeException('OWASYS_RUNTIME_FSM_HTTP_STRUCTURE_ACTION_CONTEXT_NOT_PERSISTED');
+    }
+
+    $structureDraft = owasys_runtime_fsm_http_request($baseUrl, 'POST', '/structure', http_build_query(['owasys_action' => 'prepare-add-state-draft', 'owasys_state_id' => 'httpdraft', 'owasys_route_path' => '/httpdraft', 'owasys_title_key' => 'state.httpdraft.title', 'owasys_event_name' => 'open_httpdraft']), $cookie);
+    if (($structureDraft['status'] ?? 0) !== 200 || !str_contains((string) ($structureDraft['body'] ?? ''), 'OWASYS_STRUCTURE_DRAFT_RESULT') || !str_contains((string) ($structureDraft['body'] ?? ''), 'OWASYS_STRUCTURE_DRAFTS_RECENT')) {
+        throw new RuntimeException('OWASYS_RUNTIME_FSM_HTTP_STRUCTURE_DRAFT_RENDER_INVALID');
+    }
+    if ((int) owasys_runtime_fsm_http_sqlite_value($registryDatabase, "SELECT COUNT(*) FROM owasys_application_events WHERE event_type = 'draft_add_state'") !== 1) {
+        throw new RuntimeException('OWASYS_RUNTIME_FSM_HTTP_STRUCTURE_DRAFT_EVENT_NOT_PERSISTED');
+    }
+    $draftJson = (string) owasys_runtime_fsm_http_sqlite_value($registryDatabase, "SELECT value_json FROM owasys_runtime_context WHERE key = 'last_structure_draft'");
+    if (!str_contains($draftJson, 'httpdraft') || !str_contains($draftJson, 'OWASYS_STRUCTURE_ADD_STATE_DRAFT_V1')) {
+        throw new RuntimeException('OWASYS_RUNTIME_FSM_HTTP_STRUCTURE_DRAFT_CONTEXT_NOT_PERSISTED');
+    }
+    if (is_dir($draftStateRoot)) {
+        throw new RuntimeException('OWASYS_RUNTIME_FSM_HTTP_STRUCTURE_DRAFT_MUTATED_DISK');
     }
 
     $logout = owasys_runtime_fsm_http_request($baseUrl, 'GET', '/logout', '', $cookie);
@@ -293,6 +313,10 @@ if (file_exists($tmpRoot)) {
 }
 if (is_file($registryDatabase)) {
     fwrite(STDERR, "OWASYS_RUNTIME_FSM_HTTP_REGISTRY_CLEANUP_FAILED\n");
+    exit(1);
+}
+if (is_dir($draftStateRoot)) {
+    fwrite(STDERR, "OWASYS_RUNTIME_FSM_HTTP_DRAFT_DISK_CLEANUP_FAILED\n");
     exit(1);
 }
 
