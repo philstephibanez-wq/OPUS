@@ -11,9 +11,9 @@ use SQLite3Stmt;
 /**
  * Applies one previously prepared OWASYS structure draft to an OPUS site.
  *
- * The applier is deliberately explicit: it reads a SQLite draft, builds a write
- * plan, refuses collisions, writes only known OPUS state-first files, then
- * persists an apply result in the OWASYS runtime database.
+ * The applier is deliberately explicit: it reads a SQLite draft, recalculates
+ * the server-side write plan, refuses blocked plans, writes only known OPUS
+ * state-first files, then persists an apply result in the OWASYS runtime database.
  */
 final class StructureDraftApplier
 {
@@ -23,6 +23,7 @@ final class StructureDraftApplier
         private readonly string $opusRoot,
         private readonly RegistryRepository $registryRepository,
         private readonly ApplicationInspector $inspector,
+        private readonly StructureDraftWritePlanner $writePlanner,
     ) {
         if (!class_exists(SQLite3::class)) {
             throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLIER_SQLITE3_EXTENSION_MISSING');
@@ -35,6 +36,7 @@ final class StructureDraftApplier
             rtrim($opusRoot, DIRECTORY_SEPARATOR),
             $registryRepository,
             ApplicationInspector::forOpusRoot($opusRoot),
+            StructureDraftWritePlanner::forOpusRoot($opusRoot),
         );
     }
 
@@ -64,10 +66,19 @@ final class StructureDraftApplier
             throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_APPLICATION_MISMATCH');
         }
 
-        $stateId = $this->stateId((string) ($draft['state_id'] ?? ''));
-        $routePath = $this->routePath((string) ($draft['route_path'] ?? ''));
-        $titleKey = $this->i18nKey((string) ($draft['title_key'] ?? ''));
-        $eventName = $this->eventName((string) ($draft['event_name'] ?? ''));
+        $serverWritePlan = $this->writePlanner->planAddStateDraft($entry, $draft);
+        if (($serverWritePlan['contract'] ?? null) !== StructureDraftWritePlanner::CONTRACT) {
+            throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_SERVER_PLAN_CONTRACT_INVALID');
+        }
+        if (($serverWritePlan['status'] ?? null) !== 'ready') {
+            $collisions = implode(',', array_map('strval', (array) ($serverWritePlan['collisions'] ?? [])));
+            throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_SERVER_PLAN_BLOCKED: ' . $collisions);
+        }
+
+        $stateId = $this->stateId((string) ($serverWritePlan['state_id'] ?? ($draft['state_id'] ?? '')));
+        $routePath = $this->routePath((string) ($serverWritePlan['route_path'] ?? ($draft['route_path'] ?? '')));
+        $titleKey = $this->i18nKey((string) ($serverWritePlan['title_key'] ?? ($draft['title_key'] ?? '')));
+        $eventName = $this->eventName((string) ($serverWritePlan['event_name'] ?? ($draft['event_name'] ?? '')));
         $siteRoot = $this->siteRoot($entry);
         $inspectionBefore = $this->inspector->inspectEntry($entry);
         $this->assertStateAndRouteAbsent($inspectionBefore, $stateId, $routePath);
@@ -212,6 +223,7 @@ final class StructureDraftApplier
             'event_name' => $eventName,
             'applied_at' => gmdate('c'),
             'applied_by' => (string) ($actorId ?? 'runtime'),
+            'server_write_plan' => $serverWritePlan,
             'written' => array_values(array_unique($written)),
             'state_count' => (int) ($inspectionAfter['state_count'] ?? 0),
             'route_count' => (int) ($inspectionAfter['route_count'] ?? 0),
