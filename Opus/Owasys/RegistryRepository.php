@@ -11,14 +11,15 @@ use SQLite3Stmt;
 /**
  * Runtime SQLite registry for OWASYS-managed OPUS applications.
  *
- * The JSON seed remains a controlled bootstrap source only; the registry view
- * reads normalized application rows from SQLite after schema/bootstrap sync.
+ * The JSON seed remains a controlled bootstrap source only; runtime context
+ * and application events are persisted in SQLite next to the registry rows.
  */
 final class RegistryRepository
 {
     public const CONTRACT = 'OWASYS_REGISTRY_SQLITE_V1';
 
     private const DEFAULT_DATABASE = 'var/registry/owasys.sqlite';
+    private const SYSTEM_APPLICATION_ID = 'owasys';
 
     /** @var list<string> */
     private const ALLOWED_KINDS = ['fullstack', 'frontend', 'backend', 'package'];
@@ -78,22 +79,7 @@ final class RegistryRepository
 
             $entries = [];
             while (($row = $result->fetchArray(SQLITE3_ASSOC)) !== false) {
-                $entries[] = [
-                    'id' => (string) ($row['id'] ?? ''),
-                    'slug' => (string) ($row['slug'] ?? ''),
-                    'name' => (string) ($row['name'] ?? ''),
-                    'kind' => (string) ($row['kind'] ?? 'fullstack'),
-                    'root_path' => (string) ($row['root_path'] ?? ''),
-                    'public_root' => (string) ($row['public_root'] ?? 'www'),
-                    'default_locale' => (string) ($row['default_locale'] ?? 'fr'),
-                    'theme' => (string) ($row['theme'] ?? 'default'),
-                    'status' => (string) ($row['status'] ?? 'discovered'),
-                    'blueprint' => (string) ($row['blueprint'] ?? 'unknown'),
-                    'generated_by' => (string) ($row['generated_by'] ?? 'unknown'),
-                    'role' => (string) ($row['role'] ?? 'standard-opus-application'),
-                    'source' => (string) ($row['source'] ?? 'sqlite'),
-                    'updated_at' => (string) ($row['updated_at'] ?? ''),
-                ];
+                $entries[] = $this->entryFromRow($row);
             }
             $result->finalize();
         } finally {
@@ -101,6 +87,136 @@ final class RegistryRepository
         }
 
         return $entries;
+    }
+
+    /** @return array<string,mixed>|null */
+    public function currentApplication(): ?array
+    {
+        $value = $this->runtimeValue('current_app');
+        return is_array($value) ? $value : null;
+    }
+
+    /** @param array<string,mixed> $entry */
+    public function setCurrentApplication(array $entry, ?string $actorId = null): void
+    {
+        $db = $this->open();
+        try {
+            $this->ensureSchema($db);
+            $normalized = $this->normalizeEntry($entry, 'runtime');
+            if ($normalized === null) {
+                throw new RuntimeException('OWASYS_RUNTIME_CONTEXT_CURRENT_APP_INVALID');
+            }
+            if (!$this->applicationExists($db, $normalized['id'])) {
+                $this->upsertApplication($db, $entry, 'runtime');
+            }
+
+            $value = array_merge($entry, [
+                'id' => $normalized['id'],
+                'selected_at' => gmdate('c'),
+                'selected_by' => (string) ($actorId ?? 'runtime'),
+                'context_contract' => 'OWASYS_RUNTIME_CURRENT_APP_V1',
+            ]);
+            $this->setContextValue($db, 'current_app', $value);
+            $this->recordEventOnDb($db, $normalized['id'], 'select_app', [
+                'actor_id' => $actorId,
+                'application' => $value,
+            ]);
+        } finally {
+            $db->close();
+        }
+    }
+
+    public function clearCurrentApplication(?string $actorId = null): void
+    {
+        $db = $this->open();
+        try {
+            $this->ensureSchema($db);
+            $current = $this->getContextValue($db, 'current_app');
+            $this->deleteContextValue($db, 'current_app');
+            $applicationId = is_array($current) && isset($current['id']) ? (string) $current['id'] : self::SYSTEM_APPLICATION_ID;
+            $this->recordEventOnDb($db, $this->safeEventApplicationId($db, $applicationId), 'clear_app_context', [
+                'actor_id' => $actorId,
+                'previous_application' => $current,
+            ]);
+        } finally {
+            $db->close();
+        }
+    }
+
+    public function startCreationFlow(?string $actorId = null): void
+    {
+        $db = $this->open();
+        try {
+            $this->ensureSchema($db);
+            $value = [
+                'contract' => 'OWASYS_RUNTIME_CREATION_FLOW_V1',
+                'status' => 'started',
+                'started_at' => gmdate('c'),
+                'started_by' => (string) ($actorId ?? 'runtime'),
+            ];
+            $this->setContextValue($db, 'creation_flow', $value);
+            $this->recordEventOnDb($db, $this->safeEventApplicationId($db, self::SYSTEM_APPLICATION_ID), 'create_new_app', $value);
+        } finally {
+            $db->close();
+        }
+    }
+
+    public function logout(?string $actorId = null): void
+    {
+        $db = $this->open();
+        try {
+            $this->ensureSchema($db);
+            $current = $this->getContextValue($db, 'current_app');
+            $this->deleteContextValue($db, 'current_app');
+            $this->deleteContextValue($db, 'creation_flow');
+            $applicationId = is_array($current) && isset($current['id']) ? (string) $current['id'] : self::SYSTEM_APPLICATION_ID;
+            $this->recordEventOnDb($db, $this->safeEventApplicationId($db, $applicationId), 'logout', [
+                'actor_id' => $actorId,
+                'previous_application' => $current,
+            ]);
+        } finally {
+            $db->close();
+        }
+    }
+
+    /** @return array<string,mixed>|null */
+    public function runtimeValue(string $key): ?array
+    {
+        $this->assertRuntimeKey($key);
+        $db = $this->open();
+        try {
+            $this->ensureSchema($db);
+            return $this->getContextValue($db, $key);
+        } finally {
+            $db->close();
+        }
+    }
+
+    public function eventCount(?string $eventType = null): int
+    {
+        $db = $this->open();
+        try {
+            $this->ensureSchema($db);
+            if ($eventType === null) {
+                $count = $db->querySingle('SELECT COUNT(*) FROM owasys_application_events');
+                return is_numeric($count) ? (int) $count : 0;
+            }
+            $stmt = $db->prepare('SELECT COUNT(*) FROM owasys_application_events WHERE event_type = :event_type');
+            if (!$stmt instanceof SQLite3Stmt) {
+                throw new RuntimeException('OWASYS_RUNTIME_EVENT_COUNT_PREPARE_FAILED');
+            }
+            $stmt->bindValue(':event_type', $eventType, SQLITE3_TEXT);
+            $result = $stmt->execute();
+            if (!$result instanceof SQLite3Result) {
+                throw new RuntimeException('OWASYS_RUNTIME_EVENT_COUNT_QUERY_FAILED');
+            }
+            $row = $result->fetchArray(SQLITE3_NUM);
+            $result->finalize();
+            $stmt->close();
+            return is_array($row) && is_numeric($row[0] ?? null) ? (int) $row[0] : 0;
+        } finally {
+            $db->close();
+        }
     }
 
     public function databasePath(): string
@@ -312,6 +428,27 @@ SQL;
         ];
     }
 
+    /** @param array<string,mixed> $row @return array<string,mixed> */
+    private function entryFromRow(array $row): array
+    {
+        return [
+            'id' => (string) ($row['id'] ?? ''),
+            'slug' => (string) ($row['slug'] ?? ''),
+            'name' => (string) ($row['name'] ?? ''),
+            'kind' => (string) ($row['kind'] ?? 'fullstack'),
+            'root_path' => (string) ($row['root_path'] ?? ''),
+            'public_root' => (string) ($row['public_root'] ?? 'www'),
+            'default_locale' => (string) ($row['default_locale'] ?? 'fr'),
+            'theme' => (string) ($row['theme'] ?? 'default'),
+            'status' => (string) ($row['status'] ?? 'discovered'),
+            'blueprint' => (string) ($row['blueprint'] ?? 'unknown'),
+            'generated_by' => (string) ($row['generated_by'] ?? 'unknown'),
+            'role' => (string) ($row['role'] ?? 'standard-opus-application'),
+            'source' => (string) ($row['source'] ?? 'sqlite'),
+            'updated_at' => (string) ($row['updated_at'] ?? ''),
+        ];
+    }
+
     private function normalizeKind(mixed $kind): string
     {
         $value = strtolower(trim((string) $kind));
@@ -322,6 +459,120 @@ SQL;
     {
         $count = $db->querySingle('SELECT COUNT(*) FROM owasys_applications');
         return is_numeric($count) ? (int) $count : 0;
+    }
+
+    private function applicationExists(SQLite3 $db, string $applicationId): bool
+    {
+        $stmt = $db->prepare('SELECT id FROM owasys_applications WHERE id = :id LIMIT 1');
+        if (!$stmt instanceof SQLite3Stmt) {
+            throw new RuntimeException('OWASYS_REGISTRY_APPLICATION_EXISTS_PREPARE_FAILED');
+        }
+        $stmt->bindValue(':id', $applicationId, SQLITE3_TEXT);
+        $result = $stmt->execute();
+        if (!$result instanceof SQLite3Result) {
+            throw new RuntimeException('OWASYS_REGISTRY_APPLICATION_EXISTS_QUERY_FAILED');
+        }
+        $row = $result->fetchArray(SQLITE3_ASSOC);
+        $result->finalize();
+        $stmt->close();
+        return is_array($row);
+    }
+
+    /** @return array<string,mixed>|null */
+    private function getContextValue(SQLite3 $db, string $key): ?array
+    {
+        $this->assertRuntimeKey($key);
+        $stmt = $db->prepare('SELECT value_json FROM owasys_runtime_context WHERE key = :key LIMIT 1');
+        if (!$stmt instanceof SQLite3Stmt) {
+            throw new RuntimeException('OWASYS_RUNTIME_CONTEXT_READ_PREPARE_FAILED: ' . $key);
+        }
+        $stmt->bindValue(':key', $key, SQLITE3_TEXT);
+        $result = $stmt->execute();
+        if (!$result instanceof SQLite3Result) {
+            throw new RuntimeException('OWASYS_RUNTIME_CONTEXT_READ_QUERY_FAILED: ' . $key);
+        }
+        $row = $result->fetchArray(SQLITE3_ASSOC);
+        $result->finalize();
+        $stmt->close();
+        if (!is_array($row)) {
+            return null;
+        }
+        $decoded = json_decode((string) ($row['value_json'] ?? ''), true);
+        return is_array($decoded) ? $decoded : null;
+    }
+
+    /** @param array<string,mixed> $value */
+    private function setContextValue(SQLite3 $db, string $key, array $value): void
+    {
+        $this->assertRuntimeKey($key);
+        $json = json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $stmt = $db->prepare('INSERT INTO owasys_runtime_context (key, value_json, updated_at) VALUES (:key, :value_json, :updated_at) ON CONFLICT(key) DO UPDATE SET value_json = excluded.value_json, updated_at = excluded.updated_at');
+        if (!$stmt instanceof SQLite3Stmt) {
+            throw new RuntimeException('OWASYS_RUNTIME_CONTEXT_WRITE_PREPARE_FAILED: ' . $key);
+        }
+        $stmt->bindValue(':key', $key, SQLITE3_TEXT);
+        $stmt->bindValue(':value_json', is_string($json) ? $json : '{}', SQLITE3_TEXT);
+        $stmt->bindValue(':updated_at', gmdate('c'), SQLITE3_TEXT);
+        $result = $stmt->execute();
+        if ($result instanceof SQLite3Result) {
+            $result->finalize();
+        }
+        $stmt->close();
+    }
+
+    private function deleteContextValue(SQLite3 $db, string $key): void
+    {
+        $this->assertRuntimeKey($key);
+        $stmt = $db->prepare('DELETE FROM owasys_runtime_context WHERE key = :key');
+        if (!$stmt instanceof SQLite3Stmt) {
+            throw new RuntimeException('OWASYS_RUNTIME_CONTEXT_DELETE_PREPARE_FAILED: ' . $key);
+        }
+        $stmt->bindValue(':key', $key, SQLITE3_TEXT);
+        $result = $stmt->execute();
+        if ($result instanceof SQLite3Result) {
+            $result->finalize();
+        }
+        $stmt->close();
+    }
+
+    /** @param array<string,mixed> $payload */
+    private function recordEventOnDb(SQLite3 $db, string $applicationId, string $eventType, array $payload): void
+    {
+        if (preg_match('/^[a-z][a-z0-9_:-]*$/', $eventType) !== 1) {
+            throw new RuntimeException('OWASYS_RUNTIME_EVENT_TYPE_INVALID: ' . $eventType);
+        }
+        $json = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $stmt = $db->prepare('INSERT INTO owasys_application_events (application_id, event_type, payload_json, created_at) VALUES (:application_id, :event_type, :payload_json, :created_at)');
+        if (!$stmt instanceof SQLite3Stmt) {
+            throw new RuntimeException('OWASYS_RUNTIME_EVENT_INSERT_PREPARE_FAILED: ' . $eventType);
+        }
+        $stmt->bindValue(':application_id', $applicationId, SQLITE3_TEXT);
+        $stmt->bindValue(':event_type', $eventType, SQLITE3_TEXT);
+        $stmt->bindValue(':payload_json', is_string($json) ? $json : '{}', SQLITE3_TEXT);
+        $stmt->bindValue(':created_at', gmdate('c'), SQLITE3_TEXT);
+        $result = $stmt->execute();
+        if ($result instanceof SQLite3Result) {
+            $result->finalize();
+        }
+        $stmt->close();
+    }
+
+    private function safeEventApplicationId(SQLite3 $db, string $applicationId): string
+    {
+        if ($applicationId !== '' && $this->applicationExists($db, $applicationId)) {
+            return $applicationId;
+        }
+        if ($this->applicationExists($db, self::SYSTEM_APPLICATION_ID)) {
+            return self::SYSTEM_APPLICATION_ID;
+        }
+        throw new RuntimeException('OWASYS_RUNTIME_EVENT_SYSTEM_APPLICATION_MISSING');
+    }
+
+    private function assertRuntimeKey(string $key): void
+    {
+        if (preg_match('/^[a-z][a-z0-9_:-]*$/', $key) !== 1) {
+            throw new RuntimeException('OWASYS_RUNTIME_CONTEXT_KEY_INVALID: ' . $key);
+        }
     }
 
     private function assertSafeRelativePath(string $path, string $error): void
