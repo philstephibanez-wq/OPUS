@@ -80,11 +80,16 @@ try {
         throw new RuntimeException('OWASYS_BIN_OPUS_EXPORT_ZIP_OPEN_FAILED');
     }
 
-    foreach (['MANIFEST.json', 'config/site.json', 'config/routes.json', 'application/home/views/index.php', 'www/index.php'] as $required) {
+    foreach (['MANIFEST.json', 'config/site.json', 'config/routes.json', 'config/application.fsm.json', 'application/states/home/views/index.php', 'www/index.php'] as $required) {
         if ($zip->locateName($required) === false) {
             $zip->close();
             throw new RuntimeException('OWASYS_BIN_OPUS_EXPORT_REQUIRED_ENTRY_MISSING: ' . $required);
         }
+    }
+
+    if ($zip->locateName('application/home/views/index.php') !== false) {
+        $zip->close();
+        throw new RuntimeException('OWASYS_BIN_OPUS_EXPORT_FORBIDDEN_LEGACY_ENTRY_PRESENT: application/home/views/index.php');
     }
 
     $manifestJson = $zip->getFromName('MANIFEST.json');
