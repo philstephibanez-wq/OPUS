@@ -4,22 +4,26 @@ declare(strict_types=1);
 $root = dirname(__DIR__);
 $siteRoot = $root . DIRECTORY_SEPARATOR . 'sites' . DIRECTORY_SEPARATOR . 'owasys';
 $frontFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php';
+$jsFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'asset' . DIRECTORY_SEPARATOR . 'js' . DIRECTORY_SEPARATOR . 'owasys.js';
 $frFile = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'local' . DIRECTORY_SEPARATOR . 'fr.php';
 $enFile = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'local' . DIRECTORY_SEPARATOR . 'en.php';
 $draftRepositoryFile = $root . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Owasys' . DIRECTORY_SEPARATOR . 'StructureDraftRepository.php';
 $draftApplierFile = $root . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Owasys' . DIRECTORY_SEPARATOR . 'StructureDraftApplier.php';
+$writePlannerFile = $root . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Owasys' . DIRECTORY_SEPARATOR . 'StructureDraftWritePlanner.php';
 
-foreach ([$frontFile, $frFile, $enFile, $draftRepositoryFile, $draftApplierFile, __FILE__] as $file) {
+foreach ([$frontFile, $jsFile, $frFile, $enFile, $draftRepositoryFile, $draftApplierFile, $writePlannerFile, __FILE__] as $file) {
     if (!is_file($file)) {
         fwrite(STDERR, "OWASYS_STRUCTURE_DRAFT_UI_REQUIRED_FILE_MISSING: {$file}\n");
         exit(1);
     }
-    $output = [];
-    $code = 0;
-    exec(PHP_BINARY . ' -l ' . escapeshellarg($file) . ' 2>&1', $output, $code);
-    if ($code !== 0) {
-        fwrite(STDERR, "OWASYS_STRUCTURE_DRAFT_UI_PARSE_ERROR: {$file}\n" . implode("\n", $output) . "\n");
-        exit(1);
+    if (str_ends_with($file, '.php') || basename($file) === 'index.php') {
+        $output = [];
+        $code = 0;
+        exec(PHP_BINARY . ' -l ' . escapeshellarg($file) . ' 2>&1', $output, $code);
+        if ($code !== 0) {
+            fwrite(STDERR, "OWASYS_STRUCTURE_DRAFT_UI_PARSE_ERROR: {$file}\n" . implode("\n", $output) . "\n");
+            exit(1);
+        }
     }
 }
 
@@ -129,6 +133,30 @@ foreach ([
 ] as $needle) {
     if (!str_contains($applierSource, $needle)) {
         fwrite(STDERR, "OWASYS_STRUCTURE_DRAFT_UI_APPLIER_MARKER_MISSING: {$needle}\n");
+        exit(1);
+    }
+}
+$plannerSource = (string) file_get_contents($writePlannerFile);
+foreach ([
+    'OWASYS_STRUCTURE_DRAFT_WRITE_PLAN_V1',
+    'planAddStateDraft',
+    'disk_mutation',
+    'collision_count',
+] as $needle) {
+    if (!str_contains($plannerSource, $needle)) {
+        fwrite(STDERR, "OWASYS_STRUCTURE_DRAFT_UI_PLANNER_MARKER_MISSING: {$needle}\n");
+        exit(1);
+    }
+}
+$js = (string) file_get_contents($jsFile);
+foreach ([
+    'OWASYS_STRUCTURE_WRITE_PLAN',
+    'OWASYS_STRUCTURE_APPLY_DRAFT_FORM',
+    'application/states/${stateId}/views/index.php',
+    'application/states/${stateId}/templates/index.score',
+] as $needle) {
+    if (!str_contains($js, $needle)) {
+        fwrite(STDERR, "OWASYS_STRUCTURE_DRAFT_UI_JS_MARKER_MISSING: {$needle}\n");
         exit(1);
     }
 }
