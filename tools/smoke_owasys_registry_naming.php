@@ -5,7 +5,6 @@ $root = dirname(__DIR__);
 require $root . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
 
 $siteRoot = $root . DIRECTORY_SEPARATOR . 'sites' . DIRECTORY_SEPARATOR . 'owasys';
-
 $siteFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'site.json';
 $routesFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'routes.json';
 $seedFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'registry.seed.json';
@@ -13,6 +12,8 @@ $fsmFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'o
 $registryView = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'states' . DIRECTORY_SEPARATOR . 'registry' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php';
 $registryRepositoryFile = $root . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Owasys' . DIRECTORY_SEPARATOR . 'RegistryRepository.php';
 $frontFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php';
+$frFile = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'local' . DIRECTORY_SEPARATOR . 'fr.php';
+$enFile = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'local' . DIRECTORY_SEPARATOR . 'en.php';
 $cssFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'asset' . DIRECTORY_SEPARATOR . 'css' . DIRECTORY_SEPARATOR . 'owasys.css';
 $jsFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'asset' . DIRECTORY_SEPARATOR . 'js' . DIRECTORY_SEPARATOR . 'owasys.js';
 $registrySmokeDatabaseRelative = 'var/registry/owasys-registry-naming-smoke.sqlite';
@@ -33,18 +34,17 @@ function owasys_registry_naming_remove_runtime_database(string $databasePath): v
     }
 }
 
-foreach ([$siteFile, $routesFile, $seedFile, $fsmFile, $registryView, $registryRepositoryFile, $frontFile, $cssFile, $jsFile] as $requiredFile) {
+foreach ([$siteFile, $routesFile, $seedFile, $fsmFile, $registryView, $registryRepositoryFile, $frontFile, $frFile, $enFile, $cssFile, $jsFile] as $requiredFile) {
     if (!is_file($requiredFile)) {
         fwrite(STDERR, "OWASYS_REGISTRY_NAMING_REQUIRED_FILE_MISSING: {$requiredFile}\n");
         exit(1);
     }
 }
 
-foreach ([$registryRepositoryFile, $registryView, $frontFile] as $lintFile) {
-    $lintCommand = PHP_BINARY . ' -l ' . escapeshellarg($lintFile) . ' 2>&1';
+foreach ([$registryRepositoryFile, $registryView, $frontFile, $frFile, $enFile] as $lintFile) {
     $lintOutput = [];
     $lintCode = 0;
-    exec($lintCommand, $lintOutput, $lintCode);
+    exec(PHP_BINARY . ' -l ' . escapeshellarg($lintFile) . ' 2>&1', $lintOutput, $lintCode);
     if ($lintCode !== 0) {
         fwrite(STDERR, "OWASYS_REGISTRY_NAMING_PARSE_ERROR: {$lintFile}\n" . implode("\n", $lintOutput) . "\n");
         exit(1);
@@ -55,27 +55,22 @@ $site = json_decode((string) file_get_contents($siteFile), true);
 $routes = json_decode((string) file_get_contents($routesFile), true);
 $seed = json_decode((string) file_get_contents($seedFile), true);
 $fsm = json_decode((string) file_get_contents($fsmFile), true);
-
 if (!is_array($site) || ($site['states_root'] ?? null) !== 'application/states' || ($site['dispatch_model'] ?? null) !== 'state-first') {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_SITE_STATE_ROOT_INVALID\n");
     exit(1);
 }
-
 if (!is_array($routes) || ($routes['dispatch_model'] ?? null) !== 'state-first') {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_ROUTES_JSON_INVALID\n");
     exit(1);
 }
-
 if (!is_array($seed) || ($seed['contract'] ?? null) !== 'OWASYS_REGISTRY_SEED_V1') {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_SEED_INVALID\n");
     exit(1);
 }
-
 if (!is_array($fsm) || ($fsm['contract'] ?? null) !== 'OWASYS_NAVIGATION_FSM_V1') {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_FSM_INVALID\n");
     exit(1);
 }
-
 $navigation = is_array($site['navigation'] ?? null) ? $site['navigation'] : [];
 if (($navigation['fsm'] ?? null) !== 'config/owasys-navigation.fsm.json') {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_SITE_FSM_POINTER_INVALID\n");
@@ -88,7 +83,6 @@ foreach ((array) ($fsm['states'] ?? []) as $state) {
         $states[(string) $state['id']] = $state;
     }
 }
-
 foreach (['home', 'registry', 'structure', 'data', 'workflows', 'security', 'build', 'account', 'login'] as $stateId) {
     if (!isset($states[$stateId])) {
         fwrite(STDERR, "OWASYS_REGISTRY_NAMING_FSM_STATE_MISSING: {$stateId}\n");
@@ -100,18 +94,14 @@ foreach (['home', 'registry', 'structure', 'data', 'workflows', 'security', 'bui
         exit(1);
     }
 }
-
 foreach (['structure', 'data', 'workflows', 'security'] as $stateId) {
     if (($states[$stateId]['requires_current_app'] ?? null) !== true) {
         fwrite(STDERR, "OWASYS_REGISTRY_NAMING_FSM_GUARD_MISSING: {$stateId}\n");
         exit(1);
     }
 }
-
-$legacyRoots = ['home', 'registry', 'structure', 'data', 'workflows', 'security', 'build', 'account', 'login', 'applications'];
-foreach ($legacyRoots as $legacyRoot) {
-    $legacyPath = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . $legacyRoot;
-    if (is_dir($legacyPath)) {
+foreach (['home', 'registry', 'structure', 'data', 'workflows', 'security', 'build', 'account', 'login', 'applications'] as $legacyRoot) {
+    if (is_dir($siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . $legacyRoot)) {
         fwrite(STDERR, "OWASYS_REGISTRY_NAMING_LEGACY_STATE_ROOT_PRESENT: {$legacyRoot}\n");
         exit(1);
     }
@@ -119,25 +109,14 @@ foreach ($legacyRoots as $legacyRoot) {
 
 $matched = false;
 foreach ((array) ($routes['routes'] ?? []) as $route) {
-    if (!is_array($route) || ($route['path'] ?? null) !== '/applications') {
-        continue;
-    }
-
-    $matched = true;
-    if (($route['state'] ?? null) !== 'registry' || ($route['controller'] ?? null) !== 'registry') {
-        fwrite(STDERR, "OWASYS_REGISTRY_NAMING_ROUTE_STATE_INVALID\n");
-        exit(1);
-    }
-    if (($route['view'] ?? null) !== 'application/states/registry/views/index.php') {
-        fwrite(STDERR, "OWASYS_REGISTRY_NAMING_ROUTE_VIEW_INVALID\n");
-        exit(1);
-    }
-    if (($route['label'] ?? null) !== 'menu.applications') {
-        fwrite(STDERR, "OWASYS_REGISTRY_NAMING_ROUTE_LABEL_INVALID\n");
-        exit(1);
+    if (is_array($route) && ($route['path'] ?? null) === '/applications') {
+        $matched = true;
+        if (($route['state'] ?? null) !== 'registry' || ($route['controller'] ?? null) !== 'registry' || ($route['view'] ?? null) !== 'application/states/registry/views/index.php' || ($route['label'] ?? null) !== 'menu.applications') {
+            fwrite(STDERR, "OWASYS_REGISTRY_NAMING_ROUTE_INVALID\n");
+            exit(1);
+        }
     }
 }
-
 if (!$matched) {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_APPLICATIONS_ROUTE_MISSING\n");
     exit(1);
@@ -162,7 +141,6 @@ if (!is_array($page)) {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_VIEW_MODEL_INVALID\n");
     exit(1);
 }
-
 $sync = is_array($page['registry_sync'] ?? null) ? $page['registry_sync'] : [];
 if (($sync['contract'] ?? null) !== 'OWASYS_REGISTRY_SQLITE_V1' || ($page['registry_database'] ?? null) !== $registrySmokeDatabaseRelative) {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_SQLITE_SYNC_INVALID\n");
@@ -173,7 +151,6 @@ if (!in_array('OWASYS_REGISTRY_SQLITE_V1', $contracts, true)) {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_SQLITE_CONTRACT_MISSING\n");
     exit(1);
 }
-
 $entries = is_array($page['registry_entries'] ?? null) ? $page['registry_entries'] : [];
 $demo = null;
 foreach ($entries as $entry) {
@@ -182,7 +159,6 @@ foreach ($entries as $entry) {
         break;
     }
 }
-
 if (!is_array($demo) || ($demo['kind'] ?? null) !== 'fullstack' || ($demo['root_path'] ?? null) !== 'sites/demo-app') {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_DEMO_APP_ENTRY_INVALID\n");
     exit(1);
@@ -190,6 +166,7 @@ if (!is_array($demo) || ($demo['kind'] ?? null) !== 'fullstack' || ($demo['root_
 
 $front = (string) file_get_contents($frontFile);
 foreach ([
+    'use Opus\\Owasys\\RegistryRepository;',
     'OWASYS_NAVIGATION_FSM_V1',
     'owasys-navigation.fsm.json',
     'application/states',
@@ -198,20 +175,20 @@ foreach ([
     '$requiresCurrentApp',
     'requires_current_app',
     'owasys_current_app',
-    'select-app',
-    'clear-app-context',
-    'create-new-app',
-    'Work on this app',
+    'setCurrentApplication',
+    'clearCurrentApplication',
+    'startCreationFlow',
     'OWASYS_REGISTRY_APP_TREE',
-    'Application tree',
-    'Current application',
+    'registry.application_tree',
+    'registry.current_application',
     'OWASYS_CURRENT_APP_CONTEXT',
-    'YOU ARE WORKING ON',
-    'Visual FSM navigation',
+    'registry.you_are_working_on',
+    'mermaid.title',
     'OWASYS_MERMAID_NAVIGATION',
     'flowchart LR',
     'click ' . "' . \$id",
-    'Application context',
+    'registry.application_context',
+    'application/default/local',
     'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js',
 ] as $needle) {
     if (!str_contains($front, $needle)) {
@@ -227,7 +204,6 @@ foreach (['.ow-current-app', '.ow-current-app-hero', '.ow-context-panel', '.ow-m
         exit(1);
     }
 }
-
 $js = (string) file_get_contents($jsFile);
 foreach (['window.mermaid', 'securityLevel', 'loose', 'startOnLoad'] as $needle) {
     if (!str_contains($js, $needle)) {
