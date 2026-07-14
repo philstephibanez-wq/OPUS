@@ -1,0 +1,85 @@
+<?php
+declare(strict_types=1);
+
+$root = dirname(__DIR__);
+$siteRoot = $root . DIRECTORY_SEPARATOR . 'sites' . DIRECTORY_SEPARATOR . 'owasys';
+$siteFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'site.json';
+$frontFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php';
+$localRoot = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'local';
+$frFile = $localRoot . DIRECTORY_SEPARATOR . 'fr.php';
+$enFile = $localRoot . DIRECTORY_SEPARATOR . 'en.php';
+
+foreach ([$siteFile, $frontFile, $frFile, $enFile] as $file) {
+    if (!is_file($file)) {
+        fwrite(STDERR, "OWASYS_I18N_REQUIRED_FILE_MISSING: {$file}\n");
+        exit(1);
+    }
+}
+
+foreach ([$frFile, $enFile, $frontFile] as $file) {
+    $output = [];
+    $code = 0;
+    exec(PHP_BINARY . ' -l ' . escapeshellarg($file) . ' 2>&1', $output, $code);
+    if ($code !== 0) {
+        fwrite(STDERR, "OWASYS_I18N_PARSE_ERROR: {$file}\n" . implode("\n", $output) . "\n");
+        exit(1);
+    }
+}
+
+$site = json_decode((string) file_get_contents($siteFile), true);
+if (!is_array($site) || ($site['default_locale'] ?? null) !== 'fr' || !in_array('en', (array) ($site['locales'] ?? []), true)) {
+    fwrite(STDERR, "OWASYS_I18N_SITE_LOCALES_INVALID\n");
+    exit(1);
+}
+
+$requiredKeys = [
+    'menu.home',
+    'menu.applications',
+    'menu.structure',
+    'menu.data',
+    'menu.workflows',
+    'menu.security',
+    'menu.build',
+    'registry.current_application',
+    'registry.you_are_working_on',
+    'registry.application_context',
+    'registry.application_tree',
+    'registry.create_new_application',
+    'registry.work_on_this_app',
+    'registry.runtime_sqlite',
+    'mermaid.title',
+    'common.contracts',
+    'common.next_actions',
+];
+
+foreach (['fr' => $frFile, 'en' => $enFile] as $locale => $file) {
+    $messages = require $file;
+    if (!is_array($messages)) {
+        fwrite(STDERR, "OWASYS_I18N_MESSAGES_INVALID: {$locale}\n");
+        exit(1);
+    }
+    foreach ($requiredKeys as $key) {
+        if (!isset($messages[$key]) || !is_string($messages[$key]) || trim($messages[$key]) === '') {
+            fwrite(STDERR, "OWASYS_I18N_KEY_MISSING: {$locale}:{$key}\n");
+            exit(1);
+        }
+    }
+}
+
+$front = (string) file_get_contents($frontFile);
+foreach ([
+    '$messages =',
+    '$t = static function',
+    "application/default/local",
+    "registry.current_application",
+    "registry.you_are_working_on",
+    "registry.work_on_this_app",
+    "common.contracts",
+] as $needle) {
+    if (!str_contains($front, $needle)) {
+        fwrite(STDERR, "OWASYS_I18N_FRONT_MARKER_MISSING: {$needle}\n");
+        exit(1);
+    }
+}
+
+echo "OWASYS_I18N_SMOKE_OK\n";
