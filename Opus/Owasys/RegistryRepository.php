@@ -219,6 +219,45 @@ final class RegistryRepository
         }
     }
 
+    /** @return list<array{id:int,application_id:string,event_type:string,payload:array<string,mixed>,created_at:string}> */
+    public function recentEvents(int $limit = 8): array
+    {
+        if ($limit < 1 || $limit > 50) {
+            throw new RuntimeException('OWASYS_RUNTIME_EVENT_LIMIT_INVALID: ' . $limit);
+        }
+
+        $db = $this->open();
+        try {
+            $this->ensureSchema($db);
+            $stmt = $db->prepare('SELECT id, application_id, event_type, payload_json, created_at FROM owasys_application_events ORDER BY id DESC LIMIT :limit');
+            if (!$stmt instanceof SQLite3Stmt) {
+                throw new RuntimeException('OWASYS_RUNTIME_EVENT_RECENT_PREPARE_FAILED');
+            }
+            $stmt->bindValue(':limit', $limit, SQLITE3_INTEGER);
+            $result = $stmt->execute();
+            if (!$result instanceof SQLite3Result) {
+                throw new RuntimeException('OWASYS_RUNTIME_EVENT_RECENT_QUERY_FAILED');
+            }
+            $events = [];
+            while (($row = $result->fetchArray(SQLITE3_ASSOC)) !== false) {
+                $payload = json_decode((string) ($row['payload_json'] ?? '{}'), true);
+                $events[] = [
+                    'id' => (int) ($row['id'] ?? 0),
+                    'application_id' => (string) ($row['application_id'] ?? ''),
+                    'event_type' => (string) ($row['event_type'] ?? ''),
+                    'payload' => is_array($payload) ? $payload : [],
+                    'created_at' => (string) ($row['created_at'] ?? ''),
+                ];
+            }
+            $result->finalize();
+            $stmt->close();
+        } finally {
+            $db->close();
+        }
+
+        return $events;
+    }
+
     public function databasePath(): string
     {
         return rtrim($this->siteRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, trim($this->databaseRelative, '/'));
@@ -298,13 +337,11 @@ SQL);
 
         $imported = 0;
         foreach ((array) ($seed['applications'] ?? []) as $entry) {
-            if (!is_array($entry)) {
-                continue;
+            if (is_array($entry)) {
+                $this->upsertApplication($db, $entry, 'seed');
+                $imported++;
             }
-            $this->upsertApplication($db, $entry, 'seed');
-            $imported++;
         }
-
         return $imported;
     }
 
@@ -315,19 +352,16 @@ SQL);
             if (!is_string($siteJsonFile) || !is_file($siteJsonFile)) {
                 continue;
             }
-
             $site = json_decode((string) file_get_contents($siteJsonFile), true);
             if (!is_array($site) || ($site['contract'] ?? null) !== 'OPUS_SITE_APPLICATION_TREE_V1_ETERNAL') {
                 continue;
             }
-
             $siteDir = basename(dirname(dirname($siteJsonFile)));
             $siteId = (string) ($site['site_id'] ?? $siteDir);
             $manifestFile = dirname($siteJsonFile) . DIRECTORY_SEPARATOR . 'owasys-creation-manifest.json';
             $manifest = is_file($manifestFile) ? json_decode((string) file_get_contents($manifestFile), true) : [];
             $manifest = is_array($manifest) ? $manifest : [];
             $validation = is_array($manifest['validation'] ?? null) ? $manifest['validation'] : [];
-
             $this->upsertApplication($db, [
                 'id' => $siteId,
                 'slug' => $siteId,
@@ -344,7 +378,6 @@ SQL);
             ], 'discovered');
             $imported++;
         }
-
         return $imported;
     }
 
@@ -355,7 +388,6 @@ SQL);
         if ($normalized === null) {
             return;
         }
-
         $sql = <<<'SQL'
 INSERT INTO owasys_applications (
     id, slug, name, kind, root_path, public_root, default_locale, theme, status, blueprint, generated_by, role, source, payload_json, created_at, updated_at
@@ -378,21 +410,18 @@ ON CONFLICT(id) DO UPDATE SET
     payload_json = excluded.payload_json,
     updated_at = excluded.updated_at
 SQL;
-
         $stmt = $db->prepare($sql);
         if (!$stmt instanceof SQLite3Stmt) {
             throw new RuntimeException('OWASYS_REGISTRY_UPSERT_PREPARE_FAILED: ' . $normalized['id']);
         }
-
         foreach ($normalized as $key => $value) {
             $stmt->bindValue(':' . $key, (string) $value, SQLITE3_TEXT);
         }
         $payload = json_encode($entry, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $stmt->bindValue(':payload_json', is_string($payload) ? $payload : '{}', SQLITE3_TEXT);
         $now = gmdate('c');
+        $stmt->bindValue(':payload_json', is_string($payload) ? $payload : '{}', SQLITE3_TEXT);
         $stmt->bindValue(':created_at', $now, SQLITE3_TEXT);
         $stmt->bindValue(':updated_at', $now, SQLITE3_TEXT);
-
         $result = $stmt->execute();
         if ($result instanceof SQLite3Result) {
             $result->finalize();
@@ -410,7 +439,6 @@ SQL;
         if (preg_match('/^[a-z0-9][a-z0-9_-]*$/', $id) !== 1) {
             throw new RuntimeException('OWASYS_REGISTRY_APPLICATION_ID_INVALID: ' . $id);
         }
-
         return [
             'id' => $id,
             'slug' => (string) ($entry['slug'] ?? $id),
