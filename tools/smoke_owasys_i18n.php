@@ -33,6 +33,8 @@ if (!is_array($site) || ($site['default_locale'] ?? null) !== 'fr' || !in_array(
 }
 
 $requiredKeys = [
+    'brand.name',
+    'brand.subtitle',
     'menu.home',
     'menu.applications',
     'menu.structure',
@@ -40,6 +42,18 @@ $requiredKeys = [
     'menu.workflows',
     'menu.security',
     'menu.build',
+    'auth.sign_in',
+    'auth.sign_in_description',
+    'auth.username',
+    'auth.password_field',
+    'auth.current_password',
+    'auth.new_password',
+    'auth.confirm_new_password',
+    'auth.change_password',
+    'auth.password_change_required',
+    'auth.error.required_credentials',
+    'auth.error.invalid_credentials',
+    'auth.error.new_password_too_short',
     'registry.current_application',
     'registry.you_are_working_on',
     'registry.application_context',
@@ -47,9 +61,13 @@ $requiredKeys = [
     'registry.create_new_application',
     'registry.work_on_this_app',
     'registry.runtime_sqlite',
+    'registry.events.title',
+    'registry.events.select_app',
+    'registry.events.logout',
     'mermaid.title',
     'common.contracts',
     'common.next_actions',
+    'state.default.summary',
 ];
 
 foreach (['fr' => $frFile, 'en' => $enFile] as $locale => $file) {
@@ -74,10 +92,36 @@ foreach ([
     "registry.current_application",
     "registry.you_are_working_on",
     "registry.work_on_this_app",
+    "registry.events.title",
+    "auth.sign_in",
+    "auth.change_password",
     "common.contracts",
 ] as $needle) {
     if (!str_contains($front, $needle)) {
         fwrite(STDERR, "OWASYS_I18N_FRONT_MARKER_MISSING: {$needle}\n");
+        exit(1);
+    }
+}
+
+$forbiddenFrontLiterals = [
+    '>Sign in<',
+    '>Change password<',
+    'Username<input',
+    'Password<input',
+    'Current password<input',
+    'New password<input',
+    'Confirm new password<input',
+    'Runtime user store missing. Run',
+    'YOU ARE WORKING ON</small>',
+    'Current application</small>',
+    'Create new application</button>',
+    'Work on this app</button>',
+    'Recent runtime events</h2>',
+    'Configuration through standard OPUS application folders',
+];
+foreach ($forbiddenFrontLiterals as $literal) {
+    if (str_contains($front, $literal)) {
+        fwrite(STDERR, "OWASYS_I18N_HARDCODED_UI_LITERAL_PRESENT: {$literal}\n");
         exit(1);
     }
 }
