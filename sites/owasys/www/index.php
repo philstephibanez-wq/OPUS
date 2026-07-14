@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use Opus\Fsm\FsmSiteLoader;
+use Opus\Owasys\RegistryRepository;
 
 /**
  * OWASYS public entry.
@@ -19,6 +20,7 @@ if (!is_file($autoload)) {
     exit;
 }
 require_once $autoload;
+
 $configFile = $siteRoot . '/config/routes.json';
 $siteFile = $siteRoot . '/config/site.json';
 $routesConfig = json_decode((string) file_get_contents($configFile), true);
@@ -75,11 +77,49 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $h = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+$locales = array_values(array_filter((array) ($siteConfig['locales'] ?? ['fr']), 'is_string'));
+$defaultLocale = in_array((string) ($siteConfig['default_locale'] ?? 'fr'), $locales, true) ? (string) ($siteConfig['default_locale'] ?? 'fr') : 'fr';
+$requestedLocale = strtolower((string) ($_GET['lang'] ?? $_SESSION['owasys_locale'] ?? $defaultLocale));
+$locale = in_array($requestedLocale, $locales, true) ? $requestedLocale : $defaultLocale;
+$_SESSION['owasys_locale'] = $locale;
+$loadMessages = static function (string $locale) use ($siteRoot): array {
+    $file = $siteRoot . '/application/default/local/' . $locale . '.php';
+    if (!is_file($file)) {
+        return [];
+    }
+    $messages = require $file;
+    return is_array($messages) ? $messages : [];
+};
+$messages = array_replace($loadMessages('en'), $loadMessages($defaultLocale), $loadMessages($locale));
+$t = static function (string $key, string $fallback = '') use (&$messages): string {
+    $value = $messages[$key] ?? null;
+    return is_string($value) && $value !== '' ? $value : ($fallback !== '' ? $fallback : $key);
+};
 $mermaidLabel = static function (string $value): string {
     $clean = preg_replace('/[^A-Za-z0-9 _.:\/\-]/', '', $value);
     $clean = trim(is_string($clean) ? $clean : '');
     return $clean === '' ? 'unknown' : $clean;
 };
+
+$registryConfig = is_array($siteConfig['registry'] ?? null) ? $siteConfig['registry'] : [];
+$registrySeedRelative = trim(str_replace('\\', '/', (string) ($registryConfig['seed'] ?? 'config/registry.seed.json')), '/');
+$registryDatabaseRelative = isset($owasysRegistryDatabaseRelative) && is_string($owasysRegistryDatabaseRelative)
+    ? $owasysRegistryDatabaseRelative
+    : trim(str_replace('\\', '/', (string) ($registryConfig['runtime_database'] ?? 'var/registry/owasys.sqlite')), '/');
+if ($registrySeedRelative === '' || str_contains($registrySeedRelative, '..') || $registryDatabaseRelative === '' || str_contains($registryDatabaseRelative, '..')) {
+    http_response_code(500);
+    echo 'OWASYS_RUNTIME_REGISTRY_PATH_INVALID';
+    exit;
+}
+$registrySeedFile = $siteRoot . '/' . $registrySeedRelative;
+try {
+    $owasysRegistryRepository = RegistryRepository::forOwasysSite($siteRoot, $opusRoot, $registryDatabaseRelative);
+    $owasysRegistrySync = $owasysRegistryRepository->synchronize($registrySeedFile);
+} catch (Throwable $exception) {
+    http_response_code(500);
+    echo 'OWASYS_RUNTIME_REGISTRY_INVALID';
+    exit;
+}
 
 $authStoreRelative = trim(str_replace('\\', '/', (string) ($authConfig['user_store'] ?? 'var/auth/local-users.json')), '/');
 if ($authStoreRelative === '' || str_contains($authStoreRelative, '..')) {
@@ -102,12 +142,10 @@ $readRuntimeStore = static function (string $storeFile): array {
     }
     return $store;
 };
-
 $loadRuntimeUsers = static function (string $storeFile) use ($readRuntimeStore): array {
     $store = $readRuntimeStore($storeFile);
     return is_array($store['users'] ?? null) ? $store['users'] : [];
 };
-
 $writeRuntimeStore = static function (string $storeFile, array $store): void {
     $parent = dirname($storeFile);
     if (!is_dir($parent) && !mkdir($parent, 0775, true) && !is_dir($parent)) {
@@ -129,7 +167,6 @@ $writeRuntimeStore = static function (string $storeFile, array $store): void {
 $requestPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
 $requestPath = is_string($requestPath) ? rawurldecode($requestPath) : '/';
 $requestPath = '/' . trim($requestPath, '/');
-
 if ($requestPath === '/') {
     $path = '/';
     $mount = '';
@@ -144,7 +181,6 @@ if ($requestPath === '/') {
     $path = $requestPath;
     $mount = '';
 }
-
 $link = static fn (string $routePath): string => $mount . ($routePath === '/' ? '/' : $routePath);
 $redirect = static function (string $routePath) use ($link): void {
     header('Location: ' . $link($routePath), true, 303);
@@ -153,21 +189,20 @@ $redirect = static function (string $routePath) use ($link): void {
 
 $statesByRoute = [];
 $statesById = [];
-foreach ((array) ($fsmConfig['states'] ?? []) as $state) {
-    if (!is_array($state)) {
+foreach ((array) ($fsmConfig['states'] ?? []) as $stateConfig) {
+    if (!is_array($stateConfig)) {
         continue;
     }
-    $stateId = (string) ($state['id'] ?? '');
+    $stateId = (string) ($stateConfig['id'] ?? '');
     if ($stateId === '') {
         continue;
     }
-    $statesById[$stateId] = $state;
-    $stateRoute = (string) ($state['route'] ?? '');
+    $statesById[$stateId] = $stateConfig;
+    $stateRoute = (string) ($stateConfig['route'] ?? '');
     if ($stateRoute !== '') {
-        $statesByRoute[$stateRoute] = $state;
+        $statesByRoute[$stateRoute] = $stateConfig;
     }
 }
-
 $routeForTransition = static function (array $transition) use ($statesById): string {
     $targetState = (string) ($transition['to_state'] ?? '');
     $target = is_array($statesById[$targetState] ?? null) ? $statesById[$targetState] : [];
@@ -179,12 +214,10 @@ $routeForTransition = static function (array $transition) use ($statesById): str
     }
     return $route;
 };
-
 $runtimeCurrentState = static function () use ($statesById): string {
     $candidate = (string) ($_SESSION['owasys_current_state'] ?? 'home');
     return isset($statesById[$candidate]) ? $candidate : 'home';
 };
-
 $redirectAfterTransition = static function (array $transition) use ($routeForTransition, $redirect): void {
     $redirect($routeForTransition($transition));
 };
@@ -195,6 +228,7 @@ $registryActionError = null;
 
 if ($path === '/logout') {
     $transition = $owasysFsmProcessor->transition($runtimeCurrentState(), 'logout');
+    $owasysRegistryRepository->logout(is_array($_SESSION['owasys_user'] ?? null) ? (string) ($_SESSION['owasys_user']['id'] ?? '') : null);
     unset($_SESSION['owasys_user'], $_SESSION['owasys_current_app'], $_SESSION['owasys_current_state']);
     session_regenerate_id(true);
     $redirectAfterTransition($transition);
@@ -207,7 +241,6 @@ if ($path === '/login' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         echo 'OWASYS_LOGIN_ACTION_INVALID';
         exit;
     }
-
     $username = trim((string) ($_POST['owasys_username'] ?? ''));
     $password = (string) ($_POST['owasys_password'] ?? '');
     if ($username === '' || $password === '') {
@@ -250,7 +283,6 @@ if ($isAuthenticated && $path === '/account/password' && ($_SERVER['REQUEST_METH
         echo 'OWASYS_PASSWORD_CHANGE_ACTION_INVALID';
         exit;
     }
-
     $currentPassword = (string) ($_POST['owasys_current_password'] ?? '');
     $newPassword = (string) ($_POST['owasys_new_password'] ?? '');
     $confirmPassword = (string) ($_POST['owasys_confirm_password'] ?? '');
@@ -259,7 +291,6 @@ if ($isAuthenticated && $path === '/account/password' && ($_SERVER['REQUEST_METH
     $users = is_array($store['users'] ?? null) ? $store['users'] : [];
     $candidate = is_array($users[$userId] ?? null) ? $users[$userId] : null;
     $passwordHash = is_array($candidate) ? (string) ($candidate['password_hash'] ?? '') : '';
-
     if ($candidate === null || $passwordHash === '') {
         $passwordChangeError = 'Runtime user is missing from the local user store.';
     } elseif ($currentPassword === '' || !password_verify($currentPassword, $passwordHash)) {
@@ -292,9 +323,9 @@ if ($mustChangePassword && !in_array($path, ['/account/password', '/logout'], tr
 }
 
 $route = null;
-foreach ($routesConfig['routes'] as $candidate) {
-    if (is_array($candidate) && ($candidate['path'] ?? null) === $path) {
-        $route = $candidate;
+foreach ($routesConfig['routes'] as $candidateRoute) {
+    if (is_array($candidateRoute) && ($candidateRoute['path'] ?? null) === $path) {
+        $route = $candidateRoute;
         break;
     }
 }
@@ -303,7 +334,6 @@ if (!is_array($route)) {
     echo 'OWASYS_ROUTE_NOT_FOUND: ' . $h($path);
     exit;
 }
-
 $state = (string) ($route['state'] ?? ($route['controller'] ?? ''));
 $controller = (string) ($route['controller'] ?? $state);
 if (!preg_match('/^[a-z0-9_-]+$/', $state)) {
@@ -316,7 +346,6 @@ if (!preg_match('/^[a-z0-9_-]+$/', $controller)) {
     echo 'OWASYS_CONTROLLER_INVALID';
     exit;
 }
-
 $viewFile = $siteRoot . '/application/states/' . $state . '/views/index.php';
 if (!is_file($viewFile)) {
     http_response_code(500);
@@ -331,7 +360,10 @@ if (!is_array($page)) {
     exit;
 }
 
-$currentApp = is_array($_SESSION['owasys_current_app'] ?? null) ? $_SESSION['owasys_current_app'] : null;
+$currentApp = is_array($_SESSION['owasys_current_app'] ?? null) ? $_SESSION['owasys_current_app'] : ($isAuthenticated ? $owasysRegistryRepository->currentApplication() : null);
+if ($isAuthenticated && is_array($currentApp)) {
+    $_SESSION['owasys_current_app'] = $currentApp;
+}
 $currentState = $statesByRoute[$path] ?? null;
 $findRegistryEntry = static function (array $entries, string $id): ?array {
     foreach ($entries as $entry) {
@@ -339,7 +371,6 @@ $findRegistryEntry = static function (array $entries, string $id): ?array {
             return $entry;
         }
     }
-
     return null;
 };
 
@@ -356,15 +387,18 @@ if ($state === 'registry' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 'registry_entry' => $entry,
                 'selected_app' => $appId,
             ]);
+            $owasysRegistryRepository->setCurrentApplication($entry, is_array($user) ? (string) ($user['id'] ?? '') : null);
             $_SESSION['owasys_current_app'] = $entry;
             $redirectAfterTransition($transition);
         }
     } elseif ($action === 'clear-app-context') {
         $transition = $owasysFsmProcessor->transition('registry', 'clear_app_context');
+        $owasysRegistryRepository->clearCurrentApplication(is_array($user) ? (string) ($user['id'] ?? '') : null);
         unset($_SESSION['owasys_current_app']);
         $redirectAfterTransition($transition);
     } elseif ($action === 'create-new-app') {
         $transition = $owasysFsmProcessor->transition('registry', 'create_new_app');
+        $owasysRegistryRepository->startCreationFlow(is_array($user) ? (string) ($user['id'] ?? '') : null);
         unset($_SESSION['owasys_current_app']);
         $redirectAfterTransition($transition);
     } else {
@@ -374,7 +408,7 @@ if ($state === 'registry' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     }
 }
 
-$currentApp = is_array($_SESSION['owasys_current_app'] ?? null) ? $_SESSION['owasys_current_app'] : null;
+$currentApp = is_array($_SESSION['owasys_current_app'] ?? null) ? $_SESSION['owasys_current_app'] : ($isAuthenticated ? $owasysRegistryRepository->currentApplication() : null);
 $requiresCurrentApp = is_array($currentState) && (($currentState['requires_current_app'] ?? false) === true);
 if ($isAuthenticated && $requiresCurrentApp && $currentApp === null) {
     $transition = $owasysFsmProcessor->transition($state, 'change_app');
@@ -382,26 +416,13 @@ if ($isAuthenticated && $requiresCurrentApp && $currentApp === null) {
 }
 
 $menu = [];
-foreach ($routesConfig['routes'] as $candidate) {
-    if (is_array($candidate) && ($candidate['show_in_menu'] ?? false) === true) {
-        $menu[] = $candidate;
+foreach ($routesConfig['routes'] as $candidateRoute) {
+    if (is_array($candidateRoute) && ($candidateRoute['show_in_menu'] ?? false) === true) {
+        $menu[] = $candidateRoute;
     }
 }
 usort($menu, static fn (array $a, array $b): int => ((int) ($a['order'] ?? 0)) <=> ((int) ($b['order'] ?? 0)));
-
 $asset = static fn (string $assetPath): string => $mount . '/' . ltrim($assetPath, '/');
-
-$labelMap = [
-    'home' => 'Home',
-    'applications' => 'Applications',
-    'structure' => 'Structure',
-    'data' => 'Data Sources',
-    'workflows' => 'Workflows',
-    'security' => 'Security',
-    'build' => 'Build & Validate',
-    'login' => 'Login',
-    'account' => 'Account',
-];
 
 $renderList = static function (array $items) use ($h): string {
     if ($items === []) {
@@ -413,17 +434,16 @@ $renderList = static function (array $items) use ($h): string {
     }
     return $html . '</ul>';
 };
-
-$renderAppTags = static function (?array $app) use ($h): string {
+$renderAppTags = static function (?array $app) use ($h, $t): string {
     if ($app === null) {
-        return '<div class="ow-tags"><span>No current application</span></div>';
+        return '<div class="ow-tags"><span>' . $h($t('registry.no_current_application', 'No current application')) . '</span></div>';
     }
-
     $items = [
         'id: ' . (string) ($app['id'] ?? 'unknown'),
         'type: ' . (string) ($app['kind'] ?? 'unknown'),
         'root: ' . (string) ($app['root_path'] ?? 'unknown'),
         'status: ' . (string) ($app['status'] ?? 'unknown'),
+        $t('registry.source', 'source') . ': ' . (string) ($app['source'] ?? 'sqlite'),
     ];
     $html = '<div class="ow-tags">';
     foreach ($items as $item) {
@@ -431,36 +451,25 @@ $renderAppTags = static function (?array $app) use ($h): string {
     }
     return $html . '</div>';
 };
-
-$renderAppTree = static function (array $entries, ?array $currentApp) use ($h): string {
-    $groups = [
-        'fullstack' => [],
-        'frontend' => [],
-        'backend' => [],
-        'package' => [],
-    ];
+$renderAppTree = static function (array $entries, ?array $currentApp) use ($h, $t): string {
+    $groups = ['fullstack' => [], 'frontend' => [], 'backend' => [], 'package' => []];
     foreach ($entries as $entry) {
         if (!is_array($entry)) {
             continue;
         }
         $kind = (string) ($entry['kind'] ?? 'fullstack');
-        if (!array_key_exists($kind, $groups)) {
-            $kind = 'fullstack';
-        }
-        $groups[$kind][] = $entry;
+        $groups[array_key_exists($kind, $groups) ? $kind : 'fullstack'][] = $entry;
     }
-
     $html = '<section class="ow-card ow-app-tree" data-context="OWASYS_REGISTRY_APP_TREE">';
-    $html .= '<h2>Application tree</h2>';
-    $html .= '<p class="ow-muted">Click an application to make it the current OWASYS context, or create a new OPUS application.</p>';
+    $html .= '<h2>' . $h($t('registry.application_tree', 'Application tree')) . '</h2>';
+    $html .= '<p class="ow-muted">' . $h($t('registry.tree_help', 'Click an application to make it the current OWASYS context, or create a new OPUS application.')) . '</p>';
     $html .= '<div class="ow-tree-root"><strong>OWASYS Registry</strong>';
-    $html .= '<form method="post" class="ow-inline-form"><input type="hidden" name="owasys_action" value="create-new-app"><button class="ow-button" type="submit">Create new application</button></form>';
-    $html .= '</div>';
-    $html .= '<div class="ow-tree-branches">';
+    $html .= '<form method="post" class="ow-inline-form"><input type="hidden" name="owasys_action" value="create-new-app"><button class="ow-button" type="submit">' . $h($t('registry.create_new_application', 'Create new application')) . '</button></form>';
+    $html .= '</div><div class="ow-tree-branches">';
     foreach ($groups as $kind => $apps) {
         $html .= '<div class="ow-tree-kind"><h3>' . $h($kind) . '</h3>';
         if ($apps === []) {
-            $html .= '<p class="ow-muted">No registered application.</p>';
+            $html .= '<p class="ow-muted">' . $h($t('registry.no_registered_application', 'No registered application.')) . '</p>';
         }
         foreach ($apps as $entry) {
             $entryId = (string) ($entry['id'] ?? '');
@@ -468,37 +477,29 @@ $renderAppTree = static function (array $entries, ?array $currentApp) use ($h): 
             $html .= '<form method="post" class="ow-tree-app' . ($isCurrent ? ' is-current' : '') . '">';
             $html .= '<input type="hidden" name="owasys_action" value="select-app">';
             $html .= '<input type="hidden" name="owasys_app_id" value="' . $h($entryId) . '">';
-            $html .= '<button type="submit">';
-            $html .= '<strong>' . $h((string) ($entry['name'] ?? $entryId)) . '</strong>';
+            $html .= '<button type="submit"><strong>' . $h((string) ($entry['name'] ?? $entryId)) . '</strong>';
             $html .= '<span>' . $h((string) ($entry['root_path'] ?? 'unknown')) . '</span>';
-            $html .= '<em>' . ($isCurrent ? 'current context' : 'click to work on this app') . '</em>';
+            $html .= '<em>' . $h($isCurrent ? $t('registry.current_context', 'current context') : $t('registry.click_to_work_on_this_app', 'click to work on this app')) . '</em>';
             $html .= '</button></form>';
         }
         $html .= '</div>';
     }
-    $html .= '</div></section>';
-    return $html;
+    return $html . '</div></section>';
 };
-
 $buildMermaidDiagram = static function (array $fsm, ?array $app, ?string $currentStateId) use ($link, $mermaidLabel): string {
     $states = [];
-    foreach ((array) ($fsm['states'] ?? []) as $state) {
-        if (!is_array($state)) {
-            continue;
-        }
-        $id = (string) ($state['id'] ?? '');
-        if ($id !== '') {
-            $states[$id] = $state;
+    foreach ((array) ($fsm['states'] ?? []) as $stateConfig) {
+        if (is_array($stateConfig) && (string) ($stateConfig['id'] ?? '') !== '') {
+            $states[(string) $stateConfig['id']] = $stateConfig;
         }
     }
-
     $lines = ['flowchart LR'];
-    foreach ($states as $id => $state) {
+    foreach ($states as $id => $stateConfig) {
         if ($id === 'login' || $id === 'account') {
             continue;
         }
-        $class = $id === $currentStateId ? 'active' : (($state['requires_current_app'] ?? false) === true ? 'work' : 'primary');
-        $label = $mermaidLabel((string) ($state['label'] ?? $id));
+        $class = $id === $currentStateId ? 'active' : (($stateConfig['requires_current_app'] ?? false) === true ? 'work' : 'primary');
+        $label = $mermaidLabel((string) ($stateConfig['label'] ?? $id));
         if ($id === 'registry') {
             $label .= '<br/>choose or create';
         }
@@ -507,182 +508,122 @@ $buildMermaidDiagram = static function (array $fsm, ?array $app, ?string $curren
         }
         $lines[] = '    ' . $id . '["' . $label . '"]:::' . $class;
     }
-
     foreach ((array) ($fsm['transitions'] ?? []) as $transition) {
         if (!is_array($transition) || ($transition['visual'] ?? false) !== true) {
             continue;
         }
         $from = (string) ($transition['from'] ?? '');
         $to = (string) ($transition['to'] ?? '');
-        if ($from === '' || $to === '' || !isset($states[$from], $states[$to]) || $from === 'login' || $from === 'account' || $to === 'login' || $to === 'account') {
+        if ($from === '' || $to === '' || !isset($states[$from], $states[$to]) || in_array($from, ['login', 'account'], true) || in_array($to, ['login', 'account'], true)) {
             continue;
         }
-        $event = $mermaidLabel((string) ($transition['event'] ?? 'event'));
-        $lines[] = '    ' . $from . ' -->|' . $event . '| ' . $to;
+        $lines[] = '    ' . $from . ' -->|' . $mermaidLabel((string) ($transition['event'] ?? 'event')) . '| ' . $to;
     }
-
-    foreach ($states as $id => $state) {
-        if ($id === 'login' || $id === 'account') {
+    foreach ($states as $id => $stateConfig) {
+        if (in_array($id, ['login', 'account'], true)) {
             continue;
         }
-        $route = (string) ($state['route'] ?? '');
+        $route = (string) ($stateConfig['route'] ?? '');
         if ($route !== '') {
-            $lines[] = '    click ' . $id . ' "' . $link($route) . '" "Open ' . $mermaidLabel((string) ($state['label'] ?? $id)) . '"';
+            $lines[] = '    click ' . $id . ' "' . $link($route) . '" "Open ' . $mermaidLabel((string) ($stateConfig['label'] ?? $id)) . '"';
         }
     }
-
     $lines[] = '    classDef primary fill:#123456,stroke:#6ce3ff,color:#f6f8ff,stroke-width:2px';
     $lines[] = '    classDef active fill:#164e63,stroke:#4ade80,color:#f6f8ff,stroke-width:4px';
     $lines[] = '    classDef work fill:#101c2f,stroke:#94aad8,color:#f6f8ff,stroke-width:1px';
     return implode("\n", $lines);
 };
-
-$renderMermaidPanel = static function (string $diagram) use ($h): string {
-    return '<section class="ow-card ow-mermaid-panel" data-context="OWASYS_MERMAID_NAVIGATION">'
-        . '<h2>Visual FSM navigation</h2>'
-        . '<p class="ow-muted">Clickable Mermaid map generated from <code>OWASYS_NAVIGATION_FSM_V1</code>.</p>'
-        . '<pre class="mermaid">' . $h($diagram) . '</pre>'
-        . '<p class="ow-muted ow-mermaid-fallback">If Mermaid is unavailable, use the sidebar and Registry tree.</p>'
-        . '</section>';
+$renderMermaidPanel = static function (string $diagram) use ($h, $t): string {
+    return '<section class="ow-card ow-mermaid-panel" data-context="OWASYS_MERMAID_NAVIGATION"><h2>' . $h($t('mermaid.title', 'Visual FSM navigation')) . '</h2>'
+        . '<p class="ow-muted">' . $h($t('mermaid.description', 'Clickable Mermaid map generated from OWASYS_NAVIGATION_FSM_V1.')) . '</p>'
+        . '<pre class="mermaid">' . $h($diagram) . '</pre><p class="ow-muted ow-mermaid-fallback">' . $h($t('mermaid.fallback', 'If Mermaid is unavailable, use the sidebar and Registry tree.')) . '</p></section>';
 };
 
-$body = '<div class="ow-shell">';
-$body .= '<aside class="ow-sidebar">';
-$body .= '<div class="ow-brand"><strong>OWASYS</strong><span>OPUS Web Application System</span></div>';
-$body .= '<div class="ow-auth-status">';
+$body = '<div class="ow-shell"><aside class="ow-sidebar">';
+$body .= '<div class="ow-brand"><strong>OWASYS</strong><span>OPUS Web Application System</span></div><div class="ow-auth-status">';
 if ($isAuthenticated) {
-    $body .= '<span class="ow-auth-dot" aria-hidden="true"></span><strong>' . $h((string) ($user['label'] ?? 'User')) . '</strong>';
-    $body .= '<small>profile: ' . $h((string) ($user['profile'] ?? 'unknown')) . '</small>';
+    $body .= '<span class="ow-auth-dot" aria-hidden="true"></span><strong>' . $h((string) ($user['label'] ?? 'User')) . '</strong><small>profile: ' . $h((string) ($user['profile'] ?? 'unknown')) . '</small>';
     if ($mustChangePassword) {
         $body .= '<small class="ow-auth-warning">password change required</small>';
     }
-    $body .= '<a href="' . $h($link('/account/password')) . '">Password</a>';
-    $body .= '<a href="' . $h($link('/logout')) . '">Logout</a>';
+    $body .= '<a href="' . $h($link('/account/password')) . '">' . $h($t('auth.password', 'Password')) . '</a><a href="' . $h($link('/logout')) . '">' . $h($t('auth.logout', 'Logout')) . '</a>';
 } else {
-    $body .= '<span class="ow-auth-dot is-off" aria-hidden="true"></span><strong>Not signed in</strong>';
-    $body .= '<small>password session inactive</small>';
-    $body .= '<a href="' . $h($link('/login')) . '">Login</a>';
+    $body .= '<span class="ow-auth-dot is-off" aria-hidden="true"></span><strong>' . $h($t('auth.not_signed_in', 'Not signed in')) . '</strong><small>' . $h($t('auth.session_inactive', 'password session inactive')) . '</small><a href="' . $h($link('/login')) . '">' . $h($t('auth.login', 'Login')) . '</a>';
 }
 $body .= '</div>';
 if ($isAuthenticated) {
-    $body .= '<div class="ow-current-app">';
-    $body .= '<small>Current application</small>';
+    $body .= '<div class="ow-current-app"><small>' . $h($t('registry.current_application', 'Current application')) . '</small>';
     if ($currentApp !== null) {
-        $body .= '<strong>' . $h((string) ($currentApp['name'] ?? $currentApp['id'] ?? 'unknown')) . '</strong>';
-        $body .= '<span>' . $h((string) ($currentApp['kind'] ?? 'unknown')) . ' · ' . $h((string) ($currentApp['root_path'] ?? 'unknown')) . '</span>';
+        $body .= '<strong>' . $h((string) ($currentApp['name'] ?? $currentApp['id'] ?? 'unknown')) . '</strong><span>' . $h((string) ($currentApp['kind'] ?? 'unknown')) . ' · ' . $h((string) ($currentApp['root_path'] ?? 'unknown')) . '</span>';
     } else {
-        $body .= '<strong>None selected</strong>';
-        $body .= '<span>Choose an app in Registry.</span>';
+        $body .= '<strong>' . $h($t('registry.none_selected', 'None selected')) . '</strong><span>' . $h($t('registry.choose_in_registry', 'Choose an app in Registry.')) . '</span>';
     }
-    $body .= '<a href="' . $h($link('/applications')) . '">Change application</a>';
-    $body .= '</div>';
+    $body .= '<a href="' . $h($link('/applications')) . '">' . $h($t('registry.change_application', 'Change application')) . '</a></div>';
 }
 $body .= '<nav class="ow-nav">';
 foreach ($menu as $item) {
-    $labelKey = str_replace('menu.', '', (string) ($item['label'] ?? ''));
-    $label = $labelMap[$labelKey] ?? ucwords(str_replace('-', ' ', $labelKey));
+    $labelKey = (string) ($item['label'] ?? '');
+    $fallback = ucwords(str_replace('-', ' ', str_replace('menu.', '', $labelKey)));
     $active = (($item['path'] ?? '') === $path) ? ' aria-current="page"' : '';
-    $body .= '<a' . $active . ' href="' . $h($link((string) ($item['path'] ?? '#'))) . '">' . $h($label) . '</a>';
+    $body .= '<a' . $active . ' href="' . $h($link((string) ($item['path'] ?? '#'))) . '">' . $h($t($labelKey, $fallback)) . '</a>';
 }
-$body .= '</nav>';
-$body .= '</aside>';
-
-$body .= '<main class="ow-main">';
-$body .= '<header class="ow-topbar">';
-$body .= '<div><span class="ow-pill">' . $h((string) ($page['badge'] ?? 'OWASYS')) . '</span>';
-$body .= '<h1>' . $h((string) ($page['title'] ?? 'OWASYS')) . '</h1>';
-$body .= '<p class="ow-muted">' . $h((string) ($page['summary'] ?? '')) . '</p></div>';
-$body .= '</header>';
+$body .= '</nav></aside><main class="ow-main"><header class="ow-topbar"><div><span class="ow-pill">' . $h((string) ($page['badge'] ?? 'OWASYS')) . '</span><h1>' . $h((string) ($page['title'] ?? 'OWASYS')) . '</h1><p class="ow-muted">' . $h((string) ($page['summary'] ?? '')) . '</p></div></header>';
 
 if ($isAuthenticated) {
-    $body .= '<section class="ow-current-app-hero" data-context="OWASYS_CURRENT_APP_CONTEXT">';
-    $body .= '<small>YOU ARE WORKING ON</small>';
+    $body .= '<section class="ow-current-app-hero" data-context="OWASYS_CURRENT_APP_CONTEXT"><small>' . $h($t('registry.you_are_working_on', 'YOU ARE WORKING ON')) . '</small>';
     if ($currentApp !== null) {
-        $body .= '<strong>' . $h((string) ($currentApp['name'] ?? $currentApp['id'] ?? 'unknown')) . '</strong>';
-        $body .= $renderAppTags($currentApp);
+        $body .= '<strong>' . $h((string) ($currentApp['name'] ?? $currentApp['id'] ?? 'unknown')) . '</strong>' . $renderAppTags($currentApp);
     } else {
-        $body .= '<strong>No application selected</strong>';
-        $body .= '<p>Choose an existing OPUS application in the Registry, or create a new one.</p>';
+        $body .= '<strong>' . $h($t('registry.no_application_selected', 'No application selected')) . '</strong><p>' . $h($t('registry.choose_or_create', 'Choose an existing OPUS application in the Registry, or create a new one.')) . '</p>';
     }
-    $body .= '<p><a class="ow-button ow-button-secondary" href="' . $h($link('/applications')) . '">Change application</a></p>';
-    $body .= '</section>';
+    $body .= '<p><a class="ow-button ow-button-secondary" href="' . $h($link('/applications')) . '">' . $h($t('registry.change_application', 'Change application')) . '</a></p></section>';
 }
-
 if ($isAuthenticated && !in_array($state, ['login', 'account'], true)) {
     $currentStateId = is_array($currentState) ? (string) ($currentState['id'] ?? '') : null;
     $body .= $renderMermaidPanel($buildMermaidDiagram($fsmConfig, $currentApp, $currentStateId));
 }
-
 if ($currentApp !== null && !in_array($state, ['login', 'account', 'registry'], true)) {
-    $body .= '<section class="ow-card ow-context-panel">';
-    $body .= '<h2>Application context</h2>';
-    $body .= '<p>All configuration changes in this section target the selected OPUS application.</p>';
-    $body .= $renderAppTags($currentApp);
-    $body .= '<p><a class="ow-button ow-button-secondary" href="' . $h($link('/applications')) . '">Change application</a></p>';
-    $body .= '</section>';
+    $body .= '<section class="ow-card ow-context-panel"><h2>' . $h($t('registry.application_context', 'Application context')) . '</h2><p>' . $h($t('registry.context_description', 'All configuration changes in this section target the selected OPUS application.')) . '</p>' . $renderAppTags($currentApp) . '<p><a class="ow-button ow-button-secondary" href="' . $h($link('/applications')) . '">' . $h($t('registry.change_application', 'Change application')) . '</a></p></section>';
 }
 
 if ($state === 'login') {
     $body .= '<section class="ow-card ow-auth-panel">';
     if ($isAuthenticated) {
-        $body .= '<h2>Session active</h2>';
-        $body .= '<p>You are signed in for this local OWASYS session.</p>';
-        $body .= '<div class="ow-tags"><span>profile: ' . $h((string) ($user['profile'] ?? 'unknown')) . '</span><span>mode: ' . $h((string) ($user['mode'] ?? 'unknown')) . '</span></div>';
-        $body .= '<p><a class="ow-button" href="' . $h($link('/logout')) . '">Logout</a><a class="ow-button ow-button-secondary" href="' . $h($link('/applications')) . '">Registry</a></p>';
+        $body .= '<h2>Session active</h2><p>You are signed in for this local OWASYS session.</p><div class="ow-tags"><span>profile: ' . $h((string) ($user['profile'] ?? 'unknown')) . '</span><span>mode: ' . $h((string) ($user['mode'] ?? 'unknown')) . '</span></div><p><a class="ow-button" href="' . $h($link('/logout')) . '">Logout</a><a class="ow-button ow-button-secondary" href="' . $h($link('/applications')) . '">Registry</a></p>';
     } else {
-        $body .= '<h2>Sign in</h2>';
-        $body .= '<p>Use a runtime local OWASYS user. Credentials are generated locally and are not committed to Git.</p>';
+        $body .= '<h2>Sign in</h2><p>Use a runtime local OWASYS user. Credentials are generated locally and are not committed to Git.</p>';
         if ($loginError !== null) {
             $body .= '<p class="ow-login-error">' . $h($loginError) . '</p>';
         }
         if (!is_file($authStoreFile)) {
             $body .= '<p class="ow-login-warning">Runtime user store missing. Run <code>php tools\\owasys_auth_bootstrap_local_user.php</code> from the OPUS root.</p>';
         }
-        $body .= '<form method="post" class="ow-login-form">';
-        $body .= '<input type="hidden" name="owasys_action" value="password-signin">';
-        $body .= '<label>Username<input name="owasys_username" autocomplete="username" required></label>';
-        $body .= '<label>Password<input name="owasys_password" type="password" autocomplete="current-password" required></label>';
-        $body .= '<button class="ow-button" type="submit">Sign in</button>';
-        $body .= '</form>';
+        $body .= '<form method="post" class="ow-login-form"><input type="hidden" name="owasys_action" value="password-signin"><label>Username<input name="owasys_username" autocomplete="username" required></label><label>Password<input name="owasys_password" type="password" autocomplete="current-password" required></label><button class="ow-button" type="submit">Sign in</button></form>';
     }
     $body .= '</section>';
 }
-
 if ($state === 'account') {
-    $body .= '<section class="ow-card ow-auth-panel">';
-    $body .= '<h2>Change password</h2>';
-    $body .= '<p>Update the runtime password for the current OWASYS user. This is required for bootstrap users before accessing the dashboard.</p>';
+    $body .= '<section class="ow-card ow-auth-panel"><h2>Change password</h2><p>Update the runtime password for the current OWASYS user. This is required for bootstrap users before accessing the dashboard.</p>';
     if ($mustChangePassword) {
         $body .= '<p class="ow-login-warning">Password change required before continuing.</p>';
     }
     if ($passwordChangeError !== null) {
         $body .= '<p class="ow-login-error">' . $h($passwordChangeError) . '</p>';
     }
-    $body .= '<form method="post" class="ow-password-form">';
-    $body .= '<input type="hidden" name="owasys_action" value="change-password">';
-    $body .= '<label>Current password<input name="owasys_current_password" type="password" autocomplete="current-password" required></label>';
-    $body .= '<label>New password<input name="owasys_new_password" type="password" autocomplete="new-password" minlength="10" required></label>';
-    $body .= '<label>Confirm new password<input name="owasys_confirm_password" type="password" autocomplete="new-password" minlength="10" required></label>';
-    $body .= '<button class="ow-button" type="submit">Change password</button>';
-    $body .= '</form>';
-    $body .= '</section>';
+    $body .= '<form method="post" class="ow-password-form"><input type="hidden" name="owasys_action" value="change-password"><label>Current password<input name="owasys_current_password" type="password" autocomplete="current-password" required></label><label>New password<input name="owasys_new_password" type="password" autocomplete="new-password" minlength="10" required></label><label>Confirm new password<input name="owasys_confirm_password" type="password" autocomplete="new-password" minlength="10" required></label><button class="ow-button" type="submit">Change password</button></form></section>';
 }
-
 if ($state === 'registry') {
     $entries = (array) ($page['registry_entries'] ?? []);
-    $body .= '<section class="ow-card ow-context-panel">';
-    $body .= '<h2>Application context</h2>';
+    $body .= '<section class="ow-card ow-context-panel"><h2>' . $h($t('registry.application_context', 'Application context')) . '</h2>';
     if ($registryActionError !== null) {
         $body .= '<p class="ow-login-error">' . $h($registryActionError) . '</p>';
     }
-    $body .= '<p>Select an existing OPUS application to edit it, or start the creation flow for a new one.</p>';
-    $body .= $renderAppTags($currentApp);
+    $body .= '<p>' . $h($t('registry.select_instruction', 'Select an existing OPUS application to edit it, or start the creation flow for a new one.')) . '</p>' . $renderAppTags($currentApp);
     if ($currentApp !== null) {
-        $body .= '<form method="post" class="ow-inline-form"><input type="hidden" name="owasys_action" value="clear-app-context"><button class="ow-button ow-button-secondary" type="submit">Clear current context</button></form>';
+        $body .= '<form method="post" class="ow-inline-form"><input type="hidden" name="owasys_action" value="clear-app-context"><button class="ow-button ow-button-secondary" type="submit">' . $h($t('registry.clear_current_context', 'Clear current context')) . '</button></form>';
     }
-    $body .= '</section>';
-    $body .= $renderAppTree($entries, $currentApp);
-
+    $body .= '</section>' . $renderAppTree($entries, $currentApp);
+    $body .= '<section class="ow-card"><h2>' . $h($t('registry.runtime_sqlite', 'Runtime SQLite context')) . '</h2><div class="ow-tags"><span>' . $h($t('registry.database', 'Registry database')) . ': ' . $h((string) ($page['registry_database'] ?? $registryDatabaseRelative)) . '</span><span>' . $h($t('registry.sync_total', 'Synchronized applications')) . ': ' . $h((string) ($owasysRegistrySync['total'] ?? '0')) . '</span></div></section>';
     $body .= '<section class="ow-grid ow-registry-grid">';
     foreach ($entries as $entry) {
         if (!is_array($entry)) {
@@ -690,16 +631,8 @@ if ($state === 'registry') {
         }
         $entryId = (string) ($entry['id'] ?? '');
         $isCurrent = $currentApp !== null && (string) ($currentApp['id'] ?? '') === $entryId;
-        $body .= '<article class="ow-card ow-registry-card">';
-        $body .= '<h2>' . $h((string) ($entry['name'] ?? $entryId)) . '</h2>';
-        $body .= '<p>Registered OPUS target: ' . $h((string) ($entry['root_path'] ?? 'unknown')) . '</p>';
-        $body .= $renderAppTags($entry);
-        $body .= '<form method="post" class="ow-inline-form">';
-        $body .= '<input type="hidden" name="owasys_action" value="select-app">';
-        $body .= '<input type="hidden" name="owasys_app_id" value="' . $h($entryId) . '">';
-        $body .= '<button class="ow-button" type="submit">' . ($isCurrent ? 'Current app' : 'Work on this app') . '</button>';
-        $body .= '</form>';
-        $body .= '</article>';
+        $body .= '<article class="ow-card ow-registry-card"><h2>' . $h((string) ($entry['name'] ?? $entryId)) . '</h2><p>' . $h($t('registry.registered_target', 'Registered OPUS target')) . ': ' . $h((string) ($entry['root_path'] ?? 'unknown')) . '</p>' . $renderAppTags($entry);
+        $body .= '<form method="post" class="ow-inline-form"><input type="hidden" name="owasys_action" value="select-app"><input type="hidden" name="owasys_app_id" value="' . $h($entryId) . '"><button class="ow-button" type="submit">' . $h($isCurrent ? $t('registry.current_application', 'Current application') : $t('registry.work_on_this_app', 'Work on this app')) . '</button></form></article>';
     }
     $body .= '</section>';
 }
@@ -708,14 +641,9 @@ $cards = $state === 'registry' ? [] : (array) ($page['cards'] ?? []);
 if ($cards !== []) {
     $body .= '<section class="ow-grid">';
     foreach ($cards as $card) {
-        if (!is_array($card)) {
-            continue;
+        if (is_array($card)) {
+            $body .= '<article class="ow-card"><h2>' . $h((string) ($card['title'] ?? '')) . '</h2><p>' . $h((string) ($card['body'] ?? '')) . '</p>' . $renderList((array) ($card['items'] ?? [])) . '</article>';
         }
-        $body .= '<article class="ow-card">';
-        $body .= '<h2>' . $h((string) ($card['title'] ?? '')) . '</h2>';
-        $body .= '<p>' . $h((string) ($card['body'] ?? '')) . '</p>';
-        $body .= $renderList((array) ($card['items'] ?? []));
-        $body .= '</article>';
     }
     $body .= '</section>';
 } elseif ($state !== 'registry') {
@@ -725,32 +653,24 @@ if ($cards !== []) {
     }
     $body .= '</section>';
 }
-
 if (!empty($page['contracts'])) {
-    $body .= '<section class="ow-card"><h2>Contracts</h2><div class="ow-tags">';
+    $body .= '<section class="ow-card"><h2>' . $h($t('common.contracts', 'Contracts')) . '</h2><div class="ow-tags">';
     foreach ((array) $page['contracts'] as $contract) {
         $body .= '<span>' . $h((string) $contract) . '</span>';
     }
     $body .= '</div></section>';
 }
-
 if (!empty($page['actions'])) {
-    $body .= '<section class="ow-card"><h2>Next actions</h2>';
-    $body .= $renderList((array) $page['actions']);
-    $body .= '</section>';
+    $body .= '<section class="ow-card"><h2>' . $h($t('common.next_actions', 'Next actions')) . '</h2>' . $renderList((array) $page['actions']) . '</section>';
 }
-
 if ($isAuthenticated && isset($statesById[$state])) {
     $_SESSION['owasys_current_state'] = $state;
 }
-
 $body .= '</main></div>';
 
 echo '<!doctype html>'
-    . '<html lang="fr">'
-    . '<head>'
-    . '<meta charset="utf-8">'
-    . '<meta name="viewport" content="width=device-width,initial-scale=1">'
+    . '<html lang="' . $h($locale) . '">'
+    . '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
     . '<title>' . $h((string) ($page['title'] ?? 'OWASYS')) . ' — OWASYS</title>'
     . '<link rel="stylesheet" href="' . $h($asset('/asset/css/owasys.css')) . '">'
     . '<link rel="stylesheet" href="' . $h($asset('/asset/themes/owasys/css/theme.css')) . '">'
