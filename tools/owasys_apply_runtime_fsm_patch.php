@@ -30,7 +30,9 @@ $replaceIfMissing = static function (string $haystack, string $marker, string $n
 
 $front = $replaceIfMissing(
     $front,
-    'use Opus\\Fsm\\FsmSiteLoader;',
+    <<<'PHP'
+use Opus\Fsm\FsmSiteLoader;
+PHP,
     <<<'PHP'
 declare(strict_types=1);
 
@@ -48,7 +50,9 @@ PHP,
 
 $front = $replaceIfMissing(
     $front,
-    '$opusRoot = dirname(dirname($siteRoot));',
+    <<<'PHP'
+$opusRoot = dirname(dirname($siteRoot));
+PHP,
     <<<'PHP'
 $siteRoot = dirname(__DIR__);
 $configFile = $siteRoot . '/config/routes.json';
@@ -70,7 +74,9 @@ PHP,
 
 $front = $replaceIfMissing(
     $front,
-    "$owasysFsmProcessor = FsmSiteLoader::processorForSite($opusRoot, 'owasys');",
+    <<<'PHP'
+$owasysFsmProcessor = FsmSiteLoader::processorForSite($opusRoot, 'owasys');
+PHP,
     <<<'PHP'
 if (!is_array($fsmConfig) || ($fsmConfig['contract'] ?? null) !== 'OWASYS_NAVIGATION_FSM_V1') {
     http_response_code(500);
@@ -102,7 +108,9 @@ PHP,
 
 $front = $replaceIfMissing(
     $front,
-    'OWASYS_RUNTIME_FSM_TRANSITION_ROUTE_MISSING',
+    <<<'PHP'
+OWASYS_RUNTIME_FSM_TRANSITION_ROUTE_MISSING
+PHP,
     <<<'PHP'
 foreach ((array) ($fsmConfig['states'] ?? []) as $state) {
     if (!is_array($state)) {
@@ -165,7 +173,9 @@ PHP,
 
 $front = $replaceIfMissing(
     $front,
-    "transition($runtimeCurrentState(), 'logout'",
+    <<<'PHP'
+transition($runtimeCurrentState(), 'logout'
+PHP,
     <<<'PHP'
 if ($path === '/logout') {
     unset($_SESSION['owasys_user'], $_SESSION['owasys_current_app']);
@@ -186,7 +196,9 @@ PHP,
 
 $front = $replaceIfMissing(
     $front,
-    "transition('login', 'login_success'",
+    <<<'PHP'
+transition('login', 'login_success'
+PHP,
     <<<'PHP'
             $redirect(($_SESSION['owasys_user']['must_change_password'] ?? false) === true ? '/account/password' : '/applications');
 PHP,
@@ -201,7 +213,9 @@ PHP,
 
 $front = $replaceIfMissing(
     $front,
-    "transition('account', 'password_changed'",
+    <<<'PHP'
+transition('account', 'password_changed'
+PHP,
     <<<'PHP'
         $_SESSION['owasys_user']['password_changed_at'] = $candidate['password_changed_at'];
         $redirect('/applications');
@@ -216,7 +230,9 @@ PHP,
 
 $front = $replaceIfMissing(
     $front,
-    "transition('registry', 'select_app'",
+    <<<'PHP'
+transition('registry', 'select_app'
+PHP,
     <<<'PHP'
 if ($state === 'registry' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     $action = (string) ($_POST['owasys_action'] ?? '');
@@ -279,7 +295,9 @@ PHP,
 
 $front = $replaceIfMissing(
     $front,
-    '$_SESSION[\'owasys_current_state\'] = $state;',
+    <<<'PHP'
+$_SESSION['owasys_current_state'] = $state;
+PHP,
     <<<'PHP'
 $body .= '</main></div>';
 
