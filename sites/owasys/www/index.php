@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use Opus\Fsm\FsmSiteLoader;
+use Opus\Owasys\ApplicationInspector;
 use Opus\Owasys\RegistryRepository;
 
 /**
@@ -115,6 +116,7 @@ $registrySeedFile = $siteRoot . '/' . $registrySeedRelative;
 try {
     $owasysRegistryRepository = RegistryRepository::forOwasysSite($siteRoot, $opusRoot, $registryDatabaseRelative);
     $owasysRegistrySync = $owasysRegistryRepository->synchronize($registrySeedFile);
+    $owasysApplicationInspector = ApplicationInspector::forOpusRoot($opusRoot);
 } catch (Throwable $exception) {
     http_response_code(500);
     echo 'OWASYS_RUNTIME_REGISTRY_INVALID';
@@ -414,6 +416,17 @@ if ($isAuthenticated && $requiresCurrentApp && $currentApp === null) {
     $redirectAfterTransition($transition);
 }
 
+$currentApplicationInspection = null;
+if ($isAuthenticated && $state === 'structure' && is_array($currentApp)) {
+    try {
+        $currentApplicationInspection = $owasysApplicationInspector->inspectEntry($currentApp);
+    } catch (Throwable $exception) {
+        http_response_code(500);
+        echo 'OWASYS_APPLICATION_INSPECTION_INVALID';
+        exit;
+    }
+}
+
 $menu = [];
 foreach ($routesConfig['routes'] as $candidateRoute) {
     if (is_array($candidateRoute) && ($candidateRoute['show_in_menu'] ?? false) === true) {
@@ -425,13 +438,17 @@ $asset = static fn (string $assetPath): string => $mount . '/' . ltrim($assetPat
 $pageTitle = $t('state.' . $state . '.title');
 $pageSummary = $t('state.default.summary');
 
-$renderList = static function (array $items) use ($h): string {
+$renderList = static function (array $items) use ($h, $t): string {
     if ($items === []) {
         return '';
     }
     $html = '<ul>';
     foreach ($items as $item) {
-        $html .= '<li>' . $h((string) $item) . '</li>';
+        $label = (string) $item;
+        if (str_contains($label, '.')) {
+            $label = $t($label);
+        }
+        $html .= '<li>' . $h($label) . '</li>';
     }
     return $html . '</ul>';
 };
@@ -501,6 +518,39 @@ $renderEvents = static function (array $events) use ($h, $t): string {
         $eventLabelKey = 'registry.events.' . $eventType;
         $label = $t($eventLabelKey) !== $eventLabelKey ? $t($eventLabelKey) : $eventType;
         $html .= '<span>' . $h($t('registry.events.type') . ': ' . $label . ' · ' . $t('registry.events.application') . ': ' . (string) ($event['application_id'] ?? '') . ' · ' . $t('registry.events.created_at') . ': ' . (string) ($event['created_at'] ?? '')) . '</span>';
+    }
+    return $html . '</div></section>';
+};
+$renderInspection = static function (array $inspection) use ($h, $t): string {
+    $html = '<section class="ow-card" data-context="OWASYS_APPLICATION_INSPECTION">';
+    $html .= '<h2>' . $h($t('inspection.title')) . '</h2>';
+    $html .= '<p class="ow-muted">' . $h($t('inspection.description')) . '</p>';
+    $html .= '<div class="ow-tags">';
+    foreach ([
+        $t('common.id') . ': ' . (string) ($inspection['site_id'] ?? ''),
+        $t('common.root') . ': ' . (string) ($inspection['root_path'] ?? ''),
+        $t('common.contract') . ': ' . (string) ($inspection['inspection_contract'] ?? ''),
+        $t('common.fsm') . ': ' . (string) ($inspection['fsm_relative_path'] ?? ''),
+        $t('common.states') . ': ' . (string) ($inspection['state_count'] ?? '0'),
+        $t('common.routes') . ': ' . (string) ($inspection['route_count'] ?? '0'),
+        $t('inspection.transitions') . ': ' . (string) ($inspection['transition_count'] ?? '0'),
+    ] as $item) {
+        $html .= '<span>' . $h($item) . '</span>';
+    }
+    $html .= '</div>';
+    $html .= '<h3>' . $h($t('inspection.states')) . '</h3><div class="ow-tags">';
+    foreach ((array) ($inspection['states'] ?? []) as $stateRow) {
+        if (!is_array($stateRow)) {
+            continue;
+        }
+        $html .= '<span>' . $h((string) ($stateRow['id'] ?? '') . ' · ' . (string) ($stateRow['directory'] ?? '')) . '</span>';
+    }
+    $html .= '</div><h3>' . $h($t('inspection.routes')) . '</h3><div class="ow-tags">';
+    foreach ((array) ($inspection['routes'] ?? []) as $routeRow) {
+        if (!is_array($routeRow)) {
+            continue;
+        }
+        $html .= '<span>' . $h((string) ($routeRow['path'] ?? '') . ' → ' . (string) ($routeRow['state'] ?? '') . ' · ' . (string) ($routeRow['view'] ?? '')) . '</span>';
     }
     return $html . '</div></section>';
 };
@@ -652,7 +702,10 @@ if ($state === 'registry') {
     }
     $body .= '</section>';
 }
-if (!in_array($state, ['registry', 'login', 'account'], true)) {
+if ($state === 'structure' && is_array($currentApplicationInspection)) {
+    $body .= $renderInspection($currentApplicationInspection);
+}
+if (!in_array($state, ['registry', 'login', 'account', 'structure'], true)) {
     $body .= '<section class="ow-grid"><article class="ow-card"><h2>' . $h($t('state.default.section')) . '</h2><p class="ow-muted">' . $h($t('state.default.summary')) . '</p></article></section>';
 }
 if (!empty($page['contracts'])) {
@@ -662,8 +715,8 @@ if (!empty($page['contracts'])) {
     }
     $body .= '</div></section>';
 }
-if (!empty($page['actions'])) {
-    $body .= '<section class="ow-card"><h2>' . $h($t('common.next_actions')) . '</h2>' . $renderList((array) $page['actions']) . '</section>';
+if (!empty($page['action_keys']) && is_array($page['action_keys'])) {
+    $body .= '<section class="ow-card"><h2>' . $h($t('common.next_actions')) . '</h2>' . $renderList((array) $page['action_keys']) . '</section>';
 }
 if ($isAuthenticated && isset($statesById[$state])) {
     $_SESSION['owasys_current_state'] = $state;
