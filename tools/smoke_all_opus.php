@@ -9,6 +9,8 @@ $run = static function (array $arguments) use ($root): void {
         $command .= ' ' . escapeshellarg($argument);
     }
 
+    echo 'OPUS_SMOKE_ALL_RUNNING: ' . implode(' ', $arguments) . "\n";
+
     $output = [];
     $code = 0;
     exec($command . ' 2>&1', $output, $code);
