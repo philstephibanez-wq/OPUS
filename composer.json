@@ -51,6 +51,7 @@
         "owasys:smoke-registry-sqlite": "@php tools/smoke_owasys_registry_sqlite.php",
         "owasys:smoke-runtime-context-sqlite": "@php tools/smoke_owasys_runtime_context_sqlite.php",
         "owasys:smoke-application-inspector": "@php tools/smoke_owasys_application_inspector.php",
+        "owasys:smoke-structure-actions": "@php tools/smoke_owasys_structure_actions.php",
         "owasys:smoke-registry-naming": "@php tools/smoke_owasys_registry_naming.php",
         "owasys:smoke-navigation-fsm": "@php tools/smoke_owasys_navigation_fsm.php",
         "owasys:smoke-showcase-blueprint": "@php tools/smoke_owasys_showcase_blueprint.php",
