@@ -70,7 +70,6 @@ $smokes = [
     ['tools/smoke_owasys_registry_naming.php'],
     ['tools/smoke_owasys_navigation_fsm.php'],
     ['tools/smoke_owasys_runtime_fsm.php'],
-    ['tools/smoke_owasys_runtime_fsm_http.php'],
     ['tools/smoke_owasys_login_password.php'],
     ['tools/smoke_owasys_showcase_blueprint.php'],
     ['tools/smoke_owasys_scaffold_plan_builder.php'],
@@ -95,4 +94,5 @@ foreach ($smokes as $smoke) {
     $run($arguments);
 }
 
+echo "OWASYS_RUNTIME_FSM_HTTP_SMOKE_SEPARATE\n";
 echo "OPUS_SMOKE_ALL_OK\n";
