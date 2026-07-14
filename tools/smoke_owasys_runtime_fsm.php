@@ -41,6 +41,7 @@ $requiredMarkers = [
     'transition(\'registry\', \'select_app\'',
     'transition(\'registry\', \'clear_app_context\'',
     'transition(\'registry\', \'create_new_app\'',
+    'transition($state, \'change_app\'',
     '$_SESSION[\'owasys_current_state\'] = $state;',
 ];
 foreach ($requiredMarkers as $needle) {
@@ -63,7 +64,7 @@ foreach ($forbiddenRedirects as $forbidden) {
 }
 
 $patcher = (string) file_get_contents($patcherFile);
-foreach (['OWASYS_RUNTIME_FSM_PATCH_OK', 'OWASYS_RUNTIME_FSM_PATCH_NOOP', 'OWASYS_RUNTIME_FSM_REGISTRY_REPLACE_FAILED'] as $needle) {
+foreach (['OWASYS_RUNTIME_FSM_PATCH_OK', 'OWASYS_RUNTIME_FSM_PATCH_NOOP', 'OWASYS_RUNTIME_FSM_REGISTRY_REPLACE_FAILED', 'OWASYS_RUNTIME_FSM_CURRENT_APP_GUARD_REPLACE_FAILED'] as $needle) {
     if (!str_contains($patcher, $needle)) {
         fwrite(STDERR, "OWASYS_RUNTIME_FSM_PATCHER_MARKER_MISSING: {$needle}\n");
         exit(1);
