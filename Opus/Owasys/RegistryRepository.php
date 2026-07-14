@@ -161,6 +161,67 @@ final class RegistryRepository
         }
     }
 
+    /**
+     * Persist a controlled validation action for the currently selected application.
+     *
+     * @param array<string,mixed> $entry
+     * @param array<string,mixed> $inspection
+     * @return array<string,mixed>
+     */
+    public function recordStructureValidation(array $entry, array $inspection, ?string $actorId = null): array
+    {
+        $applicationId = (string) ($inspection['site_id'] ?? ($entry['id'] ?? ''));
+        if ($applicationId === '') {
+            throw new RuntimeException('OWASYS_STRUCTURE_VALIDATION_APPLICATION_ID_MISSING');
+        }
+        if (($inspection['inspection_contract'] ?? null) !== ApplicationInspector::CONTRACT) {
+            throw new RuntimeException('OWASYS_STRUCTURE_VALIDATION_INSPECTION_CONTRACT_INVALID');
+        }
+
+        $db = $this->open();
+        try {
+            $this->ensureSchema($db);
+            $registryEntry = [
+                'id' => $applicationId,
+                'slug' => $applicationId,
+                'name' => (string) ($inspection['site_name'] ?? ($entry['name'] ?? $applicationId)),
+                'kind' => (string) ($inspection['kind'] ?? ($entry['kind'] ?? 'fullstack')),
+                'root_path' => (string) ($inspection['root_path'] ?? ($entry['root_path'] ?? ('sites/' . $applicationId))),
+                'public_root' => (string) ($inspection['public_root'] ?? ($entry['public_root'] ?? 'www')),
+                'default_locale' => (string) ($inspection['default_locale'] ?? ($entry['default_locale'] ?? 'fr')),
+                'theme' => (string) ($inspection['theme'] ?? ($entry['theme'] ?? 'default')),
+                'status' => 'validated',
+                'blueprint' => (string) ($inspection['blueprint'] ?? ($entry['blueprint'] ?? 'unknown')),
+                'generated_by' => (string) ($inspection['generated_by'] ?? ($entry['generated_by'] ?? 'unknown')),
+                'role' => (string) ($inspection['role'] ?? ($entry['role'] ?? 'standard-opus-application')),
+            ];
+            $this->upsertApplication($db, $registryEntry, 'inspection');
+
+            $result = [
+                'contract' => 'OWASYS_STRUCTURE_VALIDATION_RESULT_V1',
+                'status' => 'valid',
+                'application_id' => $applicationId,
+                'validated_at' => gmdate('c'),
+                'validated_by' => (string) ($actorId ?? 'runtime'),
+                'state_count' => (int) ($inspection['state_count'] ?? 0),
+                'route_count' => (int) ($inspection['route_count'] ?? 0),
+                'transition_count' => (int) ($inspection['transition_count'] ?? 0),
+                'inspection_contract' => (string) ($inspection['inspection_contract'] ?? ''),
+                'fsm_contract' => (string) ($inspection['fsm_contract'] ?? ''),
+            ];
+            $this->setContextValue($db, 'last_structure_validation', $result);
+            $this->recordEventOnDb($db, $applicationId, 'validate_application', [
+                'actor_id' => $actorId,
+                'result' => $result,
+                'inspection' => $inspection,
+            ]);
+        } finally {
+            $db->close();
+        }
+
+        return $result;
+    }
+
     public function logout(?string $actorId = null): void
     {
         $db = $this->open();
