@@ -4,16 +4,22 @@ declare(strict_types=1);
 $root = dirname(__DIR__);
 $frontFile = $root . DIRECTORY_SEPARATOR . 'sites' . DIRECTORY_SEPARATOR . 'owasys' . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php';
 $patcherFile = $root . DIRECTORY_SEPARATOR . 'tools' . DIRECTORY_SEPARATOR . 'owasys_apply_runtime_fsm_patch.php';
+$httpSmokeFile = $root . DIRECTORY_SEPARATOR . 'tools' . DIRECTORY_SEPARATOR . 'smoke_owasys_runtime_fsm_http.php';
 $composerFile = $root . DIRECTORY_SEPARATOR . 'composer.json';
 
-foreach ([$frontFile, $patcherFile, $composerFile] as $file) {
+foreach ([$frontFile, $httpSmokeFile, $composerFile] as $file) {
     if (!is_file($file)) {
         fwrite(STDERR, "OWASYS_RUNTIME_FSM_REQUIRED_FILE_MISSING: {$file}\n");
         exit(1);
     }
 }
 
-foreach ([$frontFile, $patcherFile] as $file) {
+if (is_file($patcherFile)) {
+    fwrite(STDERR, "OWASYS_RUNTIME_FSM_PATCHER_STILL_PRESENT\n");
+    exit(1);
+}
+
+foreach ([$frontFile, $httpSmokeFile] as $file) {
     $output = [];
     $code = 0;
     exec(PHP_BINARY . ' -l ' . escapeshellarg($file) . ' 2>&1', $output, $code);
@@ -63,10 +69,10 @@ foreach ($forbiddenRedirects as $forbidden) {
     }
 }
 
-$patcher = (string) file_get_contents($patcherFile);
-foreach (['OWASYS_RUNTIME_FSM_PATCH_OK', 'OWASYS_RUNTIME_FSM_PATCH_NOOP', 'OWASYS_RUNTIME_FSM_REGISTRY_REPLACE_FAILED', 'OWASYS_RUNTIME_FSM_CURRENT_APP_GUARD_REPLACE_FAILED'] as $needle) {
-    if (!str_contains($patcher, $needle)) {
-        fwrite(STDERR, "OWASYS_RUNTIME_FSM_PATCHER_MARKER_MISSING: {$needle}\n");
+$httpSmoke = (string) file_get_contents($httpSmokeFile);
+foreach (['OWASYS_RUNTIME_FSM_HTTP_SMOKE_OK', 'OWASYS_RUNTIME_FSM_HTTP_LOGIN_REDIRECT_INVALID', 'OWASYS_RUNTIME_FSM_HTTP_SELECT_APP_REDIRECT_INVALID'] as $needle) {
+    if (!str_contains($httpSmoke, $needle)) {
+        fwrite(STDERR, "OWASYS_RUNTIME_FSM_HTTP_MARKER_MISSING: {$needle}\n");
         exit(1);
     }
 }
@@ -77,12 +83,16 @@ if (!is_array($composer)) {
     exit(1);
 }
 $scripts = is_array($composer['scripts'] ?? null) ? $composer['scripts'] : [];
-if (($scripts['owasys:apply-runtime-fsm-patch'] ?? null) !== '@php tools/owasys_apply_runtime_fsm_patch.php') {
-    fwrite(STDERR, "OWASYS_RUNTIME_FSM_COMPOSER_PATCHER_SCRIPT_MISSING\n");
+if (array_key_exists('owasys:apply-runtime-fsm-patch', $scripts)) {
+    fwrite(STDERR, "OWASYS_RUNTIME_FSM_COMPOSER_PATCHER_SCRIPT_STILL_PRESENT\n");
     exit(1);
 }
 if (($scripts['owasys:smoke-runtime-fsm'] ?? null) !== '@php tools/smoke_owasys_runtime_fsm.php') {
     fwrite(STDERR, "OWASYS_RUNTIME_FSM_COMPOSER_SMOKE_SCRIPT_MISSING\n");
+    exit(1);
+}
+if (($scripts['owasys:smoke-runtime-fsm-http'] ?? null) !== '@php tools/smoke_owasys_runtime_fsm_http.php') {
+    fwrite(STDERR, "OWASYS_RUNTIME_FSM_COMPOSER_HTTP_SMOKE_SCRIPT_MISSING\n");
     exit(1);
 }
 
