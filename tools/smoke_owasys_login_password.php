@@ -42,37 +42,30 @@ if (($auth['mode'] ?? null) !== 'runtime-password-store') {
     fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_MODE_INVALID\n");
     exit(1);
 }
-
 if (($auth['user_store'] ?? null) !== 'var/auth/local-users.json') {
     fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_USER_STORE_INVALID\n");
     exit(1);
 }
-
 if (($auth['committed_passwords_allowed'] ?? null) !== false) {
     fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_COMMITTED_PASSWORDS_ALLOWED\n");
     exit(1);
 }
-
 if (($auth['protected_routes'] ?? null) !== 'all_except_anonymous_routes') {
     fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_PROTECTED_ROUTES_INVALID\n");
     exit(1);
 }
-
 if (($auth['anonymous_routes'] ?? null) !== ['/login']) {
     fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_ANONYMOUS_ROUTES_INVALID\n");
     exit(1);
 }
-
 if (($auth['password_change_route'] ?? null) !== '/account/password') {
     fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_CHANGE_ROUTE_INVALID\n");
     exit(1);
 }
-
 if (($auth['must_change_password_on_bootstrap'] ?? null) !== true) {
     fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_BOOTSTRAP_MUST_CHANGE_INVALID\n");
     exit(1);
 }
-
 if (($auth['minimum_password_length'] ?? null) !== 10) {
     fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_MINIMUM_LENGTH_INVALID\n");
     exit(1);
@@ -107,7 +100,6 @@ foreach ([
         exit(1);
     }
 }
-
 foreach (['password_hash_required', 'plain_text_passwords_forbidden', 'committed_credentials_forbidden'] as $field) {
     if (($localCredentials[$field] ?? null) !== true) {
         fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_SECURITY_BOOLEAN_INVALID: {$field}\n");
@@ -120,11 +112,14 @@ foreach ([
     'password-signin',
     'owasys_username',
     'owasys_password',
-    'Username<input name="owasys_username"',
-    'Password<input name="owasys_password" type="password"',
+    'auth.username',
+    'auth.password_field',
+    'auth.sign_in',
+    'auth.error.required_credentials',
+    'auth.error.invalid_credentials',
     'password_verify',
     'OWASYS_LOCAL_USER_STORE_V1',
-    'Runtime user store missing',
+    'auth.runtime_store_missing',
     '$anonymousRoutes = [\'/login\'];',
     'if (!$isAuthenticated && !in_array($path, $anonymousRoutes, true))',
     '$redirect(\'/login\');',
@@ -135,7 +130,7 @@ foreach ([
     'owasys_new_password',
     'owasys_confirm_password',
     'OWASYS_PASSWORD_CHANGE_ACTION_INVALID',
-    'New password must contain at least 10 characters.',
+    'auth.error.new_password_too_short',
     'minlength="10"',
     'application/states',
     'state-first',
@@ -146,9 +141,9 @@ foreach ([
     }
 }
 
-foreach (['local-dev-signin', 'Start local dev session', 'at least 12 characters', 'minlength="12"'] as $forbidden) {
+foreach (['Username<input', 'Password<input', 'New password must contain at least 10 characters.', 'Runtime user store missing. Run', 'local-dev-signin', 'Start local dev session', 'at least 12 characters', 'minlength="12"'] as $forbidden) {
     if (str_contains($front, $forbidden)) {
-        fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_FORBIDDEN_BOOTSTRAP_MARKER_PRESENT: {$forbidden}\n");
+        fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_FORBIDDEN_FRONT_MARKER_PRESENT: {$forbidden}\n");
         exit(1);
     }
 }
@@ -160,7 +155,6 @@ foreach (['runtime-password-store', 'username and password', 'OWASYS_LOCAL_USER_
         exit(1);
     }
 }
-
 $account = (string) file_get_contents($accountView);
 foreach (['Account password', 'must_change_password', 'OWASYS_LOCAL_USER_STORE_V1', 'at least 10 characters'] as $needle) {
     if (!str_contains($account, $needle)) {
@@ -176,7 +170,6 @@ foreach (['.ow-login-form input', '.ow-password-form input', '.ow-auth-warning',
         exit(1);
     }
 }
-
 $js = (string) file_get_contents($jsFile);
 foreach (['owasysPasswordToggle', 'ow-password-eye', 'Afficher le mot de passe', 'Masquer le mot de passe', "input[type=\"password\"]"] as $needle) {
     if (!str_contains($js, $needle)) {
@@ -184,7 +177,6 @@ foreach (['owasysPasswordToggle', 'ow-password-eye', 'Afficher le mot de passe',
         exit(1);
     }
 }
-
 $bootstrap = (string) file_get_contents($bootstrapTool);
 foreach (['password_hash($password, PASSWORD_DEFAULT)', 'OWASYS_LOCAL_USER_STORE_V1', 'OWASYS_AUTH_BOOTSTRAP_USER_OK', 'must_change_password', 'OWASYS_AUTH_BOOTSTRAP_MUST_CHANGE_PASSWORD'] as $needle) {
     if (!str_contains($bootstrap, $needle)) {
@@ -192,20 +184,17 @@ foreach (['password_hash($password, PASSWORD_DEFAULT)', 'OWASYS_LOCAL_USER_STORE
         exit(1);
     }
 }
-
 foreach (['ChangeMe', 'password123', 'admin123'] as $forbidden) {
     if (str_contains($bootstrap, $forbidden) || str_contains($front, $forbidden) || str_contains($login, $forbidden) || str_contains($account, $forbidden)) {
         fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_FORBIDDEN_SAMPLE_PASSWORD_PRESENT\n");
         exit(1);
     }
 }
-
 $gitignore = (string) file_get_contents($gitignoreFile);
 if (!str_contains($gitignore, '/sites/*/var/') || !str_contains($gitignore, '*.sqlite')) {
     fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_GITIGNORE_RUNTIME_STATE_INVALID\n");
     exit(1);
 }
-
 $scripts = is_array($composer['scripts'] ?? null) ? $composer['scripts'] : [];
 if (($scripts['owasys:auth-bootstrap'] ?? null) !== '@php tools/owasys_auth_bootstrap_local_user.php') {
     fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_COMPOSER_BOOTSTRAP_SCRIPT_MISSING\n");
