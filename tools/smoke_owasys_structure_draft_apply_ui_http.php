@@ -162,6 +162,26 @@ function owasys_structure_apply_ui_http_assert_redirect(array $response, string 
     }
 }
 
+function owasys_structure_apply_ui_http_stop_server(mixed $server): void
+{
+    if (!is_resource($server)) {
+        return;
+    }
+    $status = proc_get_status($server);
+    $pid = is_array($status) ? (int) ($status['pid'] ?? 0) : 0;
+    @proc_terminate($server);
+    if ($pid > 0) {
+        if (DIRECTORY_SEPARATOR === '\\') {
+            @exec('taskkill /F /T /PID ' . $pid . ' 2>NUL');
+        } else {
+            @exec('kill -TERM ' . $pid . ' 2>/dev/null');
+            usleep(100000);
+            @exec('kill -KILL ' . $pid . ' 2>/dev/null');
+        }
+    }
+    @proc_close($server);
+}
+
 foreach ([$publicRoot, $sourceSiteRoot] as $requiredDir) {
     if (!is_dir($requiredDir)) {
         fwrite(STDERR, "OWASYS_STRUCTURE_APPLY_UI_HTTP_REQUIRED_DIR_MISSING: {$requiredDir}\n");
@@ -197,7 +217,6 @@ if ($hadRuntimeStore && !copy($runtimeStore, $backup)) {
 }
 
 $server = null;
-$pipes = [];
 $port = 20180 + random_int(0, 900);
 $baseUrl = 'http://127.0.0.1:' . $port;
 
@@ -297,8 +316,9 @@ PHP;
         throw new RuntimeException('OWASYS_STRUCTURE_APPLY_UI_HTTP_ROUTER_WRITE_FAILED');
     }
 
+    $nullDevice = DIRECTORY_SEPARATOR === '\\' ? 'NUL' : '/dev/null';
     $command = PHP_BINARY . ' -S 127.0.0.1:' . $port . ' -t ' . escapeshellarg($publicRoot) . ' ' . escapeshellarg($router);
-    $server = proc_open($command, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, $root);
+    $server = proc_open($command, [0 => ['file', $nullDevice, 'r'], 1 => ['file', $nullDevice, 'w'], 2 => ['file', $nullDevice, 'w']], $pipes, $root);
     if (!is_resource($server)) {
         throw new RuntimeException('OWASYS_STRUCTURE_APPLY_UI_HTTP_SERVER_START_FAILED');
     }
@@ -366,15 +386,7 @@ PHP;
         throw new RuntimeException("OWASYS_STRUCTURE_APPLY_UI_HTTP_VALIDATE_SITE_FAILED\n" . implode("\n", $output));
     }
 } finally {
-    if (is_resource($server)) {
-        proc_terminate($server);
-        foreach ($pipes as $pipe) {
-            if (is_resource($pipe)) {
-                fclose($pipe);
-            }
-        }
-        proc_close($server);
-    }
+    owasys_structure_apply_ui_http_stop_server($server);
     if ($hadRuntimeStore && is_file($backup)) {
         @copy($backup, $runtimeStore);
     } elseif (!$hadRuntimeStore && is_file($runtimeStore)) {
