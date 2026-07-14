@@ -24,7 +24,7 @@ foreach ([$frontFile, $patcherFile] as $file) {
 }
 
 $front = (string) file_get_contents($frontFile);
-foreach ([
+$requiredMarkers = [
     'use Opus\\Fsm\\FsmSiteLoader;',
     '$opusRoot = dirname(dirname($siteRoot));',
     'OWASYS_COMPOSER_AUTOLOAD_MISSING',
@@ -34,22 +34,28 @@ foreach ([
     'OWASYS_RUNTIME_FSM_TRANSITION_ROUTE_MISSING',
     '$runtimeCurrentState = static function',
     '$redirectAfterTransition = static function',
-    "transition($runtimeCurrentState(), 'logout'",
-    "transition('login', 'password_change_required'",
-    "transition('login', 'login_success'",
-    "transition('account', 'password_changed'",
-    "transition('registry', 'select_app'",
-    "transition('registry', 'clear_app_context'",
-    "transition('registry', 'create_new_app'",
-    "$_SESSION['owasys_current_state'] = $state;",
-] as $needle) {
+    'transition($runtimeCurrentState(), \'logout\'',
+    'transition(\'login\', \'password_change_required\'',
+    'transition(\'login\', \'login_success\'',
+    'transition(\'account\', \'password_changed\'',
+    'transition(\'registry\', \'select_app\'',
+    'transition(\'registry\', \'clear_app_context\'',
+    'transition(\'registry\', \'create_new_app\'',
+    '$_SESSION[\'owasys_current_state\'] = $state;',
+];
+foreach ($requiredMarkers as $needle) {
     if (!str_contains($front, $needle)) {
         fwrite(STDERR, "OWASYS_RUNTIME_FSM_FRONT_MARKER_MISSING: {$needle}\n");
         exit(1);
     }
 }
 
-foreach (["$redirect('/structure')", "$redirect('/applications')", "$redirect('/build')"] as $forbidden) {
+$forbiddenRedirects = [
+    '$redirect(\'/structure\')',
+    '$redirect(\'/applications\')',
+    '$redirect(\'/build\')',
+];
+foreach ($forbiddenRedirects as $forbidden) {
     if (str_contains($front, $forbidden)) {
         fwrite(STDERR, "OWASYS_RUNTIME_FSM_FORBIDDEN_DIRECT_REDIRECT_PRESENT: {$forbidden}\n");
         exit(1);
