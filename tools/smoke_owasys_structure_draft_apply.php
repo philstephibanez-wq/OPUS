@@ -7,6 +7,7 @@ use Opus\Owasys\ApplicationInspector;
 use Opus\Owasys\RegistryRepository;
 use Opus\Owasys\StructureDraftApplier;
 use Opus\Owasys\StructureDraftRepository;
+use Opus\Owasys\StructureDraftWritePlanner;
 
 $root = dirname(__DIR__);
 $owasysSiteRoot = $root . DIRECTORY_SEPARATOR . 'sites' . DIRECTORY_SEPARATOR . 'owasys';
@@ -79,7 +80,11 @@ function owasys_structure_apply_write_json(string $file, array $value): void
     }
 }
 
-foreach ([__FILE__, $root . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Owasys' . DIRECTORY_SEPARATOR . 'StructureDraftApplier.php'] as $file) {
+foreach ([
+    __FILE__,
+    $root . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Owasys' . DIRECTORY_SEPARATOR . 'StructureDraftApplier.php',
+    $root . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Owasys' . DIRECTORY_SEPARATOR . 'StructureDraftWritePlanner.php',
+] as $file) {
     if (!is_file($file)) {
         fwrite(STDERR, "OWASYS_STRUCTURE_DRAFT_APPLY_REQUIRED_FILE_MISSING: {$file}\n");
         exit(1);
@@ -143,6 +148,13 @@ try {
     if (($result['state_id'] ?? null) !== 'support' || ($result['route_path'] ?? null) !== '/support') {
         throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_SMOKE_RESULT_TARGET_INVALID');
     }
+    $serverPlan = is_array($result['server_write_plan'] ?? null) ? $result['server_write_plan'] : [];
+    if (($serverPlan['contract'] ?? null) !== StructureDraftWritePlanner::CONTRACT || ($serverPlan['status'] ?? null) !== 'ready' || ($serverPlan['disk_mutation'] ?? true) !== false) {
+        throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_SMOKE_SERVER_PLAN_NOT_CONFIRMED');
+    }
+    if (count((array) ($serverPlan['files'] ?? [])) < 5) {
+        throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_SMOKE_SERVER_PLAN_INCOMPLETE');
+    }
 
     $supportRoot = $smokeSiteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'states' . DIRECTORY_SEPARATOR . 'support';
     $supportView = $supportRoot . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php';
@@ -172,7 +184,7 @@ try {
         throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_SMOKE_EVENT_NOT_PERSISTED');
     }
     $applyContext = $registry->runtimeValue('last_structure_apply');
-    if (!is_array($applyContext) || ($applyContext['state_id'] ?? null) !== 'support') {
+    if (!is_array($applyContext) || ($applyContext['state_id'] ?? null) !== 'support' || ($applyContext['server_write_plan']['status'] ?? null) !== 'ready') {
         throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_SMOKE_CONTEXT_NOT_PERSISTED');
     }
     $recent = $draftRepository->recentDrafts($smokeSiteId, 1);
@@ -194,6 +206,29 @@ try {
     exec(PHP_BINARY . ' ' . escapeshellarg($root . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'opus') . ' validate:site ' . escapeshellarg($smokeSiteId) . ' 2>&1', $output, $code);
     if ($code !== 0 || !in_array('OPUS_VALIDATE_SITE_OK: ' . $smokeSiteId, $output, true)) {
         throw new RuntimeException("OWASYS_STRUCTURE_DRAFT_APPLY_SMOKE_VALIDATE_SITE_FAILED\n" . implode("\n", $output));
+    }
+
+    $blockedInspection = $inspector->inspectEntry($entry);
+    $blockedDraft = $draftRepository->prepareAddStateDraft($entry, $blockedInspection, [
+        'state_id' => 'blockedapply',
+        'route_path' => '/blockedapply',
+        'title_key' => 'state.blockedapply.title',
+        'event_name' => 'open_blockedapply',
+    ], 'apply-smoke');
+    $blockedRoot = $smokeSiteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'states' . DIRECTORY_SEPARATOR . 'blockedapply';
+    if (!is_dir($blockedRoot) && !mkdir($blockedRoot, 0775, true) && !is_dir($blockedRoot)) {
+        throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_SMOKE_BLOCKED_ROOT_CREATE_FAILED');
+    }
+    try {
+        $applier->applyAddStateDraft($entry, (int) $blockedDraft['id'], 'apply-smoke');
+        throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_SMOKE_BLOCKED_PLAN_ACCEPTED');
+    } catch (RuntimeException $exception) {
+        if (!str_contains($exception->getMessage(), 'OWASYS_STRUCTURE_DRAFT_APPLY_SERVER_PLAN_BLOCKED')) {
+            throw $exception;
+        }
+    }
+    if ($registry->eventCount('apply_structure_draft') !== 1) {
+        throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_SMOKE_BLOCKED_PLAN_MUTATED_RUNTIME');
     }
 } catch (Throwable $exception) {
     fwrite(STDERR, $exception->getMessage() . "\n");
