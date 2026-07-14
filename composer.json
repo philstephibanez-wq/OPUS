@@ -31,6 +31,7 @@
         "opus:list-routes": "@php bin/opus list:routes",
         "opus:create-page": "@php bin/opus create:page",
         "opus:create-rubric": "@php bin/opus create:rubric",
+        "opus:smoke-all": "@php tools/smoke_all_opus.php",
         "opus:smoke-site-contract": "@php tools/smoke_opus_site_contract_eternal.php",
         "opus:smoke-fsm-contract": "@php tools/smoke_opus_fsm_contract.php",
         "opus:smoke-fsm-processor": "@php tools/smoke_opus_fsm_processor.php",
