@@ -240,8 +240,20 @@ PHP;
     }
 
     $structure = owasys_runtime_fsm_http_request($baseUrl, 'GET', '/structure', '', $cookie);
-    if (($structure['status'] ?? 0) !== 200 || !str_contains((string) ($structure['body'] ?? ''), 'OWASYS_CURRENT_APP_CONTEXT')) {
+    if (($structure['status'] ?? 0) !== 200 || !str_contains((string) ($structure['body'] ?? ''), 'OWASYS_CURRENT_APP_CONTEXT') || !str_contains((string) ($structure['body'] ?? ''), 'OWASYS_APPLICATION_INSPECTION')) {
         throw new RuntimeException('OWASYS_RUNTIME_FSM_HTTP_STRUCTURE_RENDER_INVALID');
+    }
+
+    $structureValidation = owasys_runtime_fsm_http_request($baseUrl, 'POST', '/structure', http_build_query(['owasys_action' => 'validate-current-application']), $cookie);
+    if (($structureValidation['status'] ?? 0) !== 200 || !str_contains((string) ($structureValidation['body'] ?? ''), 'OWASYS_STRUCTURE_ACTION_RESULT')) {
+        throw new RuntimeException('OWASYS_RUNTIME_FSM_HTTP_STRUCTURE_ACTION_RENDER_INVALID');
+    }
+    if ((int) owasys_runtime_fsm_http_sqlite_value($registryDatabase, "SELECT COUNT(*) FROM owasys_application_events WHERE event_type = 'validate_application'") !== 1) {
+        throw new RuntimeException('OWASYS_RUNTIME_FSM_HTTP_STRUCTURE_ACTION_EVENT_NOT_PERSISTED');
+    }
+    $validationJson = (string) owasys_runtime_fsm_http_sqlite_value($registryDatabase, "SELECT value_json FROM owasys_runtime_context WHERE key = 'last_structure_validation'");
+    if (!str_contains($validationJson, 'demo-app') || !str_contains($validationJson, 'OWASYS_STRUCTURE_VALIDATION_RESULT_V1')) {
+        throw new RuntimeException('OWASYS_RUNTIME_FSM_HTTP_STRUCTURE_ACTION_CONTEXT_NOT_PERSISTED');
     }
 
     $logout = owasys_runtime_fsm_http_request($baseUrl, 'GET', '/logout', '', $cookie);
