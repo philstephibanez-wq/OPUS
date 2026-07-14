@@ -296,6 +296,25 @@ PHP,
 $front = $replaceIfMissing(
     $front,
     <<<'PHP'
+transition($state, 'change_app'
+PHP,
+    <<<'PHP'
+if ($isAuthenticated && $requiresCurrentApp && $currentApp === null) {
+    $redirect('/applications');
+}
+PHP,
+    <<<'PHP'
+if ($isAuthenticated && $requiresCurrentApp && $currentApp === null) {
+    $transition = $owasysFsmProcessor->transition($state, 'change_app');
+    $redirectAfterTransition($transition);
+}
+PHP,
+    'OWASYS_RUNTIME_FSM_CURRENT_APP_GUARD_REPLACE_FAILED'
+);
+
+$front = $replaceIfMissing(
+    $front,
+    <<<'PHP'
 $_SESSION['owasys_current_state'] = $state;
 PHP,
     <<<'PHP'
