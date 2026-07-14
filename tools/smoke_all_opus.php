@@ -92,7 +92,6 @@ $smokes = [
     ['tools/smoke_owasys_structure_drafts.php'],
     ['tools/smoke_owasys_structure_draft_ui.php'],
     ['tools/smoke_owasys_structure_draft_apply.php'],
-    ['tools/smoke_owasys_structure_draft_apply_ui_http.php'],
     ['tools/smoke_owasys_registry_naming.php'],
     ['tools/smoke_owasys_navigation_fsm.php'],
     ['tools/smoke_owasys_runtime_fsm.php'],
@@ -120,5 +119,6 @@ foreach ($smokes as $smoke) {
     $run($arguments);
 }
 
+echo "OWASYS_STRUCTURE_DRAFT_APPLY_UI_HTTP_SMOKE_SEPARATE\n";
 echo "OWASYS_RUNTIME_FSM_HTTP_SMOKE_SEPARATE\n";
 echo "OPUS_SMOKE_ALL_OK\n";
