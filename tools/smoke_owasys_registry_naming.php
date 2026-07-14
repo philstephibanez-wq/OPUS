@@ -2,6 +2,8 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__);
+require $root . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+
 $siteRoot = $root . DIRECTORY_SEPARATOR . 'sites' . DIRECTORY_SEPARATOR . 'owasys';
 
 $siteFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'site.json';
@@ -9,18 +11,36 @@ $routesFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR .
 $seedFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'registry.seed.json';
 $fsmFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'owasys-navigation.fsm.json';
 $registryView = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'states' . DIRECTORY_SEPARATOR . 'registry' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'index.php';
+$registryRepositoryFile = $root . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Owasys' . DIRECTORY_SEPARATOR . 'RegistryRepository.php';
 $frontFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php';
 $cssFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'asset' . DIRECTORY_SEPARATOR . 'css' . DIRECTORY_SEPARATOR . 'owasys.css';
 $jsFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'asset' . DIRECTORY_SEPARATOR . 'js' . DIRECTORY_SEPARATOR . 'owasys.js';
+$registrySmokeDatabaseRelative = 'var/registry/owasys-registry-naming-smoke.sqlite';
+$registrySmokeDatabase = $siteRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $registrySmokeDatabaseRelative);
 
-foreach ([$siteFile, $routesFile, $seedFile, $fsmFile, $registryView, $frontFile, $cssFile, $jsFile] as $requiredFile) {
+function owasys_registry_naming_remove_runtime_database(string $databasePath): void
+{
+    @unlink($databasePath);
+    @unlink($databasePath . '-shm');
+    @unlink($databasePath . '-wal');
+    $registryDir = dirname($databasePath);
+    if (is_dir($registryDir) && count(scandir($registryDir) ?: []) === 2) {
+        @rmdir($registryDir);
+    }
+    $varDir = dirname($registryDir);
+    if (is_dir($varDir) && count(scandir($varDir) ?: []) === 2) {
+        @rmdir($varDir);
+    }
+}
+
+foreach ([$siteFile, $routesFile, $seedFile, $fsmFile, $registryView, $registryRepositoryFile, $frontFile, $cssFile, $jsFile] as $requiredFile) {
     if (!is_file($requiredFile)) {
         fwrite(STDERR, "OWASYS_REGISTRY_NAMING_REQUIRED_FILE_MISSING: {$requiredFile}\n");
         exit(1);
     }
 }
 
-foreach ([$registryView, $frontFile] as $lintFile) {
+foreach ([$registryRepositoryFile, $registryView, $frontFile] as $lintFile) {
     $lintCommand = PHP_BINARY . ' -l ' . escapeshellarg($lintFile) . ' 2>&1';
     $lintOutput = [];
     $lintCode = 0;
@@ -123,9 +143,34 @@ if (!$matched) {
     exit(1);
 }
 
-$page = require $registryView;
+$registryViewSource = (string) file_get_contents($registryView);
+foreach (['RegistryRepository::forOwasysSite', 'OWASYS_REGISTRY_SQLITE_V1', 'registry_sync', 'registry_database'] as $needle) {
+    if (!str_contains($registryViewSource, $needle)) {
+        fwrite(STDERR, "OWASYS_REGISTRY_NAMING_SQLITE_VIEW_MARKER_MISSING: {$needle}\n");
+        exit(1);
+    }
+}
+
+owasys_registry_naming_remove_runtime_database($registrySmokeDatabase);
+$owasysRegistryDatabaseRelative = $registrySmokeDatabaseRelative;
+try {
+    $page = require $registryView;
+} finally {
+    owasys_registry_naming_remove_runtime_database($registrySmokeDatabase);
+}
 if (!is_array($page)) {
     fwrite(STDERR, "OWASYS_REGISTRY_NAMING_VIEW_MODEL_INVALID\n");
+    exit(1);
+}
+
+$sync = is_array($page['registry_sync'] ?? null) ? $page['registry_sync'] : [];
+if (($sync['contract'] ?? null) !== 'OWASYS_REGISTRY_SQLITE_V1' || ($page['registry_database'] ?? null) !== $registrySmokeDatabaseRelative) {
+    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_SQLITE_SYNC_INVALID\n");
+    exit(1);
+}
+$contracts = is_array($page['contracts'] ?? null) ? $page['contracts'] : [];
+if (!in_array('OWASYS_REGISTRY_SQLITE_V1', $contracts, true)) {
+    fwrite(STDERR, "OWASYS_REGISTRY_NAMING_SQLITE_CONTRACT_MISSING\n");
     exit(1);
 }
 
