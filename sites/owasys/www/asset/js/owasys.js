@@ -38,6 +38,47 @@ document.addEventListener('DOMContentLoaded', () => {
     wrapper.appendChild(button);
   });
 
+  document.querySelectorAll('[data-context="OWASYS_STRUCTURE_APPLY_DRAFT_FORM"]').forEach((form) => {
+    if (!(form instanceof HTMLFormElement) || form.dataset.owasysWritePlanAttached === '1') {
+      return;
+    }
+    const container = form.closest('span');
+    if (!container) {
+      return;
+    }
+    const text = container.textContent || '';
+    const stateMatch = text.match(/(?:état|state)\s*:\s*([a-z0-9_-]+)/i);
+    const stateId = stateMatch && stateMatch[1] ? stateMatch[1] : 'unknown';
+    if (stateId === 'unknown') {
+      return;
+    }
+    const locale = (document.documentElement.getAttribute('lang') || 'fr').toLowerCase();
+    const localeFile = locale === 'en' ? 'application/default/local/en.php' : 'application/default/local/fr.php';
+    const files = [
+      'config/routes.json',
+      'config/application.fsm.json',
+      'config/fsm.json',
+      `application/states/${stateId}/views/index.php`,
+      `application/states/${stateId}/templates/index.score`,
+      localeFile
+    ];
+    const plan = document.createElement('div');
+    plan.className = 'ow-write-plan';
+    plan.dataset.context = 'OWASYS_STRUCTURE_WRITE_PLAN';
+    const title = document.createElement('strong');
+    title.textContent = 'OWASYS_STRUCTURE_WRITE_PLAN';
+    const list = document.createElement('ul');
+    files.forEach((file) => {
+      const item = document.createElement('li');
+      item.textContent = file;
+      list.appendChild(item);
+    });
+    plan.appendChild(title);
+    plan.appendChild(list);
+    container.insertBefore(plan, form);
+    form.dataset.owasysWritePlanAttached = '1';
+  });
+
   if (window.mermaid) {
     window.mermaid.initialize({
       startOnLoad: true,
