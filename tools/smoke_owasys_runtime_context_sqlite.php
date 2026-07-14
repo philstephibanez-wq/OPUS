@@ -85,6 +85,19 @@ try {
     if ($repository->eventCount('logout') !== 1 || $repository->eventCount() < 5) {
         throw new RuntimeException('OWASYS_RUNTIME_CONTEXT_LOGOUT_EVENT_MISSING');
     }
+
+    $recent = $repository->recentEvents(3);
+    if (count($recent) !== 3 || ($recent[0]['event_type'] ?? null) !== 'logout') {
+        throw new RuntimeException('OWASYS_RUNTIME_CONTEXT_RECENT_EVENTS_INVALID');
+    }
+    try {
+        $repository->recentEvents(0);
+        throw new RuntimeException('OWASYS_RUNTIME_CONTEXT_BAD_RECENT_LIMIT_NOT_REJECTED');
+    } catch (RuntimeException $exception) {
+        if (!str_starts_with($exception->getMessage(), 'OWASYS_RUNTIME_EVENT_LIMIT_INVALID:')) {
+            throw $exception;
+        }
+    }
 } finally {
     owasys_runtime_context_sqlite_cleanup($databasePath);
 }
