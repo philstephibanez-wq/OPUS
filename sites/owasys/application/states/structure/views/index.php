@@ -8,12 +8,14 @@ return [
     'summary_key' => 'state.default.summary',
     'contracts' => [
         'OWASYS_APPLICATION_INSPECTION_V1',
+        'OWASYS_STRUCTURE_VALIDATION_RESULT_V1',
         'OPUS_ROUTE_REGISTRY_V1',
         'OPUS_APPLICATION_FSM_V1',
         'OPUS_SITE_APPLICATION_TREE_V1_ETERNAL',
     ],
     'action_keys' => [
         'inspection.action.validate',
+        'inspection.action.validate_now',
         'inspection.action.open_registry',
     ],
 ];
