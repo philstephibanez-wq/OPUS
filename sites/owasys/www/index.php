@@ -4,6 +4,7 @@ declare(strict_types=1);
 use Opus\Fsm\FsmSiteLoader;
 use Opus\Owasys\ApplicationInspector;
 use Opus\Owasys\RegistryRepository;
+use Opus\Owasys\StructureDraftApplier;
 use Opus\Owasys\StructureDraftRepository;
 
 /**
@@ -104,9 +105,11 @@ $mermaidLabel = static function (string $value): string {
 };
 
 $registryConfig = is_array($siteConfig['registry'] ?? null) ? $siteConfig['registry'] : [];
-$registrySeedRelative = trim(str_replace('\\', '/', (string) ($registryConfig['seed'] ?? 'config/registry.seed.json')), '/');
+$registrySeedRelative = isset($owasysRegistrySeedRelative) && is_string($owasysRegistrySeedRelative)
+    ? trim(str_replace('\\', '/', $owasysRegistrySeedRelative), '/')
+    : trim(str_replace('\\', '/', (string) ($registryConfig['seed'] ?? 'config/registry.seed.json')), '/');
 $registryDatabaseRelative = isset($owasysRegistryDatabaseRelative) && is_string($owasysRegistryDatabaseRelative)
-    ? $owasysRegistryDatabaseRelative
+    ? trim(str_replace('\\', '/', $owasysRegistryDatabaseRelative), '/')
     : trim(str_replace('\\', '/', (string) ($registryConfig['runtime_database'] ?? 'var/registry/owasys.sqlite')), '/');
 if ($registrySeedRelative === '' || str_contains($registrySeedRelative, '..') || $registryDatabaseRelative === '' || str_contains($registryDatabaseRelative, '..')) {
     http_response_code(500);
@@ -119,6 +122,7 @@ try {
     $owasysRegistrySync = $owasysRegistryRepository->synchronize($registrySeedFile);
     $owasysApplicationInspector = ApplicationInspector::forOpusRoot($opusRoot);
     $owasysStructureDraftRepository = StructureDraftRepository::forRegistry($owasysRegistryRepository);
+    $owasysStructureDraftApplier = StructureDraftApplier::forOpusRoot($opusRoot, $owasysRegistryRepository);
 } catch (Throwable $exception) {
     http_response_code(500);
     echo 'OWASYS_RUNTIME_REGISTRY_INVALID';
@@ -132,7 +136,6 @@ if ($authStoreRelative === '' || str_contains($authStoreRelative, '..')) {
     exit;
 }
 $authStoreFile = $siteRoot . '/' . $authStoreRelative;
-
 $readRuntimeStore = static function (string $storeFile): array {
     if (!is_file($storeFile)) {
         return ['contract' => 'OWASYS_LOCAL_USER_STORE_V1', 'committed' => false, 'users' => []];
@@ -231,6 +234,7 @@ $passwordChangeErrorKey = null;
 $registryActionErrorKey = null;
 $structureActionResult = null;
 $structureDraftResult = null;
+$structureApplyResult = null;
 $structureActionErrorKey = null;
 
 if ($path === '/logout') {
@@ -295,8 +299,7 @@ if ($isAuthenticated && $path === '/account/password' && ($_SERVER['REQUEST_METH
     $confirmPassword = (string) ($_POST['owasys_confirm_password'] ?? '');
     $userId = (string) ($user['id'] ?? '');
     $store = $readRuntimeStore($authStoreFile);
-    $users = is_array($store['users'] ?? null) ? $store['users'] : [];
-    $candidate = is_array($users[$userId] ?? null) ? $users[$userId] : null;
+    $candidate = is_array($store['users'][$userId] ?? null) ? $store['users'][$userId] : null;
     $passwordHash = is_array($candidate) ? (string) ($candidate['password_hash'] ?? '') : '';
     if ($candidate === null || $passwordHash === '') {
         $passwordChangeErrorKey = 'auth.error.runtime_user_missing';
@@ -381,10 +384,11 @@ $findRegistryEntry = static function (array $entries, string $id): ?array {
 };
 
 if ($state === 'registry' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+    $entries = $owasysRegistryRepository->entries();
     $action = (string) ($_POST['owasys_action'] ?? '');
     if ($action === 'select-app') {
         $appId = trim((string) ($_POST['owasys_app_id'] ?? ''));
-        $entry = $findRegistryEntry((array) ($page['registry_entries'] ?? []), $appId);
+        $entry = $findRegistryEntry($entries, $appId);
         if ($entry === null) {
             $registryActionErrorKey = 'registry.error.selected_application_not_registered';
         } else {
@@ -439,6 +443,13 @@ if ($isAuthenticated && $state === 'structure' && is_array($currentApp)) {
                     'title_key' => (string) ($_POST['owasys_title_key'] ?? ''),
                     'event_name' => (string) ($_POST['owasys_event_name'] ?? ''),
                 ], is_array($user) ? (string) ($user['id'] ?? '') : null);
+            } elseif ($action === 'apply-structure-draft') {
+                $draftId = filter_var($_POST['owasys_draft_id'] ?? null, FILTER_VALIDATE_INT);
+                if (!is_int($draftId) || $draftId < 1) {
+                    throw new RuntimeException('OWASYS_STRUCTURE_APPLY_DRAFT_ID_INVALID');
+                }
+                $structureApplyResult = $owasysStructureDraftApplier->applyAddStateDraft($currentApp, $draftId, is_array($user) ? (string) ($user['id'] ?? '') : null);
+                $currentApplicationInspection = $owasysApplicationInspector->inspectEntry($currentApp);
             } else {
                 http_response_code(400);
                 echo 'OWASYS_STRUCTURE_ACTION_INVALID';
@@ -502,12 +513,8 @@ $renderAppTree = static function (array $entries, ?array $currentApp) use ($h, $
         $kind = (string) ($entry['kind'] ?? 'fullstack');
         $groups[array_key_exists($kind, $groups) ? $kind : 'fullstack'][] = $entry;
     }
-    $html = '<section class="ow-card ow-app-tree" data-context="OWASYS_REGISTRY_APP_TREE">';
-    $html .= '<h2>' . $h($t('registry.application_tree')) . '</h2>';
-    $html .= '<p class="ow-muted">' . $h($t('registry.tree_help')) . '</p>';
-    $html .= '<div class="ow-tree-root"><strong>' . $h($t('brand.name')) . '</strong>';
-    $html .= '<form method="post" class="ow-inline-form"><input type="hidden" name="owasys_action" value="create-new-app"><button class="ow-button" type="submit">' . $h($t('registry.create_new_application')) . '</button></form>';
-    $html .= '</div><div class="ow-tree-branches">';
+    $html = '<section class="ow-card ow-app-tree" data-context="OWASYS_REGISTRY_APP_TREE"><h2>' . $h($t('registry.application_tree')) . '</h2><p class="ow-muted">' . $h($t('registry.tree_help')) . '</p>';
+    $html .= '<div class="ow-tree-root"><strong>' . $h($t('brand.name')) . '</strong><form method="post" class="ow-inline-form"><input type="hidden" name="owasys_action" value="create-new-app"><button class="ow-button" type="submit">' . $h($t('registry.create_new_application')) . '</button></form></div><div class="ow-tree-branches">';
     foreach ($groups as $kind => $apps) {
         $html .= '<div class="ow-tree-kind"><h3>' . $h($kind) . '</h3>';
         if ($apps === []) {
@@ -516,13 +523,7 @@ $renderAppTree = static function (array $entries, ?array $currentApp) use ($h, $
         foreach ($apps as $entry) {
             $entryId = (string) ($entry['id'] ?? '');
             $isCurrent = $currentApp !== null && (string) ($currentApp['id'] ?? '') === $entryId;
-            $html .= '<form method="post" class="ow-tree-app' . ($isCurrent ? ' is-current' : '') . '">';
-            $html .= '<input type="hidden" name="owasys_action" value="select-app">';
-            $html .= '<input type="hidden" name="owasys_app_id" value="' . $h($entryId) . '">';
-            $html .= '<button type="submit"><strong>' . $h((string) ($entry['name'] ?? $entryId)) . '</strong>';
-            $html .= '<span>' . $h((string) ($entry['root_path'] ?? $t('common.unknown'))) . '</span>';
-            $html .= '<em>' . $h($isCurrent ? $t('registry.current_context') : $t('registry.click_to_work_on_this_app')) . '</em>';
-            $html .= '</button></form>';
+            $html .= '<form method="post" class="ow-tree-app' . ($isCurrent ? ' is-current' : '') . '"><input type="hidden" name="owasys_action" value="select-app"><input type="hidden" name="owasys_app_id" value="' . $h($entryId) . '"><button type="submit"><strong>' . $h((string) ($entry['name'] ?? $entryId)) . '</strong><span>' . $h((string) ($entry['root_path'] ?? $t('common.unknown'))) . '</span><em>' . $h($isCurrent ? $t('registry.current_context') : $t('registry.click_to_work_on_this_app')) . '</em></button></form>';
         }
         $html .= '</div>';
     }
@@ -545,13 +546,16 @@ $renderEvents = static function (array $events) use ($h, $t): string {
     }
     return $html . '</div></section>';
 };
-$renderDrafts = static function (array $drafts, ?array $draftResult = null, ?string $errorKey = null) use ($h, $t): string {
+$renderDrafts = static function (array $drafts, ?array $draftResult = null, ?array $applyResult = null, ?string $errorKey = null) use ($h, $t): string {
     $html = '<section class="ow-card" data-context="OWASYS_STRUCTURE_DRAFTS_RECENT"><h2>' . $h($t('draft.recent_title')) . '</h2>';
     if ($errorKey !== null) {
         $html .= '<p class="ow-login-error">' . $h($t($errorKey)) . '</p>';
     }
     if ($draftResult !== null) {
         $html .= '<div class="ow-tags" data-context="OWASYS_STRUCTURE_DRAFT_RESULT"><span>' . $h($t('draft.result')) . ': ' . $h((string) ($draftResult['state_id'] ?? '')) . '</span><span>' . $h($t('draft.route')) . ': ' . $h((string) ($draftResult['route_path'] ?? '')) . '</span><span>' . $h($t('draft.disk_mutation_false')) . '</span></div>';
+    }
+    if ($applyResult !== null) {
+        $html .= '<div class="ow-tags" data-context="OWASYS_STRUCTURE_APPLY_RESULT"><span>' . $h($t('draft.apply_result')) . ': ' . $h((string) ($applyResult['state_id'] ?? '')) . '</span><span>' . $h($t('draft.applied_at')) . ': ' . $h((string) ($applyResult['applied_at'] ?? '')) . '</span><span>' . $h($t('draft.disk_mutation_true')) . '</span></div>';
     }
     if ($drafts === []) {
         return $html . '<p class="ow-muted">' . $h($t('draft.empty')) . '</p></section>';
@@ -561,20 +565,22 @@ $renderDrafts = static function (array $drafts, ?array $draftResult = null, ?str
         if (!is_array($draft)) {
             continue;
         }
-        $html .= '<span>' . $h($t('draft.state') . ': ' . (string) ($draft['state_id'] ?? '') . ' · ' . $t('draft.route') . ': ' . (string) ($draft['route_path'] ?? '') . ' · ' . $t('draft.event') . ': ' . (string) ($draft['event_name'] ?? '')) . '</span>';
+        $draftId = (int) ($draft['id'] ?? 0);
+        $html .= '<span>' . $h($t('draft.id') . ': ' . (string) $draftId . ' · ' . $t('draft.status') . ': ' . (string) ($draft['status'] ?? '') . ' · ' . $t('draft.state') . ': ' . (string) ($draft['state_id'] ?? '') . ' · ' . $t('draft.route') . ': ' . (string) ($draft['route_path'] ?? '') . ' · ' . $t('draft.event') . ': ' . (string) ($draft['event_name'] ?? ''));
+        if (($draft['status'] ?? null) === 'draft' && $draftId > 0) {
+            $html .= '<form method="post" class="ow-inline-form" data-context="OWASYS_STRUCTURE_APPLY_DRAFT_FORM"><input type="hidden" name="owasys_action" value="apply-structure-draft"><input type="hidden" name="owasys_draft_id" value="' . $h((string) $draftId) . '"><button class="ow-button" type="submit">' . $h($t('draft.apply')) . '</button></form>';
+        }
+        $html .= '</span>';
     }
     return $html . '</div></section>';
 };
-$renderInspection = static function (array $inspection, ?array $actionResult = null, ?array $draftResult = null, array $drafts = [], ?string $errorKey = null) use ($h, $t, $renderDrafts): string {
-    $html = '<section class="ow-card" data-context="OWASYS_APPLICATION_INSPECTION">';
-    $html .= '<h2>' . $h($t('inspection.title')) . '</h2>';
-    $html .= '<p class="ow-muted">' . $h($t('inspection.description')) . '</p>';
+$renderInspection = static function (array $inspection, ?array $actionResult = null, ?array $draftResult = null, ?array $applyResult = null, array $drafts = [], ?string $errorKey = null) use ($h, $t, $renderDrafts): string {
+    $html = '<section class="ow-card" data-context="OWASYS_APPLICATION_INSPECTION"><h2>' . $h($t('inspection.title')) . '</h2><p class="ow-muted">' . $h($t('inspection.description')) . '</p>';
     if ($actionResult !== null) {
         $html .= '<div class="ow-tags" data-context="OWASYS_STRUCTURE_ACTION_RESULT"><span>' . $h($t('inspection.validation_result')) . ': ' . $h($t('inspection.validation_valid')) . '</span><span>' . $h($t('inspection.validated_at')) . ': ' . $h((string) ($actionResult['validated_at'] ?? '')) . '</span><span>' . $h($t('inspection.validated_by')) . ': ' . $h((string) ($actionResult['validated_by'] ?? '')) . '</span></div>';
     }
     $html .= '<form method="post" class="ow-inline-form"><input type="hidden" name="owasys_action" value="validate-current-application"><button class="ow-button" type="submit">' . $h($t('inspection.action.validate_now')) . '</button></form>';
-    $html .= '<section class="ow-card" data-context="OWASYS_STRUCTURE_ADD_STATE_DRAFT_FORM"><h3>' . $h($t('draft.add_state_title')) . '</h3><p class="ow-muted">' . $h($t('draft.description')) . '</p>';
-    $html .= '<form method="post" class="ow-password-form"><input type="hidden" name="owasys_action" value="prepare-add-state-draft"><label>' . $h($t('draft.state_id')) . '<input name="owasys_state_id" value="faq" required></label><label>' . $h($t('draft.route_path')) . '<input name="owasys_route_path" value="/faq" required></label><label>' . $h($t('draft.title_key')) . '<input name="owasys_title_key" value="state.faq.title" required></label><label>' . $h($t('draft.event_name')) . '<input name="owasys_event_name" value="open_faq" required></label><button class="ow-button" type="submit">' . $h($t('draft.prepare')) . '</button></form></section>';
+    $html .= '<section class="ow-card" data-context="OWASYS_STRUCTURE_ADD_STATE_DRAFT_FORM"><h3>' . $h($t('draft.add_state_title')) . '</h3><p class="ow-muted">' . $h($t('draft.description')) . '</p><form method="post" class="ow-password-form"><input type="hidden" name="owasys_action" value="prepare-add-state-draft"><label>' . $h($t('draft.state_id')) . '<input name="owasys_state_id" value="faq" required></label><label>' . $h($t('draft.route_path')) . '<input name="owasys_route_path" value="/faq" required></label><label>' . $h($t('draft.title_key')) . '<input name="owasys_title_key" value="state.faq.title" required></label><label>' . $h($t('draft.event_name')) . '<input name="owasys_event_name" value="open_faq" required></label><button class="ow-button" type="submit">' . $h($t('draft.prepare')) . '</button></form></section>';
     $html .= '<div class="ow-tags">';
     foreach ([
         $t('common.id') . ': ' . (string) ($inspection['site_id'] ?? ''),
@@ -587,8 +593,7 @@ $renderInspection = static function (array $inspection, ?array $actionResult = n
     ] as $item) {
         $html .= '<span>' . $h($item) . '</span>';
     }
-    $html .= '</div>';
-    $html .= '<h3>' . $h($t('inspection.states')) . '</h3><div class="ow-tags">';
+    $html .= '</div><h3>' . $h($t('inspection.states')) . '</h3><div class="ow-tags">';
     foreach ((array) ($inspection['states'] ?? []) as $stateRow) {
         if (is_array($stateRow)) {
             $html .= '<span>' . $h((string) ($stateRow['id'] ?? '') . ' · ' . (string) ($stateRow['directory'] ?? '')) . '</span>';
@@ -600,7 +605,7 @@ $renderInspection = static function (array $inspection, ?array $actionResult = n
             $html .= '<span>' . $h((string) ($routeRow['path'] ?? '') . ' → ' . (string) ($routeRow['state'] ?? '') . ' · ' . (string) ($routeRow['view'] ?? '')) . '</span>';
         }
     }
-    return $html . '</div></section>' . $renderDrafts($drafts, $draftResult, $errorKey);
+    return $html . '</div></section>' . $renderDrafts($drafts, $draftResult, $applyResult, $errorKey);
 };
 $buildMermaidDiagram = static function (array $fsm, ?array $app, ?string $currentStateId) use ($link, $mermaidLabel, $t): string {
     $states = [];
@@ -725,7 +730,7 @@ if ($state === 'account') {
     $body .= '<form method="post" class="ow-password-form"><input type="hidden" name="owasys_action" value="change-password"><label>' . $h($t('auth.current_password')) . '<input name="owasys_current_password" type="password" autocomplete="current-password" required></label><label>' . $h($t('auth.new_password')) . '<input name="owasys_new_password" type="password" autocomplete="new-password" minlength="10" required></label><label>' . $h($t('auth.confirm_new_password')) . '<input name="owasys_confirm_password" type="password" autocomplete="new-password" minlength="10" required></label><button class="ow-button" type="submit">' . $h($t('auth.change_password')) . '</button></form></section>';
 }
 if ($state === 'registry') {
-    $entries = (array) ($page['registry_entries'] ?? []);
+    $entries = $owasysRegistryRepository->entries();
     $recentEvents = $owasysRegistryRepository->recentEvents(8);
     $body .= '<section class="ow-card ow-context-panel"><h2>' . $h($t('registry.application_context')) . '</h2>';
     if ($registryActionErrorKey !== null) {
@@ -736,7 +741,7 @@ if ($state === 'registry') {
         $body .= '<form method="post" class="ow-inline-form"><input type="hidden" name="owasys_action" value="clear-app-context"><button class="ow-button ow-button-secondary" type="submit">' . $h($t('registry.clear_current_context')) . '</button></form>';
     }
     $body .= '</section>' . $renderAppTree($entries, $currentApp);
-    $body .= '<section class="ow-card"><h2>' . $h($t('registry.runtime_sqlite')) . '</h2><div class="ow-tags"><span>' . $h($t('registry.database')) . ': ' . $h((string) ($page['registry_database'] ?? $registryDatabaseRelative)) . '</span><span>' . $h($t('registry.sync_total')) . ': ' . $h((string) ($owasysRegistrySync['total'] ?? '0')) . '</span></div></section>';
+    $body .= '<section class="ow-card"><h2>' . $h($t('registry.runtime_sqlite')) . '</h2><div class="ow-tags"><span>' . $h($t('registry.database')) . ': ' . $h($registryDatabaseRelative) . '</span><span>' . $h($t('registry.sync_total')) . ': ' . $h((string) ($owasysRegistrySync['total'] ?? '0')) . '</span></div></section>';
     $body .= $renderEvents($recentEvents);
     $body .= '<section class="ow-grid ow-registry-grid">';
     foreach ($entries as $entry) {
@@ -751,7 +756,7 @@ if ($state === 'registry') {
     $body .= '</section>';
 }
 if ($state === 'structure' && is_array($currentApplicationInspection)) {
-    $body .= $renderInspection($currentApplicationInspection, $structureActionResult, $structureDraftResult, $structureDrafts, $structureActionErrorKey);
+    $body .= $renderInspection($currentApplicationInspection, $structureActionResult, $structureDraftResult, $structureApplyResult, $structureDrafts, $structureActionErrorKey);
 }
 if (!in_array($state, ['registry', 'login', 'account', 'structure'], true)) {
     $body .= '<section class="ow-grid"><article class="ow-card"><h2>' . $h($t('state.default.section')) . '</h2><p class="ow-muted">' . $h($t('state.default.summary')) . '</p></article></section>';
