@@ -227,6 +227,7 @@ $redirectAfterTransition = static function (array $transition) use ($routeForTra
 $loginErrorKey = null;
 $passwordChangeErrorKey = null;
 $registryActionErrorKey = null;
+$structureActionResult = null;
 
 if ($path === '/logout') {
     $transition = $owasysFsmProcessor->transition($runtimeCurrentState(), 'logout');
@@ -420,6 +421,17 @@ $currentApplicationInspection = null;
 if ($isAuthenticated && $state === 'structure' && is_array($currentApp)) {
     try {
         $currentApplicationInspection = $owasysApplicationInspector->inspectEntry($currentApp);
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+            $action = (string) ($_POST['owasys_action'] ?? '');
+            if ($action !== 'validate-current-application') {
+                http_response_code(400);
+                echo 'OWASYS_STRUCTURE_ACTION_INVALID';
+                exit;
+            }
+            $structureActionResult = $owasysRegistryRepository->recordStructureValidation($currentApp, $currentApplicationInspection, is_array($user) ? (string) ($user['id'] ?? '') : null);
+            $currentApp = $owasysRegistryRepository->currentApplication() ?? $currentApp;
+            $_SESSION['owasys_current_app'] = $currentApp;
+        }
     } catch (Throwable $exception) {
         http_response_code(500);
         echo 'OWASYS_APPLICATION_INSPECTION_INVALID';
@@ -521,10 +533,14 @@ $renderEvents = static function (array $events) use ($h, $t): string {
     }
     return $html . '</div></section>';
 };
-$renderInspection = static function (array $inspection) use ($h, $t): string {
+$renderInspection = static function (array $inspection, ?array $actionResult = null) use ($h, $t): string {
     $html = '<section class="ow-card" data-context="OWASYS_APPLICATION_INSPECTION">';
     $html .= '<h2>' . $h($t('inspection.title')) . '</h2>';
     $html .= '<p class="ow-muted">' . $h($t('inspection.description')) . '</p>';
+    if ($actionResult !== null) {
+        $html .= '<div class="ow-tags" data-context="OWASYS_STRUCTURE_ACTION_RESULT"><span>' . $h($t('inspection.validation_result')) . ': ' . $h($t('inspection.validation_valid')) . '</span><span>' . $h($t('inspection.validated_at')) . ': ' . $h((string) ($actionResult['validated_at'] ?? '')) . '</span><span>' . $h($t('inspection.validated_by')) . ': ' . $h((string) ($actionResult['validated_by'] ?? '')) . '</span></div>';
+    }
+    $html .= '<form method="post" class="ow-inline-form"><input type="hidden" name="owasys_action" value="validate-current-application"><button class="ow-button" type="submit">' . $h($t('inspection.action.validate_now')) . '</button></form>';
     $html .= '<div class="ow-tags">';
     foreach ([
         $t('common.id') . ': ' . (string) ($inspection['site_id'] ?? ''),
@@ -703,7 +719,7 @@ if ($state === 'registry') {
     $body .= '</section>';
 }
 if ($state === 'structure' && is_array($currentApplicationInspection)) {
-    $body .= $renderInspection($currentApplicationInspection);
+    $body .= $renderInspection($currentApplicationInspection, $structureActionResult);
 }
 if (!in_array($state, ['registry', 'login', 'account', 'structure'], true)) {
     $body .= '<section class="ow-grid"><article class="ow-card"><h2>' . $h($t('state.default.section')) . '</h2><p class="ow-muted">' . $h($t('state.default.summary')) . '</p></article></section>';
