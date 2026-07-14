@@ -5,6 +5,8 @@ $root = dirname(__DIR__);
 $siteRoot = $root . DIRECTORY_SEPARATOR . 'sites' . DIRECTORY_SEPARATOR . 'owasys';
 $publicRoot = $siteRoot . DIRECTORY_SEPARATOR . 'www';
 $runtimeStore = $siteRoot . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'auth' . DIRECTORY_SEPARATOR . 'local-users.json';
+$registryDatabaseRelative = 'var/registry/owasys-runtime-http-smoke.sqlite';
+$registryDatabase = $siteRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $registryDatabaseRelative);
 $tmpRoot = $root . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'owasys-runtime-http-smoke';
 $router = $tmpRoot . DIRECTORY_SEPARATOR . 'router.php';
 $backup = $tmpRoot . DIRECTORY_SEPARATOR . 'local-users.backup.json';
@@ -32,6 +34,21 @@ function owasys_runtime_fsm_http_remove_tree(string $path): void
         }
     }
     @rmdir($path);
+}
+
+function owasys_runtime_fsm_http_remove_registry_database(string $databasePath): void
+{
+    @unlink($databasePath);
+    @unlink($databasePath . '-shm');
+    @unlink($databasePath . '-wal');
+    $registryDir = dirname($databasePath);
+    if (is_dir($registryDir) && count(scandir($registryDir) ?: []) === 2) {
+        @rmdir($registryDir);
+    }
+    $varDir = dirname($registryDir);
+    if (is_dir($varDir) && count(scandir($varDir) ?: []) === 2) {
+        @rmdir($varDir);
+    }
 }
 
 function owasys_runtime_fsm_http_status(array $headers): int
@@ -137,6 +154,7 @@ foreach ([$siteRoot, $publicRoot] as $requiredDir) {
 }
 
 owasys_runtime_fsm_http_remove_tree($tmpRoot);
+owasys_runtime_fsm_http_remove_registry_database($registryDatabase);
 if (!is_dir($tmpRoot) && !mkdir($tmpRoot, 0775, true) && !is_dir($tmpRoot)) {
     fwrite(STDERR, "OWASYS_RUNTIME_FSM_HTTP_TMP_CREATE_FAILED\n");
     exit(1);
@@ -181,11 +199,13 @@ try {
     }
 
     $publicRootExport = var_export(str_replace('\\', '/', $publicRoot), true);
+    $registryDatabaseExport = var_export($registryDatabaseRelative, true);
     $routerSource = <<<'PHP'
 <?php
 declare(strict_types=1);
 
 $publicRoot = __PUBLIC_ROOT__;
+$owasysRegistryDatabaseRelative = __REGISTRY_DATABASE__;
 $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
 $path = is_string($path) ? rawurldecode($path) : '/';
 $path = '/' . ltrim($path, '/');
@@ -199,7 +219,7 @@ $_SERVER['SCRIPT_FILENAME'] = $publicRoot . '/index.php';
 require $publicRoot . '/index.php';
 return true;
 PHP;
-    $routerSource = str_replace('__PUBLIC_ROOT__', $publicRootExport, $routerSource);
+    $routerSource = str_replace(['__PUBLIC_ROOT__', '__REGISTRY_DATABASE__'], [$publicRootExport, $registryDatabaseExport], $routerSource);
     if (file_put_contents($router, $routerSource) === false) {
         throw new RuntimeException('OWASYS_RUNTIME_FSM_HTTP_ROUTER_WRITE_FAILED');
     }
@@ -246,6 +266,9 @@ PHP;
     if (($registry['status'] ?? 0) !== 200 || !str_contains((string) ($registry['body'] ?? ''), 'OWASYS_REGISTRY_APP_TREE')) {
         throw new RuntimeException('OWASYS_RUNTIME_FSM_HTTP_REGISTRY_RENDER_INVALID');
     }
+    if (!is_file($registryDatabase)) {
+        throw new RuntimeException('OWASYS_RUNTIME_FSM_HTTP_REGISTRY_DATABASE_MISSING');
+    }
     $cookie = (string) ($registry['cookie'] ?? $cookie);
 
     $selectBody = http_build_query([
@@ -281,11 +304,16 @@ PHP;
         }
     }
 
+    owasys_runtime_fsm_http_remove_registry_database($registryDatabase);
     owasys_runtime_fsm_http_remove_tree($tmpRoot);
 }
 
 if (file_exists($tmpRoot)) {
     fwrite(STDERR, "OWASYS_RUNTIME_FSM_HTTP_TMP_CLEANUP_FAILED\n");
+    exit(1);
+}
+if (is_file($registryDatabase)) {
+    fwrite(STDERR, "OWASYS_RUNTIME_FSM_HTTP_REGISTRY_CLEANUP_FAILED\n");
     exit(1);
 }
 
