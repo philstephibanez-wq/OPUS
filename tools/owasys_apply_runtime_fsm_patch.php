@@ -21,78 +21,281 @@ $replaceOnce = static function (string $haystack, string $needle, string $replac
     return str_replace($needle, $replacement, $haystack);
 };
 
-if (!str_contains($front, 'use Opus\\Fsm\\FsmSiteLoader;')) {
-    $front = $replaceOnce(
-        $front,
-        "declare(strict_types=1);\n\n/**",
-        "declare(strict_types=1);\n\nuse Opus\\Fsm\\FsmSiteLoader;\n\n/**",
-        'OWASYS_RUNTIME_FSM_USE_INSERT_FAILED'
-    );
-}
+$replaceIfMissing = static function (string $haystack, string $marker, string $needle, string $replacement, string $error) use ($replaceOnce): string {
+    if (str_contains($haystack, $marker)) {
+        return $haystack;
+    }
+    return $replaceOnce($haystack, $needle, $replacement, $error);
+};
 
-if (!str_contains($front, '$opusRoot = dirname(dirname($siteRoot));')) {
-    $front = $replaceOnce(
-        $front,
-        "$siteRoot = dirname(__DIR__);\n$configFile = $siteRoot . '/config/routes.json';",
-        "$siteRoot = dirname(__DIR__);\n$opusRoot = dirname(dirname($siteRoot));\n$autoload = $opusRoot . '/vendor/autoload.php';\nif (!is_file($autoload)) {\n    http_response_code(500);\n    echo 'OWASYS_COMPOSER_AUTOLOAD_MISSING';\n    exit;\n}\nrequire_once $autoload;\n$configFile = $siteRoot . '/config/routes.json';",
-        'OWASYS_RUNTIME_FSM_AUTOLOAD_INSERT_FAILED'
-    );
-}
-
-if (!str_contains($front, '$owasysFsmProcessor = FsmSiteLoader::processorForSite($opusRoot, \'owasys\');')) {
-    $front = $replaceOnce(
-        $front,
-        "if (!is_array($fsmConfig) || ($fsmConfig['contract'] ?? null) !== 'OWASYS_NAVIGATION_FSM_V1') {\n    http_response_code(500);\n    echo 'OWASYS_NAVIGATION_FSM_INVALID';\n    exit;\n}\n\n$authConfig = is_array($siteConfig['auth'] ?? null) ? $siteConfig['auth'] : [];",
-        "if (!is_array($fsmConfig) || ($fsmConfig['contract'] ?? null) !== 'OWASYS_NAVIGATION_FSM_V1') {\n    http_response_code(500);\n    echo 'OWASYS_NAVIGATION_FSM_INVALID';\n    exit;\n}\n\ntry {\n    $owasysFsmProcessor = FsmSiteLoader::processorForSite($opusRoot, 'owasys');\n} catch (Throwable $exception) {\n    http_response_code(500);\n    echo 'OWASYS_RUNTIME_FSM_PROCESSOR_INVALID';\n    exit;\n}\n\n$authConfig = is_array($siteConfig['auth'] ?? null) ? $siteConfig['auth'] : [];",
-        'OWASYS_RUNTIME_FSM_PROCESSOR_INSERT_FAILED'
-    );
-}
-
-if (!str_contains($front, 'OWASYS_RUNTIME_FSM_TRANSITION_ROUTE_MISSING')) {
-    $front = $replaceOnce(
-        $front,
-        "foreach ((array) ($fsmConfig['states'] ?? []) as $state) {\n    if (!is_array($state)) {\n        continue;\n    }\n    $stateId = (string) ($state['id'] ?? '');\n    if ($stateId === '') {\n        continue;\n    }\n    $statesById[$stateId] = $state;\n    $stateRoute = (string) ($state['route'] ?? '');\n    if ($stateRoute !== '') {\n        $statesByRoute[$stateRoute] = $state;\n    }\n}\n\n$loginError = null;",
-        "foreach ((array) ($fsmConfig['states'] ?? []) as $state) {\n    if (!is_array($state)) {\n        continue;\n    }\n    $stateId = (string) ($state['id'] ?? '');\n    if ($stateId === '') {\n        continue;\n    }\n    $statesById[$stateId] = $state;\n    $stateRoute = (string) ($state['route'] ?? '');\n    if ($stateRoute !== '') {\n        $statesByRoute[$stateRoute] = $state;\n    }\n}\n\n$routeForTransition = static function (array $transition) use ($statesById): string {\n    $targetState = (string) ($transition['to_state'] ?? '');\n    $target = is_array($statesById[$targetState] ?? null) ? $statesById[$targetState] : [];\n    $route = (string) ($target['route'] ?? '');\n    if ($route === '') {\n        http_response_code(500);\n        echo 'OWASYS_RUNTIME_FSM_TRANSITION_ROUTE_MISSING';\n        exit;\n    }\n    return $route;\n};\n\n$runtimeCurrentState = static function () use ($statesById): string {\n    $candidate = (string) ($_SESSION['owasys_current_state'] ?? 'home');\n    return isset($statesById[$candidate]) ? $candidate : 'home';\n};\n\n$redirectAfterTransition = static function (array $transition) use ($routeForTransition, $redirect): void {\n    $redirect($routeForTransition($transition));\n};\n\n$loginError = null;",
-        'OWASYS_RUNTIME_FSM_HELPERS_INSERT_FAILED'
-    );
-}
-
-$front = $replaceOnce(
+$front = $replaceIfMissing(
     $front,
-    "if ($path === '/logout') {\n    unset($_SESSION['owasys_user'], $_SESSION['owasys_current_app']);\n    session_regenerate_id(true);\n    $redirect('/login');\n}",
-    "if ($path === '/logout') {\n    $transition = $owasysFsmProcessor->transition($runtimeCurrentState(), 'logout');\n    unset($_SESSION['owasys_user'], $_SESSION['owasys_current_app'], $_SESSION['owasys_current_state']);\n    session_regenerate_id(true);\n    $redirectAfterTransition($transition);\n}",
+    'use Opus\\Fsm\\FsmSiteLoader;',
+    <<<'PHP'
+declare(strict_types=1);
+
+/**
+PHP,
+    <<<'PHP'
+declare(strict_types=1);
+
+use Opus\Fsm\FsmSiteLoader;
+
+/**
+PHP,
+    'OWASYS_RUNTIME_FSM_USE_INSERT_FAILED'
+);
+
+$front = $replaceIfMissing(
+    $front,
+    '$opusRoot = dirname(dirname($siteRoot));',
+    <<<'PHP'
+$siteRoot = dirname(__DIR__);
+$configFile = $siteRoot . '/config/routes.json';
+PHP,
+    <<<'PHP'
+$siteRoot = dirname(__DIR__);
+$opusRoot = dirname(dirname($siteRoot));
+$autoload = $opusRoot . '/vendor/autoload.php';
+if (!is_file($autoload)) {
+    http_response_code(500);
+    echo 'OWASYS_COMPOSER_AUTOLOAD_MISSING';
+    exit;
+}
+require_once $autoload;
+$configFile = $siteRoot . '/config/routes.json';
+PHP,
+    'OWASYS_RUNTIME_FSM_AUTOLOAD_INSERT_FAILED'
+);
+
+$front = $replaceIfMissing(
+    $front,
+    "$owasysFsmProcessor = FsmSiteLoader::processorForSite($opusRoot, 'owasys');",
+    <<<'PHP'
+if (!is_array($fsmConfig) || ($fsmConfig['contract'] ?? null) !== 'OWASYS_NAVIGATION_FSM_V1') {
+    http_response_code(500);
+    echo 'OWASYS_NAVIGATION_FSM_INVALID';
+    exit;
+}
+
+$authConfig = is_array($siteConfig['auth'] ?? null) ? $siteConfig['auth'] : [];
+PHP,
+    <<<'PHP'
+if (!is_array($fsmConfig) || ($fsmConfig['contract'] ?? null) !== 'OWASYS_NAVIGATION_FSM_V1') {
+    http_response_code(500);
+    echo 'OWASYS_NAVIGATION_FSM_INVALID';
+    exit;
+}
+
+try {
+    $owasysFsmProcessor = FsmSiteLoader::processorForSite($opusRoot, 'owasys');
+} catch (Throwable $exception) {
+    http_response_code(500);
+    echo 'OWASYS_RUNTIME_FSM_PROCESSOR_INVALID';
+    exit;
+}
+
+$authConfig = is_array($siteConfig['auth'] ?? null) ? $siteConfig['auth'] : [];
+PHP,
+    'OWASYS_RUNTIME_FSM_PROCESSOR_INSERT_FAILED'
+);
+
+$front = $replaceIfMissing(
+    $front,
+    'OWASYS_RUNTIME_FSM_TRANSITION_ROUTE_MISSING',
+    <<<'PHP'
+foreach ((array) ($fsmConfig['states'] ?? []) as $state) {
+    if (!is_array($state)) {
+        continue;
+    }
+    $stateId = (string) ($state['id'] ?? '');
+    if ($stateId === '') {
+        continue;
+    }
+    $statesById[$stateId] = $state;
+    $stateRoute = (string) ($state['route'] ?? '');
+    if ($stateRoute !== '') {
+        $statesByRoute[$stateRoute] = $state;
+    }
+}
+
+$loginError = null;
+PHP,
+    <<<'PHP'
+foreach ((array) ($fsmConfig['states'] ?? []) as $state) {
+    if (!is_array($state)) {
+        continue;
+    }
+    $stateId = (string) ($state['id'] ?? '');
+    if ($stateId === '') {
+        continue;
+    }
+    $statesById[$stateId] = $state;
+    $stateRoute = (string) ($state['route'] ?? '');
+    if ($stateRoute !== '') {
+        $statesByRoute[$stateRoute] = $state;
+    }
+}
+
+$routeForTransition = static function (array $transition) use ($statesById): string {
+    $targetState = (string) ($transition['to_state'] ?? '');
+    $target = is_array($statesById[$targetState] ?? null) ? $statesById[$targetState] : [];
+    $route = (string) ($target['route'] ?? '');
+    if ($route === '') {
+        http_response_code(500);
+        echo 'OWASYS_RUNTIME_FSM_TRANSITION_ROUTE_MISSING';
+        exit;
+    }
+    return $route;
+};
+
+$runtimeCurrentState = static function () use ($statesById): string {
+    $candidate = (string) ($_SESSION['owasys_current_state'] ?? 'home');
+    return isset($statesById[$candidate]) ? $candidate : 'home';
+};
+
+$redirectAfterTransition = static function (array $transition) use ($routeForTransition, $redirect): void {
+    $redirect($routeForTransition($transition));
+};
+
+$loginError = null;
+PHP,
+    'OWASYS_RUNTIME_FSM_HELPERS_INSERT_FAILED'
+);
+
+$front = $replaceIfMissing(
+    $front,
+    "transition($runtimeCurrentState(), 'logout'",
+    <<<'PHP'
+if ($path === '/logout') {
+    unset($_SESSION['owasys_user'], $_SESSION['owasys_current_app']);
+    session_regenerate_id(true);
+    $redirect('/login');
+}
+PHP,
+    <<<'PHP'
+if ($path === '/logout') {
+    $transition = $owasysFsmProcessor->transition($runtimeCurrentState(), 'logout');
+    unset($_SESSION['owasys_user'], $_SESSION['owasys_current_app'], $_SESSION['owasys_current_state']);
+    session_regenerate_id(true);
+    $redirectAfterTransition($transition);
+}
+PHP,
     'OWASYS_RUNTIME_FSM_LOGOUT_REPLACE_FAILED'
 );
 
-$front = $replaceOnce(
+$front = $replaceIfMissing(
     $front,
-    "            $redirect(($_SESSION['owasys_user']['must_change_password'] ?? false) === true ? '/account/password' : '/applications');",
-    "            $transition = ($_SESSION['owasys_user']['must_change_password'] ?? false) === true\n                ? $owasysFsmProcessor->transition('login', 'password_change_required', ['must_change_password' => true])\n                : $owasysFsmProcessor->transition('login', 'login_success');\n            $redirectAfterTransition($transition);",
+    "transition('login', 'login_success'",
+    <<<'PHP'
+            $redirect(($_SESSION['owasys_user']['must_change_password'] ?? false) === true ? '/account/password' : '/applications');
+PHP,
+    <<<'PHP'
+            $transition = ($_SESSION['owasys_user']['must_change_password'] ?? false) === true
+                ? $owasysFsmProcessor->transition('login', 'password_change_required', ['must_change_password' => true])
+                : $owasysFsmProcessor->transition('login', 'login_success');
+            $redirectAfterTransition($transition);
+PHP,
     'OWASYS_RUNTIME_FSM_LOGIN_REPLACE_FAILED'
 );
 
-$front = $replaceOnce(
+$front = $replaceIfMissing(
     $front,
-    "        $_SESSION['owasys_user']['password_changed_at'] = $candidate['password_changed_at'];\n        $redirect('/applications');",
-    "        $_SESSION['owasys_user']['password_changed_at'] = $candidate['password_changed_at'];\n        $transition = $owasysFsmProcessor->transition('account', 'password_changed');\n        $redirectAfterTransition($transition);",
+    "transition('account', 'password_changed'",
+    <<<'PHP'
+        $_SESSION['owasys_user']['password_changed_at'] = $candidate['password_changed_at'];
+        $redirect('/applications');
+PHP,
+    <<<'PHP'
+        $_SESSION['owasys_user']['password_changed_at'] = $candidate['password_changed_at'];
+        $transition = $owasysFsmProcessor->transition('account', 'password_changed');
+        $redirectAfterTransition($transition);
+PHP,
     'OWASYS_RUNTIME_FSM_PASSWORD_REPLACE_FAILED'
 );
 
-$front = $replaceOnce(
+$front = $replaceIfMissing(
     $front,
-    "if ($state === 'registry' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {\n    $action = (string) ($_POST['owasys_action'] ?? '');\n    if ($action === 'select-app') {\n        $appId = trim((string) ($_POST['owasys_app_id'] ?? ''));\n        $entry = $findRegistryEntry((array) ($page['registry_entries'] ?? []), $appId);\n        if ($entry === null) {\n            $registryActionError = 'Selected application is not registered.';\n        } else {\n            $_SESSION['owasys_current_app'] = $entry;\n            $redirect('/structure');\n        }\n    } elseif ($action === 'clear-app-context') {\n        unset($_SESSION['owasys_current_app']);\n        $redirect('/applications');\n    } elseif ($action === 'create-new-app') {\n        unset($_SESSION['owasys_current_app']);\n        $redirect('/build');\n    } else {\n        http_response_code(400);\n        echo 'OWASYS_REGISTRY_ACTION_INVALID';\n        exit;\n    }\n}",
-    "if ($state === 'registry' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {\n    $action = (string) ($_POST['owasys_action'] ?? '');\n    if ($action === 'select-app') {\n        $appId = trim((string) ($_POST['owasys_app_id'] ?? ''));\n        $entry = $findRegistryEntry((array) ($page['registry_entries'] ?? []), $appId);\n        if ($entry === null) {\n            $registryActionError = 'Selected application is not registered.';\n        } else {\n            $transition = $owasysFsmProcessor->transition('registry', 'select_app', [\n                'app_exists' => true,\n                'registry_entry' => $entry,\n                'selected_app' => $appId,\n            ]);\n            $_SESSION['owasys_current_app'] = $entry;\n            $redirectAfterTransition($transition);\n        }\n    } elseif ($action === 'clear-app-context') {\n        $transition = $owasysFsmProcessor->transition('registry', 'clear_app_context');\n        unset($_SESSION['owasys_current_app']);\n        $redirectAfterTransition($transition);\n    } elseif ($action === 'create-new-app') {\n        $transition = $owasysFsmProcessor->transition('registry', 'create_new_app');\n        unset($_SESSION['owasys_current_app']);\n        $redirectAfterTransition($transition);\n    } else {\n        http_response_code(400);\n        echo 'OWASYS_REGISTRY_ACTION_INVALID';\n        exit;\n    }\n}",
+    "transition('registry', 'select_app'",
+    <<<'PHP'
+if ($state === 'registry' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+    $action = (string) ($_POST['owasys_action'] ?? '');
+    if ($action === 'select-app') {
+        $appId = trim((string) ($_POST['owasys_app_id'] ?? ''));
+        $entry = $findRegistryEntry((array) ($page['registry_entries'] ?? []), $appId);
+        if ($entry === null) {
+            $registryActionError = 'Selected application is not registered.';
+        } else {
+            $_SESSION['owasys_current_app'] = $entry;
+            $redirect('/structure');
+        }
+    } elseif ($action === 'clear-app-context') {
+        unset($_SESSION['owasys_current_app']);
+        $redirect('/applications');
+    } elseif ($action === 'create-new-app') {
+        unset($_SESSION['owasys_current_app']);
+        $redirect('/build');
+    } else {
+        http_response_code(400);
+        echo 'OWASYS_REGISTRY_ACTION_INVALID';
+        exit;
+    }
+}
+PHP,
+    <<<'PHP'
+if ($state === 'registry' && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+    $action = (string) ($_POST['owasys_action'] ?? '');
+    if ($action === 'select-app') {
+        $appId = trim((string) ($_POST['owasys_app_id'] ?? ''));
+        $entry = $findRegistryEntry((array) ($page['registry_entries'] ?? []), $appId);
+        if ($entry === null) {
+            $registryActionError = 'Selected application is not registered.';
+        } else {
+            $transition = $owasysFsmProcessor->transition('registry', 'select_app', [
+                'app_exists' => true,
+                'registry_entry' => $entry,
+                'selected_app' => $appId,
+            ]);
+            $_SESSION['owasys_current_app'] = $entry;
+            $redirectAfterTransition($transition);
+        }
+    } elseif ($action === 'clear-app-context') {
+        $transition = $owasysFsmProcessor->transition('registry', 'clear_app_context');
+        unset($_SESSION['owasys_current_app']);
+        $redirectAfterTransition($transition);
+    } elseif ($action === 'create-new-app') {
+        $transition = $owasysFsmProcessor->transition('registry', 'create_new_app');
+        unset($_SESSION['owasys_current_app']);
+        $redirectAfterTransition($transition);
+    } else {
+        http_response_code(400);
+        echo 'OWASYS_REGISTRY_ACTION_INVALID';
+        exit;
+    }
+}
+PHP,
     'OWASYS_RUNTIME_FSM_REGISTRY_REPLACE_FAILED'
 );
 
-if (!str_contains($front, "$_SESSION['owasys_current_state'] = $state;")) {
-    $front = $replaceOnce(
-        $front,
-        "$body .= '</main></div>';\n\necho '<!doctype html>'",
-        "if ($isAuthenticated && isset($statesById[$state])) {\n    $_SESSION['owasys_current_state'] = $state;\n}\n\n$body .= '</main></div>';\n\necho '<!doctype html>'",
-        'OWASYS_RUNTIME_FSM_STATE_SESSION_INSERT_FAILED'
-    );
+$front = $replaceIfMissing(
+    $front,
+    '$_SESSION[\'owasys_current_state\'] = $state;',
+    <<<'PHP'
+$body .= '</main></div>';
+
+echo '<!doctype html>'
+PHP,
+    <<<'PHP'
+if ($isAuthenticated && isset($statesById[$state])) {
+    $_SESSION['owasys_current_state'] = $state;
 }
+
+$body .= '</main></div>';
+
+echo '<!doctype html>'
+PHP,
+    'OWASYS_RUNTIME_FSM_STATE_SESSION_INSERT_FAILED'
+);
 
 if ($front === $original) {
     echo "OWASYS_RUNTIME_FSM_PATCH_NOOP\n";
