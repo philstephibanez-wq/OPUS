@@ -78,14 +78,14 @@ try {
         throw new RuntimeException('OWASYS_EXPORT_SMOKE_ZIP_OPEN_FAILED');
     }
 
-    foreach (['MANIFEST.json', 'config/site.json', 'config/routes.json', 'application/home/views/index.php', 'www/index.php'] as $required) {
+    foreach (['MANIFEST.json', 'config/site.json', 'config/routes.json', 'config/application.fsm.json', 'application/states/home/views/index.php', 'www/index.php'] as $required) {
         if ($zip->locateName($required) === false) {
             $zip->close();
             throw new RuntimeException('OWASYS_EXPORT_SMOKE_REQUIRED_ENTRY_MISSING: ' . $required);
         }
     }
 
-    foreach (['var/cache/owasys-export-smoke.tmp', 'var/log/owasys-export-smoke.log', 'var/registry/owasys-export-smoke.sqlite'] as $forbidden) {
+    foreach (['application/home/views/index.php', 'var/cache/owasys-export-smoke.tmp', 'var/log/owasys-export-smoke.log', 'var/registry/owasys-export-smoke.sqlite'] as $forbidden) {
         if ($zip->locateName($forbidden) !== false) {
             $zip->close();
             throw new RuntimeException('OWASYS_EXPORT_SMOKE_FORBIDDEN_ENTRY_PRESENT: ' . $forbidden);
