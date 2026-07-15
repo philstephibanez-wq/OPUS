@@ -102,6 +102,7 @@ return [
     'draft.preview_status' => 'plan status',
     'draft.preview_error' => 'The server plan cannot be computed for this draft.',
     'draft.preview_collisions' => 'detected collisions',
+    'draft.preview_confirmed' => 'Server preview confirmed for this draft.',
     'draft.recent_title' => 'Recent drafts',
     'draft.empty' => 'No structure draft recorded.',
     'draft.disk_mutation_false' => 'No disk write applied.',
