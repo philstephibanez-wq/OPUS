@@ -7,8 +7,9 @@ $endpointFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 
 $jsFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'asset' . DIRECTORY_SEPARATOR . 'js' . DIRECTORY_SEPARATOR . 'owasys.js';
 $frFile = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'local' . DIRECTORY_SEPARATOR . 'fr.php';
 $enFile = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'local' . DIRECTORY_SEPARATOR . 'en.php';
+$confirmationFile = $root . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Owasys' . DIRECTORY_SEPARATOR . 'StructureDraftPreviewConfirmation.php';
 
-foreach ([$endpointFile, $frFile, $enFile, __FILE__] as $file) {
+foreach ([$endpointFile, $frFile, $enFile, $confirmationFile, __FILE__] as $file) {
     if (!is_file($file)) {
         fwrite(STDERR, "OWASYS_STRUCTURE_PREVIEW_REQUIRED_FILE_MISSING: {$file}\n");
         exit(1);
@@ -28,6 +29,7 @@ if (!is_file($jsFile)) {
 
 $endpoint = (string) file_get_contents($endpointFile);
 foreach ([
+    'StructureDraftPreviewConfirmation',
     'StructureDraftWritePlanner',
     'StructureDraftRepository::forRegistry',
     'recentDrafts',
@@ -35,14 +37,31 @@ foreach ([
     'OWASYS_STRUCTURE_WRITE_PLAN_RESULT',
     'OWASYS_STRUCTURE_WRITE_PLAN_STATUS',
     'OWASYS_STRUCTURE_WRITE_PLAN_FILE',
+    'OWASYS_STRUCTURE_PREVIEW_CONFIRMED',
     'owasys_draft_id',
     'draft.preview_result',
     'draft.preview_status',
     'draft.preview_error',
     'draft.preview_collisions',
+    'draft.preview_confirmed',
 ] as $needle) {
     if (!str_contains($endpoint, $needle)) {
         fwrite(STDERR, "OWASYS_STRUCTURE_PREVIEW_ENDPOINT_MARKER_MISSING: {$needle}\n");
+        exit(1);
+    }
+}
+
+$confirmation = (string) file_get_contents($confirmationFile);
+foreach ([
+    'OWASYS_STRUCTURE_DRAFT_PREVIEW_CONFIRMATION_V1',
+    'planHash',
+    'assertConfirmed',
+    'structure_preview:',
+    'OWASYS_STRUCTURE_DRAFT_APPLY_PREVIEW_CONFIRMATION_MISSING',
+    'OWASYS_STRUCTURE_DRAFT_APPLY_PREVIEW_CONFIRMATION_PLAN_CHANGED',
+] as $needle) {
+    if (!str_contains($confirmation, $needle)) {
+        fwrite(STDERR, "OWASYS_STRUCTURE_PREVIEW_CONFIRMATION_MARKER_MISSING: {$needle}\n");
         exit(1);
     }
 }
@@ -68,7 +87,7 @@ foreach (['fr' => $frFile, 'en' => $enFile] as $locale => $file) {
         fwrite(STDERR, "OWASYS_STRUCTURE_PREVIEW_I18N_INVALID: {$locale}\n");
         exit(1);
     }
-    foreach (['draft.preview_result', 'draft.preview_status', 'draft.preview_error', 'draft.preview_collisions'] as $key) {
+    foreach (['draft.preview_result', 'draft.preview_status', 'draft.preview_error', 'draft.preview_collisions', 'draft.preview_confirmed'] as $key) {
         if (!isset($messages[$key]) || !is_string($messages[$key]) || trim($messages[$key]) === '') {
             fwrite(STDERR, "OWASYS_STRUCTURE_PREVIEW_I18N_KEY_MISSING: {$locale}:{$key}\n");
             exit(1);
