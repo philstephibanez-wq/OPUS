@@ -32,7 +32,11 @@ final class StructureDraftPreviewConfirmation
         }
         $draftId = (int) ($plan['draft_id'] ?? 0);
         $applicationId = (string) ($plan['application_id'] ?? '');
-        if ($draftId < 1 || $applicationId === '') {
+        $stateId = (string) ($plan['state_id'] ?? '');
+        $routePath = (string) ($plan['route_path'] ?? '');
+        $titleKey = (string) ($plan['title_key'] ?? '');
+        $eventName = (string) ($plan['event_name'] ?? '');
+        if ($draftId < 1 || $applicationId === '' || $stateId === '' || $routePath === '' || $titleKey === '' || $eventName === '') {
             throw new RuntimeException('OWASYS_STRUCTURE_PREVIEW_CONFIRMATION_PLAN_TARGET_INVALID');
         }
 
@@ -41,6 +45,10 @@ final class StructureDraftPreviewConfirmation
             'contract' => self::CONTRACT,
             'draft_id' => $draftId,
             'application_id' => $applicationId,
+            'state_id' => $stateId,
+            'route_path' => $routePath,
+            'title_key' => $titleKey,
+            'event_name' => $eventName,
             'status' => 'ready',
             'plan_hash' => self::planHash($plan),
             'previewed_at' => $now,
@@ -83,6 +91,12 @@ final class StructureDraftPreviewConfirmation
         }
         if ((int) ($confirmation['draft_id'] ?? 0) !== $draftId || (string) ($confirmation['application_id'] ?? '') !== $applicationId) {
             throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_PREVIEW_CONFIRMATION_TARGET_MISMATCH');
+        }
+        if ((string) ($confirmation['state_id'] ?? '') !== (string) ($plan['state_id'] ?? '')
+            || (string) ($confirmation['route_path'] ?? '') !== (string) ($plan['route_path'] ?? '')
+            || (string) ($confirmation['title_key'] ?? '') !== (string) ($plan['title_key'] ?? '')
+            || (string) ($confirmation['event_name'] ?? '') !== (string) ($plan['event_name'] ?? '')) {
+            throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_PREVIEW_CONFIRMATION_TARGET_CHANGED');
         }
         if (($confirmation['status'] ?? null) !== 'ready') {
             throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_PREVIEW_CONFIRMATION_STATUS_INVALID');
