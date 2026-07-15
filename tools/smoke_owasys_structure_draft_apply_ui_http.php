@@ -188,7 +188,7 @@ foreach ([$publicRoot, $sourceSiteRoot] as $requiredDir) {
         exit(1);
     }
 }
-foreach ([__FILE__, $publicRoot . DIRECTORY_SEPARATOR . 'index.php'] as $lintFile) {
+foreach ([__FILE__, $publicRoot . DIRECTORY_SEPARATOR . 'index.php', $publicRoot . DIRECTORY_SEPARATOR . 'structure-preview.php'] as $lintFile) {
     $output = [];
     $code = 0;
     exec(PHP_BINARY . ' -l ' . escapeshellarg($lintFile) . ' 2>&1', $output, $code);
@@ -246,30 +246,8 @@ try {
     $seed = [
         'contract' => 'OWASYS_REGISTRY_SEED_V1',
         'applications' => [
-            [
-                'id' => 'owasys',
-                'slug' => 'owasys',
-                'name' => 'OPUS OWASYS',
-                'kind' => 'fullstack',
-                'root_path' => 'sites/owasys',
-                'public_root' => 'www',
-                'default_locale' => 'fr',
-                'theme' => 'owasys',
-                'status' => 'validated',
-            ],
-            [
-                'id' => $smokeSiteId,
-                'slug' => $smokeSiteId,
-                'name' => 'OWASYS Apply UI HTTP Smoke Demo',
-                'kind' => 'fullstack',
-                'root_path' => 'sites/' . $smokeSiteId,
-                'public_root' => 'www',
-                'default_locale' => 'fr',
-                'theme' => 'starter',
-                'status' => 'validated',
-                'blueprint' => 'opus-site-standard',
-                'generated_by' => 'owasys',
-            ],
+            ['id' => 'owasys', 'slug' => 'owasys', 'name' => 'OPUS OWASYS', 'kind' => 'fullstack', 'root_path' => 'sites/owasys', 'public_root' => 'www', 'default_locale' => 'fr', 'theme' => 'owasys', 'status' => 'validated'],
+            ['id' => $smokeSiteId, 'slug' => $smokeSiteId, 'name' => 'OWASYS Apply UI HTTP Smoke Demo', 'kind' => 'fullstack', 'root_path' => 'sites/' . $smokeSiteId, 'public_root' => 'www', 'default_locale' => 'fr', 'theme' => 'starter', 'status' => 'validated', 'blueprint' => 'opus-site-standard', 'generated_by' => 'owasys'],
         ],
     ];
     $encodedSeed = json_encode($seed, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -301,6 +279,12 @@ $owasysRegistrySeedRelative = __REGISTRY_SEED__;
 $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
 $path = is_string($path) ? rawurldecode($path) : '/';
 $path = '/' . ltrim($path, '/');
+if ($path === '/structure-preview.php') {
+    $_SERVER['SCRIPT_NAME'] = '/structure-preview.php';
+    $_SERVER['SCRIPT_FILENAME'] = $publicRoot . '/structure-preview.php';
+    require $publicRoot . '/structure-preview.php';
+    return true;
+}
 $staticFile = realpath($publicRoot . $path);
 $publicRootReal = realpath($publicRoot);
 if ($staticFile !== false && $publicRootReal !== false && str_starts_with(str_replace('\\', '/', $staticFile), str_replace('\\', '/', $publicRootReal) . '/') && is_file($staticFile)) {
@@ -364,6 +348,23 @@ PHP;
         throw new RuntimeException('OWASYS_STRUCTURE_APPLY_UI_HTTP_DRAFT_EVENT_NOT_PERSISTED');
     }
 
+    $unpreviewedApply = owasys_structure_apply_ui_http_request($baseUrl, 'POST', '/structure', http_build_query(['owasys_action' => 'apply-structure-draft', 'owasys_draft_id' => 1]), $cookie);
+    if (($unpreviewedApply['status'] ?? 0) !== 200 || str_contains((string) ($unpreviewedApply['body'] ?? ''), 'OWASYS_STRUCTURE_APPLY_RESULT')) {
+        throw new RuntimeException('OWASYS_STRUCTURE_APPLY_UI_HTTP_UNPREVIEWED_APPLY_ACCEPTED');
+    }
+    if ((int) owasys_structure_apply_ui_http_sqlite_value($registryDatabase, "SELECT COUNT(*) FROM owasys_application_events WHERE event_type = 'apply_structure_draft'") !== 0 || is_dir($smokeStateRoot)) {
+        throw new RuntimeException('OWASYS_STRUCTURE_APPLY_UI_HTTP_UNPREVIEWED_APPLY_MUTATED');
+    }
+
+    $preview = owasys_structure_apply_ui_http_request($baseUrl, 'POST', '/structure-preview.php', http_build_query(['owasys_action' => 'preview-structure-draft', 'owasys_draft_id' => 1]), $cookie);
+    if (($preview['status'] ?? 0) !== 200 || !str_contains((string) ($preview['body'] ?? ''), 'OWASYS_STRUCTURE_WRITE_PLAN_RESULT') || !str_contains((string) ($preview['body'] ?? ''), 'OWASYS_STRUCTURE_PREVIEW_CONFIRMED')) {
+        throw new RuntimeException('OWASYS_STRUCTURE_APPLY_UI_HTTP_PREVIEW_RENDER_INVALID');
+    }
+    $previewContext = (string) owasys_structure_apply_ui_http_sqlite_value($registryDatabase, "SELECT value_json FROM owasys_runtime_context WHERE key = 'structure_preview:1'");
+    if (!str_contains($previewContext, 'OWASYS_STRUCTURE_DRAFT_PREVIEW_CONFIRMATION_V1') || !str_contains($previewContext, 'uiapply')) {
+        throw new RuntimeException('OWASYS_STRUCTURE_APPLY_UI_HTTP_PREVIEW_CONTEXT_NOT_PERSISTED');
+    }
+
     $apply = owasys_structure_apply_ui_http_request($baseUrl, 'POST', '/structure', http_build_query(['owasys_action' => 'apply-structure-draft', 'owasys_draft_id' => 1]), $cookie);
     if (($apply['status'] ?? 0) !== 200 || !str_contains((string) ($apply['body'] ?? ''), 'OWASYS_STRUCTURE_APPLY_RESULT')) {
         throw new RuntimeException('OWASYS_STRUCTURE_APPLY_UI_HTTP_APPLY_RENDER_INVALID');
@@ -375,7 +376,7 @@ PHP;
         throw new RuntimeException('OWASYS_STRUCTURE_APPLY_UI_HTTP_APPLY_EVENT_NOT_PERSISTED');
     }
     $applyContext = (string) owasys_structure_apply_ui_http_sqlite_value($registryDatabase, "SELECT value_json FROM owasys_runtime_context WHERE key = 'last_structure_apply'");
-    if (!str_contains($applyContext, 'uiapply') || !str_contains($applyContext, 'OWASYS_STRUCTURE_DRAFT_APPLY_RESULT_V1')) {
+    if (!str_contains($applyContext, 'uiapply') || !str_contains($applyContext, 'OWASYS_STRUCTURE_DRAFT_APPLY_RESULT_V1') || !str_contains($applyContext, 'OWASYS_STRUCTURE_DRAFT_PREVIEW_CONFIRMATION_V1')) {
         throw new RuntimeException('OWASYS_STRUCTURE_APPLY_UI_HTTP_APPLY_CONTEXT_NOT_PERSISTED');
     }
 
