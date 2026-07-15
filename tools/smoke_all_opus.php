@@ -35,6 +35,7 @@ $phpFiles = [
     'Opus/Owasys/StructureDraftRepository.php',
     'Opus/Owasys/StructureDraftApplier.php',
     'Opus/Owasys/StructureDraftWritePlanner.php',
+    'Opus/Owasys/StructureDraftPreviewConfirmation.php',
     'sites/owasys/www/structure-preview.php',
     'sites/owasys/application/default/local/fr.php',
     'sites/owasys/application/default/local/en.php',
