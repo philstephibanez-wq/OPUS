@@ -74,8 +74,12 @@ if (!is_int($draftId) || $draftId < 1) {
 }
 
 $registryConfig = is_array($siteConfig['registry'] ?? null) ? $siteConfig['registry'] : [];
-$registrySeedRelative = trim(str_replace('\\', '/', (string) ($registryConfig['seed'] ?? 'config/registry.seed.json')), '/');
-$registryDatabaseRelative = trim(str_replace('\\', '/', (string) ($registryConfig['runtime_database'] ?? 'var/registry/owasys.sqlite')), '/');
+$registrySeedRelative = isset($owasysRegistrySeedRelative) && is_string($owasysRegistrySeedRelative)
+    ? trim(str_replace('\\', '/', $owasysRegistrySeedRelative), '/')
+    : trim(str_replace('\\', '/', (string) ($registryConfig['seed'] ?? 'config/registry.seed.json')), '/');
+$registryDatabaseRelative = isset($owasysRegistryDatabaseRelative) && is_string($owasysRegistryDatabaseRelative)
+    ? trim(str_replace('\\', '/', $owasysRegistryDatabaseRelative), '/')
+    : trim(str_replace('\\', '/', (string) ($registryConfig['runtime_database'] ?? 'var/registry/owasys.sqlite')), '/');
 if ($registrySeedRelative === '' || str_contains($registrySeedRelative, '..') || $registryDatabaseRelative === '' || str_contains($registryDatabaseRelative, '..')) {
     http_response_code(500);
     echo 'OWASYS_STRUCTURE_PREVIEW_REGISTRY_PATH_INVALID';
