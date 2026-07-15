@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use Opus\Owasys\RegistryRepository;
+use Opus\Owasys\StructureDraftPreviewConfirmation;
 use Opus\Owasys\StructureDraftRepository;
 use Opus\Owasys\StructureDraftWritePlanner;
 
@@ -35,7 +36,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_name($sessionName);
     session_start();
 }
-if (!is_array($_SESSION['owasys_user'] ?? null)) {
+$user = is_array($_SESSION['owasys_user'] ?? null) ? $_SESSION['owasys_user'] : null;
+if ($user === null) {
     http_response_code(401);
     echo 'OWASYS_STRUCTURE_PREVIEW_AUTH_REQUIRED';
     exit;
@@ -80,6 +82,7 @@ if ($registrySeedRelative === '' || str_contains($registrySeedRelative, '..') ||
     exit;
 }
 
+$confirmation = null;
 try {
     $registry = RegistryRepository::forOwasysSite($siteRoot, $opusRoot, $registryDatabaseRelative);
     $registry->synchronize($siteRoot . '/' . $registrySeedRelative);
@@ -99,6 +102,9 @@ try {
         throw new RuntimeException('OWASYS_STRUCTURE_PREVIEW_DRAFT_MISSING');
     }
     $plan = StructureDraftWritePlanner::forOpusRoot($opusRoot)->planAddStateDraft($currentApp, $draft);
+    if (($plan['status'] ?? null) === 'ready') {
+        $confirmation = StructureDraftPreviewConfirmation::persist($registry, $plan, (string) ($user['id'] ?? 'runtime'));
+    }
 } catch (Throwable $exception) {
     http_response_code(409);
     echo '<section class="ow-card" data-context="OWASYS_STRUCTURE_WRITE_PLAN_RESULT"><h2>' . $h($t('draft.preview_result')) . '</h2><p class="ow-login-error">' . $h($t('draft.preview_error')) . '</p></section>';
@@ -109,6 +115,9 @@ $status = (string) ($plan['status'] ?? 'blocked');
 $html = '<section class="ow-card" data-context="OWASYS_STRUCTURE_WRITE_PLAN_RESULT">';
 $html .= '<h2>' . $h($t('draft.preview_result')) . '</h2>';
 $html .= '<div class="ow-tags"><span data-context="OWASYS_STRUCTURE_WRITE_PLAN_STATUS">' . $h($t('draft.preview_status')) . ': ' . $h($status) . '</span><span>' . $h($t('draft.disk_mutation_false')) . '</span></div>';
+if (is_array($confirmation)) {
+    $html .= '<p data-context="OWASYS_STRUCTURE_PREVIEW_CONFIRMED">' . $h($t('draft.preview_confirmed')) . '</p>';
+}
 $html .= '<ul>';
 foreach ((array) ($plan['files'] ?? []) as $file) {
     if (!is_array($file)) {
