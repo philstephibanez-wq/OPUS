@@ -102,6 +102,7 @@ return [
     'draft.preview_status' => 'statut du plan',
     'draft.preview_error' => 'Le plan serveur ne peut pas être calculé pour ce brouillon.',
     'draft.preview_collisions' => 'collisions détectées',
+    'draft.preview_confirmed' => 'Prévisualisation serveur confirmée pour ce brouillon.',
     'draft.recent_title' => 'Brouillons récents',
     'draft.empty' => 'Aucun brouillon de structure enregistré.',
     'draft.disk_mutation_false' => 'Aucune écriture disque appliquée.',
