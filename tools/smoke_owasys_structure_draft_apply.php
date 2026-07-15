@@ -6,6 +6,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 use Opus\Owasys\ApplicationInspector;
 use Opus\Owasys\RegistryRepository;
 use Opus\Owasys\StructureDraftApplier;
+use Opus\Owasys\StructureDraftPreviewConfirmation;
 use Opus\Owasys\StructureDraftRepository;
 use Opus\Owasys\StructureDraftWritePlanner;
 
@@ -83,6 +84,7 @@ function owasys_structure_apply_write_json(string $file, array $value): void
 foreach ([
     __FILE__,
     $root . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Owasys' . DIRECTORY_SEPARATOR . 'StructureDraftApplier.php',
+    $root . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Owasys' . DIRECTORY_SEPARATOR . 'StructureDraftPreviewConfirmation.php',
     $root . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Owasys' . DIRECTORY_SEPARATOR . 'StructureDraftWritePlanner.php',
 ] as $file) {
     if (!is_file($file)) {
@@ -141,6 +143,24 @@ try {
     }
 
     $applier = StructureDraftApplier::forOpusRoot($root, $registry);
+    try {
+        $applier->applyAddStateDraft($entry, (int) $draft['id'], 'apply-smoke');
+        throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_SMOKE_UNPREVIEWED_APPLY_ACCEPTED');
+    } catch (RuntimeException $exception) {
+        if (!str_contains($exception->getMessage(), 'OWASYS_STRUCTURE_DRAFT_APPLY_PREVIEW_CONFIRMATION_MISSING')) {
+            throw $exception;
+        }
+    }
+    if ($registry->eventCount('apply_structure_draft') !== 0) {
+        throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_SMOKE_UNPREVIEWED_APPLY_MUTATED_RUNTIME');
+    }
+
+    $previewPlan = StructureDraftWritePlanner::forOpusRoot($root)->planAddStateDraft($entry, $draft);
+    $confirmation = StructureDraftPreviewConfirmation::persist($registry, $previewPlan, 'apply-smoke');
+    if (($confirmation['contract'] ?? null) !== StructureDraftPreviewConfirmation::CONTRACT || ($confirmation['status'] ?? null) !== 'ready') {
+        throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_SMOKE_PREVIEW_CONFIRMATION_INVALID');
+    }
+
     $result = $applier->applyAddStateDraft($entry, (int) $draft['id'], 'apply-smoke');
     if (($result['contract'] ?? null) !== StructureDraftApplier::RESULT_CONTRACT || ($result['status'] ?? null) !== 'applied') {
         throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_SMOKE_RESULT_INVALID');
@@ -154,6 +174,9 @@ try {
     }
     if (count((array) ($serverPlan['files'] ?? [])) < 5) {
         throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_SMOKE_SERVER_PLAN_INCOMPLETE');
+    }
+    if (($result['server_preview_confirmation']['contract'] ?? null) !== StructureDraftPreviewConfirmation::CONTRACT) {
+        throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_SMOKE_SERVER_PREVIEW_CONFIRMATION_MISSING');
     }
 
     $supportRoot = $smokeSiteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'states' . DIRECTORY_SEPARATOR . 'support';
@@ -184,7 +207,7 @@ try {
         throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_SMOKE_EVENT_NOT_PERSISTED');
     }
     $applyContext = $registry->runtimeValue('last_structure_apply');
-    if (!is_array($applyContext) || ($applyContext['state_id'] ?? null) !== 'support' || ($applyContext['server_write_plan']['status'] ?? null) !== 'ready') {
+    if (!is_array($applyContext) || ($applyContext['state_id'] ?? null) !== 'support' || ($applyContext['server_write_plan']['status'] ?? null) !== 'ready' || ($applyContext['server_preview_confirmation']['contract'] ?? null) !== StructureDraftPreviewConfirmation::CONTRACT) {
         throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_SMOKE_CONTEXT_NOT_PERSISTED');
     }
     $recent = $draftRepository->recentDrafts($smokeSiteId, 1);
