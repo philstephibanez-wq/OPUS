@@ -4,14 +4,18 @@ declare(strict_types=1);
 $root = dirname(__DIR__);
 $siteRoot = $root . DIRECTORY_SEPARATOR . 'sites' . DIRECTORY_SEPARATOR . 'owasys';
 $frontFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php';
+$previewFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'structure-preview.php';
 $jsFile = $siteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'asset' . DIRECTORY_SEPARATOR . 'js' . DIRECTORY_SEPARATOR . 'owasys.js';
 $frFile = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'local' . DIRECTORY_SEPARATOR . 'fr.php';
-$enFile = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'local' . DIRECTORY_SEPARATOR . 'en.php';
+$enFile = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'en.php';
+if (!is_file($enFile)) {
+    $enFile = $siteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'local' . DIRECTORY_SEPARATOR . 'en.php';
+}
 $draftRepositoryFile = $root . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Owasys' . DIRECTORY_SEPARATOR . 'StructureDraftRepository.php';
 $draftApplierFile = $root . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Owasys' . DIRECTORY_SEPARATOR . 'StructureDraftApplier.php';
 $writePlannerFile = $root . DIRECTORY_SEPARATOR . 'Opus' . DIRECTORY_SEPARATOR . 'Owasys' . DIRECTORY_SEPARATOR . 'StructureDraftWritePlanner.php';
 
-foreach ([$frontFile, $jsFile, $frFile, $enFile, $draftRepositoryFile, $draftApplierFile, $writePlannerFile, __FILE__] as $file) {
+foreach ([$frontFile, $previewFile, $jsFile, $frFile, $enFile, $draftRepositoryFile, $draftApplierFile, $writePlannerFile, __FILE__] as $file) {
     if (!is_file($file)) {
         fwrite(STDERR, "OWASYS_STRUCTURE_DRAFT_UI_REQUIRED_FILE_MISSING: {$file}\n");
         exit(1);
@@ -80,6 +84,10 @@ foreach (['fr' => $frFile, 'en' => $enFile] as $locale => $file) {
         'draft.apply',
         'draft.apply_result',
         'draft.result',
+        'draft.preview_result',
+        'draft.preview_status',
+        'draft.preview_error',
+        'draft.preview_collisions',
         'draft.recent_title',
         'draft.empty',
         'draft.disk_mutation_false',
@@ -148,12 +156,26 @@ foreach ([
         exit(1);
     }
 }
+$previewSource = (string) file_get_contents($previewFile);
+foreach ([
+    'OWASYS_STRUCTURE_WRITE_PLAN_RESULT',
+    'OWASYS_STRUCTURE_WRITE_PLAN_STATUS',
+    'OWASYS_STRUCTURE_WRITE_PLAN_FILE',
+    'StructureDraftWritePlanner::forOpusRoot',
+] as $needle) {
+    if (!str_contains($previewSource, $needle)) {
+        fwrite(STDERR, "OWASYS_STRUCTURE_DRAFT_UI_PREVIEW_MARKER_MISSING: {$needle}\n");
+        exit(1);
+    }
+}
 $js = (string) file_get_contents($jsFile);
 foreach ([
+    'structure-preview.php',
+    'preview-structure-draft',
     'OWASYS_STRUCTURE_WRITE_PLAN',
+    'OWASYS_STRUCTURE_WRITE_PLAN_FORM',
     'OWASYS_STRUCTURE_APPLY_DRAFT_FORM',
-    'application/states/${stateId}/views/index.php',
-    'application/states/${stateId}/templates/index.score',
+    'fetch(previewForm.action',
 ] as $needle) {
     if (!str_contains($js, $needle)) {
         fwrite(STDERR, "OWASYS_STRUCTURE_DRAFT_UI_JS_MARKER_MISSING: {$needle}\n");
