@@ -12,8 +12,9 @@ use SQLite3Stmt;
  * Applies one previously prepared OWASYS structure draft to an OPUS site.
  *
  * The applier is deliberately explicit: it reads a SQLite draft, recalculates
- * the server-side write plan, refuses blocked plans, writes only known OPUS
- * state-first files, then persists an apply result in the OWASYS runtime database.
+ * the server-side write plan, refuses blocked plans, requires a recent server
+ * preview confirmation, writes only known OPUS state-first files, then persists
+ * an apply result in the OWASYS runtime database.
  */
 final class StructureDraftApplier
 {
@@ -74,6 +75,7 @@ final class StructureDraftApplier
             $collisions = implode(',', array_map('strval', (array) ($serverWritePlan['collisions'] ?? [])));
             throw new RuntimeException('OWASYS_STRUCTURE_DRAFT_APPLY_SERVER_PLAN_BLOCKED: ' . $collisions);
         }
+        $previewConfirmation = StructureDraftPreviewConfirmation::assertConfirmed($this->registryRepository, $draftId, $applicationId, $serverWritePlan);
 
         $stateId = $this->stateId((string) ($serverWritePlan['state_id'] ?? ($draft['state_id'] ?? '')));
         $routePath = $this->routePath((string) ($serverWritePlan['route_path'] ?? ($draft['route_path'] ?? '')));
@@ -224,6 +226,7 @@ final class StructureDraftApplier
             'applied_at' => gmdate('c'),
             'applied_by' => (string) ($actorId ?? 'runtime'),
             'server_write_plan' => $serverWritePlan,
+            'server_preview_confirmation' => $previewConfirmation,
             'written' => array_values(array_unique($written)),
             'state_count' => (int) ($inspectionAfter['state_count'] ?? 0),
             'route_count' => (int) ($inspectionAfter['route_count'] ?? 0),
