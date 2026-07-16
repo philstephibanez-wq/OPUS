@@ -40,6 +40,7 @@ $phpFiles = [
     'Opus/Owasys/ApplicationScaffoldWriter.php',
     'Opus/Owasys/GeneratedProfilerWriter.php',
     'Opus/Owasys/ApplicationCreator.php',
+    'Opus/Owasys/BuildPipeline.php',
     'sites/owasys/www/structure-preview.php',
     'tools/smoke_all_opus.php',
     'tools/smoke_opus_site_contract_eternal.php',
@@ -52,6 +53,7 @@ $phpFiles = [
     'tools/smoke_owasys_i18n.php',
     'tools/smokes/smoke_owasys_i18n_complete.php',
     'tools/smoke_owasys_global_header.php',
+    'tools/smoke_owasys_distribution_portability.php',
     'tools/smoke_owasys_runtime_fsm.php',
     'tools/smoke_owasys_runtime_fsm_http.php',
     'tools/smoke_owasys_runtime_context_sqlite.php',
@@ -75,6 +77,7 @@ $phpFiles = [
     'tools/smoke_owasys_bin_opus_create.php',
     'tools/smoke_owasys_application_exporter.php',
     'tools/smoke_owasys_bin_opus_export.php',
+    'tools/smoke_owasys_build_pipeline.php',
 ];
 
 $owasysLocales = [
@@ -105,6 +108,7 @@ $smokes = [
     ['tools/smoke_owasys_i18n.php'],
     ['tools/smokes/smoke_owasys_i18n_complete.php'],
     ['tools/smoke_owasys_global_header.php'],
+    ['tools/smoke_owasys_distribution_portability.php'],
     ['tools/smoke_owasys_registry_sqlite.php'],
     ['tools/smoke_owasys_runtime_context_sqlite.php'],
     ['tools/smoke_owasys_application_inspector.php'],
@@ -126,6 +130,7 @@ $smokes = [
     ['tools/smoke_owasys_bin_opus_create.php'],
     ['tools/smoke_owasys_application_exporter.php'],
     ['tools/smoke_owasys_bin_opus_export.php'],
+    ['tools/smoke_owasys_build_pipeline.php'],
     ['bin/opus', 'validate:site', 'owasys'],
     ['bin/opus', 'validate:site', 'demo-app'],
 ];
