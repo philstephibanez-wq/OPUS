@@ -5,13 +5,7 @@ namespace Opus\Owasys;
 
 use RuntimeException;
 
-/**
- * Orchestrates OWASYS application creation.
- *
- * The creator composes the request validator/plan builder with the scaffold writer.
- * Dry-run is always executed first. Real write is only executed when the caller
- * explicitly asks for it, and validation is explicit as a separate step.
- */
+/** Orchestrates OWASYS application creation. */
 final class ApplicationCreator
 {
     private const RESULT_CONTRACT = 'OWASYS_APPLICATION_CREATION_RESULT_V1';
@@ -24,10 +18,12 @@ final class ApplicationCreator
         'config/site.json',
         'config/routes.json',
         'config/application.fsm.json',
+        'config/profiler.json',
         'application',
         'application/default',
         'application/default/acl',
         'application/default/helpers',
+        'application/default/helpers/GeneratedProfiler.php',
         'application/default/css',
         'application/default/javascript',
         'application/default/local',
@@ -39,7 +35,9 @@ final class ApplicationCreator
         'www/index.php',
         'www/asset',
         'www/asset/css',
+        'www/asset/css/profiler.css',
         'www/asset/js',
+        'www/asset/js/profiler.js',
         'www/asset/themes',
     ];
 
@@ -54,12 +52,7 @@ final class ApplicationCreator
     ) {
     }
 
-    /**
-     * Creates or previews an OPUS application from an OWASYS request.
-     *
-     * @param array<string,mixed> $request
-     * @return array<string,mixed>
-     */
+    /** @param array<string,mixed> $request @return array<string,mixed> */
     public function create(array $request, bool $write = false, bool $validate = false): array
     {
         $builder = $this->planBuilder ?? new ScaffoldPlanBuilder();
@@ -67,6 +60,10 @@ final class ApplicationCreator
         $profilerWriter = $this->profilerWriter ?? new GeneratedProfilerWriter($this->opusRoot);
 
         $plan = $builder->build($request);
+        if (($plan['profiler']['enabled'] ?? null) !== true || ($plan['profiler']['mandatory'] ?? null) !== true) {
+            throw new RuntimeException('OWASYS_APPLICATION_PROFILER_PLAN_INVALID');
+        }
+
         $dryRunSummary = $writer->write($plan, true);
         $profilerDryRun = $profilerWriter->write($plan, true);
 
@@ -152,16 +149,25 @@ final class ApplicationCreator
             throw new RuntimeException('OWASYS_CREATED_SITE_APPLICATION_FSM_INCOMPLETE');
         }
 
-        $profilerEnabled = (($plan['profiler']['enabled'] ?? false) === true);
-        if ($profilerEnabled) {
-            foreach (['config/profiler.json', 'application/default/helpers/GeneratedProfiler.php', 'www/asset/css/profiler.css', 'www/asset/js/profiler.js'] as $relative) {
-                if (!is_file($absoluteSiteRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative))) {
-                    throw new RuntimeException('OWASYS_CREATED_SITE_PROFILER_PATH_MISSING:' . $relative);
-                }
-            }
-            $front = (string) file_get_contents($absoluteSiteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php');
-            if (!str_contains($front, 'OPUS_GENERATED_PROFILER_BOOTSTRAP')) {
-                throw new RuntimeException('OWASYS_CREATED_SITE_PROFILER_BOOTSTRAP_MISSING');
+        $profilerConfigFile = $absoluteSiteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'profiler.json';
+        $profilerConfig = json_decode((string) file_get_contents($profilerConfigFile), true);
+        if (!is_array($profilerConfig)
+            || ($profilerConfig['contract'] ?? null) !== GeneratedProfilerWriter::CONTRACT
+            || ($profilerConfig['mandatory'] ?? null) !== true
+            || ($profilerConfig['production_available'] ?? null) !== false
+            || ($profilerConfig['environment'] ?? null) !== 'dev-only') {
+            throw new RuntimeException('OWASYS_CREATED_SITE_PROFILER_CONFIG_INVALID');
+        }
+
+        $front = (string) file_get_contents($absoluteSiteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php');
+        if (!str_contains($front, 'OPUS_GENERATED_PROFILER_BOOTSTRAP')) {
+            throw new RuntimeException('OWASYS_CREATED_SITE_PROFILER_BOOTSTRAP_MISSING');
+        }
+
+        $runtime = (string) file_get_contents($absoluteSiteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'GeneratedProfiler.php');
+        foreach (["['dev', 'local', 'development']", "return null;", "\$_GET['profiler']"] as $marker) {
+            if (!str_contains($runtime, $marker)) {
+                throw new RuntimeException('OWASYS_CREATED_SITE_PROFILER_RUNTIME_INVALID:' . $marker);
             }
         }
 
@@ -171,7 +177,9 @@ final class ApplicationCreator
             'site_root' => $siteRoot,
             'states_root' => $siteRoot . '/application/states',
             'application_fsm' => $siteRoot . '/config/application.fsm.json',
-            'profiler' => $profilerEnabled ? GeneratedProfilerWriter::CONTRACT : 'disabled',
+            'profiler' => GeneratedProfilerWriter::CONTRACT,
+            'profiler_mandatory' => true,
+            'profiler_production_available' => false,
             'required_paths' => count(self::REQUIRED_SITE_PATHS),
             'command' => 'php bin/opus validate:site ' . $siteId,
         ];
@@ -200,6 +208,8 @@ final class ApplicationCreator
             'owasys_plan_contract' => (string) ($plan['owasys_contract'] ?? ''),
             'blueprint' => (string) ($plan['blueprint'] ?? ''),
             'profiler' => $profilerSummary,
+            'profiler_mandatory' => true,
+            'profiler_production_available' => false,
             'dry_run' => $dryRunSummary,
             'write' => $writeSummary,
             'validation' => $validation,
@@ -215,7 +225,6 @@ final class ApplicationCreator
         if (file_put_contents($path, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n") === false) {
             throw new RuntimeException('OWASYS_CREATION_MANIFEST_WRITE_FAILED');
         }
-
         return $siteRoot . '/config/owasys-creation-manifest.json';
     }
 
@@ -225,7 +234,6 @@ final class ApplicationCreator
         if ($path === '' || str_starts_with($path, '/') || preg_match('/^[A-Za-z]:/', $path) === 1 || str_contains($path, '..')) {
             throw new RuntimeException('OWASYS_CREATED_SITE_PATH_INVALID');
         }
-
         return $path;
     }
 
