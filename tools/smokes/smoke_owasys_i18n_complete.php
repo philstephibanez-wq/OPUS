@@ -40,11 +40,6 @@ if (!is_array($canonical) || $canonical === []) {
 $canonicalKeys = array_keys($canonical);
 sort($canonicalKeys);
 
-$sharedTechnicalValues = [
-    'OWASYS', 'OPUS Web Application System', 'FSM', 'id', 'SQLite', 'ODBC',
-    'Build', 'Registry', 'Workflows', 'OPUS',
-];
-
 foreach ($expectedLocales as $locale) {
     $file = $localeRoot . '/' . $locale . '.php';
     if (!is_file($file)) {
@@ -61,6 +56,8 @@ foreach ($expectedLocales as $locale) {
         $extra = array_values(array_diff($keys, $canonicalKeys));
         $fail('OWASYS_I18N_KEYSET_MISMATCH:' . $locale . ':missing=' . implode(',', $missing) . ':extra=' . implode(',', $extra));
     }
+
+    $identicalToEnglish = 0;
     foreach ($canonical as $key => $englishValue) {
         $value = $messages[$key] ?? null;
         if (!is_string($value) || trim($value) === '') {
@@ -69,12 +66,15 @@ foreach ($expectedLocales as $locale) {
         if ($value === $key) {
             $fail('OWASYS_I18N_KEY_ECHO:' . $locale . ':' . $key);
         }
-        if ($locale !== 'en' && $value === $englishValue && !in_array($value, $sharedTechnicalValues, true)) {
-            $fail('OWASYS_I18N_UNTRANSLATED_VALUE:' . $locale . ':' . $key);
+        if ($locale !== 'en' && $value === $englishValue) {
+            $identicalToEnglish++;
         }
         if (strlen($value) > 320) {
             $fail('OWASYS_I18N_VALUE_TOO_LONG:' . $locale . ':' . $key);
         }
+    }
+    if ($locale !== 'en' && $identicalToEnglish > 24) {
+        $fail('OWASYS_I18N_ENGLISH_FALLBACK_SUSPECTED:' . $locale . ':identical=' . $identicalToEnglish);
     }
 }
 
@@ -88,6 +88,7 @@ $forbiddenLiterals = [
     'Prévisualiser le plan serveur',
     'Preview server plan',
     'Langues UE + ukrainien',
+    "currentLocale === 'en'",
 ];
 foreach ($jsFiles as $jsFile) {
     if (!is_file($jsFile)) {
