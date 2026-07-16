@@ -38,12 +38,25 @@ foreach ($requiredScriptMarkers as $marker) {
     }
 }
 
-$forbiddenMarkers = ['git push', 'git pull', 'git reset', 'arbitrary command', 'eval('];
-foreach ($forbiddenMarkers as $marker) {
+$forbiddenExecutableMarkers = [
+    "action: 'git-push'",
+    "action: 'git-pull'",
+    "action: 'git-reset'",
+    'git push ',
+    'git pull ',
+    'git reset ',
+    'eval(',
+];
+foreach ($forbiddenExecutableMarkers as $marker) {
     if (stripos($script, $marker) !== false) {
-        fwrite(STDERR, "OWASYS_SOURCE_EDITOR_UI_FORBIDDEN_MARKER: {$marker}\n");
+        fwrite(STDERR, "OWASYS_SOURCE_EDITOR_UI_FORBIDDEN_EXECUTABLE_MARKER: {$marker}\n");
         exit(1);
     }
+}
+
+if (!str_contains($script, 'No push, pull, reset or arbitrary command is available.')) {
+    fwrite(STDERR, "OWASYS_SOURCE_EDITOR_UI_SAFETY_NOTICE_MISSING\n");
+    exit(1);
 }
 
 echo "OWASYS_SOURCE_EDITOR_UI_SMOKE_OK\n";
