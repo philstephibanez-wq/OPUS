@@ -42,6 +42,7 @@ $phpFiles = [
     'Opus/Owasys/ApplicationCreator.php',
     'Opus/Owasys/BuildPipeline.php',
     'Opus/Owasys/RepositoryInspector.php',
+    'Opus/Owasys/RepositoryOperator.php',
     'Opus/Owasys/ApplicationFileEditor.php',
     'sites/owasys/www/structure-preview.php',
     'sites/owasys/www/build-action.php',
@@ -87,6 +88,7 @@ $phpFiles = [
     'tools/smoke_owasys_source_git_core.php',
     'tools/smoke_owasys_source_ui.php',
     'tools/smoke_owasys_source_editor_ui.php',
+    'tools/smoke_owasys_repository_operator.php',
 ];
 
 $owasysLocales = [
@@ -144,6 +146,7 @@ $smokes = [
     ['tools/smoke_owasys_source_git_core.php'],
     ['tools/smoke_owasys_source_ui.php'],
     ['tools/smoke_owasys_source_editor_ui.php'],
+    ['tools/smoke_owasys_repository_operator.php'],
     ['bin/opus', 'validate:site', 'owasys'],
     ['bin/opus', 'validate:site', 'demo-app'],
 ];
