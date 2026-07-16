@@ -49,7 +49,8 @@ final class ApplicationCreator
     public function __construct(
         private readonly string $opusRoot,
         private readonly ?ScaffoldPlanBuilder $planBuilder = null,
-        private readonly ?ApplicationScaffoldWriter $scaffoldWriter = null
+        private readonly ?ApplicationScaffoldWriter $scaffoldWriter = null,
+        private readonly ?GeneratedProfilerWriter $profilerWriter = null
     ) {
     }
 
@@ -63,9 +64,11 @@ final class ApplicationCreator
     {
         $builder = $this->planBuilder ?? new ScaffoldPlanBuilder();
         $writer = $this->scaffoldWriter ?? new ApplicationScaffoldWriter($this->opusRoot);
+        $profilerWriter = $this->profilerWriter ?? new GeneratedProfilerWriter($this->opusRoot);
 
         $plan = $builder->build($request);
         $dryRunSummary = $writer->write($plan, true);
+        $profilerDryRun = $profilerWriter->write($plan, true);
 
         $result = [
             'contract' => self::RESULT_CONTRACT,
@@ -75,6 +78,7 @@ final class ApplicationCreator
             'states_root' => (string) $plan['site_root'] . '/application/states',
             'application_fsm' => (string) $plan['site_root'] . '/config/application.fsm.json',
             'dry_run' => $dryRunSummary,
+            'profiler' => $profilerDryRun,
             'write' => null,
             'validation' => ['status' => 'not-run'],
             'manifest' => null,
@@ -85,24 +89,21 @@ final class ApplicationCreator
         }
 
         $writeSummary = $writer->write($plan, false);
+        $profilerSummary = $profilerWriter->write($plan, false);
         $validation = $validate ? $this->validateGeneratedSite($plan) : ['status' => 'not-run'];
-        $manifest = $this->buildManifest($plan, $dryRunSummary, $writeSummary, $validation);
+        $manifest = $this->buildManifest($plan, $dryRunSummary, $writeSummary, $validation, $profilerSummary);
         $manifestPath = $this->writeCreationManifest($plan, $manifest);
         $manifest['path'] = $manifestPath;
 
         $result['write'] = $writeSummary;
+        $result['profiler'] = $profilerSummary;
         $result['validation'] = $validation;
         $result['manifest'] = $manifest;
 
         return $result;
     }
 
-    /**
-     * Validates the generated OPUS site tree without shelling out.
-     *
-     * @param array<string,mixed> $plan
-     * @return array<string,mixed>
-     */
+    /** @param array<string,mixed> $plan @return array<string,mixed> */
     private function validateGeneratedSite(array $plan): array
     {
         $siteId = (string) ($plan['site_id'] ?? '');
@@ -151,12 +152,26 @@ final class ApplicationCreator
             throw new RuntimeException('OWASYS_CREATED_SITE_APPLICATION_FSM_INCOMPLETE');
         }
 
+        $profilerEnabled = (($plan['profiler']['enabled'] ?? false) === true);
+        if ($profilerEnabled) {
+            foreach (['config/profiler.json', 'application/default/helpers/GeneratedProfiler.php', 'www/asset/css/profiler.css', 'www/asset/js/profiler.js'] as $relative) {
+                if (!is_file($absoluteSiteRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relative))) {
+                    throw new RuntimeException('OWASYS_CREATED_SITE_PROFILER_PATH_MISSING:' . $relative);
+                }
+            }
+            $front = (string) file_get_contents($absoluteSiteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php');
+            if (!str_contains($front, 'OPUS_GENERATED_PROFILER_BOOTSTRAP')) {
+                throw new RuntimeException('OWASYS_CREATED_SITE_PROFILER_BOOTSTRAP_MISSING');
+            }
+        }
+
         return [
             'status' => 'ok',
             'site_id' => $siteId,
             'site_root' => $siteRoot,
             'states_root' => $siteRoot . '/application/states',
             'application_fsm' => $siteRoot . '/config/application.fsm.json',
+            'profiler' => $profilerEnabled ? GeneratedProfilerWriter::CONTRACT : 'disabled',
             'required_paths' => count(self::REQUIRED_SITE_PATHS),
             'command' => 'php bin/opus validate:site ' . $siteId,
         ];
@@ -167,9 +182,10 @@ final class ApplicationCreator
      * @param array<string,mixed> $dryRunSummary
      * @param array<string,mixed> $writeSummary
      * @param array<string,mixed> $validation
+     * @param array<string,mixed> $profilerSummary
      * @return array<string,mixed>
      */
-    private function buildManifest(array $plan, array $dryRunSummary, array $writeSummary, array $validation): array
+    private function buildManifest(array $plan, array $dryRunSummary, array $writeSummary, array $validation, array $profilerSummary): array
     {
         return [
             'contract' => 'OWASYS_APPLICATION_CREATION_MANIFEST_V1',
@@ -183,6 +199,7 @@ final class ApplicationCreator
             'application_fsm_contract' => self::APPLICATION_FSM_CONTRACT,
             'owasys_plan_contract' => (string) ($plan['owasys_contract'] ?? ''),
             'blueprint' => (string) ($plan['blueprint'] ?? ''),
+            'profiler' => $profilerSummary,
             'dry_run' => $dryRunSummary,
             'write' => $writeSummary,
             'validation' => $validation,
@@ -190,10 +207,7 @@ final class ApplicationCreator
         ];
     }
 
-    /**
-     * @param array<string,mixed> $plan
-     * @param array<string,mixed> $manifest
-     */
+    /** @param array<string,mixed> $plan @param array<string,mixed> $manifest */
     private function writeCreationManifest(array $plan, array $manifest): string
     {
         $siteRoot = $this->normalizeRelativePath((string) ($plan['site_root'] ?? ''));
