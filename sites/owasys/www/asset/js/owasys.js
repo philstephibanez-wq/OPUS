@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   const localeCodes = Object.keys(languageLabels);
   const currentLocale = (document.documentElement.getAttribute('lang') || new URLSearchParams(window.location.search).get('lang') || 'fr').toLowerCase();
+  const currentLanguageLabel = languageLabels[currentLocale] || currentLocale;
 
   if (!document.querySelector('[data-context="OWASYS_LOCALE_SWITCHER"]')) {
     const target = document.querySelector('.ow-topbar');
@@ -40,12 +41,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const form = document.createElement('form');
       form.className = 'ow-locale-switcher';
       form.dataset.context = 'OWASYS_LOCALE_SWITCHER';
-      form.setAttribute('aria-label', 'Language');
+      form.setAttribute('aria-label', currentLanguageLabel);
 
       const select = document.createElement('select');
       select.name = 'lang';
-      select.setAttribute('aria-label', 'Language');
-      select.title = 'Language';
+      select.setAttribute('aria-label', currentLanguageLabel);
+      select.title = currentLanguageLabel;
 
       localeCodes.forEach((code) => {
         const option = document.createElement('option');
@@ -80,20 +81,20 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    const localizedFieldLabel = input.closest('label')?.childNodes[0]?.textContent?.trim() || input.name;
     parent.insertBefore(wrapper, input);
     wrapper.appendChild(input);
 
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'ow-password-eye';
-    button.setAttribute('aria-label', 'Afficher le mot de passe');
+    button.setAttribute('aria-label', localizedFieldLabel);
     button.setAttribute('aria-pressed', 'false');
     button.textContent = '👁';
 
     button.addEventListener('click', () => {
       const visible = input.type === 'text';
       input.type = visible ? 'password' : 'text';
-      button.setAttribute('aria-label', visible ? 'Afficher le mot de passe' : 'Masquer le mot de passe');
       button.setAttribute('aria-pressed', visible ? 'false' : 'true');
     });
 
@@ -136,7 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const button = document.createElement('button');
     button.type = 'submit';
     button.className = 'ow-button ow-button-secondary';
-    button.textContent = currentLocale === 'en' ? 'Preview server plan' : 'Prévisualiser le plan serveur';
+    const localizedSectionTitle = container.closest('section')?.querySelector('h2, h3')?.textContent?.trim();
+    button.textContent = `⌕ ${localizedSectionTitle || draftIdInput.value}`;
     previewForm.appendChild(button);
 
     const result = document.createElement('div');
