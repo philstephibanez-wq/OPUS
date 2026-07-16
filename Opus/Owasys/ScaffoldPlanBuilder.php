@@ -20,8 +20,6 @@ final class ScaffoldPlanBuilder
     private const FORBIDDEN_SEGMENTS = ['..', 'public', 'src', 'resources'];
 
     /**
-     * Builds a scaffold plan from an OWASYS application creation request.
-     *
      * @param array<string,mixed> $request
      * @return array<string,mixed>
      */
@@ -41,6 +39,7 @@ final class ScaffoldPlanBuilder
         $datasources = $this->requiredArray($request, 'datasources');
         $securityProfiles = $this->requiredArray($request, 'security_profiles');
         $workflows = $this->requiredArray($request, 'workflows');
+        $profiler = $this->optionalBool($request, 'profiler', false);
 
         if (!in_array('home', $states, true)) {
             throw new InvalidArgumentException('OWASYS_PLAN_HOME_STATE_REQUIRED');
@@ -48,6 +47,14 @@ final class ScaffoldPlanBuilder
 
         $directories = $this->directories($rootPath, $states, $theme, $defaultLocale);
         $files = $this->files($rootPath, $states, $theme, $defaultLocale);
+
+        $validationCommands = [
+            'php tools/smoke_opus_site_contract_eternal.php',
+            'php bin/opus validate:site ' . $id,
+        ];
+        if ($profiler) {
+            $validationCommands[] = 'php tools/smoke_generated_opus_profiler.php ' . $id;
+        }
 
         return [
             'contract' => self::SITE_CONTRACT,
@@ -68,19 +75,20 @@ final class ScaffoldPlanBuilder
             'datasources' => $datasources,
             'security_profiles' => $securityProfiles,
             'workflows' => $workflows,
+            'profiler' => [
+                'enabled' => $profiler,
+                'contract' => 'OPUS_GENERATED_PROFILER_V1',
+                'environment' => 'dev-only',
+                'query_enable' => 'profiler=1',
+                'query_disable' => 'profiler=0',
+            ],
             'directories' => $directories,
             'files' => $files,
-            'validation_commands' => [
-                'php tools/smoke_opus_site_contract_eternal.php',
-                'php bin/opus validate:site ' . $id,
-            ],
+            'validation_commands' => $validationCommands,
             'forbidden_output_roots' => ['public', 'src', 'resources'],
         ];
     }
 
-    /**
-     * Ensures OWASYS site identifiers and OPUS site folders stay aligned.
-     */
     private function assertSiteRootMatchesSiteId(string $siteId, string $rootPath): void
     {
         $expected = 'sites/' . $siteId;
@@ -89,10 +97,7 @@ final class ScaffoldPlanBuilder
         }
     }
 
-    /**
-     * @param list<string> $states
-     * @return list<string>
-     */
+    /** @param list<string> $states @return list<string> */
     private function directories(string $rootPath, array $states, string $theme, string $defaultLocale): array
     {
         $directories = [
@@ -131,10 +136,7 @@ final class ScaffoldPlanBuilder
         return array_values(array_unique($directories));
     }
 
-    /**
-     * @param list<string> $states
-     * @return list<array<string,string>>
-     */
+    /** @param list<string> $states @return list<array<string,string>> */
     private function files(string $rootPath, array $states, string $theme, string $defaultLocale): array
     {
         $files = [
@@ -245,5 +247,17 @@ final class ScaffoldPlanBuilder
             $result[] = $item;
         }
         return array_values(array_unique($result));
+    }
+
+    /** @param array<string,mixed> $source */
+    private function optionalBool(array $source, string $field, bool $default): bool
+    {
+        if (!array_key_exists($field, $source)) {
+            return $default;
+        }
+        if (!is_bool($source[$field])) {
+            throw new InvalidArgumentException('OWASYS_BOOLEAN_INVALID: ' . $field);
+        }
+        return $source[$field];
     }
 }
