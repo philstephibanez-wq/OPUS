@@ -1,45 +1,94 @@
 /* OWASYS theme */
-.ow-topbar .ow-locale-switcher {
-  margin-left: auto;
-  flex: 0 0 auto;
-  align-self: flex-start;
+.ow-global-header {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--ow-line);
+  background: rgba(7, 17, 31, .96);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-.ow-topbar .ow-locale-switcher select {
-  min-width: 180px;
-  max-width: 240px;
-  padding: 9px 36px 9px 12px;
+.ow-global-header-identity {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 14px;
+  min-width: 0;
+  color: var(--ow-text);
+  text-decoration: none;
+}
+
+.ow-global-header-identity strong {
+  font-size: 22px;
+  letter-spacing: .08em;
+}
+
+.ow-global-header-identity span {
+  color: var(--ow-muted);
+  white-space: nowrap;
+}
+
+.ow-global-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.ow-global-header .ow-locale-switcher {
+  margin: 0;
+}
+
+.ow-global-header .ow-locale-switcher select {
+  min-width: 190px;
+  max-width: 250px;
+  padding: 10px 38px 10px 12px;
   border: 1px solid var(--ow-line);
   border-radius: 10px;
-  background: rgba(255, 255, 255, .055);
+  background: rgba(255, 255, 255, .07);
   color: var(--ow-text);
   font: inherit;
   font-weight: 700;
   cursor: pointer;
 }
 
-.ow-topbar .ow-locale-switcher select:focus {
+.ow-global-header .ow-locale-switcher select:focus {
   border-color: var(--ow-accent);
   outline: 3px solid rgba(108, 227, 255, .16);
   outline-offset: 1px;
 }
 
-.ow-topbar .ow-locale-switcher option {
+.ow-global-header .ow-locale-switcher option {
   color: #111827;
   background: #ffffff;
 }
 
 @media (max-width: 760px) {
-  .ow-topbar {
+  .ow-global-header {
+    align-items: stretch;
     flex-direction: column;
+    gap: 10px;
+    padding: 12px 16px;
   }
 
-  .ow-topbar .ow-locale-switcher {
-    width: 100%;
-    margin-left: 0;
+  .ow-global-header-identity {
+    justify-content: space-between;
+    gap: 10px;
   }
 
-  .ow-topbar .ow-locale-switcher select {
+  .ow-global-header-identity span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ow-global-header-actions,
+  .ow-global-header .ow-locale-switcher,
+  .ow-global-header .ow-locale-switcher select {
     width: 100%;
     max-width: none;
   }
