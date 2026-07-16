@@ -171,7 +171,7 @@ foreach (['.ow-login-form input', '.ow-password-form input', '.ow-auth-warning',
     }
 }
 $js = (string) file_get_contents($jsFile);
-foreach (['owasysPasswordToggle', 'ow-password-eye', 'inputLabel', 'aria-label', "input[type=\"password\"]"] as $needle) {
+foreach (['owasysPasswordToggle', 'ow-password-eye', 'localizedFieldLabel', 'aria-label', "input[type=\"password\"]"] as $needle) {
     if (!str_contains($js, $needle)) {
         fwrite(STDERR, "OWASYS_LOGIN_PASSWORD_JS_MARKER_MISSING: {$needle}\n");
         exit(1);
