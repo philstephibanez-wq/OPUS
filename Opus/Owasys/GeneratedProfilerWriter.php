@@ -74,7 +74,11 @@ final class GeneratedProfilerWriter
         }
         if (!str_contains($source, 'OPUS_GENERATED_PROFILER_BOOTSTRAP')) {
             $bootstrap = "\n// OPUS_GENERATED_PROFILER_BOOTSTRAP\nrequire_once \$siteRoot . '/application/default/helpers/GeneratedProfiler.php';\n\$opusProfiler = \\OpusGenerated\\GeneratedProfiler::boot(\$siteRoot);\n";
-            $source = str_replace("$fsmFile = $siteRoot . '/config/application.fsm.json';", "$fsmFile = $siteRoot . '/config/application.fsm.json';" . $bootstrap, $source);
+            $marker = '$fsmFile = $siteRoot . \'/config/application.fsm.json\';';
+            if (!str_contains($source, $marker)) {
+                throw new RuntimeException('OWASYS_GENERATED_PROFILER_FRONT_MARKER_MISSING');
+            }
+            $source = str_replace($marker, $marker . $bootstrap, $source);
             $source .= "\nif (isset(\$opusProfiler) && \$opusProfiler instanceof \\OpusGenerated\\GeneratedProfiler) {\n    echo \$opusProfiler->render([\n        'path' => \$path ?? null,\n        'route' => \$route ?? null,\n        'state' => \$currentState ?? null,\n        'page' => \$page ?? null,\n    ]);\n}\n";
             if (file_put_contents($front, $source) === false) {
                 throw new RuntimeException('OWASYS_GENERATED_PROFILER_FRONT_PATCH_FAILED');
