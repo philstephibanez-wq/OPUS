@@ -6,7 +6,7 @@ use Opus\Owasys\RegistryRepository;
 $owasysSiteRoot = isset($siteRoot) && is_string($siteRoot) ? $siteRoot : dirname(__DIR__, 4);
 $repoRoot = dirname($owasysSiteRoot, 2);
 $seedFile = $owasysSiteRoot . '/config/registry.seed.json';
-$registryDatabaseRelative = isset($owasysRegistryDatabaseRelative) && is_string($owasysRegistryDatabaseRelative)
+$viewRegistryDatabaseRelative = isset($owasysRegistryDatabaseRelative) && is_string($owasysRegistryDatabaseRelative)
     ? $owasysRegistryDatabaseRelative
     : null;
 $tr = isset($t) && is_callable($t)
@@ -22,7 +22,7 @@ $kindLabels = [
 
 $registryRepository = isset($owasysRegistryRepository) && $owasysRegistryRepository instanceof RegistryRepository
     ? $owasysRegistryRepository
-    : RegistryRepository::forOwasysSite($owasysSiteRoot, $repoRoot, $registryDatabaseRelative);
+    : RegistryRepository::forOwasysSite($owasysSiteRoot, $repoRoot, $viewRegistryDatabaseRelative);
 $registrySync = isset($owasysRegistrySync) && is_array($owasysRegistrySync)
     ? $owasysRegistrySync
     : $registryRepository->synchronize($seedFile);
