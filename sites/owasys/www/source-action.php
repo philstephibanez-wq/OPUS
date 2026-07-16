@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 use Opus\Owasys\ApplicationFileEditor;
 use Opus\Owasys\RepositoryInspector;
+use Opus\Owasys\RepositoryOperator;
 
 $siteRoot = dirname(__DIR__);
 $opusRoot = dirname(dirname($siteRoot));
@@ -52,6 +53,7 @@ $action = (string) ($payload['action'] ?? '');
 $path = (string) ($payload['path'] ?? '');
 $editor = new ApplicationFileEditor($opusRoot);
 $git = new RepositoryInspector($opusRoot);
+$gitOperator = new RepositoryOperator($opusRoot);
 
 try {
     $result = match ($action) {
@@ -74,6 +76,11 @@ try {
             'path' => $path !== '' ? $path : null,
             'diff' => $git->diff($applicationRoot, $path !== '' ? $path : null),
         ],
+        'git-stage-application' => $gitOperator->stageApplication($applicationRoot),
+        'git-commit-application' => $gitOperator->commitApplication(
+            $applicationRoot,
+            (string) ($payload['message'] ?? '')
+        ),
         default => throw new RuntimeException('OWASYS_SOURCE_ACTION_INVALID'),
     };
     echo json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
