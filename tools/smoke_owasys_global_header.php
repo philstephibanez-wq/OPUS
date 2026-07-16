@@ -22,7 +22,7 @@ foreach ([
     'ow-global-header-actions',
     'OWASYS_LOCALE_SWITCHER',
     'expectedCodes.length !== 25',
-    'renderedBrand.hidden = true',
+    'renderedBrand.remove()',
 ] as $marker) {
     if (!str_contains($themeJs, $marker)) {
         fwrite(STDERR, 'OWASYS_GLOBAL_HEADER_MARKER_MISSING:' . $marker . PHP_EOL);
