@@ -52,7 +52,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const identity = document.createElement('a');
     identity.className = 'ow-global-header-identity';
     identity.href = window.location.pathname.startsWith('/owasys') ? '/owasys/' : '/';
-    identity.innerHTML = '<strong>OWASYS</strong><span>OPUS Web Application System</span>';
+
+    const renderedBrand = document.querySelector('.ow-brand');
+    const renderedName = renderedBrand?.querySelector('strong')?.textContent?.trim() || 'OWASYS';
+    const renderedSubtitle = renderedBrand?.querySelector('span')?.textContent?.trim() || renderedName;
+    const name = document.createElement('strong');
+    name.textContent = renderedName;
+    const subtitle = document.createElement('span');
+    subtitle.textContent = renderedSubtitle;
+    identity.appendChild(name);
+    identity.appendChild(subtitle);
 
     const actions = document.createElement('div');
     actions.className = 'ow-global-header-actions';
@@ -87,9 +96,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const currentLocale = (document.documentElement.getAttribute('lang') || 'fr').toLowerCase();
+  const currentLanguageLabel = languageLabels[currentLocale] || currentLocale;
   const select = document.createElement('select');
   select.name = 'lang';
-  select.setAttribute('aria-label', 'Language');
+  select.setAttribute('aria-label', currentLanguageLabel);
+  select.title = currentLanguageLabel;
   select.dataset.localeCount = String(expectedCodes.length);
 
   for (const code of expectedCodes) {
