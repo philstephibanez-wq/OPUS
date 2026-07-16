@@ -52,6 +52,7 @@
     {"id":"t_data_workflows","from":"data","event":"open_workflows","to":"workflows","guards":["current_app_required"],"visual":true},
     {"id":"t_workflows_security","from":"workflows","event":"open_security","to":"security","guards":["current_app_required"],"visual":true},
     {"id":"t_security_source","from":"security","event":"open_source","to":"source","guards":["current_app_required"],"visual":true},
+    {"id":"t_security_build","from":"security","event":"open_build","to":"build","guards":["current_app_required"],"visual":true},
     {"id":"t_source_build","from":"source","event":"open_build","to":"build","guards":["current_app_required"],"visual":true},
     {"id":"t_change_app_registry","from":"*","event":"change_app","to":"registry","visual":false},
     {"id":"t_clear_context_registry","from":"registry","event":"clear_app_context","to":"registry","actions":["clear_current_app"],"visual":false},
