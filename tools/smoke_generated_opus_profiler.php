@@ -38,7 +38,6 @@ $request = [
     'datasources' => [],
     'security_profiles' => [],
     'workflows' => [],
-    'profiler' => true,
 ];
 
 $remove($absoluteRoot);
@@ -46,12 +45,18 @@ $remove($absoluteRoot);
 try {
     $creator = new ApplicationCreator($root);
     $dryRun = $creator->create($request, false, false);
-    if (($dryRun['profiler']['enabled'] ?? null) !== true || ($dryRun['profiler']['mode'] ?? null) !== 'dry-run') {
+    if (($dryRun['profiler']['enabled'] ?? null) !== true
+        || ($dryRun['profiler']['mandatory'] ?? null) !== true
+        || ($dryRun['profiler']['production_available'] ?? null) !== false
+        || ($dryRun['profiler']['mode'] ?? null) !== 'dry-run') {
         throw new RuntimeException('OWASYS_GENERATED_PROFILER_DRY_RUN_INVALID');
     }
 
     $result = $creator->create($request, true, true);
-    if (($result['profiler']['contract'] ?? null) !== 'OPUS_GENERATED_PROFILER_V1' || ($result['validation']['profiler'] ?? null) !== 'OPUS_GENERATED_PROFILER_V1') {
+    if (($result['profiler']['contract'] ?? null) !== 'OPUS_GENERATED_PROFILER_V1'
+        || ($result['validation']['profiler'] ?? null) !== 'OPUS_GENERATED_PROFILER_V1'
+        || ($result['validation']['profiler_mandatory'] ?? null) !== true
+        || ($result['validation']['profiler_production_available'] ?? null) !== false) {
         throw new RuntimeException('OWASYS_GENERATED_PROFILER_RESULT_INVALID');
     }
 
@@ -62,12 +67,27 @@ try {
     }
 
     $front = (string) file_get_contents($absoluteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php');
-    $runtime = (string) file_get_contents($absoluteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'GeneratedProfiler.php');
+    $runtimeFile = $absoluteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'GeneratedProfiler.php';
+    $runtime = (string) file_get_contents($runtimeFile);
     $config = (string) file_get_contents($absoluteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'profiler.json');
-    foreach (['OPUS_GENERATED_PROFILER_BOOTSTRAP', "\$_GET['profiler']", "\$flag === '1'", "['dev', 'local', 'development']", 'OPUS_GENERATED_PROFILER_V1', '"query_enable": "profiler=1"', '"query_disable": "profiler=0"'] as $marker) {
+    foreach (['OPUS_GENERATED_PROFILER_BOOTSTRAP', "\$_GET['profiler']", "['dev', 'local', 'development']", 'OPUS_GENERATED_PROFILER_V1', 'profiler=1', 'profiler=0', '"mandatory": true', '"production_available": false'] as $marker) {
         if (!str_contains($front . $runtime . $config, $marker)) {
             throw new RuntimeException('OWASYS_GENERATED_PROFILER_MARKER_MISSING:' . $marker);
         }
+    }
+
+    require_once $runtimeFile;
+    $_GET['profiler'] = '1';
+    putenv('OPUS_ENV=prod');
+    $_SERVER['OPUS_ENV'] = 'prod';
+    if (\OpusGenerated\GeneratedProfiler::boot($absoluteRoot) !== null) {
+        throw new RuntimeException('OWASYS_GENERATED_PROFILER_AVAILABLE_IN_PRODUCTION');
+    }
+
+    putenv('OPUS_ENV=dev');
+    $_SERVER['OPUS_ENV'] = 'dev';
+    if (!(\OpusGenerated\GeneratedProfiler::boot($absoluteRoot) instanceof \OpusGenerated\GeneratedProfiler)) {
+        throw new RuntimeException('OWASYS_GENERATED_PROFILER_UNAVAILABLE_IN_DEV');
     }
 
     $owasysFront = (string) file_get_contents($root . '/sites/owasys/www/index.php');
@@ -77,5 +97,7 @@ try {
 
     echo 'OWASYS_GENERATED_PROFILER_SMOKE_OK' . PHP_EOL;
 } finally {
+    putenv('OPUS_ENV');
+    unset($_GET['profiler'], $_SERVER['OPUS_ENV']);
     $remove($absoluteRoot);
 }
