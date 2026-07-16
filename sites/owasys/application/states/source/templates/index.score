@@ -1,0 +1,3 @@
+<section data-state="source">
+    {{ content }}
+</section>
