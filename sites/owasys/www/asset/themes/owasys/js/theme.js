@@ -1,8 +1,8 @@
 document.documentElement.dataset.owasysTheme = 'owasys';
 
 /**
- * Replaces any legacy locale-link cloud with one accessible selector.
- * The registry is deliberately limited to the 24 official EU languages plus Ukrainian.
+ * Creates the classic OWASYS global header and places the single locale selector on its right.
+ * The locale registry is limited to the 24 official EU languages plus Ukrainian.
  */
 document.addEventListener('DOMContentLoaded', () => {
   const languageLabels = {
@@ -38,12 +38,37 @@ document.addEventListener('DOMContentLoaded', () => {
     throw new Error('OWASYS_LOCALE_REGISTRY_INVALID');
   }
 
-  const currentLocale = (document.documentElement.getAttribute('lang') || 'fr').toLowerCase();
-  const legacy = document.querySelector('[data-context="OWASYS_LOCALE_SWITCHER"]');
-  const host = legacy?.parentElement || document.querySelector('.ow-sidebar');
-  if (!host) {
+  const shell = document.querySelector('.ow-shell');
+  if (!(shell instanceof HTMLElement) || !shell.parentNode) {
     return;
   }
+
+  let header = document.querySelector('.ow-global-header');
+  if (!(header instanceof HTMLElement)) {
+    header = document.createElement('header');
+    header.className = 'ow-global-header';
+    header.dataset.context = 'OWASYS_GLOBAL_HEADER';
+
+    const identity = document.createElement('a');
+    identity.className = 'ow-global-header-identity';
+    identity.href = window.location.pathname.startsWith('/owasys') ? '/owasys/' : '/';
+    identity.innerHTML = '<strong>OWASYS</strong><span>OPUS Web Application System</span>';
+
+    const actions = document.createElement('div');
+    actions.className = 'ow-global-header-actions';
+    actions.dataset.context = 'OWASYS_GLOBAL_HEADER_ACTIONS';
+
+    header.appendChild(identity);
+    header.appendChild(actions);
+    shell.parentNode.insertBefore(header, shell);
+  }
+
+  const actions = header.querySelector('.ow-global-header-actions');
+  if (!(actions instanceof HTMLElement)) {
+    return;
+  }
+
+  document.querySelectorAll('[data-context="OWASYS_LOCALE_SWITCHER"]').forEach((node) => node.remove());
 
   const form = document.createElement('form');
   form.method = 'get';
@@ -61,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     form.appendChild(hidden);
   }
 
+  const currentLocale = (document.documentElement.getAttribute('lang') || 'fr').toLowerCase();
   const select = document.createElement('select');
   select.name = 'lang';
   select.setAttribute('aria-label', 'Language');
@@ -77,11 +103,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
   select.addEventListener('change', () => form.submit());
   form.appendChild(select);
-
-  if (legacy) {
-    legacy.replaceWith(form);
-  } else {
-    const anchor = document.querySelector('.ow-sidebar .ow-auth-status');
-    anchor?.insertAdjacentElement('afterend', form);
-  }
+  actions.appendChild(form);
 });
