@@ -5,24 +5,16 @@ namespace Opus\Owasys;
 
 use InvalidArgumentException;
 
-/**
- * Builds a typed OWASYS scaffold plan from a validated application creation request.
- *
- * The plan is state-first: generated application nodes live below
- * application/states/<state>. The request field controllers is still accepted as
- * a temporary legacy alias for the state list.
- */
+/** Builds a typed, state-first OWASYS scaffold plan. */
 final class ScaffoldPlanBuilder
 {
     private const SITE_CONTRACT = 'OPUS_SITE_APPLICATION_TREE_V1_ETERNAL';
     private const PLAN_CONTRACT = 'OWASYS_SCAFFOLD_PLAN_V1';
+    private const PROFILER_CONTRACT = 'OPUS_GENERATED_PROFILER_V1';
     private const ALLOWED_KINDS = ['fullstack', 'frontend', 'backend', 'package'];
     private const FORBIDDEN_SEGMENTS = ['..', 'public', 'src', 'resources'];
 
-    /**
-     * @param array<string,mixed> $request
-     * @return array<string,mixed>
-     */
+    /** @param array<string,mixed> $request @return array<string,mixed> */
     public function build(array $request): array
     {
         $id = $this->requiredPattern($request, 'id', '/^[a-z0-9][a-z0-9_-]*$/', 3, 64);
@@ -39,21 +31,12 @@ final class ScaffoldPlanBuilder
         $datasources = $this->requiredArray($request, 'datasources');
         $securityProfiles = $this->requiredArray($request, 'security_profiles');
         $workflows = $this->requiredArray($request, 'workflows');
-        $profiler = $this->optionalBool($request, 'profiler', false);
 
+        if (array_key_exists('profiler', $request) && $request['profiler'] !== true) {
+            throw new InvalidArgumentException('OWASYS_PROFILER_MANDATORY');
+        }
         if (!in_array('home', $states, true)) {
             throw new InvalidArgumentException('OWASYS_PLAN_HOME_STATE_REQUIRED');
-        }
-
-        $directories = $this->directories($rootPath, $states, $theme, $defaultLocale);
-        $files = $this->files($rootPath, $states, $theme, $defaultLocale);
-
-        $validationCommands = [
-            'php tools/smoke_opus_site_contract_eternal.php',
-            'php bin/opus validate:site ' . $id,
-        ];
-        if ($profiler) {
-            $validationCommands[] = 'php tools/smoke_generated_opus_profiler.php ' . $id;
         }
 
         return [
@@ -76,15 +59,21 @@ final class ScaffoldPlanBuilder
             'security_profiles' => $securityProfiles,
             'workflows' => $workflows,
             'profiler' => [
-                'enabled' => $profiler,
-                'contract' => 'OPUS_GENERATED_PROFILER_V1',
+                'enabled' => true,
+                'mandatory' => true,
+                'contract' => self::PROFILER_CONTRACT,
                 'environment' => 'dev-only',
+                'production_available' => false,
                 'query_enable' => 'profiler=1',
                 'query_disable' => 'profiler=0',
             ],
-            'directories' => $directories,
-            'files' => $files,
-            'validation_commands' => $validationCommands,
+            'directories' => $this->directories($rootPath, $states, $theme, $defaultLocale),
+            'files' => $this->files($rootPath, $states, $theme, $defaultLocale),
+            'validation_commands' => [
+                'php tools/smoke_opus_site_contract_eternal.php',
+                'php tools/smoke_generated_opus_profiler.php',
+                'php bin/opus validate:site ' . $id,
+            ],
             'forbidden_output_roots' => ['public', 'src', 'resources'],
         ];
     }
@@ -101,38 +90,23 @@ final class ScaffoldPlanBuilder
     private function directories(string $rootPath, array $states, string $theme, string $defaultLocale): array
     {
         $directories = [
-            $rootPath,
-            $rootPath . '/config',
-            $rootPath . '/application',
-            $rootPath . '/application/default',
-            $rootPath . '/application/default/acl',
-            $rootPath . '/application/default/helpers',
-            $rootPath . '/application/default/css',
-            $rootPath . '/application/default/javascript',
-            $rootPath . '/application/default/local',
+            $rootPath, $rootPath . '/config', $rootPath . '/application',
+            $rootPath . '/application/default', $rootPath . '/application/default/acl',
+            $rootPath . '/application/default/helpers', $rootPath . '/application/default/css',
+            $rootPath . '/application/default/javascript', $rootPath . '/application/default/local',
             $rootPath . '/application/default/local/' . $defaultLocale,
-            $rootPath . '/application/default/models',
-            $rootPath . '/application/default/templates',
-            $rootPath . '/application/default/templates/components',
-            $rootPath . '/application/default/views',
-            $rootPath . '/application/states',
-            $rootPath . '/www',
-            $rootPath . '/www/asset',
-            $rootPath . '/www/asset/css',
-            $rootPath . '/www/asset/js',
-            $rootPath . '/www/asset/themes',
-            $rootPath . '/www/asset/themes/' . $theme,
-            $rootPath . '/www/asset/themes/' . $theme . '/css',
-            $rootPath . '/www/asset/themes/' . $theme . '/js',
-            $rootPath . '/www/asset/themes/' . $theme . '/img',
+            $rootPath . '/application/default/models', $rootPath . '/application/default/templates',
+            $rootPath . '/application/default/templates/components', $rootPath . '/application/default/views',
+            $rootPath . '/application/states', $rootPath . '/www', $rootPath . '/www/asset',
+            $rootPath . '/www/asset/css', $rootPath . '/www/asset/js', $rootPath . '/www/asset/themes',
+            $rootPath . '/www/asset/themes/' . $theme, $rootPath . '/www/asset/themes/' . $theme . '/css',
+            $rootPath . '/www/asset/themes/' . $theme . '/js', $rootPath . '/www/asset/themes/' . $theme . '/img',
         ];
-
         foreach ($states as $state) {
             foreach (['', '/acl', '/helpers', '/css', '/javascript', '/local', '/local/' . $defaultLocale, '/models', '/templates', '/views'] as $suffix) {
                 $directories[] = $rootPath . '/application/states/' . $state . $suffix;
             }
         }
-
         return array_values(array_unique($directories));
     }
 
@@ -156,7 +130,6 @@ final class ScaffoldPlanBuilder
             $this->file($rootPath . '/www/asset/themes/' . $theme . '/css/theme.css', 'css', 'blueprint'),
             $this->file($rootPath . '/www/asset/themes/' . $theme . '/js/theme.js', 'javascript', 'blueprint'),
         ];
-
         foreach ($states as $state) {
             $base = $rootPath . '/application/states/' . $state;
             $files[] = $this->file($base . '/templates/index.score', 'score-template', 'blueprint');
@@ -165,7 +138,6 @@ final class ScaffoldPlanBuilder
             $files[] = $this->file($base . '/javascript/' . $state . '.js', 'javascript', 'blueprint');
             $files[] = $this->file($base . '/local/' . $defaultLocale . '/i18n.json', 'json', 'generated');
         }
-
         return $files;
     }
 
@@ -235,8 +207,7 @@ final class ScaffoldPlanBuilder
     private function requiredStringList(array $source, string $field, int $minItems, int $maxItems, string $pattern): array
     {
         $items = $this->requiredArray($source, $field);
-        $count = count($items);
-        if ($count < $minItems || $count > $maxItems) {
+        if (count($items) < $minItems || count($items) > $maxItems) {
             throw new InvalidArgumentException('OWASYS_LIST_COUNT_INVALID: ' . $field);
         }
         $result = [];
@@ -247,17 +218,5 @@ final class ScaffoldPlanBuilder
             $result[] = $item;
         }
         return array_values(array_unique($result));
-    }
-
-    /** @param array<string,mixed> $source */
-    private function optionalBool(array $source, string $field, bool $default): bool
-    {
-        if (!array_key_exists($field, $source)) {
-            return $default;
-        }
-        if (!is_bool($source[$field])) {
-            throw new InvalidArgumentException('OWASYS_BOOLEAN_INVALID: ' . $field);
-        }
-        return $source[$field];
     }
 }
