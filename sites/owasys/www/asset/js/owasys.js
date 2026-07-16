@@ -1,8 +1,7 @@
 document.documentElement.dataset.owasysAsset = '1';
 
 /**
- * Adds an explicit password visibility toggle to every OWASYS password field.
- * The button is generated client-side so the server-side view-models stay data-only.
+ * Adds the OWASYS locale selector and password visibility controls.
  */
 document.addEventListener('DOMContentLoaded', () => {
   const languageLabels = {
@@ -36,52 +35,35 @@ document.addEventListener('DOMContentLoaded', () => {
   const currentLocale = (document.documentElement.getAttribute('lang') || new URLSearchParams(window.location.search).get('lang') || 'fr').toLowerCase();
 
   if (!document.querySelector('[data-context="OWASYS_LOCALE_SWITCHER"]')) {
-    const target = document.querySelector('.ow-sidebar .ow-auth-status') || document.querySelector('.ow-sidebar') || document.body;
+    const target = document.querySelector('.ow-topbar');
     if (target) {
-      const wrapper = document.createElement('nav');
-      wrapper.className = 'ow-locale-switcher';
-      wrapper.dataset.context = 'OWASYS_LOCALE_SWITCHER';
-      wrapper.setAttribute('aria-label', 'Langues UE + ukrainien');
-      wrapper.style.display = 'flex';
-      wrapper.style.flexWrap = 'wrap';
-      wrapper.style.gap = '0.35rem';
-      wrapper.style.margin = '0.75rem 0';
-      wrapper.style.padding = '0.75rem';
-      wrapper.style.border = '1px solid rgba(148, 163, 184, 0.25)';
-      wrapper.style.borderRadius = '0.75rem';
+      const form = document.createElement('form');
+      form.className = 'ow-locale-switcher';
+      form.dataset.context = 'OWASYS_LOCALE_SWITCHER';
+      form.setAttribute('aria-label', 'Language');
 
-      const title = document.createElement('small');
-      title.textContent = 'Langues UE + Українська';
-      title.style.flexBasis = '100%';
-      title.style.opacity = '0.75';
-      wrapper.appendChild(title);
+      const select = document.createElement('select');
+      select.name = 'lang';
+      select.setAttribute('aria-label', 'Language');
+      select.title = 'Language';
 
       localeCodes.forEach((code) => {
-        const url = new URL(window.location.href);
-        url.searchParams.set('lang', code);
-        const link = document.createElement('a');
-        link.href = url.pathname + url.search + url.hash;
-        link.textContent = languageLabels[code];
-        link.dataset.locale = code;
-        link.style.fontSize = '0.78rem';
-        link.style.lineHeight = '1';
-        link.style.padding = '0.35rem 0.45rem';
-        link.style.borderRadius = '999px';
-        link.style.textDecoration = 'none';
-        link.style.border = '1px solid rgba(148, 163, 184, 0.25)';
-        if (code === currentLocale) {
-          link.setAttribute('aria-current', 'true');
-          link.style.fontWeight = '700';
-          link.style.borderColor = 'rgba(74, 222, 128, 0.85)';
-        }
-        wrapper.appendChild(link);
+        const option = document.createElement('option');
+        option.value = code;
+        option.textContent = languageLabels[code];
+        option.lang = code;
+        option.selected = code === currentLocale;
+        select.appendChild(option);
       });
 
-      if (target.parentNode && target !== document.body) {
-        target.parentNode.insertBefore(wrapper, target.nextSibling);
-      } else {
-        document.body.insertBefore(wrapper, document.body.firstChild);
-      }
+      select.addEventListener('change', () => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('lang', select.value);
+        window.location.assign(url.pathname + url.search + url.hash);
+      });
+
+      form.appendChild(select);
+      target.appendChild(form);
     }
   }
 
