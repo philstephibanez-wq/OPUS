@@ -63,8 +63,9 @@ try {
 
     $front = (string) file_get_contents($absoluteRoot . DIRECTORY_SEPARATOR . 'www' . DIRECTORY_SEPARATOR . 'index.php');
     $runtime = (string) file_get_contents($absoluteRoot . DIRECTORY_SEPARATOR . 'application' . DIRECTORY_SEPARATOR . 'default' . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'GeneratedProfiler.php');
-    foreach (['OPUS_GENERATED_PROFILER_BOOTSTRAP', 'profiler=1', 'profiler=0', "['dev', 'local', 'development']", 'OPUS_GENERATED_PROFILER_V1'] as $marker) {
-        if (!str_contains($front . $runtime . json_encode($request), $marker)) {
+    $config = (string) file_get_contents($absoluteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'profiler.json');
+    foreach (['OPUS_GENERATED_PROFILER_BOOTSTRAP', "\$_GET['profiler']", "\$flag === '1'", "['dev', 'local', 'development']", 'OPUS_GENERATED_PROFILER_V1', '"query_enable": "profiler=1"', '"query_disable": "profiler=0"'] as $marker) {
+        if (!str_contains($front . $runtime . $config, $marker)) {
             throw new RuntimeException('OWASYS_GENERATED_PROFILER_MARKER_MISSING:' . $marker);
         }
     }
