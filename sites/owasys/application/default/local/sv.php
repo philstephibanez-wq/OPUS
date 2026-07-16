@@ -42,7 +42,6 @@ return [
     'registry.none_selected' => 'Inget valt',
     'registry.choose_in_registry' => 'Välj en applikation i registret.',
     'registry.change_application' => 'Byt applikation',
-    'registry.you_are_workING_ON' => 'DU ARBETAR MED',
     'registry.you_are_working_on' => 'DU ARBETAR MED',
     'registry.no_application_selected' => 'Ingen applikation vald',
     'registry.choose_or_create' => 'Välj en befintlig OPUS-applikation i registret eller skapa en ny.',
