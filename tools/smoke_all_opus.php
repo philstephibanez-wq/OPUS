@@ -62,6 +62,7 @@ $phpFiles = [
     'tools/smoke_owasys_distribution_portability.php',
     'tools/smoke_owasys_runtime_fsm.php',
     'tools/smoke_owasys_runtime_fsm_http.php',
+    'tools/smoke_owasys_source_http.php',
     'tools/smoke_owasys_runtime_context_sqlite.php',
     'tools/smoke_owasys_application_inspector.php',
     'tools/smoke_owasys_structure_actions.php',
@@ -167,4 +168,5 @@ foreach ($smokes as $smoke) {
 
 echo "OWASYS_STRUCTURE_DRAFT_APPLY_UI_HTTP_SMOKE_SEPARATE\n";
 echo "OWASYS_RUNTIME_FSM_HTTP_SMOKE_SEPARATE\n";
+echo "OWASYS_SOURCE_HTTP_SMOKE_SEPARATE\n";
 echo "OPUS_SMOKE_ALL_OK\n";
