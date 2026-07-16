@@ -6,7 +6,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 use Opus\Owasys\ScaffoldPlanBuilder;
 
 $builder = new ScaffoldPlanBuilder();
-$plan = $builder->build([
+$request = [
     'id' => 'demo-app',
     'slug' => 'demo-app',
     'name' => 'Demo OPUS Application',
@@ -21,11 +21,10 @@ $plan = $builder->build([
         ['id' => 'articles.index', 'path' => '/articles', 'state' => 'articles', 'controller' => 'articles'],
     ],
     'datasources' => [],
-    'security_profiles' => [
-        ['id' => 'admin', 'permissions' => ['*']],
-    ],
+    'security_profiles' => [['id' => 'admin', 'permissions' => ['*']]],
     'workflows' => [],
-]);
+];
+$plan = $builder->build($request);
 
 $required = [
     'contract' => 'OPUS_SITE_APPLICATION_TREE_V1_ETERNAL',
@@ -39,6 +38,20 @@ foreach ($required as $key => $expected) {
         fwrite(STDERR, "OWASYS_SCAFFOLD_PLAN_FIELD_INVALID: {$key}\n");
         exit(1);
     }
+}
+
+if (($plan['profiler']['enabled'] ?? null) !== true
+    || ($plan['profiler']['mandatory'] ?? null) !== true
+    || ($plan['profiler']['production_available'] ?? null) !== false
+    || ($plan['profiler']['contract'] ?? null) !== 'OPUS_GENERATED_PROFILER_V1') {
+    fwrite(STDERR, "OWASYS_SCAFFOLD_PLAN_PROFILER_NOT_MANDATORY\n");
+    exit(1);
+}
+
+$validationCommands = is_array($plan['validation_commands'] ?? null) ? $plan['validation_commands'] : [];
+if (!in_array('php tools/smoke_generated_opus_profiler.php', $validationCommands, true)) {
+    fwrite(STDERR, "OWASYS_SCAFFOLD_PLAN_PROFILER_VALIDATION_MISSING\n");
+    exit(1);
 }
 
 $directories = $plan['directories'] ?? [];
@@ -69,22 +82,29 @@ foreach (array_merge($directories, $filePaths) as $path) {
     }
 }
 
+$disabledRequest = $request;
+$disabledRequest['profiler'] = false;
 try {
-    $builder->build([
-        'id' => 'bad_id',
-        'slug' => 'bad-id',
-        'name' => 'Bad OPUS Application',
-        'kind' => 'fullstack',
-        'root_path' => 'sites/bad-id',
-        'blueprint' => 'opus-site-standard',
-        'default_locale' => 'fr',
-        'theme' => 'starter',
-        'controllers' => ['home'],
-        'routes' => [['id' => 'home.index', 'path' => '/', 'state' => 'home', 'controller' => 'home']],
-        'datasources' => [],
-        'security_profiles' => [],
-        'workflows' => [],
-    ]);
+    $builder->build($disabledRequest);
+    fwrite(STDERR, "OWASYS_SCAFFOLD_PLAN_PROFILER_DISABLE_NOT_REJECTED\n");
+    exit(1);
+} catch (InvalidArgumentException $exception) {
+    if ($exception->getMessage() !== 'OWASYS_PROFILER_MANDATORY') {
+        fwrite(STDERR, $exception->getMessage() . "\n");
+        exit(1);
+    }
+}
+
+$badRequest = $request;
+$badRequest['id'] = 'bad_id';
+$badRequest['slug'] = 'bad-id';
+$badRequest['name'] = 'Bad OPUS Application';
+$badRequest['root_path'] = 'sites/bad-id';
+$badRequest['controllers'] = ['home'];
+$badRequest['routes'] = [['id' => 'home.index', 'path' => '/', 'state' => 'home', 'controller' => 'home']];
+$badRequest['security_profiles'] = [];
+try {
+    $builder->build($badRequest);
     fwrite(STDERR, "OWASYS_SCAFFOLD_PLAN_ID_ROOT_MISMATCH_NOT_REJECTED\n");
     exit(1);
 } catch (InvalidArgumentException $exception) {
