@@ -40,6 +40,39 @@ document.addEventListener('DOMContentLoaded', () => {
   repository.dataset.context = 'OWASYS_SOURCE_REPOSITORY_STATUS';
   repository.textContent = 'OWASYS_SOURCE_LOADING';
 
+  const gitPanel = document.createElement('section');
+  gitPanel.className = 'ow-card';
+  gitPanel.dataset.context = 'OWASYS_SOURCE_GIT_WRITE_UI';
+  const gitTitle = document.createElement('h3');
+  gitTitle.textContent = 'Application Git commit';
+  const gitHelp = document.createElement('p');
+  gitHelp.className = 'ow-muted';
+  gitHelp.textContent = 'Only the selected application subtree can be staged and committed. No push, pull, reset or arbitrary command is available.';
+  const commitMessage = document.createElement('input');
+  commitMessage.type = 'text';
+  commitMessage.maxLength = 200;
+  commitMessage.placeholder = 'Commit message';
+  commitMessage.dataset.context = 'OWASYS_SOURCE_GIT_COMMIT_MESSAGE';
+  const gitActions = document.createElement('div');
+  gitActions.className = 'ow-inline-form';
+  const stageButton = document.createElement('button');
+  stageButton.type = 'button';
+  stageButton.className = 'ow-button ow-button-secondary';
+  stageButton.textContent = 'Prepare application changes';
+  stageButton.dataset.context = 'OWASYS_SOURCE_GIT_STAGE';
+  const commitButton = document.createElement('button');
+  commitButton.type = 'button';
+  commitButton.className = 'ow-button';
+  commitButton.textContent = 'Commit application';
+  commitButton.dataset.context = 'OWASYS_SOURCE_GIT_COMMIT';
+  commitButton.disabled = true;
+  gitActions.append(stageButton, commitButton);
+  const gitResult = document.createElement('pre');
+  gitResult.className = 'ow-write-plan';
+  gitResult.dataset.context = 'OWASYS_SOURCE_GIT_WRITE_RESULT';
+  gitResult.hidden = true;
+  gitPanel.append(gitTitle, gitHelp, commitMessage, gitActions, gitResult);
+
   const workspace = document.createElement('div');
   workspace.style.display = 'grid';
   workspace.style.gridTemplateColumns = 'minmax(16rem, 30%) minmax(0, 1fr)';
@@ -88,12 +121,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   editorPanel.append(fileTitle, editor, actions, result);
   workspace.append(treePanel, editorPanel);
-  panel.append(repository, workspace);
+  panel.append(repository, gitPanel, workspace);
   main.appendChild(panel);
 
   let selectedPath = '';
   let expectedSha256 = '';
   let previewSha256 = '';
+  let stagedFiles = [];
 
   const setBusy = (busy) => {
     tree.querySelectorAll('button').forEach((button) => { button.disabled = busy; });
@@ -101,11 +135,14 @@ document.addEventListener('DOMContentLoaded', () => {
     gitButton.disabled = busy || selectedPath === '';
     saveButton.disabled = busy || selectedPath === '' || previewSha256 !== expectedSha256;
     editor.disabled = busy || selectedPath === '';
+    stageButton.disabled = busy;
+    commitMessage.disabled = busy;
+    commitButton.disabled = busy || stagedFiles.length === 0 || commitMessage.value.trim() === '';
   };
 
-  const showError = (error) => {
-    result.hidden = false;
-    result.textContent = JSON.stringify({
+  const showError = (error, target = result) => {
+    target.hidden = false;
+    target.textContent = JSON.stringify({
       contract: 'OWASYS_SOURCE_ERROR_V1',
       error: error instanceof Error ? error.message : 'OWASYS_SOURCE_UI_ERROR'
     }, null, 2);
@@ -156,6 +193,10 @@ document.addEventListener('DOMContentLoaded', () => {
   editor.addEventListener('input', () => {
     previewSha256 = '';
     saveButton.disabled = true;
+  });
+
+  commitMessage.addEventListener('input', () => {
+    commitButton.disabled = stagedFiles.length === 0 || commitMessage.value.trim() === '';
   });
 
   previewButton.addEventListener('click', async () => {
@@ -212,6 +253,55 @@ document.addEventListener('DOMContentLoaded', () => {
       await refresh();
     } catch (error) {
       showError(error);
+    } finally {
+      setBusy(false);
+    }
+  });
+
+  stageButton.addEventListener('click', async () => {
+    if (!window.confirm('Prepare only the selected application changes for commit?')) {
+      return;
+    }
+    setBusy(true);
+    gitResult.hidden = false;
+    gitResult.textContent = 'OWASYS_SOURCE_GIT_STAGE_RUNNING';
+    try {
+      const payload = await request({ action: 'git-stage-application' });
+      stagedFiles = Array.isArray(payload.staged_files) ? payload.staged_files : [];
+      gitResult.textContent = JSON.stringify(payload, null, 2);
+      await refresh();
+    } catch (error) {
+      stagedFiles = [];
+      showError(error, gitResult);
+    } finally {
+      setBusy(false);
+    }
+  });
+
+  commitButton.addEventListener('click', async () => {
+    const message = commitMessage.value.trim();
+    if (stagedFiles.length === 0) {
+      showError(new Error('OWASYS_GIT_NOTHING_STAGED_FOR_APPLICATION'), gitResult);
+      return;
+    }
+    if (message === '') {
+      showError(new Error('OWASYS_GIT_COMMIT_MESSAGE_INVALID'), gitResult);
+      return;
+    }
+    if (!window.confirm(`Commit ${stagedFiles.length} staged application file(s) with message: ${message}?`)) {
+      return;
+    }
+    setBusy(true);
+    gitResult.hidden = false;
+    gitResult.textContent = 'OWASYS_SOURCE_GIT_COMMIT_RUNNING';
+    try {
+      const payload = await request({ action: 'git-commit-application', message });
+      stagedFiles = [];
+      commitMessage.value = '';
+      gitResult.textContent = JSON.stringify(payload, null, 2);
+      await refresh();
+    } catch (error) {
+      showError(error, gitResult);
     } finally {
       setBusy(false);
     }
