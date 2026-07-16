@@ -37,8 +37,6 @@ $phpFiles = [
     'Opus/Owasys/StructureDraftWritePlanner.php',
     'Opus/Owasys/StructureDraftPreviewConfirmation.php',
     'sites/owasys/www/structure-preview.php',
-    'sites/owasys/application/default/local/fr.php',
-    'sites/owasys/application/default/local/en.php',
     'tools/smoke_all_opus.php',
     'tools/smoke_opus_site_contract_eternal.php',
     'tools/smoke_opus_fsm_processor.php',
@@ -72,6 +70,14 @@ $phpFiles = [
     'tools/smoke_owasys_application_exporter.php',
     'tools/smoke_owasys_bin_opus_export.php',
 ];
+
+$owasysLocales = [
+    'bg', 'hr', 'cs', 'da', 'nl', 'en', 'et', 'fi', 'fr', 'de', 'el', 'hu', 'ga',
+    'it', 'lv', 'lt', 'mt', 'pl', 'pt', 'ro', 'sk', 'sl', 'es', 'sv', 'uk',
+];
+foreach ($owasysLocales as $locale) {
+    $phpFiles[] = 'sites/owasys/application/default/local/' . $locale . '.php';
+}
 
 foreach ($phpFiles as $relativePath) {
     $path = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
