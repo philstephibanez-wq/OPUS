@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
+  const renderedBrand = document.querySelector('.ow-sidebar .ow-brand');
   let header = document.querySelector('.ow-global-header');
   if (!(header instanceof HTMLElement)) {
     header = document.createElement('header');
@@ -53,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
     identity.className = 'ow-global-header-identity';
     identity.href = window.location.pathname.startsWith('/owasys') ? '/owasys/' : '/';
 
-    const renderedBrand = document.querySelector('.ow-brand');
     const renderedName = renderedBrand?.querySelector('strong')?.textContent?.trim() || 'OWASYS';
     const renderedSubtitle = renderedBrand?.querySelector('span')?.textContent?.trim() || renderedName;
     const name = document.createElement('strong');
@@ -70,6 +70,10 @@ document.addEventListener('DOMContentLoaded', () => {
     header.appendChild(identity);
     header.appendChild(actions);
     shell.parentNode.insertBefore(header, shell);
+  }
+
+  if (renderedBrand instanceof HTMLElement) {
+    renderedBrand.remove();
   }
 
   const actions = header.querySelector('.ow-global-header-actions');
