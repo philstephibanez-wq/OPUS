@@ -6,8 +6,8 @@ namespace Opus\Owasys;
 use RuntimeException;
 
 /**
- * Installs the optional development profiler in an OWASYS-generated OPUS application.
- * OWASYS itself never boots this profiler.
+ * Installs the mandatory development profiler in every OWASYS-generated OPUS application.
+ * OWASYS itself never boots this profiler and production can never activate it.
  */
 final class GeneratedProfilerWriter
 {
@@ -20,7 +20,10 @@ final class GeneratedProfilerWriter
     /** @param array<string,mixed> $plan @return array<string,mixed> */
     public function write(array $plan, bool $dryRun = true): array
     {
-        $enabled = (($plan['profiler']['enabled'] ?? false) === true);
+        if (($plan['profiler']['enabled'] ?? null) !== true || ($plan['profiler']['mandatory'] ?? null) !== true) {
+            throw new RuntimeException('OWASYS_GENERATED_PROFILER_PLAN_MANDATORY');
+        }
+
         $siteRoot = trim(str_replace('\\', '/', (string) ($plan['site_root'] ?? '')), '/');
         if ($siteRoot === '' || str_contains($siteRoot, '..')) {
             throw new RuntimeException('OWASYS_GENERATED_PROFILER_SITE_ROOT_INVALID');
@@ -33,8 +36,16 @@ final class GeneratedProfilerWriter
             $siteRoot . '/www/asset/js/profiler.js',
         ];
 
-        if (!$enabled || $dryRun) {
-            return ['enabled' => $enabled, 'mode' => $dryRun ? 'dry-run' : 'disabled', 'contract' => self::CONTRACT, 'files' => $enabled ? $files : []];
+        if ($dryRun) {
+            return [
+                'enabled' => true,
+                'mandatory' => true,
+                'mode' => 'dry-run',
+                'contract' => self::CONTRACT,
+                'environment' => 'dev-only',
+                'production_available' => false,
+                'files' => $files,
+            ];
         }
 
         $root = $this->absolute($siteRoot);
@@ -46,7 +57,10 @@ final class GeneratedProfilerWriter
             $files[0] => json_encode([
                 'contract' => self::CONTRACT,
                 'enabled' => true,
+                'mandatory' => true,
                 'environment' => 'dev-only',
+                'allowed_environments' => ['dev', 'local', 'development'],
+                'production_available' => false,
                 'query_enable' => 'profiler=1',
                 'query_disable' => 'profiler=0',
                 'collectors' => ['request', 'response', 'route', 'fsm', 'acl', 'controller', 'model', 'database', 'viewmodel', 'template', 'layout', 'logs', 'exceptions', 'time', 'memory'],
@@ -85,7 +99,15 @@ final class GeneratedProfilerWriter
             }
         }
 
-        return ['enabled' => true, 'mode' => 'write', 'contract' => self::CONTRACT, 'files' => $files];
+        return [
+            'enabled' => true,
+            'mandatory' => true,
+            'mode' => 'write',
+            'contract' => self::CONTRACT,
+            'environment' => 'dev-only',
+            'production_available' => false,
+            'files' => $files,
+        ];
     }
 
     private function absolute(string $relative): string
@@ -103,6 +125,8 @@ namespace OpusGenerated;
 
 final class GeneratedProfiler
 {
+    private const ALLOWED_ENVIRONMENTS = ['dev', 'local', 'development'];
+
     private float $startedAt;
     private int $startedMemory;
 
@@ -114,10 +138,11 @@ final class GeneratedProfiler
 
     public static function boot(string $siteRoot): ?self
     {
-        $environment = strtolower((string) (getenv('OPUS_ENV') ?: 'prod'));
-        if (!in_array($environment, ['dev', 'local', 'development'], true)) {
+        $environment = strtolower((string) (getenv('OPUS_ENV') ?: ($_SERVER['OPUS_ENV'] ?? 'prod')));
+        if (!in_array($environment, self::ALLOWED_ENVIRONMENTS, true)) {
             return null;
         }
+
         $flag = $_GET['profiler'] ?? null;
         return new self($siteRoot, $flag === '1');
     }
@@ -128,6 +153,7 @@ final class GeneratedProfiler
         if (!$this->visible) {
             return '';
         }
+
         $elapsed = (microtime(true) - $this->startedAt) * 1000;
         $memory = max(0, memory_get_usage(true) - $this->startedMemory);
         $route = is_array($context['route'] ?? null) ? $context['route'] : [];
@@ -143,6 +169,7 @@ final class GeneratedProfiler
             'memory_bytes' => $memory,
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         $safeState = htmlspecialchars($state, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
         return '<link rel="stylesheet" href="/asset/css/profiler.css">'
             . '<aside class="opus-profiler" data-contract="OPUS_GENERATED_PROFILER_V1">'
             . '<button type="button" class="opus-profiler-toggle" aria-expanded="false">OPUS · ' . $safeState . ' · ' . number_format($elapsed, 1) . ' ms · ' . $status . '</button>'
