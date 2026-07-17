@@ -13,6 +13,12 @@ import {
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import {
+  autocompletion,
+  completionKeymap,
+  closeBrackets,
+  closeBracketsKeymap
+} from '@codemirror/autocomplete';
+import {
   indentOnInput,
   syntaxHighlighting,
   HighlightStyle,
@@ -137,6 +143,7 @@ const create = ({ parent, value = '', path = '', onChange = () => {} }) => {
   });
 
   const view = new EditorView({ state, parent });
+  parent.dataset.editorEngine = 'codemirror-6';
 
   return {
     getValue: () => view.state.doc.toString(),
