@@ -9,35 +9,40 @@ final class FrontController
 {
     /** @var array<string,string> */
     private array $handlers;
-    private string $httpRoot;
+    private string $applicationRoot;
+    private string $defaultHandler;
 
     /** @param array<string,string> $handlers */
-    public function __construct(string $httpRoot, array $handlers)
+    public function __construct(string $applicationRoot, array $handlers, string $defaultHandler = 'application.php')
     {
-        $httpRoot = rtrim(str_replace('\\', '/', $httpRoot), '/');
-        if ($httpRoot === '' || !is_dir($httpRoot)) {
-            throw new RuntimeException('OWASYS_HTTP_ROOT_INVALID');
+        $applicationRoot = rtrim(str_replace('\\', '/', $applicationRoot), '/');
+        if ($applicationRoot === '' || !is_dir($applicationRoot)) {
+            throw new RuntimeException('OWASYS_APPLICATION_ROOT_INVALID');
         }
 
         foreach ($handlers as $path => $file) {
-            if (!is_string($path) || !str_starts_with($path, '/') || !is_string($file) || $file === '' || str_contains($file, '..') || str_contains($file, '/')) {
-                throw new RuntimeException('OWASYS_HTTP_HANDLER_INVALID');
+            if (!is_string($path) || !str_starts_with($path, '/') || !self::isSafeRelativeFile($file)) {
+                throw new RuntimeException('OWASYS_APPLICATION_HANDLER_INVALID');
             }
         }
+        if (!self::isSafeRelativeFile($defaultHandler)) {
+            throw new RuntimeException('OWASYS_APPLICATION_DEFAULT_HANDLER_INVALID');
+        }
 
-        $this->httpRoot = $httpRoot;
+        $this->applicationRoot = $applicationRoot;
         $this->handlers = $handlers;
+        $this->defaultHandler = $defaultHandler;
     }
 
     /** @param array<string,mixed> $server */
     public function dispatch(array $server): void
     {
         $request = RequestContext::fromServer($server);
-        $handler = $this->handlers[$request->path()] ?? 'application.php';
-        $file = $this->httpRoot . '/' . $handler;
+        $handler = $this->handlers[$request->path()] ?? $this->defaultHandler;
+        $file = $this->applicationRoot . '/' . $handler;
 
         if (!is_file($file)) {
-            throw new RuntimeException('OWASYS_HTTP_HANDLER_MISSING:' . $handler);
+            throw new RuntimeException('OWASYS_APPLICATION_HANDLER_MISSING:' . $handler);
         }
 
         require $file;
@@ -49,5 +54,14 @@ final class FrontController
             'REQUEST_METHOD' => 'GET',
             'REQUEST_URI' => $requestUri,
         ])->path();
+    }
+
+    private static function isSafeRelativeFile(mixed $file): bool
+    {
+        return is_string($file)
+            && $file !== ''
+            && !str_starts_with($file, '/')
+            && !str_contains($file, '..')
+            && preg_match('#^[A-Za-z0-9_./-]+\.php$#', $file) === 1;
     }
 }
