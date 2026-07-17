@@ -23,22 +23,56 @@
   text-decoration: none;
 }
 
-.ow-global-header-identity strong {
-  font-size: 22px;
-  letter-spacing: .08em;
-}
-
-.ow-global-header-identity span {
-  color: var(--ow-muted);
-  white-space: nowrap;
-}
+.ow-global-header-identity strong { font-size: 22px; letter-spacing: .08em; }
+.ow-global-header-identity span { color: var(--ow-muted); white-space: nowrap; }
 
 .ow-global-header-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 16px;
+  gap: 14px;
   margin-left: auto;
+}
+
+.ow-global-current-app {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 2px 10px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--ow-line);
+  border-radius: 10px;
+  background: rgba(255,255,255,.045);
+  min-width: 0;
+}
+
+.ow-global-current-app small {
+  grid-column: 1;
+  color: var(--ow-muted);
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.ow-global-current-app strong {
+  grid-column: 1;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ow-global-current-app span { display: none; }
+
+.ow-global-current-app a {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: var(--ow-accent);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 .ow-global-auth-status {
@@ -50,9 +84,7 @@
   white-space: nowrap;
 }
 
-.ow-global-auth-status p {
-  margin: 0;
-}
+.ow-global-auth-status p { margin: 0; }
 
 .ow-global-nav {
   min-height: 50px;
@@ -111,9 +143,7 @@
   min-width: 0;
 }
 
-.ow-global-header .ow-locale-switcher {
-  margin: 0;
-}
+.ow-global-header .ow-locale-switcher { margin: 0; }
 
 .ow-global-header .ow-locale-switcher select {
   min-width: 190px;
@@ -134,19 +164,17 @@
   outline-offset: 1px;
 }
 
-.ow-global-header .ow-locale-switcher option {
-  color: #111827;
-  background: #ffffff;
+.ow-global-header .ow-locale-switcher option { color: #111827; background: #ffffff; }
+
+@media (max-width: 1180px) {
+  .ow-global-auth-status { display: none; }
 }
 
 @media (max-width: 980px) {
-  .ow-global-header-actions {
-    gap: 10px;
-  }
-
-  .ow-global-auth-status {
-    display: none;
-  }
+  .ow-global-current-app small,
+  .ow-global-current-app a { display: none; }
+  .ow-global-current-app { display: block; padding: 8px 10px; }
+  .ow-global-current-app strong { display: block; max-width: 150px; }
 }
 
 @media (max-width: 760px) {
@@ -158,29 +186,20 @@
     position: relative;
   }
 
-  .ow-global-header-identity {
-    justify-content: space-between;
-    gap: 10px;
-  }
+  .ow-global-header-identity { justify-content: space-between; gap: 10px; }
+  .ow-global-header-identity span { overflow: hidden; text-overflow: ellipsis; }
 
-  .ow-global-header-identity span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .ow-global-header-actions,
-  .ow-global-header .ow-locale-switcher,
-  .ow-global-header .ow-locale-switcher select {
+  .ow-global-header-actions {
     width: 100%;
     max-width: none;
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(10rem,14rem);
   }
 
-  .ow-global-nav {
-    top: 0;
-    padding: 6px 12px;
-  }
+  .ow-global-current-app strong { max-width: none; }
+  .ow-global-header .ow-locale-switcher,
+  .ow-global-header .ow-locale-switcher select { width: 100%; max-width: none; min-width: 0; }
 
-  .ow-global-nav-link {
-    padding-inline: 12px;
-  }
+  .ow-global-nav { top: 0; padding: 6px 12px; }
+  .ow-global-nav-link { padding-inline: 12px; }
 }
