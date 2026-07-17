@@ -4,7 +4,9 @@
 
 `application/default` is the common presentation layer inherited by every OWASYS state.
 
-It may contain shared ScoreTemplate templates, translations and real common ACL declarations. It must not contain HTTP entrypoints, state actions, controllers, runtime orchestration, a generic application kernel, or empty architectural placeholders.
+It may contain shared ScoreTemplate templates, translations and real common ACL declarations. It must not contain HTTP entrypoints, state actions, controllers, runtime orchestration, a generic application kernel, duplicate security directories, or empty architectural placeholders.
+
+`application/default/acl` contains only effective shared ACL declarations. It must never exist only through `.gitkeep`, and there must not be a competing `application/default/security` directory.
 
 State-specific behavior belongs below `application/states/<state>/actions` and state-specific ViewModels below the corresponding state directory.
 
