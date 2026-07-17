@@ -5,6 +5,9 @@ use Opus\Owasys\RegistryRepository;
 use Opus\Owasys\StructureDraftPreviewConfirmation;
 use Opus\Owasys\StructureDraftRepository;
 use Opus\Owasys\StructureDraftWritePlanner;
+use Owasys\Application\Configuration\SiteConfiguration;
+use Owasys\Application\I18n\Translator;
+use Owasys\Application\Session\SessionContext;
 
 $siteRoot = dirname(__DIR__, 4);
 $opusRoot = dirname(dirname($siteRoot));
@@ -17,55 +20,40 @@ if (!is_file($autoload)) {
 require_once $autoload;
 
 $h = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-$siteFile = $siteRoot . '/config/site.json';
-$siteConfig = is_file($siteFile) ? json_decode((string) file_get_contents($siteFile), true) : null;
-if (!is_array($siteConfig)) {
+
+try {
+    $configuration = SiteConfiguration::load($siteRoot);
+    $authConfig = $configuration->auth();
+    $session = new SessionContext((string) ($authConfig['session_name'] ?? 'OWASYS_LOCAL_SESSION'));
+    $session->start();
+
+    $requestedLocale = strtolower((string) ($_GET['lang'] ?? $session->locale($configuration->defaultLocale())));
+    $translator = Translator::load(
+        $siteRoot,
+        $configuration->locales(),
+        $configuration->defaultLocale(),
+        $requestedLocale
+    );
+    $session->setLocale($translator->locale());
+    $t = $translator(...);
+} catch (Throwable $exception) {
     http_response_code(500);
-    echo 'OWASYS_STRUCTURE_PREVIEW_SITE_CONFIG_INVALID';
+    echo $exception->getMessage();
     exit;
 }
 
-$authConfig = is_array($siteConfig['auth'] ?? null) ? $siteConfig['auth'] : [];
-$sessionName = (string) ($authConfig['session_name'] ?? 'OWASYS_LOCAL_SESSION');
-if (preg_match('/^[A-Za-z0-9_-]+$/', $sessionName) !== 1) {
-    http_response_code(500);
-    echo 'OWASYS_STRUCTURE_PREVIEW_SESSION_NAME_INVALID';
-    exit;
-}
-if (session_status() === PHP_SESSION_NONE) {
-    session_name($sessionName);
-    session_start();
-}
-$user = is_array($_SESSION['owasys_user'] ?? null) ? $_SESSION['owasys_user'] : null;
+$user = $session->user();
 if ($user === null) {
     http_response_code(401);
     echo 'OWASYS_STRUCTURE_PREVIEW_AUTH_REQUIRED';
     exit;
 }
-
-$locales = array_values(array_filter((array) ($siteConfig['locales'] ?? ['fr']), 'is_string'));
-$defaultLocale = in_array((string) ($siteConfig['default_locale'] ?? 'fr'), $locales, true) ? (string) ($siteConfig['default_locale'] ?? 'fr') : 'fr';
-$requestedLocale = strtolower((string) ($_GET['lang'] ?? $_SESSION['owasys_locale'] ?? $defaultLocale));
-$locale = in_array($requestedLocale, $locales, true) ? $requestedLocale : $defaultLocale;
-$loadMessages = static function (string $locale) use ($siteRoot): array {
-    $file = $siteRoot . '/application/default/local/' . $locale . '.php';
-    if (!is_file($file)) {
-        return [];
-    }
-    $messages = require $file;
-    return is_array($messages) ? $messages : [];
-};
-$messages = array_replace($loadMessages('en'), $loadMessages($defaultLocale), $loadMessages($locale));
-$t = static function (string $key) use (&$messages): string {
-    $value = $messages[$key] ?? null;
-    return is_string($value) && $value !== '' ? $value : $key;
-};
-
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
     http_response_code(405);
     echo 'OWASYS_STRUCTURE_PREVIEW_METHOD_INVALID';
     exit;
 }
+
 $draftId = filter_var($_POST['owasys_draft_id'] ?? null, FILTER_VALIDATE_INT);
 if (!is_int($draftId) || $draftId < 1) {
     http_response_code(400);
@@ -73,6 +61,7 @@ if (!is_int($draftId) || $draftId < 1) {
     exit;
 }
 
+$siteConfig = $configuration->site();
 $registryConfig = is_array($siteConfig['registry'] ?? null) ? $siteConfig['registry'] : [];
 $registrySeedRelative = trim(str_replace('\\', '/', (string) ($registryConfig['seed'] ?? 'config/registry.seed.json')), '/');
 $registryDatabaseRelative = trim(str_replace('\\', '/', (string) ($registryConfig['runtime_database'] ?? 'var/registry/owasys.sqlite')), '/');
@@ -86,10 +75,11 @@ $confirmation = null;
 try {
     $registry = RegistryRepository::forOwasysSite($siteRoot, $opusRoot, $registryDatabaseRelative);
     $registry->synchronize($siteRoot . '/' . $registrySeedRelative);
-    $currentApp = is_array($_SESSION['owasys_current_app'] ?? null) ? $_SESSION['owasys_current_app'] : $registry->currentApplication();
+    $currentApp = $session->currentApplication() ?? $registry->currentApplication();
     if (!is_array($currentApp)) {
         throw new RuntimeException('OWASYS_STRUCTURE_PREVIEW_CURRENT_APPLICATION_MISSING');
     }
+
     $draftRepository = StructureDraftRepository::forRegistry($registry);
     $draft = null;
     foreach ($draftRepository->recentDrafts((string) ($currentApp['id'] ?? ''), 50) as $candidate) {
@@ -101,6 +91,7 @@ try {
     if (!is_array($draft)) {
         throw new RuntimeException('OWASYS_STRUCTURE_PREVIEW_DRAFT_MISSING');
     }
+
     $plan = StructureDraftWritePlanner::forOpusRoot($opusRoot)->planAddStateDraft($currentApp, $draft);
     if (($plan['status'] ?? null) === 'ready') {
         $confirmation = StructureDraftPreviewConfirmation::persist($registry, $plan, (string) ($user['id'] ?? 'runtime'));
