@@ -13,7 +13,7 @@ if (!is_file($autoload)) {
 require $autoload;
 
 $fsm = FsmSiteLoader::processorForSite($root, 'owasys');
-$acl = require $site . '/application/default/security/navigation-acl.php';
+$acl = require $site . '/application/default/acl/navigation.php';
 $presentation = require $site . '/application/default/navigation/menu.php';
 $project = require $site . '/application/default/navigation/project.php';
 $dispatch = require $site . '/application/default/navigation/dispatch.php';
@@ -80,34 +80,23 @@ try {
     }
 }
 
-$navigation = $viewModel(
-    $fsm,
-    'home',
-    $contextWithApp,
-    'dev',
-    $presentation,
-    $acl,
-    '/navigation',
-    static fn (string $key): string => '[[' . $key . ']]'
-);
-if (($navigation['action'] ?? null) !== '/navigation' || count($navigation['items'] ?? []) !== 8) {
-    fwrite(STDERR, "OWASYS_FSM_ACL_SCORE_VIEWMODEL_INVALID\n");
+$navigationViewModel = $viewModel($devMenu, '/owasys', 'home');
+if (($navigationViewModel['contract'] ?? null) !== 'OWASYS_SCORE_NAVIGATION_VIEWMODEL_V1') {
+    fwrite(STDERR, "OWASYS_FSM_ACL_SCORE_VIEWMODEL_CONTRACT_INVALID\n");
     exit(1);
 }
 
-$layout = file_get_contents($site . '/application/default/templates/layouts/main.score');
-$navigationTemplate = file_get_contents($site . '/application/default/templates/partials/navigation.score');
-if (!is_string($layout) || !str_contains($layout, '[[ include:partials/navigation.score ]]')) {
-    fwrite(STDERR, "OWASYS_FSM_ACL_SCORE_LAYOUT_INCLUDE_MISSING\n");
-    exit(1);
-}
-if (!is_string($navigationTemplate) || !str_contains($navigationTemplate, 'name="owasys_navigation_event"')) {
-    fwrite(STDERR, "OWASYS_FSM_ACL_SCORE_BACKEND_ACTION_MISSING\n");
-    exit(1);
-}
-if (str_contains($layout, 'ow-sidebar') || str_contains($navigationTemplate, '<a ')) {
-    fwrite(STDERR, "OWASYS_FSM_ACL_SCORE_FORBIDDEN_LAYOUT_MARKER\n");
+$items = is_array($navigationViewModel['items'] ?? null) ? $navigationViewModel['items'] : [];
+if (count($items) !== count($devMenu)) {
+    fwrite(STDERR, "OWASYS_FSM_ACL_SCORE_VIEWMODEL_COUNT_INVALID\n");
     exit(1);
 }
 
-fwrite(STDOUT, "OWASYS_FSM_ACL_SCORE_NAVIGATION_SMOKE_OK\n");
+foreach ($items as $item) {
+    if (!is_array($item) || !isset($item['event'], $item['href'], $item['label_key'])) {
+        fwrite(STDERR, "OWASYS_FSM_ACL_SCORE_VIEWMODEL_ITEM_INVALID\n");
+        exit(1);
+    }
+}
+
+echo "OWASYS_FSM_ACL_SCORE_NAVIGATION_SMOKE_OK\n";
