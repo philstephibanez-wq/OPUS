@@ -28,12 +28,12 @@ foreach ([
 }
 
 foreach ([
-    "json_decode((string) file_get_contents($siteRoot . '/config/site.json')",
+    "json_decode((string) file_get_contents(\$siteRoot . '/config/site.json')",
     'session_name(',
     'session_start(',
-    "application/default/local/",
-    "$_SESSION['owasys_user']",
-    "$_SESSION['owasys_current_app']",
+    'application/default/local/',
+    "\$_SESSION['owasys_user']",
+    "\$_SESSION['owasys_current_app']",
 ] as $forbidden) {
     if (str_contains($source, $forbidden)) {
         $fail('OWASYS_STRUCTURE_PREVIEW_DUPLICATION_PRESENT:' . $forbidden);
