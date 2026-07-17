@@ -54,7 +54,7 @@ try {
     }
 
     foreach ([
-        ['CurrentPass123!', 'short', 'short', 'OWASYS_PASSWORD_CHANGE_TOO_SHORT'],
+        ['NewPassword456!', 'short', 'short', 'OWASYS_PASSWORD_CHANGE_TOO_SHORT'],
         ['NewPassword456!', 'AnotherPass789!', 'MismatchPass789!', 'OWASYS_PASSWORD_CHANGE_CONFIRMATION_MISMATCH'],
         ['NewPassword456!', 'NewPassword456!', 'NewPassword456!', 'OWASYS_PASSWORD_CHANGE_UNCHANGED'],
     ] as [$current, $new, $confirmation, $expected]) {
