@@ -20,9 +20,13 @@ foreach ([
     'OWASYS_GLOBAL_HEADER',
     'ow-global-header-identity',
     'ow-global-header-actions',
+    'OWASYS_GLOBAL_NAVIGATION',
+    'OWASYS_GLOBAL_CURRENT_APPLICATION',
     'OWASYS_LOCALE_SWITCHER',
     'expectedCodes.length !== 25',
-    'renderedBrand.remove()',
+    'renderedBrand?.remove()',
+    'sidebar?.remove()',
+    'ow-shell-horizontal-navigation',
 ] as $marker) {
     if (!str_contains($themeJs, $marker)) {
         fwrite(STDERR, 'OWASYS_GLOBAL_HEADER_MARKER_MISSING:' . $marker . PHP_EOL);
@@ -44,6 +48,11 @@ if (substr_count($themeJs, "form.dataset.context = 'OWASYS_LOCALE_SWITCHER'") !=
 
 if (!str_contains($front, 'class="ow-brand"')) {
     fwrite(STDERR, 'OWASYS_GLOBAL_HEADER_SERVER_BRAND_SOURCE_MISSING' . PHP_EOL);
+    exit(1);
+}
+
+if (!str_contains($front, 'class="ow-current-app"')) {
+    fwrite(STDERR, 'OWASYS_GLOBAL_HEADER_CURRENT_APPLICATION_SOURCE_MISSING' . PHP_EOL);
     exit(1);
 }
 
