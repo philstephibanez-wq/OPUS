@@ -13,19 +13,14 @@ import {
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import {
-  autocompletion,
-  completionKeymap,
-  closeBrackets,
-  closeBracketsKeymap
-} from '@codemirror/autocomplete';
-import {
   indentOnInput,
   syntaxHighlighting,
-  defaultHighlightStyle,
+  HighlightStyle,
   bracketMatching,
   foldGutter,
   foldKeymap
 } from '@codemirror/language';
+import { tags } from '@lezer/highlight';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { css } from '@codemirror/lang-css';
@@ -82,6 +77,25 @@ const darkTheme = EditorView.theme({
   '.cm-scroller': { overflow: 'auto' }
 }, { dark: true });
 
+const opusHighlightStyle = HighlightStyle.define([
+  { tag: tags.keyword, color: '#ff79c6', fontWeight: '600' },
+  { tag: [tags.name, tags.deleted, tags.character, tags.propertyName, tags.macroName], color: '#8be9fd' },
+  { tag: [tags.function(tags.variableName), tags.labelName], color: '#50fa7b' },
+  { tag: [tags.color, tags.constant(tags.name), tags.standard(tags.name)], color: '#bd93f9' },
+  { tag: [tags.definition(tags.name), tags.separator], color: '#f8f8f2' },
+  { tag: [tags.typeName, tags.className, tags.number, tags.changed, tags.annotation, tags.modifier, tags.self, tags.namespace], color: '#ffb86c' },
+  { tag: [tags.operator, tags.operatorKeyword, tags.url, tags.escape, tags.regexp, tags.link], color: '#ff79c6' },
+  { tag: [tags.meta, tags.comment], color: '#7f8fa6', fontStyle: 'italic' },
+  { tag: tags.strong, fontWeight: '700' },
+  { tag: tags.emphasis, fontStyle: 'italic' },
+  { tag: tags.strikethrough, textDecoration: 'line-through' },
+  { tag: tags.link, color: '#8be9fd', textDecoration: 'underline' },
+  { tag: tags.heading, color: '#bd93f9', fontWeight: '700' },
+  { tag: [tags.atom, tags.bool, tags.special(tags.variableName)], color: '#bd93f9' },
+  { tag: [tags.processingInstruction, tags.string, tags.inserted], color: '#f1fa8c' },
+  { tag: tags.invalid, color: '#ff5555' }
+]);
+
 const create = ({ parent, value = '', path = '', onChange = () => {} }) => {
   const language = new Compartment();
   const editable = new Compartment();
@@ -103,7 +117,7 @@ const create = ({ parent, value = '', path = '', onChange = () => {} }) => {
       crosshairCursor(),
       highlightActiveLine(),
       highlightSelectionMatches(),
-      syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+      syntaxHighlighting(opusHighlightStyle),
       darkTheme,
       keymap.of([
         ...closeBracketsKeymap,
