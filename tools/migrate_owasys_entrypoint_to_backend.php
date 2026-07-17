@@ -26,7 +26,7 @@ if (!is_string($source) || $source === '') {
 foreach ([
     '$siteRoot = dirname(__DIR__);',
     'use Opus\\Fsm\\FsmSiteLoader;',
-    '$body = \'<div class="ow-shell"><aside class="ow-sidebar\';',
+    '<aside class="ow-sidebar">',
 ] as $requiredMarker) {
     if (!str_contains($source, $requiredMarker)) {
         $fail('OWASYS_ENTRYPOINT_MIGRATION_UNEXPECTED_SOURCE:' . $requiredMarker);
