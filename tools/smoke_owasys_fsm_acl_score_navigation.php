@@ -80,9 +80,24 @@ try {
     }
 }
 
-$navigationViewModel = $viewModel($devMenu, '/owasys', 'home');
-if (($navigationViewModel['contract'] ?? null) !== 'OWASYS_SCORE_NAVIGATION_VIEWMODEL_V1') {
-    fwrite(STDERR, "OWASYS_FSM_ACL_SCORE_VIEWMODEL_CONTRACT_INVALID\n");
+$translate = static fn (string $key): string => 'translated:' . $key;
+$navigationViewModel = $viewModel(
+    $fsm,
+    'home',
+    $contextWithApp,
+    'dev',
+    $presentation,
+    $acl,
+    '/owasys/navigation',
+    $translate
+);
+
+if (($navigationViewModel['action'] ?? null) !== '/owasys/navigation') {
+    fwrite(STDERR, "OWASYS_FSM_ACL_SCORE_VIEWMODEL_ACTION_INVALID\n");
+    exit(1);
+}
+if (($navigationViewModel['current_state'] ?? null) !== 'home') {
+    fwrite(STDERR, "OWASYS_FSM_ACL_SCORE_VIEWMODEL_CURRENT_STATE_INVALID\n");
     exit(1);
 }
 
@@ -93,8 +108,12 @@ if (count($items) !== count($devMenu)) {
 }
 
 foreach ($items as $item) {
-    if (!is_array($item) || !isset($item['event'], $item['href'], $item['label_key'])) {
+    if (!is_array($item) || !isset($item['event'], $item['label_key'], $item['label'], $item['target_state'], $item['target_route'], $item['current'])) {
         fwrite(STDERR, "OWASYS_FSM_ACL_SCORE_VIEWMODEL_ITEM_INVALID\n");
+        exit(1);
+    }
+    if ($item['label'] !== 'translated:' . $item['label_key']) {
+        fwrite(STDERR, "OWASYS_FSM_ACL_SCORE_VIEWMODEL_TRANSLATION_INVALID\n");
         exit(1);
     }
 }
