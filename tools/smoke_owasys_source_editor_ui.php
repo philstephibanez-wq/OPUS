@@ -22,11 +22,6 @@ $requiredScriptMarkers = [
     'OWASYS_SOURCE_EDITOR_UI',
     'OWASYS_SOURCE_FILE_TREE',
     'OWASYS_SOURCE_CONTENT_EDITOR',
-    "action: 'list'",
-    "action: 'read'",
-    "action: 'preview'",
-    "action: 'write'",
-    "action: 'git-diff'",
     'expected_sha256',
     'OWASYS_SOURCE_PREVIEW_REQUIRED',
     'window.confirm',
@@ -34,6 +29,21 @@ $requiredScriptMarkers = [
 foreach ($requiredScriptMarkers as $marker) {
     if (!str_contains($script, $marker)) {
         fwrite(STDERR, "OWASYS_SOURCE_EDITOR_UI_SCRIPT_MARKER_MISSING: {$marker}\n");
+        exit(1);
+    }
+}
+
+$requiredActions = [
+    'list',
+    'read',
+    'preview',
+    'write',
+    'git-diff',
+];
+foreach ($requiredActions as $action) {
+    $pattern = "/action\\s*:\\s*['\"]" . preg_quote($action, '/') . "['\"]/";
+    if (preg_match($pattern, $script) !== 1) {
+        fwrite(STDERR, "OWASYS_SOURCE_EDITOR_UI_ACTION_MARKER_MISSING: {$action}\n");
         exit(1);
     }
 }
