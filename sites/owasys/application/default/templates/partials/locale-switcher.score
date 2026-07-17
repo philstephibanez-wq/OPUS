@@ -1,0 +1,14 @@
+<form method="get" action="{{ locale.action }}" class="ow-locale-switcher" data-context="OWASYS_LOCALE_SWITCHER">
+  [[ foreach: locale.preserved_query as field ]]
+  <input type="hidden" name="{{ field.name }}" value="{{ field.value }}">
+  [[ endforeach ]]
+  <label>
+    <span class="ow-visually-hidden">{{ locale.label }}</span>
+    <select name="lang" aria-label="{{ locale.label }}">
+      [[ foreach: locale.options as option ]]
+      <option value="{{ option.code }}" lang="{{ option.code }}" [[ if: option.selected ]]selected[[ endif ]]>{{ option.label }}</option>
+      [[ endforeach ]]
+    </select>
+  </label>
+  <button type="submit">{{ locale.submit_label }}</button>
+</form>
