@@ -63,8 +63,17 @@ document.addEventListener('DOMContentLoaded', () => {
     ? Array.from(sidebar.querySelectorAll('.ow-nav a'))
     : [];
 
+  const canonicalMissingKey = (value) => {
+    const key = String(value).trim();
+    if (/^[a-z0-9]+(?:[._-][a-z0-9]+)+$/.test(key)) {
+      return `[[${key}]]`;
+    }
+    return key;
+  };
+
   navigationLinks.forEach((link) => {
     link.classList.add('ow-global-nav-link');
+    link.textContent = canonicalMissingKey(link.textContent);
     globalNav.appendChild(link);
   });
 
