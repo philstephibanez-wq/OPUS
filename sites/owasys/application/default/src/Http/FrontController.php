@@ -32,8 +32,8 @@ final class FrontController
     /** @param array<string,mixed> $server */
     public function dispatch(array $server): void
     {
-        $path = self::normalizePath((string) ($server['REQUEST_URI'] ?? '/'));
-        $handler = $this->handlers[$path] ?? 'application.php';
+        $request = RequestContext::fromServer($server);
+        $handler = $this->handlers[$request->path()] ?? 'application.php';
         $file = $this->httpRoot . '/' . $handler;
 
         if (!is_file($file)) {
@@ -45,16 +45,9 @@ final class FrontController
 
     public static function normalizePath(string $requestUri): string
     {
-        $path = parse_url($requestUri, PHP_URL_PATH);
-        $path = is_string($path) ? '/' . ltrim(rawurldecode($path), '/') : '/';
-
-        if ($path === '/owasys') {
-            return '/';
-        }
-        if (str_starts_with($path, '/owasys/')) {
-            $path = substr($path, strlen('/owasys'));
-        }
-
-        return $path === '' ? '/' : $path;
+        return RequestContext::fromServer([
+            'REQUEST_METHOD' => 'GET',
+            'REQUEST_URI' => $requestUri,
+        ])->path();
     }
 }
