@@ -13,13 +13,24 @@ document.addEventListener('DOMContentLoaded', () => {
   style.textContent = `
     [data-context="OWASYS_SOURCE_EDITOR_UI"]{display:grid;gap:1rem}
     .ow-source-meta{display:grid;grid-template-columns:minmax(0,1fr) minmax(18rem,30%);gap:1rem}
-    .ow-source-workspace{display:grid;grid-template-columns:minmax(16rem,26%) minmax(0,1fr);gap:1rem;min-height:38rem;height:calc(100vh - 15rem)}
+    .ow-source-workspace{display:grid;grid-template-columns:minmax(20rem,32%) minmax(0,1fr);gap:1rem;min-height:38rem;height:calc(100vh - 15rem)}
     .ow-source-tree-panel,.ow-source-editor-panel{min-height:0;display:flex;flex-direction:column}
-    .ow-source-tree{overflow:auto;min-height:0;padding-right:.35rem}
+    .ow-source-tree{overflow:auto;min-height:0;padding-right:.35rem;overflow-x:hidden}
+    .ow-source-tree ul{list-style:none;margin:0;padding:0}
+    .ow-source-tree-node{margin:.12rem 0}
+    .ow-source-directory{margin:.15rem 0}
+    .ow-source-directory>summary{cursor:pointer;padding:.45rem .55rem;border-radius:.45rem;font-weight:700;overflow-wrap:anywhere;word-break:break-word}
+    .ow-source-directory>summary:hover{background:rgba(90,160,210,.12)}
+    .ow-source-directory>ul{margin-left:.65rem;padding-left:.6rem;border-left:1px solid rgba(125,160,200,.25)}
+    .ow-source-file{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.45rem;align-items:start;width:100%;margin:.18rem 0;padding:.48rem .58rem;text-align:left;border:1px solid rgba(125,160,200,.28);border-radius:.45rem;background:rgba(32,52,78,.72);color:inherit;cursor:pointer}
+    .ow-source-file:hover{border-color:#6bdcff;background:rgba(43,78,112,.85)}
+    .ow-source-file[aria-current="true"]{border-color:#6bdcff;background:rgba(38,93,126,.9);box-shadow:0 0 0 1px rgba(107,220,255,.25)}
+    .ow-source-file-name{min-width:0;overflow-wrap:anywhere;word-break:break-word;font-weight:700}
+    .ow-source-file-size{white-space:nowrap;opacity:.7;font-size:.82rem}
     .ow-source-editor-host{min-height:20rem;flex:1;border:1px solid rgba(125,160,200,.35);border-radius:.55rem;overflow:hidden;background:#081426}
     .ow-source-actions{position:sticky;bottom:0;z-index:2;padding:.65rem 0;background:var(--ow-surface,#0d1b2e)}
     .ow-source-result{max-height:18rem;overflow:auto}
-    @media(max-width:980px){.ow-source-meta,.ow-source-workspace{grid-template-columns:1fr;height:auto}.ow-source-tree{max-height:18rem}.ow-source-editor-host{height:34rem;flex:none}}
+    @media(max-width:980px){.ow-source-meta,.ow-source-workspace{grid-template-columns:1fr;height:auto}.ow-source-tree{max-height:22rem}.ow-source-editor-host{height:34rem;flex:none}}
   `;
   document.head.appendChild(style);
 
@@ -109,27 +120,90 @@ document.addEventListener('DOMContentLoaded', () => {
     stageButton.disabled = busy; commitMessage.disabled = busy;
     commitButton.disabled = busy || stagedFiles.length === 0 || commitMessage.value.trim() === '';
   };
+
   const showError = (error, target = result) => { target.hidden = false; target.textContent = JSON.stringify({contract:'OWASYS_SOURCE_ERROR_V1', error:error instanceof Error ? error.message : 'OWASYS_SOURCE_UI_ERROR'}, null, 2); };
+
+  const markSelectedFile = () => {
+    tree.querySelectorAll('.ow-source-file').forEach((button) => {
+      button.setAttribute('aria-current', button.dataset.path === selectedPath ? 'true' : 'false');
+    });
+  };
 
   const openFile = async (path) => {
     setBusy(true); result.hidden = true;
     try {
       const file = await request({action:'read', path});
       selectedPath = file.path; expectedSha256 = file.sha256; previewSha256 = '';
-      fileTitle.textContent = file.path; editorAdapter.setPath(file.path); editorAdapter.setValue(file.content); editorAdapter.focus();
+      fileTitle.textContent = file.path; fileTitle.title = file.path;
+      editorAdapter.setPath(file.path); editorAdapter.setValue(file.content); editorAdapter.focus();
+      markSelectedFile();
     } catch (error) { showError(error); } finally { setBusy(false); }
+  };
+
+  const buildTreeModel = (files) => {
+    const root = {directories: new Map(), files: []};
+    files.forEach((file) => {
+      const parts = String(file.path).split('/').filter(Boolean);
+      const fileName = parts.pop() || file.path;
+      let node = root;
+      parts.forEach((part) => {
+        if (!node.directories.has(part)) node.directories.set(part, {directories: new Map(), files: []});
+        node = node.directories.get(part);
+      });
+      node.files.push({...file, name: fileName});
+    });
+    return root;
+  };
+
+  const renderTreeNode = (node, parent, depth = 0) => {
+    [...node.directories.entries()].sort(([a], [b]) => a.localeCompare(b)).forEach(([name, child]) => {
+      const details = document.createElement('details');
+      details.className = 'ow-source-directory';
+      details.open = depth < 2;
+      const summary = document.createElement('summary');
+      summary.textContent = name;
+      summary.title = name;
+      const list = document.createElement('ul');
+      renderTreeNode(child, list, depth + 1);
+      details.append(summary, list);
+      const item = document.createElement('div');
+      item.className = 'ow-source-tree-node';
+      item.append(details);
+      parent.append(item);
+    });
+
+    [...node.files].sort((a, b) => a.name.localeCompare(b.name)).forEach((file) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'ow-source-file';
+      button.dataset.path = file.path;
+      button.title = file.path;
+      button.setAttribute('aria-current', file.path === selectedPath ? 'true' : 'false');
+      const name = document.createElement('span');
+      name.className = 'ow-source-file-name';
+      name.textContent = file.name;
+      const size = document.createElement('span');
+      size.className = 'ow-source-file-size';
+      size.textContent = `${file.bytes} B`;
+      button.append(name, size);
+      button.addEventListener('click', () => openFile(file.path));
+      const item = document.createElement('div');
+      item.className = 'ow-source-tree-node';
+      item.append(button);
+      parent.append(item);
+    });
   };
 
   const refresh = async () => {
     setBusy(true);
     try {
       const payload = await request({action:'list'});
-      repository.textContent = JSON.stringify(payload.repository, null, 2); tree.replaceChildren();
-      payload.files.forEach((file) => {
-        const button = document.createElement('button'); button.type = 'button'; button.className = 'ow-button ow-button-secondary';
-        button.style.cssText = 'display:block;width:100%;margin-bottom:.35rem;text-align:left';
-        button.textContent = `${file.path} (${file.bytes} B)`; button.addEventListener('click', () => openFile(file.path)); tree.appendChild(button);
-      });
+      repository.textContent = JSON.stringify(payload.repository, null, 2);
+      tree.replaceChildren();
+      const rootList = document.createElement('div');
+      renderTreeNode(buildTreeModel(payload.files), rootList);
+      tree.append(rootList);
+      markSelectedFile();
     } catch (error) { repository.textContent = error instanceof Error ? error.message : 'OWASYS_SOURCE_LIST_ERROR'; } finally { setBusy(false); }
   };
 
