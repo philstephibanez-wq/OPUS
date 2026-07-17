@@ -1,0 +1,30 @@
+<?php
+declare(strict_types=1);
+
+return [
+    'bg' => 'Български',
+    'hr' => 'Hrvatski',
+    'cs' => 'Čeština',
+    'da' => 'Dansk',
+    'nl' => 'Nederlands',
+    'en' => 'English',
+    'et' => 'Eesti',
+    'fi' => 'Suomi',
+    'fr' => 'Français',
+    'de' => 'Deutsch',
+    'el' => 'Ελληνικά',
+    'hu' => 'Magyar',
+    'ga' => 'Gaeilge',
+    'it' => 'Italiano',
+    'lv' => 'Latviešu',
+    'lt' => 'Lietuvių',
+    'mt' => 'Malti',
+    'pl' => 'Polski',
+    'pt' => 'Português',
+    'ro' => 'Română',
+    'sk' => 'Slovenčina',
+    'sl' => 'Slovenščina',
+    'es' => 'Español',
+    'sv' => 'Svenska',
+    'uk' => 'Українська',
+];
