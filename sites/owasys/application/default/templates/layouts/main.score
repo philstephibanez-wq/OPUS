@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="{{ locale.code }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ page.title }}</title>
+  <link rel="stylesheet" href="{{ assets.theme_css }}">
+</head>
+<body data-opus-state="{{ state.id }}">
+  <header class="ow-global-header" data-context="OWASYS_GLOBAL_HEADER">
+    <a class="ow-global-header-identity" href="{{ routes.home }}">
+      <strong>{{ brand.name }}</strong>
+      <span>{{ brand.long_name }}</span>
+    </a>
+    <div class="ow-global-header-actions">
+      [[ if: current_application.present ]]
+      <div class="ow-global-current-app" data-context="OWASYS_GLOBAL_CURRENT_APPLICATION">
+        <strong>{{ current_application.name }}</strong>
+        <span>{{ current_application.id }}</span>
+      </div>
+      [[ endif ]]
+      [[ if: auth.authenticated ]]
+      <div class="ow-global-auth-status">
+        <strong>{{ auth.label }}</strong>
+        <span>{{ auth.profile }}</span>
+      </div>
+      [[ endif ]]
+      [[ include:partials/locale-switcher.score ]]
+    </div>
+  </header>
+
+  [[ include:partials/navigation.score ]]
+
+  <main class="ow-main">
+    <header class="ow-topbar">
+      <span class="ow-pill">{{ page.title }}</span>
+      <h1>{{ page.title }}</h1>
+      <p class="ow-muted">{{ page.summary }}</p>
+    </header>
+    {{{ content.html }}}
+  </main>
+
+  <script src="{{ assets.theme_js }}" defer></script>
+</body>
+</html>
