@@ -1,7 +1,7 @@
 document.documentElement.dataset.owasysTheme = 'owasys';
 
 /**
- * Creates the classic OWASYS global header and places the single locale selector on its right.
+ * Creates the classic OWASYS global header, horizontal navigation and locale selector.
  * The locale registry is limited to the 24 official EU languages plus Ukrainian.
  */
 document.addEventListener('DOMContentLoaded', () => {
@@ -43,7 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  const renderedBrand = document.querySelector('.ow-sidebar .ow-brand');
+  const sidebar = document.querySelector('.ow-sidebar');
+  const renderedBrand = sidebar?.querySelector('.ow-brand');
   let header = document.querySelector('.ow-global-header');
   if (!(header instanceof HTMLElement)) {
     header = document.createElement('header');
@@ -76,9 +77,37 @@ document.addEventListener('DOMContentLoaded', () => {
     renderedBrand.remove();
   }
 
+  let globalNav = document.querySelector('.ow-global-nav');
+  if (!(globalNav instanceof HTMLElement)) {
+    globalNav = document.createElement('nav');
+    globalNav.className = 'ow-global-nav';
+    globalNav.dataset.context = 'OWASYS_GLOBAL_NAVIGATION';
+    globalNav.setAttribute('aria-label', 'OWASYS');
+    header.insertAdjacentElement('afterend', globalNav);
+  }
+
+  const authStatus = sidebar?.querySelector('.ow-auth-status');
+  const navigationLinks = sidebar
+    ? Array.from(sidebar.querySelectorAll('a')).filter((link) =>
+        !link.closest('.ow-brand') &&
+        !link.closest('.ow-auth-status') &&
+        !link.closest('[data-context="OWASYS_LOCALE_SWITCHER"]')
+      )
+    : [];
+
+  navigationLinks.forEach((link) => {
+    link.classList.add('ow-global-nav-link');
+    globalNav.appendChild(link);
+  });
+
   const actions = header.querySelector('.ow-global-header-actions');
   if (!(actions instanceof HTMLElement)) {
     return;
+  }
+
+  if (authStatus instanceof HTMLElement) {
+    authStatus.classList.add('ow-global-auth-status');
+    actions.appendChild(authStatus);
   }
 
   document.querySelectorAll('[data-context="OWASYS_LOCALE_SWITCHER"]').forEach((node) => node.remove());
@@ -119,4 +148,9 @@ document.addEventListener('DOMContentLoaded', () => {
   select.addEventListener('change', () => form.submit());
   form.appendChild(select);
   actions.appendChild(form);
+
+  if (sidebar instanceof HTMLElement) {
+    sidebar.remove();
+  }
+  shell.classList.add('ow-shell-horizontal-navigation');
 });
