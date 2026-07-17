@@ -4,7 +4,11 @@ declare(strict_types=1);
 use Opus\Fsm\FsmProcessor;
 
 /**
- * Build the visible OWASYS navigation from executable FSM transitions.
+ * Build the visible OWASYS navigation from executable FSM events.
+ *
+ * The FSM processor resolves state-specific transitions before wildcard
+ * transitions. This projection therefore evaluates each event exactly once,
+ * instead of rendering one item per matching transition declaration.
  *
  * @return list<array{event:string,label_key:string,order:int,target_state:string,target_route:string}>
  */
@@ -18,7 +22,7 @@ return static function (
 ): array {
     $allowedEvents = is_array($acl[$profile] ?? null) ? $acl[$profile] : [];
     $allowAll = in_array('*', $allowedEvents, true);
-    $items = [];
+    $candidateEvents = [];
 
     foreach ($fsm->transitions() as $transition) {
         if (!is_array($transition) || ($transition['visual'] ?? false) !== true) {
@@ -37,6 +41,11 @@ return static function (
             continue;
         }
 
+        $candidateEvents[$event] = true;
+    }
+
+    $items = [];
+    foreach (array_keys($candidateEvents) as $event) {
         try {
             $result = $fsm->transition($currentState, $event, $runtimeContext);
         } catch (Throwable) {
