@@ -128,5 +128,6 @@ return [
         'routes' => $routes,
         'diagram' => $targetDiagram,
         'diagram_available' => $targetDiagram !== '',
+        'diagram_js' => $request->asset('/asset/js/fsm-diagram.js'),
     ],
 ];
