@@ -41,12 +41,15 @@ The common layout is rendered from:
 
 - `application/default/templates/layouts/main.score`
 - `application/default/templates/partials/navigation.score`
+- `application/default/templates/partials/fsm-diagram.score`
 - `application/default/templates/partials/locale-switcher.score`
 - `application/default/templates/partials/state-content.score`
 
 A state may declare its own template from `application/states/<state>/templates`. `application/score-page.php` performs orchestration only and renders that state template with the prepared state ViewModel.
 
 The active horizontal navigation is built from the FSM + ACL + guards through `application/default/navigation/view-model.php`, then rendered by `partials/navigation.score`.
+
+The global FSM diagram is a shared navigation projection rendered on every authenticated OWASYS page. Its nodes must be generated from the same authorized navigation items as the horizontal menu, the current state must be highlighted, and every visible node must link to its canonical route. The canonical builder is `application/default/navigation/fsm-diagram-view-model.php`.
 
 The final rendered navigation must not contain the legacy structural markers:
 
@@ -56,7 +59,7 @@ The final rendered navigation must not contain the legacy structural markers:
 
 No CSS override may be used to disguise legacy structure. Structural HTML must originate from ScoreTemplate. JavaScript is optional enhancement only and must not build the header, menu, locale selector, sidebar or page structure.
 
-The Structure state may use `www/asset/js/fsm-diagram.js` only to transform already-rendered FSM source into a local SVG diagram. That renderer must not fetch a CDN, own navigation state, or create the page structure.
+`www/asset/js/fsm-diagram.js` may transform an already-rendered FSM projection into local SVG. It must not fetch a CDN, own navigation state, invent routes, or decide authorization. Clickability comes only from canonical hrefs prepared in the ViewModel.
 
 Templates represent prepared ViewModel data only. They must not perform routing, authorization, service calls, database reads or business decisions. PHP prepares data and orchestrates the pipeline; it must not be the final layout renderer.
 
@@ -132,6 +135,7 @@ The following focused smokes protect current architectural boundaries:
 - `tools/smoke_owasys_application_boundaries.php`
 - `tools/smoke_owasys_default_state_layout.php`
 - `tools/smoke_owasys_fsm_acl_score_navigation.php`
+- `tools/smoke_owasys_global_fsm_diagram.php`
 - `tools/smoke_owasys_structure_preview_boundaries.php`
 - `tools/smoke_owasys_score_horizontal_navigation.php`
 - `tools/smoke_owasys_dev_router.php`
@@ -153,11 +157,13 @@ Completed boundaries:
 - shared ACL consolidated under `application/default/acl`;
 - FSM/ACL/guard-derived navigation ViewModel;
 - horizontal navigation rendered by ScoreTemplate for GET pages;
+- shared clickable FSM diagram rendered on every authenticated page from the authorized navigation projection;
+- current FSM state highlighted and node hrefs bound to canonical routes;
 - shared locale selector rendered by ScoreTemplate with local SVG flags;
 - state-owned ScoreTemplate dispatch supported by `score-page.php`;
 - Structure rebuilt with a new read-only ViewModel, application inspection, states table and routes table;
-- FSM source generated from the inspected application and rendered graphically as local SVG by `www/asset/js/fsm-diagram.js`;
-- the FSM renderer has no CDN dependency and leaves the textual source as a no-JavaScript fallback;
+- inspected-application FSM source rendered graphically as local SVG within Structure;
+- the FSM renderer has no CDN dependency and leaves textual source as a no-JavaScript fallback;
 - `score.css` is self-contained and no longer imports the deleted legacy stylesheet;
 - build UI smoke targets the canonical state action while the public front controller remains the only entrypoint;
 - explicit no-legacy and tools cleanup gates.
