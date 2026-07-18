@@ -15,12 +15,13 @@ $data = [
         'label' => 'Langue',
         'submit_label' => 'Appliquer',
         'current_label' => 'Français',
-        'current_flag' => '🇫🇷',
+        'current_flag_id' => 'flag-fr',
+        'flag_sprite' => '/owasys/asset/flags/locale-flags.svg',
         'preserved_query' => [],
         'options' => [[
             'code' => 'fr',
             'label' => 'Français',
-            'flag' => '🇫🇷',
+            'flag_id' => 'flag-fr',
             'href' => '/owasys/structure?lang=fr',
             'selected' => true,
         ]],
@@ -59,14 +60,15 @@ foreach ([
     'aria-label="Navigation principale"',
     'OWASYS_LOCALE_SWITCHER',
     'ow-locale-menu',
-    '🇫🇷',
+    '<svg class="ow-locale-flag"',
+    '/owasys/asset/flags/locale-flags.svg#flag-fr',
     '/owasys/structure?lang=fr',
 ] as $required) {
     if (!str_contains($html, $required)) {
         throw new RuntimeException('OWASYS_SCORE_HORIZONTAL_MARKER_MISSING:' . $required);
     }
 }
-foreach (['ow-sidebar', 'class="ow-nav"', 'ow-shell', '<select name="lang"'] as $forbidden) {
+foreach (['ow-sidebar', 'class="ow-nav"', 'ow-shell', '<select name="lang"', '🇫🇷'] as $forbidden) {
     if (str_contains($html, $forbidden)) {
         throw new RuntimeException('OWASYS_SCORE_LEGACY_STRUCTURE_PRESENT:' . $forbidden);
     }
@@ -80,11 +82,33 @@ if (!str_contains($frontController, "'score-page.php'")) {
 $scorePage = (string) file_get_contents($site . '/application/score-page.php');
 foreach ([
     "'aria_label' => \$t('navigation.aria_label')",
-    "'flag' => '🇫🇷'",
-    "'current_flag' => \$currentLocalePresentation['flag']",
+    "'flag_id' => 'flag-fr'",
+    "'flag_sprite' => \$flagSprite",
+    "'current_flag_id' => \$currentLocalePresentation['flag_id']",
 ] as $sourceMarker) {
     if (!str_contains($scorePage, $sourceMarker)) {
         throw new RuntimeException('OWASYS_SCORE_VIEWMODEL_MARKER_MISSING:' . $sourceMarker);
+    }
+}
+
+$localeTemplate = (string) file_get_contents($site . '/application/default/templates/partials/locale-switcher.score');
+if (!str_contains($localeTemplate, '{{ locale.flag_sprite }}#{{ option.flag_id }}')) {
+    throw new RuntimeException('OWASYS_SHARED_LOCALE_SPRITE_NOT_WIRED');
+}
+
+$layout = (string) file_get_contents($site . '/application/default/templates/layouts/main.score');
+if (substr_count($layout, 'partials/locale-switcher.score') !== 1) {
+    throw new RuntimeException('OWASYS_SHARED_LOCALE_SELECTOR_LAYOUT_INVALID');
+}
+
+$flagSprite = $site . '/www/asset/flags/locale-flags.svg';
+if (!is_file($flagSprite)) {
+    throw new RuntimeException('OWASYS_LOCALE_FLAG_SPRITE_MISSING');
+}
+$sprite = (string) file_get_contents($flagSprite);
+foreach (['flag-fr', 'flag-en', 'flag-de', 'flag-world'] as $flagId) {
+    if (!str_contains($sprite, 'id="' . $flagId . '"')) {
+        throw new RuntimeException('OWASYS_LOCALE_FLAG_SYMBOL_MISSING:' . $flagId);
     }
 }
 
