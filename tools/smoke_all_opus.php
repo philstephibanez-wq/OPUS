@@ -47,9 +47,16 @@ $phpFiles = [
     'Opus/Owasys/RepositoryInspector.php',
     'Opus/Owasys/RepositoryOperator.php',
     'Opus/Owasys/ApplicationFileEditor.php',
-    'sites/owasys/www/structure-preview.php',
-    'sites/owasys/www/build-action.php',
-    'sites/owasys/www/source-action.php',
+    'Opus/Template/TemplateRendererInterface.php',
+    'Opus/Template/ScoreTemplateRenderer.php',
+    'sites/owasys/dev-router.php',
+    'sites/owasys/www/index.php',
+    'sites/owasys/application/score-page.php',
+    'sites/owasys/application/default/src/Http/FrontController.php',
+    'sites/owasys/application/default/src/Http/RequestContext.php',
+    'sites/owasys/application/states/build/actions/build-action.php',
+    'sites/owasys/application/states/source/actions/source-action.php',
+    'sites/owasys/application/states/structure/actions/structure-preview.php',
     'sites/owasys/application/states/source/views/index.php',
     'tools/owasys_acceptance_router.php',
     'tools/smoke_all_opus.php',
@@ -61,7 +68,6 @@ $phpFiles = [
     'tools/smoke_opus_bin_fsm_transition.php',
     'tools/smoke_opus_validate_site_cli_fsm.php',
     'tools/smoke_opus_i18n_strict_ui_contract.php',
-    'tools/smoke_owasys_backend_first_architecture.php',
     'tools/smoke_owasys_i18n.php',
     'tools/smokes/smoke_owasys_i18n_complete.php',
     'tools/smoke_owasys_global_header.php',
@@ -99,6 +105,16 @@ $phpFiles = [
     'tools/smoke_owasys_source_git_write_ui.php',
     'tools/smoke_owasys_delivery_acceptance.php',
     'tools/smoke_owasys_visual_acceptance_launcher.php',
+    'tools/smoke_owasys_front_controller_boundary.php',
+    'tools/smoke_owasys_request_context_front_controller.php',
+    'tools/smoke_owasys_application_boundaries.php',
+    'tools/smoke_owasys_default_state_layout.php',
+    'tools/smoke_owasys_fsm_acl_score_navigation.php',
+    'tools/smoke_owasys_structure_preview_boundaries.php',
+    'tools/smoke_owasys_score_horizontal_navigation.php',
+    'tools/smoke_owasys_dev_router.php',
+    'tools/smoke_owasys_no_legacy.php',
+    'tools/smoke_owasys_tools_cleanup.php',
 ];
 
 $owasysLocales = [
@@ -127,7 +143,6 @@ $smokes = [
     ['tools/smoke_opus_bin_fsm_transition.php'],
     ['tools/smoke_opus_validate_site_cli_fsm.php'],
     ['tools/smoke_opus_i18n_strict_ui_contract.php'],
-    ['tools/smoke_owasys_backend_first_architecture.php'],
     ['tools/smoke_owasys_i18n.php'],
     ['tools/smokes/smoke_owasys_i18n_complete.php'],
     ['tools/smoke_owasys_global_header.php'],
@@ -162,6 +177,16 @@ $smokes = [
     ['tools/smoke_owasys_source_git_write_ui.php'],
     ['tools/smoke_owasys_delivery_acceptance.php'],
     ['tools/smoke_owasys_visual_acceptance_launcher.php'],
+    ['tools/smoke_owasys_front_controller_boundary.php'],
+    ['tools/smoke_owasys_request_context_front_controller.php'],
+    ['tools/smoke_owasys_application_boundaries.php'],
+    ['tools/smoke_owasys_default_state_layout.php'],
+    ['tools/smoke_owasys_fsm_acl_score_navigation.php'],
+    ['tools/smoke_owasys_structure_preview_boundaries.php'],
+    ['tools/smoke_owasys_score_horizontal_navigation.php'],
+    ['tools/smoke_owasys_dev_router.php'],
+    ['tools/smoke_owasys_no_legacy.php'],
+    ['tools/smoke_owasys_tools_cleanup.php'],
     ['bin/opus', 'validate:site', 'owasys'],
     ['bin/opus', 'validate:site', 'demo-app'],
 ];
@@ -169,11 +194,9 @@ $smokes = [
 foreach ($smokes as $smoke) {
     $arguments = [];
     foreach ($smoke as $index => $argument) {
-        if ($index === 0) {
-            $arguments[] = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $argument);
-        } else {
-            $arguments[] = $argument;
-        }
+        $arguments[] = $index === 0
+            ? $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $argument)
+            : $argument;
     }
     $run($arguments);
 }
