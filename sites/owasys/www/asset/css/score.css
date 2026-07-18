@@ -48,12 +48,12 @@ body { min-width: 0; }
 
 .ow-locale-switcher {
   position: relative;
-  min-width: 190px;
+  min-width: 210px;
   color: var(--ow-text);
 }
 .ow-locale-switcher summary {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
   min-height: 42px;
@@ -81,18 +81,20 @@ body { min-width: 0; }
 }
 .ow-locale-switcher[open] .ow-locale-chevron { transform: rotate(180deg); }
 .ow-locale-flag {
-  display: inline-flex;
-  width: 1.55em;
-  justify-content: center;
-  font-size: 1.16rem;
-  line-height: 1;
+  display: block;
+  width: 28px;
+  height: 18px;
+  flex: 0 0 auto;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.24), 0 2px 7px rgba(0,0,0,.25);
+  overflow: hidden;
 }
 .ow-locale-menu {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
   z-index: 300;
-  width: min(310px, 82vw);
+  width: min(320px, 82vw);
   max-height: min(520px, 68vh);
   overflow-y: auto;
   padding: 8px;
@@ -104,10 +106,10 @@ body { min-width: 0; }
 }
 .ow-locale-option {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
-  min-height: 42px;
+  min-height: 44px;
   padding: 9px 10px;
   border-radius: 10px;
   color: var(--ow-text);
@@ -129,6 +131,6 @@ body { min-width: 0; }
   .ow-global-header { align-items: flex-start; flex-direction: column; }
   .ow-global-header-actions { width: 100%; flex-wrap: wrap; }
   .ow-locale-switcher { width: 100%; }
-  .ow-locale-menu { left: 0; right: auto; width: min(100%, 310px); }
+  .ow-locale-menu { left: 0; right: auto; width: min(100%, 320px); }
   .ow-main { padding: 22px; }
 }
