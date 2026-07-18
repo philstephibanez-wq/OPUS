@@ -13,7 +13,7 @@ final class FrontController
     private string $defaultHandler;
 
     /** @param array<string,string> $handlers */
-    public function __construct(string $applicationRoot, array $handlers, string $defaultHandler = 'application.php')
+    public function __construct(string $applicationRoot, array $handlers, string $defaultHandler = 'score-page.php')
     {
         $applicationRoot = rtrim(str_replace('\\', '/', $applicationRoot), '/');
         if ($applicationRoot === '' || !is_dir($applicationRoot)) {
@@ -38,10 +38,16 @@ final class FrontController
     public function dispatch(array $server): void
     {
         $request = RequestContext::fromServer($server);
-        $handler = $this->handlers[$request->path()] ?? $this->defaultHandler;
+        $handler = $this->handlers[$request->path()] ?? null;
 
-        if ($handler === $this->defaultHandler && $request->method() === 'GET' && $request->path() !== '/logout') {
-            $handler = 'score-page.php';
+        if ($handler === null) {
+            if ($request->method() !== 'GET') {
+                http_response_code(405);
+                header('Allow: GET');
+                echo 'OWASYS_METHOD_NOT_SUPPORTED';
+                return;
+            }
+            $handler = $this->defaultHandler;
         }
 
         $file = $this->applicationRoot . '/' . $handler;
