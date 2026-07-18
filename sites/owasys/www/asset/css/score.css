@@ -58,6 +58,15 @@ code, pre { font-family: Consolas, "Courier New", monospace; }
   border-color: var(--ow-accent);
   background: rgba(108,227,255,.1);
 }
+.ow-global-fsm {
+  padding: 18px clamp(20px, 4vw, 56px) 8px;
+  border-bottom: 1px solid var(--ow-line);
+  background: rgba(5, 13, 24, .72);
+}
+.ow-global-fsm-header h2 { margin: 0; font-size: 18px; }
+.ow-global-fsm-header p { margin: 3px 0 0; }
+.ow-global-fsm .ow-fsm-diagram { margin-top: 10px; }
+.ow-global-fsm .ow-fsm-svg { min-height: 210px; max-height: 420px; }
 .ow-main { width: min(1280px, 100%); margin: 0 auto; padding: 34px; }
 .ow-topbar { margin-bottom: 22px; }
 .ow-topbar h1 { margin: 8px 0 0; font-size: clamp(30px, 5vw, 44px); }
@@ -124,9 +133,11 @@ pre.mermaid {
   stroke-width: 5px;
   stroke-linejoin: round;
 }
-.ow-fsm-node rect { fill: #123456; stroke: #6ce3ff; stroke-width: 2; }
-.ow-fsm-node text { fill: #f6f8ff; font: 700 14px Segoe UI, Arial, sans-serif; }
+.ow-fsm-node rect { fill: #123456; stroke: #6ce3ff; stroke-width: 2; transition: fill .15s ease, stroke .15s ease; }
+.ow-fsm-node text { fill: #f6f8ff; font: 700 14px Segoe UI, Arial, sans-serif; pointer-events: none; }
 .ow-fsm-node.is-active rect { fill: #164e63; stroke: #4ade80; stroke-width: 4; }
+.ow-fsm-link { cursor: pointer; text-decoration: none; }
+.ow-fsm-link:hover .ow-fsm-node rect, .ow-fsm-link:focus .ow-fsm-node rect { fill: #1d5578; stroke: #f6f8ff; }
 .ow-empty-state { padding: 24px; border: 1px dashed var(--ow-line); border-radius: 16px; text-align: center; }
 .ow-error { padding: 12px 14px; border: 1px solid rgba(251,113,133,.5); border-radius: 12px; background: rgba(251,113,133,.12); color: #fecdd3; }
 .ow-locale-switcher { position: relative; min-width: 210px; color: var(--ow-text); }
