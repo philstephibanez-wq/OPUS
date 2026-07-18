@@ -103,6 +103,8 @@ The `tools` directory is part of the architecture and must be cleaned with the a
 
 Every OWASYS tool must target an existing canonical path and current contract. A smoke that validates a deleted bootstrap, a removed public endpoint, a PHP layout, a legacy renderer, or any obsolete architecture must be deleted rather than adapted to preserve historical structure.
 
+Source-marker assertions must match text that physically exists in the current source. A smoke must not require its own quoted representation of a marker or pass through an accidental formatting coincidence.
+
 `tools/smoke_all_opus.php` must list only files that physically exist and must register all current blocking OWASYS architecture smokes. Missing files, stale paths and duplicate obsolete smokes are blocking defects.
 
 The workspace must be updated in the same change set whenever an architectural boundary, canonical path, validation gate, completion statement or known debt changes.
