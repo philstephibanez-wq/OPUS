@@ -12,5 +12,5 @@ use Owasys\Application\Http\FrontController;
         '/source-action.php' => 'states/source/actions/source-action.php',
         '/structure-preview.php' => 'states/structure/actions/structure-preview.php',
     ],
-    'application.php'
+    'score-page.php'
 ))->dispatch($_SERVER);
