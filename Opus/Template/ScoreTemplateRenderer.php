@@ -46,17 +46,6 @@ final class ScoreTemplateRenderer implements TemplateRendererInterface
     private function renderSource(string $source, array $data, string $template, array $stack): string
     {
         $source = preg_replace_callback(
-            '/\[\[\s*if\s*:\s*([A-Za-z0-9_.]+)\s*\]\](.*?)(?:\[\[\s*else\s*\]\](.*?))?\[\[\s*endif\s*\]\]/s',
-            fn(array $m): string => $this->truthy($this->value($data, $m[1], true))
-                ? $this->renderSource($m[2], $data, $template, $stack)
-                : $this->renderSource($m[3] ?? '', $data, $template, $stack),
-            $source
-        );
-        if ($source === null) {
-            throw ContractException::because('OPUS_SCORE_TEMPLATE_IF_PARSE_FAILED', $template);
-        }
-
-        $source = preg_replace_callback(
             '/\[\[\s*foreach\s*:\s*([A-Za-z0-9_.]+)\s+as\s+([A-Za-z_][A-Za-z0-9_]*)\s*\]\](.*?)\[\[\s*endforeach\s*\]\]/s',
             function (array $m) use ($data, $template, $stack): string {
                 $items = $this->value($data, $m[1]);
@@ -78,6 +67,17 @@ final class ScoreTemplateRenderer implements TemplateRendererInterface
         );
         if ($source === null) {
             throw ContractException::because('OPUS_SCORE_TEMPLATE_FOREACH_PARSE_FAILED', $template);
+        }
+
+        $source = preg_replace_callback(
+            '/\[\[\s*if\s*:\s*([A-Za-z0-9_.]+)\s*\]\](.*?)(?:\[\[\s*else\s*\]\](.*?))?\[\[\s*endif\s*\]\]/s',
+            fn(array $m): string => $this->truthy($this->value($data, $m[1], true))
+                ? $this->renderSource($m[2], $data, $template, $stack)
+                : $this->renderSource($m[3] ?? '', $data, $template, $stack),
+            $source
+        );
+        if ($source === null) {
+            throw ContractException::because('OPUS_SCORE_TEMPLATE_IF_PARSE_FAILED', $template);
         }
 
         $source = preg_replace_callback(
