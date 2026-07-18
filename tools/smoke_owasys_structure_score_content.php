@@ -7,15 +7,16 @@ $view = $site . '/application/states/structure/views/index.php';
 $template = $site . '/application/states/structure/templates/index.score';
 $scorePage = $site . '/application/score-page.php';
 $css = $site . '/www/asset/css/score.css';
+$diagramJs = $site . '/www/asset/js/fsm-diagram.js';
 
-foreach ([$view, $template, $scorePage, $css] as $file) {
+foreach ([$view, $template, $scorePage, $css, $diagramJs] as $file) {
     if (!is_file($file)) {
         throw new RuntimeException('OWASYS_STRUCTURE_SCORE_FILE_MISSING:' . $file);
     }
 }
 
 $viewSource = (string) file_get_contents($view);
-foreach (['ApplicationInspector::forOpusRoot', "'template' => 'index.score'", "'state_content' =>", "flowchart LR"] as $marker) {
+foreach (['ApplicationInspector::forOpusRoot', "'template' => 'index.score'", "'state_content' =>", 'flowchart LR', "diagram_js"] as $marker) {
     if (!str_contains($viewSource, $marker)) {
         throw new RuntimeException('OWASYS_STRUCTURE_VIEWMODEL_MARKER_MISSING:' . $marker);
     }
@@ -27,13 +28,25 @@ foreach (['<section', '<form', '<script', 'ow-sidebar', 'ow-shell'] as $forbidde
 }
 
 $templateSource = (string) file_get_contents($template);
-foreach (['OWASYS_STRUCTURE_INSPECTION', 'OWASYS_MERMAID_NAVIGATION', 'state_content.states', 'state_content.routes', 'state_content.diagram'] as $marker) {
+foreach (['OWASYS_STRUCTURE_INSPECTION', 'OWASYS_MERMAID_NAVIGATION', 'OWASYS_FSM_DIAGRAM', 'data-fsm-canvas', 'data-fsm-source', 'state_content.diagram_js'] as $marker) {
     if (!str_contains($templateSource, $marker)) {
         throw new RuntimeException('OWASYS_STRUCTURE_TEMPLATE_MARKER_MISSING:' . $marker);
     }
 }
 if (str_contains($templateSource, '<?')) {
     throw new RuntimeException('OWASYS_STRUCTURE_TEMPLATE_PHP_FORBIDDEN');
+}
+
+$diagramSource = (string) file_get_contents($diagramJs);
+foreach (['createElementNS', 'ow-fsm-svg', 'data-context="OWASYS_FSM_DIAGRAM"', 'marker-end'] as $marker) {
+    if (!str_contains($diagramSource, $marker)) {
+        throw new RuntimeException('OWASYS_STRUCTURE_DIAGRAM_RENDERER_MARKER_MISSING:' . $marker);
+    }
+}
+foreach (['mermaid.initialize', 'cdn.jsdelivr.net', 'unpkg.com'] as $forbidden) {
+    if (str_contains($diagramSource, $forbidden)) {
+        throw new RuntimeException('OWASYS_STRUCTURE_DIAGRAM_RENDERER_EXTERNAL_DEPENDENCY:' . $forbidden);
+    }
 }
 
 $scoreSource = (string) file_get_contents($scorePage);
@@ -44,6 +57,11 @@ foreach (['application/states/', "new ScoreTemplateRenderer(\$siteRoot . '/appli
 }
 
 $cssSource = (string) file_get_contents($css);
+foreach (['.ow-fsm-svg', '.ow-fsm-node', '.ow-fsm-edge'] as $marker) {
+    if (!str_contains($cssSource, $marker)) {
+        throw new RuntimeException('OWASYS_STRUCTURE_DIAGRAM_STYLE_MISSING:' . $marker);
+    }
+}
 if (str_contains($cssSource, '@import') || str_contains($cssSource, 'ow-sidebar') || str_contains($cssSource, 'ow-shell')) {
     throw new RuntimeException('OWASYS_SCORE_CSS_NOT_SELF_CONTAINED');
 }
