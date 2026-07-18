@@ -74,6 +74,7 @@ try {
         'items' => [],
         'action' => $request->link('/'),
         'current_state' => $state,
+        'aria_label' => $t('navigation.aria_label'),
     ] : $navigationViewModel(
         $fsm,
         $state,
