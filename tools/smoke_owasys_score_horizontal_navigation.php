@@ -56,7 +56,7 @@ if (!str_contains($frontController, "'score-page.php'")) {
 }
 
 $scorePage = (string) file_get_contents($site . '/application/score-page.php');
-if (!str_contains($scorePage, "'aria_label' => $t('navigation.aria_label')")) {
+if (!str_contains($scorePage, "'aria_label' => \$t('navigation.aria_label')")) {
     throw new RuntimeException('OWASYS_SCORE_NAVIGATION_ARIA_NOT_WIRED');
 }
 
