@@ -1,0 +1,66 @@
+<section class="ow-card" data-context="OWASYS_STRUCTURE_INSPECTION">
+  <h2>Inspection de l’application</h2>
+  <p class="ow-muted">Lecture contrôlée de la configuration, des routes, des états et du FSM de l’application courante.</p>
+
+  [[ if: state_content.has_application ]]
+    [[ if: state_content.has_error ]]
+    <p class="ow-error">{{ state_content.error }}</p>
+    [[ endif ]]
+
+    [[ if: state_content.has_inspection ]]
+    <div class="ow-kpi-grid">
+      [[ foreach: state_content.summary as item ]]
+      <article class="ow-kpi">
+        <span>{{ item.label }}</span>
+        <strong>{{ item.value }}</strong>
+      </article>
+      [[ endforeach ]]
+    </div>
+
+    <section class="ow-card ow-card-nested" data-context="OWASYS_MERMAID_NAVIGATION">
+      <h3>Schéma FSM Mermaid</h3>
+      <p class="ow-muted">Source Mermaid générée depuis le FSM réel de l’application sélectionnée.</p>
+      [[ if: state_content.diagram_available ]]
+      <pre class="mermaid" data-mermaid-source="true">{{ state_content.diagram }}</pre>
+      [[ else ]]
+      <p class="ow-muted">Aucun schéma disponible.</p>
+      [[ endif ]]
+    </section>
+
+    <div class="ow-two-columns">
+      <section class="ow-card ow-card-nested">
+        <h3>États détectés</h3>
+        <div class="ow-table-wrap">
+          <table class="ow-table">
+            <thead><tr><th>État</th><th>Répertoire</th><th>FSM</th><th>Routes</th></tr></thead>
+            <tbody>
+              [[ foreach: state_content.states as row ]]
+              <tr><td>{{ row.id }}</td><td><code>{{ row.directory }}</code></td><td>{{ row.fsm }}</td><td>{{ row.routes }}</td></tr>
+              [[ endforeach ]]
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="ow-card ow-card-nested">
+        <h3>Routes détectées</h3>
+        <div class="ow-table-wrap">
+          <table class="ow-table">
+            <thead><tr><th>Route</th><th>État</th><th>ViewModel</th></tr></thead>
+            <tbody>
+              [[ foreach: state_content.routes as row ]]
+              <tr><td><code>{{ row.path }}</code></td><td>{{ row.state }}</td><td><code>{{ row.view }}</code></td></tr>
+              [[ endforeach ]]
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+    [[ endif ]]
+  [[ else ]]
+  <section class="ow-empty-state">
+    <h3>Aucune application sélectionnée</h3>
+    <p>Sélectionnez une application dans le Registry pour inspecter sa structure.</p>
+  </section>
+  [[ endif ]]
+</section>
