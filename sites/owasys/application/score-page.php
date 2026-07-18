@@ -42,6 +42,7 @@ try {
     $presentation = require $siteRoot . '/application/default/navigation/menu.php';
     $authorizeRoute = require $siteRoot . '/application/default/navigation/authorize-route.php';
     $navigationViewModel = require $siteRoot . '/application/default/navigation/view-model.php';
+    $fsmDiagramViewModel = require $siteRoot . '/application/default/navigation/fsm-diagram-view-model.php';
 
     $currentApplication = $session->currentApplication();
     if ($currentApplication === null && $user !== null) {
@@ -67,6 +68,14 @@ try {
         'current_state' => $state,
         'aria_label' => $t('navigation.aria_label'),
     ] : $navigationViewModel($fsm, $state, $runtimeContext, $profile, $presentation, $acl, $request->link('/'), $t);
+
+    $fsmDiagram = $fsmDiagramViewModel(
+        $fsm,
+        $navigation,
+        $state,
+        $request->asset('/asset/js/fsm-diagram.js'),
+        $t
+    );
 
     $viewFile = $siteRoot . '/application/states/' . $state . '/views/index.php';
     $page = is_file($viewFile) ? require $viewFile : [];
@@ -151,6 +160,7 @@ try {
         ],
         'security' => ['csrf' => $session->csrfToken()],
         'navigation' => $navigation,
+        'fsm_diagram' => $fsmDiagram,
         'current_application' => $currentApplicationView,
         'state_content' => is_array($page['state_content'] ?? null) ? $page['state_content'] : [],
         'content' => [
