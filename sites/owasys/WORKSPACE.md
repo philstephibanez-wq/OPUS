@@ -39,25 +39,27 @@ The final rendered navigation must not contain the legacy structural markers:
 - `ow-sidebar`
 - `class="ow-nav"`
 
-No CSS override may be used to disguise the legacy sidebar. The structural HTML must originate from ScoreTemplate. JavaScript is optional enhancement only and must not build the header, menu, locale selector, sidebar or page structure.
+No CSS override may be used to disguise legacy structure. Structural HTML must originate from ScoreTemplate. JavaScript is optional enhancement only and must not build the header, menu, locale selector, sidebar or page structure.
 
 Templates represent prepared ViewModel data only. They must not perform routing, authorization, service calls, database reads or business decisions. PHP prepares data and orchestrates the pipeline; it must not be the final layout renderer.
 
-## Current routing boundary
+## Routing boundary
 
-GET page rendering is routed through:
+All normal GET page rendering is routed through:
 
 - `application/score-page.php`
 
 This path uses `SiteConfiguration`, `RequestContext`, `SessionContext`, `Translator`, FSM route authorization, ACL-filtered navigation projection, state ViewModels and `ScoreTemplateRenderer`.
 
-The state-owned endpoints are:
+The state-owned explicit endpoints are:
 
 - `application/states/build/actions/build-action.php`
 - `application/states/source/actions/source-action.php`
 - `application/states/structure/actions/structure-preview.php`
 
-POST actions and logout that still pass through `application/application.php` remain transitional debt. That file must be dismantled by responsibility; it must not be moved back into `default`, renamed to `runtime.php`, `kernel.php`, `bootstrap.php`, or hidden behind another catch-all.
+The deleted `application/application.php` must never be recreated. There is no legacy fallback renderer, sentinel renderer, runtime catch-all or compatibility shell.
+
+Non-GET requests that do not target an explicit state-owned endpoint fail closed with HTTP 405 and `OWASYS_METHOD_NOT_SUPPORTED` until their state-owned actions are implemented.
 
 `structure-preview.php` still has a direct HTML rendering debt and must be converted to a state ViewModel plus ScoreTemplate rendering.
 
@@ -65,7 +67,7 @@ POST actions and logout that still pass through `application/application.php` re
 
 `www/index.php` is the single public PHP entrypoint. Public routing must not reintroduce separate PHP endpoint files under `www`.
 
-The front controller may dispatch only to validated application-relative handlers. Public assets remain under `www/asset`.
+The front controller dispatches to `score-page.php` by default and may dispatch only to validated application-relative handlers. Public assets remain under `www/asset`.
 
 For PHP's built-in development server, the only supported launch command is:
 
@@ -73,7 +75,22 @@ For PHP's built-in development server, the only supported launch command is:
 php -S 127.0.0.1:18080 -t sites/owasys/www sites/owasys/dev-router.php
 ```
 
-`sites/owasys/dev-router.php` serves only non-PHP public assets directly and routes every application request, including `/`, through `www/index.php`. Starting the server with `application/application.php` as router, or using `sites/owasys` as the document root, is forbidden because it bypasses the front controller and reactivates the legacy sidebar and native locale selector.
+`sites/owasys/dev-router.php` serves only non-PHP public assets directly and routes every application request through `www/index.php`.
+
+## Forbidden legacy paths and markers
+
+The following must remain absent:
+
+- `application/application.php`
+- `application/default/http`
+- `application/default/security`
+- public endpoint PHP files other than `www/index.php`
+- `ow-shell`
+- `ow-sidebar`
+- `class="ow-nav"`
+- `OWASYS_LEGACY_APPLICATION_REMOVED`
+- legacy `application.php` handler references
+- legacy Mermaid runtime inclusion
 
 ## Validation gates
 
@@ -86,6 +103,8 @@ The following focused smokes protect current architectural boundaries:
 - `tools/smoke_owasys_fsm_acl_score_navigation.php`
 - `tools/smoke_owasys_structure_preview_boundaries.php`
 - `tools/smoke_owasys_score_horizontal_navigation.php`
+- `tools/smoke_owasys_dev_router.php`
+- `tools/smoke_owasys_no_legacy.php`
 
 A green focused smoke validates only its declared boundary. It must never be presented as proof that the whole OWASYS architecture is complete.
 
@@ -95,6 +114,8 @@ Completed boundaries:
 
 - one public PHP entrypoint;
 - front-controller request normalization;
+- Score page as the only default renderer;
+- physical deletion of the legacy application renderer;
 - canonical PHP development router through `www/index.php`;
 - state ownership for build, source and structure-preview actions;
 - shared ACL consolidated under `application/default/acl`;
@@ -102,13 +123,12 @@ Completed boundaries:
 - horizontal navigation rendered by ScoreTemplate for GET pages;
 - shared locale selector rendered by ScoreTemplate with local SVG flags;
 - shared configuration, session and translation boundaries wired into structure preview;
-- explicit workspace architecture guards.
+- explicit no-legacy architecture gate.
 
 Remaining work:
 
-- dismantle `application/application.php` completely;
-- move all POST actions and logout into state-owned FSM actions;
-- remove duplicated configuration, session, authentication, registry and request logic from the transitional path;
+- implement remaining POST actions and logout as state-owned FSM actions;
+- remove duplicated configuration, session, authentication, registry and request logic from any remaining state endpoints;
 - convert state-specific direct HTML generation to ViewModels and `.score` templates;
 - review `application/default` and retain only genuinely common resources;
 - validate the complete HTTP path under Apache without relying only on source-level smokes;
