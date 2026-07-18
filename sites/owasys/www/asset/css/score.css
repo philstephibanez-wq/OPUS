@@ -111,6 +111,22 @@ pre.mermaid {
   color: #d8f7ff;
   white-space: pre;
 }
+.ow-fsm-diagram { overflow-x: auto; margin-top: 16px; }
+.ow-fsm-canvas { min-width: 420px; }
+.ow-fsm-svg { display: block; width: 100%; min-height: 260px; }
+.ow-fsm-edge { stroke: #8ba6c9; stroke-width: 2; }
+.ow-fsm-arrow { fill: #8ba6c9; }
+.ow-fsm-edge-label {
+  fill: #c8d6ea;
+  font: 12px Segoe UI, Arial, sans-serif;
+  paint-order: stroke;
+  stroke: #07111f;
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+.ow-fsm-node rect { fill: #123456; stroke: #6ce3ff; stroke-width: 2; }
+.ow-fsm-node text { fill: #f6f8ff; font: 700 14px Segoe UI, Arial, sans-serif; }
+.ow-fsm-node.is-active rect { fill: #164e63; stroke: #4ade80; stroke-width: 4; }
 .ow-empty-state { padding: 24px; border: 1px dashed var(--ow-line); border-radius: 16px; text-align: center; }
 .ow-error { padding: 12px 14px; border: 1px solid rgba(251,113,133,.5); border-radius: 12px; background: rgba(251,113,133,.12); color: #fecdd3; }
 .ow-locale-switcher { position: relative; min-width: 210px; color: var(--ow-text); }
