@@ -36,6 +36,20 @@ if (str_contains($index, 'parse_url(') || str_contains($index, '$handlers =')) {
 if (!str_contains($index, 'FrontController')) {
     $fail('OWASYS_FRONT_CONTROLLER_BOOTSTRAP_MISSING');
 }
+if (!str_contains($index, "'score-page.php'")) {
+    $fail('OWASYS_FRONT_CONTROLLER_SCORE_DEFAULT_MISSING');
+}
+if (str_contains($index, "'application.php'")) {
+    $fail('OWASYS_FRONT_CONTROLLER_LEGACY_DEFAULT_PRESENT');
+}
+
+$frontController = (string) file_get_contents($site . '/application/default/src/Http/FrontController.php');
+if (!str_contains($frontController, "string \$defaultHandler = 'score-page.php'")) {
+    $fail('OWASYS_FRONT_CONTROLLER_SCORE_CONSTRUCTOR_DEFAULT_MISSING');
+}
+if (str_contains($frontController, "'application.php'")) {
+    $fail('OWASYS_FRONT_CONTROLLER_LEGACY_HANDLER_PRESENT');
+}
 
 $publicPhp = glob($site . '/www/*.php') ?: [];
 if (count($publicPhp) !== 1 || basename($publicPhp[0]) !== 'index.php') {
