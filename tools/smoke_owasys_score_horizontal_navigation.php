@@ -10,8 +10,20 @@ $site = $root . '/sites/owasys';
 $renderer = new ScoreTemplateRenderer($site . '/application/default/templates');
 $data = [
     'locale' => [
-        'code' => 'fr', 'action' => '/owasys/structure', 'label' => 'Langue', 'submit_label' => 'Appliquer',
-        'preserved_query' => [], 'options' => [['code' => 'fr', 'label' => 'Français', 'selected' => true]],
+        'code' => 'fr',
+        'action' => '/owasys/structure',
+        'label' => 'Langue',
+        'submit_label' => 'Appliquer',
+        'current_label' => 'Français',
+        'current_flag' => '🇫🇷',
+        'preserved_query' => [],
+        'options' => [[
+            'code' => 'fr',
+            'label' => 'Français',
+            'flag' => '🇫🇷',
+            'href' => '/owasys/structure?lang=fr',
+            'selected' => true,
+        ]],
     ],
     'page' => ['title' => 'Structure', 'summary' => 'Résumé'],
     'state' => ['id' => 'structure'],
@@ -39,14 +51,24 @@ $data = [
 $data['content']['html'] = $renderer->render('partials/state-content.score', $data);
 $html = $renderer->render('layouts/main.score', $data);
 
-foreach (['OWASYS_GLOBAL_HEADER', 'OWASYS_GLOBAL_NAVIGATION', 'ow-global-nav-link', 'score.css', 'aria-label="Navigation principale"'] as $required) {
+foreach ([
+    'OWASYS_GLOBAL_HEADER',
+    'OWASYS_GLOBAL_NAVIGATION',
+    'ow-global-nav-link',
+    'score.css',
+    'aria-label="Navigation principale"',
+    'OWASYS_LOCALE_SWITCHER',
+    'ow-locale-menu',
+    '🇫🇷',
+    '/owasys/structure?lang=fr',
+] as $required) {
     if (!str_contains($html, $required)) {
         throw new RuntimeException('OWASYS_SCORE_HORIZONTAL_MARKER_MISSING:' . $required);
     }
 }
-foreach (['ow-sidebar', 'class="ow-nav"', 'ow-shell'] as $forbidden) {
+foreach (['ow-sidebar', 'class="ow-nav"', 'ow-shell', '<select name="lang"'] as $forbidden) {
     if (str_contains($html, $forbidden)) {
-        throw new RuntimeException('OWASYS_SCORE_VERTICAL_NAVIGATION_PRESENT:' . $forbidden);
+        throw new RuntimeException('OWASYS_SCORE_LEGACY_STRUCTURE_PRESENT:' . $forbidden);
     }
 }
 
@@ -56,8 +78,14 @@ if (!str_contains($frontController, "'score-page.php'")) {
 }
 
 $scorePage = (string) file_get_contents($site . '/application/score-page.php');
-if (!str_contains($scorePage, "'aria_label' => \$t('navigation.aria_label')")) {
-    throw new RuntimeException('OWASYS_SCORE_NAVIGATION_ARIA_NOT_WIRED');
+foreach ([
+    "'aria_label' => \$t('navigation.aria_label')",
+    "'flag' => '🇫🇷'",
+    "'current_flag' => \$currentLocalePresentation['flag']",
+] as $sourceMarker) {
+    if (!str_contains($scorePage, $sourceMarker)) {
+        throw new RuntimeException('OWASYS_SCORE_VIEWMODEL_MARKER_MISSING:' . $sourceMarker);
+    }
 }
 
 echo 'OWASYS_SCORE_HORIZONTAL_NAVIGATION_SMOKE_OK' . PHP_EOL;
