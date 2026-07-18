@@ -1,0 +1,15 @@
+[[ if: fsm_diagram.visible ]]
+<section class="ow-global-fsm" data-context="OWASYS_GLOBAL_FSM_DIAGRAM">
+  <header class="ow-global-fsm-header">
+    <div>
+      <h2>{{ fsm_diagram.title }}</h2>
+      <p class="ow-muted">{{ fsm_diagram.summary }}</p>
+    </div>
+  </header>
+  <div class="ow-fsm-diagram" data-context="OWASYS_FSM_DIAGRAM">
+    <div class="ow-fsm-canvas" data-fsm-canvas hidden></div>
+    <pre class="mermaid ow-fsm-source" data-fsm-source>{{ fsm_diagram.source }}</pre>
+  </div>
+  <script src="{{ fsm_diagram.asset_js }}" defer></script>
+</section>
+[[ endif ]]
