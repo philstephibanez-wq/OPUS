@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const lines = source.textContent.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
       const nodes = new Map();
       const edges = [];
+      const links = new Map();
 
       lines.forEach((line) => {
         const node = line.match(/^([A-Za-z0-9_]+)\["(.*)"\]:::(active|primary)$/);
@@ -24,6 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const edge = line.match(/^([A-Za-z0-9_]+)\s+-->\|(.+)\|\s+([A-Za-z0-9_]+)$/);
         if (edge) {
           edges.push({ from: edge[1], label: edge[2], to: edge[3] });
+          return;
+        }
+        const click = line.match(/^click\s+([A-Za-z0-9_]+)\s+"([^"]+)"$/);
+        if (click) {
+          links.set(click[1], click[2]);
         }
       });
 
@@ -32,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const ordered = Array.from(nodes.values());
-      const columns = Math.min(4, Math.max(1, Math.ceil(Math.sqrt(ordered.length))));
+      const columns = Math.min(5, Math.max(1, Math.ceil(Math.sqrt(ordered.length))));
       const nodeWidth = 190;
       const nodeHeight = 64;
       const gapX = 90;
@@ -51,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const svg = document.createElementNS(ns, 'svg');
       svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
       svg.setAttribute('role', 'img');
-      svg.setAttribute('aria-label', 'Schéma FSM');
+      svg.setAttribute('aria-label', 'Schéma FSM OWASYS');
       svg.classList.add('ow-fsm-svg');
 
       const defs = document.createElementNS(ns, 'defs');
@@ -109,6 +115,14 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       ordered.forEach((node) => {
+        const href = links.get(node.id) || '';
+        const wrapper = href ? document.createElementNS(ns, 'a') : document.createElementNS(ns, 'g');
+        if (href) {
+          wrapper.setAttribute('href', href);
+          wrapper.setAttribute('aria-label', node.label);
+          wrapper.setAttribute('class', 'ow-fsm-link');
+        }
+
         const group = document.createElementNS(ns, 'g');
         group.setAttribute('class', node.active ? 'ow-fsm-node is-active' : 'ow-fsm-node');
 
@@ -126,7 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
         text.setAttribute('text-anchor', 'middle');
         text.textContent = node.label;
         group.appendChild(text);
-        svg.appendChild(group);
+        wrapper.appendChild(group);
+        svg.appendChild(wrapper);
       });
 
       canvas.replaceChildren(svg);
