@@ -102,47 +102,48 @@ try {
     }
 
     $localePresentation = [
-        'bg' => ['label' => 'Български', 'flag' => '🇧🇬'],
-        'hr' => ['label' => 'Hrvatski', 'flag' => '🇭🇷'],
-        'cs' => ['label' => 'Čeština', 'flag' => '🇨🇿'],
-        'da' => ['label' => 'Dansk', 'flag' => '🇩🇰'],
-        'nl' => ['label' => 'Nederlands', 'flag' => '🇳🇱'],
-        'en' => ['label' => 'English', 'flag' => '🇬🇧'],
-        'et' => ['label' => 'Eesti', 'flag' => '🇪🇪'],
-        'fi' => ['label' => 'Suomi', 'flag' => '🇫🇮'],
-        'fr' => ['label' => 'Français', 'flag' => '🇫🇷'],
-        'de' => ['label' => 'Deutsch', 'flag' => '🇩🇪'],
-        'el' => ['label' => 'Ελληνικά', 'flag' => '🇬🇷'],
-        'hu' => ['label' => 'Magyar', 'flag' => '🇭🇺'],
-        'ga' => ['label' => 'Gaeilge', 'flag' => '🇮🇪'],
-        'it' => ['label' => 'Italiano', 'flag' => '🇮🇹'],
-        'lv' => ['label' => 'Latviešu', 'flag' => '🇱🇻'],
-        'lt' => ['label' => 'Lietuvių', 'flag' => '🇱🇹'],
-        'mt' => ['label' => 'Malti', 'flag' => '🇲🇹'],
-        'pl' => ['label' => 'Polski', 'flag' => '🇵🇱'],
-        'pt' => ['label' => 'Português', 'flag' => '🇵🇹'],
-        'ro' => ['label' => 'Română', 'flag' => '🇷🇴'],
-        'sk' => ['label' => 'Slovenčina', 'flag' => '🇸🇰'],
-        'sl' => ['label' => 'Slovenščina', 'flag' => '🇸🇮'],
-        'es' => ['label' => 'Español', 'flag' => '🇪🇸'],
-        'sv' => ['label' => 'Svenska', 'flag' => '🇸🇪'],
-        'uk' => ['label' => 'Українська', 'flag' => '🇺🇦'],
+        'bg' => ['label' => 'Български', 'flag_id' => 'flag-bg'],
+        'hr' => ['label' => 'Hrvatski', 'flag_id' => 'flag-hr'],
+        'cs' => ['label' => 'Čeština', 'flag_id' => 'flag-cs'],
+        'da' => ['label' => 'Dansk', 'flag_id' => 'flag-da'],
+        'nl' => ['label' => 'Nederlands', 'flag_id' => 'flag-nl'],
+        'en' => ['label' => 'English', 'flag_id' => 'flag-en'],
+        'et' => ['label' => 'Eesti', 'flag_id' => 'flag-et'],
+        'fi' => ['label' => 'Suomi', 'flag_id' => 'flag-fi'],
+        'fr' => ['label' => 'Français', 'flag_id' => 'flag-fr'],
+        'de' => ['label' => 'Deutsch', 'flag_id' => 'flag-de'],
+        'el' => ['label' => 'Ελληνικά', 'flag_id' => 'flag-el'],
+        'hu' => ['label' => 'Magyar', 'flag_id' => 'flag-hu'],
+        'ga' => ['label' => 'Gaeilge', 'flag_id' => 'flag-ga'],
+        'it' => ['label' => 'Italiano', 'flag_id' => 'flag-it'],
+        'lv' => ['label' => 'Latviešu', 'flag_id' => 'flag-lv'],
+        'lt' => ['label' => 'Lietuvių', 'flag_id' => 'flag-lt'],
+        'mt' => ['label' => 'Malti', 'flag_id' => 'flag-mt'],
+        'pl' => ['label' => 'Polski', 'flag_id' => 'flag-pl'],
+        'pt' => ['label' => 'Português', 'flag_id' => 'flag-pt'],
+        'ro' => ['label' => 'Română', 'flag_id' => 'flag-ro'],
+        'sk' => ['label' => 'Slovenčina', 'flag_id' => 'flag-sk'],
+        'sl' => ['label' => 'Slovenščina', 'flag_id' => 'flag-sl'],
+        'es' => ['label' => 'Español', 'flag_id' => 'flag-es'],
+        'sv' => ['label' => 'Svenska', 'flag_id' => 'flag-sv'],
+        'uk' => ['label' => 'Українська', 'flag_id' => 'flag-uk'],
     ];
     $localeAction = $request->link($request->path());
+    $flagSprite = $request->asset('/asset/flags/locale-flags.svg');
     $locales = [];
     foreach ($configuration->locales() as $code) {
-        $presentationData = $localePresentation[$code] ?? ['label' => strtoupper($code), 'flag' => '🌐'];
+        $presentationData = $localePresentation[$code] ?? ['label' => strtoupper($code), 'flag_id' => 'flag-world'];
         $locales[] = [
             'code' => $code,
             'label' => $presentationData['label'],
-            'flag' => $presentationData['flag'],
+            'flag_id' => $presentationData['flag_id'],
             'href' => $localeAction . '?lang=' . rawurlencode($code),
             'selected' => $code === $translator->locale(),
         ];
     }
     $currentLocalePresentation = $localePresentation[$translator->locale()] ?? [
         'label' => strtoupper($translator->locale()),
-        'flag' => '🌐',
+        'flag_id' => 'flag-world',
     ];
 
     $currentApplicationView = is_array($currentApplication) ? [
@@ -172,7 +173,8 @@ try {
             'label' => $translator->locale() === 'fr' ? 'Langue' : 'Language',
             'submit_label' => $translator->locale() === 'fr' ? 'Appliquer' : 'Apply',
             'current_label' => $currentLocalePresentation['label'],
-            'current_flag' => $currentLocalePresentation['flag'],
+            'current_flag_id' => $currentLocalePresentation['flag_id'],
+            'flag_sprite' => $flagSprite,
             'preserved_query' => [],
             'options' => $locales,
         ],
