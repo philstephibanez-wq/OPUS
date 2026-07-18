@@ -56,6 +56,8 @@ The final rendered navigation must not contain the legacy structural markers:
 
 No CSS override may be used to disguise legacy structure. Structural HTML must originate from ScoreTemplate. JavaScript is optional enhancement only and must not build the header, menu, locale selector, sidebar or page structure.
 
+The Structure state may use `www/asset/js/fsm-diagram.js` only to transform already-rendered FSM source into a local SVG diagram. That renderer must not fetch a CDN, own navigation state, or create the page structure.
+
 Templates represent prepared ViewModel data only. They must not perform routing, authorization, service calls, database reads or business decisions. PHP prepares data and orchestrates the pipeline; it must not be the final layout renderer.
 
 ## Routing boundary
@@ -153,14 +155,15 @@ Completed boundaries:
 - horizontal navigation rendered by ScoreTemplate for GET pages;
 - shared locale selector rendered by ScoreTemplate with local SVG flags;
 - state-owned ScoreTemplate dispatch supported by `score-page.php`;
-- Structure rebuilt with a new read-only ViewModel, application inspection, states table, routes table and Mermaid FSM source;
+- Structure rebuilt with a new read-only ViewModel, application inspection, states table and routes table;
+- FSM source generated from the inspected application and rendered graphically as local SVG by `www/asset/js/fsm-diagram.js`;
+- the FSM renderer has no CDN dependency and leaves the textual source as a no-JavaScript fallback;
 - `score.css` is self-contained and no longer imports the deleted legacy stylesheet;
 - build UI smoke targets the canonical state action while the public front controller remains the only entrypoint;
 - explicit no-legacy and tools cleanup gates.
 
 Remaining work:
 
-- add a local, versioned Mermaid renderer asset so the restored Mermaid source becomes a graphical diagram without CDN dependency;
 - restore Structure validation, draft preparation and write-plan actions as state-owned AUTH/ACL/FSM actions and Score templates;
 - rebuild Registry content and actions with state-owned ViewModels/templates/actions;
 - rebuild Source, Build, Security, Account, Data, Workflows and Home content without structural JavaScript;
