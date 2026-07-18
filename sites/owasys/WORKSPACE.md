@@ -77,13 +77,31 @@ php -S 127.0.0.1:18080 -t sites/owasys/www sites/owasys/dev-router.php
 
 `sites/owasys/dev-router.php` serves only non-PHP public assets directly and routes every application request through `www/index.php`.
 
+## Tools contract
+
+The `tools` directory is part of the architecture and must be cleaned with the application itself.
+
+Every OWASYS tool must target an existing canonical path and current contract. A smoke that validates a deleted bootstrap, a removed public endpoint, a PHP layout, a legacy renderer, or any obsolete architecture must be deleted rather than adapted to preserve historical structure.
+
+`tools/smoke_all_opus.php` must list only files that physically exist and must register all current blocking OWASYS architecture smokes. Missing files, stale paths and duplicate obsolete smokes are blocking defects.
+
+The tools cleanup gate is:
+
+- `tools/smoke_owasys_tools_cleanup.php`
+
+It rejects obsolete smoke files and references to deleted OWASYS paths or legacy UI markers.
+
+The workspace must be updated in the same change set whenever an architectural boundary, canonical path, validation gate, completion statement or known debt changes.
+
 ## Forbidden legacy paths and markers
 
-The following must remain absent:
+The following must remain absent from OWASYS and its tools:
 
 - `application/application.php`
 - `application/default/http`
 - `application/default/security`
+- `application/default/bootstrap.php`
+- `application/default/layouts/main.php`
 - public endpoint PHP files other than `www/index.php`
 - `ow-shell`
 - `ow-sidebar`
@@ -105,6 +123,7 @@ The following focused smokes protect current architectural boundaries:
 - `tools/smoke_owasys_score_horizontal_navigation.php`
 - `tools/smoke_owasys_dev_router.php`
 - `tools/smoke_owasys_no_legacy.php`
+- `tools/smoke_owasys_tools_cleanup.php`
 
 A green focused smoke validates only its declared boundary. It must never be presented as proof that the whole OWASYS architecture is complete.
 
@@ -123,13 +142,16 @@ Completed boundaries:
 - horizontal navigation rendered by ScoreTemplate for GET pages;
 - shared locale selector rendered by ScoreTemplate with local SVG flags;
 - shared configuration, session and translation boundaries wired into structure preview;
-- explicit no-legacy architecture gate.
+- explicit no-legacy architecture gate;
+- obsolete backend-first smoke and deleted public endpoint references removed from the global tools runner;
+- systematic tools cleanup gate registered globally.
 
 Remaining work:
 
 - implement remaining POST actions and logout as state-owned FSM actions;
 - remove duplicated configuration, session, authentication, registry and request logic from any remaining state endpoints;
 - convert state-specific direct HTML generation to ViewModels and `.score` templates;
+- continue the file-by-file tools audit and delete any smoke or acceptance router whose contract no longer matches the current architecture;
 - review `application/default` and retain only genuinely common resources;
 - validate the complete HTTP path under Apache without relying only on source-level smokes;
 - add the OPUS development profiler to generated applications in development mode only, never to OWASYS itself and never in production.
