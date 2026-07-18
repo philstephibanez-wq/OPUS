@@ -6,7 +6,7 @@ use Opus\Fsm\FsmProcessor;
 /**
  * Build the navigation fragment of the OWASYS ScoreTemplate ViewModel.
  *
- * @return array{items:list<array<string,mixed>>,action:string,current_state:string}
+ * @return array{items:list<array<string,mixed>>,action:string,current_state:string,aria_label:string}
  */
 return static function (
     FsmProcessor $fsm,
@@ -32,5 +32,6 @@ return static function (
         'items' => $items,
         'action' => $actionUrl,
         'current_state' => $currentState,
+        'aria_label' => $translate('navigation.aria_label'),
     ];
 };
