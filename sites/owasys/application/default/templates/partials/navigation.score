@@ -1,10 +1,5 @@
 <nav class="ow-global-nav" data-context="OWASYS_GLOBAL_NAVIGATION" aria-label="{{ navigation.aria_label }}">
   [[ foreach: navigation.items as item ]]
-  <form method="post" action="{{ navigation.action }}" class="ow-global-nav-form">
-    <input type="hidden" name="owasys_action" value="navigate">
-    <input type="hidden" name="owasys_navigation_event" value="{{ item.event }}">
-    <input type="hidden" name="owasys_csrf" value="{{ security.csrf }}">
-    <button type="submit" class="ow-global-nav-link">{{ item.label }}</button>
-  </form>
+  <a href="{{ item.href }}" class="ow-global-nav-link" [[ if: item.current ]]aria-current="page"[[ endif ]]>{{ item.label }}</a>
   [[ endforeach ]]
 </nav>
