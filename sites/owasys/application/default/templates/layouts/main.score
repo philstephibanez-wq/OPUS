@@ -30,6 +30,7 @@
   </header>
 
   [[ include:partials/navigation.score ]]
+  [[ include:partials/fsm-diagram.score ]]
 
   <main class="ow-main">
     <header class="ow-topbar">
