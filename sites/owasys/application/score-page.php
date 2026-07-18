@@ -133,8 +133,8 @@ try {
         'locale' => [
             'code' => $translator->locale(),
             'action' => $request->link($request->path()),
-            'label' => $t('common.language'),
-            'submit_label' => $t('common.apply'),
+            'label' => $translator->locale() === 'fr' ? 'Langue' : 'Language',
+            'submit_label' => $translator->locale() === 'fr' ? 'Appliquer' : 'Apply',
             'preserved_query' => [],
             'options' => $locales,
         ],
@@ -145,7 +145,7 @@ try {
         'state' => ['id' => $state],
         'brand' => ['name' => $t('brand.name'), 'long_name' => $t('brand.subtitle')],
         'routes' => ['home' => $request->link('/'), 'applications' => $request->link('/applications')],
-        'assets' => ['theme_css' => $request->asset('/asset/css/owasys.css'), 'theme_js' => $request->asset('/asset/js/owasys.js')],
+        'assets' => ['theme_css' => $request->asset('/asset/css/score.css'), 'theme_js' => $request->asset('/asset/js/owasys.js')],
         'auth' => [
             'authenticated' => $user !== null,
             'label' => is_array($user) ? (string) ($user['label'] ?? '') : '',
