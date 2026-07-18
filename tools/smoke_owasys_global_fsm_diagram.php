@@ -23,7 +23,7 @@ if (!str_contains($layout, '[[ include:partials/fsm-diagram.score ]]')) {
 }
 
 $viewModel = (string) file_get_contents($files[0]);
-foreach (['$navigation', '$fsm->transitions()', "'visible' => true", "'source' => implode", "'click '"] as $marker) {
+foreach (['$navigation', '$fsm->transitions()', "'visible' => true", "'source' => implode", 'click '] as $marker) {
     if (!str_contains($viewModel, $marker)) {
         throw new RuntimeException('OWASYS_GLOBAL_FSM_VIEWMODEL_MARKER_MISSING:' . $marker);
     }
