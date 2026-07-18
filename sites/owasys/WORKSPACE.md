@@ -67,6 +67,14 @@ POST actions and logout that still pass through `application/application.php` re
 
 The front controller may dispatch only to validated application-relative handlers. Public assets remain under `www/asset`.
 
+For PHP's built-in development server, the only supported launch command is:
+
+```text
+php -S 127.0.0.1:18080 -t sites/owasys/www sites/owasys/dev-router.php
+```
+
+`sites/owasys/dev-router.php` serves only non-PHP public assets directly and routes every application request, including `/`, through `www/index.php`. Starting the server with `application/application.php` as router, or using `sites/owasys` as the document root, is forbidden because it bypasses the front controller and reactivates the legacy sidebar and native locale selector.
+
 ## Validation gates
 
 The following focused smokes protect current architectural boundaries:
@@ -87,10 +95,12 @@ Completed boundaries:
 
 - one public PHP entrypoint;
 - front-controller request normalization;
+- canonical PHP development router through `www/index.php`;
 - state ownership for build, source and structure-preview actions;
 - shared ACL consolidated under `application/default/acl`;
 - FSM/ACL/guard-derived navigation ViewModel;
 - horizontal navigation rendered by ScoreTemplate for GET pages;
+- shared locale selector rendered by ScoreTemplate with local SVG flags;
 - shared configuration, session and translation boundaries wired into structure preview;
 - explicit workspace architecture guards.
 
