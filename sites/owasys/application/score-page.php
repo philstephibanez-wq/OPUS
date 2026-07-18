@@ -101,14 +101,49 @@ try {
         $actions[] = ['label' => $t((string) $key)];
     }
 
+    $localePresentation = [
+        'bg' => ['label' => 'Български', 'flag' => '🇧🇬'],
+        'hr' => ['label' => 'Hrvatski', 'flag' => '🇭🇷'],
+        'cs' => ['label' => 'Čeština', 'flag' => '🇨🇿'],
+        'da' => ['label' => 'Dansk', 'flag' => '🇩🇰'],
+        'nl' => ['label' => 'Nederlands', 'flag' => '🇳🇱'],
+        'en' => ['label' => 'English', 'flag' => '🇬🇧'],
+        'et' => ['label' => 'Eesti', 'flag' => '🇪🇪'],
+        'fi' => ['label' => 'Suomi', 'flag' => '🇫🇮'],
+        'fr' => ['label' => 'Français', 'flag' => '🇫🇷'],
+        'de' => ['label' => 'Deutsch', 'flag' => '🇩🇪'],
+        'el' => ['label' => 'Ελληνικά', 'flag' => '🇬🇷'],
+        'hu' => ['label' => 'Magyar', 'flag' => '🇭🇺'],
+        'ga' => ['label' => 'Gaeilge', 'flag' => '🇮🇪'],
+        'it' => ['label' => 'Italiano', 'flag' => '🇮🇹'],
+        'lv' => ['label' => 'Latviešu', 'flag' => '🇱🇻'],
+        'lt' => ['label' => 'Lietuvių', 'flag' => '🇱🇹'],
+        'mt' => ['label' => 'Malti', 'flag' => '🇲🇹'],
+        'pl' => ['label' => 'Polski', 'flag' => '🇵🇱'],
+        'pt' => ['label' => 'Português', 'flag' => '🇵🇹'],
+        'ro' => ['label' => 'Română', 'flag' => '🇷🇴'],
+        'sk' => ['label' => 'Slovenčina', 'flag' => '🇸🇰'],
+        'sl' => ['label' => 'Slovenščina', 'flag' => '🇸🇮'],
+        'es' => ['label' => 'Español', 'flag' => '🇪🇸'],
+        'sv' => ['label' => 'Svenska', 'flag' => '🇸🇪'],
+        'uk' => ['label' => 'Українська', 'flag' => '🇺🇦'],
+    ];
+    $localeAction = $request->link($request->path());
     $locales = [];
     foreach ($configuration->locales() as $code) {
+        $presentationData = $localePresentation[$code] ?? ['label' => strtoupper($code), 'flag' => '🌐'];
         $locales[] = [
             'code' => $code,
-            'label' => $code === 'fr' ? 'Français' : ($code === 'en' ? 'English' : strtoupper($code)),
+            'label' => $presentationData['label'],
+            'flag' => $presentationData['flag'],
+            'href' => $localeAction . '?lang=' . rawurlencode($code),
             'selected' => $code === $translator->locale(),
         ];
     }
+    $currentLocalePresentation = $localePresentation[$translator->locale()] ?? [
+        'label' => strtoupper($translator->locale()),
+        'flag' => '🌐',
+    ];
 
     $currentApplicationView = is_array($currentApplication) ? [
         'present' => true,
@@ -133,9 +168,11 @@ try {
     $viewModel = [
         'locale' => [
             'code' => $translator->locale(),
-            'action' => $request->link($request->path()),
+            'action' => $localeAction,
             'label' => $translator->locale() === 'fr' ? 'Langue' : 'Language',
             'submit_label' => $translator->locale() === 'fr' ? 'Appliquer' : 'Apply',
+            'current_label' => $currentLocalePresentation['label'],
+            'current_flag' => $currentLocalePresentation['flag'],
             'preserved_query' => [],
             'options' => $locales,
         ],
