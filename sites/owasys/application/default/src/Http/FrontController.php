@@ -39,8 +39,12 @@ final class FrontController
     {
         $request = RequestContext::fromServer($server);
         $handler = $this->handlers[$request->path()] ?? $this->defaultHandler;
-        $file = $this->applicationRoot . '/' . $handler;
 
+        if ($handler === $this->defaultHandler && $request->method() === 'GET' && $request->path() !== '/logout') {
+            $handler = 'score-page.php';
+        }
+
+        $file = $this->applicationRoot . '/' . $handler;
         if (!is_file($file)) {
             throw new RuntimeException('OWASYS_APPLICATION_HANDLER_MISSING:' . $handler);
         }
