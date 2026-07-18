@@ -20,6 +20,19 @@ FSM and ACL remain authoritative and fail closed. Navigation, routes and executa
 
 Frontend/backend and frontoffice/backoffice are independent axes. OWASYS must never infer one distinction from the other.
 
+## Legacy-reference migration contract
+
+Legacy sources may be read only from Git history to inventory useful behavior, displayed data, actions and contracts. They must never be restored, copied as runtime code, used as a compatibility layer, or reintroduced through CSS, JavaScript, routing or a catch-all renderer.
+
+Each useful capability must be rebuilt as new state-owned sources:
+
+- `application/states/<state>/views` for prepared ViewModels;
+- `application/states/<state>/templates` for `.score` rendering;
+- `application/states/<state>/actions` for authorized FSM actions;
+- state-specific services only when the responsibility is not common.
+
+No source may be deleted merely because it contains legacy structure. Before deletion, its useful behavior must be inventoried and either proven unused or replaced by a verified current implementation.
+
 ## ScoreTemplate rendering contract
 
 ScoreTemplate is the OWASYS final rendering target.
@@ -30,6 +43,8 @@ The common layout is rendered from:
 - `application/default/templates/partials/navigation.score`
 - `application/default/templates/partials/locale-switcher.score`
 - `application/default/templates/partials/state-content.score`
+
+A state may declare its own template from `application/states/<state>/templates`. `application/score-page.php` performs orchestration only and renders that state template with the prepared state ViewModel.
 
 The active horizontal navigation is built from the FSM + ACL + guards through `application/default/navigation/view-model.php`, then rendered by `partials/navigation.score`.
 
@@ -85,12 +100,6 @@ Every OWASYS tool must target an existing canonical path and current contract. A
 
 `tools/smoke_all_opus.php` must list only files that physically exist and must register all current blocking OWASYS architecture smokes. Missing files, stale paths and duplicate obsolete smokes are blocking defects.
 
-The tools cleanup gate is:
-
-- `tools/smoke_owasys_tools_cleanup.php`
-
-It rejects obsolete smoke files and references to deleted OWASYS paths or legacy UI markers.
-
 The workspace must be updated in the same change set whenever an architectural boundary, canonical path, validation gate, completion statement or known debt changes.
 
 ## Forbidden legacy paths and markers
@@ -126,6 +135,7 @@ The following focused smokes protect current architectural boundaries:
 - `tools/smoke_owasys_dev_router.php`
 - `tools/smoke_owasys_no_legacy.php`
 - `tools/smoke_owasys_tools_cleanup.php`
+- `tools/smoke_owasys_structure_score_content.php`
 
 A green focused smoke validates only its declared boundary. It must never be presented as proof that the whole OWASYS architecture is complete.
 
@@ -138,24 +148,23 @@ Completed boundaries:
 - Score page as the only default renderer;
 - physical deletion of the legacy application renderer;
 - canonical PHP development router through `www/index.php`;
-- state ownership for build, source and structure-preview actions;
 - shared ACL consolidated under `application/default/acl`;
 - FSM/ACL/guard-derived navigation ViewModel;
 - horizontal navigation rendered by ScoreTemplate for GET pages;
 - shared locale selector rendered by ScoreTemplate with local SVG flags;
-- shared configuration, session and translation boundaries wired into structure preview;
-- explicit no-legacy architecture gate;
-- obsolete backend-first smoke and deleted public endpoint references removed from the global tools runner;
-- obsolete entrypoint migration tool physically deleted;
-- unused legacy sidebar stylesheet physically deleted;
-- systematic tools cleanup gate registered globally.
+- state-owned ScoreTemplate dispatch supported by `score-page.php`;
+- Structure rebuilt with a new read-only ViewModel, application inspection, states table, routes table and Mermaid FSM source;
+- `score.css` is self-contained and no longer imports the deleted legacy stylesheet;
+- build UI smoke targets the canonical state action while the public front controller remains the only entrypoint;
+- explicit no-legacy and tools cleanup gates.
 
 Remaining work:
 
-- implement remaining POST actions and logout as state-owned FSM actions;
-- remove duplicated configuration, session, authentication, registry and request logic from any remaining state endpoints;
-- convert state-specific direct HTML generation to ViewModels and `.score` templates;
-- continue the file-by-file tools audit and delete any smoke or acceptance router whose contract no longer matches the current architecture;
-- review `application/default` and retain only genuinely common resources;
-- validate the complete HTTP path under Apache without relying only on source-level smokes;
+- add a local, versioned Mermaid renderer asset so the restored Mermaid source becomes a graphical diagram without CDN dependency;
+- restore Structure validation, draft preparation and write-plan actions as state-owned AUTH/ACL/FSM actions and Score templates;
+- rebuild Registry content and actions with state-owned ViewModels/templates/actions;
+- rebuild Source, Build, Security, Account, Data, Workflows and Home content without structural JavaScript;
+- remove structural responsibilities still present in `www/asset/js/owasys.js` only after their replacements are verified;
+- convert `structure-preview.php` direct HTML to ViewModel plus ScoreTemplate;
+- validate the complete HTTP path under Apache;
 - add the OPUS development profiler to generated applications in development mode only, never to OWASYS itself and never in production.
