@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="flag-bg" viewBox="0 0 24 16"><rect width="24" height="16" fill="#fff"/><rect y="5.333" width="24" height="5.334" fill="#00966e"/><rect y="10.667" width="24" height="5.333" fill="#d62612"/></symbol>
+  <symbol id="flag-hr" viewBox="0 0 24 16"><rect width="24" height="16" fill="#fff"/><rect width="24" height="5.333" fill="#ff0000"/><rect y="10.667" width="24" height="5.333" fill="#171796"/><path d="M9 5h6v6H9z" fill="#fff" stroke="#d40000"/><path d="M9 5h2v2H9zm4 0h2v2h-2zm-3 2h2v2h-2zm3 2h2v2h-2z" fill="#d40000"/></symbol>
+  <symbol id="flag-cs" viewBox="0 0 24 16"><rect width="24" height="8" fill="#fff"/><rect y="8" width="24" height="8" fill="#d7141a"/><path d="M0 0l10 8L0 16z" fill="#11457e"/></symbol>
+  <symbol id="flag-da" viewBox="0 0 24 16"><rect width="24" height="16" fill="#c60c30"/><rect x="7" width="2" height="16" fill="#fff"/><rect y="7" width="24" height="2" fill="#fff"/></symbol>
+  <symbol id="flag-nl" viewBox="0 0 24 16"><rect width="24" height="5.333" fill="#ae1c28"/><rect y="5.333" width="24" height="5.334" fill="#fff"/><rect y="10.667" width="24" height="5.333" fill="#21468b"/></symbol>
+  <symbol id="flag-en" viewBox="0 0 24 16"><rect width="24" height="16" fill="#012169"/><path d="M0 0l24 16M24 0L0 16" stroke="#fff" stroke-width="4"/><path d="M0 0l24 16M24 0L0 16" stroke="#c8102e" stroke-width="2"/><path d="M12 0v16M0 8h24" stroke="#fff" stroke-width="5"/><path d="M12 0v16M0 8h24" stroke="#c8102e" stroke-width="3"/></symbol>
+  <symbol id="flag-et" viewBox="0 0 24 16"><rect width="24" height="5.333" fill="#4891d9"/><rect y="5.333" width="24" height="5.334" fill="#000"/><rect y="10.667" width="24" height="5.333" fill="#fff"/></symbol>
+  <symbol id="flag-fi" viewBox="0 0 24 16"><rect width="24" height="16" fill="#fff"/><rect x="7" width="3" height="16" fill="#003580"/><rect y="6" width="24" height="3" fill="#003580"/></symbol>
+  <symbol id="flag-fr" viewBox="0 0 24 16"><rect width="8" height="16" fill="#0055a4"/><rect x="8" width="8" height="16" fill="#fff"/><rect x="16" width="8" height="16" fill="#ef4135"/></symbol>
+  <symbol id="flag-de" viewBox="0 0 24 16"><rect width="24" height="5.333" fill="#000"/><rect y="5.333" width="24" height="5.334" fill="#dd0000"/><rect y="10.667" width="24" height="5.333" fill="#ffce00"/></symbol>
+  <symbol id="flag-el" viewBox="0 0 24 16"><rect width="24" height="16" fill="#0d5eaf"/><path d="M0 2h24M0 6h24M0 10h24M0 14h24" stroke="#fff" stroke-width="2"/><rect width="10" height="9" fill="#0d5eaf"/><path d="M5 0v9M0 4.5h10" stroke="#fff" stroke-width="2"/></symbol>
+  <symbol id="flag-hu" viewBox="0 0 24 16"><rect width="24" height="5.333" fill="#ce2939"/><rect y="5.333" width="24" height="5.334" fill="#fff"/><rect y="10.667" width="24" height="5.333" fill="#477050"/></symbol>
+  <symbol id="flag-ga" viewBox="0 0 24 16"><rect width="8" height="16" fill="#169b62"/><rect x="8" width="8" height="16" fill="#fff"/><rect x="16" width="8" height="16" fill="#ff883e"/></symbol>
+  <symbol id="flag-it" viewBox="0 0 24 16"><rect width="8" height="16" fill="#009246"/><rect x="8" width="8" height="16" fill="#fff"/><rect x="16" width="8" height="16" fill="#ce2b37"/></symbol>
+  <symbol id="flag-lv" viewBox="0 0 24 16"><rect width="24" height="16" fill="#9e3039"/><rect y="6" width="24" height="4" fill="#fff"/></symbol>
+  <symbol id="flag-lt" viewBox="0 0 24 16"><rect width="24" height="5.333" fill="#fdb913"/><rect y="5.333" width="24" height="5.334" fill="#006a44"/><rect y="10.667" width="24" height="5.333" fill="#c1272d"/></symbol>
+  <symbol id="flag-mt" viewBox="0 0 24 16"><rect width="12" height="16" fill="#fff"/><rect x="12" width="12" height="16" fill="#cf142b"/><path d="M2 2h4v4H2zM4 1v6M1 4h6" stroke="#9b9b9b" fill="none"/></symbol>
+  <symbol id="flag-pl" viewBox="0 0 24 16"><rect width="24" height="8" fill="#fff"/><rect y="8" width="24" height="8" fill="#dc143c"/></symbol>
+  <symbol id="flag-pt" viewBox="0 0 24 16"><rect width="9" height="16" fill="#046a38"/><rect x="9" width="15" height="16" fill="#da291c"/><circle cx="9" cy="8" r="3" fill="#ffcc00"/></symbol>
+  <symbol id="flag-ro" viewBox="0 0 24 16"><rect width="8" height="16" fill="#002b7f"/><rect x="8" width="8" height="16" fill="#fcd116"/><rect x="16" width="8" height="16" fill="#ce1126"/></symbol>
+  <symbol id="flag-sk" viewBox="0 0 24 16"><rect width="24" height="5.333" fill="#fff"/><rect y="5.333" width="24" height="5.334" fill="#0b4ea2"/><rect y="10.667" width="24" height="5.333" fill="#ee1c25"/><path d="M5 4h5v7H5z" fill="#fff" stroke="#ee1c25"/></symbol>
+  <symbol id="flag-sl" viewBox="0 0 24 16"><rect width="24" height="5.333" fill="#fff"/><rect y="5.333" width="24" height="5.334" fill="#005da4"/><rect y="10.667" width="24" height="5.333" fill="#ed1c24"/><path d="M5 3h5v6H5z" fill="#fff" stroke="#005da4"/></symbol>
+  <symbol id="flag-es" viewBox="0 0 24 16"><rect width="24" height="16" fill="#aa151b"/><rect y="4" width="24" height="8" fill="#f1bf00"/><rect x="6" y="6" width="2" height="4" fill="#aa151b"/></symbol>
+  <symbol id="flag-sv" viewBox="0 0 24 16"><rect width="24" height="16" fill="#006aa7"/><rect x="7" width="3" height="16" fill="#fecc00"/><rect y="6" width="24" height="3" fill="#fecc00"/></symbol>
+  <symbol id="flag-uk" viewBox="0 0 24 16"><rect width="24" height="8" fill="#0057b7"/><rect y="8" width="24" height="8" fill="#ffd700"/></symbol>
+  <symbol id="flag-world" viewBox="0 0 24 16"><rect width="24" height="16" rx="2" fill="#16324f"/><circle cx="12" cy="8" r="6" fill="none" stroke="#6ce3ff"/><path d="M6 8h12M12 2c2 2 2 10 0 12M12 2c-2 2-2 10 0 12" stroke="#6ce3ff" fill="none"/></symbol>
+</svg>
