@@ -1,0 +1,34 @@
+[[ if: current_application.present ]]
+<section class="ow-current-app-hero" data-context="OWASYS_CURRENT_APP_CONTEXT">
+  <small>{{ current_application.working_label }}</small>
+  <strong>{{ current_application.name }}</strong>
+  <div class="ow-tags">
+    <span>{{ current_application.id_label }}: {{ current_application.id }}</span>
+    <span>{{ current_application.type_label }}: {{ current_application.kind }}</span>
+    <span>{{ current_application.root_label }}: {{ current_application.root_path }}</span>
+    <span>{{ current_application.status_label }}: {{ current_application.status }}</span>
+  </div>
+  <p><a class="ow-button ow-button-secondary" href="{{ routes.applications }}">{{ current_application.change_label }}</a></p>
+</section>
+[[ endif ]]
+
+<section class="ow-card" data-context="OWASYS_STATE_SCORE_CONTENT">
+  <h2>{{ content.section_title }}</h2>
+  <p class="ow-muted">{{ content.section_summary }}</p>
+  [[ if: content.has_contracts ]]
+  <h3>{{ content.contracts_label }}</h3>
+  <div class="ow-tags">
+    [[ foreach: content.contracts as contract ]]
+    <span>{{ contract.label }}</span>
+    [[ endforeach ]]
+  </div>
+  [[ endif ]]
+  [[ if: content.has_actions ]]
+  <h3>{{ content.actions_label }}</h3>
+  <ul>
+    [[ foreach: content.actions as action ]]
+    <li>{{ action.label }}</li>
+    [[ endforeach ]]
+  </ul>
+  [[ endif ]]
+</section>
