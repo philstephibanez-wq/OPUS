@@ -34,10 +34,14 @@ $data = [
     'auth' => ['authenticated' => true, 'label' => 'admin', 'profile' => 'admin'],
     'security' => ['csrf' => 'test-token'],
     'navigation' => [
-        'action' => '/owasys/',
         'current_state' => 'structure',
         'aria_label' => 'Navigation principale',
-        'items' => [['event' => 'open_home', 'label' => 'Accueil', 'current' => false]],
+        'items' => [[
+            'event' => 'open_home',
+            'label' => 'Accueil',
+            'href' => '/owasys/',
+            'current' => false,
+        ]],
     ],
     'current_application' => [
         'present' => false, 'name' => '', 'id' => '', 'kind' => '', 'root_path' => '', 'status' => '',
@@ -56,6 +60,7 @@ foreach ([
     'OWASYS_GLOBAL_HEADER',
     'OWASYS_GLOBAL_NAVIGATION',
     'ow-global-nav-link',
+    'href="/owasys/"',
     'score.css',
     'aria-label="Navigation principale"',
     'OWASYS_LOCALE_SWITCHER',
@@ -68,7 +73,7 @@ foreach ([
         throw new RuntimeException('OWASYS_SCORE_HORIZONTAL_MARKER_MISSING:' . $required);
     }
 }
-foreach (['ow-sidebar', 'class="ow-nav"', 'ow-shell', '<select name="lang"', '🇫🇷'] as $forbidden) {
+foreach (['ow-sidebar', 'class="ow-nav"', 'ow-shell', '<select name="lang"', '🇫🇷', 'method="post" action="/owasys/"', 'owasys_navigation_event'] as $forbidden) {
     if (str_contains($html, $forbidden)) {
         throw new RuntimeException('OWASYS_SCORE_LEGACY_STRUCTURE_PRESENT:' . $forbidden);
     }
@@ -82,9 +87,9 @@ $homeData['locale']['options'][0]['href'] = '/owasys/?lang=fr';
 $homeData['navigation']['current_state'] = 'home';
 $homeData['content']['html'] = $renderer->render('partials/state-content.score', $homeData);
 $homeHtml = $renderer->render('layouts/main.score', $homeData);
-foreach (['OWASYS_LOCALE_SWITCHER', '/owasys/asset/flags/locale-flags.svg#flag-fr', '/owasys/?lang=fr'] as $homeMarker) {
+foreach (['OWASYS_LOCALE_SWITCHER', '/owasys/asset/flags/locale-flags.svg#flag-fr', '/owasys/?lang=fr', 'href="/owasys/"'] as $homeMarker) {
     if (!str_contains($homeHtml, $homeMarker)) {
-        throw new RuntimeException('OWASYS_HOME_SHARED_LOCALE_SELECTOR_MISSING:' . $homeMarker);
+        throw new RuntimeException('OWASYS_HOME_SHARED_LAYOUT_MISSING:' . $homeMarker);
     }
 }
 
@@ -103,6 +108,21 @@ foreach ([
     if (!str_contains($scorePage, $sourceMarker)) {
         throw new RuntimeException('OWASYS_SCORE_VIEWMODEL_MARKER_MISSING:' . $sourceMarker);
     }
+}
+
+$navigationViewModel = (string) file_get_contents($site . '/application/default/navigation/view-model.php');
+foreach (["\$item['href']", "\$item['target_route']", "rtrim(\$applicationBaseUrl, '/')"] as $sourceMarker) {
+    if (!str_contains($navigationViewModel, $sourceMarker)) {
+        throw new RuntimeException('OWASYS_NAVIGATION_GET_LINK_PROJECTION_MISSING:' . $sourceMarker);
+    }
+}
+
+$navigationTemplate = (string) file_get_contents($site . '/application/default/templates/partials/navigation.score');
+if (!str_contains($navigationTemplate, '<a href="{{ item.href }}"')) {
+    throw new RuntimeException('OWASYS_NAVIGATION_TEMPLATE_GET_LINK_MISSING');
+}
+if (str_contains($navigationTemplate, '<form') || str_contains($navigationTemplate, 'owasys_navigation_event')) {
+    throw new RuntimeException('OWASYS_NAVIGATION_TEMPLATE_POST_DISPATCH_PRESENT');
 }
 
 $localeTemplate = (string) file_get_contents($site . '/application/default/templates/partials/locale-switcher.score');
