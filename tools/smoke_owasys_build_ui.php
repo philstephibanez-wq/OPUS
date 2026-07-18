@@ -2,11 +2,12 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__);
-$endpoint = $root . '/sites/owasys/www/build-action.php';
+$endpoint = $root . '/sites/owasys/application/states/build/actions/build-action.php';
 $javascript = $root . '/sites/owasys/www/asset/js/owasys.js';
 $view = $root . '/sites/owasys/application/states/build/views/index.php';
+$frontController = $root . '/sites/owasys/www/index.php';
 
-foreach ([$endpoint, $javascript, $view] as $path) {
+foreach ([$endpoint, $javascript, $view, $frontController] as $path) {
     if (!is_file($path)) {
         fwrite(STDERR, 'OWASYS_BUILD_UI_REQUIRED_FILE_MISSING:' . str_replace('\\', '/', $path) . "\n");
         exit(1);
@@ -25,6 +26,12 @@ foreach ([
         fwrite(STDERR, 'OWASYS_BUILD_UI_ENDPOINT_MARKER_MISSING:' . $marker . "\n");
         exit(1);
     }
+}
+
+$frontControllerSource = (string) file_get_contents($frontController);
+if (!str_contains($frontControllerSource, "'/build-action.php' => 'states/build/actions/build-action.php'")) {
+    fwrite(STDERR, "OWASYS_BUILD_UI_FRONT_CONTROLLER_ROUTE_MISSING\n");
+    exit(1);
 }
 
 $javascriptSource = (string) file_get_contents($javascript);
