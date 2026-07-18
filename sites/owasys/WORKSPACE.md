@@ -102,6 +102,8 @@ The following must remain absent from OWASYS and its tools:
 - `application/default/security`
 - `application/default/bootstrap.php`
 - `application/default/layouts/main.php`
+- `application/default/css/default.css`
+- `tools/migrate_owasys_entrypoint_to_backend.php`
 - public endpoint PHP files other than `www/index.php`
 - `ow-shell`
 - `ow-sidebar`
@@ -144,6 +146,8 @@ Completed boundaries:
 - shared configuration, session and translation boundaries wired into structure preview;
 - explicit no-legacy architecture gate;
 - obsolete backend-first smoke and deleted public endpoint references removed from the global tools runner;
+- obsolete entrypoint migration tool physically deleted;
+- unused legacy sidebar stylesheet physically deleted;
 - systematic tools cleanup gate registered globally.
 
 Remaining work:
