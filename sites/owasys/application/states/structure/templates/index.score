@@ -18,10 +18,14 @@
     </div>
 
     <section class="ow-card ow-card-nested" data-context="OWASYS_MERMAID_NAVIGATION">
-      <h3>Schéma FSM Mermaid</h3>
-      <p class="ow-muted">Source Mermaid générée depuis le FSM réel de l’application sélectionnée.</p>
+      <h3>Schéma FSM</h3>
+      <p class="ow-muted">Diagramme généré localement depuis le FSM réel de l’application sélectionnée.</p>
       [[ if: state_content.diagram_available ]]
-      <pre class="mermaid" data-mermaid-source="true">{{ state_content.diagram }}</pre>
+      <div class="ow-fsm-diagram" data-context="OWASYS_FSM_DIAGRAM">
+        <div class="ow-fsm-canvas" data-fsm-canvas hidden></div>
+        <pre class="mermaid" data-fsm-source>{{ state_content.diagram }}</pre>
+      </div>
+      <script src="{{ state_content.diagram_js }}" defer></script>
       [[ else ]]
       <p class="ow-muted">Aucun schéma disponible.</p>
       [[ endif ]]
