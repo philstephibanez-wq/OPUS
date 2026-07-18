@@ -1,13 +1,13 @@
 <details class="ow-locale-switcher" data-context="OWASYS_LOCALE_SWITCHER">
   <summary aria-label="{{ locale.label }}">
-    <span class="ow-locale-flag" aria-hidden="true">{{ locale.current_flag }}</span>
+    <svg class="ow-locale-flag" viewBox="0 0 24 16" aria-hidden="true" focusable="false"><use href="{{ locale.flag_sprite }}#{{ locale.current_flag_id }}"></use></svg>
     <span>{{ locale.current_label }}</span>
     <span class="ow-locale-chevron" aria-hidden="true">⌄</span>
   </summary>
   <div class="ow-locale-menu" role="listbox" aria-label="{{ locale.label }}">
     [[ foreach: locale.options as option ]]
     <a href="{{ option.href }}" lang="{{ option.code }}" hreflang="{{ option.code }}" class="ow-locale-option" [[ if: option.selected ]]aria-current="true"[[ endif ]]>
-      <span class="ow-locale-flag" aria-hidden="true">{{ option.flag }}</span>
+      <svg class="ow-locale-flag" viewBox="0 0 24 16" aria-hidden="true" focusable="false"><use href="{{ locale.flag_sprite }}#{{ option.flag_id }}"></use></svg>
       <span>{{ option.label }}</span>
       [[ if: option.selected ]]<span class="ow-locale-check" aria-hidden="true">✓</span>[[ endif ]]
     </a>
