@@ -74,6 +74,20 @@ foreach (['ow-sidebar', 'class="ow-nav"', 'ow-shell', '<select name="lang"', 'ðŸ
     }
 }
 
+$homeData = $data;
+$homeData['state']['id'] = 'home';
+$homeData['page']['title'] = 'Accueil OWASYS';
+$homeData['locale']['action'] = '/owasys/';
+$homeData['locale']['options'][0]['href'] = '/owasys/?lang=fr';
+$homeData['navigation']['current_state'] = 'home';
+$homeData['content']['html'] = $renderer->render('partials/state-content.score', $homeData);
+$homeHtml = $renderer->render('layouts/main.score', $homeData);
+foreach (['OWASYS_LOCALE_SWITCHER', '/owasys/asset/flags/locale-flags.svg#flag-fr', '/owasys/?lang=fr'] as $homeMarker) {
+    if (!str_contains($homeHtml, $homeMarker)) {
+        throw new RuntimeException('OWASYS_HOME_SHARED_LOCALE_SELECTOR_MISSING:' . $homeMarker);
+    }
+}
+
 $frontController = (string) file_get_contents($site . '/application/default/src/Http/FrontController.php');
 if (!str_contains($frontController, "'score-page.php'")) {
     throw new RuntimeException('OWASYS_SCORE_GET_ROUTE_NOT_WIRED');
