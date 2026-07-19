@@ -5,274 +5,53 @@
     "runtime_state": {
         "datasource": "owasys_registry",
         "database": "var/registry/owasys.sqlite",
-        "tables": [
-            "owasys_runtime_context",
-            "owasys_transition_history",
-            "owasys_transition_drafts"
-        ],
+        "tables": ["owasys_runtime_context", "owasys_transition_history", "owasys_transition_drafts"],
         "rule": "Runtime context and transition history are stored in SQLite; canonical transitions are stored in this versioned config file."
     },
     "initial_state": "login",
     "states": [
-        {
-            "id": "login",
-            "label": "Login",
-            "route": "/login",
-            "controller": "login",
-            "requires_auth": false,
-            "requires_current_app": false
-        },
-        {
-            "id": "account",
-            "label": "Account password",
-            "route": "/account/password",
-            "controller": "account",
-            "requires_auth": true,
-            "requires_current_app": false
-        },
-        {
-            "id": "registry",
-            "label": "Registry",
-            "route": "/applications",
-            "controller": "registry",
-            "requires_auth": true,
-            "requires_current_app": false
-        },
-        {
-            "id": "structure",
-            "label": "Structure",
-            "route": "/structure",
-            "controller": "structure",
-            "requires_auth": true,
-            "requires_current_app": true
-        },
-        {
-            "id": "data",
-            "label": "Data",
-            "route": "/data",
-            "controller": "data",
-            "requires_auth": true,
-            "requires_current_app": true
-        },
-        {
-            "id": "workflows",
-            "label": "Workflows",
-            "route": "/workflows",
-            "controller": "workflows",
-            "requires_auth": true,
-            "requires_current_app": true
-        },
-        {
-            "id": "security",
-            "label": "Security",
-            "route": "/security",
-            "controller": "security",
-            "requires_auth": true,
-            "requires_current_app": true
-        },
-        {
-            "id": "build",
-            "label": "Build & Validate",
-            "route": "/build",
-            "controller": "build",
-            "requires_auth": true,
-            "requires_current_app": false,
-            "guards": [
-                "current_app_or_creation_request"
-            ]
-        }
+        {"id":"login","label":"Login","route":"/login","controller":"login","requires_auth":false,"requires_current_app":false},
+        {"id":"account","label":"Account password","route":"/account/password","controller":"account","requires_auth":true,"requires_current_app":false},
+        {"id":"registry","label":"Registry","route":"/applications","controller":"registry","requires_auth":true,"requires_current_app":false},
+        {"id":"structure","label":"Structure","route":"/structure","controller":"structure","requires_auth":true,"requires_current_app":true},
+        {"id":"data","label":"Data","route":"/data","controller":"data","requires_auth":true,"requires_current_app":true},
+        {"id":"workflows","label":"Workflows","route":"/workflows","controller":"workflows","requires_auth":true,"requires_current_app":true},
+        {"id":"security","label":"Security","route":"/security","controller":"security","requires_auth":true,"requires_current_app":true},
+        {"id":"source","label":"Source & Git","route":"/source","controller":"source","requires_auth":true,"requires_current_app":true},
+        {"id":"build","label":"Build & Validate","route":"/build","controller":"build","requires_auth":true,"requires_current_app":false,"guards":["current_app_or_creation_request"]}
     ],
     "events": [
-        {
-            "id": "login_success",
-            "label": "Login success"
-        },
-        {
-            "id": "password_change_required",
-            "label": "Password change required"
-        },
-        {
-            "id": "password_changed",
-            "label": "Password changed"
-        },
-        {
-            "id": "select_app",
-            "label": "Select app"
-        },
-        {
-            "id": "change_app",
-            "label": "Change app"
-        },
-        {
-            "id": "clear_app_context",
-            "label": "Clear context"
-        },
-        {
-            "id": "create_new_app",
-            "label": "Create new app"
-        },
-        {
-            "id": "open_structure",
-            "label": "Open structure"
-        },
-        {
-            "id": "open_data",
-            "label": "Open data"
-        },
-        {
-            "id": "open_workflows",
-            "label": "Open workflows"
-        },
-        {
-            "id": "open_security",
-            "label": "Open security"
-        },
-        {
-            "id": "open_build",
-            "label": "Open build"
-        },
-        {
-            "id": "logout",
-            "label": "Logout"
-        }
+        {"id":"login_success","label":"Login success"},
+        {"id":"password_change_required","label":"Password change required"},
+        {"id":"password_changed","label":"Password changed"},
+        {"id":"select_app","label":"Select app"},
+        {"id":"change_app","label":"Change app"},
+        {"id":"clear_app_context","label":"Clear context"},
+        {"id":"create_new_app","label":"Create new app"},
+        {"id":"open_structure","label":"Open structure"},
+        {"id":"open_data","label":"Open data"},
+        {"id":"open_workflows","label":"Open workflows"},
+        {"id":"open_security","label":"Open security"},
+        {"id":"open_source","label":"Open source"},
+        {"id":"open_build","label":"Open build"},
+        {"id":"logout","label":"Logout"}
     ],
     "transitions": [
-        {
-            "id": "t_login_success_registry",
-            "from": "login",
-            "event": "login_success",
-            "to": "registry",
-            "actions": [
-                "start_session"
-            ],
-            "visual": true
-        },
-        {
-            "id": "t_password_required_account",
-            "from": "login",
-            "event": "password_change_required",
-            "to": "account",
-            "guards": [
-                "must_change_password"
-            ],
-            "actions": [
-                "redirect_password_change"
-            ],
-            "visual": true
-        },
-        {
-            "id": "t_password_changed_registry",
-            "from": "account",
-            "event": "password_changed",
-            "to": "registry",
-            "actions": [
-                "update_runtime_password_hash",
-                "clear_must_change_password"
-            ],
-            "visual": true
-        },
-        {
-            "id": "t_select_app_structure",
-            "from": "registry",
-            "event": "select_app",
-            "to": "structure",
-            "guards": [
-                "app_exists"
-            ],
-            "actions": [
-                "set_current_app"
-            ],
-            "visual": true
-        },
-        {
-            "id": "t_create_new_build",
-            "from": "registry",
-            "event": "create_new_app",
-            "to": "build",
-            "actions": [
-                "clear_current_app",
-                "start_creation_flow"
-            ],
-            "visual": true
-        },
-        {
-            "id": "t_registry_structure",
-            "from": "registry",
-            "event": "open_structure",
-            "to": "structure",
-            "guards": [
-                "current_app_required"
-            ],
-            "visual": true
-        },
-        {
-            "id": "t_structure_data",
-            "from": "structure",
-            "event": "open_data",
-            "to": "data",
-            "guards": [
-                "current_app_required"
-            ],
-            "visual": true
-        },
-        {
-            "id": "t_data_workflows",
-            "from": "data",
-            "event": "open_workflows",
-            "to": "workflows",
-            "guards": [
-                "current_app_required"
-            ],
-            "visual": true
-        },
-        {
-            "id": "t_workflows_security",
-            "from": "workflows",
-            "event": "open_security",
-            "to": "security",
-            "guards": [
-                "current_app_required"
-            ],
-            "visual": true
-        },
-        {
-            "id": "t_security_build",
-            "from": "security",
-            "event": "open_build",
-            "to": "build",
-            "guards": [
-                "current_app_required"
-            ],
-            "visual": true
-        },
-        {
-            "id": "t_change_app_registry",
-            "from": "*",
-            "event": "change_app",
-            "to": "registry",
-            "visual": false
-        },
-        {
-            "id": "t_clear_context_registry",
-            "from": "registry",
-            "event": "clear_app_context",
-            "to": "registry",
-            "actions": [
-                "clear_current_app"
-            ],
-            "visual": false
-        },
-        {
-            "id": "t_logout_login",
-            "from": "*",
-            "event": "logout",
-            "to": "login",
-            "actions": [
-                "clear_session",
-                "clear_current_app"
-            ],
-            "visual": false
-        }
+        {"id":"t_login_success_registry","from":"login","event":"login_success","to":"registry","actions":["start_session"],"visual":true},
+        {"id":"t_password_required_account","from":"login","event":"password_change_required","to":"account","guards":["must_change_password"],"actions":["redirect_password_change"],"visual":true},
+        {"id":"t_password_changed_registry","from":"account","event":"password_changed","to":"registry","actions":["update_runtime_password_hash","clear_must_change_password"],"visual":true},
+        {"id":"t_select_app_structure","from":"registry","event":"select_app","to":"structure","guards":["app_exists"],"actions":["set_current_app"],"visual":true},
+        {"id":"t_create_new_build","from":"registry","event":"create_new_app","to":"build","actions":["clear_current_app","start_creation_flow"],"visual":true},
+        {"id":"t_registry_structure","from":"registry","event":"open_structure","to":"structure","guards":["current_app_required"],"visual":true},
+        {"id":"t_structure_data","from":"structure","event":"open_data","to":"data","guards":["current_app_required"],"visual":true},
+        {"id":"t_data_workflows","from":"data","event":"open_workflows","to":"workflows","guards":["current_app_required"],"visual":true},
+        {"id":"t_workflows_security","from":"workflows","event":"open_security","to":"security","guards":["current_app_required"],"visual":true},
+        {"id":"t_security_source","from":"security","event":"open_source","to":"source","guards":["current_app_required"],"visual":true},
+        {"id":"t_security_build","from":"security","event":"open_build","to":"build","guards":["current_app_required"],"visual":true},
+        {"id":"t_source_build","from":"source","event":"open_build","to":"build","guards":["current_app_required"],"visual":true},
+        {"id":"t_change_app_registry","from":"*","event":"change_app","to":"registry","visual":false},
+        {"id":"t_clear_context_registry","from":"registry","event":"clear_app_context","to":"registry","actions":["clear_current_app"],"visual":false},
+        {"id":"t_logout_login","from":"*","event":"logout","to":"login","actions":["clear_session","clear_current_app"],"visual":false}
     ],
     "guards": {
         "app_exists": "The selected application id must be present in the registry entries.",
