@@ -1,1 +1,28 @@
 /* OWASYS theme */
+.ow-locale-switcher {
+  margin: 14px 0 0;
+}
+
+.ow-locale-switcher select {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 38px 10px 12px;
+  border: 1px solid var(--ow-line);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, .055);
+  color: var(--ow-text);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.ow-locale-switcher select:focus {
+  border-color: var(--ow-accent);
+  outline: 3px solid rgba(108, 227, 255, .16);
+  outline-offset: 1px;
+}
+
+.ow-locale-switcher option {
+  color: #111827;
+  background: #ffffff;
+}
