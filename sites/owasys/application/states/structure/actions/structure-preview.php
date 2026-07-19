@@ -5,6 +5,7 @@ use Opus\Owasys\RegistryRepository;
 use Opus\Owasys\StructureDraftPreviewConfirmation;
 use Opus\Owasys\StructureDraftRepository;
 use Opus\Owasys\StructureDraftWritePlanner;
+use Opus\Template\ScoreTemplateRenderer;
 use Owasys\Application\Configuration\SiteConfiguration;
 use Owasys\Application\I18n\Translator;
 use Owasys\Application\Session\SessionContext;
@@ -18,8 +19,6 @@ if (!is_file($autoload)) {
     exit;
 }
 require_once $autoload;
-
-$h = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
 try {
     $configuration = SiteConfiguration::load($siteRoot);
@@ -35,30 +34,66 @@ try {
         $requestedLocale
     );
     $session->setLocale($translator->locale());
-    $t = $translator(...);
+    $t = static fn(string $key): string => $translator->translate($key);
+    $renderer = new ScoreTemplateRenderer($siteRoot . '/application/states/structure/templates');
 } catch (Throwable $exception) {
     http_response_code(500);
-    echo $exception->getMessage();
+    echo 'OWASYS_STRUCTURE_PREVIEW_BOOTSTRAP_FAILED';
     exit;
 }
 
+$renderResult = static function (array $result, int $status = 200) use ($renderer): never {
+    http_response_code($status);
+    header('Content-Type: text/html; charset=UTF-8');
+    header('Cache-Control: no-store');
+    echo $renderer->render('preview-result.score', ['preview' => $result]);
+    exit;
+};
+
 $user = $session->user();
 if ($user === null) {
-    http_response_code(401);
-    echo 'OWASYS_STRUCTURE_PREVIEW_AUTH_REQUIRED';
-    exit;
+    $renderResult([
+        'success' => false,
+        'title' => $t('draft.preview_result'),
+        'message' => 'OWASYS_STRUCTURE_PREVIEW_AUTH_REQUIRED',
+        'status' => 'unauthorized',
+        'disk_mutation' => $t('draft.disk_mutation_false'),
+        'confirmed' => false,
+        'files' => [],
+        'has_files' => false,
+        'collisions' => '',
+        'has_collisions' => false,
+    ], 401);
 }
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
-    http_response_code(405);
-    echo 'OWASYS_STRUCTURE_PREVIEW_METHOD_INVALID';
-    exit;
+    $renderResult([
+        'success' => false,
+        'title' => $t('draft.preview_result'),
+        'message' => 'OWASYS_STRUCTURE_PREVIEW_METHOD_INVALID',
+        'status' => 'method_not_allowed',
+        'disk_mutation' => $t('draft.disk_mutation_false'),
+        'confirmed' => false,
+        'files' => [],
+        'has_files' => false,
+        'collisions' => '',
+        'has_collisions' => false,
+    ], 405);
 }
 
 $draftId = filter_var($_POST['owasys_draft_id'] ?? null, FILTER_VALIDATE_INT);
 if (!is_int($draftId) || $draftId < 1) {
-    http_response_code(400);
-    echo 'OWASYS_STRUCTURE_PREVIEW_DRAFT_ID_INVALID';
-    exit;
+    $renderResult([
+        'success' => false,
+        'title' => $t('draft.preview_result'),
+        'message' => 'OWASYS_STRUCTURE_PREVIEW_DRAFT_ID_INVALID',
+        'status' => 'invalid_request',
+        'disk_mutation' => $t('draft.disk_mutation_false'),
+        'confirmed' => false,
+        'files' => [],
+        'has_files' => false,
+        'collisions' => '',
+        'has_collisions' => false,
+    ], 400);
 }
 
 $siteConfig = $configuration->site();
@@ -66,12 +101,20 @@ $registryConfig = is_array($siteConfig['registry'] ?? null) ? $siteConfig['regis
 $registrySeedRelative = trim(str_replace('\\', '/', (string) ($registryConfig['seed'] ?? 'config/registry.seed.json')), '/');
 $registryDatabaseRelative = trim(str_replace('\\', '/', (string) ($registryConfig['runtime_database'] ?? 'var/registry/owasys.sqlite')), '/');
 if ($registrySeedRelative === '' || str_contains($registrySeedRelative, '..') || $registryDatabaseRelative === '' || str_contains($registryDatabaseRelative, '..')) {
-    http_response_code(500);
-    echo 'OWASYS_STRUCTURE_PREVIEW_REGISTRY_PATH_INVALID';
-    exit;
+    $renderResult([
+        'success' => false,
+        'title' => $t('draft.preview_result'),
+        'message' => 'OWASYS_STRUCTURE_PREVIEW_REGISTRY_PATH_INVALID',
+        'status' => 'configuration_error',
+        'disk_mutation' => $t('draft.disk_mutation_false'),
+        'confirmed' => false,
+        'files' => [],
+        'has_files' => false,
+        'collisions' => '',
+        'has_collisions' => false,
+    ], 500);
 }
 
-$confirmation = null;
 try {
     $registry = RegistryRepository::forOwasysSite($siteRoot, $opusRoot, $registryDatabaseRelative);
     $registry->synchronize($siteRoot . '/' . $registrySeedRelative);
@@ -93,33 +136,52 @@ try {
     }
 
     $plan = StructureDraftWritePlanner::forOpusRoot($opusRoot)->planAddStateDraft($currentApp, $draft);
+    $confirmation = null;
     if (($plan['status'] ?? null) === 'ready') {
-        $confirmation = StructureDraftPreviewConfirmation::persist($registry, $plan, (string) ($user['id'] ?? 'runtime'));
+        $confirmation = StructureDraftPreviewConfirmation::persist(
+            $registry,
+            $plan,
+            (string) ($user['id'] ?? 'runtime')
+        );
     }
+
+    $files = [];
+    foreach ((array) ($plan['files'] ?? []) as $file) {
+        if (!is_array($file)) {
+            continue;
+        }
+        $files[] = [
+            'operation' => (string) ($file['operation'] ?? ''),
+            'path' => (string) ($file['path'] ?? ''),
+        ];
+    }
+    $collisions = array_map('strval', (array) ($plan['collisions'] ?? []));
+
+    $renderResult([
+        'success' => true,
+        'title' => $t('draft.preview_result'),
+        'message' => $t('draft.preview_status'),
+        'status' => (string) ($plan['status'] ?? 'blocked'),
+        'disk_mutation' => $t('draft.disk_mutation_false'),
+        'confirmed' => is_array($confirmation),
+        'confirmed_label' => $t('draft.preview_confirmed'),
+        'files' => $files,
+        'has_files' => $files !== [],
+        'collisions' => implode(', ', $collisions),
+        'has_collisions' => $collisions !== [],
+        'collisions_label' => $t('draft.preview_collisions'),
+    ]);
 } catch (Throwable $exception) {
-    http_response_code(409);
-    echo '<section class="ow-card" data-context="OWASYS_STRUCTURE_WRITE_PLAN_RESULT"><h2>' . $h($t('draft.preview_result')) . '</h2><p class="ow-login-error">' . $h($t('draft.preview_error')) . '</p></section>';
-    exit;
+    $renderResult([
+        'success' => false,
+        'title' => $t('draft.preview_result'),
+        'message' => $t('draft.preview_error'),
+        'status' => 'blocked',
+        'disk_mutation' => $t('draft.disk_mutation_false'),
+        'confirmed' => false,
+        'files' => [],
+        'has_files' => false,
+        'collisions' => '',
+        'has_collisions' => false,
+    ], 409);
 }
-
-$status = (string) ($plan['status'] ?? 'blocked');
-$html = '<section class="ow-card" data-context="OWASYS_STRUCTURE_WRITE_PLAN_RESULT">';
-$html .= '<h2>' . $h($t('draft.preview_result')) . '</h2>';
-$html .= '<div class="ow-tags"><span data-context="OWASYS_STRUCTURE_WRITE_PLAN_STATUS">' . $h($t('draft.preview_status')) . ': ' . $h($status) . '</span><span>' . $h($t('draft.disk_mutation_false')) . '</span></div>';
-if (is_array($confirmation)) {
-    $html .= '<p data-context="OWASYS_STRUCTURE_PREVIEW_CONFIRMED">' . $h($t('draft.preview_confirmed')) . '</p>';
-}
-$html .= '<ul>';
-foreach ((array) ($plan['files'] ?? []) as $file) {
-    if (!is_array($file)) {
-        continue;
-    }
-    $html .= '<li data-context="OWASYS_STRUCTURE_WRITE_PLAN_FILE">' . $h((string) ($file['operation'] ?? '')) . ' · ' . $h((string) ($file['path'] ?? '')) . '</li>';
-}
-$html .= '</ul>';
-if (($plan['collisions'] ?? []) !== []) {
-    $html .= '<p class="ow-login-error">' . $h($t('draft.preview_collisions')) . ': ' . $h(implode(', ', array_map('strval', (array) $plan['collisions']))) . '</p>';
-}
-$html .= '</section>';
-
-echo $html;
