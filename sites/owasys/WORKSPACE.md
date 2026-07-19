@@ -81,7 +81,7 @@ The deleted `application/application.php` must never be recreated. There is no l
 
 Non-GET requests that do not target an explicit state-owned endpoint fail closed with HTTP 405 and `OWASYS_METHOD_NOT_SUPPORTED` until their state-owned actions are implemented.
 
-`structure-preview.php` still has a direct HTML rendering debt and must be converted to a state ViewModel plus ScoreTemplate rendering.
+`structure-preview.php` prepares a preview result ViewModel and renders `application/states/structure/templates/preview-result.score`. It must not concatenate structural HTML directly.
 
 ## Public boundary
 
@@ -165,6 +165,7 @@ Completed boundaries:
 - state-owned ScoreTemplate dispatch supported by `score-page.php`;
 - Structure rebuilt with a new read-only ViewModel, application inspection, states table and routes table;
 - inspected-application FSM source rendered graphically as local SVG within Structure;
+- Structure write-plan preview output rendered through `preview-result.score` instead of PHP HTML concatenation;
 - the FSM renderer has no CDN dependency and leaves textual source as a no-JavaScript fallback;
 - `score.css` is self-contained and no longer imports the deleted legacy stylesheet;
 - build UI smoke targets the canonical state action while the public front controller remains the only entrypoint;
@@ -172,10 +173,9 @@ Completed boundaries:
 
 Remaining work:
 
-- restore Structure validation, draft preparation and write-plan actions as state-owned AUTH/ACL/FSM actions and Score templates;
+- restore Structure validation and draft preparation/apply actions as state-owned AUTH/ACL/FSM actions and Score templates;
 - rebuild Registry content and actions with state-owned ViewModels/templates/actions;
 - rebuild Source, Build, Security, Account, Data, Workflows and Home content without structural JavaScript;
 - remove structural responsibilities still present in `www/asset/js/owasys.js` only after their replacements are verified;
-- convert `structure-preview.php` direct HTML to ViewModel plus ScoreTemplate;
 - validate the complete HTTP path under Apache;
 - add the OPUS development profiler to generated applications in development mode only, never to OWASYS itself and never in production.
