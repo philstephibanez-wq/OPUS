@@ -99,6 +99,22 @@
             "order": 60
         },
         {
+            "id": "source.index",
+            "path": "/source",
+            "state": "source",
+            "controller": "source",
+            "controller_legacy_alias": true,
+            "class": null,
+            "template": "application/states/source/templates/index.score",
+            "view": "application/states/source/views/index.php",
+            "label": "menu.source",
+            "fsm_state": "source",
+            "dispatch_action": "render_route",
+            "group": "OWASYS",
+            "show_in_menu": true,
+            "order": 65
+        },
+        {
             "id": "build.index",
             "path": "/build",
             "state": "build",
