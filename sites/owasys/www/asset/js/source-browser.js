@@ -134,16 +134,16 @@ document.addEventListener('DOMContentLoaded', () => {
     return root;
   };
 
-  const renderTreeNode = (node, parent, depth = 0) => {
+  const renderTreeNode = (node, parent) => {
     [...node.directories.entries()].sort(([a], [b]) => a.localeCompare(b)).forEach(([name, child]) => {
       const details = document.createElement('details');
       details.className = 'ow-source-directory';
-      details.open = depth < 2;
+      details.open = false;
       const summary = document.createElement('summary');
       summary.textContent = name;
       summary.title = name;
       const list = document.createElement('ul');
-      renderTreeNode(child, list, depth + 1);
+      renderTreeNode(child, list);
       details.append(summary, list);
       const item = document.createElement('div');
       item.className = 'ow-source-tree-node';
