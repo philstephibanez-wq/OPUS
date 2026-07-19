@@ -1,0 +1,41 @@
+<section class="ow-card" data-context="OWASYS_STRUCTURE_WRITE_PLAN_RESULT">
+  <h2>{{ preview.title }}</h2>
+  [[ if: preview.success ]]
+  <div class="ow-kpi-grid">
+    <article class="ow-kpi">
+      <span>{{ preview.message }}</span>
+      <strong data-context="OWASYS_STRUCTURE_WRITE_PLAN_STATUS">{{ preview.status }}</strong>
+    </article>
+    <article class="ow-kpi">
+      <span>Écriture disque</span>
+      <strong>{{ preview.disk_mutation }}</strong>
+    </article>
+  </div>
+  [[ else ]]
+  <p class="ow-error">{{ preview.message }}</p>
+  [[ endif ]]
+
+  [[ if: preview.confirmed ]]
+  <p class="ow-success" data-context="OWASYS_STRUCTURE_PREVIEW_CONFIRMED">{{ preview.confirmed_label }}</p>
+  [[ endif ]]
+
+  [[ if: preview.has_files ]]
+  <div class="ow-table-wrap">
+    <table class="ow-table">
+      <thead><tr><th>Opération</th><th>Chemin</th></tr></thead>
+      <tbody>
+        [[ foreach: preview.files as file ]]
+        <tr data-context="OWASYS_STRUCTURE_WRITE_PLAN_FILE">
+          <td>{{ file.operation }}</td>
+          <td><code>{{ file.path }}</code></td>
+        </tr>
+        [[ endforeach ]]
+      </tbody>
+    </table>
+  </div>
+  [[ endif ]]
+
+  [[ if: preview.has_collisions ]]
+  <p class="ow-error">{{ preview.collisions_label }} : {{ preview.collisions }}</p>
+  [[ endif ]]
+</section>
