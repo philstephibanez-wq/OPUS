@@ -30,7 +30,7 @@ if (!is_array($payload)) {
     return;
 }
 
-$opusRoot = dirname(dirname(dirname(dirname(dirname(__DIR__)))));
+$opusRoot = dirname(__DIR__, 6);
 $applicationRoot = realpath($opusRoot . '/' . ltrim(str_replace('\\', '/', $rootPath), '/'));
 $opusRootReal = realpath($opusRoot);
 if (!is_string($applicationRoot) || !is_string($opusRootReal) || !str_starts_with($applicationRoot, $opusRootReal . DIRECTORY_SEPARATOR) || !is_dir($applicationRoot)) {
