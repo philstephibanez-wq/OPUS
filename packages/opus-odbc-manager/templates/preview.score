@@ -1,5 +1,0 @@
-<section class="opus-odbc-manager opus-odbc-manager-preview">
-  <h1>{{ title }}</h1>
-  <p>Table: {{ table }}</p>
-  <p>Limit: {{ limit }}</p>
-</section>

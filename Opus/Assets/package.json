@@ -1,0 +1,34 @@
+{
+  "name": "opus-framework-assets",
+  "private": true,
+  "version": "1.1.1",
+  "description": "Shared frontend assets for the OPUS framework.",
+  "scripts": {
+    "build:codemirror": "esbuild src/opus-codemirror-entry.js --bundle --minify --format=iife --target=es2020 --outfile=dist/codemirror/opus-codemirror.js",
+    "build:mermaid": "esbuild src/opus-mermaid-entry.js --bundle --minify --format=iife --target=es2020 --outfile=dist/mermaid/opus-mermaid.js",
+    "build": "npm run build:codemirror && npm run build:mermaid"
+  },
+  "dependencies": {
+    "@codemirror/autocomplete": "^6.18.6",
+    "@codemirror/commands": "^6.8.1",
+    "@codemirror/lang-css": "^6.3.1",
+    "@codemirror/lang-html": "^6.4.9",
+    "@codemirror/lang-javascript": "^6.2.3",
+    "@codemirror/lang-json": "^6.0.2",
+    "@codemirror/lang-markdown": "^6.3.2",
+    "@codemirror/lang-php": "^6.0.2",
+    "@codemirror/lang-sql": "^6.9.0",
+    "@codemirror/language": "^6.11.0",
+    "@codemirror/search": "^6.5.10",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.36.5",
+    "@lezer/highlight": "^1.2.1",
+    "mermaid": "^11.12.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true
+  }
+}

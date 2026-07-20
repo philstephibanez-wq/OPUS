@@ -1,4 +1,0 @@
-<section class="opus-odbc-manager opus-odbc-manager-table-detail">
-  <h1>{{ title }}</h1>
-  <p>Table: {{ table }}</p>
-</section>

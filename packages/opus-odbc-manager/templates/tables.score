@@ -1,4 +1,0 @@
-<section class="opus-odbc-manager opus-odbc-manager-tables">
-  <h1>{{ title }}</h1>
-  <p>Read-only table and view inventory.</p>
-</section>

@@ -1,7 +1,0 @@
-<section class="opus-odbc-manager opus-odbc-manager-crud-dry-run">
-  <h1>{{ title }}</h1>
-  <p>Table: {{ table }}</p>
-  <p>Dry run: {{ dry_run }}</p>
-  <p>Raw SQL allowed: {{ raw_sql_allowed }}</p>
-  <p>DDL allowed: {{ ddl_allowed }}</p>
-</section>
