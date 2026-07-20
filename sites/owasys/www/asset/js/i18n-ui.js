@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  const sidebar = document.querySelector('.ow-sidebar');
-  if (!sidebar || document.querySelector('[data-context="OWASYS_LOCALE_SWITCHER"]')) return;
+  const header = document.querySelector('.ow-header');
+  if (!header || document.querySelector('[data-context="OWASYS_LOCALE_SWITCHER"]')) return;
 
   const locales = [
     ['bg','bg','Български'],['hr','hr','Hrvatski'],['cs','cz','Čeština'],['da','dk','Dansk'],
@@ -45,15 +45,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   switcher.append(list);
 
-  const auth = sidebar.querySelector('.ow-auth-status');
-  if (auth) auth.insertAdjacentElement('afterend', switcher);
-  else sidebar.prepend(switcher);
+  const brand = header.querySelector('.ow-brand');
+  if (brand) brand.insertAdjacentElement('afterend', switcher);
+  else header.prepend(switcher);
 
-  let nav = sidebar.querySelector('.ow-nav');
+  let nav = header.querySelector('.ow-nav');
   if (!nav) {
     nav = document.createElement('nav');
     nav.className = 'ow-nav';
-    sidebar.append(nav);
+    header.append(nav);
   }
 
   const routeDefinitions = [
