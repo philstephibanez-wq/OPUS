@@ -1,9 +1,0 @@
-{
-    "contract": "OPUS_HOME_DEMO_CARD_ROUTE_PROJECTION_V1",
-    "rubrics": [
-        {
-            "controller": "articles",
-            "route": "articles.index"
-        }
-    ]
-}

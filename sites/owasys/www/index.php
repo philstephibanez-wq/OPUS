@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+<<<<<<< HEAD
 use Opus\Fsm\FsmSiteLoader;
 use Opus\Owasys\ApplicationInspector;
 use Opus\Owasys\RegistryRepository;
@@ -788,3 +789,9 @@ echo '<!doctype html>'
     . '<script src="' . $h($asset('/asset/js/owasys.js')) . '"></script>'
     . '<script src="' . $h($asset('/asset/themes/owasys/js/theme.js')) . '"></script>'
     . '</body></html>';
+=======
+/*
+ * Point d'entrée public unique d'OWASYS.
+ * Il doit uniquement transmettre la requête au bootstrap canonique OPUS.
+ */
+>>>>>>> owasys-backend-first-remediation
