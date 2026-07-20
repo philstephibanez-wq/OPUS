@@ -1,11 +1,23 @@
 /* OWASYS theme */
-.ow-locale-switcher {
-  margin: 14px 0 0;
+.ow-sidebar {
+  max-height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
 }
 
-.ow-locale-switcher select {
+.ow-locale-switcher {
+  position: relative;
+  margin: 14px 0 10px;
+}
+
+.ow-locale-switcher > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   width: 100%;
   min-width: 0;
+  box-sizing: border-box;
   padding: 10px 38px 10px 12px;
   border: 1px solid var(--ow-line);
   border-radius: 13px;
@@ -14,15 +26,65 @@
   font: inherit;
   font-weight: 750;
   cursor: pointer;
+  list-style: none;
 }
 
-.ow-locale-switcher select:focus {
+.ow-locale-switcher > summary::-webkit-details-marker {
+  display: none;
+}
+
+.ow-locale-switcher > summary::after {
+  content: '▾';
+  position: absolute;
+  right: 13px;
+  top: 10px;
+}
+
+.ow-locale-switcher[open] > summary {
   border-color: var(--ow-accent);
   outline: 3px solid rgba(108, 227, 255, .16);
   outline-offset: 1px;
 }
 
-.ow-locale-switcher option {
-  color: #111827;
-  background: #ffffff;
+.ow-locale-switcher img {
+  display: block;
+  flex: 0 0 auto;
+  width: 24px;
+  height: 18px;
+  object-fit: cover;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.2);
+}
+
+.ow-locale-options {
+  display: grid;
+  gap: 4px;
+  margin-top: 7px;
+  padding: 7px;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--ow-line);
+  border-radius: 13px;
+  background: #101c2f;
+  box-shadow: 0 14px 34px rgba(0,0,0,.35);
+}
+
+.ow-locale-options a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 9px;
+  border-radius: 9px;
+  color: var(--ow-text);
+  text-decoration: none;
+}
+
+.ow-locale-options a:hover,
+.ow-locale-options a[aria-current="true"] {
+  background: rgba(108, 227, 255, .12);
+  color: var(--ow-accent);
+}
+
+.ow-nav {
+  padding-bottom: 18px;
 }
