@@ -1,50 +1,56 @@
-# Opus repository ignore rules
+# OPUS repository ignore rules
 #
-# Opus is a reusable PHP framework. The repository must not track generated
-# dependencies, local secrets, development state, reports, temporary files,
-# or machine-specific artifacts.
+# The repository contains the OPUS framework and its sites.
+# Generated dependencies, local runtime data, secrets and workstation files
+# must not be versioned.
 
-# Dependencies
+# Composer dependencies
 /vendor/
-/composer.lock
 
-# Local environment / secrets
+# Framework frontend dependencies
+/Opus/Assets/node_modules/
+/Opus/Assets/npm-debug.log*
+/Opus/Assets/yarn-debug.log*
+/Opus/Assets/yarn-error.log*
+/Opus/Assets/pnpm-debug.log*
+
+# Local tools: not part of the OPUS product
+/tools/
+
+# Local environment and secrets
 /.env
 /.env.*
 !/.env.example
 *.local.php
 *.secret.php
 
-# Documentation and tooling caches
-/.phpdoc/
-/.phpdoc-cache/
-/.cache/
-/tmp/
-
-# Runtime state
+# Site runtime state
 #
-# OPUS product runtime var contract is strict:
-#   - /var/cache for runtime cache payloads
-#   - /var/logs for runtime log payloads
-# Nothing else belongs under /var in OPUS.
-/var/*
-!/var/cache/
-!/var/logs/
-/var/cache/*
-!/var/cache/.gitkeep
-/var/logs/*
-!/var/logs/.gitkeep
+# Each site owns its runtime directories. Keep only the directory markers.
+/sites/*/var/*
+!/sites/*/var/cache/
+!/sites/*/var/logs/
+/sites/*/var/cache/*
+!/sites/*/var/cache/.gitkeep
+/sites/*/var/logs/*
+!/sites/*/var/logs/.gitkeep
 
-# Site runtime state and local auth stores
-/sites/*/var/
-
-# SQLite runtime sidecars and runtime databases
+# Runtime databases and SQLite sidecars
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
 *.sqlite-journal
 
-# Generic generated / temporary artifacts
+# Test, analysis and documentation caches
+/.phpunit.cache/
+/.phpunit.result.cache
+/.phpdoc/
+/.phpdoc-cache/
+/.cache/
+/coverage/
+/tmp/
+
+# Generic generated and temporary artifacts
 *.tmp
 *.temp
 *.bak
@@ -55,6 +61,9 @@
 *.diff
 *.log
 
-# OS / editor noise
+# IDE and operating-system files
+/.idea/
+/.vscode/
 .DS_Store
 Thumbs.db
+Desktop.ini
