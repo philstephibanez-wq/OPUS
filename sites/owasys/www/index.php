@@ -56,7 +56,14 @@ ob_start();
 require __DIR__ . '/application.php';
 $html = (string) ob_get_clean();
 $mount = str_starts_with($requestPath, '/owasys/') || $requestPath === '/owasys' ? '/owasys' : '';
-$script = '<script defer src="' . $mount . '/asset/js/i18n-ui.js?v=1"></script>';
+
+$html = str_replace(
+    ['<aside class="ow-sidebar">', '</aside><main class="ow-main">'],
+    ['<header class="ow-header">', '</header><main class="ow-main">'],
+    $html
+);
+
+$script = '<script defer src="' . $mount . '/asset/js/i18n-ui.js?v=3"></script>';
 if (str_contains($html, '</body>')) {
     $html = str_replace('</body>', $script . '</body>', $html);
 } else {
