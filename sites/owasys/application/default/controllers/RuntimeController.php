@@ -234,8 +234,10 @@ final class OwasysRuntimeController
     private function redirect(string $locale, string $route): never
     {
         $script = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
-        $directory = rtrim(dirname($script), '/');
-        $base = $directory === '/' ? '' : $directory;
+        $directory = str_replace('\\', '/', dirname($script));
+        $base = in_array($directory, ['/', '.', ''], true)
+            ? ''
+            : rtrim($directory, '/');
 
         header('Location: ' . $base . '/' . rawurlencode($locale) . '/' . ltrim($route, '/'), true, 303);
         exit;
