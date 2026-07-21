@@ -1,9 +1,9 @@
 {
   "contract": "OPUS_LOCALIZED_SIGNAL_ROUTES_V1",
   "default_locale": "fr",
+  "rule": "Only navigation URLs that emit an FSM event are listed. Login and account form events are produced by their controllers.",
   "routes": {
     "bg": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -14,7 +14,6 @@
       "logout": "logout"
     },
     "hr": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -25,7 +24,6 @@
       "logout": "logout"
     },
     "cs": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -36,7 +34,6 @@
       "logout": "logout"
     },
     "da": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -47,7 +44,6 @@
       "logout": "logout"
     },
     "nl": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -58,7 +54,6 @@
       "logout": "logout"
     },
     "en": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -69,7 +64,6 @@
       "logout": "logout"
     },
     "et": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -80,7 +74,6 @@
       "logout": "logout"
     },
     "fi": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -91,7 +84,6 @@
       "logout": "logout"
     },
     "fr": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -102,7 +94,6 @@
       "logout": "logout"
     },
     "de": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -113,7 +104,6 @@
       "logout": "logout"
     },
     "el": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -124,7 +114,6 @@
       "logout": "logout"
     },
     "hu": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -135,7 +124,6 @@
       "logout": "logout"
     },
     "ga": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -146,7 +134,6 @@
       "logout": "logout"
     },
     "it": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -157,7 +144,6 @@
       "logout": "logout"
     },
     "lv": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -168,7 +154,6 @@
       "logout": "logout"
     },
     "lt": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -179,7 +164,6 @@
       "logout": "logout"
     },
     "mt": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -190,7 +174,6 @@
       "logout": "logout"
     },
     "pl": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -201,7 +184,6 @@
       "logout": "logout"
     },
     "pt": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -212,7 +194,6 @@
       "logout": "logout"
     },
     "ro": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -223,7 +204,6 @@
       "logout": "logout"
     },
     "sk": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -234,7 +214,6 @@
       "logout": "logout"
     },
     "sl": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -245,7 +224,6 @@
       "logout": "logout"
     },
     "es": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -256,7 +234,6 @@
       "logout": "logout"
     },
     "sv": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
@@ -267,7 +244,6 @@
       "logout": "logout"
     },
     "uk": {
-      "login": "logout",
       "applications": "change_app",
       "structure": "open_structure",
       "data": "open_data",
