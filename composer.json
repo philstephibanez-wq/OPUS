@@ -16,21 +16,7 @@
             "Opus/"
         ]
     },
-    "bin": [
-        "bin/opus"
-    ],
     "scripts": {
-        "opus": "@php bin/opus",
-        "opus:create-application": "@php bin/opus create:application",
-        "opus:create-site": "@php bin/opus create:site",
-        "opus:owasys-create": "@php bin/opus owasys:create",
-        "opus:owasys-export": "@php bin/opus owasys:export",
-        "opus:add-language": "@php bin/opus add:language",
-        "opus:serve-site": "@php bin/opus serve:site",
-        "opus:validate-site": "@php bin/opus validate:site",
-        "opus:list-routes": "@php bin/opus list:routes",
-        "opus:create-page": "@php bin/opus create:page",
-        "opus:create-rubric": "@php bin/opus create:rubric",
         "opus:smoke-all": "@php tools/smoke_all_opus.php",
         "opus:smoke-site-contract": "@php tools/smoke_opus_site_contract_eternal.php",
         "opus:smoke-fsm-contract": "@php tools/smoke_opus_fsm_contract.php",
@@ -38,15 +24,12 @@
         "opus:smoke-fsm-site-loader": "@php tools/smoke_opus_fsm_site_loader.php",
         "opus:smoke-fsm-action-dispatcher": "@php tools/smoke_opus_fsm_action_dispatcher.php",
         "opus:smoke-fsm-transition-cli": "@php tools/smoke_opus_fsm_transition_cli.php",
-        "opus:smoke-bin-fsm-transition": "@php tools/smoke_opus_bin_fsm_transition.php",
         "opus:smoke-validate-site-cli-fsm": "@php tools/smoke_opus_validate_site_cli_fsm.php",
         "owasys:auth-bootstrap": "@php tools/owasys_auth_bootstrap_local_user.php",
         "owasys:smoke-scaffold-plan": "@php tools/smoke_owasys_scaffold_plan_builder.php",
         "owasys:smoke-scaffold-writer": "@php tools/smoke_owasys_application_scaffold_writer.php",
         "owasys:smoke-application-creator": "@php tools/smoke_owasys_application_creator.php",
-        "owasys:smoke-bin-opus-create": "@php tools/smoke_owasys_bin_opus_create.php",
         "owasys:smoke-application-exporter": "@php tools/smoke_owasys_application_exporter.php",
-        "owasys:smoke-bin-opus-export": "@php tools/smoke_owasys_bin_opus_export.php",
         "owasys:smoke-i18n": "@php tools/smoke_owasys_i18n.php",
         "owasys:smoke-registry-sqlite": "@php tools/smoke_owasys_registry_sqlite.php",
         "owasys:smoke-runtime-context-sqlite": "@php tools/smoke_owasys_runtime_context_sqlite.php",
