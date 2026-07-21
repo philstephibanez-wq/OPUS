@@ -24,6 +24,9 @@ $routeUrl = static function (string $targetLocale, string $route) use ($basePath
 };
 
 $assetUrl = static fn (string $path): string => $basePath . '/asset/' . ltrim($path, '/');
+$localeFlagUrl = static fn (string $code): string => $assetUrl(
+    'flags/' . rawurlencode($code) . '.svg'
+);
 
 $localeNames = [
     'bg' => 'Български',
@@ -57,6 +60,8 @@ $configuredLocales = array_values(
     array_filter((array) ($siteConfig['locales'] ?? []), 'is_string')
 );
 
+$currentLocaleName = $localeNames[$locale] ?? strtoupper($locale);
+
 $menu = [
     ['route' => 'applications', 'key' => 'menu.applications'],
     ['route' => 'structure', 'key' => 'menu.structure'],
@@ -79,6 +84,7 @@ $pageSummary = $t($summaryKey);
     <title><?= $h($pageTitle) ?> — <?= $h($t('brand.name')) ?></title>
     <link rel="stylesheet" href="<?= $h($assetUrl('css/owasys.css')) ?>">
     <link rel="stylesheet" href="<?= $h($assetUrl('themes/owasys/css/theme.css')) ?>">
+    <link rel="stylesheet" href="<?= $h($assetUrl('css/language-switcher.css')) ?>">
 </head>
 <body data-opus-application="owasys" data-opus-module="<?= $h($module) ?>">
 <div class="ow-shell ow-shell-horizontal-navigation">
@@ -105,23 +111,36 @@ $pageSummary = $t($summaryKey);
                 </div>
             <?php endif; ?>
 
-            <label class="ow-locale-switcher">
-                <span class="ow-visually-hidden"><?= $h($t('language.selector')) ?></span>
-                <select
-                    aria-label="<?= $h($t('language.selector')) ?>"
-                    onchange="window.location.href=this.value"
-                >
+            <details class="ow-locale-switcher">
+                <summary aria-label="<?= $h($t('language.selector')) ?>">
+                    <img
+                        src="<?= $h($localeFlagUrl($locale)) ?>"
+                        alt=""
+                        width="24"
+                        height="16"
+                    >
+                    <span><?= $h($currentLocaleName) ?></span>
+                </summary>
+                <div class="ow-locale-options" aria-label="<?= $h($t('language.selector')) ?>">
                     <?php foreach ($configuredLocales as $code): ?>
                         <?php if (!isset($localeNames[$code])) { continue; } ?>
-                        <option
-                            value="<?= $h($routeUrl($code, $activeRoute)) ?>"
-                            <?= $code === $locale ? 'selected' : '' ?>
+                        <a
+                            href="<?= $h($routeUrl($code, $activeRoute)) ?>"
+                            lang="<?= $h($code) ?>"
+                            <?= $code === $locale ? 'aria-current="true"' : '' ?>
                         >
-                            <?= $h($localeNames[$code]) ?>
-                        </option>
+                            <img
+                                src="<?= $h($localeFlagUrl($code)) ?>"
+                                alt=""
+                                width="24"
+                                height="16"
+                                loading="lazy"
+                            >
+                            <span><?= $h($localeNames[$code]) ?></span>
+                        </a>
                     <?php endforeach; ?>
-                </select>
-            </label>
+                </div>
+            </details>
 
             <div class="ow-global-auth-status">
                 <?php if ($isAuthenticated): ?>

@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 return [
     'brand.name' => 'OWASYS',
-    'brand.subtitle' => 'OPUS Web Application System',
+    'brand.subtitle' => 'Système d’applications web OPUS',
     'menu.home' => 'Accueil',
     'menu.applications' => 'Applications',
     'menu.structure' => 'Structure',
