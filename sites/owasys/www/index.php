@@ -1,6 +1,30 @@
 <?php
 declare(strict_types=1);
 
+if (PHP_SAPI === 'cli-server') {
+    $requestPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
+    $requestPath = is_string($requestPath) ? rawurldecode($requestPath) : '/';
+
+    if ($requestPath !== '/' && !str_contains($requestPath, "\0")) {
+        $publicRoot = realpath(__DIR__);
+        $relativePath = ltrim(str_replace('/', DIRECTORY_SEPARATOR, $requestPath), DIRECTORY_SEPARATOR);
+        $candidate = realpath(__DIR__ . DIRECTORY_SEPARATOR . $relativePath);
+        $frontController = realpath(__FILE__);
+
+        if ($publicRoot !== false && $candidate !== false && $candidate !== $frontController) {
+            $publicPrefix = rtrim(str_replace('\\', '/', $publicRoot), '/') . '/';
+            $candidatePath = str_replace('\\', '/', $candidate);
+
+            if (str_starts_with($candidatePath, $publicPrefix) && is_file($candidate)) {
+                return false;
+            }
+        }
+    }
+
+    $_SERVER['SCRIPT_NAME'] = '/index.php';
+    $_SERVER['SCRIPT_FILENAME'] = __FILE__;
+}
+
 $siteRoot = dirname(__DIR__);
 $opusRoot = dirname(dirname($siteRoot));
 $autoload = $opusRoot . '/vendor/autoload.php';
