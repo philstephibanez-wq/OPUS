@@ -10,6 +10,9 @@ use RuntimeException;
  *
  * OPUS applications use application/default plus application/<module>.
  * application/states is forbidden.
+ *
+ * Functional modules are derived from the FSM states. site.json contains
+ * site-wide infrastructure metadata and is not a second module registry.
  */
 final class FsmSiteLoader
 {
@@ -54,6 +57,7 @@ final class FsmSiteLoader
      *   role:string,
      *   fsm_path:string,
      *   fsm_relative_path:string,
+     *   modules:list<string>,
      *   site_config:array<string,mixed>
      * }
      */
@@ -69,7 +73,7 @@ final class FsmSiteLoader
         $siteId = (string) ($siteConfig['site_id'] ?? basename($siteRoot));
         $role = (string) ($siteConfig['role'] ?? '');
 
-        self::assertModuleTreeContract($siteRoot, $siteId, $siteConfig);
+        self::assertApplicationTreeContract($siteRoot, $siteId, $siteConfig);
 
         $candidates = [];
         $navigation = is_array($siteConfig['navigation'] ?? null) ? $siteConfig['navigation'] : [];
@@ -109,16 +113,23 @@ final class FsmSiteLoader
             $absolute = $siteRoot . DIRECTORY_SEPARATOR
                 . str_replace('/', DIRECTORY_SEPARATOR, trim($relative, '/'));
 
-            if (is_file($absolute)) {
-                return [
-                    'site_id' => $siteId,
-                    'site_root' => $siteRoot,
-                    'role' => $role,
-                    'fsm_path' => $absolute,
-                    'fsm_relative_path' => trim($relative, '/'),
-                    'site_config' => $siteConfig,
-                ];
+            if (!is_file($absolute)) {
+                continue;
             }
+
+            $fsm = self::readJson($absolute, 'OPUS_FSM_SITE_FSM_JSON_INVALID: ' . $siteId);
+            $modules = self::modulesFromFsm($fsm, $siteId);
+            self::assertFsmModuleDirectories($siteRoot, $siteId, $modules);
+
+            return [
+                'site_id' => $siteId,
+                'site_root' => $siteRoot,
+                'role' => $role,
+                'fsm_path' => $absolute,
+                'fsm_relative_path' => trim($relative, '/'),
+                'modules' => $modules,
+                'site_config' => $siteConfig,
+            ];
         }
 
         throw new RuntimeException('OPUS_FSM_SITE_FSM_MISSING: ' . $siteId);
@@ -140,8 +151,11 @@ final class FsmSiteLoader
     }
 
     /** @param array<string,mixed> $siteConfig */
-    private static function assertModuleTreeContract(string $siteRoot, string $siteId, array $siteConfig): void
-    {
+    private static function assertApplicationTreeContract(
+        string $siteRoot,
+        string $siteId,
+        array $siteConfig
+    ): void {
         if (($siteConfig['application_root'] ?? null) !== 'application') {
             throw new RuntimeException('OPUS_FSM_SITE_APPLICATION_ROOT_INVALID: ' . $siteId);
         }
@@ -169,19 +183,59 @@ final class FsmSiteLoader
         if (is_dir($forbiddenStatesRoot)) {
             throw new RuntimeException('OPUS_FSM_SITE_FORBIDDEN_STATES_DIRECTORY: ' . $siteId);
         }
+    }
 
-        $modules = $siteConfig['modules'] ?? null;
-        if (!is_array($modules) || $modules === []) {
-            throw new RuntimeException('OPUS_FSM_SITE_MODULES_MISSING: ' . $siteId);
+    /**
+     * @param array<string,mixed> $fsm
+     * @return list<string>
+     */
+    private static function modulesFromFsm(array $fsm, string $siteId): array
+    {
+        $states = $fsm['states'] ?? null;
+        if (!is_array($states) || $states === []) {
+            throw new RuntimeException('OPUS_FSM_SITE_STATES_MISSING: ' . $siteId);
         }
 
-        foreach ($modules as $module) {
-            if (!is_string($module) || preg_match('/^[a-z][a-z0-9_-]*$/', $module) !== 1) {
-                throw new RuntimeException('OPUS_FSM_SITE_MODULE_NAME_INVALID: ' . $siteId);
+        $modules = [];
+
+        foreach ($states as $state) {
+            if (!is_array($state)) {
+                throw new RuntimeException('OPUS_FSM_SITE_STATE_INVALID: ' . $siteId);
             }
 
+            $stateId = trim((string) ($state['id'] ?? ''));
+            if ($stateId === '') {
+                throw new RuntimeException('OPUS_FSM_SITE_STATE_ID_INVALID: ' . $siteId);
+            }
+
+            $module = trim((string) ($state['module'] ?? $stateId));
+            if (preg_match('/^[a-z][a-z0-9_-]*$/', $module) !== 1) {
+                throw new RuntimeException('OPUS_FSM_SITE_MODULE_NAME_INVALID: ' . $siteId . ':' . $module);
+            }
+
+            if ($module === 'default') {
+                throw new RuntimeException('OPUS_FSM_SITE_DEFAULT_STATE_MODULE_FORBIDDEN: ' . $siteId);
+            }
+
+            $modules[$module] = true;
+        }
+
+        return array_keys($modules);
+    }
+
+    /** @param list<string> $modules */
+    private static function assertFsmModuleDirectories(
+        string $siteRoot,
+        string $siteId,
+        array $modules
+    ): void {
+        $applicationRoot = $siteRoot . DIRECTORY_SEPARATOR . 'application';
+
+        foreach ($modules as $module) {
             if (!is_dir($applicationRoot . DIRECTORY_SEPARATOR . $module)) {
-                throw new RuntimeException('OPUS_FSM_SITE_MODULE_DIRECTORY_MISSING: ' . $siteId . ':' . $module);
+                throw new RuntimeException(
+                    'OPUS_FSM_SITE_MODULE_DIRECTORY_MISSING: ' . $siteId . ':' . $module
+                );
             }
         }
     }

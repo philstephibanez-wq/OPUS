@@ -39,18 +39,6 @@
   "default_root": "application/default",
   "asset_root": "www/asset",
   "dispatch_model": "fsm-module-first",
-  "modules": [
-    "home",
-    "registry",
-    "structure",
-    "data",
-    "workflows",
-    "security",
-    "source",
-    "build",
-    "account",
-    "login"
-  ],
   "navigation": {
     "fsm": "config/owasys-navigation.fsm.json",
     "source_of_truth": "config"
