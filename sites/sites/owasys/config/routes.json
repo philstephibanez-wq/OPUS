@@ -1,0 +1,281 @@
+{
+  "contract": "OPUS_LOCALIZED_SIGNAL_ROUTES_V1",
+  "default_locale": "fr",
+  "routes": {
+    "bg": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "hr": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "cs": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "da": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "nl": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "en": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "et": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "fi": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "fr": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "de": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "el": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "hu": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "ga": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "it": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "lv": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "lt": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "mt": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "pl": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "pt": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "ro": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "sk": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "sl": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "es": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "sv": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    },
+    "uk": {
+      "login": "logout",
+      "applications": "change_app",
+      "structure": "open_structure",
+      "data": "open_data",
+      "workflows": "open_workflows",
+      "security": "open_security",
+      "source": "open_source",
+      "build": "open_build",
+      "logout": "logout"
+    }
+  }
+}
