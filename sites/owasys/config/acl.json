@@ -1,0 +1,29 @@
+{
+  "contract": "OPUS_ACL_POLICY_V1",
+  "default": "deny",
+  "roles": {
+    "admin": [
+      "*:*"
+    ],
+    "developer": [
+      "registry:open",
+      "structure:*",
+      "data:*",
+      "workflows:*",
+      "security:open",
+      "source:*",
+      "build:*",
+      "account:*"
+    ],
+    "viewer": [
+      "registry:open",
+      "structure:open",
+      "data:open",
+      "workflows:open",
+      "security:open",
+      "source:open",
+      "build:open",
+      "account:open"
+    ]
+  }
+}

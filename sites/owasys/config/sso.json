@@ -1,0 +1,13 @@
+{
+  "contract": "OPUS_SSO_CONFIGURATION_V1",
+  "default_provider": "local-password",
+  "providers": {
+    "local-password": {
+      "enabled": true,
+      "store": "var/auth/local-users.json"
+    }
+  },
+  "session": {
+    "identity_key": "owasys_sso_identity"
+  }
+}

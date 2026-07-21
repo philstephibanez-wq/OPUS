@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="{{ locale.code }}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ page.title }} — {{ brand.name }}</title><link rel="stylesheet" href="{{ assets.score_css }}"><link rel="stylesheet" href="{{ assets.theme_css }}"></head>
+<body data-opus-application="owasys" data-opus-state="{{ fsm.state }}">
+<header class="ow-global-header"><a class="ow-global-header-identity" href="{{ urls.home }}"><strong>{{ brand.name }}</strong><span>{{ brand.subtitle }}</span></a><div class="ow-global-header-actions">[[ include:default/templates/partials/language-switcher.score ]][[ if: identity.authenticated ]]<strong>{{ identity.label }}</strong><span>{{ identity.primary_role }}</span><a href="{{ urls.account }}">{{ labels.account }}</a><a href="{{ urls.logout }}">{{ labels.logout }}</a>[[ else ]]<a href="{{ urls.login }}">{{ labels.login }}</a>[[ endif ]]</div></header>
+[[ if: identity.authenticated ]][[ include:default/templates/partials/navigation.score ]][[ endif ]]
+<main class="ow-main"><header class="ow-topbar"><span class="ow-pill">{{ brand.name }}</span><h1>{{ page.title }}</h1><p class="ow-muted">{{ page.summary }}</p></header>{{{ body.html }}}</main>
+</body></html>
