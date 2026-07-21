@@ -1,22 +1,75 @@
 [[ if: registry.error ]]<p class="ow-error">{{ registry.error }}</p>[[ endif ]]
 <section class="ow-card ow-context-panel">
-  <div class="ow-section-heading"><div><h2>{{ labels.application_context }}</h2><p class="ow-muted">{{ labels.select_instruction }}</p></div><form method="post" action="{{ urls.current }}"><input type="hidden" name="owasys_action" value="create-new-app"><button class="ow-button" type="submit">{{ labels.create_application }}</button></form></div>
+  <div class="ow-section-heading">
+    <div>
+      <h2>[[ i18n: registry.application_context ]]</h2>
+      <p class="ow-muted">[[ i18n: registry.select_instruction ]]</p>
+    </div>
+    <form method="post" action="{{ urls.current }}">
+      <input type="hidden" name="owasys_action" value="create-new-app">
+      <button class="ow-button" type="submit">[[ i18n: registry.create_application ]]</button>
+    </form>
+  </div>
   [[ if: current_app.present ]]
-    <div class="ow-tags"><span>{{ labels.id }}: {{ current_app.id }}</span><span>{{ labels.kind }}: {{ current_app.kind }}</span><span>{{ labels.root }}: {{ current_app.root }}</span></div>
-    <form method="post" action="{{ urls.current }}" class="ow-inline-form"><input type="hidden" name="owasys_action" value="clear-app-context"><button class="ow-button ow-button-secondary" type="submit">{{ labels.clear_context }}</button></form>
-  [[ else ]]<p>{{ labels.none_selected }}</p>[[ endif ]]
+    <div class="ow-tags">
+      <span>[[ i18n: common.id ]]: {{ current_app.id }}</span>
+      <span>[[ i18n: common.kind ]]: {{ current_app.kind }}</span>
+      <span>[[ i18n: common.root ]]: {{ current_app.root }}</span>
+    </div>
+    <form method="post" action="{{ urls.current }}" class="ow-inline-form">
+      <input type="hidden" name="owasys_action" value="clear-app-context">
+      <button class="ow-button ow-button-secondary" type="submit">[[ i18n: registry.clear_current_context ]]</button>
+    </form>
+  [[ else ]]
+    <p>[[ i18n: registry.no_application_selected ]]</p>
+  [[ endif ]]
 </section>
 <section class="ow-grid ow-registry-grid">
-  [[ if: registry.empty ]]<article class="ow-card"><h2>{{ labels.empty_title }}</h2><p class="ow-muted">{{ labels.empty_description }}</p></article>[[ endif ]]
+  [[ if: registry.empty ]]
+    <article class="ow-card">
+      <h2>[[ i18n: registry.empty_title ]]</h2>
+      <p class="ow-muted">[[ i18n: registry.empty_description ]]</p>
+    </article>
+  [[ endif ]]
   [[ foreach: entries as entry ]]
     <article class="ow-card ow-registry-card[[ if: entry.current ]] is-current[[ endif ]]">
-      <span class="ow-badge">{{ entry.status }}</span><h2>{{ entry.name }}</h2><p class="ow-muted">{{ entry.root }}</p>
-      <div class="ow-tags"><span>{{ entry.kind }}</span><span>{{ entry.role }}</span><span>{{ entry.locale }}</span><span>{{ entry.theme }}</span></div>
-      <form method="post" action="{{ urls.current }}" class="ow-inline-form"><input type="hidden" name="owasys_action" value="select-app"><input type="hidden" name="owasys_app_id" value="{{ entry.id }}"><button class="ow-button" type="submit" [[ if: entry.current ]]disabled[[ endif ]]>{{ entry.button_label }}</button></form>
+      <span class="ow-badge">{{ entry.status }}</span>
+      <h2>{{ entry.name }}</h2>
+      <p class="ow-muted">{{ entry.root }}</p>
+      <div class="ow-tags">
+        <span>{{ entry.kind }}</span>
+        <span>{{ entry.role }}</span>
+        <span>{{ entry.locale }}</span>
+        <span>{{ entry.theme }}</span>
+      </div>
+      <form method="post" action="{{ urls.current }}" class="ow-inline-form">
+        <input type="hidden" name="owasys_action" value="select-app">
+        <input type="hidden" name="owasys_app_id" value="{{ entry.id }}">
+        <button class="ow-button" type="submit" [[ if: entry.current ]]disabled[[ endif ]]>{{ entry.button_label }}</button>
+      </form>
     </article>
   [[ endforeach ]]
 </section>
 <section class="ow-grid ow-runtime-grid">
-  <article class="ow-card"><h2>{{ labels.runtime_sqlite }}</h2><div class="ow-tags"><span>{{ labels.database }}: {{ sync.database }}</span><span>{{ labels.sync_total }}: {{ sync.total }}</span><span>{{ labels.seed_imported }}: {{ sync.seed_imported }}</span><span>{{ labels.discovered_imported }}: {{ sync.discovered_imported }}</span></div></article>
-  <article class="ow-card"><h2>{{ labels.events_title }}</h2>[[ if: registry.events_empty ]]<p class="ow-muted">{{ labels.events_empty }}</p>[[ else ]]<ol class="ow-event-list">[[ foreach: events as event ]]<li><strong>{{ event.type }}</strong><span>{{ event.application }}</span><time>{{ event.created_at }}</time></li>[[ endforeach ]]</ol>[[ endif ]]</article>
+  <article class="ow-card">
+    <h2>[[ i18n: registry.runtime_sqlite ]]</h2>
+    <div class="ow-tags">
+      <span>[[ i18n: registry.database ]]: {{ sync.database }}</span>
+      <span>[[ i18n: registry.sync_total ]]: {{ sync.total }}</span>
+      <span>[[ i18n: registry.seed_imported ]]: {{ sync.seed_imported }}</span>
+      <span>[[ i18n: registry.discovered_imported ]]: {{ sync.discovered_imported }}</span>
+    </div>
+  </article>
+  <article class="ow-card">
+    <h2>[[ i18n: registry.events.title ]]</h2>
+    [[ if: registry.events_empty ]]
+      <p class="ow-muted">[[ i18n: registry.events.empty ]]</p>
+    [[ else ]]
+      <ol class="ow-event-list">
+        [[ foreach: events as event ]]
+          <li><strong>{{ event.type }}</strong><span>{{ event.application }}</span><time>{{ event.created_at }}</time></li>
+        [[ endforeach ]]
+      </ol>
+    [[ endif ]]
+  </article>
 </section>

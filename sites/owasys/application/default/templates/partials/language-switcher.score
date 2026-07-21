@@ -1,9 +1,9 @@
 <details class="ow-locale-switcher">
-  <summary aria-label="{{ labels.language_selector }}">
+  <summary aria-label="[[ i18n: language.selector ]]">
     <img src="{{ locale.flag }}" alt="" width="24" height="16">
     <span>{{ locale.name }}</span>
   </summary>
-  <div class="ow-locale-options" aria-label="{{ labels.language_selector }}">
+  <div class="ow-locale-options" aria-label="[[ i18n: language.selector ]]">
     [[ foreach: locales as item ]]
       <a href="{{ item.url }}" lang="{{ item.code }}" [[ if: item.active ]]aria-current="true"[[ endif ]]>
         <img src="{{ item.flag }}" alt="" width="24" height="16" loading="lazy">

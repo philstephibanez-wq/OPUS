@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>{{ page.title }} — {{ brand.name }}</title>
+  <title>{{ page.title }} — [[ i18n: brand.name ]]</title>
   <link rel="stylesheet" href="{{ assets.score_css }}">
   <link rel="stylesheet" href="{{ assets.theme_css }}">
   <link rel="stylesheet" href="{{ assets.language_css }}">
@@ -13,25 +13,25 @@
 <div class="ow-shell ow-shell-horizontal-navigation">
   <header class="ow-global-header">
     <a class="ow-global-header-identity" href="{{ urls.home }}">
-      <strong>{{ brand.name }}</strong>
-      <span>{{ brand.subtitle }}</span>
+      <strong>[[ i18n: brand.name ]]</strong>
+      <span>[[ i18n: brand.subtitle ]]</span>
     </a>
     <div class="ow-global-header-actions">
       [[ if: identity.authenticated ]]
         <div class="ow-global-current-app">
-          <small>{{ labels.current_application }}</small>
-          <strong>[[ if: current_app.present ]]{{ current_app.name }}[[ else ]]{{ labels.none_selected_short }}[[ endif ]]</strong>
-          <a href="{{ urls.applications }}">{{ labels.change_application }}</a>
+          <small>[[ i18n: registry.current_application ]]</small>
+          <strong>[[ if: current_app.present ]]{{ current_app.name }}[[ else ]][[ i18n: registry.none_selected ]][[ endif ]]</strong>
+          <a href="{{ urls.applications }}">[[ i18n: registry.change_application ]]</a>
         </div>
       [[ endif ]]
       [[ include:default/templates/partials/language-switcher.score ]]
       <div class="ow-global-auth-status">
         [[ if: identity.authenticated ]]
           <p><strong>{{ identity.label }}</strong><span> · {{ identity.primary_role }}</span></p>
-          <a href="{{ urls.account }}">{{ labels.account }}</a>
-          <a href="{{ urls.logout }}">{{ labels.logout }}</a>
+          <a href="{{ urls.account }}">[[ i18n: menu.account ]]</a>
+          <a href="{{ urls.logout }}">[[ i18n: auth.logout ]]</a>
         [[ else ]]
-          <a href="{{ urls.login }}">{{ labels.login }}</a>
+          <a href="{{ urls.login }}">[[ i18n: auth.login ]]</a>
         [[ endif ]]
       </div>
     </div>
@@ -42,7 +42,7 @@
   <main class="ow-main">
     <header class="ow-topbar">
       <div>
-        <span class="ow-pill">{{ brand.name }}</span>
+        <span class="ow-pill">[[ i18n: brand.name ]]</span>
         <h1>{{ page.title }}</h1>
         <p class="ow-muted">{{ page.summary }}</p>
       </div>
