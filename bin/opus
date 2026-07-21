@@ -1,0 +1,109 @@
+<?php
+declare(strict_types=1);
+
+$root = dirname(__DIR__);
+$command = $argv[1] ?? 'help';
+$siteId = $argv[2] ?? '';
+$args = array_slice($argv, 3);
+
+function opus_cli_option(array $args, string $name, ?string $default = null): ?string
+{
+    $prefix = '--' . $name . '=';
+
+    foreach ($args as $arg) {
+        if ($arg === '--' . $name) {
+            return '1';
+        }
+
+        if (str_starts_with($arg, $prefix)) {
+            return substr($arg, strlen($prefix));
+        }
+    }
+
+    return $default;
+}
+
+function opus_cli_has_option(array $args, string $name): bool
+{
+    return in_array('--' . $name, $args, true)
+        || opus_cli_option($args, $name) !== null;
+}
+
+function opus_cli_fail(string $message): never
+{
+    fwrite(STDERR, $message . PHP_EOL);
+    exit(1);
+}
+
+function opus_cli_validate_site_id(string $siteId): void
+{
+    if ($siteId === '') {
+        opus_cli_fail('OPUS_CLI_SITE_ID_REQUIRED');
+    }
+
+    if (preg_match('/^[A-Za-z0-9_-]+$/', $siteId) !== 1) {
+        opus_cli_fail('OPUS_CLI_INVALID_SITE_ID: ' . $siteId);
+    }
+}
+
+if (in_array($command, ['help', '--help', '-h'], true)) {
+    echo "OPUS CLI\n";
+    echo "Usage:\n";
+    echo "  php bin/opus serve:site SITE_ID [--host=127.0.0.1] [--port=8090] [--dry-run]\n";
+    exit(0);
+}
+
+if ($command !== 'serve:site') {
+    opus_cli_fail('OPUS_CLI_COMMAND_NOT_IMPLEMENTED: ' . $command);
+}
+
+opus_cli_validate_site_id($siteId);
+
+$siteRoot = $root . DIRECTORY_SEPARATOR . 'sites' . DIRECTORY_SEPARATOR . $siteId;
+$publicRoot = $siteRoot . DIRECTORY_SEPARATOR . 'www';
+$frontController = $publicRoot . DIRECTORY_SEPARATOR . 'index.php';
+
+if (!is_dir($siteRoot)) {
+    opus_cli_fail('OPUS_SITE_NOT_FOUND: ' . $siteId);
+}
+
+if (!is_dir($publicRoot) || !is_file($frontController)) {
+    opus_cli_fail('OPUS_SITE_WWW_FRONT_CONTROLLER_MISSING: ' . $siteId);
+}
+
+$host = (string) opus_cli_option($args, 'host', getenv('OPUS_HOST') ?: '127.0.0.1');
+$port = (int) opus_cli_option($args, 'port', getenv('OPUS_PORT') ?: '8090');
+
+if (!in_array($host, ['127.0.0.1', 'localhost'], true)) {
+    opus_cli_fail('OPUS_DEV_SERVER_LOCALHOST_ONLY');
+}
+
+if ($port < 1024 || $port > 65535) {
+    opus_cli_fail('OPUS_DEV_SERVER_INVALID_PORT: ' . $port);
+}
+
+putenv('OPUS_ENV=dev');
+putenv('OPUS_DEBUG=1');
+putenv('OPUS_SITE=' . $siteId);
+
+$address = $host . ':' . $port;
+$commandLine = escapeshellarg(PHP_BINARY)
+    . ' -S ' . escapeshellarg($address)
+    . ' -t ' . escapeshellarg($publicRoot)
+    . ' ' . escapeshellarg($frontController);
+
+echo "OPUS_DEV_SERVER_ONLY=1\n";
+echo "OPUS_ENV=dev\n";
+echo "OPUS_DEBUG=1\n";
+echo "OPUS_SITE={$siteId}\n";
+echo "OPUS_PUBLIC_ROOT={$publicRoot}\n";
+echo "OPUS_FRONT_CONTROLLER={$frontController}\n";
+echo "OPUS_URL=http://{$address}/\n";
+
+if (opus_cli_has_option($args, 'dry-run')) {
+    echo "OPUS_DEV_SERVER_COMMAND={$commandLine}\n";
+    exit(0);
+}
+
+passthru($commandLine, $exitCode);
+exit((int) $exitCode);
