@@ -1,0 +1,15 @@
+<section
+  class="ow-card ow-mermaid-panel"
+  data-context="OWASYS_MERMAID_NAVIGATION"
+  data-owasys-fsm-diagram
+  data-fsm-routes="{{ fsm_diagram.routes_json }}"
+>
+  <h2>{{ fsm_diagram.title }}</h2>
+  <p class="ow-muted">{{ fsm_diagram.description }}</p>
+  <div class="ow-mermaid-canvas">
+    {{{ fsm_diagram.html }}}
+  </div>
+  <p class="ow-muted ow-mermaid-fallback" data-fsm-mermaid-fallback>
+    {{ fsm_diagram.fallback }}
+  </p>
+</section>

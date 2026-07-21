@@ -1,0 +1,73 @@
+.ow-mermaid-panel {
+  border-color: rgba(108, 227, 255, .35);
+  background: linear-gradient(
+    180deg,
+    rgba(15, 40, 70, .80),
+    rgba(12, 23, 40, .96)
+  );
+}
+
+.ow-mermaid-panel h2 {
+  margin-bottom: 4px;
+}
+
+.ow-mermaid-panel > p {
+  margin-top: 0;
+}
+
+.ow-mermaid-canvas {
+  margin: 16px 0 6px;
+  padding: 18px;
+  overflow-x: auto;
+  border: 1px solid var(--ow-line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .035);
+}
+
+.opus-mermaid-diagram {
+  min-width: 760px;
+  min-height: 260px;
+}
+
+.opus-mermaid-diagram svg {
+  display: block;
+  width: auto;
+  max-width: none;
+  height: auto;
+  margin: 0 auto;
+}
+
+.ow-mermaid-node-link {
+  cursor: pointer;
+}
+
+.ow-mermaid-node-link:hover,
+.ow-mermaid-node-link:focus-visible {
+  filter: brightness(1.18);
+  outline: 3px solid rgba(108, 227, 255, .55);
+  outline-offset: 4px;
+}
+
+.ow-mermaid-fallback {
+  font-size: 13px;
+}
+
+.ow-mermaid-panel[data-fsm-mermaid-status="ready"]
+.ow-mermaid-fallback {
+  display: none;
+}
+
+.ow-mermaid-panel[data-fsm-mermaid-status="error"]
+.ow-mermaid-fallback {
+  color: var(--ow-warn);
+}
+
+@media (max-width: 760px) {
+  .ow-mermaid-canvas {
+    padding: 12px;
+  }
+
+  .opus-mermaid-diagram {
+    min-width: 660px;
+  }
+}

@@ -2,6 +2,11 @@
   "contract": "OWASYS_NAVIGATION_FSM_V1",
   "name": "OWASYS navigation FSM",
   "source_of_truth": "config",
+  "diagram": {
+    "contract": "OWASYS_FSM_MERMAID_V1",
+    "direction": "LR",
+    "rule": "Only transitions with visual=true are projected. visual_from overrides a wildcard runtime source for diagram display only."
+  },
   "initial_state": "login",
   "states": [
     {
@@ -250,7 +255,8 @@
       ],
       "actions": [
         "set_current_app"
-      ]
+      ],
+      "visual": true
     },
     {
       "id": "t_clear_context",
@@ -269,7 +275,8 @@
       "actions": [
         "clear_current_app",
         "start_creation_flow"
-      ]
+      ],
+      "visual": true
     },
     {
       "id": "t_registry_failed",
@@ -299,7 +306,9 @@
       "to": "data",
       "guards": [
         "current_app_required"
-      ]
+      ],
+      "visual": true,
+      "visual_from": "structure"
     },
     {
       "id": "t_open_workflows",
@@ -308,7 +317,9 @@
       "to": "workflows",
       "guards": [
         "current_app_required"
-      ]
+      ],
+      "visual": true,
+      "visual_from": "data"
     },
     {
       "id": "t_open_security",
@@ -317,7 +328,9 @@
       "to": "security",
       "guards": [
         "current_app_required"
-      ]
+      ],
+      "visual": true,
+      "visual_from": "workflows"
     },
     {
       "id": "t_open_source",
@@ -326,13 +339,17 @@
       "to": "source",
       "guards": [
         "current_app_required"
-      ]
+      ],
+      "visual": true,
+      "visual_from": "security"
     },
     {
       "id": "t_open_build",
       "from": "*",
       "event": "open_build",
-      "to": "build"
+      "to": "build",
+      "visual": true,
+      "visual_from": "source"
     },
     {
       "id": "t_auth_required",

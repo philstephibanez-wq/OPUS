@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="{{ assets.score_css }}">
   <link rel="stylesheet" href="{{ assets.theme_css }}">
   <link rel="stylesheet" href="{{ assets.language_css }}">
+  <link rel="stylesheet" href="{{ assets.fsm_css }}">
 </head>
 <body data-opus-application="owasys" data-opus-state="{{ fsm.state }}" data-opus-module="{{ fsm.module }}">
 <div class="ow-shell ow-shell-horizontal-navigation">
@@ -46,9 +47,16 @@
         <p class="ow-muted">{{ page.summary }}</p>
       </div>
     </header>
+    [[ if: fsm_diagram.visible ]]
+      [[ include:default/templates/partials/fsm-mermaid.score ]]
+    [[ endif ]]
     {{{ body.html }}}
   </main>
 </div>
+[[ if: fsm_diagram.visible ]]
+  <script src="{{ assets.opus_mermaid_js }}" defer></script>
+  <script src="{{ assets.fsm_mermaid_js }}" defer></script>
+[[ endif ]]
 <script src="{{ assets.password_js }}" defer></script>
 </body>
 </html>
