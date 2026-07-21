@@ -25,7 +25,9 @@ final class OwasysFsmMermaidBuilder
         $identity = is_array($pageData['identity'] ?? null)
             ? $pageData['identity']
             : [];
-        $stateId = trim((string) ($pageData['fsm']['state'] ?? ''));
+        $stateId = trim(
+            (string) ($pageData['fsm']['state'] ?? '')
+        );
 
         if (
             ($identity['authenticated'] ?? false) !== true
@@ -41,23 +43,30 @@ final class OwasysFsmMermaidBuilder
             : [];
 
         $nodes = [];
+
         foreach ($navigation as $item) {
-            if (!is_array($item) || ($item['allowed'] ?? false) !== true) {
+            if (
+                !is_array($item)
+                || ($item['allowed'] ?? false) !== true
+            ) {
                 continue;
             }
 
             $id = trim((string) ($item['id'] ?? ''));
-            if ($id === '' || !isset($states[$id])) {
-                continue;
-            }
-
             $url = trim((string) ($item['url'] ?? ''));
-            if ($url === '') {
+
+            if (
+                $id === ''
+                || $url === ''
+                || !isset($states[$id])
+            ) {
                 continue;
             }
 
             $nodes[$id] = [
-                'label' => $this->label((string) ($item['label'] ?? $id)),
+                'label' => $this->label(
+                    (string) ($item['label'] ?? $id)
+                ),
                 'url' => $url,
                 'state' => $states[$id],
             ];
@@ -67,10 +76,17 @@ final class OwasysFsmMermaidBuilder
             return $this->hidden();
         }
 
-        $diagram = is_array($fsm['diagram'] ?? null) ? $fsm['diagram'] : [];
-        $direction = strtoupper((string) ($diagram['direction'] ?? 'LR'));
+        $diagram = is_array($fsm['diagram'] ?? null)
+            ? $fsm['diagram']
+            : [];
+        $direction = strtoupper(
+            (string) ($diagram['direction'] ?? 'LR')
+        );
+
         if (!in_array($direction, ['LR', 'RL', 'TB', 'BT'], true)) {
-            throw new RuntimeException('OWASYS_FSM_MERMAID_DIRECTION_INVALID');
+            throw new RuntimeException(
+                'OWASYS_FSM_MERMAID_DIRECTION_INVALID'
+            );
         }
 
         $currentApp = is_array($pageData['current_app'] ?? null)
@@ -82,22 +98,28 @@ final class OwasysFsmMermaidBuilder
             $state = $node['state'];
             $class = $id === $stateId
                 ? 'active'
-                : (($state['requires_current_app'] ?? false) === true
+                : (
+                    ($state['requires_current_app'] ?? false) === true
                     ? 'work'
-                    : 'primary');
+                    : 'primary'
+                );
 
             $label = (string) $node['label'];
+
             if (
                 $id === 'structure'
                 && ($currentApp['present'] ?? false) === true
                 && trim((string) ($currentApp['name'] ?? '')) !== ''
             ) {
-                $label .= '<br/>' . $this->label(
-                    (string) $currentApp['name']
-                );
+                $label .= '<br/>'
+                    . $this->label(
+                        (string) $currentApp['name']
+                    );
             }
 
-            $lines[] = '    ' . $id . '["' . $label . '"]:::' . $class;
+            $lines[] = '    ' . $id
+                . '["' . $label . '"]:::'
+                . $class;
         }
 
         foreach ((array) ($fsm['transitions'] ?? []) as $transition) {
@@ -126,14 +148,19 @@ final class OwasysFsmMermaidBuilder
                     (string) ($transition['event'] ?? 'event')
                 )
             );
-            $lines[] = '    ' . $from . ' -->|' . $event . '| ' . $to;
+
+            $lines[] = '    ' . $from
+                . ' -->|' . $event . '| '
+                . $to;
         }
 
+        $lines[] = '    linkStyle default stroke:#6ce3ff,stroke-width:2px';
         $lines[] = '    classDef primary fill:#123456,stroke:#6ce3ff,color:#f6f8ff,stroke-width:2px';
         $lines[] = '    classDef active fill:#164e63,stroke:#4ade80,color:#f6f8ff,stroke-width:4px';
         $lines[] = '    classDef work fill:#101c2f,stroke:#94aad8,color:#f6f8ff,stroke-width:1px';
 
         $routes = [];
+
         foreach ($nodes as $id => $node) {
             $routes[$id] = (string) $node['url'];
         }
@@ -141,21 +168,29 @@ final class OwasysFsmMermaidBuilder
         $labels = is_array($pageData['labels'] ?? null)
             ? $pageData['labels']
             : [];
-        $navigationLabel = trim((string) ($labels['navigation'] ?? 'FSM'));
+        $navigationLabel = trim(
+            (string) ($labels['navigation'] ?? 'FSM')
+        );
 
         return [
             'visible' => true,
-            'title' => ($navigationLabel === '' ? 'FSM' : $navigationLabel . ' · FSM'),
+            'title' => $navigationLabel === ''
+                ? 'FSM'
+                : $navigationLabel . ' · FSM',
             'description' => (string) (
                 $diagram['contract']
                 ?? $fsm['contract']
                 ?? 'OWASYS_NAVIGATION_FSM_V1'
             ),
-            'fallback' => $navigationLabel === '' ? 'FSM' : $navigationLabel,
-            'html' => (new MermaidDiagram(
-                'owasys-fsm-diagram',
-                implode("\n", $lines)
-            ))->render(),
+            'fallback' => $navigationLabel === ''
+                ? 'FSM'
+                : $navigationLabel,
+            'html' => (
+                new MermaidDiagram(
+                    'owasys-fsm-diagram',
+                    implode("\n", $lines)
+                )
+            )->render(),
             'routes_json' => json_encode(
                 $routes,
                 JSON_UNESCAPED_SLASHES
@@ -205,19 +240,30 @@ final class OwasysFsmMermaidBuilder
             : null;
 
         if (!is_array($siteConfig)) {
-            throw new RuntimeException('OWASYS_FSM_MERMAID_SITE_CONFIG_INVALID');
+            throw new RuntimeException(
+                'OWASYS_FSM_MERMAID_SITE_CONFIG_INVALID'
+            );
         }
 
         $navigation = is_array($siteConfig['navigation'] ?? null)
             ? $siteConfig['navigation']
             : [];
         $relative = trim(
-            str_replace('\\', '/', (string) ($navigation['fsm'] ?? '')),
+            str_replace(
+                '\\',
+                '/',
+                (string) ($navigation['fsm'] ?? '')
+            ),
             '/'
         );
 
-        if ($relative === '' || str_contains($relative, '..')) {
-            throw new RuntimeException('OWASYS_FSM_MERMAID_CONFIG_PATH_INVALID');
+        if (
+            $relative === ''
+            || str_contains($relative, '..')
+        ) {
+            throw new RuntimeException(
+                'OWASYS_FSM_MERMAID_CONFIG_PATH_INVALID'
+            );
         }
 
         $fsmFile = $this->siteRoot . '/' . $relative;
@@ -231,7 +277,9 @@ final class OwasysFsmMermaidBuilder
             : null;
 
         if (!is_array($fsm)) {
-            throw new RuntimeException('OWASYS_FSM_MERMAID_CONFIG_INVALID');
+            throw new RuntimeException(
+                'OWASYS_FSM_MERMAID_CONFIG_INVALID'
+            );
         }
 
         return $fsm;
@@ -251,6 +299,7 @@ final class OwasysFsmMermaidBuilder
             }
 
             $id = trim((string) ($state['id'] ?? ''));
+
             if ($id !== '') {
                 $states[$id] = $state;
             }
@@ -263,7 +312,17 @@ final class OwasysFsmMermaidBuilder
     {
         $clean = strip_tags($value);
         $clean = str_replace(
-            ["\r", "\n", '"', '`', '{', '}', '[', ']', '\\'],
+            [
+                "\r",
+                "\n",
+                '"',
+                '`',
+                '{',
+                '}',
+                '[',
+                ']',
+                '\\',
+            ],
             ' ',
             $clean
         );

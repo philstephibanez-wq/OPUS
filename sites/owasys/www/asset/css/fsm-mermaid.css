@@ -37,15 +37,45 @@
   margin: 0 auto;
 }
 
+.opus-mermaid-diagram .edgePath .path,
+.opus-mermaid-diagram .flowchart-link {
+  stroke: #6ce3ff !important;
+  stroke-width: 2px !important;
+}
+
+.opus-mermaid-diagram marker path,
+.opus-mermaid-diagram .marker {
+  fill: #6ce3ff !important;
+  stroke: #6ce3ff !important;
+}
+
+.opus-mermaid-diagram .edgeLabel {
+  color: #f6f8ff;
+  background: #16263d;
+}
+
+.opus-mermaid-diagram .edgeLabel rect {
+  fill: #16263d !important;
+  opacity: 1 !important;
+}
+
 .ow-mermaid-node-link {
   cursor: pointer;
 }
 
-.ow-mermaid-node-link:hover,
-.ow-mermaid-node-link:focus-visible {
+.ow-mermaid-node-link:hover {
   filter: brightness(1.18);
-  outline: 3px solid rgba(108, 227, 255, .55);
-  outline-offset: 4px;
+}
+
+.ow-mermaid-node-link:focus {
+  outline: none;
+}
+
+.ow-mermaid-node-link:focus-visible > rect,
+.ow-mermaid-node-link:focus-visible > polygon,
+.ow-mermaid-node-link:focus-visible > path {
+  stroke: #fbbf24 !important;
+  stroke-width: 4px !important;
 }
 
 .ow-mermaid-fallback {

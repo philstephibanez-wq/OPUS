@@ -1,11 +1,9 @@
 <?php
 declare(strict_types=1);
 
-use Opus\Owasys\RegistryRepository;
-
 final class OwasysRegistryModel
 {
-    private readonly RegistryRepository $repository;
+    private readonly OwasysRegistryRepository $repository;
     private readonly string $seedFile;
 
     public function __construct(
@@ -14,14 +12,18 @@ final class OwasysRegistryModel
         string $databaseRelative = 'var/registry/owasys.sqlite',
         string $seedRelative = 'config/registry.seed.json'
     ) {
-        $this->repository = RegistryRepository::forOwasysSite(
+        $this->repository = OwasysRegistryRepository::forSite(
             $siteRoot,
             $opusRoot,
             $databaseRelative
         );
         $this->seedFile = rtrim($siteRoot, DIRECTORY_SEPARATOR)
             . DIRECTORY_SEPARATOR
-            . str_replace('/', DIRECTORY_SEPARATOR, trim($seedRelative, '/'));
+            . str_replace(
+                '/',
+                DIRECTORY_SEPARATOR,
+                trim($seedRelative, '/')
+            );
     }
 
     /** @return array<string,mixed> */
@@ -55,9 +57,14 @@ final class OwasysRegistryModel
     }
 
     /** @param array<string,mixed> $application */
-    public function setCurrent(array $application, string $actorId): void
-    {
-        $this->repository->setCurrentApplication($application, $actorId);
+    public function setCurrent(
+        array $application,
+        string $actorId
+    ): void {
+        $this->repository->setCurrentApplication(
+            $application,
+            $actorId
+        );
     }
 
     public function clear(string $actorId): void

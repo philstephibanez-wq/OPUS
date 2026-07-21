@@ -18,7 +18,11 @@ if (PHP_SAPI === 'cli-server') {
             __DIR__
             . DIRECTORY_SEPARATOR
             . ltrim(
-                str_replace('/', DIRECTORY_SEPARATOR, $requestPath),
+                str_replace(
+                    '/',
+                    DIRECTORY_SEPARATOR,
+                    $requestPath
+                ),
                 DIRECTORY_SEPARATOR
             )
         );
@@ -85,6 +89,7 @@ $files = [
     'application/default/services/NavigationBuilder.php',
     'application/default/services/FsmMermaidBuilder.php',
     'application/default/services/ScorePageRenderer.php',
+    'application/registry/repositories/RegistryRepository.php',
     'application/registry/models/RegistryModel.php',
     'application/registry/controllers/RegistryController.php',
     'application/default/services/FsmActionHandlers.php',

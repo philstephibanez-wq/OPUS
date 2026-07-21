@@ -26,16 +26,20 @@ final class OwasysScorePageRenderer
             (string) ($assets['score_css'] ?? '')
         );
 
-        $assets['fsm_css'] = $assetBase . '/css/fsm-mermaid.css';
+        $assets['fsm_css'] = $assetBase
+            . '/css/fsm-mermaid.css?v=p117h';
         $assets['opus_mermaid_js'] = $assetBase
             . '/opus/mermaid/opus-mermaid.js';
         $assets['fsm_mermaid_js'] = $assetBase
-            . '/js/fsm-mermaid.js?v=p117f';
+            . '/js/fsm-mermaid.js?v=p117h';
 
         $data['assets'] = $assets;
         $data['fsm_diagram'] = $this->fsmMermaid->build($data);
         $data['body'] = [
-            'html' => $this->renderer->render($bodyTemplate, $data),
+            'html' => $this->renderer->render(
+                $bodyTemplate,
+                $data
+            ),
         ];
 
         return $this->renderer->render(
@@ -46,7 +50,11 @@ final class OwasysScorePageRenderer
 
     private function assetBase(string $scoreCss): string
     {
-        $normalized = str_replace('\\', '/', trim($scoreCss));
+        $normalized = str_replace(
+            '\\',
+            '/',
+            trim($scoreCss)
+        );
         $suffix = '/css/owasys.css';
 
         if (
@@ -58,6 +66,10 @@ final class OwasysScorePageRenderer
             );
         }
 
-        return substr($normalized, 0, -strlen($suffix));
+        return substr(
+            $normalized,
+            0,
+            -strlen($suffix)
+        );
     }
 }
