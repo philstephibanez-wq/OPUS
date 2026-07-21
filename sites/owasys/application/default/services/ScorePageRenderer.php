@@ -30,7 +30,7 @@ final class OwasysScorePageRenderer
         $assets['opus_mermaid_js'] = $assetBase
             . '/opus/mermaid/opus-mermaid.js';
         $assets['fsm_mermaid_js'] = $assetBase
-            . '/js/fsm-mermaid.js';
+            . '/js/fsm-mermaid.js?v=p117f';
 
         $data['assets'] = $assets;
         $data['fsm_diagram'] = $this->fsmMermaid->build($data);

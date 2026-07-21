@@ -20,11 +20,29 @@ final class MermaidDiagram
 
     public function render(): string
     {
-        $id = htmlspecialchars($this->id, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-        $source = htmlspecialchars($this->source, ENT_NOQUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $id = htmlspecialchars(
+            $this->id,
+            ENT_QUOTES | ENT_SUBSTITUTE,
+            'UTF-8'
+        );
+        $payload = json_encode(
+            ['source' => $this->source],
+            JSON_UNESCAPED_SLASHES
+            | JSON_UNESCAPED_UNICODE
+            | JSON_HEX_TAG
+            | JSON_HEX_AMP
+            | JSON_HEX_APOS
+            | JSON_HEX_QUOT
+            | JSON_THROW_ON_ERROR
+        );
 
-        return '<div id="' . $id . '" class="opus-mermaid-diagram" data-opus-mermaid="true">'
-            . '<script type="text/plain">' . $source . '</script>'
+        return '<div id="' . $id . '"'
+            . ' class="opus-mermaid-diagram"'
+            . ' data-opus-mermaid="true"'
+            . ' data-opus-mermaid-source-contract="OPUS_MERMAID_SOURCE_JSON_V1">'
+            . '<script type="application/json" data-opus-mermaid-source>'
+            . $payload
+            . '</script>'
             . '</div>';
     }
 }

@@ -36,31 +36,48 @@
     });
   };
 
+  const sourceFrom = (host) => {
+    const sourceNode = host.querySelector(
+      'script[type="application/json"][data-opus-mermaid-source]'
+    );
+
+    if (!(sourceNode instanceof HTMLScriptElement)) {
+      throw new TypeError('OPUS_MERMAID_SOURCE_NODE_MISSING');
+    }
+
+    const payload = JSON.parse(sourceNode.textContent || '{}');
+    if (typeof payload.source !== 'string' || payload.source.trim() === '') {
+      throw new TypeError('OPUS_MERMAID_SOURCE_REQUIRED');
+    }
+
+    return payload.source;
+  };
+
+  const routesFrom = (panel) => {
+    const routes = JSON.parse(panel.dataset.fsmRoutes || '{}');
+
+    if (routes === null || typeof routes !== 'object' || Array.isArray(routes)) {
+      throw new TypeError('OWASYS_FSM_MERMAID_ROUTES_INVALID');
+    }
+
+    return routes;
+  };
+
   const renderPanel = async (panel) => {
     const host = panel.querySelector('[data-opus-mermaid="true"]');
-    const sourceNode = host?.querySelector('script[type="text/plain"]');
 
-    if (
-      !(host instanceof Element)
-      || !(sourceNode instanceof HTMLScriptElement)
-      || !window.OPUS?.Mermaid
-    ) {
-      panel.dataset.fsmMermaidStatus = 'error';
-      return;
-    }
-
-    let routes = {};
-    try {
-      routes = JSON.parse(panel.dataset.fsmRoutes || '{}');
-    } catch {
+    if (!(host instanceof Element) || !window.OPUS?.Mermaid) {
       panel.dataset.fsmMermaidStatus = 'error';
       return;
     }
 
     try {
+      const source = sourceFrom(host);
+      const routes = routesFrom(panel);
+
       await window.OPUS.Mermaid.render({
         parent: host,
-        source: sourceNode.textContent || '',
+        source,
         id: host.id || 'owasys-fsm-diagram'
       });
 

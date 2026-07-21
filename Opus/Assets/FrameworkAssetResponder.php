@@ -11,6 +11,10 @@ final class FrameworkAssetResponder
             'file' => 'mermaid/opus-mermaid.js',
             'content_type' => 'text/javascript; charset=UTF-8',
         ],
+        'codemirror/opus-codemirror.js' => [
+            'file' => 'codemirror/opus-codemirror.js',
+            'content_type' => 'text/javascript; charset=UTF-8',
+        ],
     ];
 
     public static function serveCurrentRequest(string $opusRoot): bool
