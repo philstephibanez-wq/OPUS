@@ -8,11 +8,10 @@ final class OwasysRegistryController
     }
 
     /** @return array<string,mixed> */
-    public function handle(string $method, array $post, string $actorId): array
+    public function handle(string $method, array $post): array
     {
         $sync = $this->model->synchronize();
         $event = null;
-        $redirect = null;
         $selectedApp = null;
         $error = null;
 
@@ -21,30 +20,27 @@ final class OwasysRegistryController
 
             if ($action === 'select-app') {
                 $applicationId = trim((string) ($post['owasys_app_id'] ?? ''));
-
                 if ($applicationId === '') {
                     $error = 'registry.error.application_required';
                 } else {
-                    $selectedApp = $this->model->select($applicationId, $actorId);
-
+                    $selectedApp = $this->model->find($applicationId);
                     if ($selectedApp === null) {
                         $error = 'registry.error.application_not_found';
                     } else {
                         $event = 'select_app';
-                        $redirect = 'structure';
                     }
                 }
             } elseif ($action === 'clear-app-context') {
-                $this->model->clear($actorId);
                 $event = 'clear_app_context';
-                $redirect = 'applications';
             } elseif ($action === 'create-new-app') {
-                $this->model->startCreation($actorId);
                 $event = 'create_new_app';
-                $redirect = 'build';
-            } elseif ($action !== '') {
+            } else {
                 $error = 'registry.error.action_invalid';
             }
+        }
+
+        if ($error !== null) {
+            $event = 'registry_action_failed';
         }
 
         return [
@@ -52,7 +48,6 @@ final class OwasysRegistryController
             'entries' => $this->model->entries(),
             'recent_events' => $this->model->recentEvents(8),
             'event' => $event,
-            'redirect' => $redirect,
             'selected_app' => $selectedApp,
             'error' => $error,
         ];

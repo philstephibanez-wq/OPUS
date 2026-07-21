@@ -7,67 +7,141 @@
     {
       "id": "login",
       "module": "login",
+      "route": "login",
       "requires_auth": false,
-      "requires_current_app": false
+      "requires_current_app": false,
+      "title_key": "auth.sign_in",
+      "summary_key": "auth.sign_in_description"
     },
     {
       "id": "account",
       "module": "account",
+      "route": "account/password",
       "requires_auth": true,
-      "requires_current_app": false
+      "requires_current_app": false,
+      "title_key": "auth.change_password",
+      "summary_key": "auth.change_password_description"
     },
     {
       "id": "registry",
       "module": "registry",
+      "route": "applications",
       "requires_auth": true,
-      "requires_current_app": false
+      "requires_current_app": false,
+      "title_key": "menu.applications",
+      "summary_key": "registry.description",
+      "navigation": {
+        "visible": true,
+        "order": 10,
+        "label": "menu.applications"
+      }
     },
     {
       "id": "structure",
       "module": "structure",
+      "route": "structure",
       "requires_auth": true,
-      "requires_current_app": true
+      "requires_current_app": true,
+      "title_key": "menu.structure",
+      "summary_key": "state.default.summary",
+      "navigation": {
+        "visible": true,
+        "order": 20,
+        "label": "menu.structure"
+      }
     },
     {
       "id": "data",
       "module": "data",
+      "route": "data",
       "requires_auth": true,
-      "requires_current_app": true
+      "requires_current_app": true,
+      "title_key": "menu.data",
+      "summary_key": "state.default.summary",
+      "navigation": {
+        "visible": true,
+        "order": 30,
+        "label": "menu.data"
+      }
     },
     {
       "id": "workflows",
       "module": "workflows",
+      "route": "workflows",
       "requires_auth": true,
-      "requires_current_app": true
+      "requires_current_app": true,
+      "title_key": "menu.workflows",
+      "summary_key": "state.default.summary",
+      "navigation": {
+        "visible": true,
+        "order": 40,
+        "label": "menu.workflows"
+      }
     },
     {
       "id": "security",
       "module": "security",
+      "route": "security",
       "requires_auth": true,
-      "requires_current_app": true
+      "requires_current_app": true,
+      "title_key": "menu.security",
+      "summary_key": "state.default.summary",
+      "navigation": {
+        "visible": true,
+        "order": 50,
+        "label": "menu.security"
+      }
     },
     {
       "id": "source",
       "module": "source",
+      "route": "source",
       "requires_auth": true,
-      "requires_current_app": true
+      "requires_current_app": true,
+      "title_key": "menu.source",
+      "summary_key": "state.default.summary",
+      "navigation": {
+        "visible": true,
+        "order": 60,
+        "label": "menu.source"
+      }
     },
     {
       "id": "build",
       "module": "build",
+      "route": "build",
       "requires_auth": true,
-      "requires_current_app": false
+      "requires_current_app": false,
+      "title_key": "menu.build",
+      "summary_key": "state.default.summary",
+      "navigation": {
+        "visible": true,
+        "order": 70,
+        "label": "menu.build"
+      }
     }
   ],
   "events": [
     {
+      "id": "open_login"
+    },
+    {
+      "id": "open_account"
+    },
+    {
       "id": "login_success"
+    },
+    {
+      "id": "login_failed"
     },
     {
       "id": "password_change_required"
     },
     {
       "id": "password_changed"
+    },
+    {
+      "id": "password_change_failed"
     },
     {
       "id": "select_app"
@@ -80,6 +154,9 @@
     },
     {
       "id": "create_new_app"
+    },
+    {
+      "id": "registry_action_failed"
     },
     {
       "id": "open_structure"
@@ -100,12 +177,21 @@
       "id": "open_build"
     },
     {
+      "id": "auth_required"
+    },
+    {
       "id": "logout"
     }
   ],
   "transitions": [
     {
-      "id": "t_login_success_registry",
+      "id": "t_open_login",
+      "from": "*",
+      "event": "open_login",
+      "to": "login"
+    },
+    {
+      "id": "t_login_success",
       "from": "login",
       "event": "login_success",
       "to": "registry",
@@ -114,7 +200,13 @@
       ]
     },
     {
-      "id": "t_password_required_account",
+      "id": "t_login_failed",
+      "from": "login",
+      "event": "login_failed",
+      "to": "login"
+    },
+    {
+      "id": "t_password_required",
       "from": "login",
       "event": "password_change_required",
       "to": "account",
@@ -122,11 +214,18 @@
         "must_change_password"
       ],
       "actions": [
+        "start_session",
         "redirect_password_change"
       ]
     },
     {
-      "id": "t_password_changed_registry",
+      "id": "t_open_account",
+      "from": "*",
+      "event": "open_account",
+      "to": "account"
+    },
+    {
+      "id": "t_password_changed",
       "from": "account",
       "event": "password_changed",
       "to": "registry",
@@ -136,7 +235,13 @@
       ]
     },
     {
-      "id": "t_select_app_structure",
+      "id": "t_password_failed",
+      "from": "account",
+      "event": "password_change_failed",
+      "to": "account"
+    },
+    {
+      "id": "t_select_app",
       "from": "registry",
       "event": "select_app",
       "to": "structure",
@@ -148,7 +253,16 @@
       ]
     },
     {
-      "id": "t_create_new_build",
+      "id": "t_clear_context",
+      "from": "registry",
+      "event": "clear_app_context",
+      "to": "registry",
+      "actions": [
+        "clear_current_app"
+      ]
+    },
+    {
+      "id": "t_create_app",
       "from": "registry",
       "event": "create_new_app",
       "to": "build",
@@ -158,8 +272,20 @@
       ]
     },
     {
-      "id": "t_registry_structure",
+      "id": "t_registry_failed",
       "from": "registry",
+      "event": "registry_action_failed",
+      "to": "registry"
+    },
+    {
+      "id": "t_change_app",
+      "from": "*",
+      "event": "change_app",
+      "to": "registry"
+    },
+    {
+      "id": "t_open_structure",
+      "from": "*",
       "event": "open_structure",
       "to": "structure",
       "guards": [
@@ -167,8 +293,8 @@
       ]
     },
     {
-      "id": "t_structure_data",
-      "from": "structure",
+      "id": "t_open_data",
+      "from": "*",
       "event": "open_data",
       "to": "data",
       "guards": [
@@ -176,8 +302,8 @@
       ]
     },
     {
-      "id": "t_data_workflows",
-      "from": "data",
+      "id": "t_open_workflows",
+      "from": "*",
       "event": "open_workflows",
       "to": "workflows",
       "guards": [
@@ -185,8 +311,8 @@
       ]
     },
     {
-      "id": "t_workflows_security",
-      "from": "workflows",
+      "id": "t_open_security",
+      "from": "*",
       "event": "open_security",
       "to": "security",
       "guards": [
@@ -194,8 +320,8 @@
       ]
     },
     {
-      "id": "t_security_source",
-      "from": "security",
+      "id": "t_open_source",
+      "from": "*",
       "event": "open_source",
       "to": "source",
       "guards": [
@@ -203,46 +329,28 @@
       ]
     },
     {
-      "id": "t_security_build",
-      "from": "security",
-      "event": "open_build",
-      "to": "build",
-      "guards": [
-        "current_app_required"
-      ]
-    },
-    {
-      "id": "t_source_build",
-      "from": "source",
-      "event": "open_build",
-      "to": "build",
-      "guards": [
-        "current_app_required"
-      ]
-    },
-    {
-      "id": "t_change_app_registry",
+      "id": "t_open_build",
       "from": "*",
-      "event": "change_app",
-      "to": "registry"
+      "event": "open_build",
+      "to": "build"
     },
     {
-      "id": "t_clear_context_registry",
-      "from": "registry",
-      "event": "clear_app_context",
-      "to": "registry",
+      "id": "t_auth_required",
+      "from": "*",
+      "event": "auth_required",
+      "to": "login",
       "actions": [
-        "clear_current_app"
+        "clear_session"
       ]
     },
     {
-      "id": "t_logout_login",
+      "id": "t_logout",
       "from": "*",
       "event": "logout",
       "to": "login",
       "actions": [
-        "clear_session",
-        "clear_current_app"
+        "clear_current_app",
+        "clear_session"
       ]
     }
   ]

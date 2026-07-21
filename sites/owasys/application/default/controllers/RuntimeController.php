@@ -1,16 +1,29 @@
 <?php
 declare(strict_types=1);
 
+use Opus\Fsm\FsmProcessor;
 use Opus\Fsm\FsmSiteLoader;
+use Opus\Security\Sso\SsoIdentity;
 
 final class OwasysRuntimeController
 {
+    private const STATE_KEY = 'opus_fsm_state_owasys';
+
+    private readonly OwasysLocaleRegistry $locales;
+    private readonly OwasysNavigationBuilder $navigation;
+    private ?OwasysRegistryModel $registryModel = null;
+    private ?OwasysRegistryController $registryController = null;
+
+    /** @param array<string,mixed> $siteConfig */
     public function __construct(
         private readonly string $siteRoot,
         private readonly array $siteConfig,
-        private readonly OwasysRuntimeUserStore $users,
-        private readonly OwasysAuthSession $session
+        private readonly OwasysAuthSession $session,
+        private readonly OwasysRuntimeSecurity $security,
+        private readonly OwasysScorePageRenderer $renderer
     ) {
+        $this->locales = new OwasysLocaleRegistry($siteConfig);
+        $this->navigation = new OwasysNavigationBuilder($security);
     }
 
     public function run(): void
@@ -19,81 +32,101 @@ final class OwasysRuntimeController
 
         [$locale, $routeKey] = $this->resolveRequest();
         $messages = $this->loadMessages($locale);
-        $t = static fn (string $key): string => is_string($messages[$key] ?? null)
+        $translate = static fn (string $key): string => is_string($messages[$key] ?? null)
             ? $messages[$key]
             : $key;
 
+        $fsmConfig = $this->loadFsmConfig();
         $fsm = FsmSiteLoader::processorForSiteRoot($this->siteRoot);
-        $stateKey = 'opus_fsm_state_owasys';
-        $currentState = trim((string) ($_SESSION[$stateKey] ?? $fsm->initialState()));
-
-        if ($routeKey === 'logout') {
-            $transition = $fsm->transition($currentState, 'logout');
-            $this->session->clear();
-            $_SESSION[$stateKey] = (string) $transition['to_state'];
-            $this->redirect($locale, 'login');
-        }
-
-        if ($routeKey === 'login') {
-            $this->handleLogin($locale, $t, $fsm, $stateKey, $currentState);
-            return;
-        }
-
-        if ($routeKey === 'account/password') {
-            $this->requireAuthentication($locale);
-            $this->handlePasswordChange($locale, $t, $fsm, $stateKey, $currentState);
-            return;
-        }
-
-        $this->requireAuthentication($locale);
-
-        $user = $this->session->user();
-        if (($user['must_change_password'] ?? false) === true) {
-            $this->redirect($locale, 'account/password');
-        }
-
-        if ($routeKey === 'applications') {
-            $this->handleRegistry($locale, $t, $fsm, $stateKey, $currentState);
-            return;
-        }
-
-        $signal = $this->resolveSignal($locale, $routeKey);
-        if ($signal === '') {
-            $this->fail(404, 'OWASYS_ROUTE_NOT_FOUND');
-        }
-
-        $context = [
-            'current_app' => $_SESSION['owasys_current_app'] ?? null,
-            'has_current_app' => is_array($_SESSION['owasys_current_app'] ?? null),
-        ];
+        $currentState = $this->currentState($fsm);
+        $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
+        $identity = $this->session->user();
+        $requestResult = null;
+        $errorKey = null;
 
         try {
-            $transition = $fsm->transition($currentState, $signal, $context);
+            $resolved = $this->resolveEvent(
+                $method,
+                $locale,
+                $routeKey,
+                $currentState,
+                $identity
+            );
         } catch (Throwable $error) {
-            $this->fail(409, 'OWASYS_FSM_TRANSITION_REJECTED:' . $error->getMessage());
+            if (str_starts_with($error->getMessage(), 'OPUS_ACL_DENIED:')) {
+                $this->fail(403, $error->getMessage());
+            }
+            $this->fail(400, 'OWASYS_REQUEST_REJECTED:' . $error->getMessage());
+        }
+        $event = (string) ($resolved['event'] ?? '');
+        $eventContext = is_array($resolved['context'] ?? null)
+            ? $resolved['context']
+            : [];
+        $requestResult = is_array($resolved['result'] ?? null)
+            ? $resolved['result']
+            : null;
+        $errorKey = is_string($resolved['error'] ?? null)
+            ? $resolved['error']
+            : null;
+        $redirectAfterTransition = ($resolved['redirect'] ?? false) === true;
+
+        $context = array_replace(
+            $this->fsmContext($identity),
+            $eventContext,
+            [
+                'identity' => $identity,
+                'post' => $_POST,
+                'route' => $routeKey,
+                'method' => $method,
+            ]
+        );
+
+        $targetState = $currentState;
+
+        if ($event !== '') {
+            try {
+                $transition = $fsm->transition($currentState, $event, $context);
+                $targetState = (string) ($transition['to_state'] ?? '');
+                $this->assertTargetStateAccess(
+                    $fsm,
+                    $targetState,
+                    $context
+                );
+
+                $this->actionHandlersFor($transition)->dispatcher()->dispatch($transition, $context);
+                $_SESSION[self::STATE_KEY] = $targetState;
+            } catch (Throwable $error) {
+                $handled = $this->handleTransitionFailure(
+                    $error,
+                    $fsm,
+                    $currentState,
+                    $locale,
+                    $context
+                );
+
+                if ($handled['redirect'] === true) {
+                    $this->redirect($locale, (string) $handled['route']);
+                }
+
+                $targetState = (string) $handled['state'];
+                $errorKey = (string) $handled['error'];
+            }
         }
 
-        $targetState = (string) ($transition['to_state'] ?? '');
-        $_SESSION[$stateKey] = $targetState;
-
-        $state = $fsm->state($targetState);
-        $module = (string) ($state['module'] ?? $targetState);
-        $viewFile = $this->siteRoot . '/application/' . $module . '/views/index.php';
-
-        if (!is_file($viewFile)) {
-            $this->renderPendingModule($locale, $t, $module, $routeKey);
-            return;
+        if ($redirectAfterTransition) {
+            $state = $fsm->state($targetState);
+            $this->redirect($locale, (string) ($state['route'] ?? 'login'));
         }
 
-        $this->renderView(
+        $this->renderState(
+            $fsm,
+            $fsmConfig,
+            $targetState,
             $locale,
-            $t,
-            $viewFile,
-            [],
+            $translate,
             $routeKey,
-            $module,
-            'menu.' . $module,
-            'state.default.summary'
+            $requestResult,
+            $errorKey
         );
     }
 
@@ -103,7 +136,9 @@ final class OwasysRuntimeController
             return;
         }
 
-        $auth = is_array($this->siteConfig['auth'] ?? null) ? $this->siteConfig['auth'] : [];
+        $auth = is_array($this->siteConfig['auth'] ?? null)
+            ? $this->siteConfig['auth']
+            : [];
         $name = (string) ($auth['session_name'] ?? 'OWASYS_LOCAL_SESSION');
 
         if (preg_match('/^[A-Za-z0-9_-]+$/', $name) !== 1) {
@@ -119,17 +154,18 @@ final class OwasysRuntimeController
     {
         $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
         $path = is_string($path) ? rawurldecode($path) : '/';
-        $segments = trim($path, '/') === '' ? [] : explode('/', trim($path, '/'));
+        $segments = trim($path, '/') === ''
+            ? []
+            : explode('/', trim($path, '/'));
 
         if (($segments[0] ?? '') === 'owasys') {
             array_shift($segments);
         }
 
-        $locales = array_values(array_filter((array) ($this->siteConfig['locales'] ?? []), 'is_string'));
         $defaultLocale = (string) ($this->siteConfig['default_locale'] ?? 'fr');
         $locale = (string) ($segments[0] ?? $defaultLocale);
 
-        if (in_array($locale, $locales, true)) {
+        if (in_array($locale, $this->locales->codes(), true)) {
             array_shift($segments);
         } else {
             $locale = $defaultLocale;
@@ -140,191 +176,586 @@ final class OwasysRuntimeController
         return [$locale, $routeKey === '' ? 'login' : $routeKey];
     }
 
-    private function handleLogin(
+    /**
+     * @param array<string,mixed>|null $identity
+     * @return array<string,mixed>
+     */
+    private function resolveEvent(
+        string $method,
         string $locale,
-        callable $t,
-        object $fsm,
-        string $stateKey,
-        string $currentState
-    ): void {
-        if ($this->session->isAuthenticated()) {
-            $user = $this->session->user();
-            $this->redirect(
-                $locale,
-                (($user['must_change_password'] ?? false) === true)
-                    ? 'account/password'
-                    : 'applications'
-            );
+        string $routeKey,
+        string $currentState,
+        ?array $identity
+    ): array {
+        if (
+            is_array($identity)
+            && ($identity['must_change_password'] ?? false) === true
+            && $routeKey !== 'account/password'
+            && $routeKey !== 'logout'
+        ) {
+            return ['event' => 'open_account', 'redirect' => true];
         }
 
-        require_once $this->siteRoot . '/application/login/models/LoginModel.php';
-        require_once $this->siteRoot . '/application/login/controllers/LoginController.php';
+        if ($method === 'POST') {
+            $action = trim((string) ($_POST['owasys_action'] ?? ''));
 
-        $controller = new OwasysLoginController(
-            new OwasysLoginModel($this->users, $this->session)
-        );
-        $result = $controller->handle(
-            (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'),
-            $_POST
-        );
+            if ($routeKey === 'login' && $action === 'sso-authenticate') {
+                try {
+                    $pending = $this->security->authenticate($_POST);
 
-        if (($result['ok'] ?? false) === true) {
-            $event = (($this->session->user()['must_change_password'] ?? false) === true)
-                ? 'password_change_required'
-                : 'login_success';
-
-            $transition = $fsm->transition(
-                $currentState,
-                $event,
-                ['must_change_password' => $event === 'password_change_required']
-            );
-
-            $_SESSION[$stateKey] = (string) $transition['to_state'];
-            $this->redirect($locale, ltrim((string) $result['redirect'], '/'));
-        }
-
-        $this->renderView(
-            $locale,
-            $t,
-            $this->siteRoot . '/application/login/views/index.php',
-            ['error' => $result['error'] ?? null],
-            'login',
-            'login',
-            'auth.sign_in',
-            'auth.sign_in_description'
-        );
-    }
-
-    private function handlePasswordChange(
-        string $locale,
-        callable $t,
-        object $fsm,
-        string $stateKey,
-        string $currentState
-    ): void {
-        require_once $this->siteRoot . '/application/account/models/PasswordModel.php';
-        require_once $this->siteRoot . '/application/account/controllers/PasswordController.php';
-
-        $minimum = (int) ($this->siteConfig['auth']['minimum_password_length'] ?? 10);
-        $controller = new OwasysPasswordController(
-            new OwasysPasswordModel($this->users, $this->session, $minimum)
-        );
-        $result = $controller->handle(
-            (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'),
-            $_POST
-        );
-
-        if (($result['ok'] ?? false) === true) {
-            $transition = $fsm->transition($currentState, 'password_changed');
-            $_SESSION[$stateKey] = (string) $transition['to_state'];
-            $this->redirect($locale, ltrim((string) $result['redirect'], '/'));
-        }
-
-        $this->renderView(
-            $locale,
-            $t,
-            $this->siteRoot . '/application/account/views/index.php',
-            ['error' => $result['error'] ?? null],
-            'account/password',
-            'account',
-            'auth.change_password',
-            'auth.change_password_description'
-        );
-    }
-
-    private function handleRegistry(
-        string $locale,
-        callable $t,
-        object $fsm,
-        string $stateKey,
-        string $currentState
-    ): void {
-        require_once $this->siteRoot . '/application/registry/models/RegistryModel.php';
-        require_once $this->siteRoot . '/application/registry/controllers/RegistryController.php';
-
-        try {
-            $registryTransition = $fsm->transition($currentState, 'change_app');
-        } catch (Throwable $error) {
-            $this->fail(409, 'OWASYS_FSM_TRANSITION_REJECTED:' . $error->getMessage());
-        }
-
-        $_SESSION[$stateKey] = (string) $registryTransition['to_state'];
-
-        $model = new OwasysRegistryModel(
-            $this->siteRoot,
-            dirname(dirname($this->siteRoot))
-        );
-        $controller = new OwasysRegistryController($model);
-
-        try {
-            $result = $controller->handle(
-                (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'),
-                $_POST,
-                (string) (($this->session->user()['id'] ?? 'runtime'))
-            );
-        } catch (Throwable $error) {
-            $this->fail(500, 'OWASYS_REGISTRY_RUNTIME_FAILED:' . $error->getMessage());
-        }
-
-        $event = is_string($result['event'] ?? null) ? $result['event'] : '';
-        if ($event !== '') {
-            $selected = is_array($result['selected_app'] ?? null)
-                ? $result['selected_app']
-                : null;
-
-            $context = [
-                'app_exists' => $selected !== null,
-                'registry_entry' => $selected,
-                'selected_app' => (string) ($selected['id'] ?? ''),
-                'current_app' => $_SESSION['owasys_current_app'] ?? null,
-                'has_current_app' => is_array($_SESSION['owasys_current_app'] ?? null),
-            ];
-
-            try {
-                $transition = $fsm->transition('registry', $event, $context);
-            } catch (Throwable $error) {
-                $this->fail(409, 'OWASYS_FSM_TRANSITION_REJECTED:' . $error->getMessage());
+                    return [
+                        'event' => $pending->mustChangePassword
+                            ? 'password_change_required'
+                            : 'login_success',
+                        'context' => [
+                            'pending_identity' => $pending,
+                            'must_change_password' => $pending->mustChangePassword,
+                        ],
+                        'redirect' => true,
+                    ];
+                } catch (Throwable) {
+                    return [
+                        'event' => 'login_failed',
+                        'error' => 'auth.error.invalid_credentials',
+                        'redirect' => false,
+                    ];
+                }
             }
 
-            $_SESSION[$stateKey] = (string) $transition['to_state'];
-            $this->redirect($locale, (string) ($result['redirect'] ?? 'applications'));
+            if ($routeKey === 'account/password' && $action === 'change-password') {
+                if (!is_array($identity)) {
+                    return ['event' => 'auth_required', 'redirect' => true];
+                }
+
+                $this->security->assertAllowed($identity, 'account', 'change');
+
+                if (
+                    (string) ($_POST['owasys_current_password'] ?? '') === ''
+                    || (string) ($_POST['owasys_new_password'] ?? '') === ''
+                    || (string) ($_POST['owasys_confirm_password'] ?? '') === ''
+                ) {
+                    return [
+                        'event' => 'password_change_failed',
+                        'error' => 'auth.error.required_credentials',
+                    ];
+                }
+
+                if (
+                    (string) ($_POST['owasys_new_password'] ?? '')
+                    !== (string) ($_POST['owasys_confirm_password'] ?? '')
+                ) {
+                    return [
+                        'event' => 'password_change_failed',
+                        'error' => 'auth.error.password_mismatch',
+                    ];
+                }
+
+                return [
+                    'event' => 'password_changed',
+                    'redirect' => true,
+                ];
+            }
+
+            if ($routeKey === 'applications') {
+                if (!is_array($identity)) {
+                    return ['event' => 'auth_required', 'redirect' => true];
+                }
+
+                $this->security->assertAllowed($identity, 'registry', 'write');
+                $result = $this->registryController()->handle($method, $_POST);
+
+                return [
+                    'event' => (string) ($result['event'] ?? 'registry_action_failed'),
+                    'context' => [
+                        'selected_app' => is_array($result['selected_app'] ?? null)
+                            ? $result['selected_app']
+                            : null,
+                        'app_exists' => is_array($result['selected_app'] ?? null),
+                        'registry_entry' => $result['selected_app'] ?? null,
+                    ],
+                    'result' => $result,
+                    'error' => is_string($result['error'] ?? null)
+                        ? $result['error']
+                        : null,
+                    'redirect' => ($result['error'] ?? null) === null,
+                ];
+            }
+
+            $this->fail(400, 'OWASYS_POST_ACTION_INVALID:' . $routeKey . ':' . $action);
         }
 
-        $this->renderView(
+        if ($method !== 'GET') {
+            $this->fail(405, 'OWASYS_HTTP_METHOD_NOT_ALLOWED');
+        }
+
+        if ($routeKey === 'login') {
+            return $identity === null
+                ? ['event' => 'open_login']
+                : ['event' => 'change_app', 'redirect' => true];
+        }
+
+        if ($routeKey === 'account/password') {
+            return ['event' => 'open_account'];
+        }
+
+        $signal = $this->resolveSignal($locale, $routeKey);
+        if ($signal === '') {
+            $this->fail(404, 'OWASYS_ROUTE_NOT_FOUND:' . $routeKey);
+        }
+
+        return [
+            'event' => $signal,
+            'redirect' => $signal === 'logout',
+        ];
+    }
+
+    private function currentState(FsmProcessor $fsm): string
+    {
+        $current = trim((string) ($_SESSION[self::STATE_KEY] ?? $fsm->initialState()));
+        if (!$fsm->hasState($current)) {
+            $current = $fsm->initialState();
+        }
+
+        if (!$this->session->isAuthenticated() && $current !== $fsm->initialState()) {
+            $current = $fsm->initialState();
+            $_SESSION[self::STATE_KEY] = $current;
+        }
+
+        return $current;
+    }
+
+    /** @param array<string,mixed>|null $identity @return array<string,mixed> */
+    private function fsmContext(?array $identity): array
+    {
+        $currentApp = $this->session->currentApp();
+
+        return [
+            'identity' => $identity,
+            'is_authenticated' => is_array($identity),
+            'roles' => is_array($identity['roles'] ?? null) ? $identity['roles'] : [],
+            'current_app' => $currentApp,
+            'has_current_app' => is_array($currentApp),
+        ];
+    }
+
+    /** @param array<string,mixed> $context */
+    private function assertTargetStateAccess(
+        FsmProcessor $fsm,
+        string $targetState,
+        array $context
+    ): void {
+        $state = $fsm->state($targetState);
+        $pending = $context['pending_identity'] ?? null;
+        $identity = $pending instanceof SsoIdentity
+            ? $pending->toSession()
+            : (is_array($context['identity'] ?? null) ? $context['identity'] : null);
+
+        if (($state['requires_auth'] ?? false) === true && !is_array($identity)) {
+            throw new RuntimeException('OWASYS_AUTH_REQUIRED');
+        }
+
+        $hasCurrent = is_array($this->session->currentApp())
+            || is_array($context['selected_app'] ?? null);
+        if (($state['requires_current_app'] ?? false) === true && !$hasCurrent) {
+            throw new RuntimeException('OWASYS_CURRENT_APP_REQUIRED');
+        }
+
+        if (($state['requires_auth'] ?? false) === true) {
+            $this->security->assertAllowed(
+                $identity,
+                (string) ($state['module'] ?? $targetState),
+                'open'
+            );
+        }
+    }
+
+    /**
+     * @param array<string,mixed> $context
+     * @return array{state:string,error:string,redirect:bool,route:string}
+     */
+    private function handleTransitionFailure(
+        Throwable $error,
+        FsmProcessor $fsm,
+        string $currentState,
+        string $locale,
+        array $context
+    ): array {
+        $message = $error->getMessage();
+
+        if ($message === 'OWASYS_AUTH_REQUIRED') {
+            $transition = $fsm->transition($currentState, 'auth_required', $context);
+            $this->actionHandlersFor($transition)->dispatcher()->dispatch($transition, $context);
+            $state = (string) $transition['to_state'];
+            $_SESSION[self::STATE_KEY] = $state;
+
+            return [
+                'state' => $state,
+                'error' => '',
+                'redirect' => true,
+                'route' => (string) ($fsm->state($state)['route'] ?? 'login'),
+            ];
+        }
+
+        if (
+            $message === 'OWASYS_CURRENT_APP_REQUIRED'
+            || str_contains($message, 'OPUS_FSM_GUARD_FAILED: current_app_required')
+        ) {
+            $transition = $fsm->transition($currentState, 'change_app', $context);
+            $this->assertTargetStateAccess($fsm, (string) $transition['to_state'], $context);
+            $state = (string) $transition['to_state'];
+            $_SESSION[self::STATE_KEY] = $state;
+
+            return [
+                'state' => $state,
+                'error' => '',
+                'redirect' => true,
+                'route' => (string) ($fsm->state($state)['route'] ?? 'applications'),
+            ];
+        }
+
+        $passwordError = $this->passwordErrorKey($message);
+        if ($passwordError !== null && $currentState === 'account') {
+            $failure = $fsm->transition($currentState, 'password_change_failed', $context);
+            $state = (string) $failure['to_state'];
+            $_SESSION[self::STATE_KEY] = $state;
+
+            return [
+                'state' => $state,
+                'error' => $passwordError,
+                'redirect' => false,
+                'route' => '',
+            ];
+        }
+
+        if (str_starts_with($message, 'OPUS_ACL_DENIED:')) {
+            $this->fail(403, $message);
+        }
+
+        $this->fail(409, 'OWASYS_FSM_RUNTIME_REJECTED:' . $message);
+    }
+
+    private function passwordErrorKey(string $message): ?string
+    {
+        return match ($message) {
+            'OWASYS_PASSWORD_CONFIRMATION_MISMATCH' => 'auth.error.password_mismatch',
+            'OPUS_SSO_CURRENT_PASSWORD_INVALID' => 'auth.error.current_password_invalid',
+            'OPUS_SSO_NEW_PASSWORD_TOO_SHORT' => 'auth.error.password_too_short',
+            'OPUS_SSO_PASSWORD_UNCHANGED' => 'auth.error.password_unchanged',
+            'OPUS_SSO_SUBJECT_UNKNOWN' => 'auth.error.runtime_user_missing',
+            default => null,
+        };
+    }
+
+    /**
+     * @param callable(string):string $translate
+     * @param array<string,mixed>|null $requestResult
+     */
+    private function renderState(
+        FsmProcessor $fsm,
+        array $fsmConfig,
+        string $stateId,
+        string $locale,
+        callable $translate,
+        string $requestRoute,
+        ?array $requestResult,
+        ?string $errorKey
+    ): void {
+        $state = $fsm->state($stateId);
+        $module = (string) ($state['module'] ?? $stateId);
+        $route = (string) ($state['route'] ?? $requestRoute);
+        $identity = $this->session->user();
+        $currentApp = $this->session->currentApp();
+        $basePath = $this->basePath();
+        $routeUrl = fn (string $targetRoute): string => $this->routeUrl(
             $locale,
-            $t,
-            $this->siteRoot . '/application/registry/views/index.php',
-            [
-                'entries' => $result['entries'] ?? [],
-                'currentApp' => $_SESSION['owasys_current_app'] ?? null,
-                'recentEvents' => $result['recent_events'] ?? [],
-                'sync' => $result['sync'] ?? [],
-                'error' => $result['error'] ?? null,
+            $targetRoute
+        );
+
+        $data = [
+            'brand' => [
+                'name' => $translate('brand.name'),
+                'subtitle' => $translate('brand.subtitle'),
             ],
-            'applications',
-            'registry',
-            'menu.applications',
-            'registry.description'
+            'page' => [
+                'title' => $translate((string) ($state['title_key'] ?? ('menu.' . $module))),
+                'summary' => $translate((string) ($state['summary_key'] ?? 'state.default.summary')),
+            ],
+            'fsm' => [
+                'state' => $stateId,
+                'module' => $module,
+            ],
+            'identity' => [
+                'authenticated' => is_array($identity),
+                'label' => (string) ($identity['label'] ?? ''),
+                'primary_role' => (string) ($identity['roles'][0] ?? $identity['profile'] ?? ''),
+            ],
+            'current_app' => [
+                'present' => is_array($currentApp),
+                'id' => (string) ($currentApp['id'] ?? ''),
+                'name' => (string) ($currentApp['name'] ?? $currentApp['id'] ?? ''),
+                'kind' => (string) ($currentApp['kind'] ?? ''),
+                'root' => (string) ($currentApp['root_path'] ?? ''),
+            ],
+            'locale' => [
+                'code' => $locale,
+                'name' => $this->locales->name($locale),
+                'flag' => $basePath . '/asset/flags/' . rawurlencode($locale) . '.svg',
+            ],
+            'locales' => array_map(
+                fn (string $code): array => [
+                    'code' => $code,
+                    'name' => $this->locales->name($code),
+                    'flag' => $basePath . '/asset/flags/' . rawurlencode($code) . '.svg',
+                    'url' => $this->routeUrl($code, $route),
+                    'active' => $code === $locale,
+                ],
+                $this->locales->codes()
+            ),
+            'assets' => [
+                'score_css' => $basePath . '/asset/css/owasys.css',
+                'theme_css' => $basePath . '/asset/themes/owasys/css/theme.css',
+                'language_css' => $basePath . '/asset/css/language-switcher.css',
+                'password_js' => $basePath . '/asset/js/password-visibility.js',
+            ],
+            'urls' => [
+                'home' => $this->routeUrl($locale, is_array($identity) ? 'applications' : 'login'),
+                'login' => $this->routeUrl($locale, 'login'),
+                'logout' => $this->routeUrl($locale, 'logout'),
+                'account' => $this->routeUrl($locale, 'account/password'),
+                'applications' => $this->routeUrl($locale, 'applications'),
+                'current' => $this->routeUrl($locale, $route),
+            ],
+            'labels' => $this->viewLabels($translate),
+            'navigation' => $this->navigation->build(
+                $fsmConfig,
+                $identity,
+                $stateId,
+                $translate,
+                $routeUrl
+            ),
+            'auth' => [
+                'provider' => $this->security->defaultProvider(),
+                'error' => $errorKey !== null && $errorKey !== ''
+                    ? $translate($errorKey)
+                    : '',
+            ],
+        ];
+
+        $template = $module . '/templates/index.score';
+
+        if ($module === 'registry') {
+            $result = $requestResult ?? $this->registryController()->handle('GET', []);
+            $data = array_replace_recursive(
+                $data,
+                $this->registryViewData($result, $currentApp, $translate)
+            );
+        }
+
+        if (!is_file($this->siteRoot . '/application/' . $template)) {
+            $template = 'default/templates/pending.score';
+            http_response_code(501);
+        }
+
+        header('Content-Type: text/html; charset=UTF-8');
+        echo $this->renderer->render($template, $data);
+    }
+
+    /** @param callable(string):string $translate @return array<string,string> */
+    private function viewLabels(callable $translate): array
+    {
+        $keys = [
+            'account' => 'menu.account',
+            'login' => 'auth.login',
+            'logout' => 'auth.logout',
+            'navigation' => 'navigation.main',
+            'pending' => 'module.pending',
+            'password_auth' => 'auth.password',
+            'sign_in' => 'auth.sign_in',
+            'sign_in_description' => 'auth.sign_in_description',
+            'username' => 'auth.username',
+            'password' => 'auth.password_field',
+            'password_show' => 'auth.password.show',
+            'password_hide' => 'auth.password.hide',
+            'change_password' => 'auth.change_password',
+            'change_password_description' => 'auth.change_password_description',
+            'current_password' => 'auth.current_password',
+            'new_password' => 'auth.new_password',
+            'confirm_password' => 'auth.confirm_new_password',
+            'current_application' => 'registry.current_application',
+            'change_application' => 'registry.change_application',
+            'application_context' => 'registry.application_context',
+            'select_instruction' => 'registry.select_instruction',
+            'create_application' => 'registry.create_application',
+            'clear_context' => 'registry.clear_current_context',
+            'none_selected' => 'registry.no_application_selected',
+            'work_on_app' => 'registry.work_on_this_app',
+            'empty_title' => 'registry.empty_title',
+            'empty_description' => 'registry.empty_description',
+            'runtime_sqlite' => 'registry.runtime_sqlite',
+            'database' => 'registry.database',
+            'sync_total' => 'registry.sync_total',
+            'seed_imported' => 'registry.seed_imported',
+            'discovered_imported' => 'registry.discovered_imported',
+            'events_title' => 'registry.events.title',
+            'events_empty' => 'registry.events.empty',
+            'id' => 'common.id',
+            'kind' => 'common.kind',
+            'root' => 'common.root',
+        ];
+
+        $labels = [];
+        foreach ($keys as $name => $key) {
+            $labels[$name] = $translate($key);
+        }
+
+        return $labels;
+    }
+
+    /**
+     * @param array<string,mixed> $result
+     * @param array<string,mixed>|null $currentApp
+     * @param callable(string):string $translate
+     * @return array<string,mixed>
+     */
+    private function registryViewData(
+        array $result,
+        ?array $currentApp,
+        callable $translate
+    ): array {
+        $entries = [];
+        foreach ((array) ($result['entries'] ?? []) as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            $entryId = (string) ($entry['id'] ?? '');
+            $isCurrent = is_array($currentApp)
+                && (string) ($currentApp['id'] ?? '') === $entryId;
+
+            $entries[] = [
+                'id' => $entryId,
+                'name' => (string) ($entry['name'] ?? $entryId),
+                'root' => (string) ($entry['root_path'] ?? ''),
+                'kind' => (string) ($entry['kind'] ?? ''),
+                'role' => (string) ($entry['role'] ?? ''),
+                'locale' => (string) ($entry['default_locale'] ?? ''),
+                'theme' => (string) ($entry['theme'] ?? ''),
+                'status' => (string) ($entry['status'] ?? ''),
+                'current' => $isCurrent,
+                'button_label' => $isCurrent
+                    ? $translate('registry.current_application')
+                    : $translate('registry.work_on_this_app'),
+            ];
+        }
+
+        $events = [];
+        foreach ((array) ($result['recent_events'] ?? []) as $event) {
+            if (!is_array($event)) {
+                continue;
+            }
+            $events[] = [
+                'type' => (string) ($event['event_type'] ?? ''),
+                'application' => (string) ($event['application_id'] ?? ''),
+                'created_at' => (string) ($event['created_at'] ?? ''),
+            ];
+        }
+
+        $sync = is_array($result['sync'] ?? null) ? $result['sync'] : [];
+
+        return [
+            'registry' => [
+                'empty' => $entries === [],
+                'events_empty' => $events === [],
+                'error' => is_string($result['error'] ?? null)
+                    ? $translate($result['error'])
+                    : '',
+            ],
+            'entries' => $entries,
+            'events' => $events,
+            'sync' => [
+                'database' => (string) ($sync['database'] ?? ''),
+                'total' => (string) ($sync['total'] ?? 0),
+                'seed_imported' => (string) ($sync['seed_imported'] ?? 0),
+                'discovered_imported' => (string) ($sync['discovered_imported'] ?? 0),
+            ],
+        ];
+    }
+
+
+    /** @param array<string,mixed> $transition */
+    private function actionHandlersFor(array $transition): OwasysFsmActionHandlers
+    {
+        $actions = is_array($transition['actions'] ?? null) ? $transition['actions'] : [];
+        $requiresRegistry = array_intersect(
+            $actions,
+            ['set_current_app', 'start_creation_flow']
+        ) !== [] || (
+            in_array('clear_current_app', $actions, true)
+            && is_array($this->session->currentApp())
+        );
+
+        return new OwasysFsmActionHandlers(
+            $this->session,
+            $this->security,
+            $requiresRegistry ? $this->registryModel() : null
         );
     }
 
-    private function requireAuthentication(string $locale): void
+    private function registryModel(): OwasysRegistryModel
     {
-        if (!$this->session->isAuthenticated()) {
-            $this->redirect($locale, 'login');
+        if (!$this->registryModel instanceof OwasysRegistryModel) {
+            $this->registryModel = new OwasysRegistryModel(
+                $this->siteRoot,
+                dirname(dirname($this->siteRoot))
+            );
         }
+
+        return $this->registryModel;
+    }
+
+    private function registryController(): OwasysRegistryController
+    {
+        if (!$this->registryController instanceof OwasysRegistryController) {
+            $this->registryController = new OwasysRegistryController($this->registryModel());
+        }
+
+        return $this->registryController;
     }
 
     private function resolveSignal(string $locale, string $routeKey): string
     {
-        $routes = json_decode(
-            (string) file_get_contents($this->siteRoot . '/config/routes.json'),
-            true
+        $routes = $this->readJson(
+            $this->siteRoot . '/config/routes.json',
+            'OWASYS_ROUTES_CONFIG_INVALID'
         );
+        $systemRoutes = is_array($routes['system_routes'] ?? null)
+            ? $routes['system_routes']
+            : [];
 
-        return is_array($routes) && is_array($routes['routes'][$locale] ?? null)
+        if (is_string($systemRoutes[$routeKey] ?? null)) {
+            return trim((string) $systemRoutes[$routeKey]);
+        }
+
+        return is_array($routes['routes'][$locale] ?? null)
             ? trim((string) ($routes['routes'][$locale][$routeKey] ?? ''))
             : '';
+    }
+
+    /** @return array<string,mixed> */
+    private function loadFsmConfig(): array
+    {
+        $navigation = is_array($this->siteConfig['navigation'] ?? null)
+            ? $this->siteConfig['navigation']
+            : [];
+        $relative = trim(str_replace('\\', '/', (string) ($navigation['fsm'] ?? '')), '/');
+        if ($relative === '' || str_contains($relative, '..')) {
+            throw new RuntimeException('OWASYS_FSM_CONFIG_PATH_INVALID');
+        }
+
+        return $this->readJson(
+            $this->siteRoot . '/' . $relative,
+            'OWASYS_FSM_CONFIG_INVALID'
+        );
     }
 
     /** @return array<string,string> */
@@ -341,90 +772,28 @@ final class OwasysRuntimeController
         );
     }
 
-    /** @param array<string,mixed> $variables */
-    private function renderView(
-        string $locale,
-        callable $t,
-        string $viewFile,
-        array $variables,
-        string $activeRoute,
-        string $module,
-        string $titleKey,
-        string $summaryKey
-    ): void {
-        if (!is_file($viewFile)) {
-            $this->fail(500, 'OWASYS_VIEW_MISSING:' . $viewFile);
+    /** @return array<string,mixed> */
+    private function readJson(string $path, string $error): array
+    {
+        if (!is_file($path)) {
+            throw new RuntimeException($error . ':' . $path);
         }
 
-        extract($variables, EXTR_SKIP);
-
-        ob_start();
-        require $viewFile;
-        $content = (string) ob_get_clean();
-
-        $this->renderLayout(
-            $locale,
-            $t,
-            $content,
-            $activeRoute,
-            $module,
-            $titleKey,
-            $summaryKey
-        );
-    }
-
-    private function renderPendingModule(
-        string $locale,
-        callable $t,
-        string $module,
-        string $activeRoute
-    ): void {
-        http_response_code(501);
-
-        $title = htmlspecialchars($t('menu.' . $module), ENT_QUOTES, 'UTF-8');
-        $moduleEscaped = htmlspecialchars($module, ENT_QUOTES, 'UTF-8');
-        $message = htmlspecialchars($t('module.pending'), ENT_QUOTES, 'UTF-8');
-
-        $content = '<section class="ow-card">'
-            . '<h2>' . $title . '</h2>'
-            . '<p class="ow-muted">' . $message . '</p>'
-            . '<code>OWASYS_MODULE_PENDING:' . $moduleEscaped . '</code>'
-            . '</section>';
-
-        $this->renderLayout(
-            $locale,
-            $t,
-            $content,
-            $activeRoute,
-            $module,
-            'menu.' . $module,
-            'module.pending'
-        );
-    }
-
-    private function renderLayout(
-        string $locale,
-        callable $t,
-        string $content,
-        string $activeRoute,
-        string $module,
-        string $titleKey,
-        string $summaryKey
-    ): void {
-        $layoutFile = $this->siteRoot . '/application/default/views/layout.php';
-        if (!is_file($layoutFile)) {
-            $this->fail(500, 'OWASYS_LAYOUT_MISSING');
+        $decoded = json_decode((string) file_get_contents($path), true);
+        if (!is_array($decoded)) {
+            throw new RuntimeException($error . ':' . $path);
         }
 
-        $siteConfig = $this->siteConfig;
-        $user = $this->session->user();
-        $currentApp = is_array($_SESSION['owasys_current_app'] ?? null)
-            ? $_SESSION['owasys_current_app']
-            : null;
-        $basePath = $this->basePath();
+        return $decoded;
+    }
 
-        header('Content-Type: text/html; charset=UTF-8');
-        require $layoutFile;
+    private function routeUrl(string $locale, string $route): string
+    {
+        return $this->basePath()
+            . '/'
+            . rawurlencode($locale)
+            . '/'
+            . ltrim($route, '/');
     }
 
     private function basePath(): string
@@ -439,11 +808,7 @@ final class OwasysRuntimeController
 
     private function redirect(string $locale, string $route): never
     {
-        header(
-            'Location: ' . $this->basePath() . '/' . rawurlencode($locale) . '/' . ltrim($route, '/'),
-            true,
-            303
-        );
+        header('Location: ' . $this->routeUrl($locale, $route), true, 303);
         exit;
     }
 

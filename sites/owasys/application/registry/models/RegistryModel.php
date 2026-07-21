@@ -43,31 +43,30 @@ final class OwasysRegistryModel
     }
 
     /** @return array<string,mixed>|null */
-    public function select(string $applicationId, string $actorId): ?array
+    public function find(string $applicationId): ?array
     {
         foreach ($this->entries() as $entry) {
-            if ((string) ($entry['id'] ?? '') !== $applicationId) {
-                continue;
+            if ((string) ($entry['id'] ?? '') === $applicationId) {
+                return $entry;
             }
-
-            $this->repository->setCurrentApplication($entry, $actorId);
-            $_SESSION['owasys_current_app'] = $entry;
-
-            return $entry;
         }
 
         return null;
     }
 
+    /** @param array<string,mixed> $application */
+    public function setCurrent(array $application, string $actorId): void
+    {
+        $this->repository->setCurrentApplication($application, $actorId);
+    }
+
     public function clear(string $actorId): void
     {
         $this->repository->clearCurrentApplication($actorId);
-        unset($_SESSION['owasys_current_app']);
     }
 
     public function startCreation(string $actorId): void
     {
-        $this->clear($actorId);
         $this->repository->startCreationFlow($actorId);
     }
 }

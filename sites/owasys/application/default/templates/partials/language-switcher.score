@@ -1,1 +1,14 @@
-<div class="ow-locale-switcher" data-owasys-locale-switcher><button type="button" class="ow-locale-trigger" aria-expanded="false"><img src="{{ locale.flag }}" alt=""><span>{{ locale.name }}</span></button><div class="ow-locale-menu" hidden>[[ foreach: locales as item ]]<a href="{{ item.url }}" lang="{{ item.code }}" [[ if: item.active ]]aria-current="true"[[ endif ]]><img src="{{ item.flag }}" alt=""><span>{{ item.name }}</span></a>[[ endforeach ]]</div></div>
+<details class="ow-locale-switcher">
+  <summary aria-label="{{ labels.language_selector }}">
+    <img src="{{ locale.flag }}" alt="" width="24" height="16">
+    <span>{{ locale.name }}</span>
+  </summary>
+  <div class="ow-locale-options" aria-label="{{ labels.language_selector }}">
+    [[ foreach: locales as item ]]
+      <a href="{{ item.url }}" lang="{{ item.code }}" [[ if: item.active ]]aria-current="true"[[ endif ]]>
+        <img src="{{ item.flag }}" alt="" width="24" height="16" loading="lazy">
+        <span>{{ item.name }}</span>
+      </a>
+    [[ endforeach ]]
+  </div>
+</details>

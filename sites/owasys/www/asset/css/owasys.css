@@ -258,3 +258,44 @@ code {
   .ow-section-heading button { width: 100%; }
   .ow-event-list li { grid-template-columns: 1fr; gap: 2px; }
 }
+
+
+.ow-password-field {
+  position: relative;
+  display: grid;
+}
+.ow-password-field input { padding-right: 52px; }
+.ow-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  width: 40px;
+  height: 40px;
+  min-height: 0;
+  padding: 8px;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ow-muted);
+}
+.ow-password-toggle:hover,
+.ow-password-toggle:focus-visible {
+  color: var(--ow-accent);
+  background: rgba(108, 227, 255, .10);
+  outline: 2px solid rgba(108, 227, 255, .45);
+  outline-offset: 1px;
+}
+.ow-password-icon {
+  display: block;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ow-password-icon-hide { display: none; }
+.ow-password-toggle[aria-pressed="true"] .ow-password-icon-show { display: none; }
+.ow-password-toggle[aria-pressed="true"] .ow-password-icon-hide { display: block; }

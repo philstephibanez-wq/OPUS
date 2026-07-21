@@ -1,1 +1,7 @@
-<nav class="ow-global-nav" aria-label="{{ labels.navigation }}">[[ foreach: navigation as item ]][[ if: item.allowed ]]<a class="ow-global-nav-link" href="{{ item.url }}" [[ if: item.active ]]aria-current="page"[[ endif ]]>{{ item.label }}</a>[[ endif ]][[ endforeach ]]</nav>
+<nav class="ow-global-nav" aria-label="{{ labels.navigation }}">
+  [[ foreach: navigation as item ]]
+    [[ if: item.allowed ]]
+      <a class="ow-global-nav-link[[ if: item.active ]] is-active[[ endif ]]" href="{{ item.url }}" [[ if: item.active ]]aria-current="page"[[ endif ]]>{{ item.label }}</a>
+    [[ endif ]]
+  [[ endforeach ]]
+</nav>

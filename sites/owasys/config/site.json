@@ -57,8 +57,8 @@
   },
   "auth": {
     "session_name": "OWASYS_LOCAL_SESSION",
-    "mode": "runtime-password-store",
-    "user_store": "var/auth/local-users.json",
+    "mode": "sso",
+    "sso_config": "config/sso.json",
     "login_route": "/login",
     "logout_route": "/logout",
     "password_change_route": "/account/password",
@@ -69,7 +69,6 @@
     "must_change_password_on_bootstrap": true,
     "minimum_password_length": 10,
     "write_actions_require_auth": true,
-    "password_hash_algorithm": "PASSWORD_DEFAULT",
     "committed_passwords_allowed": false
   }
 }

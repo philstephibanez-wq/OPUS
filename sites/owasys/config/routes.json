@@ -1,7 +1,11 @@
 {
   "contract": "OPUS_LOCALIZED_SIGNAL_ROUTES_V1",
   "default_locale": "fr",
-  "rule": "Only navigation URLs that emit an FSM event are listed. Login and account form events are produced by their controllers.",
+  "rule": "Every route resolves to an FSM event. No route bypasses FSM.",
+  "system_routes": {
+    "login": "open_login",
+    "account/password": "open_account"
+  },
   "routes": {
     "bg": {
       "applications": "change_app",

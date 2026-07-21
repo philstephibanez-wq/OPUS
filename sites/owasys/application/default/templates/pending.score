@@ -1,1 +1,5 @@
-<section class="ow-card"><h2>{{ page.title }}</h2><p class="ow-muted">{{ labels.pending }}</p><code>OWASYS_MODULE_PENDING:{{ fsm.state }}</code></section>
+<section class="ow-card">
+  <h2>{{ page.title }}</h2>
+  <p class="ow-muted">{{ labels.pending }}</p>
+  <code>OWASYS_MODULE_PENDING:{{ fsm.state }}</code>
+</section>
