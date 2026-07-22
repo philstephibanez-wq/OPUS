@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Opus\Database\Odbc;
 
 final class OdbcDataSourceRegistry
+    implements OdbcDataSourceRegistryInterface
 {
     public const CONTRACT = 'OPUS_ODBC_DATASOURCE_REGISTRY_V1';
 

@@ -6,7 +6,7 @@ namespace Opus\Database\Odbc;
 /**
  * ODBC column metadata normalized for OPUS Model construction.
  */
-final class OdbcColumn
+final class OdbcColumn implements OdbcColumnInterface
 {
     private string $name;
     private string $nativeType;
@@ -16,18 +16,39 @@ final class OdbcColumn
     private bool $nullable;
     private int $ordinal;
 
-    public function __construct(string $name, string $nativeType, ?int $numericType = null, ?int $length = null, ?int $scale = null, bool $nullable = true, int $ordinal = 0)
-    {
+    public function __construct(
+        string $name,
+        string $nativeType,
+        ?int $numericType = null,
+        ?int $length = null,
+        ?int $scale = null,
+        bool $nullable = true,
+        int $ordinal = 0
+    ) {
         $name = trim($name);
-        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $name)) {
-            throw new \InvalidArgumentException('OPUS_ODBC_COLUMN_NAME_INVALID: ' . $name);
+
+        if (
+            preg_match(
+                '/^[a-zA-Z_][a-zA-Z0-9_]*$/',
+                $name
+            ) !== 1
+        ) {
+            throw new \InvalidArgumentException(
+                'OPUS_ODBC_COLUMN_NAME_INVALID: ' . $name
+            );
         }
 
         $this->name = $name;
-        $this->nativeType = trim($nativeType) !== '' ? strtoupper(trim($nativeType)) : 'UNKNOWN';
+        $this->nativeType = trim($nativeType) !== ''
+            ? strtoupper(trim($nativeType))
+            : 'UNKNOWN';
         $this->numericType = $numericType;
-        $this->length = $length !== null && $length > 0 ? $length : null;
-        $this->scale = $scale !== null && $scale >= 0 ? $scale : null;
+        $this->length = $length !== null && $length > 0
+            ? $length
+            : null;
+        $this->scale = $scale !== null && $scale >= 0
+            ? $scale
+            : null;
         $this->nullable = $nullable;
         $this->ordinal = $ordinal > 0 ? $ordinal : 0;
     }

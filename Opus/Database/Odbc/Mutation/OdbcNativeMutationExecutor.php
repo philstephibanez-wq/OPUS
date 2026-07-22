@@ -6,7 +6,7 @@ namespace Opus\Database\Odbc\Mutation;
 use Opus\Database\Odbc\OdbcPreparedConnectionInterface;
 
 final class OdbcNativeMutationExecutor
-    implements OdbcMutationExecutorInterface
+    implements OdbcNativeMutationExecutorInterface
 {
     public function __construct(
         private OdbcPreparedConnectionInterface $connection

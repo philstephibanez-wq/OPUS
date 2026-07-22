@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Opus\Database\Odbc;
 
 final class NativeOdbcConnection
-    implements OdbcConnectionInterface, OdbcPreparedConnectionInterface
+    implements NativeOdbcConnectionInterface
 {
     private OdbcDataSourceConfig $config;
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Opus\Database\Odbc\Mutation;
 
 final class OdbcMutationService
+    implements OdbcMutationServiceInterface
 {
     private OdbcMutationSqlBuilder $builder;
 

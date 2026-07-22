@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Opus\Database\Odbc\Mutation;
 
 final class OdbcMutationCapabilities
+    implements OdbcMutationCapabilitiesInterface
 {
     public function __construct(
         private bool $insert,

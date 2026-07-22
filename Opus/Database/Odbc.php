@@ -15,6 +15,7 @@ use Opus\Model\ModelRecord;
 use Opus\Model\TableModel;
 
 final class Odbc
+    implements OdbcInterface
 {
     public const CONTRACT = 'OPUS_DATABASE_ODBC_FACADE_V1';
 

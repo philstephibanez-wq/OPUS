@@ -11,37 +11,70 @@ namespace Opus\Database\Odbc;
  * ODBC driver or DSN and must not leak into Model or LSTSAR classes.
  */
 final class OdbcDataSourceConfig
+    implements OdbcDataSourceConfigInterface
 {
     private string $id;
     private ?string $dsn;
     private ?string $connectionString;
     private ?string $username;
     private ?string $password;
+
     /** @var array<string,mixed> */
     private array $options;
 
     /**
      * @param array<string,mixed> $options
      */
-    private function __construct(string $id, ?string $dsn, ?string $connectionString, ?string $username, ?string $password, array $options = [])
-    {
+    private function __construct(
+        string $id,
+        ?string $dsn,
+        ?string $connectionString,
+        ?string $username,
+        ?string $password,
+        array $options = []
+    ) {
         $id = trim($id);
-        if (!preg_match('/^[a-zA-Z0-9_\-.]{1,80}$/', $id)) {
-            throw new \InvalidArgumentException('OPUS_ODBC_DATASOURCE_ID_INVALID: ' . $id);
+
+        if (
+            preg_match(
+                '/^[a-zA-Z0-9_\-.]{1,80}$/',
+                $id
+            ) !== 1
+        ) {
+            throw new \InvalidArgumentException(
+                'OPUS_ODBC_DATASOURCE_ID_INVALID: ' . $id
+            );
         }
 
         $dsn = $dsn !== null ? trim($dsn) : null;
-        $connectionString = $connectionString !== null ? trim($connectionString) : null;
+        $connectionString = $connectionString !== null
+            ? trim($connectionString)
+            : null;
 
-        if (($dsn === null || $dsn === '') && ($connectionString === null || $connectionString === '')) {
-            throw new \InvalidArgumentException('OPUS_ODBC_DATASOURCE_TARGET_MISSING: ' . $id);
+        if (
+            ($dsn === null || $dsn === '')
+            && (
+                $connectionString === null
+                || $connectionString === ''
+            )
+        ) {
+            throw new \InvalidArgumentException(
+                'OPUS_ODBC_DATASOURCE_TARGET_MISSING: ' . $id
+            );
         }
 
         $this->id = $id;
         $this->dsn = $dsn !== '' ? $dsn : null;
-        $this->connectionString = $connectionString !== '' ? $connectionString : null;
-        $this->username = $username !== null && trim($username) !== '' ? $username : null;
-        $this->password = $password !== null ? $password : null;
+        $this->connectionString = $connectionString !== ''
+            ? $connectionString
+            : null;
+        $this->username = $username !== null
+            && trim($username) !== ''
+                ? $username
+                : null;
+        $this->password = $password !== null
+            ? $password
+            : null;
         $this->options = $options;
     }
 
@@ -50,18 +83,35 @@ final class OdbcDataSourceConfig
      */
     public static function fromArray(array $data): self
     {
-        $driver = strtolower(trim((string) ($data['driver'] ?? 'odbc')));
+        $driver = strtolower(
+            trim((string) ($data['driver'] ?? 'odbc'))
+        );
+
         if ($driver !== 'odbc') {
-            throw new \InvalidArgumentException('OPUS_ODBC_DATASOURCE_DRIVER_FORBIDDEN: ' . $driver);
+            throw new \InvalidArgumentException(
+                'OPUS_ODBC_DATASOURCE_DRIVER_FORBIDDEN: '
+                . $driver
+            );
         }
 
         return new self(
             (string) ($data['id'] ?? ''),
-            isset($data['dsn']) ? (string) $data['dsn'] : null,
-            isset($data['connection_string']) ? (string) $data['connection_string'] : null,
-            isset($data['username']) ? (string) $data['username'] : null,
-            isset($data['password']) ? (string) $data['password'] : null,
-            isset($data['options']) && is_array($data['options']) ? $data['options'] : []
+            isset($data['dsn'])
+                ? (string) $data['dsn']
+                : null,
+            isset($data['connection_string'])
+                ? (string) $data['connection_string']
+                : null,
+            isset($data['username'])
+                ? (string) $data['username']
+                : null,
+            isset($data['password'])
+                ? (string) $data['password']
+                : null,
+            isset($data['options'])
+                && is_array($data['options'])
+                    ? $data['options']
+                    : []
         );
     }
 

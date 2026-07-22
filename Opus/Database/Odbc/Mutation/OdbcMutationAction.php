@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Opus\Database\Odbc\Mutation;
 
 final class OdbcMutationAction
+    implements OdbcMutationActionInterface
 {
     public const INSERT = 'insert';
     public const UPDATE = 'update';
