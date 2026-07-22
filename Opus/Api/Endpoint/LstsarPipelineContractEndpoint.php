@@ -14,7 +14,7 @@ use Opus\Security\Identity\IdentityContextInterface;
 /**
  * REST endpoint exposing one declared LSTSAR pipeline contract.
  */
-final class LstsarPipelineContractEndpoint implements ApiEndpointInterface
+final class LstsarPipelineContractEndpoint implements ApiEndpointInterface, LstsarPipelineContractEndpointInterface
 {
     public function handle(ApiRoute $route, ApplicationDefinition $application, Request $request, IdentityContextInterface $identity, array $context = []): Response
     {

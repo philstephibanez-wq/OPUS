@@ -5,7 +5,7 @@ namespace Opus\Security\Acl;
 
 use RuntimeException;
 
-final class AclPolicy
+final class AclPolicy implements AclPolicyInterface
 {
     /** @var array<string,mixed> */
     private array $policy;

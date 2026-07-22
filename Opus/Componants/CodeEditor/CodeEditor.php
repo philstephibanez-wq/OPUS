@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Opus\Componants\CodeEditor;
 
-final class CodeEditor
+final class CodeEditor implements CodeEditorInterface
 {
     public function __construct(
         private string $id,

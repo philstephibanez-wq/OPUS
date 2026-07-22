@@ -5,7 +5,7 @@ namespace Opus\I18n;
 
 use JsonException;
 
-final class CatalogLoader
+final class CatalogLoader implements CatalogLoaderInterface
 {
     public const CONTRACT = 'OPUS_I18N_CATALOG_LOADER_V2';
 

@@ -6,7 +6,7 @@ namespace Opus\Application\Package;
 /**
  * Validates the Composer package contract for official OPUS applications.
  */
-final class ApplicationPackageContract
+final class ApplicationPackageContract implements ApplicationPackageContractInterface
 {
     public const COMPOSER_TYPE = 'opus-application';
     public const DEFAULT_MANIFEST = 'opus.application.json';

@@ -11,7 +11,7 @@ use Opus\Lstsar\LstsarJobInterface;
  * This is a contract object. It does not load, transform, store or report data by
  * itself.
  */
-final class LstsarJobDescriptor implements LstsarJobInterface
+final class LstsarJobDescriptor implements LstsarJobInterface, LstsarJobDescriptorInterface
 {
     private string $id;
     private string $pipelineId;

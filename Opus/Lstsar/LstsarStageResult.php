@@ -6,7 +6,7 @@ namespace Opus\Lstsar;
 /**
  * Immutable result returned by one LSTSAR stage.
  */
-final class LstsarStageResult
+final class LstsarStageResult implements LstsarStageResultInterface
 {
     private string $stage;
     private bool $ok;

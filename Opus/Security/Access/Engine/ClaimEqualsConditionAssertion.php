@@ -8,7 +8,7 @@ use Opus\Security\Identity\IdentityContextInterface;
 /**
  * ACL assertion checking that an identity claim equals an expected value.
  */
-final class ClaimEqualsConditionAssertion implements AclConditionAssertionInterface
+final class ClaimEqualsConditionAssertion implements AclConditionAssertionInterface, ClaimEqualsConditionAssertionInterface
 {
     public function supports(string $type): bool
     {

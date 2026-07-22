@@ -6,7 +6,7 @@ namespace Opus\Database\Odbc;
 /**
  * Conservative SQL guard for OPUS ODBC Explorer read-only console.
  */
-final class OdbcReadOnlySqlGuard
+final class OdbcReadOnlySqlGuard implements OdbcReadOnlySqlGuardInterface
 {
     /** @var list<string> */
     private const FORBIDDEN_KEYWORDS = [

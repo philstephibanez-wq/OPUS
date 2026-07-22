@@ -6,7 +6,7 @@ namespace Opus\Lstsar;
 /**
  * Result emitted by the OPUS LSTSAR engine.
  */
-final class LstsarResult
+final class LstsarResult implements LstsarResultInterface
 {
     private bool $ok;
     private ?string $recordId;

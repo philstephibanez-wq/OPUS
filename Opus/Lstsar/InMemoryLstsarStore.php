@@ -6,7 +6,7 @@ namespace Opus\Lstsar;
 /**
  * In-memory LSTSAR store used by tests, demos and smoke contracts.
  */
-final class InMemoryLstsarStore implements LstsarStoreInterface
+final class InMemoryLstsarStore implements LstsarStoreInterface, InMemoryLstsarStoreInterface
 {
     /** @var array<string,array<string,array<string,mixed>>> */
     private array $records = [];

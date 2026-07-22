@@ -6,7 +6,7 @@ namespace Opus\Api;
 /**
  * Immutable REST route contract loaded from OPUS API configuration.
  */
-final class ApiRoute
+final class ApiRoute implements ApiRouteInterface
 {
     public string $id;
     public string $method;

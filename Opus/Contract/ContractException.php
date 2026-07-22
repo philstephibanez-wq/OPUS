@@ -11,7 +11,7 @@ use RuntimeException;
  * The message always starts with the explicit OPUS diagnostic code so smokes,
  * logs and callers can assert deterministic failures.
  */
-final class ContractException extends RuntimeException
+final class ContractException extends RuntimeException implements ContractExceptionInterface
 {
     /**
      * Create a contract exception from an explicit diagnostic code.

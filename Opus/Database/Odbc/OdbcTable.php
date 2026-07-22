@@ -6,7 +6,7 @@ namespace Opus\Database\Odbc;
 /**
  * Immutable ODBC table metadata record exposed to OPUS ODBC Explorer.
  */
-final class OdbcTable
+final class OdbcTable implements OdbcTableInterface
 {
     private string $name;
     private string $type;

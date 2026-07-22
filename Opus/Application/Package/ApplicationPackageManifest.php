@@ -9,7 +9,7 @@ namespace Opus\Application\Package;
  * Official OPUS applications such as RefBook, demo apps and ODBC Manager must
  * expose this contract instead of relying on manual folder copies.
  */
-final class ApplicationPackageManifest
+final class ApplicationPackageManifest implements ApplicationPackageManifestInterface
 {
     public const CONTRACT_ID = 'OPUS_APPLICATION_PACKAGE_MANIFEST_V1';
 

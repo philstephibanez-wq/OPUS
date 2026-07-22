@@ -13,7 +13,7 @@ use RuntimeException;
  * processor must have a registered handler. Unknown actions are refused instead
  * of being ignored, so application behaviour remains contract-driven.
  */
-final class FsmActionDispatcher
+final class FsmActionDispatcher implements FsmActionDispatcherInterface
 {
     private const RESULT_CONTRACT = 'OPUS_FSM_ACTION_DISPATCH_RESULT_V1';
     private const PROCESSOR_RESULT_CONTRACT = 'OPUS_FSM_PROCESSOR_RESULT_V1';

@@ -14,7 +14,7 @@ use Opus\Security\Access\AccessDecisionInterface;
  * Security is not reimplemented here: callers must inject an already computed
  * OPUS access decision from the SSO/API/ACL layer.
  */
-final class LstsarEngine
+final class LstsarEngine implements LstsarEngineInterface
 {
     private LstsarStoreInterface $store;
 

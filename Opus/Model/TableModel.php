@@ -6,7 +6,7 @@ namespace Opus\Model;
 /**
  * OPUS representation of a database table or tabular dataset.
  */
-final class TableModel
+final class TableModel implements TableModelInterface
 {
     private string $id;
     private string $tableName;

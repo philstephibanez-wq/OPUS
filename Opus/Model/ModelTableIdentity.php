@@ -6,7 +6,7 @@ namespace Opus\Model;
 /**
  * Identity/key information for an OPUS TableModel.
  */
-final class ModelTableIdentity
+final class ModelTableIdentity implements ModelTableIdentityInterface
 {
     private TableModel $model;
     /** @var list<string> */

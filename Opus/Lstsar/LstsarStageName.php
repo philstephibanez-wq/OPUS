@@ -8,7 +8,7 @@ namespace Opus\Lstsar;
  *
  * LSTSAR means Load, Securize, Transform, Store, Archive and Report.
  */
-final class LstsarStageName
+final class LstsarStageName implements LstsarStageNameInterface
 {
     public const LOAD = 'load';
     public const SECURIZE = 'securize';

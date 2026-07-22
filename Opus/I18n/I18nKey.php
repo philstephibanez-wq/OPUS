@@ -5,7 +5,7 @@ namespace Opus\I18n;
 
 use InvalidArgumentException;
 
-final readonly class I18nKey
+final readonly class I18nKey implements I18nKeyInterface
 {
     public const CONTRACT = 'OPUS_I18N_KEY_V1';
 

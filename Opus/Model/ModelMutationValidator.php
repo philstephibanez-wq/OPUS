@@ -10,7 +10,7 @@ namespace Opus\Model;
  * LSTSAR model-driven storage must rely on this layer instead of duplicating
  * field rules in SQL or UI code.
  */
-final class ModelMutationValidator
+final class ModelMutationValidator implements ModelMutationValidatorInterface
 {
     /** @param array<string,mixed> $values */
     public function validateInsert(TableModel $model, array $values): ModelMutationValidationReport

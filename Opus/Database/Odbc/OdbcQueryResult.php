@@ -6,7 +6,7 @@ namespace Opus\Database\Odbc;
 /**
  * Immutable result returned by a guarded read-only ODBC query.
  */
-final class OdbcQueryResult
+final class OdbcQueryResult implements OdbcQueryResultInterface
 {
     private string $sql;
     /** @var list<OdbcColumn> */

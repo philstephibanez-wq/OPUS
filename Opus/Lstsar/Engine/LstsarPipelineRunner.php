@@ -14,7 +14,7 @@ use Opus\Lstsar\Stage\LstsarStageResult;
  * It verifies pipeline/job compatibility and produces a planned report. It does not
  * load, transform, store or persist anything in this milestone.
  */
-final class LstsarPipelineRunner
+final class LstsarPipelineRunner implements LstsarPipelineRunnerInterface
 {
     public function dryRun(LstsarPipelineInterface $pipeline, LstsarJobInterface $job): LstsarReportInterface
     {

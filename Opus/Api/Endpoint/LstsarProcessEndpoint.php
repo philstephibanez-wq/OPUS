@@ -16,7 +16,7 @@ use Opus\Security\Identity\IdentityContextInterface;
 /**
  * OPUS API endpoint that processes one LSTSAR payload.
  */
-final class LstsarProcessEndpoint implements ApiEndpointInterface
+final class LstsarProcessEndpoint implements ApiEndpointInterface, LstsarProcessEndpointInterface
 {
     public function handle(ApiRoute $route, ApplicationDefinition $application, Request $request, IdentityContextInterface $identity, array $context = []): Response
     {

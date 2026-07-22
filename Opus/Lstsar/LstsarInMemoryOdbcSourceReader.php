@@ -8,7 +8,7 @@ use Opus\Model\TableModel;
 /**
  * Deterministic in-memory source reader for smokes, tests and demos.
  */
-final class LstsarInMemoryOdbcSourceReader implements LstsarOdbcSourceReaderInterface
+final class LstsarInMemoryOdbcSourceReader implements LstsarOdbcSourceReaderInterface, LstsarInMemoryOdbcSourceReaderInterface
 {
     /** @var array<string,array<string,mixed>> */
     private array $recordsByModel;

@@ -8,7 +8,7 @@ use Opus\Http\Response;
 /**
  * Creates the canonical OPUS JSON error envelope.
  */
-final class ApiErrorResponseFactory
+final class ApiErrorResponseFactory implements ApiErrorResponseFactoryInterface
 {
     /** @param array<string,mixed> $details */
     public function error(string $code, string $message, int $status, array $details = []): Response

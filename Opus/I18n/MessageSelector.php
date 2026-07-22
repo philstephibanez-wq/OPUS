@@ -5,7 +5,7 @@ namespace Opus\I18n;
 
 use Opus\I18n\Plural\PluralRuleInterface;
 
-final class MessageSelector
+final class MessageSelector implements MessageSelectorInterface
 {
     private const GENDERS = ['masculine', 'feminine', 'neuter'];
     private const PLURALS = [

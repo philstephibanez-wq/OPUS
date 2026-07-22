@@ -5,7 +5,7 @@ namespace Opus\I18n;
 
 use Stringable;
 
-final class MessageInterpolator
+final class MessageInterpolator implements MessageInterpolatorInterface
 {
     /**
      * @param array<string,mixed> $parameters

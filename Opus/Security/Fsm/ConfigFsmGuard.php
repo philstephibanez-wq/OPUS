@@ -15,7 +15,7 @@ use Opus\Security\Access\AccessDecisionInterface;
  * existing FSM flow and signal. Runtime state mutation remains a later engine
  * responsibility; this guard already prevents undeclared security claims.
  */
-final class ConfigFsmGuard implements FsmGuardInterface
+final class ConfigFsmGuard implements FsmGuardInterface, ConfigFsmGuardInterface
 {
     private FsmRuntimeConfigLoader $loader;
 

@@ -9,7 +9,7 @@ namespace Opus\Lstsar\Stage;
  * In P7B3 this is used by the engine skeleton to declare what would be executed,
  * without performing real load, storage or report side effects.
  */
-final class LstsarStageResult
+final class LstsarStageResult implements LstsarStageResultInterface
 {
     private string $stage;
     private string $status;

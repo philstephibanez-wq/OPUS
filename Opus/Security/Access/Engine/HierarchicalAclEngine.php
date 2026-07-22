@@ -13,7 +13,7 @@ use Opus\Security\Identity\IdentityContextInterface;
  * Supports role/resource inheritance, privileges, allow/deny rules, wildcard roles,
  * wildcard resources, wildcard privileges, conditional assertions and default deny.
  */
-final class HierarchicalAclEngine implements AclRuleEngineInterface
+final class HierarchicalAclEngine implements AclRuleEngineInterface, HierarchicalAclEngineInterface
 {
     /** @var array<string,mixed> */
     private array $config;

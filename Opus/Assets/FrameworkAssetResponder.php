@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Opus\Assets;
 
-final class FrameworkAssetResponder
+final class FrameworkAssetResponder implements FrameworkAssetResponderInterface
 {
     /** @var array<string,array{file:string,content_type:string}> */
     private const ASSETS = [

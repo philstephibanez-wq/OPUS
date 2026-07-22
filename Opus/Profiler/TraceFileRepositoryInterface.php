@@ -5,7 +5,10 @@ namespace Opus\Profiler;
 
 use Opus\Framework\OpusFrameworkComponentInterface;
 
-interface TraceFileRepositoryInterface extends OpusFrameworkComponentInterface
+interface TraceFileRepositoryInterface extends OpusFrameworkComponentInterface,
+    \Opus\Framework\OpusExceptionAwareInterface,
+    \Opus\Framework\OpusProfilerAwareInterface,
+    \Opus\Framework\OpusSelfDocumentingInterface
 {
     public function listTraces(): array;
     public function readTrace(string $traceId): array;

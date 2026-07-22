@@ -6,7 +6,7 @@ namespace Opus\Model;
 /**
  * Readable write profile for an OPUS TableModel.
  */
-final class ModelWriteProfile
+final class ModelWriteProfile implements ModelWriteProfileInterface
 {
     private TableModel $model;
     private ModelTableIdentity $identity;

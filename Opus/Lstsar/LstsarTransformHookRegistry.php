@@ -6,7 +6,7 @@ namespace Opus\Lstsar;
 /**
  * Explicit allow-list registry for pure destination-assignment hooks.
  */
-final class LstsarTransformHookRegistry
+final class LstsarTransformHookRegistry implements LstsarTransformHookRegistryInterface
 {
     /** @var array<string,LstsarTransformHookInterface> */
     private array $hooks = [];

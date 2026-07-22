@@ -8,7 +8,7 @@ use Opus\Http\Request;
 /**
  * Data-driven registry for OPUS REST API routes.
  */
-final class ApiRouteRegistry
+final class ApiRouteRegistry implements ApiRouteRegistryInterface
 {
     /** @var list<ApiRoute> */
     private array $routes;

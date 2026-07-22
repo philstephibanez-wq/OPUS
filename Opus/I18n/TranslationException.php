@@ -5,7 +5,7 @@ namespace Opus\I18n;
 
 use RuntimeException;
 
-final class TranslationException extends RuntimeException
+final class TranslationException extends RuntimeException implements TranslationExceptionInterface
 {
     public static function because(string $code, string $detail = ''): self
     {

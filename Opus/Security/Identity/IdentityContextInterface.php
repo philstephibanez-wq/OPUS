@@ -6,7 +6,11 @@ namespace Opus\Security\Identity;
 /**
  * Contract for an authenticated or anonymous OPUS identity.
  */
-interface IdentityContextInterface
+interface IdentityContextInterface extends
+    \Opus\Framework\OpusFrameworkComponentInterface,
+    \Opus\Framework\OpusExceptionAwareInterface,
+    \Opus\Framework\OpusProfilerAwareInterface,
+    \Opus\Framework\OpusSelfDocumentingInterface
 {
     public function subject(): string;
 

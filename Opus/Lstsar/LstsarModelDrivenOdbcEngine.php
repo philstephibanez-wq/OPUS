@@ -8,7 +8,7 @@ use Opus\Model\TableModel;
 /**
  * Real six-stage LSTSAR engine for heterogeneous ODBC sources/destinations.
  */
-final class LstsarModelDrivenOdbcEngine
+final class LstsarModelDrivenOdbcEngine implements LstsarModelDrivenOdbcEngineInterface
 {
     private LstsarOdbcSourceReaderInterface $sourceReader;
     private LstsarOdbcDestinationWriterInterface $destinationWriter;

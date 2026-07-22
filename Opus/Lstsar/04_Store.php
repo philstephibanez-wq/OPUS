@@ -8,7 +8,7 @@ use Opus\Model\ModelRecord;
 /**
  * Stage 04: Validate destination-model write readiness before ODBC storage.
  */
-final class StoreStage implements LstsarStageInterface
+final class StoreStage implements LstsarStageInterface, StoreStageInterface
 {
     public function name(): string
     {

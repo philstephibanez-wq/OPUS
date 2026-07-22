@@ -9,7 +9,7 @@ namespace Opus\Lstsar\Contract;
  * This object models declared constraints only. Enforcement will be added by later
  * LSTSAR validation services; no silent fallback is allowed when a key is invalid.
  */
-final class LstsarConstraintSet
+final class LstsarConstraintSet implements LstsarConstraintSetInterface
 {
     /** @var array<string,mixed> */
     private array $constraints;

@@ -9,7 +9,7 @@ use Opus\Model\TableModel;
 /**
  * Deterministic in-memory destination writer for smokes, tests and demos.
  */
-final class LstsarInMemoryOdbcDestinationWriter implements LstsarOdbcDestinationWriterInterface
+final class LstsarInMemoryOdbcDestinationWriter implements LstsarOdbcDestinationWriterInterface, LstsarInMemoryOdbcDestinationWriterInterface
 {
     /** @var array<string,array<string,mixed>> */
     private array $records = [];

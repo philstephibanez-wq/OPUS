@@ -9,7 +9,7 @@ namespace Opus\Lstsar;
  * It is intentionally engine-agnostic: source and destination databases are
  * declared through ODBC datasource identifiers and OPUS TableModel identifiers.
  */
-final class LstsarConfig
+final class LstsarConfig implements LstsarConfigInterface
 {
     public const CONTRACT = 'OPUS_LSTSAR_MODEL_DRIVEN_ODBC_CONFIG_V1';
 

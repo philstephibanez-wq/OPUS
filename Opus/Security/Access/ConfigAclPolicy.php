@@ -14,7 +14,7 @@ use Opus\Security\Identity\IdentityContextInterface;
  * rules, role inheritance, resource inheritance, allRoles/allResources/allPrivileges
  * and conditional assertions are evaluated before the final AccessDecision is emitted.
  */
-final class ConfigAclPolicy implements AclPolicyInterface
+final class ConfigAclPolicy implements AclPolicyInterface, ConfigAclPolicyInterface
 {
     /** @var array<string,mixed> */
     private array $config;

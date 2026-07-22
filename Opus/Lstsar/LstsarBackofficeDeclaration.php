@@ -6,7 +6,7 @@ namespace Opus\Lstsar;
 /**
  * Backoffice-facing declaration object for future LSTSAR Manager screens.
  */
-final class LstsarBackofficeDeclaration
+final class LstsarBackofficeDeclaration implements LstsarBackofficeDeclarationInterface
 {
     private LstsarConfig $config;
     /** @var list<string> */

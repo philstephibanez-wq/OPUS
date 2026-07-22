@@ -6,7 +6,7 @@ namespace Opus\I18n;
 use Opus\I18n\Plural\PluralRuleRegistry;
 
 final readonly class ApplicationTranslationRuntime
-    implements TranslationRuntimeInterface
+    implements TranslationRuntimeInterface, ApplicationTranslationRuntimeInterface
 {
     public const CONTRACT = 'OPUS_APPLICATION_I18N_RUNTIME_V1';
 

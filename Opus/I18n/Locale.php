@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Opus\I18n;
 
-final readonly class Locale
+final readonly class Locale implements LocaleInterface
 {
     public string $value;
     public string $language;

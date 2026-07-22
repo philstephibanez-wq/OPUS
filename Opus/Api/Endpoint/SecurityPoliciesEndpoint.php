@@ -13,7 +13,7 @@ use Opus\Security\Identity\IdentityContextInterface;
 /**
  * Exposes configured API routes and ACL policies for authorized development diagnostics.
  */
-final class SecurityPoliciesEndpoint implements ApiEndpointInterface
+final class SecurityPoliciesEndpoint implements ApiEndpointInterface, SecurityPoliciesEndpointInterface
 {
     public function handle(ApiRoute $route, ApplicationDefinition $application, Request $request, IdentityContextInterface $identity, array $context = []): Response
     {

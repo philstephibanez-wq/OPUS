@@ -8,7 +8,7 @@ use Opus\Security\Identity\IdentityContextInterface;
 /**
  * ACL assertion checking that the identity owns at least one configured scope.
  */
-final class ScopeAnyConditionAssertion implements AclConditionAssertionInterface
+final class ScopeAnyConditionAssertion implements AclConditionAssertionInterface, ScopeAnyConditionAssertionInterface
 {
     public function supports(string $type): bool
     {

@@ -9,7 +9,7 @@ namespace Opus\Application\Package;
  * The directory is a source convention only. Runtime installation remains
  * Composer-driven through path repositories or normal Composer repositories.
  */
-final class PackagesDirectoryContract
+final class PackagesDirectoryContract implements PackagesDirectoryContractInterface
 {
     public const DEFAULT_PACKAGES_DIR = 'packages';
 

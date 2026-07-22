@@ -6,7 +6,7 @@ namespace Opus\I18n\Plural;
 use Opus\I18n\Locale;
 use Opus\I18n\TranslationException;
 
-final class PluralRuleRegistry
+final class PluralRuleRegistry implements PluralRuleRegistryInterface
 {
     public const CONTRACT = 'OPUS_I18N_CLDR_PLURAL_RULES_EU_UK_V1';
 

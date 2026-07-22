@@ -6,7 +6,7 @@ namespace Opus\Model;
 /**
  * Supported write intents for OPUS Model validation.
  */
-final class ModelMutationIntent
+final class ModelMutationIntent implements ModelMutationIntentInterface
 {
     public const INSERT = 'insert';
     public const UPDATE = 'update';

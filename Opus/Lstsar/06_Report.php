@@ -6,7 +6,7 @@ namespace Opus\Lstsar;
 /**
  * Stage 06: Produce functional and technical reporting metadata.
  */
-final class ReportStage implements LstsarStageInterface
+final class ReportStage implements LstsarStageInterface, ReportStageInterface
 {
     public function name(): string
     {

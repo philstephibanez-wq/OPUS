@@ -14,7 +14,7 @@ use RuntimeException;
  * Runtime storage/history is intentionally outside this class; callers pass the
  * current state and receive the next state/action result.
  */
-final class FsmProcessor
+final class FsmProcessor implements FsmProcessorInterface
 {
     private const RESULT_CONTRACT = 'OPUS_FSM_PROCESSOR_RESULT_V1';
 

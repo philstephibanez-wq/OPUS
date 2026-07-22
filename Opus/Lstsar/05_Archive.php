@@ -6,7 +6,7 @@ namespace Opus\Lstsar;
 /**
  * Stage 05: Archive payload and run metadata for replay/audit purposes.
  */
-final class ArchiveStage implements LstsarStageInterface
+final class ArchiveStage implements LstsarStageInterface, ArchiveStageInterface
 {
     public function name(): string
     {

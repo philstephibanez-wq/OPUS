@@ -12,7 +12,7 @@ use RuntimeException;
  * a valid I18nKey-compatible identifier. User data remains allowed under
  * explicit data fields such as name, value, content, path and id.
  */
-final class UiTextContractValidator
+final class UiTextContractValidator implements UiTextContractValidatorInterface
 {
     public const CONTRACT = 'OPUS_I18N_STRICT_UI_CONTRACT_V1';
 

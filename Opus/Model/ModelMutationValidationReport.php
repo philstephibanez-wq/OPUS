@@ -6,7 +6,7 @@ namespace Opus\Model;
 /**
  * Validation report for a Model write intent.
  */
-final class ModelMutationValidationReport
+final class ModelMutationValidationReport implements ModelMutationValidationReportInterface
 {
     private string $intent;
     private string $modelId;

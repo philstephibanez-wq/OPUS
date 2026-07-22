@@ -9,7 +9,7 @@ namespace Opus\Model;
  * This object keeps model semantics outside SQL builders and allows ODBC,
  * LSTSAR and UI layers to consume the same field-level contract.
  */
-final class ModelFieldProfile
+final class ModelFieldProfile implements ModelFieldProfileInterface
 {
     private ModelField $field;
     /** @var array<string,mixed> */

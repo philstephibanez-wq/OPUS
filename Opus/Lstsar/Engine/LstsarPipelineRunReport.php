@@ -9,7 +9,7 @@ use Opus\Lstsar\Stage\LstsarStageResult;
 /**
  * Immutable LSTSAR pipeline run report.
  */
-final class LstsarPipelineRunReport implements LstsarReportInterface
+final class LstsarPipelineRunReport implements LstsarReportInterface, LstsarPipelineRunReportInterface
 {
     private string $id;
     private string $jobId;

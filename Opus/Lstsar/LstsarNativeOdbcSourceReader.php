@@ -14,7 +14,7 @@ use Opus\Model\TableModel;
  * It reads one record from the configured source table using prepared criteria
  * when criteria are declared. Values are never interpolated into SQL.
  */
-final class LstsarNativeOdbcSourceReader implements LstsarOdbcSourceReaderInterface
+final class LstsarNativeOdbcSourceReader implements LstsarOdbcSourceReaderInterface, LstsarNativeOdbcSourceReaderInterface
 {
     private OdbcDataSourceConfig $sourceConfig;
 

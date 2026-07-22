@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Opus\I18n;
 
-final readonly class CatalogStack
+final readonly class CatalogStack implements CatalogStackInterface
 {
     public const CONTRACT = 'OPUS_I18N_CATALOG_STACK_V1';
 

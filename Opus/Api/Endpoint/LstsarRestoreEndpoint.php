@@ -14,7 +14,7 @@ use Opus\Security\Identity\IdentityContextInterface;
 /**
  * OPUS API endpoint that restores one stored LSTSAR record.
  */
-final class LstsarRestoreEndpoint implements ApiEndpointInterface
+final class LstsarRestoreEndpoint implements ApiEndpointInterface, LstsarRestoreEndpointInterface
 {
     public function handle(ApiRoute $route, ApplicationDefinition $application, Request $request, IdentityContextInterface $identity, array $context = []): Response
     {

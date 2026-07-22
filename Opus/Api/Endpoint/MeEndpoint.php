@@ -13,7 +13,7 @@ use Opus\Security\Identity\IdentityContextInterface;
 /**
  * Returns the resolved OPUS identity context.
  */
-final class MeEndpoint implements ApiEndpointInterface
+final class MeEndpoint implements ApiEndpointInterface, MeEndpointInterface
 {
     public function handle(ApiRoute $route, ApplicationDefinition $application, Request $request, IdentityContextInterface $identity, array $context = []): Response
     {

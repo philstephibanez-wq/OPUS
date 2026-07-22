@@ -6,7 +6,7 @@ namespace Opus\Model;
 /**
  * Runtime object representation of one row belonging to an OPUS table model.
  */
-final class ModelRecord
+final class ModelRecord implements ModelRecordInterface
 {
     private TableModel $model;
     /** @var array<string,mixed> */

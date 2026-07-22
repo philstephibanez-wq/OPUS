@@ -12,7 +12,7 @@ namespace Opus\Lstsar;
  * - assignments: extra destination fields supplied by constants, metadata,
  *   hashes, deterministic built-ins or registered pure hooks.
  */
-final class TransformStage implements LstsarStageInterface
+final class TransformStage implements LstsarStageInterface, TransformStageInterface
 {
     private LstsarTransformHookRegistry $hooks;
 

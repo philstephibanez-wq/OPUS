@@ -6,7 +6,7 @@ namespace Opus\Lstsar;
 /**
  * One deterministic LSTSAR contract violation.
  */
-final class LstsarViolation
+final class LstsarViolation implements LstsarViolationInterface
 {
     private string $stage;
     private string $field;

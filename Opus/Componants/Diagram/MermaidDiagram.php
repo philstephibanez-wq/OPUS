@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Opus\Componants\Diagram;
 
-final class MermaidDiagram
+final class MermaidDiagram implements MermaidDiagramInterface
 {
     public function __construct(
         private string $id,

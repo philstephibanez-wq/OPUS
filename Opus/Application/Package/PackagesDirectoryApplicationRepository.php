@@ -6,7 +6,7 @@ namespace Opus\Application\Package;
 /**
  * Discovers source packages from the OPUS monorepo packages directory.
  */
-final class PackagesDirectoryApplicationRepository
+final class PackagesDirectoryApplicationRepository implements PackagesDirectoryApplicationRepositoryInterface
 {
     private string $projectRoot;
     private string $packagesDirName;

@@ -19,7 +19,7 @@ use Opus\Security\Identity\IdentityContextInterface;
 /**
  * REST endpoint exposing the contract-only LSTSAR engine skeleton.
  */
-final class LstsarEngineSkeletonEndpoint implements ApiEndpointInterface
+final class LstsarEngineSkeletonEndpoint implements ApiEndpointInterface, LstsarEngineSkeletonEndpointInterface
 {
     public function handle(ApiRoute $route, ApplicationDefinition $application, Request $request, IdentityContextInterface $identity, array $context = []): Response
     {

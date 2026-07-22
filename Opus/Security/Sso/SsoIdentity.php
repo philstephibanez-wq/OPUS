@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Opus\Security\Sso;
 
-final class SsoIdentity
+final class SsoIdentity implements SsoIdentityInterface
 {
     /** @param list<string> $roles */
     public function __construct(

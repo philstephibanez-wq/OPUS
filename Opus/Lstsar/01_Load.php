@@ -6,7 +6,7 @@ namespace Opus\Lstsar;
 /**
  * Stage 01: Load source data from an ODBC-backed source model context.
  */
-final class LoadStage implements LstsarStageInterface
+final class LoadStage implements LstsarStageInterface, LoadStageInterface
 {
     public function name(): string
     {

@@ -13,7 +13,7 @@ use Opus\Security\Identity\IdentityContextInterface;
 /**
  * Generic OPUS REST status endpoint.
  */
-final class StatusEndpoint implements ApiEndpointInterface
+final class StatusEndpoint implements ApiEndpointInterface, StatusEndpointInterface
 {
     public function handle(ApiRoute $route, ApplicationDefinition $application, Request $request, IdentityContextInterface $identity, array $context = []): Response
     {

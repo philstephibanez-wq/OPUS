@@ -8,7 +8,7 @@ use Opus\Model\TableModel;
 /**
  * Read-only context passed to a destination-assignment transform hook.
  */
-final class LstsarTransformHookContext
+final class LstsarTransformHookContext implements LstsarTransformHookContextInterface
 {
     private LstsarConfig $config;
     private TableModel $sourceModel;

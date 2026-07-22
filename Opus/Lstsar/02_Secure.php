@@ -8,7 +8,7 @@ namespace Opus\Lstsar;
  *
  * Historical filename is 02_Secure.php; canonical stage name is securize.
  */
-final class SecurizeStage implements LstsarStageInterface
+final class SecurizeStage implements LstsarStageInterface, SecurizeStageInterface
 {
     public function name(): string
     {

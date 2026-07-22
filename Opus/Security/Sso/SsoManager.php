@@ -5,7 +5,7 @@ namespace Opus\Security\Sso;
 
 use RuntimeException;
 
-final class SsoManager
+final class SsoManager implements SsoManagerInterface
 {
     /** @var array<string,SsoProviderInterface> */
     private array $providers = [];

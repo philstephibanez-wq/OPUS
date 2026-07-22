@@ -10,7 +10,7 @@ use Opus\OdbcExplorer\Crud\OdbcCrudService;
 /**
  * Destination writer that stores through the guarded ODBC CRUD service.
  */
-final class LstsarOdbcCrudDestinationWriter implements LstsarOdbcDestinationWriterInterface
+final class LstsarOdbcCrudDestinationWriter implements LstsarOdbcDestinationWriterInterface, LstsarOdbcCrudDestinationWriterInterface
 {
     private OdbcCrudService $crudService;
     private bool $aclGranted;

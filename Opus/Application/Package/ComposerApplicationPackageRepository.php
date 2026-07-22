@@ -6,7 +6,7 @@ namespace Opus\Application\Package;
 /**
  * Discovers Composer-installed OPUS application packages from vendor metadata.
  */
-final class ComposerApplicationPackageRepository
+final class ComposerApplicationPackageRepository implements ComposerApplicationPackageRepositoryInterface
 {
     private string $projectRoot;
     private ApplicationPackageContract $contract;

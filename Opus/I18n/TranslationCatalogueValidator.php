@@ -5,7 +5,7 @@ namespace Opus\I18n;
 
 use Opus\I18n\Plural\PluralRuleRegistry;
 
-final class TranslationCatalogueValidator
+final class TranslationCatalogueValidator implements TranslationCatalogueValidatorInterface
 {
     public const CONTRACT = 'OPUS_I18N_CATALOGUE_VALIDATOR_V2';
 

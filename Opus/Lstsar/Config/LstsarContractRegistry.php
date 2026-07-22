@@ -11,7 +11,7 @@ use Opus\Lstsar\Pipeline\DeclaredLstsarPipeline;
  * This registry exposes declared LSTSAR stages and pipeline contracts. It does not run
  * a LSTSAR job and it does not embed endpoint-specific behavior.
  */
-final class LstsarContractRegistry
+final class LstsarContractRegistry implements LstsarContractRegistryInterface
 {
     /** @var array<string,mixed> */
     private array $data;

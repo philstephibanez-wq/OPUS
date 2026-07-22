@@ -14,7 +14,7 @@ use RuntimeException;
  * Functional modules are derived from the FSM states. site.json contains
  * site-wide infrastructure metadata and is not a second module registry.
  */
-final class FsmSiteLoader
+final class FsmSiteLoader implements FsmSiteLoaderInterface
 {
     /** @var list<string> */
     private const FALLBACK_FSM_FILES = [

@@ -5,7 +5,7 @@ namespace Opus\Security\Sso;
 
 use RuntimeException;
 
-final class LocalPasswordSsoProvider implements SsoProviderInterface, PasswordChangeProviderInterface
+final class LocalPasswordSsoProvider implements SsoProviderInterface, PasswordChangeProviderInterface, LocalPasswordSsoProviderInterface
 {
     public function __construct(
         private readonly string $storeFile,

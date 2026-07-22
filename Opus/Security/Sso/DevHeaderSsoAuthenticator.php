@@ -14,7 +14,7 @@ use Opus\Security\Identity\IdentityContextInterface;
  * contract before wiring OIDC/SAML providers. It does not pretend to be a
  * production identity provider.
  */
-final class DevHeaderSsoAuthenticator implements SsoAuthenticatorInterface
+final class DevHeaderSsoAuthenticator implements SsoAuthenticatorInterface, DevHeaderSsoAuthenticatorInterface
 {
     private string $userHeader;
     private string $rolesHeader;

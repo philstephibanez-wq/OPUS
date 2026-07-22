@@ -8,7 +8,7 @@ use Opus\Lstsar\LstsarPipelineInterface;
 /**
  * Immutable pipeline contract loaded from the LSTSAR registry.
  */
-final class DeclaredLstsarPipeline implements LstsarPipelineInterface
+final class DeclaredLstsarPipeline implements LstsarPipelineInterface, DeclaredLstsarPipelineInterface
 {
     /** @var array<string,mixed> */
     private array $data;

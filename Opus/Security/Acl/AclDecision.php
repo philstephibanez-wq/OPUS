@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Opus\Security\Acl;
 
-final class AclDecision
+final class AclDecision implements AclDecisionInterface
 {
     public function __construct(
         public readonly bool $allowed,

@@ -18,7 +18,7 @@ use Opus\Security\Sso\DevHeaderSsoAuthenticator;
  * This dispatcher is intentionally data-driven: Router only delegates to it, while
  * routes, ACL policies and SSO behavior are loaded from configuration contracts.
  */
-final class ApiDispatcher
+final class ApiDispatcher implements ApiDispatcherInterface
 {
     private ApiRouteRegistry $routes;
     private DevHeaderSsoAuthenticator $sso;

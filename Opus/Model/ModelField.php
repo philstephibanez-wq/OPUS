@@ -6,7 +6,7 @@ namespace Opus\Model;
 /**
  * One OPUS model field, independent from the concrete database engine.
  */
-final class ModelField
+final class ModelField implements ModelFieldInterface
 {
     private const TYPES = ['string', 'integer', 'decimal', 'float', 'boolean', 'date', 'datetime', 'binary', 'text', 'unknown'];
 

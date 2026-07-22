@@ -5,7 +5,7 @@ namespace Opus\I18n;
 
 use Opus\I18n\Plural\PluralRuleInterface;
 
-final readonly class Translator
+final readonly class Translator implements TranslatorInterface
 {
     public const CONTRACT = 'OPUS_I18N_TRANSLATOR_ASAP_COMPAT_V2';
 

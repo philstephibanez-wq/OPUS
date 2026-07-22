@@ -6,7 +6,7 @@ namespace Opus\Lstsar\Contract;
 /**
  * Immutable declaration of the source side of a LSTSAR job.
  */
-final class LstsarSourceContract
+final class LstsarSourceContract implements LstsarSourceContractInterface
 {
     private string $id;
     private string $kind;

@@ -6,7 +6,7 @@ namespace Opus\Lstsar;
 /**
  * JSON-file LSTSAR store for OPUS API/runtime integration.
  */
-final class JsonFileLstsarStore implements LstsarStoreInterface
+final class JsonFileLstsarStore implements LstsarStoreInterface, JsonFileLstsarStoreInterface
 {
     private string $rootDir;
 

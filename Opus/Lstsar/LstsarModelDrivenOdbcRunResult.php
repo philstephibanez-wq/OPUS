@@ -6,7 +6,7 @@ namespace Opus\Lstsar;
 /**
  * Final result for the six-stage model-driven ODBC LSTSAR engine.
  */
-final class LstsarModelDrivenOdbcRunResult
+final class LstsarModelDrivenOdbcRunResult implements LstsarModelDrivenOdbcRunResultInterface
 {
     private bool $ok;
     private ?string $destinationRecordId;

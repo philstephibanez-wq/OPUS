@@ -8,7 +8,7 @@ use Opus\Model\TableModel;
 /**
  * Runtime context shared by the six LSTSAR stages.
  */
-final class LstsarContext
+final class LstsarContext implements LstsarContextInterface
 {
     private LstsarConfig $config;
     private TableModel $sourceModel;
