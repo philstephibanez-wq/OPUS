@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "da",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Ugyldigt brugernavn eller adgangskode.",
+    "auth.error.required_credentials": "Brugernavn og adgangskode er påkrævet.",
+    "auth.password.hide": "Skjul adgangskode",
+    "auth.password.show": "Vis adgangskode",
+    "auth.password_field": "Adgangskode",
+    "auth.sign_in": "Log ind",
+    "auth.sign_in_description": "Åbn en godkendt OWASYS-runtime-session.",
+    "auth.username": "Brugernavn"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

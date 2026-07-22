@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "ga",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Ainm úsáideora nó pasfhocal neamhbhailí.",
+    "auth.error.required_credentials": "Tá ainm úsáideora agus pasfhocal riachtanach.",
+    "auth.password.hide": "Folaigh an focal faire",
+    "auth.password.show": "Taispeáin an focal faire",
+    "auth.password_field": "Pasfhocal",
+    "auth.sign_in": "Logáil isteach",
+    "auth.sign_in_description": "Oscail seisiún runtime fíordheimhnithe OWASYS.",
+    "auth.username": "Ainm úsáideora"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

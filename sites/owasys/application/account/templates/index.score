@@ -4,7 +4,11 @@
     <h2>[[ i18n: auth.change_password ]]</h2>
     <p>[[ i18n: auth.change_password_description ]]</p>
   </header>
-  [[ if: auth.error ]]<p class="ow-error">{{ auth.error }}</p>[[ endif ]]
+  [[ if: auth.error_password_mismatch ]]<p class="ow-error">[[ i18n: auth.error.password_mismatch ]]</p>[[ endif ]]
+  [[ if: auth.error_password_too_short ]]<p class="ow-error">[[ i18n: auth.error.password_too_short ]]</p>[[ endif ]]
+  [[ if: auth.error_current_password_invalid ]]<p class="ow-error">[[ i18n: auth.error.current_password_invalid ]]</p>[[ endif ]]
+  [[ if: auth.error_password_unchanged ]]<p class="ow-error">[[ i18n: auth.error.password_unchanged ]]</p>[[ endif ]]
+  [[ if: auth.error_runtime_user_missing ]]<p class="ow-error">[[ i18n: auth.error.runtime_user_missing ]]</p>[[ endif ]]
   <form method="post" action="{{ urls.current }}">
     <input type="hidden" name="owasys_action" value="change-password">
     <label for="owasys-current-password">[[ i18n: auth.current_password ]]</label>

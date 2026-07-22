@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "sl",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Spremeni geslo",
+    "auth.change_password_description": "Zamenjajte začasno runtime geslo.",
+    "auth.confirm_new_password": "Potrdite novo geslo",
+    "auth.current_password": "Trenutno geslo",
+    "auth.error.current_password_invalid": "Trenutno geslo ni veljavno.",
+    "auth.error.password_mismatch": "Potrditev gesla se ne ujema.",
+    "auth.error.password_too_short": "Novo geslo je prekratko.",
+    "auth.error.password_unchanged": "Novo geslo se mora razlikovati od trenutnega.",
+    "auth.error.runtime_user_missing": "Uporabnik izvajalne seje ni bil najden.",
+    "auth.new_password": "Novo geslo"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

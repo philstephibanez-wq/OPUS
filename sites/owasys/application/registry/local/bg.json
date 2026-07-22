@@ -1,0 +1,28 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "bg",
+  "scope": "registry",
+  "messages": {
+    "registry.application_context": "Контекст на приложението",
+    "registry.clear_current_context": "Изчистване на текущия контекст",
+    "registry.create_application": "Създаване на ново приложение",
+    "registry.database": "База данни",
+    "registry.description": "Изберете автономното приложение OPUS, върху което OWASYS ще работи.",
+    "registry.discovered_imported": "Открити записи",
+    "registry.empty_description": "Началните данни на регистъра и откритите OPUS сайтове не върнаха приложение.",
+    "registry.empty_title": "Няма регистрирано приложение",
+    "registry.error.action_invalid": "Заявеното действие в регистъра е невалидно.",
+    "registry.error.application_not_found": "Избраното приложение не е намерено.",
+    "registry.error.application_required": "Необходим е идентификатор на приложение.",
+    "registry.events.empty": "Няма записано събитие в регистъра.",
+    "registry.events.title": "Последни събития в регистъра",
+    "registry.no_application_selected": "В момента няма избрано приложение.",
+    "registry.runtime_sqlite": "Runtime SQLite регистър",
+    "registry.seed_imported": "Начални записи",
+    "registry.select_instruction": "Изберете приложение или започнете създаването на ново приложение.",
+    "registry.sync_total": "Приложения",
+    "registry.work_on_this_app": "Работа с това приложение"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

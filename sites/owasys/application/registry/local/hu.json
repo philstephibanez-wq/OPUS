@@ -1,0 +1,28 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "hu",
+  "scope": "registry",
+  "messages": {
+    "registry.application_context": "Alkalmazáskörnyezet",
+    "registry.clear_current_context": "Aktuális környezet törlése",
+    "registry.create_application": "Új alkalmazás létrehozása",
+    "registry.database": "Adatbázis",
+    "registry.description": "Válassza ki azt az önálló OPUS alkalmazást, amelyen az OWASYS dolgozni fog.",
+    "registry.discovered_imported": "Felismert bejegyzések",
+    "registry.empty_description": "A registry seed és a felismert OPUS webhelyek nem adtak vissza alkalmazást.",
+    "registry.empty_title": "Nincs regisztrált alkalmazás",
+    "registry.error.action_invalid": "A kért registry művelet érvénytelen.",
+    "registry.error.application_not_found": "A kiválasztott alkalmazás nem található.",
+    "registry.error.application_required": "Alkalmazásazonosító szükséges.",
+    "registry.events.empty": "Nem került rögzítésre registry esemény.",
+    "registry.events.title": "Legutóbbi registry események",
+    "registry.no_application_selected": "Jelenleg nincs kiválasztva alkalmazás.",
+    "registry.runtime_sqlite": "Runtime SQLite-nyilvántartás",
+    "registry.seed_imported": "Seed bejegyzések",
+    "registry.select_instruction": "Válasszon alkalmazást, vagy indítsa el egy új alkalmazás létrehozását.",
+    "registry.sync_total": "Alkalmazások",
+    "registry.work_on_this_app": "Munka ezzel az alkalmazással"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

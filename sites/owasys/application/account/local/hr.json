@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "hr",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Promijeni lozinku",
+    "auth.change_password_description": "Zamijenite privremenu runtime lozinku.",
+    "auth.confirm_new_password": "Potvrdite novu lozinku",
+    "auth.current_password": "Trenutačna lozinka",
+    "auth.error.current_password_invalid": "Trenutačna lozinka nije ispravna.",
+    "auth.error.password_mismatch": "Potvrda lozinke se ne podudara.",
+    "auth.error.password_too_short": "Nova lozinka je prekratka.",
+    "auth.error.password_unchanged": "Nova lozinka mora se razlikovati od trenutačne lozinke.",
+    "auth.error.runtime_user_missing": "Korisnik runtime sesije nije pronađen.",
+    "auth.new_password": "Nova lozinka"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

@@ -1,0 +1,9 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "sl-SI",
+  "scope": "default",
+  "inherits": "sl",
+  "messages": {},
+  "plurals": {},
+  "grammatical": {}
+}

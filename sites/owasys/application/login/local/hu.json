@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "hu",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Érvénytelen felhasználónév vagy jelszó.",
+    "auth.error.required_credentials": "A felhasználónév és a jelszó kötelező.",
+    "auth.password.hide": "Jelszó elrejtése",
+    "auth.password.show": "Jelszó megjelenítése",
+    "auth.password_field": "Jelszó",
+    "auth.sign_in": "Bejelentkezés",
+    "auth.sign_in_description": "Hitelesített OWASYS runtime munkamenet megnyitása.",
+    "auth.username": "Felhasználónév"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "mt",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Ibdel il-password",
+    "auth.change_password_description": "Ibdel il-password runtime temporanja.",
+    "auth.confirm_new_password": "Ikkonferma l-password il-ġdida",
+    "auth.current_password": "Password attwali",
+    "auth.error.current_password_invalid": "Il-password attwali mhix valida.",
+    "auth.error.password_mismatch": "Il-konferma tal-password ma taqbilx.",
+    "auth.error.password_too_short": "Il-password il-ġdida hija qasira wisq.",
+    "auth.error.password_unchanged": "Il-password il-ġdida trid tkun differenti minn dik attwali.",
+    "auth.error.runtime_user_missing": "L-utent tas-sessjoni runtime ma nstabx.",
+    "auth.new_password": "Password ġdida"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

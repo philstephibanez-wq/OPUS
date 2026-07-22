@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "et",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Vale kasutajanimi või parool.",
+    "auth.error.required_credentials": "Kasutajanimi ja parool on kohustuslikud.",
+    "auth.password.hide": "Peida parool",
+    "auth.password.show": "Kuva parool",
+    "auth.password_field": "Parool",
+    "auth.sign_in": "Logi sisse",
+    "auth.sign_in_description": "Ava autentitud OWASYS-i runtime-seanss.",
+    "auth.username": "Kasutajanimi"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "el",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Αλλαγή κωδικού",
+    "auth.change_password_description": "Αντικατάσταση του προσωρινού κωδικού runtime.",
+    "auth.confirm_new_password": "Επιβεβαίωση νέου κωδικού",
+    "auth.current_password": "Τρέχων κωδικός",
+    "auth.error.current_password_invalid": "Ο τρέχων κωδικός δεν είναι έγκυρος.",
+    "auth.error.password_mismatch": "Η επιβεβαίωση του κωδικού δεν ταιριάζει.",
+    "auth.error.password_too_short": "Ο νέος κωδικός είναι πολύ σύντομος.",
+    "auth.error.password_unchanged": "Ο νέος κωδικός πρόσβασης πρέπει να διαφέρει από τον τρέχοντα.",
+    "auth.error.runtime_user_missing": "Ο χρήστης της συνεδρίας εκτέλεσης δεν βρέθηκε.",
+    "auth.new_password": "Νέος κωδικός"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

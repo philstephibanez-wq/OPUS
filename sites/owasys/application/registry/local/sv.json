@@ -1,0 +1,28 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "sv",
+  "scope": "registry",
+  "messages": {
+    "registry.application_context": "Applikationskontext",
+    "registry.clear_current_context": "Rensa aktuell kontext",
+    "registry.create_application": "Skapa en ny applikation",
+    "registry.database": "Databas",
+    "registry.description": "Välj den fristående OPUS-applikation som OWASYS ska arbeta med.",
+    "registry.discovered_imported": "Upptäckta poster",
+    "registry.empty_description": "Registerseed och upptäckta OPUS-webbplatser returnerade ingen applikation.",
+    "registry.empty_title": "Ingen registrerad applikation",
+    "registry.error.action_invalid": "Den begärda registeråtgärden är ogiltig.",
+    "registry.error.application_not_found": "Den valda applikationen hittades inte.",
+    "registry.error.application_required": "En applikationsidentifierare krävs.",
+    "registry.events.empty": "Ingen registerhändelse har registrerats.",
+    "registry.events.title": "Senaste registerhändelser",
+    "registry.no_application_selected": "Ingen applikation är vald för närvarande.",
+    "registry.runtime_sqlite": "Runtime SQLite-register",
+    "registry.seed_imported": "Seedposter",
+    "registry.select_instruction": "Välj en applikation eller starta skapandet av en ny applikation.",
+    "registry.sync_total": "Applikationer",
+    "registry.work_on_this_app": "Arbeta med denna applikation"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

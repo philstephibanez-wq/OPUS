@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "sv",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Byt lösenord",
+    "auth.change_password_description": "Ersätt det tillfälliga runtime-lösenordet.",
+    "auth.confirm_new_password": "Bekräfta det nya lösenordet",
+    "auth.current_password": "Nuvarande lösenord",
+    "auth.error.current_password_invalid": "Det nuvarande lösenordet är ogiltigt.",
+    "auth.error.password_mismatch": "Lösenordsbekräftelsen stämmer inte.",
+    "auth.error.password_too_short": "Det nya lösenordet är för kort.",
+    "auth.error.password_unchanged": "Det nya lösenordet måste skilja sig från det aktuella.",
+    "auth.error.runtime_user_missing": "Användaren för runtime-sessionen hittades inte.",
+    "auth.new_password": "Nytt lösenord"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

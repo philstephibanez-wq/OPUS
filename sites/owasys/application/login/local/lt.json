@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "lt",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Neteisingas naudotojo vardas arba slaptažodis.",
+    "auth.error.required_credentials": "Naudotojo vardas ir slaptažodis yra privalomi.",
+    "auth.password.hide": "Slėpti slaptažodį",
+    "auth.password.show": "Rodyti slaptažodį",
+    "auth.password_field": "Slaptažodis",
+    "auth.sign_in": "Prisijungti",
+    "auth.sign_in_description": "Atidaryti autentifikuotą OWASYS runtime seansą.",
+    "auth.username": "Naudotojo vardas"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

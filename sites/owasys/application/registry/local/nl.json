@@ -1,0 +1,28 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "nl",
+  "scope": "registry",
+  "messages": {
+    "registry.application_context": "Applicatiecontext",
+    "registry.clear_current_context": "Huidige context wissen",
+    "registry.create_application": "Nieuwe applicatie maken",
+    "registry.database": "Database",
+    "registry.description": "Selecteer de autonome OPUS-applicatie waarop OWASYS moet werken.",
+    "registry.discovered_imported": "Gevonden records",
+    "registry.empty_description": "De registerseed en de gevonden OPUS-sites leverden geen applicatie op.",
+    "registry.empty_title": "Geen geregistreerde applicatie",
+    "registry.error.action_invalid": "De gevraagde registeractie is ongeldig.",
+    "registry.error.application_not_found": "De geselecteerde applicatie is niet gevonden.",
+    "registry.error.application_required": "Een applicatie-id is verplicht.",
+    "registry.events.empty": "Er is geen registergebeurtenis vastgelegd.",
+    "registry.events.title": "Recente registergebeurtenissen",
+    "registry.no_application_selected": "Er is momenteel geen applicatie geselecteerd.",
+    "registry.runtime_sqlite": "Runtime SQLite-register",
+    "registry.seed_imported": "Seedrecords",
+    "registry.select_instruction": "Kies een applicatie of start het maken van een nieuwe applicatie.",
+    "registry.sync_total": "Applicaties",
+    "registry.work_on_this_app": "Aan deze applicatie werken"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

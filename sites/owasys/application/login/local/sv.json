@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "sv",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Ogiltigt användarnamn eller lösenord.",
+    "auth.error.required_credentials": "Användarnamn och lösenord krävs.",
+    "auth.password.hide": "Dölj lösenord",
+    "auth.password.show": "Visa lösenord",
+    "auth.password_field": "Lösenord",
+    "auth.sign_in": "Logga in",
+    "auth.sign_in_description": "Öppna en autentiserad OWASYS-runtime-session.",
+    "auth.username": "Användarnamn"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

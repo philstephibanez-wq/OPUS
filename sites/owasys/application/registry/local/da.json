@@ -1,0 +1,28 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "da",
+  "scope": "registry",
+  "messages": {
+    "registry.application_context": "Applikationskontekst",
+    "registry.clear_current_context": "Ryd den aktuelle kontekst",
+    "registry.create_application": "Opret en ny applikation",
+    "registry.database": "Database",
+    "registry.description": "Vælg den autonome OPUS-applikation, som OWASYS skal arbejde med.",
+    "registry.discovered_imported": "Fundne poster",
+    "registry.empty_description": "Registerets startdata og de fundne OPUS-websteder returnerede ingen applikation.",
+    "registry.empty_title": "Ingen registreret applikation",
+    "registry.error.action_invalid": "Den ønskede registerhandling er ugyldig.",
+    "registry.error.application_not_found": "Den valgte applikation blev ikke fundet.",
+    "registry.error.application_required": "Et applikations-id er påkrævet.",
+    "registry.events.empty": "Der er ikke registreret nogen registerhændelse.",
+    "registry.events.title": "Seneste registerhændelser",
+    "registry.no_application_selected": "Der er i øjeblikket ikke valgt nogen applikation.",
+    "registry.runtime_sqlite": "Runtime SQLite-register",
+    "registry.seed_imported": "Startposter",
+    "registry.select_instruction": "Vælg en applikation, eller start oprettelsen af en ny applikation.",
+    "registry.sync_total": "Applikationer",
+    "registry.work_on_this_app": "Arbejd med denne applikation"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

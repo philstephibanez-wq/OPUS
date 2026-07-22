@@ -1,0 +1,9 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "it-CH",
+  "scope": "account",
+  "inherits": "it",
+  "messages": {},
+  "plurals": {},
+  "grammatical": {}
+}

@@ -1,0 +1,28 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "en",
+  "scope": "registry",
+  "messages": {
+    "registry.application_context": "Application context",
+    "registry.clear_current_context": "Clear the current context",
+    "registry.create_application": "Create a new application",
+    "registry.database": "Database",
+    "registry.description": "Select the autonomous OPUS application on which OWASYS will operate.",
+    "registry.discovered_imported": "Discovered rows",
+    "registry.empty_description": "The registry seed and discovered OPUS sites did not return an application.",
+    "registry.empty_title": "No registered application",
+    "registry.error.action_invalid": "The requested registry action is invalid.",
+    "registry.error.application_not_found": "The selected application was not found.",
+    "registry.error.application_required": "An application identifier is required.",
+    "registry.events.empty": "No registry event has been recorded.",
+    "registry.events.title": "Recent registry events",
+    "registry.no_application_selected": "No application is currently selected.",
+    "registry.runtime_sqlite": "Runtime SQLite registry",
+    "registry.seed_imported": "Seed rows",
+    "registry.select_instruction": "Choose an application or start a new application creation flow.",
+    "registry.sync_total": "Applications",
+    "registry.work_on_this_app": "Work on this application"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

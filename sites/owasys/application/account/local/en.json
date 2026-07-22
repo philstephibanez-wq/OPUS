@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "en",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Change password",
+    "auth.change_password_description": "Replace the temporary runtime password.",
+    "auth.confirm_new_password": "Confirm the new password",
+    "auth.current_password": "Current password",
+    "auth.error.current_password_invalid": "The current password is invalid.",
+    "auth.error.password_mismatch": "The password confirmation does not match.",
+    "auth.error.password_too_short": "The new password is too short.",
+    "auth.error.password_unchanged": "The new password must differ from the current password.",
+    "auth.error.runtime_user_missing": "The runtime session user was not found.",
+    "auth.new_password": "New password"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

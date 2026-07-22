@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "lt",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Keisti slaptažodį",
+    "auth.change_password_description": "Pakeisti laikiną runtime slaptažodį.",
+    "auth.confirm_new_password": "Patvirtinti naują slaptažodį",
+    "auth.current_password": "Dabartinis slaptažodis",
+    "auth.error.current_password_invalid": "Dabartinis slaptažodis neteisingas.",
+    "auth.error.password_mismatch": "Slaptažodžio patvirtinimas nesutampa.",
+    "auth.error.password_too_short": "Naujas slaptažodis per trumpas.",
+    "auth.error.password_unchanged": "Naujas slaptažodis turi skirtis nuo dabartinio.",
+    "auth.error.runtime_user_missing": "Vykdymo seanso naudotojas nerastas.",
+    "auth.new_password": "Naujas slaptažodis"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

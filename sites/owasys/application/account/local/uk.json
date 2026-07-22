@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "uk",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Змінити пароль",
+    "auth.change_password_description": "Замінити тимчасовий runtime-пароль.",
+    "auth.confirm_new_password": "Підтвердити новий пароль",
+    "auth.current_password": "Поточний пароль",
+    "auth.error.current_password_invalid": "Поточний пароль неправильний.",
+    "auth.error.password_mismatch": "Підтвердження пароля не збігається.",
+    "auth.error.password_too_short": "Новий пароль надто короткий.",
+    "auth.error.password_unchanged": "Новий пароль має відрізнятися від поточного.",
+    "auth.error.runtime_user_missing": "Користувача runtime-сеансу не знайдено.",
+    "auth.new_password": "Новий пароль"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

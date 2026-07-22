@@ -1,0 +1,28 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "fi",
+  "scope": "registry",
+  "messages": {
+    "registry.application_context": "Sovelluskonteksti",
+    "registry.clear_current_context": "Tyhjennä nykyinen konteksti",
+    "registry.create_application": "Luo uusi sovellus",
+    "registry.database": "Tietokanta",
+    "registry.description": "Valitse itsenäinen OPUS-sovellus, jota OWASYS käsittelee.",
+    "registry.discovered_imported": "Löydetyt rivit",
+    "registry.empty_description": "Rekisterin alkutiedot ja löydetyt OPUS-sivustot eivät palauttaneet sovellusta.",
+    "registry.empty_title": "Ei rekisteröityä sovellusta",
+    "registry.error.action_invalid": "Pyydetty rekisteritoiminto on virheellinen.",
+    "registry.error.application_not_found": "Valittua sovellusta ei löytynyt.",
+    "registry.error.application_required": "Sovelluksen tunniste vaaditaan.",
+    "registry.events.empty": "Rekisteritapahtumia ei ole tallennettu.",
+    "registry.events.title": "Viimeisimmät rekisteritapahtumat",
+    "registry.no_application_selected": "Tällä hetkellä sovellusta ei ole valittu.",
+    "registry.runtime_sqlite": "Runtime SQLite -rekisteri",
+    "registry.seed_imported": "Alkurivit",
+    "registry.select_instruction": "Valitse sovellus tai aloita uuden sovelluksen luonti.",
+    "registry.sync_total": "Sovellukset",
+    "registry.work_on_this_app": "Työskentele tämän sovelluksen kanssa"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

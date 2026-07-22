@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "hr",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Neispravno korisničko ime ili lozinka.",
+    "auth.error.required_credentials": "Korisničko ime i lozinka su obvezni.",
+    "auth.password.hide": "Sakrij lozinku",
+    "auth.password.show": "Prikaži lozinku",
+    "auth.password_field": "Lozinka",
+    "auth.sign_in": "Prijava",
+    "auth.sign_in_description": "Otvorite autentificiranu OWASYS runtime sesiju.",
+    "auth.username": "Korisničko ime"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

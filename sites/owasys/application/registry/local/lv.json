@@ -1,0 +1,28 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "lv",
+  "scope": "registry",
+  "messages": {
+    "registry.application_context": "Lietotnes konteksts",
+    "registry.clear_current_context": "Notīrīt pašreizējo kontekstu",
+    "registry.create_application": "Izveidot jaunu lietotni",
+    "registry.database": "Datu bāze",
+    "registry.description": "Atlasiet autonomo OPUS lietotni, ar kuru strādās OWASYS.",
+    "registry.discovered_imported": "Atrastie ieraksti",
+    "registry.empty_description": "Reģistra sākumdati un atrastās OPUS vietnes neatgrieza lietotni.",
+    "registry.empty_title": "Nav reģistrētu lietotņu",
+    "registry.error.action_invalid": "Pieprasītā reģistra darbība nav derīga.",
+    "registry.error.application_not_found": "Atlasītā lietotne netika atrasta.",
+    "registry.error.application_required": "Nepieciešams lietotnes identifikators.",
+    "registry.events.empty": "Nav reģistrēts neviens reģistra notikums.",
+    "registry.events.title": "Nesenie reģistra notikumi",
+    "registry.no_application_selected": "Pašlaik nav atlasīta neviena lietotne.",
+    "registry.runtime_sqlite": "Runtime SQLite reģistrs",
+    "registry.seed_imported": "Sākuma ieraksti",
+    "registry.select_instruction": "Izvēlieties lietotni vai sāciet jaunas lietotnes izveidi.",
+    "registry.sync_total": "Lietotnes",
+    "registry.work_on_this_app": "Strādāt ar šo lietotni"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

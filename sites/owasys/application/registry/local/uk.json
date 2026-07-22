@@ -1,0 +1,28 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "uk",
+  "scope": "registry",
+  "messages": {
+    "registry.application_context": "Контекст застосунку",
+    "registry.clear_current_context": "Очистити поточний контекст",
+    "registry.create_application": "Створити новий застосунок",
+    "registry.database": "База даних",
+    "registry.description": "Виберіть автономний застосунок OPUS, з яким працюватиме OWASYS.",
+    "registry.discovered_imported": "Виявлені записи",
+    "registry.empty_description": "Початкові дані реєстру та виявлені сайти OPUS не повернули застосунок.",
+    "registry.empty_title": "Немає зареєстрованих застосунків",
+    "registry.error.action_invalid": "Запитана дія реєстру є неправильною.",
+    "registry.error.application_not_found": "Вибраний застосунок не знайдено.",
+    "registry.error.application_required": "Потрібен ідентифікатор застосунку.",
+    "registry.events.empty": "Подій реєстру ще не зафіксовано.",
+    "registry.events.title": "Останні події реєстру",
+    "registry.no_application_selected": "Наразі жодного застосунку не вибрано.",
+    "registry.runtime_sqlite": "Runtime-реєстр SQLite",
+    "registry.seed_imported": "Початкові записи",
+    "registry.select_instruction": "Виберіть застосунок або почніть створення нового застосунку.",
+    "registry.sync_total": "Застосунки",
+    "registry.work_on_this_app": "Працювати з цим застосунком"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

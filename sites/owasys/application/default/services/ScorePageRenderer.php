@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 use Opus\I18n\ApplicationTranslationRuntime;
 use Opus\I18n\TranslationRuntimeInterface;
+use Opus\File\StructuredFileLoader;
 use Opus\Template\ScoreTemplateRenderer;
 
 final class OwasysScorePageRenderer
@@ -160,23 +161,6 @@ final class OwasysScorePageRenderer
             }
         }
 
-        $data['labels']['navigation'] = $i18n->translate(
-            'navigation.main'
-        );
-
-        if (is_array($data['entries'] ?? null)) {
-            foreach ($data['entries'] as $index => $entry) {
-                if (!is_array($entry)) {
-                    continue;
-                }
-
-                $data['entries'][$index]['button_label'] = $i18n->translate(
-                    ($entry['current'] ?? false) === true
-                        ? 'registry.current_application'
-                        : 'registry.work_on_this_app'
-                );
-            }
-        }
 
         return $data;
     }
@@ -184,19 +168,15 @@ final class OwasysScorePageRenderer
     /** @return array<string,mixed> */
     private function loadFsm(): array
     {
+        $loader = StructuredFileLoader::instance();
         $siteConfigFile = $this->siteRoot . '/config/site.json';
-        $siteConfig = is_file($siteConfigFile)
-            ? json_decode(
-                (string) file_get_contents($siteConfigFile),
-                true,
-                512,
-                JSON_THROW_ON_ERROR
-            )
-            : null;
-
-        if (!is_array($siteConfig)) {
+        try {
+            $siteConfig = $loader->read($siteConfigFile);
+        } catch (Throwable $cause) {
             throw new RuntimeException(
-                'OWASYS_SCORE_I18N_SITE_CONFIG_INVALID'
+                'OWASYS_SCORE_I18N_SITE_CONFIG_INVALID:' . $cause->getMessage(),
+                0,
+                $cause
             );
         }
 
@@ -204,40 +184,23 @@ final class OwasysScorePageRenderer
             ? $siteConfig['navigation']
             : [];
         $relative = trim(
-            str_replace(
-                '\\',
-                '/',
-                (string) ($navigation['fsm'] ?? '')
-            ),
+            str_replace('\\', '/', (string) ($navigation['fsm'] ?? '')),
             '/'
         );
-
-        if (
-            $relative === ''
-            || str_contains($relative, '..')
-        ) {
-            throw new RuntimeException(
-                'OWASYS_SCORE_I18N_FSM_PATH_INVALID'
-            );
+        if ($relative === '' || str_contains($relative, '..')) {
+            throw new RuntimeException('OWASYS_SCORE_I18N_FSM_PATH_INVALID');
         }
 
         $fsmFile = $this->siteRoot . '/' . $relative;
-        $fsm = is_file($fsmFile)
-            ? json_decode(
-                (string) file_get_contents($fsmFile),
-                true,
-                512,
-                JSON_THROW_ON_ERROR
-            )
-            : null;
-
-        if (!is_array($fsm)) {
+        try {
+            return $loader->read($fsmFile);
+        } catch (Throwable $cause) {
             throw new RuntimeException(
-                'OWASYS_SCORE_I18N_FSM_CONFIG_INVALID'
+                'OWASYS_SCORE_I18N_FSM_CONFIG_INVALID:' . $cause->getMessage(),
+                0,
+                $cause
             );
         }
-
-        return $fsm;
     }
 
     private function assetBase(string $scoreCss): string

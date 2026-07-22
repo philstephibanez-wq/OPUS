@@ -1,0 +1,9 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "el-GR",
+  "scope": "registry",
+  "inherits": "el",
+  "messages": {},
+  "plurals": {},
+  "grammatical": {}
+}

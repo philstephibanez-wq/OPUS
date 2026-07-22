@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 use Opus\Fsm\FsmProcessor;
 use Opus\Fsm\FsmSiteLoader;
+use Opus\File\StructuredFileLoader;
+use Opus\I18n\BrowserLocaleNegotiator;
 use Opus\Security\Sso\SsoIdentity;
 
 final class OwasysRuntimeController
@@ -31,10 +33,6 @@ final class OwasysRuntimeController
         $this->startSession();
 
         [$locale, $routeKey] = $this->resolveRequest();
-        $messages = $this->loadMessages($locale);
-        $translate = static fn (string $key): string => is_string($messages[$key] ?? null)
-            ? $messages[$key]
-            : $key;
 
         $fsmConfig = $this->loadFsmConfig();
         $fsm = FsmSiteLoader::processorForSiteRoot($this->siteRoot);
@@ -123,7 +121,6 @@ final class OwasysRuntimeController
             $fsmConfig,
             $targetState,
             $locale,
-            $translate,
             $routeKey,
             $requestResult,
             $errorKey
@@ -152,7 +149,10 @@ final class OwasysRuntimeController
     /** @return array{0:string,1:string} */
     private function resolveRequest(): array
     {
-        $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
+        $path = parse_url(
+            (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+            PHP_URL_PATH
+        );
         $path = is_string($path) ? rawurldecode($path) : '/';
         $segments = trim($path, '/') === ''
             ? []
@@ -162,13 +162,33 @@ final class OwasysRuntimeController
             array_shift($segments);
         }
 
-        $defaultLocale = (string) ($this->siteConfig['default_locale'] ?? 'fr');
-        $locale = (string) ($segments[0] ?? $defaultLocale);
+        $defaultLocale = (string) (
+            $this->siteConfig['default_locale'] ?? 'fr'
+        );
+        $negotiator = BrowserLocaleNegotiator::forLocales(
+            $this->locales->codes(),
+            $defaultLocale
+        );
+        $first = (string) ($segments[0] ?? '');
+        $explicit = $negotiator->match($first);
 
-        if (in_array($locale, $this->locales->codes(), true)) {
+        if ($explicit instanceof \Opus\I18n\Locale) {
+            $locale = $explicit->value;
             array_shift($segments);
+        } elseif (
+            $first !== ''
+            && preg_match(
+                '/^[A-Za-z]{2,3}(?:[-_][A-Za-z0-9]{2,8})+$/',
+                $first
+            ) === 1
+        ) {
+            $this->fail(404, 'OWASYS_LOCALE_UNSUPPORTED:' . $first);
         } else {
-            $locale = $defaultLocale;
+            $locale = $negotiator->negotiate(
+                is_string($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? null)
+                    ? $_SERVER['HTTP_ACCEPT_LANGUAGE']
+                    : null
+            )->value;
         }
 
         $routeKey = implode('/', $segments);
@@ -447,7 +467,6 @@ final class OwasysRuntimeController
     }
 
     /**
-     * @param callable(string):string $translate
      * @param array<string,mixed>|null $requestResult
      */
     private function renderState(
@@ -455,7 +474,6 @@ final class OwasysRuntimeController
         array $fsmConfig,
         string $stateId,
         string $locale,
-        callable $translate,
         string $requestRoute,
         ?array $requestResult,
         ?string $errorKey
@@ -472,13 +490,9 @@ final class OwasysRuntimeController
         );
 
         $data = [
-            'brand' => [
-                'name' => $translate('brand.name'),
-                'subtitle' => $translate('brand.subtitle'),
-            ],
             'page' => [
-                'title' => $translate((string) ($state['title_key'] ?? ('menu.' . $module))),
-                'summary' => $translate((string) ($state['summary_key'] ?? 'state.default.summary')),
+                'title' => '',
+                'summary' => '',
             ],
             'fsm' => [
                 'state' => $stateId,
@@ -499,13 +513,13 @@ final class OwasysRuntimeController
             'locale' => [
                 'code' => $locale,
                 'name' => $this->locales->name($locale),
-                'flag' => $basePath . '/asset/flags/' . rawurlencode($locale) . '.svg',
+                'flag' => $basePath . '/asset/flags/' . rawurlencode($this->locales->flagCode($locale)) . '.svg',
             ],
             'locales' => array_map(
                 fn (string $code): array => [
                     'code' => $code,
                     'name' => $this->locales->name($code),
-                    'flag' => $basePath . '/asset/flags/' . rawurlencode($code) . '.svg',
+                    'flag' => $basePath . '/asset/flags/' . rawurlencode($this->locales->flagCode($code)) . '.svg',
                     'url' => $this->routeUrl($code, $route),
                     'active' => $code === $locale,
                 ],
@@ -525,19 +539,21 @@ final class OwasysRuntimeController
                 'applications' => $this->routeUrl($locale, 'applications'),
                 'current' => $this->routeUrl($locale, $route),
             ],
-            'labels' => $this->viewLabels($translate),
             'navigation' => $this->navigation->build(
                 $fsmConfig,
                 $identity,
                 $stateId,
-                $translate,
                 $routeUrl
             ),
             'auth' => [
                 'provider' => $this->security->defaultProvider(),
-                'error' => $errorKey !== null && $errorKey !== ''
-                    ? $translate($errorKey)
-                    : '',
+                'error_required_credentials' => $errorKey === 'auth.error.required_credentials',
+                'error_invalid_credentials' => $errorKey === 'auth.error.invalid_credentials',
+                'error_password_mismatch' => $errorKey === 'auth.error.password_mismatch',
+                'error_password_too_short' => $errorKey === 'auth.error.password_too_short',
+                'error_current_password_invalid' => $errorKey === 'auth.error.current_password_invalid',
+                'error_password_unchanged' => $errorKey === 'auth.error.password_unchanged',
+                'error_runtime_user_missing' => $errorKey === 'auth.error.runtime_user_missing',
             ],
         ];
 
@@ -547,7 +563,7 @@ final class OwasysRuntimeController
             $result = $requestResult ?? $this->registryController()->handle('GET', []);
             $data = array_replace_recursive(
                 $data,
-                $this->registryViewData($result, $currentApp, $translate)
+                $this->registryViewData($result, $currentApp)
             );
         }
 
@@ -560,69 +576,14 @@ final class OwasysRuntimeController
         $this->renderer->emit($template, $data);
     }
 
-    /** @param callable(string):string $translate @return array<string,string> */
-    private function viewLabels(callable $translate): array
-    {
-        $keys = [
-            'account' => 'menu.account',
-            'login' => 'auth.login',
-            'logout' => 'auth.logout',
-            'navigation' => 'navigation.main',
-            'language_selector' => 'language.selector',
-            'pending' => 'module.pending',
-            'password_auth' => 'auth.password',
-            'sign_in' => 'auth.sign_in',
-            'sign_in_description' => 'auth.sign_in_description',
-            'username' => 'auth.username',
-            'password' => 'auth.password_field',
-            'password_show' => 'auth.password.show',
-            'password_hide' => 'auth.password.hide',
-            'change_password' => 'auth.change_password',
-            'change_password_description' => 'auth.change_password_description',
-            'current_password' => 'auth.current_password',
-            'new_password' => 'auth.new_password',
-            'confirm_password' => 'auth.confirm_new_password',
-            'current_application' => 'registry.current_application',
-            'change_application' => 'registry.change_application',
-            'application_context' => 'registry.application_context',
-            'select_instruction' => 'registry.select_instruction',
-            'create_application' => 'registry.create_application',
-            'clear_context' => 'registry.clear_current_context',
-            'none_selected' => 'registry.no_application_selected',
-            'none_selected_short' => 'registry.none_selected',
-            'work_on_app' => 'registry.work_on_this_app',
-            'empty_title' => 'registry.empty_title',
-            'empty_description' => 'registry.empty_description',
-            'runtime_sqlite' => 'registry.runtime_sqlite',
-            'database' => 'registry.database',
-            'sync_total' => 'registry.sync_total',
-            'seed_imported' => 'registry.seed_imported',
-            'discovered_imported' => 'registry.discovered_imported',
-            'events_title' => 'registry.events.title',
-            'events_empty' => 'registry.events.empty',
-            'id' => 'common.id',
-            'kind' => 'common.kind',
-            'root' => 'common.root',
-        ];
-
-        $labels = [];
-        foreach ($keys as $name => $key) {
-            $labels[$name] = $translate($key);
-        }
-
-        return $labels;
-    }
-
     /**
      * @param array<string,mixed> $result
      * @param array<string,mixed>|null $currentApp
-     * @param callable(string):string $translate
      * @return array<string,mixed>
      */
     private function registryViewData(
         array $result,
-        ?array $currentApp,
-        callable $translate
+        ?array $currentApp
     ): array {
         $entries = [];
         foreach ((array) ($result['entries'] ?? []) as $entry) {
@@ -644,9 +605,6 @@ final class OwasysRuntimeController
                 'theme' => (string) ($entry['theme'] ?? ''),
                 'status' => (string) ($entry['status'] ?? ''),
                 'current' => $isCurrent,
-                'button_label' => $isCurrent
-                    ? $translate('registry.current_application')
-                    : $translate('registry.work_on_this_app'),
             ];
         }
 
@@ -668,9 +626,9 @@ final class OwasysRuntimeController
             'registry' => [
                 'empty' => $entries === [],
                 'events_empty' => $events === [],
-                'error' => is_string($result['error'] ?? null)
-                    ? $translate($result['error'])
-                    : '',
+                'error_application_required' => ($result['error'] ?? null) === 'registry.error.application_required',
+                'error_application_not_found' => ($result['error'] ?? null) === 'registry.error.application_not_found',
+                'error_action_invalid' => ($result['error'] ?? null) === 'registry.error.action_invalid',
             ],
             'entries' => $entries,
             'events' => $events,
@@ -761,32 +719,19 @@ final class OwasysRuntimeController
     }
 
     /** @return array<string,string> */
-    private function loadMessages(string $locale): array
-    {
-        $fallbackFile = $this->siteRoot . '/application/default/local/en.php';
-        $localeFile = $this->siteRoot . '/application/default/local/' . $locale . '.php';
-        $fallback = is_file($fallbackFile) ? require $fallbackFile : [];
-        $primary = is_file($localeFile) ? require $localeFile : [];
-
-        return array_replace(
-            is_array($fallback) ? $fallback : [],
-            is_array($primary) ? $primary : []
-        );
-    }
 
     /** @return array<string,mixed> */
     private function readJson(string $path, string $error): array
     {
-        if (!is_file($path)) {
-            throw new RuntimeException($error . ':' . $path);
+        try {
+            return StructuredFileLoader::instance()->read($path);
+        } catch (Throwable $cause) {
+            throw new RuntimeException(
+                $error . ':' . $path . ':' . $cause->getMessage(),
+                0,
+                $cause
+            );
         }
-
-        $decoded = json_decode((string) file_get_contents($path), true);
-        if (!is_array($decoded)) {
-            throw new RuntimeException($error . ':' . $path);
-        }
-
-        return $decoded;
     }
 
     private function routeUrl(string $locale, string $route): string

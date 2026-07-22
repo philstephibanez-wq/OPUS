@@ -1,0 +1,28 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "mt",
+  "scope": "registry",
+  "messages": {
+    "registry.application_context": "Kuntest tal-applikazzjoni",
+    "registry.clear_current_context": "Ħassar il-kuntest attwali",
+    "registry.create_application": "Oħloq applikazzjoni ġdida",
+    "registry.database": "Bażi tad-data",
+    "registry.description": "Agħżel l-applikazzjoni awtonoma OPUS li fuqha se jaħdem OWASYS.",
+    "registry.discovered_imported": "Rekords misjuba",
+    "registry.empty_description": "Iż-żerriegħa tar-reġistru u s-siti OPUS misjuba ma rritornawx applikazzjoni.",
+    "registry.empty_title": "L-ebda applikazzjoni rreġistrata",
+    "registry.error.action_invalid": "L-azzjoni mitluba tar-reġistru mhix valida.",
+    "registry.error.application_not_found": "L-applikazzjoni magħżula ma nstabitx.",
+    "registry.error.application_required": "Huwa meħtieġ identifikatur tal-applikazzjoni.",
+    "registry.events.empty": "Ma ġie rreġistrat l-ebda avveniment tar-reġistru.",
+    "registry.events.title": "Avvenimenti reċenti tar-reġistru",
+    "registry.no_application_selected": "Bħalissa m’hemm l-ebda applikazzjoni magħżula.",
+    "registry.runtime_sqlite": "Reġistru runtime SQLite",
+    "registry.seed_imported": "Rekords inizjali",
+    "registry.select_instruction": "Agħżel applikazzjoni jew ibda l-ħolqien ta’ applikazzjoni ġdida.",
+    "registry.sync_total": "Applikazzjonijiet",
+    "registry.work_on_this_app": "Aħdem fuq din l-applikazzjoni"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

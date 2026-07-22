@@ -1,0 +1,28 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "et",
+  "scope": "registry",
+  "messages": {
+    "registry.application_context": "Rakenduse kontekst",
+    "registry.clear_current_context": "Tühjenda praegune kontekst",
+    "registry.create_application": "Loo uus rakendus",
+    "registry.database": "Andmebaas",
+    "registry.description": "Vali autonoomne OPUS-rakendus, millega OWASYS töötab.",
+    "registry.discovered_imported": "Leitud kirjed",
+    "registry.empty_description": "Registri algandmed ja leitud OPUS-saidid ei tagastanud rakendust.",
+    "registry.empty_title": "Registreeritud rakendusi pole",
+    "registry.error.action_invalid": "Taotletud registritoiming on vigane.",
+    "registry.error.application_not_found": "Valitud rakendust ei leitud.",
+    "registry.error.application_required": "Rakenduse identifikaator on nõutav.",
+    "registry.events.empty": "Ühtegi registrisündmust pole salvestatud.",
+    "registry.events.title": "Viimased registrisündmused",
+    "registry.no_application_selected": "Praegu pole ühtegi rakendust valitud.",
+    "registry.runtime_sqlite": "Runtime SQLite-register",
+    "registry.seed_imported": "Algkirjed",
+    "registry.select_instruction": "Vali rakendus või alusta uue rakenduse loomist.",
+    "registry.sync_total": "Rakendused",
+    "registry.work_on_this_app": "Tööta selle rakendusega"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "pt",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Alterar palavra-passe",
+    "auth.change_password_description": "Substituir a palavra-passe runtime temporária.",
+    "auth.confirm_new_password": "Confirmar a nova palavra-passe",
+    "auth.current_password": "Palavra-passe atual",
+    "auth.error.current_password_invalid": "A palavra-passe atual é inválida.",
+    "auth.error.password_mismatch": "A confirmação da palavra-passe não corresponde.",
+    "auth.error.password_too_short": "A nova palavra-passe é demasiado curta.",
+    "auth.error.password_unchanged": "A nova palavra-passe deve ser diferente da atual.",
+    "auth.error.runtime_user_missing": "O utilizador da sessão de runtime não foi encontrado.",
+    "auth.new_password": "Nova palavra-passe"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

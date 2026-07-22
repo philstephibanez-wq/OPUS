@@ -1,0 +1,28 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "ga",
+  "scope": "registry",
+  "messages": {
+    "registry.application_context": "Comhthéacs feidhmchláir",
+    "registry.clear_current_context": "Glan an comhthéacs reatha",
+    "registry.create_application": "Cruthaigh feidhmchlár nua",
+    "registry.database": "Bunachar sonraí",
+    "registry.description": "Roghnaigh an feidhmchlár neamhspleách OPUS a n-oibreoidh OWASYS air.",
+    "registry.discovered_imported": "Taifid aimsithe",
+    "registry.empty_description": "Níor thug síol an chlárlainne ná na suíomhanna OPUS a aimsíodh feidhmchlár ar ais.",
+    "registry.empty_title": "Níl feidhmchlár cláraithe",
+    "registry.error.action_invalid": "Tá an gníomh clárlainne iarrtha neamhbhailí.",
+    "registry.error.application_not_found": "Níor aimsíodh an feidhmchlár roghnaithe.",
+    "registry.error.application_required": "Tá aitheantóir feidhmchláir riachtanach.",
+    "registry.events.empty": "Níor taifeadadh aon imeacht clárlainne.",
+    "registry.events.title": "Imeachtaí clárlainne le déanaí",
+    "registry.no_application_selected": "Níl aon fheidhmchlár roghnaithe faoi láthair.",
+    "registry.runtime_sqlite": "Clárlann runtime SQLite",
+    "registry.seed_imported": "Taifid síl",
+    "registry.select_instruction": "Roghnaigh feidhmchlár nó cuir tús le feidhmchlár nua a chruthú.",
+    "registry.sync_total": "Feidhmchláir",
+    "registry.work_on_this_app": "Oibrigh ar an bhfeidhmchlár seo"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

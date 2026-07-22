@@ -1,0 +1,9 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "da-DK",
+  "scope": "account",
+  "inherits": "da",
+  "messages": {},
+  "plurals": {},
+  "grammatical": {}
+}

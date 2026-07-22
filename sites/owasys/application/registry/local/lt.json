@@ -1,0 +1,28 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "lt",
+  "scope": "registry",
+  "messages": {
+    "registry.application_context": "Programos kontekstas",
+    "registry.clear_current_context": "Išvalyti dabartinį kontekstą",
+    "registry.create_application": "Kurti naują programą",
+    "registry.database": "Duomenų bazė",
+    "registry.description": "Pasirinkite autonominę OPUS programą, su kuria dirbs OWASYS.",
+    "registry.discovered_imported": "Aptikti įrašai",
+    "registry.empty_description": "Registro pradiniai duomenys ir aptiktos OPUS svetainės negrąžino programos.",
+    "registry.empty_title": "Nėra registruotų programų",
+    "registry.error.action_invalid": "Prašomas registro veiksmas neteisingas.",
+    "registry.error.application_not_found": "Pasirinkta programa nerasta.",
+    "registry.error.application_required": "Reikalingas programos identifikatorius.",
+    "registry.events.empty": "Registro įvykių neužregistruota.",
+    "registry.events.title": "Naujausi registro įvykiai",
+    "registry.no_application_selected": "Šiuo metu nepasirinkta jokia programa.",
+    "registry.runtime_sqlite": "Runtime SQLite registras",
+    "registry.seed_imported": "Pradiniai įrašai",
+    "registry.select_instruction": "Pasirinkite programą arba pradėkite kurti naują programą.",
+    "registry.sync_total": "Programos",
+    "registry.work_on_this_app": "Dirbti su šia programa"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

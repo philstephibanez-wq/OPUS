@@ -1,0 +1,28 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "cs",
+  "scope": "registry",
+  "messages": {
+    "registry.application_context": "Kontext aplikace",
+    "registry.clear_current_context": "Vymazat aktuální kontext",
+    "registry.create_application": "Vytvořit novou aplikaci",
+    "registry.database": "Databáze",
+    "registry.description": "Vyberte autonomní aplikaci OPUS, se kterou bude OWASYS pracovat.",
+    "registry.discovered_imported": "Nalezené záznamy",
+    "registry.empty_description": "Počáteční data registru a nalezené weby OPUS nevrátily žádnou aplikaci.",
+    "registry.empty_title": "Žádná registrovaná aplikace",
+    "registry.error.action_invalid": "Požadovaná akce registru je neplatná.",
+    "registry.error.application_not_found": "Vybraná aplikace nebyla nalezena.",
+    "registry.error.application_required": "Je vyžadován identifikátor aplikace.",
+    "registry.events.empty": "Nebyla zaznamenána žádná událost registru.",
+    "registry.events.title": "Nedávné události registru",
+    "registry.no_application_selected": "Aktuálně není vybrána žádná aplikace.",
+    "registry.runtime_sqlite": "Runtime registr SQLite",
+    "registry.seed_imported": "Počáteční záznamy",
+    "registry.select_instruction": "Vyberte aplikaci nebo spusťte vytvoření nové aplikace.",
+    "registry.sync_total": "Aplikace",
+    "registry.work_on_this_app": "Pracovat s touto aplikací"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

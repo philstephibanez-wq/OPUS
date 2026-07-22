@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "el",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Μη έγκυρο όνομα χρήστη ή κωδικός.",
+    "auth.error.required_credentials": "Απαιτούνται όνομα χρήστη και κωδικός.",
+    "auth.password.hide": "Απόκρυψη κωδικού πρόσβασης",
+    "auth.password.show": "Εμφάνιση κωδικού πρόσβασης",
+    "auth.password_field": "Κωδικός πρόσβασης",
+    "auth.sign_in": "Σύνδεση",
+    "auth.sign_in_description": "Άνοιγμα πιστοποιημένης συνεδρίας runtime του OWASYS.",
+    "auth.username": "Όνομα χρήστη"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

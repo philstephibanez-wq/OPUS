@@ -1,0 +1,28 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "pl",
+  "scope": "registry",
+  "messages": {
+    "registry.application_context": "Kontekst aplikacji",
+    "registry.clear_current_context": "Wyczyść bieżący kontekst",
+    "registry.create_application": "Utwórz nową aplikację",
+    "registry.database": "Baza danych",
+    "registry.description": "Wybierz autonomiczną aplikację OPUS, na której ma działać OWASYS.",
+    "registry.discovered_imported": "Wykryte wpisy",
+    "registry.empty_description": "Dane początkowe rejestru i wykryte witryny OPUS nie zwróciły aplikacji.",
+    "registry.empty_title": "Brak zarejestrowanej aplikacji",
+    "registry.error.action_invalid": "Żądana akcja rejestru jest nieprawidłowa.",
+    "registry.error.application_not_found": "Nie znaleziono wybranej aplikacji.",
+    "registry.error.application_required": "Wymagany jest identyfikator aplikacji.",
+    "registry.events.empty": "Nie zarejestrowano żadnego zdarzenia rejestru.",
+    "registry.events.title": "Ostatnie zdarzenia rejestru",
+    "registry.no_application_selected": "Obecnie nie wybrano żadnej aplikacji.",
+    "registry.runtime_sqlite": "Rejestr runtime SQLite",
+    "registry.seed_imported": "Wpisy początkowe",
+    "registry.select_instruction": "Wybierz aplikację lub rozpocznij tworzenie nowej aplikacji.",
+    "registry.sync_total": "Aplikacje",
+    "registry.work_on_this_app": "Pracuj nad tą aplikacją"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

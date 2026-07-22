@@ -1,0 +1,28 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "hr",
+  "scope": "registry",
+  "messages": {
+    "registry.application_context": "Kontekst aplikacije",
+    "registry.clear_current_context": "Očisti trenutačni kontekst",
+    "registry.create_application": "Izradi novu aplikaciju",
+    "registry.database": "Baza podataka",
+    "registry.description": "Odaberite autonomnu aplikaciju OPUS na kojoj će OWASYS raditi.",
+    "registry.discovered_imported": "Otkriveni zapisi",
+    "registry.empty_description": "Početni podaci registra i otkrivene OPUS lokacije nisu vratili aplikaciju.",
+    "registry.empty_title": "Nema registrirane aplikacije",
+    "registry.error.action_invalid": "Zatražena radnja registra nije valjana.",
+    "registry.error.application_not_found": "Odabrana aplikacija nije pronađena.",
+    "registry.error.application_required": "Potreban je identifikator aplikacije.",
+    "registry.events.empty": "Nije zabilježen nijedan događaj registra.",
+    "registry.events.title": "Nedavni događaji registra",
+    "registry.no_application_selected": "Trenutačno nije odabrana nijedna aplikacija.",
+    "registry.runtime_sqlite": "Runtime SQLite registar",
+    "registry.seed_imported": "Početni zapisi",
+    "registry.select_instruction": "Odaberite aplikaciju ili pokrenite izradu nove aplikacije.",
+    "registry.sync_total": "Aplikacije",
+    "registry.work_on_this_app": "Radi na ovoj aplikaciji"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

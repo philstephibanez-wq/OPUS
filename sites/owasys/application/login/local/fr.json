@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "fr",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Nom d’utilisateur ou mot de passe incorrect.",
+    "auth.error.required_credentials": "Le nom d’utilisateur et le mot de passe sont obligatoires.",
+    "auth.password.hide": "Masquer le mot de passe",
+    "auth.password.show": "Afficher le mot de passe",
+    "auth.password_field": "Mot de passe",
+    "auth.sign_in": "Connexion",
+    "auth.sign_in_description": "Ouvrir une session runtime OWASYS authentifiée.",
+    "auth.username": "Nom d’utilisateur"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

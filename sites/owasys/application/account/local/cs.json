@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "cs",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Změnit heslo",
+    "auth.change_password_description": "Nahradit dočasné runtime heslo.",
+    "auth.confirm_new_password": "Potvrdit nové heslo",
+    "auth.current_password": "Aktuální heslo",
+    "auth.error.current_password_invalid": "Aktuální heslo je neplatné.",
+    "auth.error.password_mismatch": "Potvrzení hesla se neshoduje.",
+    "auth.error.password_too_short": "Nové heslo je příliš krátké.",
+    "auth.error.password_unchanged": "Nové heslo se musí lišit od aktuálního hesla.",
+    "auth.error.runtime_user_missing": "Uživatel běhové relace nebyl nalezen.",
+    "auth.new_password": "Nové heslo"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

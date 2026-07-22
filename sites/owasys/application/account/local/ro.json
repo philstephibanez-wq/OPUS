@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "ro",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Schimbă parola",
+    "auth.change_password_description": "Înlocuiți parola runtime temporară.",
+    "auth.confirm_new_password": "Confirmați parola nouă",
+    "auth.current_password": "Parola curentă",
+    "auth.error.current_password_invalid": "Parola curentă nu este validă.",
+    "auth.error.password_mismatch": "Confirmarea parolei nu corespunde.",
+    "auth.error.password_too_short": "Parola nouă este prea scurtă.",
+    "auth.error.password_unchanged": "Parola nouă trebuie să fie diferită de parola actuală.",
+    "auth.error.runtime_user_missing": "Utilizatorul sesiunii runtime nu a fost găsit.",
+    "auth.new_password": "Parolă nouă"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

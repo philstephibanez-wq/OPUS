@@ -1,0 +1,28 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "el",
+  "scope": "registry",
+  "messages": {
+    "registry.application_context": "Περιβάλλον εφαρμογής",
+    "registry.clear_current_context": "Εκκαθάριση τρέχοντος περιβάλλοντος",
+    "registry.create_application": "Δημιουργία νέας εφαρμογής",
+    "registry.database": "Βάση δεδομένων",
+    "registry.description": "Επιλέξτε την αυτόνομη εφαρμογή OPUS στην οποία θα λειτουργήσει το OWASYS.",
+    "registry.discovered_imported": "Εντοπισμένες εγγραφές",
+    "registry.empty_description": "Τα αρχικά δεδομένα του μητρώου και οι εντοπισμένοι ιστότοποι OPUS δεν επέστρεψαν εφαρμογή.",
+    "registry.empty_title": "Καμία καταχωρισμένη εφαρμογή",
+    "registry.error.action_invalid": "Η ζητούμενη ενέργεια μητρώου δεν είναι έγκυρη.",
+    "registry.error.application_not_found": "Η επιλεγμένη εφαρμογή δεν βρέθηκε.",
+    "registry.error.application_required": "Απαιτείται αναγνωριστικό εφαρμογής.",
+    "registry.events.empty": "Δεν έχει καταγραφεί συμβάν μητρώου.",
+    "registry.events.title": "Πρόσφατα συμβάντα μητρώου",
+    "registry.no_application_selected": "Δεν έχει επιλεγεί καμία εφαρμογή αυτή τη στιγμή.",
+    "registry.runtime_sqlite": "Μητρώο runtime SQLite",
+    "registry.seed_imported": "Αρχικές εγγραφές",
+    "registry.select_instruction": "Επιλέξτε μια εφαρμογή ή ξεκινήστε τη δημιουργία νέας εφαρμογής.",
+    "registry.sync_total": "Εφαρμογές",
+    "registry.work_on_this_app": "Εργασία σε αυτή την εφαρμογή"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

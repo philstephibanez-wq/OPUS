@@ -1,0 +1,28 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "ro",
+  "scope": "registry",
+  "messages": {
+    "registry.application_context": "Contextul aplicației",
+    "registry.clear_current_context": "Șterge contextul curent",
+    "registry.create_application": "Creează o aplicație nouă",
+    "registry.database": "Bază de date",
+    "registry.description": "Selectați aplicația OPUS autonomă pe care va opera OWASYS.",
+    "registry.discovered_imported": "Înregistrări detectate",
+    "registry.empty_description": "Datele inițiale ale registrului și site-urile OPUS detectate nu au returnat nicio aplicație.",
+    "registry.empty_title": "Nicio aplicație înregistrată",
+    "registry.error.action_invalid": "Acțiunea de registru solicitată nu este validă.",
+    "registry.error.application_not_found": "Aplicația selectată nu a fost găsită.",
+    "registry.error.application_required": "Este necesar un identificator de aplicație.",
+    "registry.events.empty": "Nu a fost înregistrat niciun eveniment al registrului.",
+    "registry.events.title": "Evenimente recente ale registrului",
+    "registry.no_application_selected": "În prezent nu este selectată nicio aplicație.",
+    "registry.runtime_sqlite": "Registru runtime SQLite",
+    "registry.seed_imported": "Înregistrări inițiale",
+    "registry.select_instruction": "Alegeți o aplicație sau începeți crearea unei aplicații noi.",
+    "registry.sync_total": "Aplicații",
+    "registry.work_on_this_app": "Lucrează la această aplicație"
+  },
+  "plurals": {},
+  "grammatical": {}
+}
