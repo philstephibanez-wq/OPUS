@@ -162,17 +162,17 @@ final class OwasysRuntimeController
         }
 
         $defaultLocale = (string) (
-            $this->siteConfig['default_locale'] ?? 'fr'
+            $this->siteConfig['default_locale'] ?? 'fr-FR'
         );
         $negotiator = BrowserLocaleNegotiator::forLocales(
             $this->locales->codes(),
             $defaultLocale
         );
         $first = (string) ($segments[0] ?? '');
-        $explicit = $negotiator->match($first);
+        $explicit = $this->locales->resolveExplicit($first);
 
-        if ($explicit instanceof \Opus\I18n\Locale) {
-            $locale = $explicit->value;
+        if (is_string($explicit)) {
+            $locale = $explicit;
             array_shift($segments);
         } elseif (
             $first !== ''
