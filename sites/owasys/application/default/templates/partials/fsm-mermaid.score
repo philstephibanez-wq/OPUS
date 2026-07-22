@@ -4,12 +4,12 @@
   data-owasys-fsm-diagram
   data-fsm-routes="{{ fsm_diagram.routes_json }}"
 >
-  <h2>{{ fsm_diagram.title }}</h2>
+  <h2>[[ i18n: navigation.main ]] · FSM</h2>
   <p class="ow-muted">{{ fsm_diagram.description }}</p>
   <div class="ow-mermaid-canvas">
     {{{ fsm_diagram.html }}}
   </div>
   <p class="ow-muted ow-mermaid-fallback" data-fsm-mermaid-fallback>
-    {{ fsm_diagram.fallback }}
+    [[ i18n: navigation.main ]]
   </p>
 </section>

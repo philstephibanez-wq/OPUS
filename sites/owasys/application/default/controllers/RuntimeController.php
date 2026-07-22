@@ -557,7 +557,7 @@ final class OwasysRuntimeController
         }
 
         header('Content-Type: text/html; charset=UTF-8');
-        echo $this->renderer->render($template, $data);
+        $this->renderer->emit($template, $data);
     }
 
     /** @param callable(string):string $translate @return array<string,string> */

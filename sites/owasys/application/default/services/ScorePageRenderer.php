@@ -25,11 +25,11 @@ final class OwasysScorePageRenderer
         );
 
         $assets['fsm_css'] = $assetBase
-            . '/css/fsm-mermaid.css?v=p117h';
+            . '/css/fsm-mermaid.css?v=p117k';
         $assets['opus_mermaid_js'] = $assetBase
             . '/opus/mermaid/opus-mermaid.js';
         $assets['fsm_mermaid_js'] = $assetBase
-            . '/js/fsm-mermaid.js?v=p117h';
+            . '/js/fsm-mermaid.js?v=p117k';
 
         $locale = trim((string) ($data['locale']['code'] ?? ''));
         $module = trim((string) ($data['fsm']['module'] ?? ''));
@@ -61,6 +61,31 @@ final class OwasysScorePageRenderer
             'default/templates/layout.score',
             $data
         );
+    }
+
+    /** @param array<string,mixed> $data */
+    public function emit(string $bodyTemplate, array $data): void
+    {
+        $html = $this->render($bodyTemplate, $data);
+        $stream = fopen('php://output', 'wb');
+
+        if ($stream === false) {
+            throw new RuntimeException(
+                'OWASYS_SCORE_OUTPUT_STREAM_OPEN_FAILED'
+            );
+        }
+
+        try {
+            $written = fwrite($stream, $html);
+
+            if ($written === false || $written !== strlen($html)) {
+                throw new RuntimeException(
+                    'OWASYS_SCORE_OUTPUT_WRITE_FAILED'
+                );
+            }
+        } finally {
+            fclose($stream);
+        }
     }
 
     /**

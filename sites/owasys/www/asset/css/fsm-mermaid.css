@@ -61,9 +61,17 @@
 
 .ow-mermaid-node-link {
   cursor: pointer;
+  text-decoration: none;
 }
 
-.ow-mermaid-node-link:hover {
+.ow-mermaid-node-link,
+.ow-mermaid-node-link .node,
+.ow-mermaid-node-link .node * {
+  pointer-events: all;
+  cursor: pointer;
+}
+
+.ow-mermaid-node-link:hover .node {
   filter: brightness(1.18);
 }
 
@@ -71,9 +79,9 @@
   outline: none;
 }
 
-.ow-mermaid-node-link:focus-visible > rect,
-.ow-mermaid-node-link:focus-visible > polygon,
-.ow-mermaid-node-link:focus-visible > path {
+.ow-mermaid-node-link:focus-visible .node > rect,
+.ow-mermaid-node-link:focus-visible .node > polygon,
+.ow-mermaid-node-link:focus-visible .node > path {
   stroke: #fbbf24 !important;
   stroke-width: 4px !important;
 }

@@ -13,9 +13,7 @@ final class OwasysFsmMermaidBuilder
      * @param array<string,mixed> $pageData
      * @return array{
      *   visible:bool,
-     *   title:string,
      *   description:string,
-     *   fallback:string,
      *   html:string,
      *   routes_json:string
      * }
@@ -69,6 +67,7 @@ final class OwasysFsmMermaidBuilder
                 ),
                 'url' => $url,
                 'state' => $states[$id],
+                'node_class' => $this->nodeClass($id),
             ];
         }
 
@@ -122,6 +121,11 @@ final class OwasysFsmMermaidBuilder
                 . $class;
         }
 
+        foreach ($nodes as $id => $node) {
+            $lines[] = '    class ' . $id
+                . ' ' . $node['node_class'];
+        }
+
         foreach ((array) ($fsm['transitions'] ?? []) as $transition) {
             if (
                 !is_array($transition)
@@ -162,29 +166,19 @@ final class OwasysFsmMermaidBuilder
         $routes = [];
 
         foreach ($nodes as $id => $node) {
-            $routes[$id] = (string) $node['url'];
+            $routes[$id] = [
+                'url' => (string) $node['url'],
+                'node_class' => (string) $node['node_class'],
+            ];
         }
-
-        $labels = is_array($pageData['labels'] ?? null)
-            ? $pageData['labels']
-            : [];
-        $navigationLabel = trim(
-            (string) ($labels['navigation'] ?? 'FSM')
-        );
 
         return [
             'visible' => true,
-            'title' => $navigationLabel === ''
-                ? 'FSM'
-                : $navigationLabel . ' · FSM',
             'description' => (string) (
                 $diagram['contract']
                 ?? $fsm['contract']
                 ?? 'OWASYS_NAVIGATION_FSM_V1'
             ),
-            'fallback' => $navigationLabel === ''
-                ? 'FSM'
-                : $navigationLabel,
             'html' => (
                 new MermaidDiagram(
                     'owasys-fsm-diagram',
@@ -207,9 +201,7 @@ final class OwasysFsmMermaidBuilder
     /**
      * @return array{
      *   visible:bool,
-     *   title:string,
      *   description:string,
-     *   fallback:string,
      *   html:string,
      *   routes_json:string
      * }
@@ -218,9 +210,7 @@ final class OwasysFsmMermaidBuilder
     {
         return [
             'visible' => false,
-            'title' => '',
             'description' => '',
-            'fallback' => '',
             'html' => '',
             'routes_json' => '{}',
         ];
@@ -306,6 +296,20 @@ final class OwasysFsmMermaidBuilder
         }
 
         return $states;
+    }
+
+    private function nodeClass(string $stateId): string
+    {
+        if (
+            preg_match('/^[a-z][a-z0-9_-]*$/', $stateId) !== 1
+        ) {
+            throw new RuntimeException(
+                'OWASYS_FSM_MERMAID_STATE_ID_INVALID:'
+                . $stateId
+            );
+        }
+
+        return 'owasys-fsm-state-' . $stateId;
     }
 
     private function label(string $value): string
