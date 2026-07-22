@@ -6,13 +6,7 @@ namespace Opus\I18n;
 /**
  * Contract interface for Opus\I18n\Locale.
  *
- * @generated-by OPUS_P117M_R1_CONTRACTUALIZE_ALL
- *
- * Contract:
- * - OPUS framework component contract;
- * - explicit exception-awareness contract;
- * - profiler-awareness contract;
- * - complete self-documentation contract for RefBook output.
+ * @generated-by P117N_OPUS_FILE_I18N_LOCALE
  */
 interface LocaleInterface extends
     \Opus\Framework\OpusFrameworkComponentInterface,
@@ -20,4 +14,10 @@ interface LocaleInterface extends
     \Opus\Framework\OpusProfilerAwareInterface,
     \Opus\Framework\OpusSelfDocumentingInterface
 {
+    public function __toString(): string;
+
+    public function parent(): ?self;
+
+    /** @return list<self> */
+    public function fallbackChain(): array;
 }

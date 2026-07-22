@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use Opus\Assets\FrameworkAssetResponder;
+use Opus\File\StructuredFileLoader;
 
 if (PHP_SAPI === 'cli-server') {
     $requestPath = parse_url(
@@ -70,16 +71,15 @@ if (FrameworkAssetResponder::serveCurrentRequest($opusRoot)) {
 }
 
 $siteConfigFile = $siteRoot . '/config/site.json';
-$siteConfig = is_file($siteConfigFile)
-    ? json_decode(
-        (string) file_get_contents($siteConfigFile),
-        true
-    )
-    : null;
-
-if (!is_array($siteConfig)) {
+try {
+    $siteConfig = StructuredFileLoader::instance()->read($siteConfigFile);
+} catch (Throwable $error) {
     http_response_code(500);
-    exit('OWASYS_SITE_CONFIG_INVALID');
+    throw new RuntimeException(
+        'OWASYS_SITE_CONFIG_INVALID:' . $error->getMessage(),
+        0,
+        $error
+    );
 }
 
 $files = [

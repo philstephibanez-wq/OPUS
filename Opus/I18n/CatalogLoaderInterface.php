@@ -6,13 +6,7 @@ namespace Opus\I18n;
 /**
  * Contract interface for Opus\I18n\CatalogLoader.
  *
- * @generated-by OPUS_P117M_R1_CONTRACTUALIZE_ALL
- *
- * Contract:
- * - OPUS framework component contract;
- * - explicit exception-awareness contract;
- * - profiler-awareness contract;
- * - complete self-documentation contract for RefBook output.
+ * @generated-by P117N_OPUS_FILE_I18N_LOCALE
  */
 interface CatalogLoaderInterface extends
     \Opus\Framework\OpusFrameworkComponentInterface,
@@ -20,4 +14,16 @@ interface CatalogLoaderInterface extends
     \Opus\Framework\OpusProfilerAwareInterface,
     \Opus\Framework\OpusSelfDocumentingInterface
 {
+    public function loadDirectory(
+        string $directory,
+        Locale $locale,
+        string $scope,
+        bool $required
+    ): ?Catalog;
+
+    public function loadFile(
+        string $file,
+        Locale $expectedLocale,
+        string $scope
+    ): Catalog;
 }

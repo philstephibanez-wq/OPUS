@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use Opus\File\StructuredFileLoader;
 use Opus\Security\Acl\AclDecision;
 use Opus\Security\Acl\AclPolicy;
 use Opus\Security\Sso\LocalPasswordSsoProvider;
@@ -20,9 +21,8 @@ final class OwasysRuntimeSecurity
     ) {
         $this->acl = new AclPolicy($siteRoot . '/config/acl.json');
 
-        $ssoConfig = $this->readJson(
-            $siteRoot . '/config/sso.json',
-            'OWASYS_SSO_CONFIG_INVALID'
+        $ssoConfig = StructuredFileLoader::instance()->read(
+            $siteRoot . '/config/sso.json'
         );
         $this->defaultProvider = trim((string) ($ssoConfig['default_provider'] ?? ''));
         if ($this->defaultProvider === '') {
@@ -117,20 +117,6 @@ final class OwasysRuntimeSecurity
         return $this->acl->decide($roles, $resource, $action);
     }
 
-    /** @return array<string,mixed> */
-    private function readJson(string $path, string $error): array
-    {
-        if (!is_file($path)) {
-            throw new RuntimeException($error . ':' . $path);
-        }
-
-        $decoded = json_decode((string) file_get_contents($path), true);
-        if (!is_array($decoded)) {
-            throw new RuntimeException($error . ':' . $path);
-        }
-
-        return $decoded;
-    }
 
     private function safeRelativePath(string $path, string $error): string
     {

@@ -3,187 +3,95 @@ declare(strict_types=1);
 
 namespace Opus\I18n;
 
-use JsonException;
+use Opus\File\File;
+use Opus\File\FileInterface;
+use Opus\File\StructuredFileLoader;
+use Opus\File\StructuredFileLoaderInterface;
 
+/** Loads JSON, YAML or XML catalogs through the canonical OPUS File boundary. */
 final class CatalogLoader implements CatalogLoaderInterface
 {
-    public const CONTRACT = 'OPUS_I18N_CATALOG_LOADER_V2';
+    public const CONTRACT = 'OPUS_I18N_CATALOG_LOADER_V3';
 
-    public function loadDirectory(
-        string $directory,
-        Locale $locale,
-        string $scope,
-        bool $required
-    ): ?Catalog {
+    private readonly FileInterface $file;
+    private readonly StructuredFileLoaderInterface $structured;
+
+    public function __construct(
+        ?FileInterface $file = null,
+        ?StructuredFileLoaderInterface $structured = null
+    ) {
+        $this->file = $file ?? File::instance();
+        $this->structured = $structured ?? StructuredFileLoader::instance();
+    }
+
+    public function loadDirectory(string $directory, Locale $locale, string $scope, bool $required): ?Catalog
+    {
         if (!is_dir($directory)) {
-            if ($required) {
-                throw TranslationException::because(
-                    'OPUS_I18N_CATALOG_DIRECTORY_MISSING',
-                    $directory
-                );
-            }
-
+            if ($required) throw TranslationException::because('OPUS_I18N_CATALOG_DIRECTORY_MISSING', $directory);
             return null;
         }
-
-        $candidates = [
-            $directory . DIRECTORY_SEPARATOR . $locale->value . '.php',
-            $directory . DIRECTORY_SEPARATOR . $locale->value . '.json',
-            $directory . DIRECTORY_SEPARATOR
-                . 'asap.' . $locale->value . '.json',
-        ];
-        $existing = array_values(array_filter($candidates, 'is_file'));
-
-        if ($existing === []) {
-            if ($required) {
-                throw TranslationException::because(
-                    'OPUS_I18N_CATALOG_FILE_MISSING',
-                    $scope . ':' . $locale
-                );
+        $merged = [];
+        $loaded = [];
+        foreach ($locale->fallbackChain() as $candidateLocale) {
+            $candidates = $this->candidateFiles($directory, $candidateLocale);
+            if (count($candidates) > 1) {
+                throw TranslationException::because('OPUS_I18N_CATALOG_FILE_AMBIGUOUS', implode(',', $candidates));
             }
-
+            if ($candidates === []) continue;
+            $catalog = $this->loadFile($candidates[0], $candidateLocale, $scope);
+            $merged = array_replace($merged, $catalog->all());
+            $loaded[] = $candidates[0];
+        }
+        if ($loaded === []) {
+            if ($required) throw TranslationException::because('OPUS_I18N_CATALOG_FILE_MISSING', $scope . ':' . $locale);
             return null;
         }
-
-        if (count($existing) !== 1) {
-            throw TranslationException::because(
-                'OPUS_I18N_CATALOG_FILE_AMBIGUOUS',
-                implode(',', $existing)
-            );
-        }
-
-        return $this->loadFile($existing[0], $locale, $scope);
+        return new Catalog($locale, $scope, $merged);
     }
 
-    public function loadFile(
-        string $file,
-        Locale $expectedLocale,
-        string $scope
-    ): Catalog {
-        $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-
-        $data = match ($extension) {
-            'php' => $this->readPhp($file),
-            'json' => $this->readJson($file),
-            default => throw TranslationException::because(
-                'OPUS_I18N_CATALOG_FORMAT_UNSUPPORTED',
-                $file
-            ),
-        };
-
-        return $this->normalize($data, $expectedLocale, $scope, $file);
-    }
-
-    /** @return array<mixed> */
-    private function readPhp(string $file): array
+    public function loadFile(string $file, Locale $expectedLocale, string $scope): Catalog
     {
-        $data = require $file;
-
-        if (!is_array($data)) {
-            throw TranslationException::because(
-                'OPUS_I18N_CATALOG_PHP_RETURN_INVALID',
-                $file
-            );
-        }
-
-        return $data;
-    }
-
-    /** @return array<mixed> */
-    private function readJson(string $file): array
-    {
-        try {
-            $data = json_decode(
-                (string) file_get_contents($file),
-                true,
-                512,
-                JSON_THROW_ON_ERROR
-            );
-        } catch (JsonException $exception) {
-            throw TranslationException::because(
-                'OPUS_I18N_CATALOG_JSON_INVALID',
-                $file . ':' . $exception->getMessage()
-            );
-        }
-
-        if (!is_array($data)) {
-            throw TranslationException::because(
-                'OPUS_I18N_CATALOG_ROOT_INVALID',
-                $file
-            );
-        }
-
-        return $data;
-    }
-
-    /**
-     * Supports:
-     * - current OPUS PHP flat maps;
-     * - OPUS_I18N_CATALOG_V2 documents;
-     * - ASAP JSON documents with messages + plurals;
-     * - optional grammatical maps.
-     *
-     * @param array<mixed> $data
-     */
-    private function normalize(
-        array $data,
-        Locale $expectedLocale,
-        string $scope,
-        string $file
-    ): Catalog {
-        $declaredLocale = (string) (
-            $data['locale']
-            ?? $data['_locale']
-            ?? $expectedLocale->value
-        );
+        $data = $this->structured->read($file);
+        $declaredLocale = (string) ($data['locale'] ?? $data['_locale'] ?? $expectedLocale->value);
         $locale = new Locale($declaredLocale);
-
         if ($locale->value !== $expectedLocale->value) {
-            throw TranslationException::because(
-                'OPUS_I18N_CATALOG_LOCALE_MISMATCH',
-                $file . ':' . $locale . ':' . $expectedLocale
-            );
+            throw TranslationException::because('OPUS_I18N_CATALOG_LOCALE_MISMATCH', $file . ':' . $locale . ':' . $expectedLocale);
         }
-
+        $declaredScope = trim((string) ($data['scope'] ?? $scope));
+        if ($declaredScope !== $scope) {
+            throw TranslationException::because('OPUS_I18N_CATALOG_SCOPE_MISMATCH', $file . ':' . $declaredScope . ':' . $scope);
+        }
         if (is_array($data['messages'] ?? null)) {
             $messages = $data['messages'];
-
             foreach ((array) ($data['plurals'] ?? []) as $key => $forms) {
-                if (!is_array($forms)) {
-                    throw TranslationException::because(
-                        'OPUS_I18N_ASAP_PLURAL_ENTRY_INVALID',
-                        (string) $key
-                    );
-                }
+                if (!is_array($forms)) throw TranslationException::because('OPUS_I18N_PLURAL_ENTRY_INVALID', (string) $key);
                 $messages[(string) $key] = ['forms' => $forms];
             }
-
-            foreach (
-                (array) (
-                    $data['grammatical']
-                    ?? $data['grammars']
-                    ?? []
-                ) as $key => $forms
-            ) {
-                if (!is_array($forms)) {
-                    throw TranslationException::because(
-                        'OPUS_I18N_GRAMMATICAL_ENTRY_INVALID',
-                        (string) $key
-                    );
-                }
+            foreach ((array) ($data['grammatical'] ?? $data['grammars'] ?? []) as $key => $forms) {
+                if (!is_array($forms)) throw TranslationException::because('OPUS_I18N_GRAMMATICAL_ENTRY_INVALID', (string) $key);
                 $messages[(string) $key] = ['forms' => $forms];
             }
         } else {
             $messages = $data;
-            unset(
-                $messages['contract'],
-                $messages['locale'],
-                $messages['_locale'],
-                $messages['scope']
-            );
+            unset($messages['contract'], $messages['locale'], $messages['_locale'], $messages['scope']);
         }
-
-        /** @var array<string,string|array<mixed>> $messages */
         return new Catalog($locale, $scope, $messages);
     }
+
+    /** @return list<string> */
+    private function candidateFiles(string $directory, Locale $locale): array
+    {
+        $tags = array_values(array_unique([$locale->value, str_replace('-', '_', $locale->value)]));
+        $paths = [];
+        foreach ($tags as $tag) {
+            foreach (['json', 'yaml', 'yml', 'xml'] as $extension) {
+                foreach ([$tag . '.' . $extension, 'asap.' . $tag . '.' . $extension] as $name) {
+                    $path = $directory . DIRECTORY_SEPARATOR . $name;
+                    if ($this->file->exists($path)) $paths[] = $path;
+                }
+            }
+        }
+        return array_values(array_unique($paths));
+    }
+
 }

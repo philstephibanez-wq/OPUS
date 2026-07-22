@@ -6,13 +6,7 @@ namespace Opus\Security\Acl;
 /**
  * Contract interface for Opus\Security\Acl\AclPolicy.
  *
- * @generated-by OPUS_P117M_R1_CONTRACTUALIZE_ALL
- *
- * Contract:
- * - OPUS framework component contract;
- * - explicit exception-awareness contract;
- * - profiler-awareness contract;
- * - complete self-documentation contract for RefBook output.
+ * @generated-by P117N_OPUS_FILE_I18N_LOCALE
  */
 interface AclPolicyInterface extends
     \Opus\Framework\OpusFrameworkComponentInterface,
@@ -20,4 +14,6 @@ interface AclPolicyInterface extends
     \Opus\Framework\OpusProfilerAwareInterface,
     \Opus\Framework\OpusSelfDocumentingInterface
 {
+    /** @param list<string> $roles */
+    public function decide(array $roles, string $resource, string $action = 'open'): AclDecision;
 }

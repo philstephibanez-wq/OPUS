@@ -1,4 +1,6 @@
-[[ if: registry.error ]]<p class="ow-error">{{ registry.error }}</p>[[ endif ]]
+[[ if: registry.error_application_required ]]<p class="ow-error">[[ i18n: registry.error.application_required ]]</p>[[ endif ]]
+[[ if: registry.error_application_not_found ]]<p class="ow-error">[[ i18n: registry.error.application_not_found ]]</p>[[ endif ]]
+[[ if: registry.error_action_invalid ]]<p class="ow-error">[[ i18n: registry.error.action_invalid ]]</p>[[ endif ]]
 <section class="ow-card ow-context-panel">
   <div class="ow-section-heading">
     <div>
@@ -45,7 +47,9 @@
       <form method="post" action="{{ urls.current }}" class="ow-inline-form">
         <input type="hidden" name="owasys_action" value="select-app">
         <input type="hidden" name="owasys_app_id" value="{{ entry.id }}">
-        <button class="ow-button" type="submit" [[ if: entry.current ]]disabled[[ endif ]]>{{ entry.button_label }}</button>
+        <button class="ow-button" type="submit" [[ if: entry.current ]]disabled[[ endif ]]>
+          [[ if: entry.current ]][[ i18n: registry.current_application ]][[ else ]][[ i18n: registry.work_on_this_app ]][[ endif ]]
+        </button>
       </form>
     </article>
   [[ endforeach ]]

@@ -1,6 +1,9 @@
 <?php
 declare(strict_types=1);
 
+use Opus\File\File;
+use Opus\File\StructuredFileLoader;
+
 final class OwasysRegistryRepository
 {
     public const CONTRACT = 'OWASYS_REGISTRY_SQLITE_V1';
@@ -352,17 +355,14 @@ SQL);
 
     private function importSeed(SQLite3 $db, string $seedFile): int
     {
-        if (!is_file($seedFile)) {
+        if (!File::instance()->exists($seedFile)) {
             throw new RuntimeException(
                 'OWASYS_REGISTRY_SEED_MISSING:'
                 . $this->relativeFromOpusRoot($seedFile)
             );
         }
 
-        $seed = json_decode(
-            (string) file_get_contents($seedFile),
-            true
-        );
+        $seed = StructuredFileLoader::instance()->read($seedFile);
 
         if (
             !is_array($seed)
@@ -401,14 +401,11 @@ SQL);
         $imported = 0;
 
         foreach (glob($pattern) ?: [] as $siteJsonFile) {
-            if (!is_string($siteJsonFile) || !is_file($siteJsonFile)) {
+            if (!is_string($siteJsonFile) || !File::instance()->exists($siteJsonFile)) {
                 continue;
             }
 
-            $site = json_decode(
-                (string) file_get_contents($siteJsonFile),
-                true
-            );
+            $site = StructuredFileLoader::instance()->read($siteJsonFile);
 
             if (!is_array($site)) {
                 throw new RuntimeException(

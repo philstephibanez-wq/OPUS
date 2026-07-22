@@ -58,5 +58,20 @@
     "minimum_password_length": 10,
     "write_actions_require_auth": true,
     "committed_passwords_allowed": false
+  },
+  "i18n": {
+    "contract": "OPUS_APPLICATION_I18N_POLICY_V1",
+    "default_source": "browser",
+    "fallback_locale": "fr",
+    "catalog_format": "json",
+    "supported_catalog_formats": [
+      "json",
+      "yaml",
+      "yml",
+      "xml"
+    ],
+    "locale_tag_style": "bcp47",
+    "allow_regional_variants": true,
+    "silent_fallback": false
   }
 }
