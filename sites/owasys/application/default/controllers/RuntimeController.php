@@ -45,7 +45,6 @@ final class OwasysRuntimeController
         try {
             $resolved = $this->resolveEvent(
                 $method,
-                $locale,
                 $routeKey,
                 $currentState,
                 $identity
@@ -202,7 +201,6 @@ final class OwasysRuntimeController
      */
     private function resolveEvent(
         string $method,
-        string $locale,
         string $routeKey,
         string $currentState,
         ?array $identity
@@ -318,7 +316,7 @@ final class OwasysRuntimeController
             return ['event' => 'open_account'];
         }
 
-        $signal = $this->resolveSignal($locale, $routeKey);
+        $signal = $this->resolveSignal($routeKey);
         if ($signal === '') {
             $this->fail(404, 'OWASYS_ROUTE_NOT_FOUND:' . $routeKey);
         }
@@ -682,12 +680,22 @@ final class OwasysRuntimeController
         return $this->registryController;
     }
 
-    private function resolveSignal(string $locale, string $routeKey): string
+    private function resolveSignal(string $routeKey): string
     {
         $routes = $this->readJson(
             $this->siteRoot . '/config/routes.json',
             'OWASYS_ROUTES_CONFIG_INVALID'
         );
+
+        if (
+            (string) ($routes['contract'] ?? '')
+            !== 'OPUS_SIGNAL_ROUTES_V2'
+        ) {
+            throw new RuntimeException(
+                'OWASYS_ROUTES_CONTRACT_INVALID'
+            );
+        }
+
         $systemRoutes = is_array($routes['system_routes'] ?? null)
             ? $routes['system_routes']
             : [];
@@ -696,8 +704,12 @@ final class OwasysRuntimeController
             return trim((string) $systemRoutes[$routeKey]);
         }
 
-        return is_array($routes['routes'][$locale] ?? null)
-            ? trim((string) ($routes['routes'][$locale][$routeKey] ?? ''))
+        $applicationRoutes = is_array($routes['routes'] ?? null)
+            ? $routes['routes']
+            : [];
+
+        return is_string($applicationRoutes[$routeKey] ?? null)
+            ? trim((string) $applicationRoutes[$routeKey])
             : '';
     }
 
