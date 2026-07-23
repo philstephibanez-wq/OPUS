@@ -21,7 +21,13 @@
     "registry.seed_imported": "Начални записи",
     "registry.select_instruction": "Изберете приложение или започнете създаването на ново приложение.",
     "registry.sync_total": "Приложения",
-    "registry.work_on_this_app": "Работа с това приложение"
+    "registry.work_on_this_app": "Работа с това приложение",
+    "registry.singleton.title": "Архитектура Singleton",
+    "registry.singleton.description": "Проверка на единствената runtime инстанция на всяко приложение OPUS.",
+    "registry.singleton.compliant": "Съответстващи",
+    "registry.singleton.noncompliant": "Несъответстващи",
+    "registry.singleton.all_compliant": "Всички приложения спазват договора Singleton.",
+    "registry.singleton.remediation_required": "Някои приложения трябва да бъдат приведени към договора Singleton."
   },
   "plurals": {},
   "grammatical": {}

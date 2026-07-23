@@ -26,33 +26,68 @@
     <p>[[ i18n: registry.no_application_selected ]]</p>
   [[ endif ]]
 </section>
-<section class="ow-grid ow-registry-grid">
-  [[ if: registry.empty ]]
-    <article class="ow-card">
-      <h2>[[ i18n: registry.empty_title ]]</h2>
-      <p class="ow-muted">[[ i18n: registry.empty_description ]]</p>
-    </article>
+
+<section class="ow-card ow-singleton-audit">
+  <div class="ow-section-heading">
+    <div>
+      <h2>[[ i18n: registry.singleton.title ]]</h2>
+      <p class="ow-muted">[[ i18n: registry.singleton.description ]]</p>
+    </div>
+    <div class="ow-tags">
+      <span>[[ i18n: registry.singleton.compliant ]]: {{ sync.singleton_compliant }}</span>
+      <span>[[ i18n: registry.singleton.noncompliant ]]: {{ sync.singleton_noncompliant }}</span>
+    </div>
+  </div>
+  [[ if: registry.singleton_all_compliant ]]
+    <p class="ow-compliance-message is-compliant">[[ i18n: registry.singleton.all_compliant ]]</p>
   [[ endif ]]
-  [[ foreach: entries as entry ]]
-    <article class="ow-card ow-registry-card[[ if: entry.current ]] is-current[[ endif ]]">
-      <span class="ow-badge">{{ entry.status }}</span>
-      <h2>{{ entry.name }}</h2>
-      <p class="ow-muted">{{ entry.root }}</p>
-      <div class="ow-tags">
-        <span>{{ entry.kind }}</span>
-        <span>{{ entry.role }}</span>
-        <span>{{ entry.locale }}</span>
-        <span>{{ entry.theme }}</span>
-      </div>
-      <form method="post" action="{{ urls.current }}" class="ow-inline-form">
-        <input type="hidden" name="owasys_action" value="select-app">
-        <input type="hidden" name="owasys_app_id" value="{{ entry.id }}">
-        <button class="ow-button" type="submit" [[ if: entry.current ]]disabled[[ endif ]]>
-          [[ if: entry.current ]][[ i18n: registry.current_application ]][[ else ]][[ i18n: registry.work_on_this_app ]][[ endif ]]
-        </button>
-      </form>
-    </article>
-  [[ endforeach ]]
+  [[ if: registry.singleton_has_noncompliant ]]
+    <p class="ow-compliance-message is-noncompliant">[[ i18n: registry.singleton.remediation_required ]]</p>
+  [[ endif ]]
+</section>
+<section class="ow-card ow-app-tree">
+  <div class="ow-section-heading">
+    <div>
+      <h2>[[ i18n: menu.applications ]]</h2>
+      <p class="ow-muted">[[ i18n: registry.select_instruction ]]</p>
+    </div>
+    <span class="ow-badge">[[ i18n: registry.sync_total ]]: {{ sync.total }}</span>
+  </div>
+  [[ if: registry.empty ]]
+    <div class="ow-tree-empty">
+      <h3>[[ i18n: registry.empty_title ]]</h3>
+      <p class="ow-muted">[[ i18n: registry.empty_description ]]</p>
+    </div>
+  [[ else ]]
+    <div class="ow-tree-root">
+      <span class="ow-badge">[[ i18n: brand.name ]]</span>
+      <strong>[[ i18n: registry.application_context ]]</strong>
+      <span class="ow-muted">[[ i18n: registry.sync_total ]]: {{ sync.total }}</span>
+    </div>
+    <div class="ow-tree-branches">
+      [[ foreach: entries as entry ]]
+        <article class="ow-tree-app[[ if: entry.current ]] is-current[[ endif ]]">
+          <form method="post" action="{{ urls.current }}">
+            <input type="hidden" name="owasys_action" value="select-app">
+            <input type="hidden" name="owasys_app_id" value="{{ entry.id }}">
+            <button type="submit" [[ if: entry.current ]]disabled aria-current="true"[[ endif ]]>
+              <strong>{{ entry.name }}</strong>
+              <span>{{ entry.kind }} · {{ entry.status }}</span>
+              <small>{{ entry.root }}</small>
+              <span>{{ entry.locale }} · {{ entry.theme }}</span>
+              [[ if: entry.singleton_compliant ]]
+                <span class="ow-singleton-status is-compliant">[[ i18n: registry.singleton.compliant ]] · {{ entry.singleton_class }}</span>
+              [[ endif ]]
+              [[ if: entry.singleton_noncompliant ]]
+                <span class="ow-singleton-status is-noncompliant">[[ i18n: registry.singleton.noncompliant ]] · {{ entry.singleton_error }}</span>
+              [[ endif ]]
+              <em>[[ if: entry.current ]][[ i18n: registry.current_application ]][[ else ]][[ i18n: registry.work_on_this_app ]][[ endif ]]</em>
+            </button>
+          </form>
+        </article>
+      [[ endforeach ]]
+    </div>
+  [[ endif ]]
 </section>
 <section class="ow-grid ow-runtime-grid">
   <article class="ow-card">

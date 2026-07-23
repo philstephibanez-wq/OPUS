@@ -21,7 +21,13 @@
     "registry.seed_imported": "Algkirjed",
     "registry.select_instruction": "Vali rakendus või alusta uue rakenduse loomist.",
     "registry.sync_total": "Rakendused",
-    "registry.work_on_this_app": "Tööta selle rakendusega"
+    "registry.work_on_this_app": "Tööta selle rakendusega",
+    "registry.singleton.title": "Singleton-arhitektuur",
+    "registry.singleton.description": "Iga OPUS-rakenduse ühe runtime-eksemplari kontroll.",
+    "registry.singleton.compliant": "Vastavad",
+    "registry.singleton.noncompliant": "Mittevastavad",
+    "registry.singleton.all_compliant": "Kõik rakendused vastavad Singleton-lepingule.",
+    "registry.singleton.remediation_required": "Mõned rakendused tuleb Singleton-lepinguga vastavusse viia."
   },
   "plurals": {},
   "grammatical": {}

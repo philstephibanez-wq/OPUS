@@ -21,7 +21,13 @@
     "registry.seed_imported": "Початкові записи",
     "registry.select_instruction": "Виберіть застосунок або почніть створення нового застосунку.",
     "registry.sync_total": "Застосунки",
-    "registry.work_on_this_app": "Працювати з цим застосунком"
+    "registry.work_on_this_app": "Працювати з цим застосунком",
+    "registry.singleton.title": "Архітектура Singleton",
+    "registry.singleton.description": "Перевірка єдиного runtime-екземпляра для кожного застосунку OPUS.",
+    "registry.singleton.compliant": "Відповідають",
+    "registry.singleton.noncompliant": "Не відповідають",
+    "registry.singleton.all_compliant": "Усі застосунки відповідають контракту Singleton.",
+    "registry.singleton.remediation_required": "Деякі застосунки потрібно привести у відповідність до контракту Singleton."
   },
   "plurals": {},
   "grammatical": {}

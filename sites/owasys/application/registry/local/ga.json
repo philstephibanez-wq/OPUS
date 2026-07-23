@@ -21,7 +21,13 @@
     "registry.seed_imported": "Taifid síl",
     "registry.select_instruction": "Roghnaigh feidhmchlár nó cuir tús le feidhmchlár nua a chruthú.",
     "registry.sync_total": "Feidhmchláir",
-    "registry.work_on_this_app": "Oibrigh ar an bhfeidhmchlár seo"
+    "registry.work_on_this_app": "Oibrigh ar an bhfeidhmchlár seo",
+    "registry.singleton.title": "Ailtireacht Singleton",
+    "registry.singleton.description": "Fíorú aon ásc rite amháin do gach feidhmchlár OPUS.",
+    "registry.singleton.compliant": "Comhlíontach",
+    "registry.singleton.noncompliant": "Neamhchomhlíontach",
+    "registry.singleton.all_compliant": "Comhlíonann gach feidhmchlár an conradh Singleton.",
+    "registry.singleton.remediation_required": "Ní mór roinnt feidhmchlár a chur i gcomhréir leis an gconradh Singleton."
   },
   "plurals": {},
   "grammatical": {}

@@ -525,7 +525,7 @@ final class OwasysRuntimeController
             ),
             'assets' => [
                 'score_css' => $basePath . '/asset/css/owasys.css',
-                'theme_css' => $basePath . '/asset/themes/owasys/css/theme.css?v=p117o-r1',
+                'theme_css' => $basePath . '/asset/themes/owasys/css/theme.css?v=p117p',
                 'language_css' => $basePath . '/asset/css/language-switcher.css',
                 'password_js' => $basePath . '/asset/js/password-visibility.js',
             ],
@@ -594,6 +594,11 @@ final class OwasysRuntimeController
             $isCurrent = is_array($currentApp)
                 && (string) ($currentApp['id'] ?? '') === $entryId;
 
+            $singleton = is_array($entry['singleton'] ?? null)
+                ? $entry['singleton']
+                : [];
+            $singletonCompliant = ($singleton['compliant'] ?? false) === true;
+
             $entries[] = [
                 'id' => $entryId,
                 'name' => (string) ($entry['name'] ?? $entryId),
@@ -604,6 +609,12 @@ final class OwasysRuntimeController
                 'theme' => (string) ($entry['theme'] ?? ''),
                 'status' => (string) ($entry['status'] ?? ''),
                 'current' => $isCurrent,
+                'singleton_compliant' => $singletonCompliant,
+                'singleton_noncompliant' => !$singletonCompliant,
+                'singleton_contract' => (string) ($singleton['contract'] ?? ''),
+                'singleton_class' => (string) ($singleton['class'] ?? ''),
+                'singleton_entrypoint' => (string) ($singleton['entrypoint'] ?? ''),
+                'singleton_error' => (string) ($singleton['error'] ?? ''),
             ];
         }
 
@@ -620,6 +631,11 @@ final class OwasysRuntimeController
         }
 
         $sync = is_array($result['sync'] ?? null) ? $result['sync'] : [];
+        $singletonCompliant = count(array_filter(
+            $entries,
+            static fn (array $entry): bool => ($entry['singleton_compliant'] ?? false) === true
+        ));
+        $singletonNoncompliant = count($entries) - $singletonCompliant;
 
         return [
             'registry' => [
@@ -628,6 +644,8 @@ final class OwasysRuntimeController
                 'error_application_required' => ($result['error'] ?? null) === 'registry.error.application_required',
                 'error_application_not_found' => ($result['error'] ?? null) === 'registry.error.application_not_found',
                 'error_action_invalid' => ($result['error'] ?? null) === 'registry.error.action_invalid',
+                'singleton_all_compliant' => $entries !== [] && $singletonNoncompliant === 0,
+                'singleton_has_noncompliant' => $singletonNoncompliant > 0,
             ],
             'entries' => $entries,
             'events' => $events,
@@ -636,6 +654,8 @@ final class OwasysRuntimeController
                 'total' => (string) ($sync['total'] ?? 0),
                 'seed_imported' => (string) ($sync['seed_imported'] ?? 0),
                 'discovered_imported' => (string) ($sync['discovered_imported'] ?? 0),
+                'singleton_compliant' => (string) $singletonCompliant,
+                'singleton_noncompliant' => (string) $singletonNoncompliant,
             ],
         ];
     }
@@ -663,9 +683,11 @@ final class OwasysRuntimeController
     private function registryModel(): OwasysRegistryModel
     {
         if (!$this->registryModel instanceof OwasysRegistryModel) {
+            $opusRoot = dirname(dirname($this->siteRoot));
             $this->registryModel = new OwasysRegistryModel(
                 $this->siteRoot,
-                dirname(dirname($this->siteRoot))
+                $opusRoot,
+                OwasysApplicationSingletonInspector::instance($opusRoot)
             );
         }
 

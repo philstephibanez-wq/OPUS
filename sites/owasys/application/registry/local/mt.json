@@ -21,7 +21,13 @@
     "registry.seed_imported": "Rekords inizjali",
     "registry.select_instruction": "Agħżel applikazzjoni jew ibda l-ħolqien ta’ applikazzjoni ġdida.",
     "registry.sync_total": "Applikazzjonijiet",
-    "registry.work_on_this_app": "Aħdem fuq din l-applikazzjoni"
+    "registry.work_on_this_app": "Aħdem fuq din l-applikazzjoni",
+    "registry.singleton.title": "Arkitettura Singleton",
+    "registry.singleton.description": "Verifika ta’ istanza runtime waħda għal kull applikazzjoni OPUS.",
+    "registry.singleton.compliant": "Konformi",
+    "registry.singleton.noncompliant": "Mhux konformi",
+    "registry.singleton.all_compliant": "L-applikazzjonijiet kollha jikkonformaw mal-kuntratt Singleton.",
+    "registry.singleton.remediation_required": "Xi applikazzjonijiet jeħtieġu konformità mal-kuntratt Singleton."
   },
   "plurals": {},
   "grammatical": {}

@@ -21,7 +21,13 @@
     "registry.seed_imported": "Înregistrări inițiale",
     "registry.select_instruction": "Alegeți o aplicație sau începeți crearea unei aplicații noi.",
     "registry.sync_total": "Aplicații",
-    "registry.work_on_this_app": "Lucrează la această aplicație"
+    "registry.work_on_this_app": "Lucrează la această aplicație",
+    "registry.singleton.title": "Arhitectură Singleton",
+    "registry.singleton.description": "Verificarea unei singure instanțe runtime pentru fiecare aplicație OPUS.",
+    "registry.singleton.compliant": "Conforme",
+    "registry.singleton.noncompliant": "Neconforme",
+    "registry.singleton.all_compliant": "Toate aplicațiile respectă contractul Singleton.",
+    "registry.singleton.remediation_required": "Unele aplicații trebuie aduse în conformitate cu contractul Singleton."
   },
   "plurals": {},
   "grammatical": {}

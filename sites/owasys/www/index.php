@@ -19,11 +19,7 @@ if (PHP_SAPI === 'cli-server') {
             __DIR__
             . DIRECTORY_SEPARATOR
             . ltrim(
-                str_replace(
-                    '/',
-                    DIRECTORY_SEPARATOR,
-                    $requestPath
-                ),
+                str_replace('/', DIRECTORY_SEPARATOR, $requestPath),
                 DIRECTORY_SEPARATOR
             )
         );
@@ -34,16 +30,10 @@ if (PHP_SAPI === 'cli-server') {
             && $candidate !== false
             && $candidate !== $frontController
         ) {
-            $prefix = rtrim(
-                str_replace('\\', '/', $publicRoot),
-                '/'
-            ) . '/';
+            $prefix = rtrim(str_replace('\\', '/', $publicRoot), '/') . '/';
 
             if (
-                str_starts_with(
-                    str_replace('\\', '/', $candidate),
-                    $prefix
-                )
+                str_starts_with(str_replace('\\', '/', $candidate), $prefix)
                 && is_file($candidate)
             ) {
                 return false;
@@ -89,11 +79,13 @@ $files = [
     'application/default/services/NavigationBuilder.php',
     'application/default/services/FsmMermaidBuilder.php',
     'application/default/services/ScorePageRenderer.php',
+    'application/registry/services/ApplicationSingletonInspector.php',
     'application/registry/repositories/RegistryRepository.php',
     'application/registry/models/RegistryModel.php',
     'application/registry/controllers/RegistryController.php',
     'application/default/services/FsmActionHandlers.php',
     'application/default/controllers/RuntimeController.php',
+    'application/default/Application.php',
 ];
 
 foreach ($files as $relative) {
@@ -107,13 +99,4 @@ foreach ($files as $relative) {
     require_once $file;
 }
 
-$session = new OwasysAuthSession();
-$security = new OwasysRuntimeSecurity($siteRoot, $siteConfig);
-$runtime = new OwasysRuntimeController(
-    $siteRoot,
-    $siteConfig,
-    $session,
-    $security,
-    new OwasysScorePageRenderer($siteRoot)
-);
-$runtime->run();
+OwasysApplication::instance($siteRoot, $siteConfig)->run();

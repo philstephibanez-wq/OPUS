@@ -9,6 +9,7 @@ final class OwasysRegistryModel
     public function __construct(
         string $siteRoot,
         string $opusRoot,
+        private readonly OwasysApplicationSingletonInspector $singletonInspector,
         string $databaseRelative = 'var/registry/owasys.sqlite',
         string $seedRelative = 'config/registry.seed.json'
     ) {
@@ -35,7 +36,18 @@ final class OwasysRegistryModel
     /** @return list<array<string,mixed>> */
     public function entries(): array
     {
-        return $this->repository->entries();
+        $entries = [];
+
+        foreach ($this->repository->entries() as $entry) {
+            $inspection = $this->singletonInspector->inspect(
+                (string) ($entry['root_path'] ?? '')
+            );
+            $entries[] = array_replace($entry, [
+                'singleton' => $inspection,
+            ]);
+        }
+
+        return $entries;
     }
 
     /** @return list<array<string,mixed>> */
@@ -57,14 +69,9 @@ final class OwasysRegistryModel
     }
 
     /** @param array<string,mixed> $application */
-    public function setCurrent(
-        array $application,
-        string $actorId
-    ): void {
-        $this->repository->setCurrentApplication(
-            $application,
-            $actorId
-        );
+    public function setCurrent(array $application, string $actorId): void
+    {
+        $this->repository->setCurrentApplication($application, $actorId);
     }
 
     public function clear(string $actorId): void

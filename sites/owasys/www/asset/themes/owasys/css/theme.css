@@ -233,3 +233,41 @@
   .ow-global-nav { padding: 6px 12px; }
   .ow-global-nav-link { padding-inline: 12px; }
 }
+
+/* P117P — OPUS application singleton compliance on Applications state */
+.ow-singleton-audit {
+  border-color: rgba(108, 227, 255, .32);
+}
+
+.ow-compliance-message {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.ow-compliance-message.is-compliant,
+.ow-singleton-status.is-compliant {
+  color: #86efac;
+  background: rgba(22, 101, 52, .24);
+  box-shadow: inset 0 0 0 1px rgba(74, 222, 128, .28);
+}
+
+.ow-compliance-message.is-noncompliant,
+.ow-singleton-status.is-noncompliant {
+  color: #fca5a5;
+  background: rgba(127, 29, 29, .24);
+  box-shadow: inset 0 0 0 1px rgba(248, 113, 113, .28);
+}
+
+.ow-singleton-status {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: .74rem;
+  font-style: normal;
+  overflow-wrap: anywhere;
+}

@@ -21,7 +21,13 @@
     "registry.seed_imported": "Počáteční záznamy",
     "registry.select_instruction": "Vyberte aplikaci nebo spusťte vytvoření nové aplikace.",
     "registry.sync_total": "Aplikace",
-    "registry.work_on_this_app": "Pracovat s touto aplikací"
+    "registry.work_on_this_app": "Pracovat s touto aplikací",
+    "registry.singleton.title": "Architektura Singleton",
+    "registry.singleton.description": "Ověření jediné runtime instance každé aplikace OPUS.",
+    "registry.singleton.compliant": "Vyhovující",
+    "registry.singleton.noncompliant": "Nevyhovující",
+    "registry.singleton.all_compliant": "Všechny aplikace splňují smlouvu Singleton.",
+    "registry.singleton.remediation_required": "Některé aplikace je nutné upravit podle smlouvy Singleton."
   },
   "plurals": {},
   "grammatical": {}

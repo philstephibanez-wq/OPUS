@@ -21,7 +21,13 @@
     "registry.seed_imported": "Početni zapisi",
     "registry.select_instruction": "Odaberite aplikaciju ili pokrenite izradu nove aplikacije.",
     "registry.sync_total": "Aplikacije",
-    "registry.work_on_this_app": "Radi na ovoj aplikaciji"
+    "registry.work_on_this_app": "Radi na ovoj aplikaciji",
+    "registry.singleton.title": "Singleton arhitektura",
+    "registry.singleton.description": "Provjera jedinstvene runtime instance svake OPUS aplikacije.",
+    "registry.singleton.compliant": "Usklađene",
+    "registry.singleton.noncompliant": "Neusklađene",
+    "registry.singleton.all_compliant": "Sve aplikacije poštuju Singleton ugovor.",
+    "registry.singleton.remediation_required": "Neke aplikacije treba uskladiti sa Singleton ugovorom."
   },
   "plurals": {},
   "grammatical": {}

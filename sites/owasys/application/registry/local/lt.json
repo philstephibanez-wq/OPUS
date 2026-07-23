@@ -21,7 +21,13 @@
     "registry.seed_imported": "Pradiniai įrašai",
     "registry.select_instruction": "Pasirinkite programą arba pradėkite kurti naują programą.",
     "registry.sync_total": "Programos",
-    "registry.work_on_this_app": "Dirbti su šia programa"
+    "registry.work_on_this_app": "Dirbti su šia programa",
+    "registry.singleton.title": "Singleton architektūra",
+    "registry.singleton.description": "Vieno runtime egzemplioriaus patikra kiekvienai OPUS programai.",
+    "registry.singleton.compliant": "Atitinka",
+    "registry.singleton.noncompliant": "Neatitinka",
+    "registry.singleton.all_compliant": "Visos programos atitinka Singleton sutartį.",
+    "registry.singleton.remediation_required": "Kai kurias programas reikia suderinti su Singleton sutartimi."
   },
   "plurals": {},
   "grammatical": {}

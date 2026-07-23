@@ -21,7 +21,13 @@
     "registry.seed_imported": "Alkurivit",
     "registry.select_instruction": "Valitse sovellus tai aloita uuden sovelluksen luonti.",
     "registry.sync_total": "Sovellukset",
-    "registry.work_on_this_app": "Työskentele tämän sovelluksen kanssa"
+    "registry.work_on_this_app": "Työskentele tämän sovelluksen kanssa",
+    "registry.singleton.title": "Singleton-arkkitehtuuri",
+    "registry.singleton.description": "Kunkin OPUS-sovelluksen yhden runtime-instanssin tarkistus.",
+    "registry.singleton.compliant": "Yhteensopivat",
+    "registry.singleton.noncompliant": "Ei-yhteensopivat",
+    "registry.singleton.all_compliant": "Kaikki sovellukset noudattavat Singleton-sopimusta.",
+    "registry.singleton.remediation_required": "Osa sovelluksista on korjattava Singleton-sopimuksen mukaisiksi."
   },
   "plurals": {},
   "grammatical": {}

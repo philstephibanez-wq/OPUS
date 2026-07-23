@@ -21,7 +21,13 @@
     "registry.seed_imported": "Startposter",
     "registry.select_instruction": "Vælg en applikation, eller start oprettelsen af en ny applikation.",
     "registry.sync_total": "Applikationer",
-    "registry.work_on_this_app": "Arbejd med denne applikation"
+    "registry.work_on_this_app": "Arbejd med denne applikation",
+    "registry.singleton.title": "Singleton-arkitektur",
+    "registry.singleton.description": "Kontrol af én runtime-instans for hver OPUS-applikation.",
+    "registry.singleton.compliant": "Kompatible",
+    "registry.singleton.noncompliant": "Ikke kompatible",
+    "registry.singleton.all_compliant": "Alle applikationer overholder Singleton-kontrakten.",
+    "registry.singleton.remediation_required": "Nogle applikationer skal tilpasses Singleton-kontrakten."
   },
   "plurals": {},
   "grammatical": {}

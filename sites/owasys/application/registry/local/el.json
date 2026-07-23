@@ -21,7 +21,13 @@
     "registry.seed_imported": "Αρχικές εγγραφές",
     "registry.select_instruction": "Επιλέξτε μια εφαρμογή ή ξεκινήστε τη δημιουργία νέας εφαρμογής.",
     "registry.sync_total": "Εφαρμογές",
-    "registry.work_on_this_app": "Εργασία σε αυτή την εφαρμογή"
+    "registry.work_on_this_app": "Εργασία σε αυτή την εφαρμογή",
+    "registry.singleton.title": "Αρχιτεκτονική Singleton",
+    "registry.singleton.description": "Έλεγχος μίας μοναδικής runtime παρουσίας για κάθε εφαρμογή OPUS.",
+    "registry.singleton.compliant": "Συμβατές",
+    "registry.singleton.noncompliant": "Μη συμβατές",
+    "registry.singleton.all_compliant": "Όλες οι εφαρμογές συμμορφώνονται με τη σύμβαση Singleton.",
+    "registry.singleton.remediation_required": "Ορισμένες εφαρμογές χρειάζονται συμμόρφωση με τη σύμβαση Singleton."
   },
   "plurals": {},
   "grammatical": {}

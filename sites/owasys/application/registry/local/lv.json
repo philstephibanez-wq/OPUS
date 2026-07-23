@@ -21,7 +21,13 @@
     "registry.seed_imported": "Sākuma ieraksti",
     "registry.select_instruction": "Izvēlieties lietotni vai sāciet jaunas lietotnes izveidi.",
     "registry.sync_total": "Lietotnes",
-    "registry.work_on_this_app": "Strādāt ar šo lietotni"
+    "registry.work_on_this_app": "Strādāt ar šo lietotni",
+    "registry.singleton.title": "Singleton arhitektūra",
+    "registry.singleton.description": "Vienas runtime instances pārbaude katrai OPUS lietotnei.",
+    "registry.singleton.compliant": "Atbilstošas",
+    "registry.singleton.noncompliant": "Neatbilstošas",
+    "registry.singleton.all_compliant": "Visas lietotnes atbilst Singleton līgumam.",
+    "registry.singleton.remediation_required": "Dažas lietotnes jāpielāgo Singleton līgumam."
   },
   "plurals": {},
   "grammatical": {}

@@ -21,7 +21,13 @@
     "registry.seed_imported": "Seedrecords",
     "registry.select_instruction": "Kies een applicatie of start het maken van een nieuwe applicatie.",
     "registry.sync_total": "Applicaties",
-    "registry.work_on_this_app": "Aan deze applicatie werken"
+    "registry.work_on_this_app": "Aan deze applicatie werken",
+    "registry.singleton.title": "Singleton-architectuur",
+    "registry.singleton.description": "Controle van één runtime-instantie per OPUS-toepassing.",
+    "registry.singleton.compliant": "Conform",
+    "registry.singleton.noncompliant": "Niet conform",
+    "registry.singleton.all_compliant": "Alle toepassingen voldoen aan het Singleton-contract.",
+    "registry.singleton.remediation_required": "Sommige toepassingen moeten aan het Singleton-contract worden aangepast."
   },
   "plurals": {},
   "grammatical": {}

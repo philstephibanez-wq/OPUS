@@ -21,7 +21,13 @@
     "registry.seed_imported": "Registros iniciales",
     "registry.select_instruction": "Elija una aplicación o inicie la creación de una nueva aplicación.",
     "registry.sync_total": "Aplicaciones",
-    "registry.work_on_this_app": "Trabajar en esta aplicación"
+    "registry.work_on_this_app": "Trabajar en esta aplicación",
+    "registry.singleton.title": "Arquitectura Singleton",
+    "registry.singleton.description": "Verificación de una única instancia runtime para cada aplicación OPUS.",
+    "registry.singleton.compliant": "Conformes",
+    "registry.singleton.noncompliant": "No conformes",
+    "registry.singleton.all_compliant": "Todas las aplicaciones cumplen el contrato Singleton.",
+    "registry.singleton.remediation_required": "Algunas aplicaciones deben adaptarse al contrato Singleton."
   },
   "plurals": {},
   "grammatical": {}

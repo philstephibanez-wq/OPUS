@@ -158,5 +158,14 @@
       "uk"
     ],
     "catalog_base_locales_visible": false
+  },
+  "runtime": {
+    "contract": "OPUS_APPLICATION_SINGLETON_V1",
+    "architecture": "singleton",
+    "class": "OwasysApplication",
+    "file": "application/default/Application.php",
+    "entrypoint": "www/index.php",
+    "factory": "instance",
+    "runner": "run"
   }
 }
