@@ -23,6 +23,7 @@
 !/.env.example
 *.local.php
 *.secret.php
+/runtime/owasys/backend-env.cmd
 
 # Site runtime state
 #
