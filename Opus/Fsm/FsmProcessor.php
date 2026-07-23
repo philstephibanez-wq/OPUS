@@ -157,10 +157,23 @@ final class FsmProcessor implements FsmProcessorInterface
         return array_values($this->fsm['transitions']);
     }
 
+
+    private static function supportsContract(string $contract): bool
+    {
+        if (isset(self::CANONICAL_CONTRACTS[$contract])) {
+            return true;
+        }
+
+        return preg_match(
+            '/^[A-Z][A-Z0-9_]*_FSM_V[1-9][0-9]*$/D',
+            $contract
+        ) === 1;
+    }
+
     private function validateFsm(): void
     {
         $contract = (string) ($this->fsm['contract'] ?? '');
-        if (!isset(self::SUPPORTED_CONTRACTS[$contract])) {
+        if (!self::supportsContract($contract)) {
             throw new InvalidArgumentException(
                 'OPUS_FSM_CONTRACT_INVALID: ' . $contract
             );
