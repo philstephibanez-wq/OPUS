@@ -140,7 +140,47 @@ final class RcpRestClient implements RcpRestClientInterface
             fclose($stream);
         }
 
-        $decoded = Json::instance()->parse($response, $this->endpoint);
+        $headers = isset($http_response_header)
+            && is_array($http_response_header)
+            ? $http_response_header
+            : [];
+        $status = self::httpStatus($headers);
+        $contentType = self::headerValue($headers, 'content-type');
+        $decoded = null;
+
+        if (self::jsonContentType($contentType)) {
+            try {
+                $decoded = Json::instance()->parse(
+                    $response,
+                    $this->endpoint
+                );
+            } catch (\Throwable $cause) {
+                throw new \RuntimeException(
+                    $status >= 400
+                        ? 'OPUS_RCP_BACKEND_JSON_INVALID:' . $status
+                        : 'OPUS_RCP_RESPONSE_JSON_INVALID',
+                    0,
+                    $cause
+                );
+            }
+        }
+
+        if ($status < 200 || $status >= 300) {
+            $code = is_array($decoded)
+                ? trim((string) ($decoded['error_code'] ?? ''))
+                : '';
+            if (preg_match('/^[A-Z0-9_:-]{3,240}$/', $code) === 1) {
+                throw new \RuntimeException($code);
+            }
+            throw new \RuntimeException(
+                'OPUS_RCP_BACKEND_HTTP_ERROR:' . $status
+            );
+        }
+        if (!is_array($decoded)) {
+            throw new \RuntimeException(
+                'OPUS_RCP_RESPONSE_CONTENT_TYPE_INVALID'
+            );
+        }
         if (($decoded['contract'] ?? null)
             !== 'OPUS_RCP_REST_EXECUTION_V1') {
             throw new \RuntimeException(
@@ -166,6 +206,42 @@ final class RcpRestClient implements RcpRestClientInterface
         return is_array($decoded['result'] ?? null)
             ? $decoded['result']
             : ['value' => $decoded['result'] ?? null];
+    }
+
+    /** @param list<string> $headers */
+    private static function httpStatus(array $headers): int
+    {
+        foreach ($headers as $header) {
+            if (!is_string($header)) {
+                continue;
+            }
+            if (preg_match('/^HTTP\/\S+\s+(\d{3})(?:\s|$)/i', $header, $match) === 1) {
+                return (int) $match[1];
+            }
+        }
+        throw new \RuntimeException('OPUS_RCP_HTTP_STATUS_MISSING');
+    }
+
+    /** @param list<string> $headers */
+    private static function headerValue(array $headers, string $name): string
+    {
+        $prefix = strtolower($name) . ':';
+        foreach ($headers as $header) {
+            if (!is_string($header)) {
+                continue;
+            }
+            if (str_starts_with(strtolower($header), $prefix)) {
+                return trim(substr($header, strlen($prefix)));
+            }
+        }
+        return '';
+    }
+
+    private static function jsonContentType(string $contentType): bool
+    {
+        $mediaType = strtolower(trim(explode(';', $contentType, 2)[0]));
+        return $mediaType === 'application/json'
+            || str_ends_with($mediaType, '+json');
     }
 
     /** @param array<string,mixed> $actor */

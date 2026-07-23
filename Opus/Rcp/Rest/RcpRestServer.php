@@ -338,6 +338,9 @@ final class RcpRestServer implements RcpRestServerInterface
                 'OPUS_RCP_COMPOSER_COMMAND_MISSING'
             );
         }
+        if ($selected === ['@composer']) {
+            return self::discoverComposerCommand($root);
+        }
 
         $resolved = [];
         foreach ($selected as $index => $part) {
@@ -355,6 +358,9 @@ final class RcpRestServer implements RcpRestServerInterface
                 $relative = self::safeRelative($part);
                 $absolute = $root . '/' . $relative;
                 if (!File::instance()->exists($absolute)) {
+                    if ($relative === 'composer.phar') {
+                        return self::discoverComposerCommand($root);
+                    }
                     throw new \RuntimeException(
                         'OPUS_RCP_COMPOSER_PHAR_MISSING:' . $relative
                     );
@@ -371,6 +377,80 @@ final class RcpRestServer implements RcpRestServerInterface
         }
 
         return $resolved;
+    }
+
+    /** @return list<string> */
+    private static function discoverComposerCommand(string $root): array
+    {
+        $candidates = [];
+        $explicit = getenv('OPUS_COMPOSER_PHAR');
+        if (is_string($explicit) && trim($explicit) !== '') {
+            $explicit = trim($explicit, " \t\n\r\0\x0B\"");
+            if (!self::absolutePath($explicit)) {
+                throw new \RuntimeException(
+                    'OPUS_RCP_COMPOSER_PHAR_ENV_INVALID'
+                );
+            }
+            $candidates[] = $explicit;
+        }
+
+        $candidates[] = $root . '/composer.phar';
+
+        $path = getenv('PATH');
+        if (is_string($path) && $path !== '') {
+            foreach (explode(PATH_SEPARATOR, $path) as $directory) {
+                $directory = trim($directory, " \t\n\r\0\x0B\"");
+                if ($directory !== '') {
+                    $candidates[] = rtrim($directory, '/\\')
+                        . '/composer.phar';
+                }
+            }
+        }
+
+        $knownRoots = [
+            getenv('ProgramData'),
+            getenv('APPDATA'),
+            getenv('LOCALAPPDATA'),
+            getenv('USERPROFILE'),
+        ];
+        foreach ($knownRoots as $knownRoot) {
+            if (!is_string($knownRoot) || trim($knownRoot) === '') {
+                continue;
+            }
+            $knownRoot = rtrim(trim($knownRoot), '/\\');
+            $candidates[] = $knownRoot
+                . '/ComposerSetup/bin/composer.phar';
+            $candidates[] = $knownRoot . '/Composer/composer.phar';
+            $candidates[] = $knownRoot
+                . '/AppData/Roaming/Composer/composer.phar';
+            $candidates[] = $knownRoot
+                . '/AppData/Local/ComposerSetup/bin/composer.phar';
+        }
+
+        $seen = [];
+        foreach ($candidates as $candidate) {
+            $candidate = str_replace('\\', '/', trim($candidate));
+            $signature = strtolower($candidate);
+            if ($candidate === '' || isset($seen[$signature])) {
+                continue;
+            }
+            $seen[$signature] = true;
+            if (!self::absolutePath($candidate)) {
+                continue;
+            }
+            if (File::instance()->exists($candidate) && is_file($candidate)) {
+                return [PHP_BINARY, $candidate];
+            }
+        }
+
+        throw new \RuntimeException('OPUS_RCP_COMPOSER_NOT_FOUND');
+    }
+
+    private static function absolutePath(string $path): bool
+    {
+        $path = str_replace('\\', '/', trim($path));
+        return str_starts_with($path, '/')
+            || preg_match('/^[A-Za-z]:\//', $path) === 1;
     }
 
     private static function safeRelative(string $path): string

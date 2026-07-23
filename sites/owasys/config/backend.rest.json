@@ -4,8 +4,7 @@
   "operation_catalog": "sites/owasys/config/backend.operations.json",
   "execution_store": "sites/owasys/var/rcp/executions",
   "composer_command": [
-    "@php",
-    "composer.phar"
+    "@composer"
   ],
   "timeout_seconds": 120,
   "max_output_bytes": 2097152,
