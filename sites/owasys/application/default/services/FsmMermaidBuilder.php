@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use Opus\Componants\Diagram\MermaidDiagram;
+use Opus\File\StructuredFileLoader;
 
 final class OwasysFsmMermaidBuilder
 {
@@ -66,6 +67,7 @@ final class OwasysFsmMermaidBuilder
                     (string) ($item['label'] ?? $id)
                 ),
                 'url' => $url,
+                'available' => ($item['available'] ?? true) === true,
                 'state' => $states[$id],
                 'node_class' => $this->nodeClass($id),
             ];
@@ -95,12 +97,16 @@ final class OwasysFsmMermaidBuilder
 
         foreach ($nodes as $id => $node) {
             $state = $node['state'];
-            $class = $id === $stateId
-                ? 'active'
+            $class = ($node['available'] ?? false) !== true
+                ? 'blocked'
                 : (
-                    ($state['requires_current_app'] ?? false) === true
-                    ? 'work'
-                    : 'primary'
+                    $id === $stateId
+                    ? 'active'
+                    : (
+                        ($state['requires_current_app'] ?? false) === true
+                        ? 'work'
+                        : 'primary'
+                    )
                 );
 
             $label = (string) $node['label'];
@@ -162,10 +168,15 @@ final class OwasysFsmMermaidBuilder
         $lines[] = '    classDef primary fill:#123456,stroke:#6ce3ff,color:#f6f8ff,stroke-width:2px';
         $lines[] = '    classDef active fill:#164e63,stroke:#4ade80,color:#f6f8ff,stroke-width:4px';
         $lines[] = '    classDef work fill:#101c2f,stroke:#94aad8,color:#f6f8ff,stroke-width:1px';
+        $lines[] = '    classDef blocked fill:#111827,stroke:#64748b,color:#94a3b8,stroke-width:1px,stroke-dasharray:5 4';
 
         $routes = [];
 
         foreach ($nodes as $id => $node) {
+            if (($node['available'] ?? false) !== true) {
+                continue;
+            }
+
             $routes[$id] = [
                 'url' => (string) $node['url'],
                 'node_class' => (string) $node['node_class'],
@@ -219,19 +230,17 @@ final class OwasysFsmMermaidBuilder
     /** @return array<string,mixed> */
     private function loadFsm(): array
     {
+        $loader = StructuredFileLoader::instance();
         $siteConfigFile = $this->siteRoot . '/config/site.json';
-        $siteConfig = is_file($siteConfigFile)
-            ? json_decode(
-                (string) file_get_contents($siteConfigFile),
-                true,
-                512,
-                JSON_THROW_ON_ERROR
-            )
-            : null;
 
-        if (!is_array($siteConfig)) {
+        try {
+            $siteConfig = $loader->read($siteConfigFile);
+        } catch (Throwable $cause) {
             throw new RuntimeException(
-                'OWASYS_FSM_MERMAID_SITE_CONFIG_INVALID'
+                'OWASYS_FSM_MERMAID_SITE_CONFIG_INVALID:'
+                . $cause->getMessage(),
+                0,
+                $cause
             );
         }
 
@@ -256,23 +265,18 @@ final class OwasysFsmMermaidBuilder
             );
         }
 
-        $fsmFile = $this->siteRoot . '/' . $relative;
-        $fsm = is_file($fsmFile)
-            ? json_decode(
-                (string) file_get_contents($fsmFile),
-                true,
-                512,
-                JSON_THROW_ON_ERROR
-            )
-            : null;
-
-        if (!is_array($fsm)) {
+        try {
+            return $loader->read(
+                $this->siteRoot . '/' . $relative
+            );
+        } catch (Throwable $cause) {
             throw new RuntimeException(
-                'OWASYS_FSM_MERMAID_CONFIG_INVALID'
+                'OWASYS_FSM_MERMAID_CONFIG_INVALID:'
+                . $cause->getMessage(),
+                0,
+                $cause
             );
         }
-
-        return $fsm;
     }
 
     /**

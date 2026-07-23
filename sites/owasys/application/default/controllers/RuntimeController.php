@@ -525,7 +525,7 @@ final class OwasysRuntimeController
             ),
             'assets' => [
                 'score_css' => $basePath . '/asset/css/owasys.css',
-                'theme_css' => $basePath . '/asset/themes/owasys/css/theme.css',
+                'theme_css' => $basePath . '/asset/themes/owasys/css/theme.css?v=p117o-r1',
                 'language_css' => $basePath . '/asset/css/language-switcher.css',
                 'password_js' => $basePath . '/asset/js/password-visibility.js',
             ],
@@ -541,6 +541,7 @@ final class OwasysRuntimeController
                 $fsmConfig,
                 $identity,
                 $stateId,
+                is_array($currentApp),
                 $routeUrl
             ),
             'auth' => [

@@ -11,34 +11,36 @@
 </head>
 <body data-opus-application="owasys" data-opus-state="{{ fsm.state }}" data-opus-module="{{ fsm.module }}">
 <div class="ow-shell ow-shell-horizontal-navigation">
-  <header class="ow-global-header">
-    <a class="ow-global-header-identity" href="{{ urls.home }}">
-      <strong>[[ i18n: brand.name ]]</strong>
-      <span>[[ i18n: brand.subtitle ]]</span>
-    </a>
-    <div class="ow-global-header-actions">
-      [[ if: identity.authenticated ]]
-        <div class="ow-global-current-app">
-          <small>[[ i18n: registry.current_application ]]</small>
-          <strong>[[ if: current_app.present ]]{{ current_app.name }}[[ else ]][[ i18n: registry.none_selected ]][[ endif ]]</strong>
-          <a href="{{ urls.applications }}">[[ i18n: registry.change_application ]]</a>
-        </div>
-      [[ endif ]]
-      [[ include:default/templates/partials/language-switcher.score ]]
-      <div class="ow-global-auth-status">
+  <div class="ow-global-chrome">
+    <header class="ow-global-header">
+      <a class="ow-global-header-identity" href="{{ urls.home }}">
+        <strong>[[ i18n: brand.name ]]</strong>
+        <span>[[ i18n: brand.subtitle ]]</span>
+      </a>
+      <div class="ow-global-header-actions">
         [[ if: identity.authenticated ]]
-          <p><strong>{{ identity.label }}</strong><span> · {{ identity.primary_role }}</span></p>
-          <a href="{{ urls.account }}">[[ i18n: menu.account ]]</a>
-          <a href="{{ urls.logout }}">[[ i18n: auth.logout ]]</a>
-        [[ else ]]
-          <a href="{{ urls.login }}">[[ i18n: auth.login ]]</a>
+          <div class="ow-global-current-app">
+            <small>[[ i18n: registry.current_application ]]</small>
+            <strong>[[ if: current_app.present ]]{{ current_app.name }}[[ else ]][[ i18n: registry.none_selected ]][[ endif ]]</strong>
+            <a href="{{ urls.applications }}">[[ i18n: registry.change_application ]]</a>
+          </div>
         [[ endif ]]
+        [[ include:default/templates/partials/language-switcher.score ]]
+        <div class="ow-global-auth-status">
+          [[ if: identity.authenticated ]]
+            <p><strong>{{ identity.label }}</strong><span> · {{ identity.primary_role }}</span></p>
+            <a href="{{ urls.account }}">[[ i18n: menu.account ]]</a>
+            <a href="{{ urls.logout }}">[[ i18n: auth.logout ]]</a>
+          [[ else ]]
+            <a href="{{ urls.login }}">[[ i18n: auth.login ]]</a>
+          [[ endif ]]
+        </div>
       </div>
-    </div>
-  </header>
-  [[ if: identity.authenticated ]]
-    [[ include:default/templates/partials/navigation.score ]]
-  [[ endif ]]
+    </header>
+    [[ if: identity.authenticated ]]
+      [[ include:default/templates/partials/navigation.score ]]
+    [[ endif ]]
+  </div>
   <main class="ow-main">
     <header class="ow-topbar">
       <div>

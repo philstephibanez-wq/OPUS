@@ -17,6 +17,7 @@ final class OwasysNavigationBuilder
         array $fsmConfig,
         ?array $identity,
         string $currentState,
+        bool $hasCurrentApp,
         callable $routeUrl
     ): array {
         $items = [];
@@ -30,10 +31,19 @@ final class OwasysNavigationBuilder
             $module = (string) ($state['module'] ?? $stateId);
             $route = (string) ($state['route'] ?? '');
             $labelKey = (string) ($navigation['label'] ?? ('menu.' . $module));
+            $requiresCurrentApp = ($state['requires_current_app'] ?? false) === true;
 
             if ($stateId === '' || $route === '' || $labelKey === '') {
                 throw new RuntimeException('OWASYS_NAVIGATION_STATE_INVALID:' . $stateId);
             }
+
+            $allowed = $this->security->isAllowed(
+                $identity,
+                $module,
+                'open'
+            );
+            $available = $allowed
+                && (!$requiresCurrentApp || $hasCurrentApp);
 
             $items[] = [
                 'id' => $stateId,
@@ -41,7 +51,9 @@ final class OwasysNavigationBuilder
                 'label_key' => $labelKey,
                 'label' => '',
                 'url' => $routeUrl($route),
-                'allowed' => $this->security->isAllowed($identity, $module, 'open'),
+                'allowed' => $allowed,
+                'available' => $available,
+                'requires_current_app' => $requiresCurrentApp,
                 'active' => $stateId === $currentState,
                 'order' => (int) ($navigation['order'] ?? 1000),
             ];
