@@ -68,6 +68,23 @@ final class OwasysRegistryModel
         return null;
     }
 
+    /**
+     * Reconciles a session snapshot with the current canonical Registry entry.
+     *
+     * @param array<string,mixed>|null $current
+     * @return array<string,mixed>|null
+     */
+    public function canonicalCurrent(?array $current): ?array
+    {
+        if (!is_array($current)) {
+            return null;
+        }
+
+        $applicationId = trim((string) ($current['id'] ?? ''));
+
+        return $applicationId === '' ? null : $this->find($applicationId);
+    }
+
     /** @param array<string,mixed> $application */
     public function setCurrent(array $application, string $actorId): void
     {

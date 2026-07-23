@@ -8,7 +8,7 @@
       "kind": "fullstack",
       "root_path": "sites/owasys",
       "public_root": "www",
-      "default_locale": "fr",
+      "default_locale": "fr-FR",
       "theme": "owasys",
       "status": "development",
       "blueprint": "owasys",

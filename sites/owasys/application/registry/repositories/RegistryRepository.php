@@ -49,13 +49,14 @@ final class OwasysRegistryRepository
     }
 
     /**
-     * @return array{
-     *   contract:string,
-     *   database:string,
-     *   seed_imported:int,
-     *   discovered_imported:int,
-     *   total:int
-     * }
+     * Synchronizes the registry from the seed and canonical discovered sites.
+     *
+     * Duplicate site identifiers are never resolved by filesystem order. An
+     * exact directory-name match (sites/<site_id>) is canonical; otherwise a
+     * single candidate is canonical. Ambiguous identifiers remain explicit
+     * diagnostics and are not imported.
+     *
+     * @return array<string,mixed>
      */
     public function synchronize(string $seedFile): array
     {
@@ -64,7 +65,7 @@ final class OwasysRegistryRepository
         try {
             $this->ensureSchema($db);
             $seedImported = $this->importSeed($db, $seedFile);
-            $discoveredImported = $this->importDiscoveredSites($db);
+            $discovery = $this->importDiscoveredSites($db);
             $total = $this->countApplications($db);
         } finally {
             $db->close();
@@ -74,7 +75,13 @@ final class OwasysRegistryRepository
             'contract' => self::CONTRACT,
             'database' => $this->relativeDatabasePath(),
             'seed_imported' => $seedImported,
-            'discovered_imported' => $discoveredImported,
+            'discovered_imported' => (int) ($discovery['imported'] ?? 0),
+            'discovered_candidates' => (int) ($discovery['candidates'] ?? 0),
+            'duplicate_ids' => (int) ($discovery['duplicate_ids'] ?? 0),
+            'duplicate_roots' => (int) ($discovery['duplicate_roots'] ?? 0),
+            'discovery_conflicts' => is_array($discovery['conflicts'] ?? null)
+                ? $discovery['conflicts']
+                : [],
             'total' => $total,
         ];
     }
@@ -390,17 +397,22 @@ SQL);
         return $imported;
     }
 
-    private function importDiscoveredSites(SQLite3 $db): int
+    /** @return array<string,mixed> */
+    private function importDiscoveredSites(SQLite3 $db): array
     {
         $pattern = rtrim($this->opusRoot, DIRECTORY_SEPARATOR)
             . DIRECTORY_SEPARATOR . 'sites'
             . DIRECTORY_SEPARATOR . '*'
             . DIRECTORY_SEPARATOR . 'config'
             . DIRECTORY_SEPARATOR . 'site.json';
+        $files = glob($pattern) ?: [];
+        sort($files, SORT_STRING);
 
-        $imported = 0;
+        /** @var array<string,list<array<string,mixed>>> $groups */
+        $groups = [];
+        $candidateCount = 0;
 
-        foreach (glob($pattern) ?: [] as $siteJsonFile) {
+        foreach ($files as $siteJsonFile) {
             if (!is_string($siteJsonFile) || !File::instance()->exists($siteJsonFile)) {
                 continue;
             }
@@ -428,50 +440,127 @@ SQL);
             }
 
             $siteDir = basename(dirname(dirname($siteJsonFile)));
-            $siteId = (string) ($site['site_id'] ?? $siteDir);
+            $siteId = trim((string) ($site['site_id'] ?? $siteDir));
+            $candidate = [
+                'id' => $siteId,
+                'slug' => (string) ($site['slug'] ?? $siteId),
+                'name' => (string) ($site['site_name'] ?? $siteId),
+                'kind' => (string) ($site['kind'] ?? 'fullstack'),
+                'root_path' => 'sites/' . $siteDir,
+                'public_root' => (string) ($site['public_root'] ?? 'www'),
+                'default_locale' => (string) ($site['default_locale'] ?? 'fr-FR'),
+                'theme' => (string) ($site['theme'] ?? 'default'),
+                'status' => (string) ($site['status'] ?? 'discovered'),
+                'blueprint' => (string) ($site['blueprint'] ?? 'unknown'),
+                'generated_by' => (string) ($site['generated_by'] ?? 'manual'),
+                'role' => (string) (
+                    $site['role'] ?? 'standard-opus-application'
+                ),
+            ];
 
-            $this->upsertApplication(
-                $db,
-                [
-                    'id' => $siteId,
-                    'slug' => $siteId,
-                    'name' => (string) (
-                        $site['site_name'] ?? $siteId
-                    ),
-                    'kind' => (string) (
-                        $site['kind'] ?? 'fullstack'
-                    ),
-                    'root_path' => 'sites/' . $siteDir,
-                    'public_root' => (string) (
-                        $site['public_root'] ?? 'www'
-                    ),
-                    'default_locale' => (string) (
-                        $site['default_locale'] ?? 'fr'
-                    ),
-                    'theme' => (string) (
-                        $site['theme'] ?? 'default'
-                    ),
-                    'status' => (string) (
-                        $site['status'] ?? 'discovered'
-                    ),
-                    'blueprint' => (string) (
-                        $site['blueprint'] ?? 'unknown'
-                    ),
-                    'generated_by' => (string) (
-                        $site['generated_by'] ?? 'manual'
-                    ),
-                    'role' => (string) (
-                        $site['role']
-                        ?? 'standard-opus-application'
-                    ),
-                ],
-                'discovered'
-            );
-
-            $imported++;
+            $groups[$siteId] ??= [];
+            $groups[$siteId][] = $candidate;
+            $candidateCount++;
         }
 
-        return $imported;
+        ksort($groups, SORT_STRING);
+        $imported = 0;
+        $duplicateRoots = 0;
+        $conflicts = [];
+
+        foreach ($groups as $siteId => $candidates) {
+            usort(
+                $candidates,
+                static fn (array $left, array $right): int => strcmp(
+                    (string) ($left['root_path'] ?? ''),
+                    (string) ($right['root_path'] ?? '')
+                )
+            );
+            $selection = $this->selectCanonicalDiscoveredCandidate(
+                $siteId,
+                $candidates
+            );
+            $canonical = is_array($selection['canonical'] ?? null)
+                ? $selection['canonical']
+                : null;
+            $rejected = is_array($selection['rejected_roots'] ?? null)
+                ? array_values(array_filter(
+                    $selection['rejected_roots'],
+                    'is_string'
+                ))
+                : [];
+
+            if (is_array($canonical)) {
+                $this->upsertApplication($db, $canonical, 'discovered');
+                $imported++;
+            }
+
+            if ($rejected !== [] || count($candidates) > 1) {
+                $duplicateRoots += count($rejected);
+                $conflicts[] = [
+                    'id' => $siteId,
+                    'canonical_root' => is_array($canonical)
+                        ? (string) ($canonical['root_path'] ?? '')
+                        : '',
+                    'rejected_roots' => $rejected,
+                    'resolved' => is_array($canonical),
+                    'error' => (string) ($selection['error'] ?? ''),
+                ];
+            }
+        }
+
+        return [
+            'imported' => $imported,
+            'candidates' => $candidateCount,
+            'duplicate_ids' => count($conflicts),
+            'duplicate_roots' => $duplicateRoots,
+            'conflicts' => $conflicts,
+        ];
+    }
+
+    /**
+     * @param list<array<string,mixed>> $candidates
+     * @return array<string,mixed>
+     */
+    private function selectCanonicalDiscoveredCandidate(
+        string $siteId,
+        array $candidates
+    ): array {
+        $expectedRoot = 'sites/' . $siteId;
+        $exact = array_values(array_filter(
+            $candidates,
+            static fn (array $candidate): bool =>
+                (string) ($candidate['root_path'] ?? '') === $expectedRoot
+        ));
+        $canonical = null;
+        $error = '';
+
+        if (count($exact) === 1) {
+            $canonical = $exact[0];
+        } elseif (count($candidates) === 1) {
+            $canonical = $candidates[0];
+        } else {
+            $error = 'OWASYS_REGISTRY_DISCOVERY_DUPLICATE_AMBIGUOUS';
+        }
+
+        $canonicalRoot = is_array($canonical)
+            ? (string) ($canonical['root_path'] ?? '')
+            : '';
+        $rejectedRoots = [];
+
+        foreach ($candidates as $candidate) {
+            $root = (string) ($candidate['root_path'] ?? '');
+
+            if ($root !== '' && $root !== $canonicalRoot) {
+                $rejectedRoots[] = $root;
+            }
+        }
+
+        return [
+            'canonical' => $canonical,
+            'rejected_roots' => array_values(array_unique($rejectedRoots)),
+            'error' => $error,
+        ];
     }
 
     /** @param array<string,mixed> $entry */

@@ -176,6 +176,130 @@ button[type="submit"]:hover {
 
 .ow-registry-card h2 { margin: 12px 0 2px; }
 
+.ow-app-tree {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(74, 222, 128, .42);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(74, 222, 128, .13), transparent 36%),
+    linear-gradient(180deg, rgba(9, 48, 42, .84), rgba(12, 23, 40, .96));
+}
+
+.ow-tree-root {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  width: min(460px, 100%);
+  margin: 24px auto 46px;
+  padding: 18px;
+  border: 2px solid rgba(108, 227, 255, .55);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(18, 52, 86, .84), rgba(12, 23, 40, .92));
+  box-shadow: 0 0 0 1px rgba(255,255,255,.03), 0 20px 52px rgba(0,0,0,.22);
+}
+
+.ow-tree-root::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -47px;
+  width: 2px;
+  height: 47px;
+  background: linear-gradient(180deg, rgba(108, 227, 255, .72), rgba(108, 227, 255, .22));
+}
+
+.ow-tree-root strong {
+  font-size: 24px;
+  text-align: center;
+}
+
+.ow-tree-branches {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 18px;
+  padding-top: 26px;
+}
+
+.ow-tree-branches::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 5%;
+  right: 5%;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(108, 227, 255, 0), rgba(108, 227, 255, .56), rgba(108, 227, 255, 0));
+}
+
+.ow-tree-app {
+  position: relative;
+  min-width: 0;
+}
+
+.ow-tree-app::before {
+  content: '';
+  position: absolute;
+  top: -26px;
+  left: 50%;
+  width: 2px;
+  height: 26px;
+  background: rgba(108, 227, 255, .42);
+}
+
+.ow-tree-app form { height: 100%; }
+
+.ow-tree-app button {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 5px;
+  min-height: 154px;
+  text-align: left;
+  border: 1px solid var(--ow-line);
+  border-radius: 18px;
+  padding: 15px;
+  background: rgba(255, 255, 255, .055);
+  color: var(--ow-text);
+  cursor: pointer;
+  font: inherit;
+  transition: transform .12s ease, border-color .12s ease, background .12s ease;
+}
+
+.ow-tree-app button:hover,
+.ow-tree-app button:focus-visible,
+.ow-tree-app.is-current button {
+  transform: translateY(-2px);
+  border-color: var(--ow-accent);
+  background: rgba(108, 227, 255, .12);
+  outline: none;
+}
+
+.ow-tree-app.is-current button {
+  border-color: rgba(74, 222, 128, .72);
+  box-shadow: 0 0 0 2px rgba(74, 222, 128, .22), 0 14px 40px rgba(0,0,0,.20);
+}
+
+.ow-tree-app strong { font-size: 1.05rem; }
+.ow-tree-app span,
+.ow-tree-app small { color: var(--ow-muted); overflow-wrap: anywhere; }
+.ow-tree-app em {
+  margin-top: auto;
+  color: #a7f3d0;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.ow-tree-empty {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px dashed var(--ow-line);
+  border-radius: 16px;
+  text-align: center;
+}
+
 .ow-event-list {
   display: grid;
   gap: 8px;
@@ -257,8 +381,12 @@ code {
   .ow-section-heading form,
   .ow-section-heading button { width: 100%; }
   .ow-event-list li { grid-template-columns: 1fr; gap: 2px; }
+  .ow-tree-root { margin-bottom: 30px; }
+  .ow-tree-root::after,
+  .ow-tree-branches::before,
+  .ow-tree-app::before { display: none; }
+  .ow-tree-branches { grid-template-columns: 1fr; padding-top: 0; }
 }
-
 
 .ow-password-field {
   position: relative;
@@ -299,3 +427,83 @@ code {
 .ow-password-icon-hide { display: none; }
 .ow-password-toggle[aria-pressed="true"] .ow-password-icon-show { display: none; }
 .ow-password-toggle[aria-pressed="true"] .ow-password-icon-hide { display: block; }
+
+/* P117Q — canonical application discovery and readable Registry cards */
+.ow-discovery-audit {
+  border-color: rgba(251, 191, 36, .34);
+}
+
+.ow-discovery-conflicts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.ow-discovery-conflict {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(251, 191, 36, .32);
+  border-radius: 14px;
+  background: rgba(120, 53, 15, .16);
+}
+
+.ow-discovery-conflict.is-unresolved {
+  border-color: rgba(248, 113, 113, .44);
+  background: rgba(127, 29, 29, .18);
+}
+
+.ow-discovery-conflict > strong {
+  display: block;
+  margin-bottom: 9px;
+  font-size: 1rem;
+}
+
+.ow-discovery-conflict dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.ow-discovery-conflict dl > div {
+  display: grid;
+  gap: 2px;
+}
+
+.ow-discovery-conflict dt {
+  color: var(--ow-muted);
+  font-size: .75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.ow-discovery-conflict dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.ow-app-card-heading {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ow-app-card-heading strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ow-app-card-meta,
+.ow-app-card-root {
+  display: block;
+  width: 100%;
+}
+
+.ow-tree-app.is-current button:disabled {
+  opacity: 1;
+  cursor: default;
+}
+

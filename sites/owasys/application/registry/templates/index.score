@@ -27,6 +27,39 @@
   [[ endif ]]
 </section>
 
+<section class="ow-card ow-discovery-audit">
+  <div class="ow-section-heading">
+    <div>
+      <h2>[[ i18n: registry.discovery.title ]]</h2>
+      <p class="ow-muted">[[ i18n: registry.discovery.description ]]</p>
+    </div>
+    <div class="ow-tags">
+      <span>[[ i18n: registry.discovery.candidates ]]: {{ sync.discovered_candidates }}</span>
+      <span>[[ i18n: registry.discovery.canonical ]]: {{ sync.discovered_imported }}</span>
+      <span>[[ i18n: registry.discovery.duplicate_ids ]]: {{ sync.duplicate_ids }}</span>
+      <span>[[ i18n: registry.discovery.ignored_roots ]]: {{ sync.duplicate_roots }}</span>
+    </div>
+  </div>
+  [[ if: registry.discovery_clean ]]
+    <p class="ow-compliance-message is-compliant">[[ i18n: registry.discovery.clean ]]</p>
+  [[ endif ]]
+  [[ if: registry.discovery_has_conflicts ]]
+    <p class="ow-compliance-message is-noncompliant">[[ i18n: registry.discovery.conflict ]]</p>
+    <div class="ow-discovery-conflicts">
+      [[ foreach: discovery_conflicts as conflict ]]
+        <article class="ow-discovery-conflict[[ if: conflict.unresolved ]] is-unresolved[[ endif ]]">
+          <strong>{{ conflict.id }}</strong>
+          <dl>
+            <div><dt>[[ i18n: registry.discovery.canonical_root ]]</dt><dd>{{ conflict.canonical_root }}</dd></div>
+            <div><dt>[[ i18n: registry.discovery.rejected_roots ]]</dt><dd>{{ conflict.rejected_roots }}</dd></div>
+          </dl>
+          [[ if: conflict.unresolved ]]<code>{{ conflict.error }}</code>[[ endif ]]
+        </article>
+      [[ endforeach ]]
+    </div>
+  [[ endif ]]
+</section>
+
 <section class="ow-card ow-singleton-audit">
   <div class="ow-section-heading">
     <div>
@@ -45,6 +78,7 @@
     <p class="ow-compliance-message is-noncompliant">[[ i18n: registry.singleton.remediation_required ]]</p>
   [[ endif ]]
 </section>
+
 <section class="ow-card ow-app-tree">
   <div class="ow-section-heading">
     <div>
@@ -71,10 +105,10 @@
             <input type="hidden" name="owasys_action" value="select-app">
             <input type="hidden" name="owasys_app_id" value="{{ entry.id }}">
             <button type="submit" [[ if: entry.current ]]disabled aria-current="true"[[ endif ]]>
-              <strong>{{ entry.name }}</strong>
-              <span>{{ entry.kind }} · {{ entry.status }}</span>
-              <small>{{ entry.root }}</small>
-              <span>{{ entry.locale }} · {{ entry.theme }}</span>
+              <span class="ow-app-card-heading"><strong>{{ entry.name }}</strong><span class="ow-badge">{{ entry.status }}</span></span>
+              <span class="ow-app-card-meta">{{ entry.kind }} · {{ entry.role }}</span>
+              <small class="ow-app-card-root">{{ entry.root }}</small>
+              <span class="ow-app-card-meta">{{ entry.locale }} · {{ entry.theme }}</span>
               [[ if: entry.singleton_compliant ]]
                 <span class="ow-singleton-status is-compliant">[[ i18n: registry.singleton.compliant ]] · {{ entry.singleton_class }}</span>
               [[ endif ]]
@@ -89,6 +123,7 @@
     </div>
   [[ endif ]]
 </section>
+
 <section class="ow-grid ow-runtime-grid">
   <article class="ow-card">
     <h2>[[ i18n: registry.runtime_sqlite ]]</h2>

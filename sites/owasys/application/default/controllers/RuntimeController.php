@@ -481,6 +481,24 @@ final class OwasysRuntimeController
         $route = (string) ($state['route'] ?? $requestRoute);
         $identity = $this->session->user();
         $currentApp = $this->session->currentApp();
+        $registryResult = null;
+
+        if ($module === 'registry') {
+            $registryResult = $requestResult
+                ?? $this->registryController()->handle('GET', []);
+            $canonicalCurrent = $this->registryModel()->canonicalCurrent(
+                $currentApp
+            );
+
+            if (is_array($currentApp) && !is_array($canonicalCurrent)) {
+                $this->session->clearCurrentApp();
+                $currentApp = null;
+            } elseif (is_array($canonicalCurrent)) {
+                $this->session->setCurrentApp($canonicalCurrent);
+                $currentApp = $canonicalCurrent;
+            }
+        }
+
         $basePath = $this->basePath();
         $routeUrl = fn (string $targetRoute): string => $this->routeUrl(
             $locale,
@@ -525,7 +543,7 @@ final class OwasysRuntimeController
             ),
             'assets' => [
                 'score_css' => $basePath . '/asset/css/owasys.css',
-                'theme_css' => $basePath . '/asset/themes/owasys/css/theme.css?v=p117p',
+                'theme_css' => $basePath . '/asset/themes/owasys/css/theme.css?v=p117q',
                 'language_css' => $basePath . '/asset/css/language-switcher.css',
                 'password_js' => $basePath . '/asset/js/password-visibility.js',
             ],
@@ -559,10 +577,12 @@ final class OwasysRuntimeController
         $template = $module . '/templates/index.score';
 
         if ($module === 'registry') {
-            $result = $requestResult ?? $this->registryController()->handle('GET', []);
             $data = array_replace_recursive(
                 $data,
-                $this->registryViewData($result, $currentApp)
+                $this->registryViewData(
+                    is_array($registryResult) ? $registryResult : [],
+                    $currentApp
+                )
             );
         }
 
@@ -636,6 +656,28 @@ final class OwasysRuntimeController
             static fn (array $entry): bool => ($entry['singleton_compliant'] ?? false) === true
         ));
         $singletonNoncompliant = count($entries) - $singletonCompliant;
+        $discoveryConflicts = [];
+
+        foreach ((array) ($sync['discovery_conflicts'] ?? []) as $conflict) {
+            if (!is_array($conflict)) {
+                continue;
+            }
+
+            $rejected = array_values(array_filter(
+                (array) ($conflict['rejected_roots'] ?? []),
+                'is_string'
+            ));
+            $discoveryConflicts[] = [
+                'id' => (string) ($conflict['id'] ?? ''),
+                'canonical_root' => (string) (
+                    $conflict['canonical_root'] ?? ''
+                ),
+                'rejected_roots' => implode(', ', $rejected),
+                'resolved' => ($conflict['resolved'] ?? false) === true,
+                'unresolved' => ($conflict['resolved'] ?? false) !== true,
+                'error' => (string) ($conflict['error'] ?? ''),
+            ];
+        }
 
         return [
             'registry' => [
@@ -646,14 +688,20 @@ final class OwasysRuntimeController
                 'error_action_invalid' => ($result['error'] ?? null) === 'registry.error.action_invalid',
                 'singleton_all_compliant' => $entries !== [] && $singletonNoncompliant === 0,
                 'singleton_has_noncompliant' => $singletonNoncompliant > 0,
+                'discovery_clean' => $discoveryConflicts === [],
+                'discovery_has_conflicts' => $discoveryConflicts !== [],
             ],
             'entries' => $entries,
             'events' => $events,
+            'discovery_conflicts' => $discoveryConflicts,
             'sync' => [
                 'database' => (string) ($sync['database'] ?? ''),
                 'total' => (string) ($sync['total'] ?? 0),
                 'seed_imported' => (string) ($sync['seed_imported'] ?? 0),
                 'discovered_imported' => (string) ($sync['discovered_imported'] ?? 0),
+                'discovered_candidates' => (string) ($sync['discovered_candidates'] ?? 0),
+                'duplicate_ids' => (string) ($sync['duplicate_ids'] ?? 0),
+                'duplicate_roots' => (string) ($sync['duplicate_roots'] ?? 0),
                 'singleton_compliant' => (string) $singletonCompliant,
                 'singleton_noncompliant' => (string) $singletonNoncompliant,
             ],
