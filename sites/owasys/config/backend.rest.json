@@ -92,5 +92,10 @@
       "succeeded": [],
       "failed": []
     }
+  },
+  "diagnostics": {
+    "log_directory": "sites/owasys/var/logs",
+    "log_file": "rcp-backend.log",
+    "profiler_directory": "sites/owasys/var/profiler"
   }
 }

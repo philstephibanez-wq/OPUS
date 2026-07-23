@@ -8,21 +8,26 @@ use Opus\Framework\OpusFrameworkComponentInterface;
 use Opus\Framework\OpusProfilerAwareInterface;
 use Opus\Framework\OpusSelfDocumentingInterface;
 
-/**
- * Contract interface for Opus\Profiler\Trace.
- *
- * @generated-by P7A1C_BIG_TOKENIZER_EXCEPTION_PROFILER_CONTRACT_ONE_RUN
- *
- * Contract:
- * - OPUS framework component contract;
- * - explicit exception-awareness contract;
- * - profiler-awareness contract;
- * - complete self-documentation contract for RefBook output.
- */
+/** Contract for one OPUS profiler trace. */
 interface TraceInterface extends
     OpusFrameworkComponentInterface,
     OpusExceptionAwareInterface,
     OpusProfilerAwareInterface,
     OpusSelfDocumentingInterface
 {
+    public static function newTraceId(): string;
+
+    public function getTraceId(): string;
+
+    /** @param array<string,mixed> $context */
+    public function addEvent(
+        string $category,
+        string $name,
+        array $context = []
+    ): void;
+
+    public function finish(): void;
+
+    /** @param array<string,mixed> $summary @return array<string,mixed> */
+    public function toArray(array $summary = []): array;
 }

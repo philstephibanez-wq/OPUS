@@ -170,7 +170,9 @@ final class RcpRestClient implements RcpRestClientInterface
                 ? trim((string) ($decoded['error_code'] ?? ''))
                 : '';
             if (preg_match('/^[A-Z0-9_:-]{3,240}$/', $code) === 1) {
-                throw new \RuntimeException($code);
+                throw new \RuntimeException(
+                    $this->withTraceId($code, $decoded)
+                );
             }
             throw new \RuntimeException(
                 'OPUS_RCP_BACKEND_HTTP_ERROR:' . $status
@@ -196,16 +198,30 @@ final class RcpRestClient implements RcpRestClientInterface
             $code = trim((string) (
                 $decoded['error_code'] ?? 'OPUS_RCP_COMMAND_FAILED'
             ));
+            $safeCode = preg_match('/^[A-Z0-9_:-]{3,240}$/', $code) === 1
+                ? $code
+                : 'OPUS_RCP_COMMAND_FAILED';
             throw new \RuntimeException(
-                preg_match('/^[A-Z0-9_:-]{3,240}$/', $code) === 1
-                    ? $code
-                    : 'OPUS_RCP_COMMAND_FAILED'
+                $this->withTraceId($safeCode, $decoded)
             );
         }
 
         return is_array($decoded['result'] ?? null)
             ? $decoded['result']
             : ['value' => $decoded['result'] ?? null];
+    }
+
+
+    /** @param array<string,mixed>|null $payload */
+    private function withTraceId(string $code, ?array $payload): string
+    {
+        $traceId = is_array($payload)
+            ? trim((string) ($payload['trace_id'] ?? ''))
+            : '';
+        if (preg_match('/^[a-f0-9]{16,64}$/', $traceId) !== 1) {
+            return $code;
+        }
+        return $code . ':TRACE:' . strtoupper($traceId);
     }
 
     /** @param list<string> $headers */

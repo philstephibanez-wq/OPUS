@@ -8,21 +8,50 @@ use Opus\Framework\OpusFrameworkComponentInterface;
 use Opus\Framework\OpusProfilerAwareInterface;
 use Opus\Framework\OpusSelfDocumentingInterface;
 
-/**
- * Contract interface for Opus\Log\Logger.
- *
- * @generated-by P7A1C_BIG_TOKENIZER_EXCEPTION_PROFILER_CONTRACT_ONE_RUN
- *
- * Contract:
- * - OPUS framework component contract;
- * - explicit exception-awareness contract;
- * - profiler-awareness contract;
- * - complete self-documentation contract for RefBook output.
- */
+/** Contract for the structured OPUS logger. */
 interface LoggerInterface extends
     OpusFrameworkComponentInterface,
     OpusExceptionAwareInterface,
     OpusProfilerAwareInterface,
     OpusSelfDocumentingInterface
 {
+    /** @param array<string,mixed> $context */
+    public function debug(
+        string $channel,
+        string $message,
+        array $context = [],
+        ?string $traceId = null
+    ): void;
+
+    /** @param array<string,mixed> $context */
+    public function info(
+        string $channel,
+        string $message,
+        array $context = [],
+        ?string $traceId = null
+    ): void;
+
+    /** @param array<string,mixed> $context */
+    public function warning(
+        string $channel,
+        string $message,
+        array $context = [],
+        ?string $traceId = null
+    ): void;
+
+    /** @param array<string,mixed> $context */
+    public function error(
+        string $channel,
+        string $message,
+        array $context = [],
+        ?string $traceId = null
+    ): void;
+
+    /** @param array<string,mixed> $context */
+    public function critical(
+        string $channel,
+        string $message,
+        array $context = [],
+        ?string $traceId = null
+    ): void;
 }

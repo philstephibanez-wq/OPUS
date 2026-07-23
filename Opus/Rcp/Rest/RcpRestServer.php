@@ -8,6 +8,10 @@ use Opus\File\StructuredFileLoader;
 use Opus\Http\Request;
 use Opus\Http\Response;
 use Opus\I18n\BrowserLocaleNegotiator;
+use Opus\Log\Logger;
+use Opus\Log\LoggerInterface;
+use Opus\Profiler\Profiler;
+use Opus\Profiler\ProfilerInterface;
 use Opus\Rcp\Composer\ComposerCommandExecutor;
 use Opus\Rcp\Composer\ComposerCommandExecutorInterface;
 use Opus\Rcp\Composer\ComposerCommandRegistry;
@@ -32,7 +36,9 @@ final class RcpRestServer implements RcpRestServerInterface
         private readonly ComposerCommandRegistryInterface $registry,
         private readonly ComposerCommandExecutorInterface $executor,
         private readonly RcpRequestAuthenticatorInterface $authenticator,
-        private readonly RcpExecutionStoreInterface $store
+        private readonly RcpExecutionStoreInterface $store,
+        private readonly LoggerInterface $logger,
+        private readonly ProfilerInterface $profiler
     ) {
     }
 
@@ -62,22 +68,45 @@ final class RcpRestServer implements RcpRestServerInterface
         $storeRelative = self::safeRelative(
             (string) ($config['execution_store'] ?? '')
         );
+        $diagnostics = is_array($config['diagnostics'] ?? null)
+            ? $config['diagnostics']
+            : [];
+        $logRelative = self::safeRelative(
+            (string) ($diagnostics['log_directory'] ?? '')
+        );
+        $profilerRelative = self::safeRelative(
+            (string) ($diagnostics['profiler_directory'] ?? '')
+        );
+        $logFile = trim((string) ($diagnostics['log_file'] ?? ''));
+        if (preg_match('/^[A-Za-z0-9._-]+\.log$/', $logFile) !== 1) {
+            throw new \RuntimeException(
+                'OPUS_RCP_DIAGNOSTIC_LOG_FILE_INVALID'
+            );
+        }
+
+        $logger = new Logger($root . '/' . $logRelative, $logFile);
+        $profiler = new Profiler($root . '/' . $profilerRelative);
+        $executor = new ComposerCommandExecutor(
+            $root,
+            self::composerCommand($root, $config),
+            (int) ($config['timeout_seconds'] ?? 120),
+            (int) ($config['max_output_bytes'] ?? 2097152),
+            $logger,
+            $profiler
+        );
 
         return new self(
             $config,
             ComposerCommandRegistry::fromRoot($root, $catalogRelative),
-            new ComposerCommandExecutor(
-                $root,
-                self::composerCommand($root, $config),
-                (int) ($config['timeout_seconds'] ?? 120),
-                (int) ($config['max_output_bytes'] ?? 2097152)
-            ),
+            $executor,
             new RcpRequestAuthenticator(
                 is_array($config['authentication'] ?? null)
                     ? $config['authentication']
                     : []
             ),
-            new RcpExecutionStore($root . '/' . $storeRelative)
+            new RcpExecutionStore($root . '/' . $storeRelative),
+            $logger,
+            $profiler
         );
     }
 
@@ -125,8 +154,20 @@ final class RcpRestServer implements RcpRestServerInterface
             $transitions
         );
 
+        $trace = $this->profiler->start();
+        $traceId = $trace->getTraceId();
         $executionId = '';
         $operation = '';
+        $terminalStatus = 'failed';
+
+        $this->logger->info('rcp.rest', 'execution.received', [
+            'method' => $request->method,
+            'path' => $request->path,
+        ], $traceId);
+        $this->profiler->event('rcp.rest', 'execution.received', [
+            'method' => $request->method,
+            'path' => $request->path,
+        ]);
 
         try {
             $payload = $request->jsonBody();
@@ -152,6 +193,17 @@ final class RcpRestServer implements RcpRestServerInterface
                 throw new \RuntimeException('OPUS_RCP_PARAMETERS_INVALID');
             }
 
+            $this->logger->info('rcp.rest', 'execution.validated', [
+                'execution_id' => $executionId,
+                'operation' => $operation,
+                'parameter_count' => count($parameters),
+            ], $traceId);
+            $this->profiler->event('rcp.rest', 'execution.validated', [
+                'execution_id' => $executionId,
+                'operation' => $operation,
+                'parameter_count' => count($parameters),
+            ]);
+
             $expiresAt = trim((string) (
                 $payload['expires_at_utc'] ?? ''
             ));
@@ -171,10 +223,20 @@ final class RcpRestServer implements RcpRestServerInterface
                 $_SERVER
             );
             $fsm->transition('authenticated');
+            $identityData = $identity->toArray();
+            $this->profiler->event('rcp.fsm', 'authenticated', [
+                'execution_id' => $executionId,
+                'provider' => (string) ($identityData['provider'] ?? ''),
+                'role_count' => count($identity->roles()),
+            ]);
 
             $entry = $this->registry->operation($operation);
             $this->assertAuthorized($identity, $entry);
             $fsm->transition('authorized');
+            $this->profiler->event('rcp.fsm', 'authorized', [
+                'execution_id' => $executionId,
+                'operation' => $operation,
+            ]);
 
             $entry['argv'] = $this->registry->arguments(
                 $entry,
@@ -190,14 +252,23 @@ final class RcpRestServer implements RcpRestServerInterface
             ];
 
             $fsm->transition('dispatching');
+            $this->profiler->event('rcp.fsm', 'dispatching', [
+                'execution_id' => $executionId,
+                'operation' => $operation,
+                'composer_script' => (string) (
+                    $entry['composer_script'] ?? ''
+                ),
+            ]);
             $commandResult = $this->executor->execute(
                 $entry,
                 $commandRequest
             );
             $fsm->transition('succeeded');
+            $terminalStatus = 'succeeded';
 
             $record = [
                 'contract' => 'OPUS_RCP_REST_EXECUTION_V1',
+                'trace_id' => $traceId,
                 'execution_id' => $executionId,
                 'operation' => $operation,
                 'status' => 'succeeded',
@@ -217,6 +288,11 @@ final class RcpRestServer implements RcpRestServerInterface
                 'completed_at_utc' => gmdate('c'),
             ];
             $this->store->write($executionId, $record);
+            $this->logger->info('rcp.rest', 'execution.succeeded', [
+                'execution_id' => $executionId,
+                'operation' => $operation,
+                'fsm_state' => $fsm->state(),
+            ], $traceId);
             unset($parameters, $commandRequest, $commandResult);
 
             return Response::json($record, 201);
@@ -229,8 +305,26 @@ final class RcpRestServer implements RcpRestServerInterface
             }
 
             $code = $this->safeErrorCode($error);
+            $this->logger->error('rcp.rest', 'execution.failed', [
+                'execution_id' => $executionId,
+                'operation' => $operation,
+                'error_code' => $code,
+                'exception_class' => $error::class,
+                'exception_file' => $error->getFile(),
+                'exception_line' => $error->getLine(),
+                'fsm_state' => $fsm->state(),
+            ], $traceId);
+            $this->profiler->event('rcp.rest', 'execution.failed', [
+                'execution_id' => $executionId,
+                'operation' => $operation,
+                'error_code' => $code,
+                'exception_class' => $error::class,
+                'fsm_state' => $fsm->state(),
+            ]);
+
             $record = [
                 'contract' => 'OPUS_RCP_REST_EXECUTION_V1',
+                'trace_id' => $traceId,
                 'execution_id' => $executionId,
                 'operation' => $operation,
                 'status' => 'failed',
@@ -258,6 +352,15 @@ final class RcpRestServer implements RcpRestServerInterface
             };
 
             return Response::json($record, $status);
+        } finally {
+            $this->profiler->stop([
+                'component' => self::class,
+                'trace_id' => $traceId,
+                'execution_id' => $executionId,
+                'operation' => $operation,
+                'status' => $terminalStatus,
+                'fsm_state' => $fsm->state(),
+            ]);
         }
     }
 
