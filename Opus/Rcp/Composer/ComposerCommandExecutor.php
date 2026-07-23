@@ -94,8 +94,8 @@ final class ComposerCommandExecutor implements ComposerCommandExecutorInterface
             unset($request);
         }
 
-        $result = $this->parseResult($stdout);
-        unset($stderr);
+        $result = $this->parseResult($stdout, $stderr, $exitCode);
+        unset($stdout, $stderr);
         if ($exitCode !== 0 || ($result['status'] ?? null) !== 'succeeded') {
             $code = trim((string) ($result['error_code'] ?? 'OPUS_RCP_COMPOSER_COMMAND_FAILED'));
             throw new \RuntimeException(
@@ -149,16 +149,17 @@ final class ComposerCommandExecutor implements ComposerCommandExecutorInterface
     }
 
     /** @return array<string,mixed> */
-    private function parseResult(string $stdout): array
-    {
-        $lines = preg_split('/\R/', trim($stdout)) ?: [];
-        for ($index = count($lines) - 1; $index >= 0; --$index) {
-            $candidate = trim((string) $lines[$index]);
-            if ($candidate === '' || !str_starts_with($candidate, '{')) {
-                continue;
-            }
+    private function parseResult(
+        string $stdout,
+        string $stderr,
+        int $exitCode
+    ): array {
+        foreach (array_reverse($this->jsonObjects($stdout)) as $candidate) {
             try {
-                $decoded = Json::instance()->parse($candidate, 'composer:stdout');
+                $decoded = Json::instance()->parse(
+                    $candidate,
+                    'composer:stdout'
+                );
             } catch (\Throwable) {
                 continue;
             }
@@ -170,6 +171,88 @@ final class ComposerCommandExecutor implements ComposerCommandExecutorInterface
                 return $decoded;
             }
         }
+
+        $stderrCode = $this->stderrErrorCode($stderr);
+        if ($stderrCode !== null) {
+            throw new \RuntimeException($stderrCode);
+        }
+        if ($exitCode !== 0) {
+            throw new \RuntimeException(
+                'OPUS_RCP_COMPOSER_COMMAND_FAILED'
+            );
+        }
+
         throw new \RuntimeException('OPUS_RCP_COMPOSER_RESULT_MISSING');
+    }
+
+    /** @return list<string> */
+    private function jsonObjects(string $output): array
+    {
+        $objects = [];
+        $length = strlen($output);
+        $start = null;
+        $depth = 0;
+        $inString = false;
+        $escaped = false;
+
+        for ($index = 0; $index < $length; ++$index) {
+            $character = $output[$index];
+
+            if ($inString) {
+                if ($escaped) {
+                    $escaped = false;
+                    continue;
+                }
+                if ($character === '\\') {
+                    $escaped = true;
+                    continue;
+                }
+                if ($character === '"') {
+                    $inString = false;
+                }
+                continue;
+            }
+
+            if ($character === '"') {
+                if ($depth > 0) {
+                    $inString = true;
+                }
+                continue;
+            }
+            if ($character === '{') {
+                if ($depth === 0) {
+                    $start = $index;
+                }
+                ++$depth;
+                continue;
+            }
+            if ($character !== '}' || $depth === 0) {
+                continue;
+            }
+
+            --$depth;
+            if ($depth === 0 && is_int($start)) {
+                $objects[] = substr(
+                    $output,
+                    $start,
+                    $index - $start + 1
+                );
+                $start = null;
+            }
+        }
+
+        return $objects;
+    }
+
+    private function stderrErrorCode(string $stderr): ?string
+    {
+        $lines = array_reverse(preg_split('/\R/', trim($stderr)) ?: []);
+        foreach ($lines as $line) {
+            $candidate = trim((string) $line);
+            if (preg_match('/^[A-Z][A-Z0-9_:-]{2,239}$/', $candidate) === 1) {
+                return $candidate;
+            }
+        }
+        return null;
     }
 }

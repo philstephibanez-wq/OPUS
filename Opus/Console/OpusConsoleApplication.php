@@ -44,6 +44,10 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
         $format = $this->option($arguments, 'format', 'text');
         $arguments = $this->withoutOption($arguments, 'format');
         $request = $this->stdinRequest();
+        if (($request['contract'] ?? null)
+            === 'OPUS_RCP_COMPOSER_COMMAND_REQUEST_V1') {
+            $format = 'json';
+        }
 
         try {
             $result = match ($command) {
