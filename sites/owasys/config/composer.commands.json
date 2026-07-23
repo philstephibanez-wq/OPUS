@@ -1,0 +1,18 @@
+{
+  "contract": "OPUS_APPLICATION_COMMAND_PROVIDER_REGISTRY_V1",
+  "site_id": "owasys",
+  "providers": [
+    {
+      "id": "owasys",
+      "enabled": true,
+      "bootstrap": "application/default/console.php",
+      "commands": [
+        "owasys:registry:sync",
+        "owasys:registry:select",
+        "owasys:registry:clear",
+        "owasys:registry:creation:start",
+        "owasys:security:admin-password:change"
+      ]
+    }
+  ]
+}

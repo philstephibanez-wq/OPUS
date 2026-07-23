@@ -1,0 +1,8 @@
+{
+  "contract": "OPUS_RCP_REST_CLIENT_CONFIG_V1",
+  "endpoint": "http://127.0.0.1:8792/api/v1/executions",
+  "token_env": "OPUS_OWASYS_BACKEND_TOKEN",
+  "hmac_env": "OPUS_OWASYS_BACKEND_HMAC",
+  "timeout_seconds": 120,
+  "max_response_bytes": 2097152
+}

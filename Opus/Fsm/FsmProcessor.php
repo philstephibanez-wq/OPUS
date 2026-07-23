@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Opus\Fsm;
 
 use InvalidArgumentException;
+use Opus\File\StructuredFileLoader;
 use RuntimeException;
 
 /**
@@ -19,10 +20,9 @@ final class FsmProcessor implements FsmProcessorInterface
     private const RESULT_CONTRACT = 'OPUS_FSM_PROCESSOR_RESULT_V1';
 
     /** @var array<string,true> */
-    private const SUPPORTED_CONTRACTS = [
+    private const CANONICAL_CONTRACTS = [
         'OPUS_APPLICATION_FSM_V1' => true,
         'OPUS_FSM_REGISTRY_V1' => true,
-        'OWASYS_NAVIGATION_FSM_V1' => true,
     ];
 
     /** @var array<string,mixed> */
@@ -46,19 +46,18 @@ final class FsmProcessor implements FsmProcessorInterface
     }
 
     /**
-     * Loads a processor from a JSON FSM file.
+     * Loads a processor from a structured FSM configuration file.
      *
      * @param array<string,callable> $guardHandlers
      */
-    public static function fromJsonFile(string $path, array $guardHandlers = []): self
-    {
-        if (!is_file($path)) {
-            throw new RuntimeException('OPUS_FSM_FILE_MISSING: ' . $path);
-        }
-
-        $decoded = json_decode((string) file_get_contents($path), true);
-        if (!is_array($decoded)) {
-            throw new RuntimeException('OPUS_FSM_JSON_INVALID: ' . $path);
+    public static function fromJsonFile(
+        string $path,
+        array $guardHandlers = []
+    ): self {
+        try {
+            $decoded = StructuredFileLoader::instance()->read($path);
+        } catch (\Throwable $cause) {
+            throw new RuntimeException('OPUS_FSM_JSON_INVALID: ' . $path, 0, $cause);
         }
 
         return new self($decoded, $guardHandlers);
@@ -95,10 +94,15 @@ final class FsmProcessor implements FsmProcessorInterface
      * @param array<string,mixed> $context Runtime facts available to guards.
      * @return array<string,mixed>
      */
-    public function transition(string $currentState, string $event, array $context = []): array
-    {
+    public function transition(
+        string $currentState,
+        string $event,
+        array $context = []
+    ): array {
         if ($currentState === '' || !isset($this->statesById[$currentState])) {
-            throw new RuntimeException('OPUS_FSM_CURRENT_STATE_UNKNOWN: ' . $currentState);
+            throw new RuntimeException(
+                'OPUS_FSM_CURRENT_STATE_UNKNOWN: ' . $currentState
+            );
         }
         if ($event === '') {
             throw new RuntimeException('OPUS_FSM_EVENT_REQUIRED');
@@ -106,16 +110,27 @@ final class FsmProcessor implements FsmProcessorInterface
 
         $transition = $this->findTransition($currentState, $event);
         if ($transition === null) {
-            throw new RuntimeException('OPUS_FSM_TRANSITION_NOT_FOUND: ' . $currentState . ':' . $event);
+            throw new RuntimeException(
+                'OPUS_FSM_TRANSITION_NOT_FOUND: '
+                . $currentState . ':' . $event
+            );
         }
 
         $target = (string) ($transition['to'] ?? '');
         if ($target === '' || !isset($this->statesById[$target])) {
-            throw new RuntimeException('OPUS_FSM_TARGET_STATE_UNKNOWN: ' . $target);
+            throw new RuntimeException(
+                'OPUS_FSM_TARGET_STATE_UNKNOWN: ' . $target
+            );
         }
 
         foreach ($this->transitionGuards($transition) as $guard) {
-            if (!$this->evaluateGuard($guard, $currentState, $event, $transition, $context)) {
+            if (!$this->evaluateGuard(
+                $guard,
+                $currentState,
+                $event,
+                $transition,
+                $context
+            )) {
                 throw new RuntimeException('OPUS_FSM_GUARD_FAILED: ' . $guard);
             }
         }
@@ -146,7 +161,9 @@ final class FsmProcessor implements FsmProcessorInterface
     {
         $contract = (string) ($this->fsm['contract'] ?? '');
         if (!isset(self::SUPPORTED_CONTRACTS[$contract])) {
-            throw new InvalidArgumentException('OPUS_FSM_CONTRACT_INVALID: ' . $contract);
+            throw new InvalidArgumentException(
+                'OPUS_FSM_CONTRACT_INVALID: ' . $contract
+            );
         }
 
         $states = $this->fsm['states'] ?? null;
@@ -155,18 +172,25 @@ final class FsmProcessor implements FsmProcessorInterface
         }
 
         foreach ($states as $state) {
-            if (!is_array($state) || !isset($state['id']) || !is_string($state['id']) || $state['id'] === '') {
+            if (!is_array($state)
+                || !isset($state['id'])
+                || !is_string($state['id'])
+                || $state['id'] === '') {
                 throw new InvalidArgumentException('OPUS_FSM_STATE_ID_INVALID');
             }
             if (isset($this->statesById[$state['id']])) {
-                throw new InvalidArgumentException('OPUS_FSM_DUPLICATE_STATE: ' . $state['id']);
+                throw new InvalidArgumentException(
+                    'OPUS_FSM_DUPLICATE_STATE: ' . $state['id']
+                );
             }
             $this->statesById[$state['id']] = $state;
         }
 
         $initial = (string) ($this->fsm['initial_state'] ?? '');
         if ($initial === '' || !isset($this->statesById[$initial])) {
-            throw new InvalidArgumentException('OPUS_FSM_INITIAL_STATE_INVALID: ' . $initial);
+            throw new InvalidArgumentException(
+                'OPUS_FSM_INITIAL_STATE_INVALID: ' . $initial
+            );
         }
 
         $transitions = $this->fsm['transitions'] ?? null;
@@ -183,18 +207,26 @@ final class FsmProcessor implements FsmProcessorInterface
             $event = (string) ($transition['event'] ?? '');
             $to = (string) ($transition['to'] ?? '');
             if ($from === '' || $event === '' || $to === '') {
-                throw new InvalidArgumentException('OPUS_FSM_TRANSITION_FIELDS_INVALID');
+                throw new InvalidArgumentException(
+                    'OPUS_FSM_TRANSITION_FIELDS_INVALID'
+                );
             }
             if ($from !== '*' && !isset($this->statesById[$from])) {
-                throw new InvalidArgumentException('OPUS_FSM_TRANSITION_SOURCE_UNKNOWN: ' . $from);
+                throw new InvalidArgumentException(
+                    'OPUS_FSM_TRANSITION_SOURCE_UNKNOWN: ' . $from
+                );
             }
             if (!isset($this->statesById[$to])) {
-                throw new InvalidArgumentException('OPUS_FSM_TRANSITION_TARGET_UNKNOWN: ' . $to);
+                throw new InvalidArgumentException(
+                    'OPUS_FSM_TRANSITION_TARGET_UNKNOWN: ' . $to
+                );
             }
 
             $signature = $from . ':' . $event;
             if (isset($seen[$signature])) {
-                throw new InvalidArgumentException('OPUS_FSM_DUPLICATE_TRANSITION: ' . $signature);
+                throw new InvalidArgumentException(
+                    'OPUS_FSM_DUPLICATE_TRANSITION: ' . $signature
+                );
             }
             $seen[$signature] = true;
         }
@@ -215,7 +247,6 @@ final class FsmProcessor implements FsmProcessorInterface
                 $wildcard = $transition;
             }
         }
-
         return $wildcard;
     }
 
@@ -230,7 +261,15 @@ final class FsmProcessor implements FsmProcessorInterface
             return [];
         }
 
-        return array_values(array_filter(array_map(static fn (mixed $guard): string => is_string($guard) ? $guard : '', $guards), static fn (string $guard): bool => $guard !== ''));
+        return array_values(array_filter(
+            array_map(
+                static fn (mixed $guard): string => is_string($guard)
+                    ? $guard
+                    : '',
+                $guards
+            ),
+            static fn (string $guard): bool => $guard !== ''
+        ));
     }
 
     /** @param array<string,mixed> $transition @return list<string> */
@@ -244,41 +283,69 @@ final class FsmProcessor implements FsmProcessorInterface
             return [];
         }
 
-        return array_values(array_filter(array_map(static fn (mixed $action): string => is_string($action) ? $action : '', $actions), static fn (string $action): bool => $action !== ''));
+        return array_values(array_filter(
+            array_map(
+                static fn (mixed $action): string => is_string($action)
+                    ? $action
+                    : '',
+                $actions
+            ),
+            static fn (string $action): bool => $action !== ''
+        ));
     }
 
     /**
      * @param array<string,mixed> $transition
      * @param array<string,mixed> $context
      */
-    private function evaluateGuard(string $guard, string $currentState, string $event, array $transition, array $context): bool
-    {
+    private function evaluateGuard(
+        string $guard,
+        string $currentState,
+        string $event,
+        array $transition,
+        array $context
+    ): bool {
         if ($guard === 'always') {
             return true;
         }
 
         if (isset($this->guardHandlers[$guard])) {
-            return (bool) ($this->guardHandlers[$guard])($currentState, $event, $transition, $context, $this);
+            return (bool) ($this->guardHandlers[$guard])(
+                $currentState,
+                $event,
+                $transition,
+                $context,
+                $this
+            );
         }
 
         if ($guard === 'route_exists') {
             $target = (string) ($transition['to'] ?? '');
-            return isset($this->statesById[$target]) && (string) ($this->statesById[$target]['route'] ?? '') !== '';
+            return isset($this->statesById[$target])
+                && (string) ($this->statesById[$target]['route'] ?? '') !== '';
         }
 
         if ($guard === 'app_exists') {
-            return ($context['app_exists'] ?? null) === true || is_array($context['registry_entry'] ?? null) || (string) ($context['selected_app'] ?? '') !== '';
+            return ($context['app_exists'] ?? null) === true
+                || is_array($context['registry_entry'] ?? null)
+                || (string) ($context['selected_app'] ?? '') !== '';
         }
 
         if ($guard === 'current_app_required') {
             $currentApp = $context['current_app'] ?? null;
-            return ($context['has_current_app'] ?? null) === true || (is_array($currentApp) && $currentApp !== []) || (is_string($currentApp) && $currentApp !== '');
+            return ($context['has_current_app'] ?? null) === true
+                || (is_array($currentApp) && $currentApp !== [])
+                || (is_string($currentApp) && $currentApp !== '');
         }
 
         if ($guard === 'current_app_or_creation_request') {
             $currentApp = $context['current_app'] ?? null;
-            $hasCurrentApp = ($context['has_current_app'] ?? null) === true || (is_array($currentApp) && $currentApp !== []) || (is_string($currentApp) && $currentApp !== '');
-            return $hasCurrentApp || is_array($context['creation_request'] ?? null) || ($context['creation_request_started'] ?? null) === true;
+            $hasCurrentApp = ($context['has_current_app'] ?? null) === true
+                || (is_array($currentApp) && $currentApp !== [])
+                || (is_string($currentApp) && $currentApp !== '');
+            return $hasCurrentApp
+                || is_array($context['creation_request'] ?? null)
+                || ($context['creation_request_started'] ?? null) === true;
         }
 
         if ($guard === 'must_change_password') {

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Opus\Fsm;
 
+use Opus\File\StructuredFileLoader;
 use RuntimeException;
 
 /**
@@ -20,14 +21,16 @@ final class FsmSiteLoader implements FsmSiteLoaderInterface
     private const FALLBACK_FSM_FILES = [
         'config/application.fsm.json',
         'config/fsm.json',
-        'config/owasys-navigation.fsm.json',
     ];
 
     /**
      * @param array<string,callable> $guardHandlers
      */
-    public static function processorForSite(string $opusRoot, string $siteId, array $guardHandlers = []): FsmProcessor
-    {
+    public static function processorForSite(
+        string $opusRoot,
+        string $siteId,
+        array $guardHandlers = []
+    ): FsmProcessor {
         if ($siteId === '' || preg_match('/^[A-Za-z0-9_-]+$/', $siteId) !== 1) {
             throw new RuntimeException('OPUS_FSM_SITE_ID_INVALID: ' . $siteId);
         }
@@ -43,8 +46,10 @@ final class FsmSiteLoader implements FsmSiteLoaderInterface
     /**
      * @param array<string,callable> $guardHandlers
      */
-    public static function processorForSiteRoot(string $siteRoot, array $guardHandlers = []): FsmProcessor
-    {
+    public static function processorForSiteRoot(
+        string $siteRoot,
+        array $guardHandlers = []
+    ): FsmProcessor {
         $resolved = self::resolve($siteRoot);
 
         return FsmProcessor::fromJsonFile($resolved['fsm_path'], $guardHandlers);
@@ -68,16 +73,26 @@ final class FsmSiteLoader implements FsmSiteLoaderInterface
             throw new RuntimeException('OPUS_FSM_SITE_ROOT_MISSING: ' . $siteRoot);
         }
 
-        $siteConfigFile = $siteRoot . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'site.json';
-        $siteConfig = self::readJson($siteConfigFile, 'OPUS_FSM_SITE_JSON_INVALID: ' . $siteRoot);
+        $siteConfigFile = $siteRoot . DIRECTORY_SEPARATOR
+            . 'config' . DIRECTORY_SEPARATOR . 'site.json';
+        $siteConfig = self::readStructured(
+            $siteConfigFile,
+            'OPUS_FSM_SITE_JSON_INVALID: ' . $siteRoot
+        );
         $siteId = (string) ($siteConfig['site_id'] ?? basename($siteRoot));
         $role = (string) ($siteConfig['role'] ?? '');
 
         self::assertApplicationTreeContract($siteRoot, $siteId, $siteConfig);
 
         $candidates = [];
-        $navigation = is_array($siteConfig['navigation'] ?? null) ? $siteConfig['navigation'] : [];
-        $navigationFsm = str_replace('\\', '/', (string) ($navigation['fsm'] ?? ''));
+        $navigation = is_array($siteConfig['navigation'] ?? null)
+            ? $siteConfig['navigation']
+            : [];
+        $navigationFsm = str_replace(
+            '\\',
+            '/',
+            (string) ($navigation['fsm'] ?? '')
+        );
 
         if ($navigationFsm !== '') {
             self::assertSafeRelativePath(
@@ -97,27 +112,44 @@ final class FsmSiteLoader implements FsmSiteLoaderInterface
             $canonical = 'config/application.fsm.json';
 
             if (($siteConfig['application_fsm'] ?? null) !== $canonical) {
-                throw new RuntimeException('OPUS_FSM_GENERATED_APPLICATION_POINTER_INVALID: ' . $siteId);
+                throw new RuntimeException(
+                    'OPUS_FSM_GENERATED_APPLICATION_POINTER_INVALID: ' . $siteId
+                );
             }
 
-            if (!is_file($siteRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $canonical))) {
-                throw new RuntimeException('OPUS_FSM_GENERATED_APPLICATION_FSM_MISSING: ' . $siteId);
+            if (!is_file(
+                $siteRoot . DIRECTORY_SEPARATOR
+                . str_replace('/', DIRECTORY_SEPARATOR, $canonical)
+            )) {
+                throw new RuntimeException(
+                    'OPUS_FSM_GENERATED_APPLICATION_FSM_MISSING: ' . $siteId
+                );
             }
 
             $candidates = [$canonical];
         }
 
         foreach ($candidates as $relative) {
-            self::assertSafeRelativePath($relative, 'OPUS_FSM_SITE_FSM_PATH_INVALID: ' . $siteId);
+            self::assertSafeRelativePath(
+                $relative,
+                'OPUS_FSM_SITE_FSM_PATH_INVALID: ' . $siteId
+            );
 
             $absolute = $siteRoot . DIRECTORY_SEPARATOR
-                . str_replace('/', DIRECTORY_SEPARATOR, trim($relative, '/'));
+                . str_replace(
+                    '/',
+                    DIRECTORY_SEPARATOR,
+                    trim($relative, '/')
+                );
 
             if (!is_file($absolute)) {
                 continue;
             }
 
-            $fsm = self::readJson($absolute, 'OPUS_FSM_SITE_FSM_JSON_INVALID: ' . $siteId);
+            $fsm = self::readStructured(
+                $absolute,
+                'OPUS_FSM_SITE_FSM_JSON_INVALID: ' . $siteId
+            );
             $modules = self::modulesFromFsm($fsm, $siteId);
             self::assertFsmModuleDirectories($siteRoot, $siteId, $modules);
 
@@ -136,18 +168,13 @@ final class FsmSiteLoader implements FsmSiteLoaderInterface
     }
 
     /** @return array<string,mixed> */
-    private static function readJson(string $path, string $error): array
+    private static function readStructured(string $path, string $error): array
     {
-        if (!is_file($path)) {
-            throw new RuntimeException($error);
+        try {
+            return StructuredFileLoader::instance()->read($path);
+        } catch (\Throwable $cause) {
+            throw new RuntimeException($error, 0, $cause);
         }
-
-        $decoded = json_decode((string) file_get_contents($path), true);
-        if (!is_array($decoded)) {
-            throw new RuntimeException($error);
-        }
-
-        return $decoded;
     }
 
     /** @param array<string,mixed> $siteConfig */
@@ -157,15 +184,21 @@ final class FsmSiteLoader implements FsmSiteLoaderInterface
         array $siteConfig
     ): void {
         if (($siteConfig['application_root'] ?? null) !== 'application') {
-            throw new RuntimeException('OPUS_FSM_SITE_APPLICATION_ROOT_INVALID: ' . $siteId);
+            throw new RuntimeException(
+                'OPUS_FSM_SITE_APPLICATION_ROOT_INVALID: ' . $siteId
+            );
         }
 
         if (($siteConfig['default_root'] ?? null) !== 'application/default') {
-            throw new RuntimeException('OPUS_FSM_SITE_DEFAULT_ROOT_INVALID: ' . $siteId);
+            throw new RuntimeException(
+                'OPUS_FSM_SITE_DEFAULT_ROOT_INVALID: ' . $siteId
+            );
         }
 
         if (($siteConfig['dispatch_model'] ?? null) !== 'fsm-module-first') {
-            throw new RuntimeException('OPUS_FSM_SITE_DISPATCH_MODEL_INVALID: ' . $siteId);
+            throw new RuntimeException(
+                'OPUS_FSM_SITE_DISPATCH_MODEL_INVALID: ' . $siteId
+            );
         }
 
         $applicationRoot = $siteRoot . DIRECTORY_SEPARATOR . 'application';
@@ -173,15 +206,21 @@ final class FsmSiteLoader implements FsmSiteLoaderInterface
         $forbiddenStatesRoot = $applicationRoot . DIRECTORY_SEPARATOR . 'states';
 
         if (!is_dir($applicationRoot)) {
-            throw new RuntimeException('OPUS_FSM_SITE_APPLICATION_DIRECTORY_MISSING: ' . $siteId);
+            throw new RuntimeException(
+                'OPUS_FSM_SITE_APPLICATION_DIRECTORY_MISSING: ' . $siteId
+            );
         }
 
         if (!is_dir($defaultRoot)) {
-            throw new RuntimeException('OPUS_FSM_SITE_DEFAULT_MODULE_MISSING: ' . $siteId);
+            throw new RuntimeException(
+                'OPUS_FSM_SITE_DEFAULT_MODULE_MISSING: ' . $siteId
+            );
         }
 
         if (is_dir($forbiddenStatesRoot)) {
-            throw new RuntimeException('OPUS_FSM_SITE_FORBIDDEN_STATES_DIRECTORY: ' . $siteId);
+            throw new RuntimeException(
+                'OPUS_FSM_SITE_FORBIDDEN_STATES_DIRECTORY: ' . $siteId
+            );
         }
     }
 
@@ -205,16 +244,23 @@ final class FsmSiteLoader implements FsmSiteLoaderInterface
 
             $stateId = trim((string) ($state['id'] ?? ''));
             if ($stateId === '') {
-                throw new RuntimeException('OPUS_FSM_SITE_STATE_ID_INVALID: ' . $siteId);
+                throw new RuntimeException(
+                    'OPUS_FSM_SITE_STATE_ID_INVALID: ' . $siteId
+                );
             }
 
             $module = trim((string) ($state['module'] ?? $stateId));
             if (preg_match('/^[a-z][a-z0-9_-]*$/', $module) !== 1) {
-                throw new RuntimeException('OPUS_FSM_SITE_MODULE_NAME_INVALID: ' . $siteId . ':' . $module);
+                throw new RuntimeException(
+                    'OPUS_FSM_SITE_MODULE_NAME_INVALID: '
+                    . $siteId . ':' . $module
+                );
             }
 
             if ($module === 'default') {
-                throw new RuntimeException('OPUS_FSM_SITE_DEFAULT_STATE_MODULE_FORBIDDEN: ' . $siteId);
+                throw new RuntimeException(
+                    'OPUS_FSM_SITE_DEFAULT_STATE_MODULE_FORBIDDEN: ' . $siteId
+                );
             }
 
             $modules[$module] = true;
@@ -234,14 +280,17 @@ final class FsmSiteLoader implements FsmSiteLoaderInterface
         foreach ($modules as $module) {
             if (!is_dir($applicationRoot . DIRECTORY_SEPARATOR . $module)) {
                 throw new RuntimeException(
-                    'OPUS_FSM_SITE_MODULE_DIRECTORY_MISSING: ' . $siteId . ':' . $module
+                    'OPUS_FSM_SITE_MODULE_DIRECTORY_MISSING: '
+                    . $siteId . ':' . $module
                 );
             }
         }
     }
 
-    private static function assertSafeRelativePath(string $path, string $error): void
-    {
+    private static function assertSafeRelativePath(
+        string $path,
+        string $error
+    ): void {
         $normalized = trim(str_replace('\\', '/', $path), '/');
 
         if (

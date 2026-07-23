@@ -1,0 +1,97 @@
+{
+  "contract": "OPUS_RCP_REST_SERVER_CONFIG_V2",
+  "base_path": "/api/v1",
+  "operation_catalog": "sites/owasys/config/backend.operations.json",
+  "execution_store": "sites/owasys/var/rcp/executions",
+  "composer_command": [
+    "@php",
+    "composer.phar"
+  ],
+  "timeout_seconds": 120,
+  "max_output_bytes": 2097152,
+  "supported_locales": [
+    "bg-BG",
+    "hr-HR",
+    "cs-CZ",
+    "da-DK",
+    "nl-NL",
+    "nl-BE",
+    "en-IE",
+    "en-MT",
+    "et-EE",
+    "fi-FI",
+    "fr-FR",
+    "fr-BE",
+    "fr-LU",
+    "fr-CH",
+    "de-DE",
+    "de-AT",
+    "de-BE",
+    "de-LU",
+    "de-CH",
+    "el-GR",
+    "el-CY",
+    "hu-HU",
+    "ga-IE",
+    "it-IT",
+    "it-CH",
+    "lv-LV",
+    "lt-LT",
+    "mt-MT",
+    "pl-PL",
+    "pt-PT",
+    "ro-RO",
+    "sk-SK",
+    "sl-SI",
+    "es-ES",
+    "sv-SE",
+    "sv-FI",
+    "uk-UA"
+  ],
+  "default_locale": "fr-FR",
+  "authentication": {
+    "mode": "environment_hmac",
+    "service": "owasys-frontend",
+    "token_env": "OPUS_OWASYS_BACKEND_TOKEN",
+    "hmac_env": "OPUS_OWASYS_BACKEND_HMAC",
+    "minimum_secret_length": 32,
+    "max_clock_skew_seconds": 60,
+    "delegated_roles": [
+      "viewer",
+      "developer",
+      "admin"
+    ],
+    "delegated_providers": [
+      "local-password",
+      "auth0-proxy"
+    ],
+    "trusted_proxy_addresses": [
+      "127.0.0.1",
+      "::1"
+    ],
+    "proxy_secret_env": "OPUS_OWASYS_AUTH0_PROXY_SECRET"
+  },
+  "fsm": {
+    "initial_state": "received",
+    "transitions": {
+      "received": [
+        "authenticated",
+        "failed"
+      ],
+      "authenticated": [
+        "authorized",
+        "failed"
+      ],
+      "authorized": [
+        "dispatching",
+        "failed"
+      ],
+      "dispatching": [
+        "succeeded",
+        "failed"
+      ],
+      "succeeded": [],
+      "failed": []
+    }
+  }
+}

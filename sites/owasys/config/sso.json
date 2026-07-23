@@ -4,7 +4,20 @@
   "providers": {
     "local-password": {
       "enabled": true,
-      "store": "var/auth/local-users.json"
+      "store": "var/auth/local-users.json",
+      "store_contract": "OWASYS_LOCAL_USER_STORE_V1"
+    },
+    "auth0-proxy": {
+      "enabled": true,
+      "trusted_proxy_addresses": [
+        "127.0.0.1",
+        "::1"
+      ],
+      "proxy_secret_env": "OPUS_OWASYS_AUTH0_PROXY_SECRET",
+      "subject_header": "HTTP_X_OPUS_AUTH0_SUBJECT",
+      "roles_header": "HTTP_X_OPUS_AUTH0_ROLES",
+      "label_header": "HTTP_X_OPUS_AUTH0_LABEL",
+      "secret_header": "HTTP_X_OPUS_PROXY_SECRET"
     }
   },
   "session": {

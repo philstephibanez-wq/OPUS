@@ -59,7 +59,7 @@ final class OwasysScorePageRenderer
         ];
 
         return $renderer->render(
-            'default/templates/layout.score',
+            'default/layouts/layout.score',
             $data
         );
     }
@@ -90,10 +90,6 @@ final class OwasysScorePageRenderer
     }
 
     /**
-     * Transitional normalization for ViewModel fields still produced by the
-     * pre-P117I controller adapter. SCORE texts and canonical page/navigation
-     * fields are resolved again through the strict module-aware runtime.
-     *
      * @param array<string,mixed> $data
      * @return array<string,mixed>
      */
@@ -160,7 +156,6 @@ final class OwasysScorePageRenderer
                 );
             }
         }
-
 
         return $data;
     }

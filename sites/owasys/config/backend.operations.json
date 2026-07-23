@@ -1,0 +1,240 @@
+{
+  "contract": "OPUS_RCP_COMPOSER_OPERATION_CATALOG_V1",
+  "operations": {
+    "site.create": {
+      "composer_script": "opus:create-site",
+      "roles": [
+        "admin",
+        "developer"
+      ],
+      "arguments": [
+        {
+          "name": "site_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        },
+        {
+          "name": "write",
+          "flag": "--write",
+          "type": "boolean"
+        }
+      ]
+    },
+    "site.validate": {
+      "composer_script": "opus:validate-site",
+      "roles": [
+        "admin",
+        "developer",
+        "viewer"
+      ],
+      "arguments": [
+        {
+          "name": "site_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        }
+      ]
+    },
+    "site.routes.list": {
+      "composer_script": "opus:list-routes",
+      "roles": [
+        "admin",
+        "developer",
+        "viewer"
+      ],
+      "arguments": [
+        {
+          "name": "site_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        }
+      ]
+    },
+    "site.language.add": {
+      "composer_script": "opus:add-language",
+      "roles": [
+        "admin",
+        "developer"
+      ],
+      "arguments": [
+        {
+          "name": "site_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        },
+        {
+          "name": "locale",
+          "required": true,
+          "pattern": "^[A-Za-z]{2,3}(?:[-_][A-Za-z0-9]{2,8})?$",
+          "max_length": 16
+        },
+        {
+          "name": "write",
+          "flag": "--write",
+          "type": "boolean"
+        }
+      ]
+    },
+    "site.page.create": {
+      "composer_script": "opus:create-page",
+      "roles": [
+        "admin",
+        "developer"
+      ],
+      "arguments": [
+        {
+          "name": "site_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        },
+        {
+          "name": "module_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        },
+        {
+          "name": "page_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        },
+        {
+          "name": "path",
+          "required": true,
+          "pattern": "^/[A-Za-z0-9/_-]*$",
+          "max_length": 256
+        },
+        {
+          "name": "title",
+          "option": "--title",
+          "max_length": 160,
+          "pattern": "^[A-Za-z0-9 .,_()'\\-]*$"
+        },
+        {
+          "name": "write",
+          "flag": "--write",
+          "type": "boolean"
+        }
+      ]
+    },
+    "site.rubric.create": {
+      "composer_script": "opus:create-rubric",
+      "roles": [
+        "admin",
+        "developer"
+      ],
+      "arguments": [
+        {
+          "name": "site_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        },
+        {
+          "name": "module_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        },
+        {
+          "name": "path",
+          "required": true,
+          "pattern": "^/[A-Za-z0-9/_-]*$",
+          "max_length": 256
+        },
+        {
+          "name": "title",
+          "option": "--title",
+          "max_length": 160,
+          "pattern": "^[A-Za-z0-9 .,_()'\\-]*$"
+        },
+        {
+          "name": "write",
+          "flag": "--write",
+          "type": "boolean"
+        }
+      ]
+    },
+    "site.export": {
+      "composer_script": "opus:export-site",
+      "roles": [
+        "admin",
+        "developer"
+      ],
+      "arguments": [
+        {
+          "name": "site_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        },
+        {
+          "name": "output_zip",
+          "required": false,
+          "pattern": "^[A-Za-z0-9._/-]+$",
+          "max_length": 256
+        },
+        {
+          "name": "overwrite",
+          "flag": "--overwrite",
+          "type": "boolean"
+        }
+      ]
+    },
+    "registry.sync": {
+      "composer_script": "owasys:registry-sync",
+      "roles": [
+        "admin",
+        "developer",
+        "viewer"
+      ],
+      "arguments": []
+    },
+    "registry.select": {
+      "composer_script": "owasys:registry-select",
+      "roles": [
+        "admin",
+        "developer"
+      ],
+      "arguments": [
+        {
+          "name": "application_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        }
+      ]
+    },
+    "registry.clear": {
+      "composer_script": "owasys:registry-clear",
+      "roles": [
+        "admin",
+        "developer"
+      ],
+      "arguments": []
+    },
+    "registry.creation.start": {
+      "composer_script": "owasys:registry-creation-start",
+      "roles": [
+        "admin",
+        "developer"
+      ],
+      "arguments": []
+    },
+    "security.admin-password.change": {
+      "composer_script": "owasys:admin-password-change",
+      "roles": [
+        "admin",
+        "developer"
+      ],
+      "arguments": [],
+      "secret_input": true
+    }
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "contract": "OPUS_SITE_APPLICATION_TREE_V2",
+  "contract": "OPUS_SITE_STANDARD_CONTRACT_CORE",
   "site_id": "owasys",
   "site_name": "OPUS OWASYS",
   "long_name": "OPUS Web Application System",
@@ -164,8 +164,16 @@
     "architecture": "singleton",
     "class": "OwasysApplication",
     "file": "application/default/Application.php",
+    "bootstrap": "application/default/bootstrap.php",
     "entrypoint": "www/index.php",
     "factory": "instance",
     "runner": "run"
+  },
+  "backend": {
+    "contract": "OWASYS_REST_COMPOSER_BACKEND_V1",
+    "route_prefix": "/api/v1",
+    "server_config": "config/backend.rest.json",
+    "client_config": "config/rcp.json",
+    "operation_catalog": "config/backend.operations.json"
   }
 }

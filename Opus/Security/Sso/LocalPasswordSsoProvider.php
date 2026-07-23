@@ -3,17 +3,32 @@ declare(strict_types=1);
 
 namespace Opus\Security\Sso;
 
+use Opus\File\File;
+use Opus\File\FileInterface;
+use Opus\File\Json;
+use Opus\File\JsonInterface;
 use RuntimeException;
 
 final class LocalPasswordSsoProvider implements SsoProviderInterface, PasswordChangeProviderInterface, LocalPasswordSsoProviderInterface
 {
+    private readonly FileInterface $file;
+    private readonly JsonInterface $json;
+
     public function __construct(
         private readonly string $storeFile,
-        private readonly int $minimumPasswordLength = 10
+        private readonly int $minimumPasswordLength = 10,
+        private readonly string $storeContract = 'OPUS_LOCAL_USER_STORE_V1',
+        ?FileInterface $file = null,
+        ?JsonInterface $json = null
     ) {
         if ($this->minimumPasswordLength < 8) {
             throw new RuntimeException('OPUS_SSO_MINIMUM_PASSWORD_LENGTH_INVALID');
         }
+        if (preg_match('/^[A-Z][A-Z0-9_]{2,127}_V[0-9]+$/', $this->storeContract) !== 1) {
+            throw new RuntimeException('OPUS_SSO_STORE_CONTRACT_INVALID');
+        }
+        $this->file = $file ?? File::instance();
+        $this->json = $json ?? Json::instance();
     }
 
     public function id(): string
@@ -85,13 +100,16 @@ final class LocalPasswordSsoProvider implements SsoProviderInterface, PasswordCh
     /** @return array<string,mixed> */
     private function readStore(): array
     {
-        if (!is_file($this->storeFile)) {
-            throw new RuntimeException('OWASYS_SSO_LOCAL_STORE_MISSING:' . $this->storeFile);
+        if (!$this->file->exists($this->storeFile)) {
+            throw new RuntimeException('OPUS_SSO_LOCAL_STORE_MISSING:' . $this->storeFile);
         }
 
-        $decoded = json_decode((string) file_get_contents($this->storeFile), true);
-        if (!is_array($decoded) || ($decoded['contract'] ?? null) !== 'OWASYS_LOCAL_USER_STORE_V1') {
-            throw new RuntimeException('OWASYS_SSO_LOCAL_STORE_INVALID:' . $this->storeFile);
+        $decoded = $this->json->parse(
+            $this->file->read($this->storeFile),
+            $this->storeFile
+        );
+        if (($decoded['contract'] ?? null) !== $this->storeContract) {
+            throw new RuntimeException('OPUS_SSO_LOCAL_STORE_INVALID:' . $this->storeFile);
         }
 
         $decoded['users'] = is_array($decoded['users'] ?? null) ? $decoded['users'] : [];
@@ -102,19 +120,10 @@ final class LocalPasswordSsoProvider implements SsoProviderInterface, PasswordCh
     /** @param array<string,mixed> $store */
     private function writeStore(array $store): void
     {
-        $directory = dirname($this->storeFile);
-        if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
-            throw new RuntimeException('OWASYS_SSO_LOCAL_STORE_DIRECTORY_FAILED');
-        }
-
-        $encoded = json_encode(
-            $store,
-            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
+        $this->file->writeAtomic(
+            $this->storeFile,
+            $this->json->encode($store, true)
         );
-
-        if (file_put_contents($this->storeFile, $encoded . PHP_EOL, LOCK_EX) === false) {
-            throw new RuntimeException('OWASYS_SSO_LOCAL_STORE_WRITE_FAILED');
-        }
     }
 
     /**

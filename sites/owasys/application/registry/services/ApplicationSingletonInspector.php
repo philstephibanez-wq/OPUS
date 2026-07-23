@@ -4,12 +4,10 @@ declare(strict_types=1);
 use Opus\File\File;
 use Opus\File\StructuredFileLoader;
 
-/**
- * Reads and validates the singleton runtime contract of autonomous OPUS sites.
- */
+/** Reads and validates the Singleton runtime contract of autonomous OPUS sites. */
 final class OwasysApplicationSingletonInspector
 {
-    public const CONTRACT = 'OWASYS_APPLICATION_SINGLETON_INSPECTOR_V1';
+    public const CONTRACT = 'OWASYS_APPLICATION_SINGLETON_INSPECTOR_V2';
 
     private static ?self $instance = null;
 
@@ -20,15 +18,12 @@ final class OwasysApplicationSingletonInspector
     public static function instance(string $opusRoot): self
     {
         $opusRoot = rtrim(str_replace('\\', '/', $opusRoot), '/');
-
         if (self::$instance instanceof self) {
             if (self::$instance->opusRoot !== $opusRoot) {
                 throw new RuntimeException('OWASYS_SINGLETON_INSPECTOR_ROOT_MISMATCH');
             }
-
             return self::$instance;
         }
-
         return self::$instance = new self($opusRoot);
     }
 
@@ -36,19 +31,15 @@ final class OwasysApplicationSingletonInspector
     public function inspect(string $applicationRoot): array
     {
         $applicationRoot = trim(str_replace('\\', '/', $applicationRoot), '/');
-
-        if (
-            $applicationRoot === ''
+        if ($applicationRoot === ''
             || !str_starts_with($applicationRoot, 'sites/')
-            || str_contains($applicationRoot, '..')
-        ) {
+            || str_contains($applicationRoot, '..')) {
             return $this->failure('OPUS_APPLICATION_ROOT_INVALID');
         }
 
         $absoluteRoot = $this->opusRoot . '/' . $applicationRoot;
         $siteConfigFile = $absoluteRoot . '/config/site.json';
         $file = File::instance();
-
         if (!$file->exists($siteConfigFile)) {
             return $this->failure('OPUS_APPLICATION_SITE_CONFIG_MISSING');
         }
@@ -61,43 +52,47 @@ final class OwasysApplicationSingletonInspector
             );
         }
 
-        $runtime = is_array($site['runtime'] ?? null)
-            ? $site['runtime']
-            : [];
+        $runtime = is_array($site['runtime'] ?? null) ? $site['runtime'] : [];
         $contract = trim((string) ($runtime['contract'] ?? ''));
         $architecture = trim((string) ($runtime['architecture'] ?? ''));
         $class = trim((string) ($runtime['class'] ?? ''));
         $classFile = $this->safeRelative((string) ($runtime['file'] ?? ''));
         $entrypoint = $this->safeRelative((string) ($runtime['entrypoint'] ?? ''));
+        $bootstrap = $this->safeRelative((string) (
+            $runtime['bootstrap'] ?? 'application/default/bootstrap.php'
+        ));
         $factory = trim((string) ($runtime['factory'] ?? ''));
         $runner = trim((string) ($runtime['runner'] ?? ''));
 
-        if (
-            $contract !== 'OPUS_APPLICATION_SINGLETON_V1'
+        if ($contract !== 'OPUS_APPLICATION_SINGLETON_V1'
             || $architecture !== 'singleton'
             || $class === ''
             || $classFile === null
             || $entrypoint === null
+            || $bootstrap === null
             || $factory !== 'instance'
-            || $runner !== 'run'
-        ) {
+            || $runner !== 'run') {
             return $this->failure('OPUS_APPLICATION_SINGLETON_CONTRACT_MISSING');
         }
 
         $classPath = $absoluteRoot . '/' . $classFile;
         $entryPath = $absoluteRoot . '/' . $entrypoint;
-
-        if (!$file->exists($classPath)) {
-            return $this->failure('OPUS_APPLICATION_SINGLETON_CLASS_FILE_MISSING');
-        }
-
-        if (!$file->exists($entryPath)) {
-            return $this->failure('OPUS_APPLICATION_ENTRYPOINT_MISSING');
+        $bootstrapPath = $absoluteRoot . '/' . $bootstrap;
+        foreach ([
+            $classPath => 'OPUS_APPLICATION_SINGLETON_CLASS_FILE_MISSING',
+            $entryPath => 'OPUS_APPLICATION_ENTRYPOINT_MISSING',
+            $bootstrapPath => 'OPUS_APPLICATION_BOOTSTRAP_MISSING',
+        ] as $path => $error) {
+            if (!$file->exists($path)) {
+                return $this->failure($error);
+            }
         }
 
         $classSource = $file->read($classPath);
         $entrySource = $file->read($entryPath);
+        $bootstrapSource = $file->read($bootstrapPath);
         $quotedClass = preg_quote($class, '/');
+        $bootstrapReference = str_replace('\\', '/', $bootstrap);
 
         $checks = [
             preg_match('/final\s+class\s+' . $quotedClass . '\b/', $classSource) === 1,
@@ -105,8 +100,11 @@ final class OwasysApplicationSingletonInspector
             preg_match('/private\s+function\s+__construct\s*\(/', $classSource) === 1,
             preg_match('/public\s+static\s+function\s+instance\s*\(/', $classSource) === 1,
             preg_match('/public\s+function\s+run\s*\(/', $classSource) === 1,
-            str_contains($entrySource, $class . '::instance('),
-            str_contains($entrySource, ')->run();'),
+            str_contains($bootstrapSource, $class . '::instance('),
+            str_contains($bootstrapSource, ')->run();'),
+            str_contains(str_replace('\\', '/', $entrySource), basename($bootstrapReference)),
+            !preg_match('/\becho\b/', $entrySource),
+            !str_contains($entrySource, '<html'),
         ];
 
         if (in_array(false, $checks, true)) {
@@ -118,6 +116,7 @@ final class OwasysApplicationSingletonInspector
             'architecture' => $architecture,
             'class' => $class,
             'file' => $classFile,
+            'bootstrap' => $bootstrap,
             'entrypoint' => $entrypoint,
             'compliant' => true,
             'error' => '',
@@ -127,15 +126,11 @@ final class OwasysApplicationSingletonInspector
     private function safeRelative(string $path): ?string
     {
         $path = trim(str_replace('\\', '/', $path), '/');
-
-        if (
-            $path === ''
+        if ($path === ''
             || str_contains($path, '..')
-            || preg_match('/^[A-Za-z]:\//', $path) === 1
-        ) {
+            || preg_match('/^[A-Za-z]:\//', $path) === 1) {
             return null;
         }
-
         return $path;
     }
 
@@ -147,6 +142,7 @@ final class OwasysApplicationSingletonInspector
             'architecture' => '',
             'class' => '',
             'file' => '',
+            'bootstrap' => '',
             'entrypoint' => '',
             'compliant' => false,
             'error' => $error,

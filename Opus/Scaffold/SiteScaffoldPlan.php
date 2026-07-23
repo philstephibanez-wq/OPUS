@@ -3,20 +3,22 @@ declare(strict_types=1);
 
 namespace Opus\Scaffold;
 
-/**
- * OPUS site scaffold.
- *
- * Eternal OPUS contract:
- * sites/<site>/config
- * sites/<site>/application/default
- * sites/<site>/application/states/<state>
- * sites/<site>/www/asset/themes/<theme>
- */
+use Opus\File\Json;
+
+/** Canonical scaffold for an autonomous OPUS site/application. */
 final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanInterface
 {
-    private const CONTRACT = 'OPUS_SITE_APPLICATION_TREE_V1_ETERNAL';
-    private const APPLICATION_FSM_CONTRACT = 'OPUS_APPLICATION_FSM_V1';
-    private const LEGACY_FSM_CONTRACT = 'OPUS_FSM_REGISTRY_V1';
+    /** @var list<string> */
+    private const MODULES = [
+        'home',
+        'architecture',
+        'router',
+        'modules',
+        'controllers',
+        'views',
+        'models',
+        'i18n',
+    ];
 
     private function __construct(private readonly string $siteId)
     {
@@ -24,6 +26,10 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
 
     public static function forSite(string $siteId): self
     {
+        $siteId = trim(strtolower($siteId));
+        if (preg_match('/^[a-z][a-z0-9-]*$/', $siteId) !== 1) {
+            throw new \InvalidArgumentException('OPUS_APPLICATION_ID_INVALID:' . $siteId);
+        }
         return new self($siteId);
     }
 
@@ -32,30 +38,22 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
         return 'sites/' . $this->siteId;
     }
 
-    /**
-     * @return list<ScaffoldEntry>
-     */
+    /** @return list<ScaffoldEntry> */
     public function entries(): array
     {
         $site = $this->siteId;
-        $states = ['home', 'architecture', 'router', 'modules', 'controllers', 'views', 'models', 'i18n'];
         $directories = [
             "sites/{$site}/config",
             "sites/{$site}/application",
             "sites/{$site}/application/default",
-            "sites/{$site}/application/default/acl",
             "sites/{$site}/application/default/helpers",
-            "sites/{$site}/application/default/css",
-            "sites/{$site}/application/default/javascript",
+            "sites/{$site}/application/default/layouts",
             "sites/{$site}/application/default/local",
-            "sites/{$site}/application/default/local/fr",
-            "sites/{$site}/application/default/local/en",
-            "sites/{$site}/application/default/local/es",
             "sites/{$site}/application/default/models",
+            "sites/{$site}/application/default/navigation",
             "sites/{$site}/application/default/templates",
             "sites/{$site}/application/default/templates/components",
             "sites/{$site}/application/default/views",
-            "sites/{$site}/application/states",
             "sites/{$site}/www",
             "sites/{$site}/www/asset",
             "sites/{$site}/www/asset/css",
@@ -65,200 +63,356 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             "sites/{$site}/www/asset/themes/starter/css",
             "sites/{$site}/www/asset/themes/starter/js",
             "sites/{$site}/www/asset/themes/starter/img",
+            "sites/{$site}/www/asset/vendor",
         ];
-
-        foreach ($states as $state) {
-            foreach (['', '/acl', '/helpers', '/css', '/javascript', '/local', '/local/fr', '/local/en', '/local/es', '/models', '/templates', '/views'] as $suffix) {
-                $directories[] = "sites/{$site}/application/states/{$state}{$suffix}";
+        foreach (self::MODULES as $module) {
+            foreach (['', '/acl', '/helpers', '/javascript', '/local', '/models', '/templates', '/views'] as $suffix) {
+                $directories[] = "sites/{$site}/application/{$module}{$suffix}";
             }
         }
 
-        $entries = [];
-        foreach (array_values(array_unique($directories)) as $directory) {
-            $entries[] = ScaffoldEntry::directory($directory);
+        $entries = array_map(
+            static fn (string $directory): ScaffoldEntry => ScaffoldEntry::directory($directory),
+            array_values(array_unique($directories))
+        );
+
+        $files = [
+            "sites/{$site}/opus-site.json" => $this->json([
+                'site_id' => $site,
+                'contract' => 'OPUS_SITE_STANDARD_CONTRACT_CORE',
+                'dispatch_model' => 'fsm-module-first',
+            ]),
+            "sites/{$site}/config/site.json" => $this->json($this->siteConfig()),
+            "sites/{$site}/config/routes.json" => $this->json($this->routesConfig()),
+            "sites/{$site}/config/menu.json" => $this->json($this->menuConfig()),
+            "sites/{$site}/config/application.fsm.json" => $this->json($this->fsmConfig()),
+            "sites/{$site}/config/rubrics.json" => $this->json([
+                'contract' => 'OPUS_RUBRIC_REGISTRY_V1',
+                'rubrics' => [],
+            ]),
+            "sites/{$site}/config/acl.json" => $this->json($this->aclConfig()),
+            "sites/{$site}/config/sso.json" => $this->json($this->ssoConfig()),
+            "sites/{$site}/application/default/bootstrap.php" => $this->bootstrap(),
+            "sites/{$site}/application/default/Application.php" => $this->applicationClass(),
+            "sites/{$site}/application/default/layouts/layout.score" => $this->layoutTemplate(),
+            "sites/{$site}/application/default/templates/error.score" => '<section class="opus-card opus-error" role="alert"><h2>{{ error.title }}</h2><p>{{ error.message }}</p><code>{{ error.code }}</code></section>' . "\n",
+            "sites/{$site}/application/default/templates/components/header.score" => '<header class="opus-header"><h1>{{ site.name }}</h1><nav class="opus-menu">{{{ common.menu }}}</nav></header>' . "\n",
+            "sites/{$site}/application/default/templates/components/footer.score" => '<footer class="opus-footer">{{ site.contract }}</footer>' . "\n",
+            "sites/{$site}/application/default/templates/components/menu-item.score" => '<a class="{{ menu_item.active_class }}" href="{{ menu_item.path }}">{{ menu_item.label }}</a>' . "\n",
+            "sites/{$site}/application/default/templates/components/stylesheet.score" => '<link rel="stylesheet" href="{{ asset.href }}">' . "\n",
+            "sites/{$site}/application/default/templates/components/script.score" => '<script src="{{ asset.src }}" defer></script>' . "\n",
+            "sites/{$site}/application/default/navigation/menu.json" => $this->json($this->menuConfig()),
+            "sites/{$site}/www/asset/css/default.css" => $this->defaultCss(),
+            "sites/{$site}/www/asset/js/default.js" => "document.documentElement.dataset.opusRuntime='ready';\n",
+            "sites/{$site}/www/asset/themes/starter/css/theme.css" => "body.opus-site{--opus-theme:starter}\n",
+            "sites/{$site}/www/asset/themes/starter/js/theme.js" => "document.documentElement.dataset.opusTheme='starter';\n",
+            "sites/{$site}/www/index.php" => $this->frontController(),
+        ];
+
+        foreach (['fr', 'en', 'es'] as $locale) {
+            $files["sites/{$site}/application/default/local/{$locale}.json"] = $this->json(
+                $this->defaultCatalog($locale)
+            );
+        }
+        foreach (self::MODULES as $module) {
+            $files["sites/{$site}/application/{$module}/templates/index.score"] = '<section class="opus-card"><h2>{{ page.title }}</h2><p>{{ page.subtitle }}</p></section>' . "\n";
+            $files["sites/{$site}/application/{$module}/views/index.php"] = $this->viewModel($module);
+            $files["sites/{$site}/application/{$module}/javascript/{$module}.js"] = "document.documentElement.dataset.opusModule='{$module}';\n";
+            $files["sites/{$site}/application/{$module}/acl/policy.json"] = $this->json([
+                'contract' => 'OPUS_MODULE_ACL_POLICY_V1',
+                'resource' => $module,
+                'default' => 'deny',
+                'open' => ['anonymous', 'viewer', 'developer', 'admin'],
+            ]);
+            foreach (['fr', 'en', 'es'] as $locale) {
+                $files["sites/{$site}/application/{$module}/local/{$locale}.json"] = $this->json(
+                    $this->moduleCatalog($module, $locale)
+                );
+            }
         }
 
-        $entries[] = ScaffoldEntry::file("sites/{$site}/opus-site.json", $this->json([
-            'site_id' => $site,
-            'contract' => self::CONTRACT,
-            'states_root' => 'application/states',
-            'dispatch_model' => 'state-first',
-        ]));
-        $entries[] = ScaffoldEntry::file("sites/{$site}/config/site.json", $this->json($this->siteConfig($site)));
-        $entries[] = ScaffoldEntry::file("sites/{$site}/config/routes.json", $this->json($this->routesConfig($states)));
-        $entries[] = ScaffoldEntry::file("sites/{$site}/config/menu.json", $this->json($this->menuConfig($states)));
-        $entries[] = ScaffoldEntry::file("sites/{$site}/config/application.fsm.json", $this->json($this->applicationFsmConfig($site, $states)));
-        $entries[] = ScaffoldEntry::file("sites/{$site}/config/fsm.json", $this->json($this->legacyFsmConfig($site, $states)));
-        $entries[] = ScaffoldEntry::file("sites/{$site}/config/rubrics.json", $this->json($this->rubricsConfig($states)));
-        $entries[] = ScaffoldEntry::file("sites/{$site}/application/default/templates/layout.score", "<!doctype html>\n<html lang=\"{{ lang }}\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>{{ page.title }}</title>\n{{{ assets.css }}}\n</head>\n<body class=\"opus-asap-site\">\n{{{ common.header }}}\n<main id=\"main-content\" class=\"opus-shell\">{{{ content }}}</main>\n{{{ common.footer }}}\n{{{ assets.js }}}\n</body>\n</html>\n");
-        $entries[] = ScaffoldEntry::file("sites/{$site}/application/default/templates/components/header.score", "<header class=\"opus-header\"><h1>{{ site.name }}</h1><nav>{{{ common.menu }}}</nav></header>\n");
-        $entries[] = ScaffoldEntry::file("sites/{$site}/application/default/templates/components/footer.score", "<footer class=\"opus-footer\">{{ site.contract }}</footer>\n");
-        $entries[] = ScaffoldEntry::file("sites/{$site}/application/default/templates/components/menu-item.score", "<a class=\"{{ menu_item.active_class }}\" href=\"{{ menu_item.path }}\">{{ menu_item.label }}</a>\n");
-        $entries[] = ScaffoldEntry::file("sites/{$site}/application/default/css/default.css", "body.opus-asap-site{margin:0;font-family:system-ui,Segoe UI,Arial,sans-serif;background:#eef3f8;color:#162336}.opus-header,.opus-footer{background:#24466d;color:#fff;padding:24px}.opus-shell{padding:24px;min-height:60vh}.opus-card{display:block;margin:12px 0;padding:16px;background:#fff;border:1px solid #d7e0eb;border-radius:12px}\n");
-        $entries[] = ScaffoldEntry::file("sites/{$site}/application/default/javascript/default.js", "document.documentElement.dataset.opusDefaultLayer='loaded';\n");
-        $entries[] = ScaffoldEntry::file("sites/{$site}/application/default/local/fr/i18n.json", $this->json($this->defaultI18n('fr')));
-        $entries[] = ScaffoldEntry::file("sites/{$site}/application/default/local/en/i18n.json", $this->json($this->defaultI18n('en')));
-        $entries[] = ScaffoldEntry::file("sites/{$site}/application/default/local/es/i18n.json", $this->json($this->defaultI18n('es')));
-        $entries[] = ScaffoldEntry::file("sites/{$site}/www/asset/themes/starter/css/theme.css", "body.opus-asap-site{--opus-theme:starter}\n");
-        $entries[] = ScaffoldEntry::file("sites/{$site}/www/asset/themes/starter/js/theme.js", "document.documentElement.dataset.opusThemeLayer='starter';\n");
-        $entries[] = ScaffoldEntry::file("sites/{$site}/www/index.php", $this->frontController());
-
-        foreach ($states as $state) {
-            $base = "sites/{$site}/application/states/{$state}";
-            $entries[] = ScaffoldEntry::file($base . "/templates/index.score", "<section class=\"opus-card\"><h2>{{ page.title }}</h2><p>{{ page.subtitle }}</p></section>\n");
-            $entries[] = ScaffoldEntry::file($base . "/views/index.php", $this->stateViewModel($state));
-            $entries[] = ScaffoldEntry::file($base . "/css/{$state}.css", "/* {$state} */\n");
-            $entries[] = ScaffoldEntry::file($base . "/javascript/{$state}.js", "document.documentElement.dataset.opusStateLayer='{$state}';\n");
-            $entries[] = ScaffoldEntry::file($base . "/local/fr/i18n.json", $this->json($this->stateI18n($state, 'fr')));
-            $entries[] = ScaffoldEntry::file($base . "/local/en/i18n.json", $this->json($this->stateI18n($state, 'en')));
-            $entries[] = ScaffoldEntry::file($base . "/local/es/i18n.json", $this->json($this->stateI18n($state, 'es')));
+        foreach ($files as $path => $content) {
+            $entries[] = ScaffoldEntry::file($path, $content);
         }
-
         return $entries;
     }
 
     /** @return array<string,mixed> */
-    private function siteConfig(string $site): array
+    private function siteConfig(): array
     {
         return [
-            'site_id' => $site,
-            'site_name' => 'OPUS ' . $site,
-            'contract' => self::CONTRACT,
+            'site_id' => $this->siteId,
+            'site_name' => 'OPUS ' . $this->siteId,
+            'role' => 'generated-opus-application',
+            'contract' => 'OPUS_SITE_STANDARD_CONTRACT_CORE',
             'default_locale' => 'fr',
             'locales' => ['fr', 'en', 'es'],
             'theme' => 'starter',
             'application_root' => 'application',
-            'states_root' => 'application/states',
             'default_root' => 'application/default',
             'application_fsm' => 'config/application.fsm.json',
-            'fsm_legacy_projection' => 'config/fsm.json',
-            'fsm_contract' => self::APPLICATION_FSM_CONTRACT,
-            'dispatch_model' => 'state-first',
-            'controller_field' => 'legacy_alias',
+            'dispatch_model' => 'fsm-module-first',
             'public_root' => 'www',
             'asset_root' => 'www/asset',
-            'theme_root_pattern' => 'www/asset/themes/<theme>',
-            'css_inheritance' => ['application/default/css', 'www/asset/themes/<theme>/css', 'application/states/<state>/css'],
-            'js_inheritance' => ['application/default/javascript', 'www/asset/themes/<theme>/js', 'application/states/<state>/javascript'],
+            'navigation' => ['fsm' => 'config/application.fsm.json'],
+            'runtime' => [
+                'contract' => 'OPUS_APPLICATION_SINGLETON_V1',
+                'architecture' => 'singleton',
+                'class' => $this->applicationClassName(),
+                'file' => 'application/default/Application.php',
+                'bootstrap' => 'application/default/bootstrap.php',
+                'entrypoint' => 'www/index.php',
+                'factory' => 'instance',
+                'runner' => 'run',
+            ],
         ];
     }
 
-    /** @param list<string> $states @return array<string,mixed> */
-    private function routesConfig(array $states): array
+    /** @return array<string,mixed> */
+    private function routesConfig(): array
     {
         $routes = [];
-        foreach ($states as $index => $state) {
+        foreach (self::MODULES as $index => $module) {
             $routes[] = [
-                'id' => $state . '.index',
-                'path' => $state === 'home' ? '/' : '/' . $state,
-                'state' => $state,
-                'controller' => $state,
-                'controller_legacy_alias' => true,
+                'id' => $module . '.index',
+                'path' => $module === 'home' ? '/' : '/' . $module,
+                'state' => $module,
+                'module' => $module,
                 'action' => 'index',
-                'template' => 'application/states/' . $state . '/templates/index.score',
-                'view' => 'application/states/' . $state . '/views/index.php',
-                'label' => 'menu.' . $state,
+                'template' => $module . '/templates/index.score',
+                'view' => $module . '/views/index.php',
+                'label' => 'menu.' . $module,
+                'title_key' => 'page.title',
+                'subtitle_key' => 'page.subtitle',
                 'acl' => 'public',
-                'fsm_state' => $state,
+                'fsm_state' => $module,
                 'dispatch_action' => 'render_route',
                 'show_in_menu' => true,
-                'show_on_home' => $state !== 'home',
                 'order' => ($index + 1) * 10,
             ];
         }
-        return ['contract' => 'OPUS_ROUTE_REGISTRY_V1', 'dispatch_model' => 'state-first', 'routes' => $routes];
-    }
-
-    /** @param list<string> $states @return array<string,mixed> */
-    private function menuConfig(array $states): array
-    {
         return [
-            'contract' => 'OPUS_MENU_ROUTE_PROJECTION_V1',
-            'source_fsm' => 'config/application.fsm.json',
-            'dispatch_model' => 'state-first',
-            'items' => array_map(static fn (string $state): array => ['route' => $state . '.index', 'state' => $state, 'controller' => $state, 'label' => 'menu.' . $state], $states),
+            'contract' => 'OPUS_ROUTE_REGISTRY_V1',
+            'dispatch_model' => 'fsm-module-first',
+            'routes' => $routes,
         ];
     }
 
-    /** @param list<string> $states @return array<string,mixed> */
-    private function applicationFsmConfig(string $site, array $states): array
+    /** @return array<string,mixed> */
+    private function menuConfig(): array
     {
-        $fsmStates = array_map(static fn (string $state): array => [
-            'id' => $state,
-            'state' => $state,
-            'controller' => $state,
-            'controller_legacy_alias' => true,
-            'route' => $state === 'home' ? '/' : '/' . $state,
-            'view' => 'application/states/' . $state . '/views/index.php',
-            'template' => 'application/states/' . $state . '/templates/index.score',
-            'dispatch' => ['action' => 'render_route', 'target' => $state],
-            'visual' => true,
-        ], $states);
-
-        $transitions = [];
-        foreach ($states as $from) {
-            foreach ($states as $to) {
-                if ($from === $to) {
-                    continue;
-                }
-                $transitions[] = [
-                    'from' => $from,
-                    'event' => 'open_' . $to,
-                    'to' => $to,
-                    'guard' => 'route_exists',
-                    'action' => 'render_route',
-                    'dispatch' => ['action' => 'render_route', 'target_state' => $to],
-                    'visual' => true,
-                ];
-            }
-        }
-
         return [
-            'contract' => self::APPLICATION_FSM_CONTRACT,
-            'source_of_truth' => 'config',
-            'site_id' => $site,
-            'dispatch_model' => 'state-first',
-            'controller_field' => 'legacy_alias',
+            'contract' => 'OPUS_MENU_REGISTRY_V1',
+            'items' => array_map(
+                static fn (string $module): array => [
+                    'route' => $module . '.index',
+                    'label' => 'menu.' . $module,
+                ],
+                self::MODULES
+            ),
+        ];
+    }
+
+    /** @return array<string,mixed> */
+    private function fsmConfig(): array
+    {
+        $states = [];
+        $transitions = [];
+        foreach (self::MODULES as $module) {
+            $states[] = [
+                'id' => $module,
+                'module' => $module,
+                'route' => $module === 'home' ? '/' : '/' . $module,
+                'title_key' => 'menu.' . $module,
+                'summary_key' => 'page.subtitle',
+                'navigation' => ['label' => 'menu.' . $module],
+            ];
+            $transitions[] = [
+                'id' => 'open.' . $module,
+                'from' => '*',
+                'event' => 'open_' . $module,
+                'to' => $module,
+                'guards' => ['route_exists'],
+                'actions' => ['render_route'],
+            ];
+        }
+        return [
+            'contract' => 'OPUS_APPLICATION_FSM_V1',
+            'site_id' => $this->siteId,
             'initial_state' => 'home',
-            'states' => $fsmStates,
+            'states' => $states,
             'transitions' => $transitions,
         ];
     }
 
-    /** @param list<string> $states @return array<string,mixed> */
-    private function legacyFsmConfig(string $site, array $states): array
+    /** @return array<string,mixed> */
+    private function aclConfig(): array
     {
         return [
-            'contract' => self::LEGACY_FSM_CONTRACT,
-            'source_of_truth' => 'config/application.fsm.json',
-            'site_id' => $site,
-            'initial_state' => 'HOME',
-            'states' => array_map(static fn (string $state): array => ['id' => strtoupper(str_replace('-', '_', $state)), 'state' => $state, 'controller' => $state], $states),
-            'transitions' => [],
+            'contract' => 'OPUS_GENERATED_APPLICATION_ACL_V1',
+            'default' => 'deny',
+            'policies' => [
+                'public' => ['roles' => ['anonymous', 'viewer', 'developer', 'admin']],
+                'authenticated' => ['roles' => ['viewer', 'developer', 'admin']],
+                'administration' => ['roles' => ['developer', 'admin']],
+            ],
         ];
     }
 
-    /** @param list<string> $states @return array<string,mixed> */
-    private function rubricsConfig(array $states): array
+    /** @return array<string,mixed> */
+    private function ssoConfig(): array
     {
-        return ['contract' => 'OPUS_HOME_DEMO_CARD_ROUTE_PROJECTION_V1', 'dispatch_model' => 'state-first', 'rubrics' => array_values(array_map(static fn (string $state): array => ['state' => $state, 'controller' => $state, 'route' => $state . '.index'], array_filter($states, static fn (string $state): bool => $state !== 'home')))];
+        return [
+            'contract' => 'OPUS_GENERATED_APPLICATION_SSO_V1',
+            'session_name' => 'OPUS_' . strtoupper(str_replace('-', '_', $this->siteId)),
+            'session_identity_key' => 'opus_identity',
+            'providers' => [
+                'session' => ['enabled' => true],
+                'auth0-proxy' => [
+                    'enabled' => true,
+                    'trusted_proxy_addresses' => ['127.0.0.1', '::1'],
+                    'proxy_secret_env' => 'OPUS_AUTH0_PROXY_SECRET',
+                    'subject_header' => 'HTTP_X_OPUS_AUTH0_SUBJECT',
+                    'roles_header' => 'HTTP_X_OPUS_AUTH0_ROLES',
+                    'secret_header' => 'HTTP_X_OPUS_PROXY_SECRET',
+                ],
+            ],
+        ];
     }
 
-    /** @return array<string,string> */
-    private function defaultI18n(string $locale): array
+    /** @return array<string,mixed> */
+    private function defaultCatalog(string $locale): array
     {
-        return ['language' => $locale === 'fr' ? 'Langue' : 'Language', 'menu.home' => 'Home', 'menu.architecture' => 'Architecture', 'menu.router' => 'Router', 'menu.modules' => 'Modules', 'menu.controllers' => 'Controllers', 'menu.views' => 'Views', 'menu.models' => 'Models', 'menu.i18n' => 'I18N'];
+        $messages = [
+            'fr' => ['language' => 'Langue', 'menu.home' => 'Accueil', 'menu.architecture' => 'Architecture', 'menu.router' => 'Routeur', 'menu.modules' => 'Modules', 'menu.controllers' => 'Contrôleurs', 'menu.views' => 'Vues', 'menu.models' => 'Modèles', 'menu.i18n' => 'Internationalisation', 'error.title' => 'Erreur OPUS', 'error.request_failed' => 'La requête a échoué.'],
+            'en' => ['language' => 'Language', 'menu.home' => 'Home', 'menu.architecture' => 'Architecture', 'menu.router' => 'Router', 'menu.modules' => 'Modules', 'menu.controllers' => 'Controllers', 'menu.views' => 'Views', 'menu.models' => 'Models', 'menu.i18n' => 'Internationalization', 'error.title' => 'OPUS error', 'error.request_failed' => 'The request failed.'],
+            'es' => ['language' => 'Idioma', 'menu.home' => 'Inicio', 'menu.architecture' => 'Arquitectura', 'menu.router' => 'Enrutador', 'menu.modules' => 'Módulos', 'menu.controllers' => 'Controladores', 'menu.views' => 'Vistas', 'menu.models' => 'Modelos', 'menu.i18n' => 'Internacionalización', 'error.title' => 'Error de OPUS', 'error.request_failed' => 'La solicitud ha fallado.'],
+        ];
+        return ['contract' => 'OPUS_I18N_CATALOG_V1', 'locale' => $locale, 'scope' => 'default', 'messages' => $messages[$locale]];
     }
 
-    /** @return array<string,string> */
-    private function stateI18n(string $state, string $locale): array
+    /** @return array<string,mixed> */
+    private function moduleCatalog(string $module, string $locale): array
     {
-        return ['page.title' => strtoupper($state), 'page.subtitle' => 'OPUS state-first node: ' . $state];
+        $subtitles = [
+            'fr' => 'Module OPUS piloté par FSM : ' . $module,
+            'en' => 'FSM-driven OPUS module: ' . $module,
+            'es' => 'Módulo OPUS controlado por FSM: ' . $module,
+        ];
+        return [
+            'contract' => 'OPUS_I18N_CATALOG_V1',
+            'locale' => $locale,
+            'scope' => $module,
+            'messages' => [
+                'page.title' => ucfirst($module),
+                'page.subtitle' => $subtitles[$locale],
+            ],
+        ];
     }
 
-    private function stateViewModel(string $state): string
+    private function viewModel(string $module): string
     {
-        return "<?php\ndeclare(strict_types=1);\n\nreturn [\n    'state' => " . var_export($state, true) . ",\n    'title' => " . var_export(strtoupper($state), true) . ",\n    'subtitle' => " . var_export('OPUS state-first node: ' . $state, true) . ",\n];\n";
+        return "<?php\ndeclare(strict_types=1);\n\nreturn [\n    'module' => " . var_export($module, true) . ",\n    'page' => ['title' => '', 'subtitle' => ''],\n];\n";
+    }
+
+    private function layoutTemplate(): string
+    {
+        return "<!doctype html>\n<html lang=\"{{ lang }}\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>{{ page.title }}</title>\n{{{ assets.css }}}\n</head>\n<body class=\"opus-site\">\n{{{ common.header }}}\n<main id=\"main-content\" class=\"opus-shell\">{{{ content }}}</main>\n{{{ common.footer }}}\n{{{ assets.js }}}\n</body>\n</html>\n";
+    }
+
+    private function defaultCss(): string
+    {
+        return "body.opus-site{margin:0;font-family:system-ui,Segoe UI,Arial,sans-serif;background:#eef3f8;color:#162336}.opus-header,.opus-footer{background:#24466d;color:#fff;padding:24px}.opus-shell{padding:24px;min-height:60vh}.opus-card{display:block;margin:12px 0;padding:16px;background:#fff;border:1px solid #d7e0eb;border-radius:12px}.opus-error{border-color:#a22}.opus-menu a{color:#fff;margin-right:12px}.is-active{font-weight:700}\n";
+    }
+
+    private function applicationClass(): string
+    {
+        $class = $this->applicationClassName();
+        $source = <<<'PHP'
+<?php
+declare(strict_types=1);
+
+use Opus\Application\Runtime\GeneratedSiteRuntime;
+use Opus\Http\Response;
+
+final class {{APPLICATION_CLASS}}
+{
+    private static ?self $instance = null;
+    private readonly GeneratedSiteRuntime $runtime;
+
+    private function __construct(private readonly string $siteRoot)
+    {
+        $this->runtime = new GeneratedSiteRuntime($siteRoot);
+    }
+
+    public static function instance(string $siteRoot): self
+    {
+        $siteRoot = rtrim(str_replace('\\', '/', $siteRoot), '/');
+        if (self::$instance instanceof self) {
+            if (self::$instance->siteRoot !== $siteRoot) {
+                throw new RuntimeException('OPUS_APPLICATION_SINGLETON_ROOT_MISMATCH');
+            }
+            return self::$instance;
+        }
+        return self::$instance = new self($siteRoot);
+    }
+
+    private function __clone()
+    {
+    }
+
+    public function __wakeup(): void
+    {
+        throw new RuntimeException('OPUS_APPLICATION_SINGLETON_UNSERIALIZE_FORBIDDEN');
+    }
+
+    public function handle(): Response
+    {
+        return $this->runtime->handle();
+    }
+
+    public function run(): void
+    {
+        $this->handle()->send();
+    }
+}
+PHP;
+        return str_replace('{{APPLICATION_CLASS}}', $class, $source);
+    }
+
+    private function bootstrap(): string
+    {
+        $class = $this->applicationClassName();
+        $source = <<<'PHP'
+<?php
+declare(strict_types=1);
+
+$siteRoot = dirname(__DIR__, 2);
+$opusRoot = dirname(dirname($siteRoot));
+$autoload = $opusRoot . '/vendor/autoload.php';
+if (!is_file($autoload)) {
+    http_response_code(500);
+    exit;
+}
+require_once $autoload;
+require_once __DIR__ . '/Application.php';
+
+{{APPLICATION_CLASS}}::instance($siteRoot)->run();
+PHP;
+        return str_replace('{{APPLICATION_CLASS}}', $class, $source);
+    }
+
+    private function applicationClassName(): string
+    {
+        $parts = preg_split('/[^a-z0-9]+/i', $this->siteId) ?: [];
+        $name = implode('', array_map(
+            static fn (string $part): string => ucfirst(strtolower($part)),
+            array_filter($parts, static fn (string $part): bool => $part !== '')
+        ));
+        if ($name === '' || preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $name) !== 1) {
+            throw new \RuntimeException('OPUS_APPLICATION_CLASS_NAME_INVALID');
+        }
+        return $name . 'Application';
     }
 
     private function frontController(): string
@@ -267,45 +421,13 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
 <?php
 declare(strict_types=1);
 
-$siteRoot = dirname(__DIR__);
-$routesFile = $siteRoot . '/config/routes.json';
-$routesConfig = json_decode((string) file_get_contents($routesFile), true);
-if (!is_array($routesConfig) || !is_array($routesConfig['routes'] ?? null)) {
-    http_response_code(500);
-    echo 'OPUS_ROUTES_INVALID';
-    exit;
-}
-$path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/';
-$path = '/' . trim($path, '/');
-$route = null;
-foreach ($routesConfig['routes'] as $candidate) {
-    if (is_array($candidate) && ($candidate['path'] ?? null) === $path) {
-        $route = $candidate;
-        break;
-    }
-}
-if (!is_array($route)) {
-    http_response_code(404);
-    echo 'OPUS_ROUTE_NOT_FOUND';
-    exit;
-}
-$state = (string) ($route['state'] ?? $route['controller'] ?? 'home');
-if (!preg_match('/^[A-Za-z0-9_-]+$/', $state)) {
-    http_response_code(400);
-    echo 'OPUS_STATE_INVALID';
-    exit;
-}
-$view = $siteRoot . '/application/states/' . $state . '/views/index.php';
-$page = is_file($view) ? require $view : ['title' => $state, 'subtitle' => 'OPUS state'];
-$h = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-header('Content-Type: text/html; charset=UTF-8');
-echo '<!doctype html><html><head><meta charset="utf-8"><title>OPUS</title><link rel="stylesheet" href="/asset/themes/starter/css/theme.css"></head><body class="opus-asap-site" data-opus-dispatch="state-first" data-opus-state="' . $h($state) . '"><main class="opus-shell"><h1>' . $h((string) ($page['title'] ?? $state)) . '</h1><p>' . $h((string) ($page['subtitle'] ?? '')) . '</p></main></body></html>';
+require dirname(__DIR__) . '/application/default/bootstrap.php';
 PHP;
     }
 
     /** @param array<string,mixed> $data */
     private function json(array $data): string
     {
-        return (string) json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n";
+        return Json::instance()->encode($data, true) . "\n";
     }
 }

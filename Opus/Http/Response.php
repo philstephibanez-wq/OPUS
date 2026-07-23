@@ -6,10 +6,11 @@ namespace Opus\Http;
 /**
  * HTTP response value object emitted by the OPUS runtime.
  *
- * Stores status code, headers and body content before the front controller sends the response to the client.
+ * Stores status code, headers and body content before the front controller
+ * writes the response through the output stream. UI emission never uses echo.
  */
-final class Response
- implements ResponseInterface {
+final class Response implements ResponseInterface
+{
     private string $body;
     private int $status;
     /** @var array<string,string> */
@@ -30,7 +31,10 @@ final class Response
     /** @param mixed $payload */
     public static function json($payload, int $status = 200): self
     {
-        $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+        $body = json_encode(
+            $payload,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT
+        );
         if (!is_string($body)) {
             $body = '{"error":"json_encode failed"}';
             $status = 500;
@@ -46,6 +50,24 @@ final class Response
                 header($name . ': ' . $value);
             }
         }
-        echo $this->body;
+
+        $stream = fopen('php://output', 'wb');
+        if ($stream === false) {
+            throw new \RuntimeException('OPUS_HTTP_OUTPUT_STREAM_OPEN_FAILED');
+        }
+
+        try {
+            $length = strlen($this->body);
+            $offset = 0;
+            while ($offset < $length) {
+                $written = fwrite($stream, substr($this->body, $offset));
+                if ($written === false || $written < 1) {
+                    throw new \RuntimeException('OPUS_HTTP_OUTPUT_STREAM_WRITE_FAILED');
+                }
+                $offset += $written;
+            }
+        } finally {
+            fclose($stream);
+        }
     }
 }
