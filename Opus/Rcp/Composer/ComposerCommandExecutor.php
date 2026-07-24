@@ -56,6 +56,7 @@ final class ComposerCommandExecutor implements ComposerCommandExecutorInterface
 
         $command = [
             ...$this->composerCommand,
+            '--working-dir=' . $this->opusRoot,
             '--no-interaction',
             '--no-plugins',
             '--no-ansi',
