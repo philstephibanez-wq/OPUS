@@ -22,7 +22,6 @@ final class OwasysFsmActionHandlers
             'clear_session' => fn (string $action, array $transition, array $context): bool => $this->clearSession(),
             'set_current_app' => fn (string $action, array $transition, array $context): array => $this->setCurrentApp($context),
             'clear_current_app' => fn (string $action, array $transition, array $context): bool => $this->clearCurrentApp($context),
-            'start_creation_flow' => fn (string $action, array $transition, array $context): bool => $this->startCreationFlow($context),
             'update_runtime_password_hash' => fn (string $action, array $transition, array $context): array => $this->updatePassword($context),
             'clear_must_change_password' => fn (string $action, array $transition, array $context): array => $this->clearMustChangePassword(),
             'redirect_password_change' => static fn (string $action, array $transition, array $context): bool => true,
@@ -66,13 +65,6 @@ final class OwasysFsmActionHandlers
             $this->registry->clear($this->actor($context));
         }
         $this->session->clearCurrentApp();
-        return true;
-    }
-
-    /** @param array<string,mixed> $context */
-    private function startCreationFlow(array $context): bool
-    {
-        $this->registry()->startCreation($this->actor($context));
         return true;
     }
 

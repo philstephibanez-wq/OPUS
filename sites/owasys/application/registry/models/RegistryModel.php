@@ -127,17 +127,6 @@ final class OwasysRegistryModel
         $this->snapshot = null;
     }
 
-    /** @param array<string,mixed> $actor */
-    public function startCreation(array $actor): void
-    {
-        $this->rcp->execute(
-            'registry.creation.start',
-            [],
-            $this->actor($actor)
-        );
-        $this->snapshot = null;
-    }
-
     /** @return array<string,mixed> */
     private function snapshot(): array
     {

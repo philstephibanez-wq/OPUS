@@ -20,7 +20,10 @@ final class FullstackApplicationScaffoldPlan implements
 
     public static function forApplication(string $applicationId): self
     {
-        return new self(SiteScaffoldPlan::forSite($applicationId));
+        return new self(SiteScaffoldPlan::forSite(
+            $applicationId,
+            SiteScaffoldPlan::PROFILE_FULLSTACK
+        ));
     }
 
     public function rootRelativePath(): string

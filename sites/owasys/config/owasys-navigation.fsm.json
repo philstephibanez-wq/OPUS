@@ -9,366 +9,63 @@
   },
   "initial_state": "login",
   "states": [
-    {
-      "id": "login",
-      "module": "login",
-      "route": "login",
-      "requires_auth": false,
-      "requires_current_app": false,
-      "title_key": "auth.sign_in",
-      "summary_key": "auth.sign_in_description"
-    },
-    {
-      "id": "account",
-      "module": "account",
-      "route": "account/password",
-      "requires_auth": true,
-      "requires_current_app": false,
-      "title_key": "auth.change_password",
-      "summary_key": "auth.change_password_description"
-    },
-    {
-      "id": "registry",
-      "module": "registry",
-      "route": "applications",
-      "requires_auth": true,
-      "requires_current_app": false,
-      "title_key": "menu.applications",
-      "summary_key": "registry.description",
-      "navigation": {
-        "visible": true,
-        "order": 10,
-        "label": "menu.applications"
-      }
-    },
-    {
-      "id": "structure",
-      "module": "structure",
-      "route": "structure",
-      "requires_auth": true,
-      "requires_current_app": true,
-      "title_key": "menu.structure",
-      "summary_key": "state.default.summary",
-      "navigation": {
-        "visible": true,
-        "order": 20,
-        "label": "menu.structure"
-      }
-    },
-    {
-      "id": "data",
-      "module": "data",
-      "route": "data",
-      "requires_auth": true,
-      "requires_current_app": true,
-      "title_key": "menu.data",
-      "summary_key": "state.default.summary",
-      "navigation": {
-        "visible": true,
-        "order": 30,
-        "label": "menu.data"
-      }
-    },
-    {
-      "id": "workflows",
-      "module": "workflows",
-      "route": "workflows",
-      "requires_auth": true,
-      "requires_current_app": true,
-      "title_key": "menu.workflows",
-      "summary_key": "state.default.summary",
-      "navigation": {
-        "visible": true,
-        "order": 40,
-        "label": "menu.workflows"
-      }
-    },
-    {
-      "id": "security",
-      "module": "security",
-      "route": "security",
-      "requires_auth": true,
-      "requires_current_app": true,
-      "title_key": "menu.security",
-      "summary_key": "state.default.summary",
-      "navigation": {
-        "visible": true,
-        "order": 50,
-        "label": "menu.security"
-      }
-    },
-    {
-      "id": "source",
-      "module": "source",
-      "route": "source",
-      "requires_auth": true,
-      "requires_current_app": true,
-      "title_key": "menu.source",
-      "summary_key": "state.default.summary",
-      "navigation": {
-        "visible": true,
-        "order": 60,
-        "label": "menu.source"
-      }
-    },
-    {
-      "id": "build",
-      "module": "build",
-      "route": "build",
-      "requires_auth": true,
-      "requires_current_app": false,
-      "title_key": "menu.build",
-      "summary_key": "state.default.summary",
-      "navigation": {
-        "visible": true,
-        "order": 70,
-        "label": "menu.build"
-      }
-    }
+    {"id":"login","module":"login","route":"login","requires_auth":false,"requires_current_app":false,"title_key":"auth.sign_in","summary_key":"auth.sign_in_description"},
+    {"id":"account","module":"account","route":"account/password","requires_auth":true,"requires_current_app":false,"title_key":"auth.change_password","summary_key":"auth.change_password_description"},
+    {"id":"registry","module":"registry","route":"applications","requires_auth":true,"requires_current_app":false,"title_key":"menu.applications","summary_key":"registry.description","navigation":{"visible":true,"order":10,"label":"menu.applications"}},
+    {"id":"creation","module":"creation","route":"applications/new","requires_auth":true,"requires_current_app":false,"title_key":"creation.title","summary_key":"creation.description","navigation":{"visible":false,"order":15,"label":"creation.title"}},
+    {"id":"structure","module":"structure","route":"structure","requires_auth":true,"requires_current_app":true,"title_key":"menu.structure","summary_key":"state.default.summary","navigation":{"visible":true,"order":20,"label":"menu.structure"}},
+    {"id":"data","module":"data","route":"data","requires_auth":true,"requires_current_app":true,"title_key":"menu.data","summary_key":"state.default.summary","navigation":{"visible":true,"order":30,"label":"menu.data"}},
+    {"id":"workflows","module":"workflows","route":"workflows","requires_auth":true,"requires_current_app":true,"title_key":"menu.workflows","summary_key":"state.default.summary","navigation":{"visible":true,"order":40,"label":"menu.workflows"}},
+    {"id":"security","module":"security","route":"security","requires_auth":true,"requires_current_app":true,"title_key":"menu.security","summary_key":"state.default.summary","navigation":{"visible":true,"order":50,"label":"menu.security"}},
+    {"id":"source","module":"source","route":"source","requires_auth":true,"requires_current_app":true,"title_key":"menu.source","summary_key":"state.default.summary","navigation":{"visible":true,"order":60,"label":"menu.source"}},
+    {"id":"build","module":"build","route":"build","requires_auth":true,"requires_current_app":true,"title_key":"menu.build","summary_key":"state.default.summary","navigation":{"visible":true,"order":70,"label":"menu.build"}}
   ],
   "events": [
-    {
-      "id": "open_login"
-    },
-    {
-      "id": "open_account"
-    },
-    {
-      "id": "login_success"
-    },
-    {
-      "id": "login_failed"
-    },
-    {
-      "id": "password_change_required"
-    },
-    {
-      "id": "password_changed"
-    },
-    {
-      "id": "password_change_failed"
-    },
-    {
-      "id": "select_app"
-    },
-    {
-      "id": "change_app"
-    },
-    {
-      "id": "clear_app_context"
-    },
-    {
-      "id": "create_new_app"
-    },
-    {
-      "id": "registry_action_failed"
-    },
-    {
-      "id": "open_structure"
-    },
-    {
-      "id": "open_data"
-    },
-    {
-      "id": "open_workflows"
-    },
-    {
-      "id": "open_security"
-    },
-    {
-      "id": "open_source"
-    },
-    {
-      "id": "open_build"
-    },
-    {
-      "id": "auth_required"
-    },
-    {
-      "id": "logout"
-    }
+    {"id":"open_login"},{"id":"open_account"},{"id":"login_success"},{"id":"login_failed"},
+    {"id":"password_change_required"},{"id":"password_changed"},{"id":"password_change_failed"},
+    {"id":"select_app"},{"id":"change_app"},{"id":"clear_app_context"},{"id":"create_new_app"},
+    {"id":"open_creation"},{"id":"application_created"},{"id":"application_creation_failed"},{"id":"cancel_creation"},
+    {"id":"registry_action_failed"},{"id":"open_structure"},{"id":"open_data"},{"id":"open_workflows"},
+    {"id":"open_security"},{"id":"open_source"},{"id":"open_build"},{"id":"auth_required"},{"id":"logout"}
   ],
   "transitions": [
-    {
-      "id": "t_open_login",
-      "from": "*",
-      "event": "open_login",
-      "to": "login"
-    },
-    {
-      "id": "t_login_success",
-      "from": "login",
-      "event": "login_success",
-      "to": "registry",
-      "actions": [
-        "start_session"
-      ]
-    },
-    {
-      "id": "t_login_failed",
-      "from": "login",
-      "event": "login_failed",
-      "to": "login"
-    },
-    {
-      "id": "t_password_required",
-      "from": "login",
-      "event": "password_change_required",
-      "to": "account",
-      "guards": [
-        "must_change_password"
-      ],
-      "actions": [
-        "start_session",
-        "redirect_password_change"
-      ]
-    },
-    {
-      "id": "t_open_account",
-      "from": "*",
-      "event": "open_account",
-      "to": "account"
-    },
-    {
-      "id": "t_password_changed",
-      "from": "account",
-      "event": "password_changed",
-      "to": "registry",
-      "actions": [
-        "update_runtime_password_hash",
-        "clear_must_change_password"
-      ]
-    },
-    {
-      "id": "t_password_failed",
-      "from": "account",
-      "event": "password_change_failed",
-      "to": "account"
-    },
-    {
-      "id": "t_select_app",
-      "from": "registry",
-      "event": "select_app",
-      "to": "structure",
-      "guards": [
-        "app_exists"
-      ],
-      "actions": [
-        "set_current_app"
-      ],
-      "visual": true
-    },
-    {
-      "id": "t_clear_context",
-      "from": "registry",
-      "event": "clear_app_context",
-      "to": "registry",
-      "actions": [
-        "clear_current_app"
-      ]
-    },
-    {
-      "id": "t_create_app",
-      "from": "registry",
-      "event": "create_new_app",
-      "to": "build",
-      "actions": [
-        "clear_current_app",
-        "start_creation_flow"
-      ],
-      "visual": true
-    },
-    {
-      "id": "t_registry_failed",
-      "from": "registry",
-      "event": "registry_action_failed",
-      "to": "registry"
-    },
-    {
-      "id": "t_change_app",
-      "from": "*",
-      "event": "change_app",
-      "to": "registry"
-    },
-    {
-      "id": "t_open_structure",
-      "from": "*",
-      "event": "open_structure",
-      "to": "structure",
-      "guards": [
-        "current_app_required"
-      ]
-    },
-    {
-      "id": "t_open_data",
-      "from": "*",
-      "event": "open_data",
-      "to": "data",
-      "guards": [
-        "current_app_required"
-      ],
-      "visual": true,
-      "visual_from": "structure"
-    },
-    {
-      "id": "t_open_workflows",
-      "from": "*",
-      "event": "open_workflows",
-      "to": "workflows",
-      "guards": [
-        "current_app_required"
-      ],
-      "visual": true,
-      "visual_from": "data"
-    },
-    {
-      "id": "t_open_security",
-      "from": "*",
-      "event": "open_security",
-      "to": "security",
-      "guards": [
-        "current_app_required"
-      ],
-      "visual": true,
-      "visual_from": "workflows"
-    },
-    {
-      "id": "t_open_source",
-      "from": "*",
-      "event": "open_source",
-      "to": "source",
-      "guards": [
-        "current_app_required"
-      ],
-      "visual": true,
-      "visual_from": "security"
-    },
-    {
-      "id": "t_open_build",
-      "from": "*",
-      "event": "open_build",
-      "to": "build",
-      "visual": true,
-      "visual_from": "source"
-    },
-    {
-      "id": "t_auth_required",
-      "from": "*",
-      "event": "auth_required",
-      "to": "login",
-      "actions": [
-        "clear_session"
-      ]
-    },
-    {
-      "id": "t_logout",
-      "from": "*",
-      "event": "logout",
-      "to": "login",
-      "actions": [
-        "clear_current_app",
-        "clear_session"
-      ]
-    }
-  ]
+    {"id":"t_open_login","from":"*","event":"open_login","to":"login"},
+    {"id":"t_login_success","from":"login","event":"login_success","to":"registry","actions":["start_session"]},
+    {"id":"t_login_failed","from":"login","event":"login_failed","to":"login"},
+    {"id":"t_password_required","from":"login","event":"password_change_required","to":"account","guards":["must_change_password"],"actions":["start_session","redirect_password_change"]},
+    {"id":"t_open_account","from":"*","event":"open_account","to":"account"},
+    {"id":"t_password_changed","from":"account","event":"password_changed","to":"registry","actions":["update_runtime_password_hash","clear_must_change_password"]},
+    {"id":"t_password_failed","from":"account","event":"password_change_failed","to":"account"},
+    {"id":"t_select_app","from":"registry","event":"select_app","to":"structure","guards":["app_exists"],"actions":["set_current_app"],"visual":true},
+    {"id":"t_clear_context","from":"registry","event":"clear_app_context","to":"registry","actions":["clear_current_app"]},
+    {"id":"t_create_app","from":"registry","event":"create_new_app","to":"creation","actions":["clear_current_app"],"visual":true},
+    {"id":"t_open_creation","from":"*","event":"open_creation","to":"creation"},
+    {"id":"t_creation_created","from":"creation","event":"application_created","to":"build","guards":["app_exists"],"actions":["set_current_app"],"visual":true},
+    {"id":"t_creation_failed","from":"creation","event":"application_creation_failed","to":"creation"},
+    {"id":"t_creation_cancel","from":"creation","event":"cancel_creation","to":"registry"},
+    {"id":"t_registry_failed","from":"registry","event":"registry_action_failed","to":"registry"},
+    {"id":"t_change_app","from":"*","event":"change_app","to":"registry"},
+    {"id":"t_open_structure","from":"*","event":"open_structure","to":"structure","guards":["current_app_required"]},
+    {"id":"t_open_data","from":"*","event":"open_data","to":"data","guards":["current_app_required"],"visual":true,"visual_from":"structure"},
+    {"id":"t_open_workflows","from":"*","event":"open_workflows","to":"workflows","guards":["current_app_required"],"visual":true,"visual_from":"data"},
+    {"id":"t_open_security","from":"*","event":"open_security","to":"security","guards":["current_app_required"],"visual":true,"visual_from":"workflows"},
+    {"id":"t_open_source","from":"*","event":"open_source","to":"source","guards":["current_app_required"],"visual":true,"visual_from":"security"},
+    {"id":"t_open_build","from":"*","event":"open_build","to":"build","guards":["current_app_required"],"visual":true,"visual_from":"source"},
+    {"id":"t_auth_required","from":"*","event":"auth_required","to":"login","actions":["clear_session"]},
+    {"id":"t_logout","from":"*","event":"logout","to":"login","actions":["clear_current_app","clear_session"]}
+  ],
+  "guards": {
+    "app_exists": "The selected or newly created application must be present in the Registry snapshot.",
+    "current_app_required": "A current OPUS application must be selected in OWASYS session context.",
+    "must_change_password": "The authenticated identity must complete the required password change."
+  },
+  "actions": {
+    "set_current_app": "Persist selection through REST + Composer and store the canonical Registry entry in the OWASYS session.",
+    "clear_current_app": "Clear the current application context before selection or creation.",
+    "start_session": "Create the authenticated OWASYS runtime session.",
+    "clear_session": "Destroy the authenticated OWASYS runtime session.",
+    "update_runtime_password_hash": "Update the authenticated account through the secured backend.",
+    "clear_must_change_password": "Clear the password-change requirement in session.",
+    "redirect_password_change": "Redirect to the account password state."
+  }
 }

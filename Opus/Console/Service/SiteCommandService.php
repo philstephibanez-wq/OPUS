@@ -33,10 +33,14 @@ final class SiteCommandService implements SiteCommandServiceInterface
         $this->loader = StructuredFileLoader::instance();
     }
 
-    public function create(string $siteId, bool $write): array
-    {
+    public function create(
+        string $siteId,
+        bool $write,
+        string $profile = 'fullstack'
+    ): array {
         $siteId = $this->siteId($siteId);
-        $plan = SiteScaffoldPlan::forSite($siteId);
+        $profile = $this->applicationProfile($profile);
+        $plan = SiteScaffoldPlan::forSite($siteId, $profile);
         $writer = new ScaffoldWriter($this->opusRoot);
         $writer->assertPathDoesNotExist($plan->rootRelativePath());
 
@@ -55,6 +59,7 @@ final class SiteCommandService implements SiteCommandServiceInterface
         return [
             'contract' => 'OPUS_CONSOLE_SITE_CREATE_RESULT_V1',
             'site_id' => $siteId,
+            'profile' => $profile,
             'mode' => $write ? 'write' : 'preview',
             'site_root' => 'sites/' . $siteId,
             'entries' => $entries,
@@ -143,6 +148,27 @@ final class SiteCommandService implements SiteCommandServiceInterface
         )) {
             throw new OpusConsoleException('OPUS_SITE_ROLE_INVALID');
         }
+        $profile = null;
+        if ($role === 'generated-opus-application') {
+            $profileConfig = is_array($site['application_profile'] ?? null)
+                ? $site['application_profile']
+                : [];
+            if (($profileConfig['contract'] ?? null)
+                !== 'OPUS_APPLICATION_PROFILE_V1') {
+                throw new OpusConsoleException(
+                    'OPUS_APPLICATION_PROFILE_CONTRACT_INVALID'
+                );
+            }
+            $profile = $this->applicationProfile(
+                (string) ($profileConfig['type'] ?? '')
+            );
+            if (($site['kind'] ?? null) !== $profile) {
+                throw new OpusConsoleException(
+                    'OPUS_APPLICATION_PROFILE_KIND_MISMATCH'
+                );
+            }
+        }
+
         if (($site['dispatch_model'] ?? null) !== 'fsm-module-first') {
             throw new OpusConsoleException(
                 'OPUS_SITE_DISPATCH_MODEL_INVALID'
@@ -227,6 +253,7 @@ final class SiteCommandService implements SiteCommandServiceInterface
             'singleton' => true,
             'dispatch_model' => 'fsm-module-first',
             'role' => $role,
+            'profile' => $profile,
             'fsm' => $fsmRelative,
         ];
     }
@@ -492,6 +519,17 @@ final class SiteCommandService implements SiteCommandServiceInterface
         }
 
         return (int) proc_close($process);
+    }
+
+    private function applicationProfile(string $profile): string
+    {
+        $profile = strtolower(trim($profile));
+        if (!in_array($profile, SiteScaffoldPlan::profiles(), true)) {
+            throw new OpusConsoleException(
+                'OPUS_APPLICATION_PROFILE_INVALID:' . $profile
+            );
+        }
+        return $profile;
     }
 
     /** @param array<string,mixed> $site */

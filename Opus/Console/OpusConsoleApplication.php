@@ -135,7 +135,8 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
         }
         return $this->sites->create(
             $siteId,
-            $this->flag($arguments, 'write')
+            $this->flag($arguments, 'write'),
+            $this->option($arguments, 'profile', 'fullstack')
         );
     }
 
@@ -353,7 +354,7 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
                 $skip = false;
                 continue;
             }
-            if (in_array($argument, ['--title', '--host', '--port'], true)) {
+            if (in_array($argument, ['--title', '--host', '--port', '--profile'], true)) {
                 $skip = true;
                 continue;
             }
@@ -377,8 +378,8 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
     {
         $lines = [
             'OPUS Console',
-            'composer opus:create-application -- <id> [--write]',
-            'composer opus:create-site -- <id> [--write]',
+            'composer opus:create-application -- <id> [--profile=frontend|backend|fullstack] [--write]',
+            'composer opus:create-site -- <id> [--profile=frontend|backend|fullstack] [--write]',
             'composer opus:add-language -- <site> <locale> [--write]',
             'composer opus:validate-site -- <site>',
             'composer opus:list-routes -- <site>',

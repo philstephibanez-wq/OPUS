@@ -2,11 +2,10 @@
   "contract": "OPUS_ACL_POLICY_V1",
   "default": "deny",
   "roles": {
-    "admin": [
-      "*:*"
-    ],
+    "admin": ["*:*"] ,
     "developer": [
       "registry:*",
+      "creation:*",
       "structure:*",
       "data:*",
       "workflows:*",

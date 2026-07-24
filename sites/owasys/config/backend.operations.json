@@ -15,6 +15,13 @@
           "max_length": 64
         },
         {
+          "name": "profile",
+          "required": true,
+          "option": "--profile",
+          "pattern": "^(frontend|backend|fullstack)$",
+          "max_length": 16
+        },
+        {
           "name": "write",
           "flag": "--write",
           "type": "boolean"
@@ -213,14 +220,6 @@
     },
     "registry.clear": {
       "composer_script": "owasys:registry-clear",
-      "roles": [
-        "admin",
-        "developer"
-      ],
-      "arguments": []
-    },
-    "registry.creation.start": {
-      "composer_script": "owasys:registry-creation-start",
       "roles": [
         "admin",
         "developer"

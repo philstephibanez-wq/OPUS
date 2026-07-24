@@ -9,6 +9,7 @@ final class OwasysApplication
     private static ?self $instance = null;
 
     private readonly OwasysRuntimeController $frontend;
+    private readonly OwasysCreationController $creation;
     private readonly OwasysBackendApiController $backend;
 
     /** @param array<string,mixed> $siteConfig */
@@ -20,12 +21,27 @@ final class OwasysApplication
         $session = new OwasysAuthSession();
         $security = new OwasysRuntimeSecurity($siteRoot, $siteConfig);
 
+        $renderer = new OwasysScorePageRenderer($siteRoot);
+        $registry = new OwasysRegistryModel(
+            $siteRoot,
+            $opusRoot,
+            OwasysApplicationSingletonInspector::instance($opusRoot)
+        );
         $this->frontend = new OwasysRuntimeController(
             $siteRoot,
             $siteConfig,
             $session,
             $security,
-            new OwasysScorePageRenderer($siteRoot)
+            $renderer
+        );
+        $this->creation = new OwasysCreationController(
+            $siteRoot,
+            $siteConfig,
+            $session,
+            $security,
+            $renderer,
+            $registry,
+            new OwasysApplicationCreationModel($siteRoot, $registry)
         );
         $this->backend = new OwasysBackendApiController(
             $siteRoot,
@@ -67,6 +83,10 @@ final class OwasysApplication
     {
         if ($this->backend->matchesCurrentRequest()) {
             $this->backend->run();
+            return;
+        }
+        if ($this->creation->matchesCurrentRequest()) {
+            $this->creation->run();
             return;
         }
         $this->frontend->run();

@@ -8,29 +8,69 @@ use Opus\File\Json;
 /** Canonical scaffold for an autonomous OPUS site/application. */
 final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanInterface
 {
-    /** @var list<string> */
-    private const MODULES = [
-        'home',
-        'architecture',
-        'router',
-        'modules',
-        'controllers',
-        'views',
-        'models',
-        'i18n',
+    public const PROFILE_FRONTEND = 'frontend';
+    public const PROFILE_BACKEND = 'backend';
+    public const PROFILE_FULLSTACK = 'fullstack';
+
+    /** @var array<string,list<string>> */
+    private const PROFILE_MODULES = [
+        self::PROFILE_FRONTEND => [
+            'home',
+            'architecture',
+            'router',
+            'modules',
+            'controllers',
+            'views',
+            'i18n',
+        ],
+        self::PROFILE_BACKEND => [
+            'home',
+            'architecture',
+            'router',
+            'modules',
+            'controllers',
+            'models',
+            'i18n',
+        ],
+        self::PROFILE_FULLSTACK => [
+            'home',
+            'architecture',
+            'router',
+            'modules',
+            'controllers',
+            'views',
+            'models',
+            'i18n',
+        ],
     ];
 
-    private function __construct(private readonly string $siteId)
-    {
+    private function __construct(
+        private readonly string $siteId,
+        private readonly string $profile
+    ) {
     }
 
-    public static function forSite(string $siteId): self
-    {
+    public static function forSite(
+        string $siteId,
+        string $profile = self::PROFILE_FULLSTACK
+    ): self {
         $siteId = trim(strtolower($siteId));
         if (preg_match('/^[a-z][a-z0-9-]*$/', $siteId) !== 1) {
             throw new \InvalidArgumentException('OPUS_APPLICATION_ID_INVALID:' . $siteId);
         }
-        return new self($siteId);
+        $profile = self::normalizeProfile($profile);
+        return new self($siteId, $profile);
+    }
+
+    public function profile(): string
+    {
+        return $this->profile;
+    }
+
+    /** @return list<string> */
+    public static function profiles(): array
+    {
+        return array_keys(self::PROFILE_MODULES);
     }
 
     public function rootRelativePath(): string
@@ -65,7 +105,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             "sites/{$site}/www/asset/themes/starter/img",
             "sites/{$site}/www/asset/vendor",
         ];
-        foreach (self::MODULES as $module) {
+        foreach ($this->modules() as $module) {
             foreach (['', '/acl', '/helpers', '/javascript', '/local', '/models', '/templates', '/views'] as $suffix) {
                 $directories[] = "sites/{$site}/application/{$module}{$suffix}";
             }
@@ -81,6 +121,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
                 'site_id' => $site,
                 'contract' => 'OPUS_SITE_STANDARD_CONTRACT_CORE',
                 'dispatch_model' => 'fsm-module-first',
+                'application_profile' => $this->profile,
             ]),
             "sites/{$site}/config/site.json" => $this->json($this->siteConfig()),
             "sites/{$site}/config/routes.json" => $this->json($this->routesConfig()),
@@ -114,7 +155,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
                 $this->defaultCatalog($locale)
             );
         }
-        foreach (self::MODULES as $module) {
+        foreach ($this->modules() as $module) {
             $files["sites/{$site}/application/{$module}/templates/index.score"] = '<section class="opus-card"><h2>{{ page.title }}</h2><p>{{ page.subtitle }}</p></section>' . "\n";
             $files["sites/{$site}/application/{$module}/views/index.php"] = $this->viewModel($module);
             $files["sites/{$site}/application/{$module}/javascript/{$module}.js"] = "document.documentElement.dataset.opusModule='{$module}';\n";
@@ -144,7 +185,16 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             'site_id' => $this->siteId,
             'site_name' => 'OPUS ' . $this->siteId,
             'role' => 'generated-opus-application',
+            'kind' => $this->profile,
+            'status' => 'generated',
+            'blueprint' => 'opus-' . $this->profile,
+            'generated_by' => 'composer',
             'contract' => 'OPUS_SITE_STANDARD_CONTRACT_CORE',
+            'application_profile' => [
+                'contract' => 'OPUS_APPLICATION_PROFILE_V1',
+                'type' => $this->profile,
+                'capabilities' => $this->profileCapabilities(),
+            ],
             'default_locale' => 'fr',
             'locales' => ['fr', 'en', 'es'],
             'theme' => 'starter',
@@ -172,7 +222,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
     private function routesConfig(): array
     {
         $routes = [];
-        foreach (self::MODULES as $index => $module) {
+        foreach ($this->modules() as $index => $module) {
             $routes[] = [
                 'id' => $module . '.index',
                 'path' => $module === 'home' ? '/' : '/' . $module,
@@ -208,7 +258,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
                     'route' => $module . '.index',
                     'label' => 'menu.' . $module,
                 ],
-                self::MODULES
+                $this->modules()
             ),
         ];
     }
@@ -218,7 +268,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
     {
         $states = [];
         $transitions = [];
-        foreach (self::MODULES as $module) {
+        foreach ($this->modules() as $module) {
             $states[] = [
                 'id' => $module,
                 'module' => $module,
@@ -423,6 +473,49 @@ declare(strict_types=1);
 
 require dirname(__DIR__) . '/application/default/bootstrap.php';
 PHP;
+    }
+
+
+    /** @return list<string> */
+    private function modules(): array
+    {
+        return self::PROFILE_MODULES[$this->profile];
+    }
+
+    /** @return array{presentation:bool,api:bool,persistence:bool} */
+    private function profileCapabilities(): array
+    {
+        return match ($this->profile) {
+            self::PROFILE_FRONTEND => [
+                'presentation' => true,
+                'api' => false,
+                'persistence' => false,
+            ],
+            self::PROFILE_BACKEND => [
+                'presentation' => true,
+                'api' => true,
+                'persistence' => true,
+            ],
+            self::PROFILE_FULLSTACK => [
+                'presentation' => true,
+                'api' => true,
+                'persistence' => true,
+            ],
+            default => throw new \LogicException(
+                'OPUS_APPLICATION_PROFILE_UNREACHABLE:' . $this->profile
+            ),
+        };
+    }
+
+    private static function normalizeProfile(string $profile): string
+    {
+        $profile = strtolower(trim($profile));
+        if (!array_key_exists($profile, self::PROFILE_MODULES)) {
+            throw new \InvalidArgumentException(
+                'OPUS_APPLICATION_PROFILE_INVALID:' . $profile
+            );
+        }
+        return $profile;
     }
 
     /** @param array<string,mixed> $data */

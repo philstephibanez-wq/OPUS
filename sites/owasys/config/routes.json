@@ -7,6 +7,7 @@
   },
   "routes": {
     "applications": "change_app",
+    "applications/new": "open_creation",
     "structure": "open_structure",
     "data": "open_data",
     "workflows": "open_workflows",

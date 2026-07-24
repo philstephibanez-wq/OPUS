@@ -73,6 +73,8 @@ $files = [
     'application/registry/repositories/RegistryRepository.php',
     'application/registry/models/RegistryModel.php',
     'application/registry/controllers/RegistryController.php',
+    'application/creation/models/ApplicationCreationModel.php',
+    'application/creation/controllers/CreationController.php',
     'application/default/services/FsmActionHandlers.php',
     'application/default/controllers/RuntimeController.php',
     'application/api/controllers/BackendApiController.php',

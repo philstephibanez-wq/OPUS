@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use Opus\Console\Application\ApplicationCommandProviderInterface;
+use Opus\File\File;
 use Opus\File\StructuredFileLoader;
 use Opus\Security\Acl\AclPolicy;
 use Opus\Security\Sso\LocalPasswordSsoProvider;
@@ -14,7 +15,6 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
         'owasys:registry:sync' => true,
         'owasys:registry:select' => true,
         'owasys:registry:clear' => true,
-        'owasys:registry:creation:start' => true,
         'owasys:security:admin-password:change' => true,
     ];
 
@@ -52,8 +52,6 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
                 $actor
             ),
             'owasys:registry:clear' => $this->registryClear($actor),
-            'owasys:registry:creation:start' =>
-                $this->registryStartCreation($actor),
             'owasys:security:admin-password:change' =>
                 $this->changePassword($request, $actor),
             default => throw new RuntimeException(
@@ -73,14 +71,31 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
         $inspector = OwasysApplicationSingletonInspector::instance(
             $this->opusRoot
         );
-        $entries = [];
+        $entriesById = [];
         foreach ($repository->entries() as $entry) {
-            $entries[] = array_replace($entry, [
+            $entryId = trim((string) ($entry['id'] ?? ''));
+            if ($entryId === '') {
+                continue;
+            }
+            $entriesById[$entryId] = array_replace($entry, [
                 'singleton' => $inspector->inspect(
                     (string) ($entry['root_path'] ?? '')
                 ),
             ]);
         }
+        $standardEntries = $this->standardApplicationEntries();
+        foreach ($standardEntries as $entry) {
+            $entryId = (string) $entry['id'];
+            $entriesById[$entryId] = array_replace($entry, [
+                'singleton' => $inspector->inspect(
+                    (string) $entry['root_path']
+                ),
+            ]);
+        }
+        ksort($entriesById, SORT_STRING);
+        $entries = array_values($entriesById);
+        $sync['total'] = count($entries);
+        $sync['standard_discovered'] = count($standardEntries);
 
         return [
             'contract' => 'OWASYS_REGISTRY_SYNC_COMMAND_RESULT_V2',
@@ -115,6 +130,14 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
             }
         }
         if (!is_array($selected)) {
+            foreach ($this->standardApplicationEntries() as $entry) {
+                if ((string) ($entry['id'] ?? '') === $applicationId) {
+                    $selected = $entry;
+                    break;
+                }
+            }
+        }
+        if (!is_array($selected)) {
             throw new RuntimeException(
                 'OWASYS_REGISTRY_APPLICATION_NOT_FOUND'
             );
@@ -141,19 +164,6 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
         return [
             'contract' => 'OWASYS_REGISTRY_CLEAR_COMMAND_RESULT_V1',
             'cleared' => true,
-        ];
-    }
-
-    /** @param array<string,mixed> $actor */
-    private function registryStartCreation(array $actor): array
-    {
-        $this->assertAllowed($actor, 'registry', 'write');
-        $this->repository()->startCreationFlow(
-            (string) $actor['subject']
-        );
-        return [
-            'contract' => 'OWASYS_REGISTRY_CREATION_COMMAND_RESULT_V1',
-            'started' => true,
         ];
     }
 
@@ -227,6 +237,83 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
                 'secret_logged' => false,
             ],
         ];
+    }
+
+    /** @return list<array<string,mixed>> */
+    private function standardApplicationEntries(): array
+    {
+        $file = File::instance();
+        $loader = StructuredFileLoader::instance();
+        $entries = [];
+        $pattern = rtrim(str_replace('\\', '/', $this->opusRoot), '/')
+            . '/sites/*/config/site.json';
+
+        foreach ($file->matching($pattern) as $configFile) {
+            $site = $loader->read($configFile);
+            if (($site['contract'] ?? null)
+                !== 'OPUS_SITE_STANDARD_CONTRACT_CORE') {
+                continue;
+            }
+            $siteRoot = dirname(dirname(str_replace('\\', '/', $configFile)));
+            $directoryId = basename($siteRoot);
+            $siteId = strtolower(trim((string) ($site['site_id'] ?? '')));
+            if ($siteId === ''
+                || $siteId !== strtolower($directoryId)
+                || preg_match('/^[a-z][a-z0-9-]*$/', $siteId) !== 1) {
+                throw new RuntimeException(
+                    'OWASYS_STANDARD_APPLICATION_ID_INVALID:' . $directoryId
+                );
+            }
+            $profile = is_array($site['application_profile'] ?? null)
+                ? $site['application_profile']
+                : [];
+            $kind = strtolower(trim((string) (
+                $profile['type'] ?? $site['kind'] ?? 'fullstack'
+            )));
+            if (!in_array($kind, ['frontend', 'backend', 'fullstack'], true)) {
+                throw new RuntimeException(
+                    'OWASYS_STANDARD_APPLICATION_PROFILE_INVALID:' . $siteId
+                );
+            }
+            if ($profile !== []
+                && ($profile['contract'] ?? null)
+                    !== 'OPUS_APPLICATION_PROFILE_V1') {
+                throw new RuntimeException(
+                    'OWASYS_STANDARD_APPLICATION_PROFILE_CONTRACT_INVALID:'
+                    . $siteId
+                );
+            }
+            $entries[] = [
+                'id' => $siteId,
+                'slug' => (string) ($site['slug'] ?? $siteId),
+                'name' => (string) ($site['site_name'] ?? $siteId),
+                'kind' => $kind,
+                'root_path' => 'sites/' . $directoryId,
+                'public_root' => (string) ($site['public_root'] ?? 'www'),
+                'default_locale' => (string) ($site['default_locale'] ?? 'fr'),
+                'theme' => (string) ($site['theme'] ?? 'default'),
+                'status' => (string) ($site['status'] ?? 'discovered'),
+                'blueprint' => (string) (
+                    $site['blueprint'] ?? ('opus-' . $kind)
+                ),
+                'generated_by' => (string) (
+                    $site['generated_by'] ?? 'opus-composer'
+                ),
+                'role' => (string) (
+                    $site['role'] ?? 'standard-opus-application'
+                ),
+                'source' => 'standard-discovery',
+            ];
+        }
+
+        usort(
+            $entries,
+            static fn (array $left, array $right): int => strcmp(
+                (string) $left['id'],
+                (string) $right['id']
+            )
+        );
+        return $entries;
     }
 
     /** @param array<string,mixed> $actor */

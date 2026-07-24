@@ -10,7 +10,7 @@ interface SiteCommandServiceInterface extends
     \Opus\Framework\OpusSelfDocumentingInterface
 {
     /** @return array<string,mixed> */
-    public function create(string $siteId, bool $write): array;
+    public function create(string $siteId, bool $write, string $profile = 'fullstack'): array;
     /** @return array<string,mixed> */
     public function validate(string $siteId): array;
     /** @return array<string,mixed> */
