@@ -12,6 +12,395 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
     public const PROFILE_BACKEND = 'backend';
     public const PROFILE_FULLSTACK = 'fullstack';
 
+    private const FALLBACK_LOCALE = 'fr';
+
+    /** @var list<string> */
+    private const SUPPORTED_LOCALES = [
+        'bg',
+        'hr',
+        'cs',
+        'da',
+        'nl',
+        'en',
+        'et',
+        'fi',
+        'fr',
+        'de',
+        'el',
+        'hu',
+        'ga',
+        'it',
+        'lv',
+        'lt',
+        'mt',
+        'pl',
+        'pt',
+        'ro',
+        'sk',
+        'sl',
+        'es',
+        'sv',
+        'uk',
+    ];
+
+    /** @var array<string,array<string,string>> */
+    private const DEFAULT_MESSAGES = [
+        'bg' => [
+            'language' => 'Език',
+            'menu.home' => 'Начало',
+            'menu.architecture' => 'Архитектура',
+            'menu.router' => 'Маршрутизатор',
+            'menu.modules' => 'Модули',
+            'menu.controllers' => 'Контролери',
+            'menu.views' => 'Изгледи',
+            'menu.models' => 'Модели',
+            'menu.i18n' => 'Интернационализация',
+            'error.title' => 'Грешка на OPUS',
+            'error.request_failed' => 'Заявката е неуспешна.',
+        ],
+        'hr' => [
+            'language' => 'Jezik',
+            'menu.home' => 'Početna',
+            'menu.architecture' => 'Arhitektura',
+            'menu.router' => 'Usmjerivač',
+            'menu.modules' => 'Moduli',
+            'menu.controllers' => 'Kontroleri',
+            'menu.views' => 'Prikazi',
+            'menu.models' => 'Modeli',
+            'menu.i18n' => 'Internacionalizacija',
+            'error.title' => 'Pogreška OPUS-a',
+            'error.request_failed' => 'Zahtjev nije uspio.',
+        ],
+        'cs' => [
+            'language' => 'Jazyk',
+            'menu.home' => 'Domů',
+            'menu.architecture' => 'Architektura',
+            'menu.router' => 'Směrovač',
+            'menu.modules' => 'Moduly',
+            'menu.controllers' => 'Kontrolery',
+            'menu.views' => 'Pohledy',
+            'menu.models' => 'Modely',
+            'menu.i18n' => 'Internacionalizace',
+            'error.title' => 'Chyba OPUS',
+            'error.request_failed' => 'Požadavek selhal.',
+        ],
+        'da' => [
+            'language' => 'Sprog',
+            'menu.home' => 'Hjem',
+            'menu.architecture' => 'Arkitektur',
+            'menu.router' => 'Router',
+            'menu.modules' => 'Moduler',
+            'menu.controllers' => 'Controllere',
+            'menu.views' => 'Visninger',
+            'menu.models' => 'Modeller',
+            'menu.i18n' => 'Internationalisering',
+            'error.title' => 'OPUS-fejl',
+            'error.request_failed' => 'Anmodningen mislykkedes.',
+        ],
+        'nl' => [
+            'language' => 'Taal',
+            'menu.home' => 'Start',
+            'menu.architecture' => 'Architectuur',
+            'menu.router' => 'Router',
+            'menu.modules' => 'Modules',
+            'menu.controllers' => 'Controllers',
+            'menu.views' => 'Weergaven',
+            'menu.models' => 'Modellen',
+            'menu.i18n' => 'Internationalisatie',
+            'error.title' => 'OPUS-fout',
+            'error.request_failed' => 'De aanvraag is mislukt.',
+        ],
+        'en' => [
+            'language' => 'Language',
+            'menu.home' => 'Home',
+            'menu.architecture' => 'Architecture',
+            'menu.router' => 'Router',
+            'menu.modules' => 'Modules',
+            'menu.controllers' => 'Controllers',
+            'menu.views' => 'Views',
+            'menu.models' => 'Models',
+            'menu.i18n' => 'Internationalization',
+            'error.title' => 'OPUS error',
+            'error.request_failed' => 'The request failed.',
+        ],
+        'et' => [
+            'language' => 'Keel',
+            'menu.home' => 'Avaleht',
+            'menu.architecture' => 'Arhitektuur',
+            'menu.router' => 'Marsruuter',
+            'menu.modules' => 'Moodulid',
+            'menu.controllers' => 'Kontrollerid',
+            'menu.views' => 'Vaated',
+            'menu.models' => 'Mudelid',
+            'menu.i18n' => 'Rahvusvahelistamine',
+            'error.title' => 'OPUS-e viga',
+            'error.request_failed' => 'Päring nurjus.',
+        ],
+        'fi' => [
+            'language' => 'Kieli',
+            'menu.home' => 'Etusivu',
+            'menu.architecture' => 'Arkkitehtuuri',
+            'menu.router' => 'Reititin',
+            'menu.modules' => 'Moduulit',
+            'menu.controllers' => 'Ohjaimet',
+            'menu.views' => 'Näkymät',
+            'menu.models' => 'Mallit',
+            'menu.i18n' => 'Kansainvälistäminen',
+            'error.title' => 'OPUS-virhe',
+            'error.request_failed' => 'Pyyntö epäonnistui.',
+        ],
+        'fr' => [
+            'language' => 'Langue',
+            'menu.home' => 'Accueil',
+            'menu.architecture' => 'Architecture',
+            'menu.router' => 'Routeur',
+            'menu.modules' => 'Modules',
+            'menu.controllers' => 'Contrôleurs',
+            'menu.views' => 'Vues',
+            'menu.models' => 'Modèles',
+            'menu.i18n' => 'Internationalisation',
+            'error.title' => 'Erreur OPUS',
+            'error.request_failed' => 'La requête a échoué.',
+        ],
+        'de' => [
+            'language' => 'Sprache',
+            'menu.home' => 'Startseite',
+            'menu.architecture' => 'Architektur',
+            'menu.router' => 'Router',
+            'menu.modules' => 'Module',
+            'menu.controllers' => 'Controller',
+            'menu.views' => 'Ansichten',
+            'menu.models' => 'Modelle',
+            'menu.i18n' => 'Internationalisierung',
+            'error.title' => 'OPUS-Fehler',
+            'error.request_failed' => 'Die Anfrage ist fehlgeschlagen.',
+        ],
+        'el' => [
+            'language' => 'Γλώσσα',
+            'menu.home' => 'Αρχική',
+            'menu.architecture' => 'Αρχιτεκτονική',
+            'menu.router' => 'Δρομολογητής',
+            'menu.modules' => 'Αρθρώματα',
+            'menu.controllers' => 'Ελεγκτές',
+            'menu.views' => 'Προβολές',
+            'menu.models' => 'Μοντέλα',
+            'menu.i18n' => 'Διεθνοποίηση',
+            'error.title' => 'Σφάλμα OPUS',
+            'error.request_failed' => 'Το αίτημα απέτυχε.',
+        ],
+        'hu' => [
+            'language' => 'Nyelv',
+            'menu.home' => 'Kezdőlap',
+            'menu.architecture' => 'Architektúra',
+            'menu.router' => 'Útválasztó',
+            'menu.modules' => 'Modulok',
+            'menu.controllers' => 'Vezérlők',
+            'menu.views' => 'Nézetek',
+            'menu.models' => 'Modellek',
+            'menu.i18n' => 'Nemzetköziesítés',
+            'error.title' => 'OPUS-hiba',
+            'error.request_failed' => 'A kérés sikertelen.',
+        ],
+        'ga' => [
+            'language' => 'Teanga',
+            'menu.home' => 'Baile',
+            'menu.architecture' => 'Ailtireacht',
+            'menu.router' => 'Ródaire',
+            'menu.modules' => 'Modúil',
+            'menu.controllers' => 'Rialaitheoirí',
+            'menu.views' => 'Amhairc',
+            'menu.models' => 'Samhlacha',
+            'menu.i18n' => 'Idirnáisiúnú',
+            'error.title' => 'Earráid OPUS',
+            'error.request_failed' => 'Theip ar an iarratas.',
+        ],
+        'it' => [
+            'language' => 'Lingua',
+            'menu.home' => 'Home',
+            'menu.architecture' => 'Architettura',
+            'menu.router' => 'Router',
+            'menu.modules' => 'Moduli',
+            'menu.controllers' => 'Controller',
+            'menu.views' => 'Viste',
+            'menu.models' => 'Modelli',
+            'menu.i18n' => 'Internazionalizzazione',
+            'error.title' => 'Errore OPUS',
+            'error.request_failed' => 'La richiesta non è riuscita.',
+        ],
+        'lv' => [
+            'language' => 'Valoda',
+            'menu.home' => 'Sākums',
+            'menu.architecture' => 'Arhitektūra',
+            'menu.router' => 'Maršrutētājs',
+            'menu.modules' => 'Moduļi',
+            'menu.controllers' => 'Kontrolleri',
+            'menu.views' => 'Skati',
+            'menu.models' => 'Modeļi',
+            'menu.i18n' => 'Internacionalizācija',
+            'error.title' => 'OPUS kļūda',
+            'error.request_failed' => 'Pieprasījums neizdevās.',
+        ],
+        'lt' => [
+            'language' => 'Kalba',
+            'menu.home' => 'Pradžia',
+            'menu.architecture' => 'Architektūra',
+            'menu.router' => 'Maršrutizatorius',
+            'menu.modules' => 'Moduliai',
+            'menu.controllers' => 'Valdikliai',
+            'menu.views' => 'Rodiniai',
+            'menu.models' => 'Modeliai',
+            'menu.i18n' => 'Internacionalizavimas',
+            'error.title' => 'OPUS klaida',
+            'error.request_failed' => 'Užklausa nepavyko.',
+        ],
+        'mt' => [
+            'language' => 'Lingwa',
+            'menu.home' => 'Paġna ewlenija',
+            'menu.architecture' => 'Arkitettura',
+            'menu.router' => 'Router',
+            'menu.modules' => 'Moduli',
+            'menu.controllers' => 'Kontrolluri',
+            'menu.views' => 'Veduti',
+            'menu.models' => 'Mudelli',
+            'menu.i18n' => 'Internazzjonalizzazzjoni',
+            'error.title' => 'Żball OPUS',
+            'error.request_failed' => 'It-talba falliet.',
+        ],
+        'pl' => [
+            'language' => 'Język',
+            'menu.home' => 'Strona główna',
+            'menu.architecture' => 'Architektura',
+            'menu.router' => 'Router',
+            'menu.modules' => 'Moduły',
+            'menu.controllers' => 'Kontrolery',
+            'menu.views' => 'Widoki',
+            'menu.models' => 'Modele',
+            'menu.i18n' => 'Internacjonalizacja',
+            'error.title' => 'Błąd OPUS',
+            'error.request_failed' => 'Żądanie nie powiodło się.',
+        ],
+        'pt' => [
+            'language' => 'Idioma',
+            'menu.home' => 'Início',
+            'menu.architecture' => 'Arquitetura',
+            'menu.router' => 'Encaminhador',
+            'menu.modules' => 'Módulos',
+            'menu.controllers' => 'Controladores',
+            'menu.views' => 'Vistas',
+            'menu.models' => 'Modelos',
+            'menu.i18n' => 'Internacionalização',
+            'error.title' => 'Erro do OPUS',
+            'error.request_failed' => 'O pedido falhou.',
+        ],
+        'ro' => [
+            'language' => 'Limbă',
+            'menu.home' => 'Acasă',
+            'menu.architecture' => 'Arhitectură',
+            'menu.router' => 'Router',
+            'menu.modules' => 'Module',
+            'menu.controllers' => 'Controlere',
+            'menu.views' => 'Vizualizări',
+            'menu.models' => 'Modele',
+            'menu.i18n' => 'Internaționalizare',
+            'error.title' => 'Eroare OPUS',
+            'error.request_failed' => 'Solicitarea a eșuat.',
+        ],
+        'sk' => [
+            'language' => 'Jazyk',
+            'menu.home' => 'Domov',
+            'menu.architecture' => 'Architektúra',
+            'menu.router' => 'Smerovač',
+            'menu.modules' => 'Moduly',
+            'menu.controllers' => 'Radiče',
+            'menu.views' => 'Zobrazenia',
+            'menu.models' => 'Modely',
+            'menu.i18n' => 'Internacionalizácia',
+            'error.title' => 'Chyba OPUS',
+            'error.request_failed' => 'Požiadavka zlyhala.',
+        ],
+        'sl' => [
+            'language' => 'Jezik',
+            'menu.home' => 'Domov',
+            'menu.architecture' => 'Arhitektura',
+            'menu.router' => 'Usmerjevalnik',
+            'menu.modules' => 'Moduli',
+            'menu.controllers' => 'Krmilniki',
+            'menu.views' => 'Pogledi',
+            'menu.models' => 'Modeli',
+            'menu.i18n' => 'Internacionalizacija',
+            'error.title' => 'Napaka OPUS',
+            'error.request_failed' => 'Zahteva ni uspela.',
+        ],
+        'es' => [
+            'language' => 'Idioma',
+            'menu.home' => 'Inicio',
+            'menu.architecture' => 'Arquitectura',
+            'menu.router' => 'Enrutador',
+            'menu.modules' => 'Módulos',
+            'menu.controllers' => 'Controladores',
+            'menu.views' => 'Vistas',
+            'menu.models' => 'Modelos',
+            'menu.i18n' => 'Internacionalización',
+            'error.title' => 'Error de OPUS',
+            'error.request_failed' => 'La solicitud ha fallado.',
+        ],
+        'sv' => [
+            'language' => 'Språk',
+            'menu.home' => 'Hem',
+            'menu.architecture' => 'Arkitektur',
+            'menu.router' => 'Router',
+            'menu.modules' => 'Moduler',
+            'menu.controllers' => 'Styrenheter',
+            'menu.views' => 'Vyer',
+            'menu.models' => 'Modeller',
+            'menu.i18n' => 'Internationalisering',
+            'error.title' => 'OPUS-fel',
+            'error.request_failed' => 'Begäran misslyckades.',
+        ],
+        'uk' => [
+            'language' => 'Мова',
+            'menu.home' => 'Головна',
+            'menu.architecture' => 'Архітектура',
+            'menu.router' => 'Маршрутизатор',
+            'menu.modules' => 'Модулі',
+            'menu.controllers' => 'Контролери',
+            'menu.views' => 'Подання',
+            'menu.models' => 'Моделі',
+            'menu.i18n' => 'Інтернаціоналізація',
+            'error.title' => 'Помилка OPUS',
+            'error.request_failed' => 'Не вдалося виконати запит.',
+        ],
+    ];
+
+    /** @var array<string,string> */
+    private const MODULE_SUBTITLE_PREFIXES = [
+        'bg' => 'OPUS модул, управляван от FSM: ',
+        'hr' => 'OPUS modul kojim upravlja FSM: ',
+        'cs' => 'Modul OPUS řízený FSM: ',
+        'da' => 'FSM-styret OPUS-modul: ',
+        'nl' => 'Door FSM aangestuurde OPUS-module: ',
+        'en' => 'FSM-driven OPUS module: ',
+        'et' => 'FSM-i juhitud OPUS-moodul: ',
+        'fi' => 'FSM-ohjattu OPUS-moduuli: ',
+        'fr' => 'Module OPUS piloté par FSM : ',
+        'de' => 'FSM-gesteuertes OPUS-Modul: ',
+        'el' => 'Μονάδα OPUS ελεγχόμενη από FSM: ',
+        'hu' => 'FSM által vezérelt OPUS-modul: ',
+        'ga' => 'Modúl OPUS arna rialú ag FSM: ',
+        'it' => 'Modulo OPUS pilotato da FSM: ',
+        'lv' => 'FSM vadīts OPUS modulis: ',
+        'lt' => 'FSM valdomas OPUS modulis: ',
+        'mt' => 'Modulu OPUS immexxi minn FSM: ',
+        'pl' => 'Moduł OPUS sterowany przez FSM: ',
+        'pt' => 'Módulo OPUS controlado por FSM: ',
+        'ro' => 'Modul OPUS controlat de FSM: ',
+        'sk' => 'Modul OPUS riadený FSM: ',
+        'sl' => 'Modul OPUS, ki ga upravlja FSM: ',
+        'es' => 'Módulo OPUS controlado por FSM: ',
+        'sv' => 'FSM-styrd OPUS-modul: ',
+        'uk' => 'Модуль OPUS, керований FSM: ',
+    ];
+
     /** @var array<string,list<string>> */
     private const PROFILE_MODULES = [
         self::PROFILE_FRONTEND => [
@@ -104,6 +493,9 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             "sites/{$site}/www/asset/themes/starter/js",
             "sites/{$site}/www/asset/themes/starter/img",
             "sites/{$site}/www/asset/vendor",
+            "sites/{$site}/var",
+            "sites/{$site}/var/logs",
+            "sites/{$site}/var/profiler",
         ];
         foreach ($this->modules() as $module) {
             foreach (['', '/acl', '/helpers', '/javascript', '/local', '/models', '/templates', '/views'] as $suffix) {
@@ -150,7 +542,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             "sites/{$site}/www/index.php" => $this->frontController(),
         ];
 
-        foreach (['fr', 'en', 'es'] as $locale) {
+        foreach (self::SUPPORTED_LOCALES as $locale) {
             $files["sites/{$site}/application/default/local/{$locale}.json"] = $this->json(
                 $this->defaultCatalog($locale)
             );
@@ -165,7 +557,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
                 'default' => 'deny',
                 'open' => ['anonymous', 'viewer', 'developer', 'admin'],
             ]);
-            foreach (['fr', 'en', 'es'] as $locale) {
+            foreach (self::SUPPORTED_LOCALES as $locale) {
                 $files["sites/{$site}/application/{$module}/local/{$locale}.json"] = $this->json(
                     $this->moduleCatalog($module, $locale)
                 );
@@ -195,8 +587,27 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
                 'type' => $this->profile,
                 'capabilities' => $this->profileCapabilities(),
             ],
-            'default_locale' => 'fr',
-            'locales' => ['fr', 'en', 'es'],
+            'default_locale' => self::FALLBACK_LOCALE,
+            'locales' => self::SUPPORTED_LOCALES,
+            'locale_negotiation' => [
+                'contract' => 'OPUS_BROWSER_LOCALE_NEGOTIATION_V1',
+                'strategy' => 'accept-language',
+                'explicit_route_locale' => true,
+                'fallback_locale' => self::FALLBACK_LOCALE,
+                'fallback_diagnostic' => true,
+            ],
+            'diagnostics' => [
+                'contract' => 'OPUS_APPLICATION_DIAGNOSTICS_V1',
+                'logger' => [
+                    'required' => true,
+                    'file' => 'var/logs/application.log',
+                ],
+                'profiler' => [
+                    'required' => true,
+                    'storage' => 'var/profiler',
+                    'trace_id' => 'generated',
+                ],
+            ],
             'theme' => 'starter',
             'application_root' => 'application',
             'default_root' => 'application/default',
@@ -333,29 +744,48 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
     /** @return array<string,mixed> */
     private function defaultCatalog(string $locale): array
     {
-        $messages = [
-            'fr' => ['language' => 'Langue', 'menu.home' => 'Accueil', 'menu.architecture' => 'Architecture', 'menu.router' => 'Routeur', 'menu.modules' => 'Modules', 'menu.controllers' => 'Contrôleurs', 'menu.views' => 'Vues', 'menu.models' => 'Modèles', 'menu.i18n' => 'Internationalisation', 'error.title' => 'Erreur OPUS', 'error.request_failed' => 'La requête a échoué.'],
-            'en' => ['language' => 'Language', 'menu.home' => 'Home', 'menu.architecture' => 'Architecture', 'menu.router' => 'Router', 'menu.modules' => 'Modules', 'menu.controllers' => 'Controllers', 'menu.views' => 'Views', 'menu.models' => 'Models', 'menu.i18n' => 'Internationalization', 'error.title' => 'OPUS error', 'error.request_failed' => 'The request failed.'],
-            'es' => ['language' => 'Idioma', 'menu.home' => 'Inicio', 'menu.architecture' => 'Arquitectura', 'menu.router' => 'Enrutador', 'menu.modules' => 'Módulos', 'menu.controllers' => 'Controladores', 'menu.views' => 'Vistas', 'menu.models' => 'Modelos', 'menu.i18n' => 'Internacionalización', 'error.title' => 'Error de OPUS', 'error.request_failed' => 'La solicitud ha fallado.'],
+        if (!array_key_exists($locale, self::DEFAULT_MESSAGES)) {
+            throw new \InvalidArgumentException(
+                'OPUS_APPLICATION_LOCALE_UNSUPPORTED:' . $locale
+            );
+        }
+
+        return [
+            'contract' => 'OPUS_I18N_CATALOG_V1',
+            'locale' => $locale,
+            'scope' => 'default',
+            'messages' => self::DEFAULT_MESSAGES[$locale],
         ];
-        return ['contract' => 'OPUS_I18N_CATALOG_V1', 'locale' => $locale, 'scope' => 'default', 'messages' => $messages[$locale]];
     }
 
     /** @return array<string,mixed> */
     private function moduleCatalog(string $module, string $locale): array
     {
-        $subtitles = [
-            'fr' => 'Module OPUS piloté par FSM : ' . $module,
-            'en' => 'FSM-driven OPUS module: ' . $module,
-            'es' => 'Módulo OPUS controlado por FSM: ' . $module,
-        ];
+        if (!array_key_exists($locale, self::DEFAULT_MESSAGES)
+            || !array_key_exists($locale, self::MODULE_SUBTITLE_PREFIXES)) {
+            throw new \InvalidArgumentException(
+                'OPUS_APPLICATION_LOCALE_UNSUPPORTED:' . $locale
+            );
+        }
+
+        $titleKey = 'menu.' . $module;
+        if (!array_key_exists($titleKey, self::DEFAULT_MESSAGES[$locale])) {
+            throw new \RuntimeException(
+                'OPUS_APPLICATION_MODULE_TRANSLATION_MISSING:'
+                . $locale
+                . ':'
+                . $module
+            );
+        }
+
         return [
             'contract' => 'OPUS_I18N_CATALOG_V1',
             'locale' => $locale,
             'scope' => $module,
             'messages' => [
-                'page.title' => ucfirst($module),
-                'page.subtitle' => $subtitles[$locale],
+                'page.title' => self::DEFAULT_MESSAGES[$locale][$titleKey],
+                'page.subtitle' => self::MODULE_SUBTITLE_PREFIXES[$locale]
+                    . $module,
             ],
         ];
     }
@@ -384,15 +814,24 @@ declare(strict_types=1);
 
 use Opus\Application\Runtime\GeneratedSiteRuntime;
 use Opus\Http\Response;
+use Opus\Log\Logger;
+use Opus\Profiler\Profiler;
 
 final class {{APPLICATION_CLASS}}
 {
     private static ?self $instance = null;
     private readonly GeneratedSiteRuntime $runtime;
+    private readonly Logger $logger;
+    private readonly Profiler $profiler;
 
     private function __construct(private readonly string $siteRoot)
     {
         $this->runtime = new GeneratedSiteRuntime($siteRoot);
+        $this->logger = new Logger(
+            $siteRoot . '/var/logs',
+            'application.log'
+        );
+        $this->profiler = new Profiler($siteRoot . '/var/profiler');
     }
 
     public static function instance(string $siteRoot): self
@@ -400,7 +839,9 @@ final class {{APPLICATION_CLASS}}
         $siteRoot = rtrim(str_replace('\\', '/', $siteRoot), '/');
         if (self::$instance instanceof self) {
             if (self::$instance->siteRoot !== $siteRoot) {
-                throw new RuntimeException('OPUS_APPLICATION_SINGLETON_ROOT_MISMATCH');
+                throw new RuntimeException(
+                    'OPUS_APPLICATION_SINGLETON_ROOT_MISMATCH'
+                );
             }
             return self::$instance;
         }
@@ -413,17 +854,108 @@ final class {{APPLICATION_CLASS}}
 
     public function __wakeup(): void
     {
-        throw new RuntimeException('OPUS_APPLICATION_SINGLETON_UNSERIALIZE_FORBIDDEN');
+        throw new RuntimeException(
+            'OPUS_APPLICATION_SINGLETON_UNSERIALIZE_FORBIDDEN'
+        );
     }
 
     public function handle(): Response
     {
-        return $this->runtime->handle();
+        $trace = $this->profiler->start();
+        $traceId = $trace->getTraceId();
+        $startedAt = microtime(true);
+        $status = 'failed';
+
+        try {
+            $context = ['method' => $this->requestMethod()];
+            $this->logger->info(
+                'application.runtime',
+                'request.received',
+                $context,
+                $traceId
+            );
+            $this->profiler->event(
+                'application.runtime',
+                'request.received',
+                $context
+            );
+
+            $response = $this->runtime->handle();
+            $status = 'completed';
+            $durationMs = round(
+                (microtime(true) - $startedAt) * 1000,
+                3
+            );
+            $completed = ['duration_ms' => $durationMs];
+            $this->logger->info(
+                'application.runtime',
+                'request.completed',
+                $completed,
+                $traceId
+            );
+            $this->profiler->event(
+                'application.runtime',
+                'request.completed',
+                $completed
+            );
+
+            return $response;
+        } catch (Throwable $error) {
+            $durationMs = round(
+                (microtime(true) - $startedAt) * 1000,
+                3
+            );
+            $failed = [
+                'duration_ms' => $durationMs,
+                'error_code' => $this->safeErrorCode($error),
+            ];
+            $this->logger->error(
+                'application.runtime',
+                'request.failed',
+                $failed,
+                $traceId
+            );
+            $this->profiler->event(
+                'application.runtime',
+                'request.failed',
+                $failed
+            );
+            throw $error;
+        } finally {
+            $this->profiler->stop([
+                'component' => self::class,
+                'status' => $status,
+                'duration_ms' => round(
+                    (microtime(true) - $startedAt) * 1000,
+                    3
+                ),
+            ]);
+        }
     }
 
     public function run(): void
     {
         $this->handle()->send();
+    }
+
+    private function requestMethod(): string
+    {
+        $method = strtoupper(trim((string) (
+            $_SERVER['REQUEST_METHOD'] ?? 'GET'
+        )));
+
+        return preg_match('/^[A-Z]{3,16}$/', $method) === 1
+            ? $method
+            : 'UNKNOWN';
+    }
+
+    private function safeErrorCode(Throwable $error): string
+    {
+        $message = trim($error->getMessage());
+
+        return preg_match('/^[A-Z0-9_:-]{3,240}$/', $message) === 1
+            ? $message
+            : 'OPUS_APPLICATION_RUNTIME_FAILED';
     }
 }
 PHP;
