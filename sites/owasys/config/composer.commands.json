@@ -14,5 +14,12 @@
         "owasys:security:admin-password:change"
       ]
     }
-  ]
+  ],
+  "aliases": {
+    "owasys:registry-sync": "owasys:registry:sync",
+    "owasys:registry-select": "owasys:registry:select",
+    "owasys:registry-clear": "owasys:registry:clear",
+    "owasys:registry-creation-start": "owasys:registry:creation:start",
+    "owasys:admin-password-change": "owasys:security:admin-password:change"
+  }
 }

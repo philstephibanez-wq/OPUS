@@ -17,21 +17,21 @@
         ]
     },
     "scripts": {
-        "opus": "@php scripts/opus.php",
-        "opus:create-application": "@php scripts/opus.php create:application",
-        "opus:create-site": "@php scripts/opus.php create:site",
-        "opus:add-language": "@php scripts/opus.php add:language",
-        "opus:serve-site": "@php scripts/opus.php serve:site",
-        "opus:validate-site": "@php scripts/opus.php validate:site",
-        "opus:list-routes": "@php scripts/opus.php list:routes",
-        "opus:create-page": "@php scripts/opus.php create:page",
-        "opus:create-rubric": "@php scripts/opus.php create:rubric",
-        "opus:export-site": "@php scripts/opus.php export:site",
-        "owasys:registry-sync": "@php scripts/opus.php owasys:registry:sync",
-        "owasys:registry-select": "@php scripts/opus.php owasys:registry:select",
-        "owasys:registry-clear": "@php scripts/opus.php owasys:registry:clear",
-        "owasys:registry-creation-start": "@php scripts/opus.php owasys:registry:creation:start",
-        "owasys:admin-password-change": "@php scripts/opus.php owasys:security:admin-password:change"
+        "opus": "Opus\\Composer\\ComposerScripts::run",
+        "opus:create-application": "Opus\\Composer\\ComposerScripts::run",
+        "opus:create-site": "Opus\\Composer\\ComposerScripts::run",
+        "opus:add-language": "Opus\\Composer\\ComposerScripts::run",
+        "opus:serve-site": "Opus\\Composer\\ComposerScripts::run",
+        "opus:validate-site": "Opus\\Composer\\ComposerScripts::run",
+        "opus:list-routes": "Opus\\Composer\\ComposerScripts::run",
+        "opus:create-page": "Opus\\Composer\\ComposerScripts::run",
+        "opus:create-rubric": "Opus\\Composer\\ComposerScripts::run",
+        "opus:export-site": "Opus\\Composer\\ComposerScripts::run",
+        "owasys:registry-sync": "Opus\\Composer\\ComposerScripts::run",
+        "owasys:registry-select": "Opus\\Composer\\ComposerScripts::run",
+        "owasys:registry-clear": "Opus\\Composer\\ComposerScripts::run",
+        "owasys:registry-creation-start": "Opus\\Composer\\ComposerScripts::run",
+        "owasys:admin-password-change": "Opus\\Composer\\ComposerScripts::run"
     },
     "repositories": [
         {
