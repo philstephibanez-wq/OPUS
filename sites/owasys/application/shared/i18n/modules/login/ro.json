@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "ro",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Nume de utilizator sau parolă nevalide.",
+    "auth.error.required_credentials": "Numele de utilizator și parola sunt obligatorii.",
+    "auth.password.hide": "Ascunde parola",
+    "auth.password.show": "Afișează parola",
+    "auth.password_field": "Parolă",
+    "auth.sign_in": "Autentificare",
+    "auth.sign_in_description": "Deschideți o sesiune runtime OWASYS autentificată.",
+    "auth.username": "Nume de utilizator"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

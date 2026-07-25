@@ -8,6 +8,9 @@ use Opus\File\File;
 use Opus\File\StructuredFileLoader;
 use Opus\Scaffold\SiteScaffoldPlan;
 use Opus\Scaffold\ScaffoldWriter;
+use Opus\Log\Logger;
+use Opus\Profiler\Profiler;
+use Opus\Security\Runtime\RuntimeSecretStore;
 
 /**
  * Canonical user-command service for OPUS sites and applications.
@@ -82,28 +85,70 @@ final class SiteCommandService implements SiteCommandServiceInterface
 
         $site = $this->loader->read($siteConfigFile);
         $fsmRelative = $this->fsmRelativePath($site);
+        $standardLayout = $this->standardLayout($site);
 
-        $requiredDirectories = [
-            'config',
-            'application',
-            'application/default',
-            'application/default/layouts',
-            'application/default/local',
-            'application/default/templates',
-            'www',
-            'www/asset',
-        ];
-        $requiredFiles = [
-            'config/site.json',
-            'config/routes.json',
-            $fsmRelative,
-            'config/acl.json',
-            'config/sso.json',
-            'application/default/Application.php',
-            'application/default/bootstrap.php',
-            'application/default/layouts/layout.score',
-            'www/index.php',
-        ];
+        if ($standardLayout !== null) {
+            $runtime = is_array($site['runtime'] ?? null)
+                ? $site['runtime']
+                : [];
+            $bootstraps = is_array($runtime['bootstraps'] ?? null)
+                ? $runtime['bootstraps']
+                : [];
+            $requiredDirectories = [
+                'config',
+                'application',
+                $standardLayout['shared'],
+                $standardLayout['shared_i18n'],
+                $standardLayout['shared_i18n'] . '/default',
+                $standardLayout['shared_i18n'] . '/modules',
+                $standardLayout['front'],
+                $standardLayout['front_modules'],
+                $standardLayout['front'] . '/default',
+                $standardLayout['front'] . '/default/layouts',
+                $standardLayout['front'] . '/default/local',
+                $standardLayout['front'] . '/default/templates',
+                $standardLayout['back'],
+                $standardLayout['back_modules'],
+                'www',
+                'www/asset',
+                'var/logs',
+                'var/profiler',
+            ];
+            $requiredFiles = [
+                'config/site.json',
+                'config/routes.json',
+                $fsmRelative,
+                'config/acl.json',
+                'config/sso.json',
+                $this->safeRelative((string) ($runtime['file'] ?? '')),
+                $this->safeRelative((string) ($bootstraps['front'] ?? '')),
+                $this->safeRelative((string) ($bootstraps['back'] ?? '')),
+                $standardLayout['front'] . '/default/layouts/layout.score',
+                'www/index.php',
+            ];
+        } else {
+            $requiredDirectories = [
+                'config',
+                'application',
+                'application/default',
+                'application/default/layouts',
+                'application/default/local',
+                'application/default/templates',
+                'www',
+                'www/asset',
+            ];
+            $requiredFiles = [
+                'config/site.json',
+                'config/routes.json',
+                $fsmRelative,
+                'config/acl.json',
+                'config/sso.json',
+                'application/default/Application.php',
+                'application/default/bootstrap.php',
+                'application/default/layouts/layout.score',
+                'www/index.php',
+            ];
+        }
 
         $missing = [];
         foreach ($requiredDirectories as $relative) {
@@ -174,8 +219,11 @@ final class SiteCommandService implements SiteCommandServiceInterface
                 'OPUS_SITE_DISPATCH_MODEL_INVALID'
             );
         }
+        $expectedDefaultRoot = $standardLayout !== null
+            ? $standardLayout['front'] . '/default'
+            : 'application/default';
         if (($site['application_root'] ?? null) !== 'application'
-            || ($site['default_root'] ?? null) !== 'application/default'
+            || ($site['default_root'] ?? null) !== $expectedDefaultRoot
             || ($site['public_root'] ?? null) !== 'www') {
             throw new OpusConsoleException('OPUS_SITE_ROOT_CONTRACT_INVALID');
         }
@@ -207,8 +255,11 @@ final class SiteCommandService implements SiteCommandServiceInterface
         }
 
         $modules = $this->modules($fsm);
+        $moduleRoot = $standardLayout !== null
+            ? $standardLayout['front_modules']
+            : 'application';
         foreach ($modules as $module) {
-            if (!is_dir($siteRoot . '/application/' . $module)) {
+            if (!is_dir($siteRoot . '/' . $moduleRoot . '/' . $module)) {
                 throw new OpusConsoleException(
                     'OPUS_SITE_MODULE_DIRECTORY_MISSING:' . $module
                 );
@@ -274,11 +325,21 @@ final class SiteCommandService implements SiteCommandServiceInterface
             $locales[] = $locale;
         }
 
+        $layout = $this->standardLayout($site);
+        $applicationRoot = $layout !== null
+            ? $siteRoot . '/' . $layout['shared_i18n']
+            : $siteRoot . '/application';
         $targets = [
-            $siteRoot . '/application/default/local/' . $locale . '.json' => 'default',
+            $applicationRoot . ($layout !== null ? '/default/' : '/default/local/')
+                . $locale . '.json' => 'default',
         ];
         foreach ($this->modules($fsm) as $module) {
-            $targets[$siteRoot . '/application/' . $module . '/local/' . $locale . '.json'] = $module;
+            $targets[$applicationRoot
+                . ($layout !== null ? '/modules/' : '/')
+                . $module
+                . ($layout !== null ? '/' : '/local/')
+                . $locale
+                . '.json'] = $module;
         }
 
         if ($write) {
@@ -513,7 +574,8 @@ final class SiteCommandService implements SiteCommandServiceInterface
             throw new OpusConsoleException('OPUS_SERVE_PORT_INVALID');
         }
 
-        $publicRoot = $this->siteRoot($siteId) . '/www';
+        $siteRoot = $this->siteRoot($siteId);
+        $publicRoot = $siteRoot . '/www';
         $router = $publicRoot . '/index.php';
         if (!is_dir($publicRoot) || !$this->file->exists($router)) {
             throw new OpusConsoleException('OPUS_SERVE_PUBLIC_ROOT_MISSING');
@@ -522,7 +584,12 @@ final class SiteCommandService implements SiteCommandServiceInterface
         $command = [PHP_BINARY, '-S', $host . ':' . $port, '-t', $publicRoot, $router];
         $environment = getenv();
         $environment = is_array($environment) ? $environment : [];
+        $environment = $this->runtimeEnvironment(
+            $siteRoot,
+            $environment
+        );
         $environment['OPUS_APPLICATION_RUNTIME_MODE'] = $mode;
+        $this->recordRuntimeStart($siteRoot, $mode, $host, $port);
         $descriptors = [0 => STDIN, 1 => STDOUT, 2 => STDERR];
         $process = proc_open(
             $command,
@@ -537,6 +604,142 @@ final class SiteCommandService implements SiteCommandServiceInterface
         }
 
         return (int) proc_close($process);
+    }
+
+    /**
+     * @param array<string,string> $environment
+     * @return array<string,string>
+     */
+    private function runtimeEnvironment(
+        string $siteRoot,
+        array $environment
+    ): array {
+        $site = $this->loader->read($siteRoot . '/config/site.json');
+        $policy = is_array($site['runtime_secrets'] ?? null)
+            ? $site['runtime_secrets']
+            : null;
+        if ($policy === null) {
+            return $environment;
+        }
+        if (($policy['contract'] ?? null)
+            !== 'OPUS_RUNTIME_SECRET_BINDING_V1') {
+            throw new OpusConsoleException(
+                'OPUS_RUNTIME_SECRET_BINDING_CONTRACT_INVALID'
+            );
+        }
+        $store = $this->safeRelative((string) ($policy['store'] ?? ''));
+        $bindings = is_array($policy['bindings'] ?? null)
+            ? $policy['bindings']
+            : [];
+        $resolved = RuntimeSecretStore::forPath(
+            $siteRoot . '/' . $store
+        )->ensure($bindings);
+        foreach ($resolved as $name => $value) {
+            $environment[$name] = $value;
+        }
+        return $environment;
+    }
+
+    private function recordRuntimeStart(
+        string $siteRoot,
+        string $mode,
+        string $host,
+        int $port
+    ): void {
+        $site = $this->loader->read($siteRoot . '/config/site.json');
+        $diagnostics = is_array($site['runtime_diagnostics'] ?? null)
+            ? $site['runtime_diagnostics']
+            : null;
+        if ($diagnostics === null) {
+            return;
+        }
+        if (($diagnostics['contract'] ?? null)
+            !== 'OPUS_RUNTIME_DIAGNOSTICS_V1') {
+            throw new OpusConsoleException(
+                'OPUS_RUNTIME_DIAGNOSTICS_CONTRACT_INVALID'
+            );
+        }
+        $logs = is_array($diagnostics['logs'] ?? null)
+            ? $diagnostics['logs']
+            : [];
+        $relativeLog = $this->safeRelative((string) ($logs[$mode] ?? ''));
+        $relativeProfiler = $this->safeRelative((string) (
+            $diagnostics['profiler'] ?? ''
+        ));
+        $absoluteLog = $siteRoot . '/' . $relativeLog;
+        $profiler = new Profiler($siteRoot . '/' . $relativeProfiler . '/' . $mode);
+        $trace = $profiler->start();
+        $traceId = $trace->getTraceId();
+        $context = [
+            'runtime_mode' => $mode,
+            'host' => $host,
+            'port' => $port,
+        ];
+        (new Logger(dirname($absoluteLog), basename($absoluteLog)))->info(
+            'opus.runtime.process',
+            'process.starting',
+            $context,
+            $traceId
+        );
+        $profiler->event(
+            'opus.runtime.process',
+            'process.starting',
+            $context
+        );
+        $profiler->stop([
+            'component' => self::class,
+            'status' => 'starting',
+            'runtime_mode' => $mode,
+        ]);
+    }
+
+    /**
+     * @param array<string,mixed> $site
+     * @return array{
+     *   shared:string,
+     *   front:string,
+     *   back:string,
+     *   front_modules:string,
+     *   back_modules:string,
+     *   shared_i18n:string
+     * }|null
+     */
+    private function standardLayout(array $site): ?array
+    {
+        $layers = is_array($site['application_layers'] ?? null)
+            ? $site['application_layers']
+            : null;
+        if ($layers === null) {
+            return null;
+        }
+        if (($layers['contract'] ?? null)
+            !== 'OPUS_APPLICATION_LAYER_LAYOUT_V1'
+            || ($layers['full_directory_forbidden'] ?? false) !== true
+            || ($layers['fullstack'] ?? null) !== 'composition') {
+            throw new OpusConsoleException(
+                'OPUS_APPLICATION_LAYER_LAYOUT_CONTRACT_INVALID'
+            );
+        }
+        $modes = is_array($site['runtime_modes'] ?? null)
+            ? array_values(array_filter($site['runtime_modes'], 'is_string'))
+            : [];
+        sort($modes, SORT_STRING);
+        if ($modes !== ['back', 'front']) {
+            throw new OpusConsoleException(
+                'OPUS_APPLICATION_LAYOUT_RUNTIME_MODES_INVALID'
+            );
+        }
+        $shared = $this->safeRelative((string) ($layers['shared'] ?? ''));
+        $front = $this->safeRelative((string) ($layers['front'] ?? ''));
+        $back = $this->safeRelative((string) ($layers['back'] ?? ''));
+        return [
+            'shared' => $shared,
+            'front' => $front,
+            'back' => $back,
+            'front_modules' => $front . '/modules',
+            'back_modules' => $back . '/modules',
+            'shared_i18n' => $shared . '/i18n',
+        ];
     }
 
     private function applicationProfile(string $profile): string
@@ -640,31 +843,62 @@ final class SiteCommandService implements SiteCommandServiceInterface
     private function assertSingletonRuntime(string $siteRoot, array $site): void
     {
         $runtime = is_array($site['runtime'] ?? null) ? $site['runtime'] : [];
-        $expected = [
-            'contract' => 'OPUS_APPLICATION_SINGLETON_V1',
+        $contract = (string) ($runtime['contract'] ?? '');
+        if (!in_array($contract, [
+            'OPUS_APPLICATION_SINGLETON_V1',
+            'OPUS_APPLICATION_SINGLETON_V2',
+        ], true)) {
+            throw new OpusConsoleException(
+                'OPUS_APPLICATION_SINGLETON_CONTRACT_INVALID:contract'
+            );
+        }
+        foreach ([
             'architecture' => 'singleton',
             'factory' => 'instance',
             'runner' => 'run',
-        ];
-        foreach ($expected as $key => $value) {
+        ] as $key => $value) {
             if (($runtime[$key] ?? null) !== $value) {
-                throw new OpusConsoleException('OPUS_APPLICATION_SINGLETON_CONTRACT_INVALID:' . $key);
+                throw new OpusConsoleException(
+                    'OPUS_APPLICATION_SINGLETON_CONTRACT_INVALID:' . $key
+                );
             }
         }
+
         $class = trim((string) ($runtime['class'] ?? ''));
         $classFile = $this->safeRelative((string) ($runtime['file'] ?? ''));
-        $bootstrap = $this->safeRelative((string) ($runtime['bootstrap'] ?? ''));
         $entrypoint = $this->safeRelative((string) ($runtime['entrypoint'] ?? ''));
-        if ($class === '' || preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $class) !== 1) {
-            throw new OpusConsoleException('OPUS_APPLICATION_SINGLETON_CLASS_INVALID');
+        if ($class === ''
+            || preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $class) !== 1) {
+            throw new OpusConsoleException(
+                'OPUS_APPLICATION_SINGLETON_CLASS_INVALID'
+            );
         }
-        foreach ([$classFile, $bootstrap, $entrypoint] as $relative) {
-            if (!$this->file->exists($siteRoot . '/' . $relative)) {
-                throw new OpusConsoleException('OPUS_APPLICATION_SINGLETON_FILE_MISSING:' . $relative);
+
+        $bootstraps = [];
+        if ($contract === 'OPUS_APPLICATION_SINGLETON_V1') {
+            $bootstraps['default'] = $this->safeRelative(
+                (string) ($runtime['bootstrap'] ?? '')
+            );
+        } else {
+            $declared = is_array($runtime['bootstraps'] ?? null)
+                ? $runtime['bootstraps']
+                : [];
+            foreach (['front', 'back'] as $mode) {
+                $bootstraps[$mode] = $this->safeRelative(
+                    (string) ($declared[$mode] ?? '')
+                );
             }
         }
+
+        foreach ([$classFile, $entrypoint, ...array_values($bootstraps)] as $relative) {
+            if (!$this->file->exists($siteRoot . '/' . $relative)) {
+                throw new OpusConsoleException(
+                    'OPUS_APPLICATION_SINGLETON_FILE_MISSING:' . $relative
+                );
+            }
+        }
+
         $classSource = $this->file->read($siteRoot . '/' . $classFile);
-        $bootstrapSource = $this->file->read($siteRoot . '/' . $bootstrap);
         $entrySource = $this->file->read($siteRoot . '/' . $entrypoint);
         $quotedClass = preg_quote($class, '/');
         $checks = [
@@ -673,13 +907,22 @@ final class SiteCommandService implements SiteCommandServiceInterface
             preg_match('/private\s+function\s+__construct\s*\(/', $classSource) === 1,
             preg_match('/public\s+static\s+function\s+instance\s*\(/', $classSource) === 1,
             preg_match('/public\s+function\s+run\s*\(/', $classSource) === 1,
-            str_contains($bootstrapSource, $class . '::instance('),
-            str_contains($bootstrapSource, ')->run();'),
-            str_contains(str_replace('\\', '/', $entrySource), 'application/default/bootstrap.php'),
             !str_contains($entrySource, 'echo '),
+            !str_contains($entrySource, '<html'),
         ];
+        foreach ($bootstraps as $relative) {
+            $bootstrapSource = $this->file->read($siteRoot . '/' . $relative);
+            $checks[] = str_contains($bootstrapSource, $class . '::instance(');
+            $checks[] = str_contains($bootstrapSource, ')->run();');
+            $checks[] = str_contains(
+                str_replace('\\', '/', $entrySource),
+                str_replace('\\', '/', $relative)
+            );
+        }
         if (in_array(false, $checks, true)) {
-            throw new OpusConsoleException('OPUS_APPLICATION_SINGLETON_IMPLEMENTATION_INVALID');
+            throw new OpusConsoleException(
+                'OPUS_APPLICATION_SINGLETON_IMPLEMENTATION_INVALID'
+            );
         }
     }
 
@@ -690,9 +933,16 @@ final class SiteCommandService implements SiteCommandServiceInterface
         if ($default === '') {
             throw new OpusConsoleException('OPUS_I18N_DEFAULT_LOCALE_MISSING');
         }
+        $layout = $this->standardLayout($site);
+        $applicationRoot = $layout !== null
+            ? $siteRoot . '/' . $layout['shared_i18n']
+            : $siteRoot . '/application';
         $directory = $scope === 'default'
-            ? $siteRoot . '/application/default/local'
-            : $siteRoot . '/application/' . $scope . '/local';
+            ? $applicationRoot . ($layout !== null ? '/default' : '/default/local')
+            : $applicationRoot
+                . ($layout !== null ? '/modules/' : '/')
+                . $scope
+                . ($layout !== null ? '' : '/local');
         return $this->loader->read($directory . '/' . $default . '.json');
     }
 

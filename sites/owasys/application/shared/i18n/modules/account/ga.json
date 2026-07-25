@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "ga",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Athraigh an pasfhocal",
+    "auth.change_password_description": "Cuir pasfhocal nua in ionad an phasfhocail runtime shealadaigh.",
+    "auth.confirm_new_password": "Deimhnigh an pasfhocal nua",
+    "auth.current_password": "Pasfhocal reatha",
+    "auth.error.current_password_invalid": "Tá an pasfhocal reatha neamhbhailí.",
+    "auth.error.password_mismatch": "Ní mheaitseálann dearbhú an phasfhocail.",
+    "auth.error.password_too_short": "Tá an pasfhocal nua ró-ghearr.",
+    "auth.error.password_unchanged": "Caithfidh an focal faire nua a bheith difriúil ón bhfocal faire reatha.",
+    "auth.error.runtime_user_missing": "Níor aimsíodh úsáideoir an tseisiúin rite.",
+    "auth.new_password": "Pasfhocal nua"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

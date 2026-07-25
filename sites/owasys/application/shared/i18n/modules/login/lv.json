@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "lv",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Nederīgs lietotājvārds vai parole.",
+    "auth.error.required_credentials": "Lietotājvārds un parole ir obligāti.",
+    "auth.password.hide": "Paslēpt paroli",
+    "auth.password.show": "Rādīt paroli",
+    "auth.password_field": "Parole",
+    "auth.sign_in": "Pieteikties",
+    "auth.sign_in_description": "Atvērt autentificētu OWASYS runtime sesiju.",
+    "auth.username": "Lietotājvārds"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

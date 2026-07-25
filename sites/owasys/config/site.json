@@ -48,7 +48,7 @@
   "theme": "owasys",
   "public_root": "www",
   "application_root": "application",
-  "default_root": "application/default",
+  "default_root": "application/front/default",
   "asset_root": "www/asset",
   "dispatch_model": "fsm-module-first",
   "navigation": {
@@ -160,14 +160,33 @@
     "catalog_base_locales_visible": false
   },
   "runtime": {
-    "contract": "OPUS_APPLICATION_SINGLETON_V1",
+    "contract": "OPUS_APPLICATION_SINGLETON_V2",
     "architecture": "singleton",
     "class": "OwasysApplication",
-    "file": "application/default/Application.php",
-    "bootstrap": "application/default/bootstrap.php",
+    "file": "application/shared/Application.php",
+    "bootstraps": {
+      "front": "application/front/bootstrap.php",
+      "back": "application/back/bootstrap.php"
+    },
     "entrypoint": "www/index.php",
     "factory": "instance",
     "runner": "run"
+  },
+  "runtime_secrets": {
+    "contract": "OPUS_RUNTIME_SECRET_BINDING_V1",
+    "store": "var/runtime/rcp-secrets.json",
+    "bindings": {
+      "OPUS_OWASYS_BACKEND_TOKEN": "token",
+      "OPUS_OWASYS_BACKEND_HMAC": "hmac"
+    }
+  },
+  "runtime_diagnostics": {
+    "contract": "OPUS_RUNTIME_DIAGNOSTICS_V1",
+    "logs": {
+      "front": "var/logs/owasys-frontend.log",
+      "back": "var/logs/rcp-backend.log"
+    },
+    "profiler": "var/profiler"
   },
   "backend": {
     "contract": "OWASYS_REST_COMPOSER_BACKEND_V1",
@@ -175,5 +194,17 @@
     "server_config": "config/backend.rest.json",
     "client_config": "config/rcp.json",
     "operation_catalog": "config/backend.operations.json"
-  }
+  },
+  "application_layers": {
+    "contract": "OPUS_APPLICATION_LAYER_LAYOUT_V1",
+    "shared": "application/shared",
+    "front": "application/front",
+    "back": "application/back",
+    "full_directory_forbidden": true,
+    "fullstack": "composition"
+  },
+  "runtime_modes": [
+    "front",
+    "back"
+  ]
 }

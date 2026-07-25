@@ -1,0 +1,32 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "de",
+  "scope": "creation",
+  "messages": {
+    "creation.title": "Anwendung erstellen",
+    "creation.description": "Eine neue OPUS-Anwendung nach Auswahl des Profils erstellen.",
+    "creation.choose_profile": "Anwendungsprofil wählen",
+    "creation.choose_profile_description": "Das Profil bestimmt die vom OPUS-Framework erzeugten Anfangsfähigkeiten.",
+    "creation.site_id": "Anwendungskennung",
+    "creation.site_id_help": "Kleinbuchstaben, Ziffern und Bindestriche; mit einem Buchstaben beginnen.",
+    "creation.profile": "Anwendungstyp",
+    "creation.profile.frontend": "Frontend",
+    "creation.profile.frontend_description": "SCORE-Oberfläche, Navigation, Controller und Ansichten.",
+    "creation.profile.backend": "Backend",
+    "creation.profile.backend_description": "Dienste, API, Controller und Modelle mit minimaler SCORE-Oberfläche.",
+    "creation.profile.fullstack": "Fullstack",
+    "creation.profile.fullstack_description": "Frontend und Backend in einer vollständigen OPUS-Anwendung.",
+    "creation.submit": "Anwendung erstellen",
+    "creation.cancel": "Abbrechen",
+    "creation.error.title": "Erstellung fehlgeschlagen",
+    "creation.error.site_id": "Die Kennung ist ungültig.",
+    "creation.error.profile": "Das ausgewählte Profil ist ungültig.",
+    "creation.error.exists": "Eine Anwendung mit dieser Kennung existiert bereits.",
+    "creation.error.backend": "Das REST- und Composer-Backend hat die Erstellung abgelehnt.",
+    "creation.error.action": "Die angeforderte Aktion ist ungültig.",
+    "creation.error.method": "Die HTTP-Methode ist ungültig.",
+    "creation.error.trace": "Trace"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

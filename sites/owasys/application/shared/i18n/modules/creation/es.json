@@ -1,0 +1,32 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "es",
+  "scope": "creation",
+  "messages": {
+    "creation.title": "Creación de aplicación",
+    "creation.description": "Crear una nueva aplicación OPUS después de elegir su perfil.",
+    "creation.choose_profile": "Elegir el perfil de aplicación",
+    "creation.choose_profile_description": "El perfil determina las capacidades iniciales generadas por el framework OPUS.",
+    "creation.site_id": "Identificador de la aplicación",
+    "creation.site_id_help": "Minúsculas, números y guiones; comenzar con una letra.",
+    "creation.profile": "Tipo de aplicación",
+    "creation.profile.frontend": "Frontend",
+    "creation.profile.frontend_description": "Interfaz SCORE, navegación, controladores y vistas.",
+    "creation.profile.backend": "Backend",
+    "creation.profile.backend_description": "Servicios, API, controladores y modelos, con una superficie SCORE mínima.",
+    "creation.profile.fullstack": "Fullstack",
+    "creation.profile.fullstack_description": "Frontend y backend reunidos en una aplicación OPUS completa.",
+    "creation.submit": "Crear la aplicación",
+    "creation.cancel": "Cancelar",
+    "creation.error.title": "No se pudo crear",
+    "creation.error.site_id": "El identificador no es válido.",
+    "creation.error.profile": "El perfil seleccionado no es válido.",
+    "creation.error.exists": "Ya existe una aplicación con este identificador.",
+    "creation.error.backend": "El backend REST + Composer rechazó la creación.",
+    "creation.error.action": "La acción solicitada no es válida.",
+    "creation.error.method": "El método HTTP no es válido.",
+    "creation.error.trace": "Traza"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "fi",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Virheellinen käyttäjänimi tai salasana.",
+    "auth.error.required_credentials": "Käyttäjänimi ja salasana ovat pakollisia.",
+    "auth.password.hide": "Piilota salasana",
+    "auth.password.show": "Näytä salasana",
+    "auth.password_field": "Salasana",
+    "auth.sign_in": "Kirjaudu sisään",
+    "auth.sign_in_description": "Avaa todennettu OWASYS-runtime-istunto.",
+    "auth.username": "Käyttäjänimi"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

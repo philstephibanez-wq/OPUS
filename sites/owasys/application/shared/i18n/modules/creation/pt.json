@@ -1,0 +1,32 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "pt",
+  "scope": "creation",
+  "messages": {
+    "creation.title": "Criação de aplicação",
+    "creation.description": "Criar uma nova aplicação OPUS depois de escolher o perfil.",
+    "creation.choose_profile": "Escolher o perfil da aplicação",
+    "creation.choose_profile_description": "O perfil determina as capacidades iniciais geradas pelo framework OPUS.",
+    "creation.site_id": "Identificador da aplicação",
+    "creation.site_id_help": "Minúsculas, números e hífens; começar por uma letra.",
+    "creation.profile": "Tipo de aplicação",
+    "creation.profile.frontend": "Frontend",
+    "creation.profile.frontend_description": "Interface SCORE, navegação, controladores e vistas.",
+    "creation.profile.backend": "Backend",
+    "creation.profile.backend_description": "Serviços, API, controladores e modelos, com superfície SCORE mínima.",
+    "creation.profile.fullstack": "Fullstack",
+    "creation.profile.fullstack_description": "Frontend e backend numa aplicação OPUS completa.",
+    "creation.submit": "Criar aplicação",
+    "creation.cancel": "Cancelar",
+    "creation.error.title": "Falha na criação",
+    "creation.error.site_id": "O identificador é inválido.",
+    "creation.error.profile": "O perfil selecionado é inválido.",
+    "creation.error.exists": "Já existe uma aplicação com este identificador.",
+    "creation.error.backend": "O backend REST + Composer recusou a criação.",
+    "creation.error.action": "A ação pedida é inválida.",
+    "creation.error.method": "O método HTTP é inválido.",
+    "creation.error.trace": "Rasto"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

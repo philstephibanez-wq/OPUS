@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "nl",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Wachtwoord wijzigen",
+    "auth.change_password_description": "Vervang het tijdelijke runtime-wachtwoord.",
+    "auth.confirm_new_password": "Bevestig het nieuwe wachtwoord",
+    "auth.current_password": "Huidig wachtwoord",
+    "auth.error.current_password_invalid": "Het huidige wachtwoord is ongeldig.",
+    "auth.error.password_mismatch": "De wachtwoordbevestiging komt niet overeen.",
+    "auth.error.password_too_short": "Het nieuwe wachtwoord is te kort.",
+    "auth.error.password_unchanged": "Het nieuwe wachtwoord moet verschillen van het huidige wachtwoord.",
+    "auth.error.runtime_user_missing": "De gebruiker van de runtimesessie is niet gevonden.",
+    "auth.new_password": "Nieuw wachtwoord"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

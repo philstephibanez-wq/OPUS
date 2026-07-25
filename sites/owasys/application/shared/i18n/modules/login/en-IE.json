@@ -1,0 +1,9 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "en-IE",
+  "scope": "login",
+  "inherits": "en",
+  "messages": {},
+  "plurals": {},
+  "grammatical": {}
+}

@@ -8,6 +8,9 @@ use Opus\File\File;
 use Opus\File\StructuredFileLoader;
 use Opus\Scaffold\LayeredSiteScaffoldPlan;
 use Opus\Scaffold\ScaffoldWriter;
+use Opus\Log\Logger;
+use Opus\Profiler\Profiler;
+use Opus\Security\Runtime\RuntimeSecretStore;
 
 /** Version-aware site command service for legacy and layered OPUS sites. */
 final class LayeredSiteCommandService implements
@@ -512,7 +515,12 @@ final class LayeredSiteCommandService implements
         }
         $environment = getenv();
         $environment = is_array($environment) ? $environment : [];
+        $environment = $this->runtimeEnvironment(
+            $siteRoot,
+            $environment
+        );
         $environment['OPUS_APPLICATION_RUNTIME_MODE'] = $mode;
+        $this->recordRuntimeStart($siteRoot, $mode, $host, $port);
         $command = [
             PHP_BINARY,
             '-S',
@@ -535,6 +543,92 @@ final class LayeredSiteCommandService implements
             );
         }
         return (int) proc_close($process);
+    }
+
+    /**
+     * @param array<string,string> $environment
+     * @return array<string,string>
+     */
+    private function runtimeEnvironment(
+        string $siteRoot,
+        array $environment
+    ): array {
+        $site = $this->siteConfig($siteRoot);
+        $policy = is_array($site['runtime_secrets'] ?? null)
+            ? $site['runtime_secrets']
+            : null;
+        if ($policy === null) {
+            return $environment;
+        }
+        if (($policy['contract'] ?? null)
+            !== 'OPUS_RUNTIME_SECRET_BINDING_V1') {
+            throw new OpusConsoleException(
+                'OPUS_RUNTIME_SECRET_BINDING_CONTRACT_INVALID'
+            );
+        }
+        $store = $this->safeRelative((string) ($policy['store'] ?? ''));
+        $bindings = is_array($policy['bindings'] ?? null)
+            ? $policy['bindings']
+            : [];
+        foreach (RuntimeSecretStore::forPath(
+            $siteRoot . '/' . $store
+        )->ensure($bindings) as $name => $value) {
+            $environment[$name] = $value;
+        }
+        return $environment;
+    }
+
+    private function recordRuntimeStart(
+        string $siteRoot,
+        string $mode,
+        string $host,
+        int $port
+    ): void {
+        $site = $this->siteConfig($siteRoot);
+        $diagnostics = is_array($site['runtime_diagnostics'] ?? null)
+            ? $site['runtime_diagnostics']
+            : null;
+        if ($diagnostics === null) {
+            return;
+        }
+        if (($diagnostics['contract'] ?? null)
+            !== 'OPUS_RUNTIME_DIAGNOSTICS_V1') {
+            throw new OpusConsoleException(
+                'OPUS_RUNTIME_DIAGNOSTICS_CONTRACT_INVALID'
+            );
+        }
+        $logs = is_array($diagnostics['logs'] ?? null)
+            ? $diagnostics['logs']
+            : [];
+        $relativeLog = $this->safeRelative((string) ($logs[$mode] ?? ''));
+        $relativeProfiler = $this->safeRelative((string) (
+            $diagnostics['profiler'] ?? ''
+        ));
+        $absoluteLog = $siteRoot . '/' . $relativeLog;
+        $profiler = new Profiler($siteRoot . '/' . $relativeProfiler . '/' . $mode);
+        $trace = $profiler->start();
+        $traceId = $trace->getTraceId();
+        $context = [
+            'runtime_mode' => $mode,
+            'host' => $host,
+            'port' => $port,
+        ];
+        (new Logger(dirname($absoluteLog), basename($absoluteLog)))->info(
+            'opus.runtime.process',
+            'process.starting',
+            $context,
+            $traceId
+        );
+        $profiler->event(
+            'opus.runtime.process',
+            'process.starting',
+            $context
+        );
+        $profiler->stop([
+            'component' => self::class,
+            'status' => 'starting',
+            'runtime_mode' => $mode,
+        ]);
     }
 
     /** @return array<string,mixed> */

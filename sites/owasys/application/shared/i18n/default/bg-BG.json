@@ -1,0 +1,9 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "bg-BG",
+  "scope": "default",
+  "inherits": "bg",
+  "messages": {},
+  "plurals": {},
+  "grammatical": {}
+}
