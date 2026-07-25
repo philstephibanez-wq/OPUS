@@ -493,9 +493,19 @@ final class SiteCommandService implements SiteCommandServiceInterface
         ];
     }
 
-    public function serve(string $siteId, string $host, int $port): int
-    {
+    public function serve(
+        string $siteId,
+        string $host,
+        int $port,
+        string $mode = 'front'
+    ): int {
         $siteId = $this->siteId($siteId);
+        $mode = strtolower(trim($mode));
+        if (!in_array($mode, ['front', 'back'], true)) {
+            throw new OpusConsoleException(
+                'OPUS_SERVE_RUNTIME_MODE_INVALID:' . $mode
+            );
+        }
         if (!in_array($host, ['127.0.0.1', 'localhost', '::1'], true)) {
             throw new OpusConsoleException('OPUS_SERVE_HOST_NOT_LOCAL');
         }
@@ -510,10 +520,18 @@ final class SiteCommandService implements SiteCommandServiceInterface
         }
 
         $command = [PHP_BINARY, '-S', $host . ':' . $port, '-t', $publicRoot, $router];
+        $environment = getenv();
+        $environment = is_array($environment) ? $environment : [];
+        $environment['OPUS_APPLICATION_RUNTIME_MODE'] = $mode;
         $descriptors = [0 => STDIN, 1 => STDOUT, 2 => STDERR];
-        $process = proc_open($command, $descriptors, $pipes, $this->opusRoot, null, [
-            'bypass_shell' => true,
-        ]);
+        $process = proc_open(
+            $command,
+            $descriptors,
+            $pipes,
+            $this->opusRoot,
+            $environment,
+            ['bypass_shell' => true]
+        );
         if (!is_resource($process)) {
             throw new OpusConsoleException('OPUS_SERVE_PROCESS_START_FAILED');
         }

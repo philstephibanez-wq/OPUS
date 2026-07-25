@@ -7,7 +7,7 @@ use Opus\Console\Application\ApplicationCommandDispatcher;
 use Opus\Console\Application\ApplicationCommandDispatcherInterface;
 use Opus\Console\Service\SiteArchiveExporter;
 use Opus\Console\Service\SiteArchiveExporterInterface;
-use Opus\Console\Service\SiteCommandService;
+use Opus\Console\Service\LayeredSiteCommandService;
 use Opus\Console\Service\SiteCommandServiceInterface;
 use Opus\File\Json;
 
@@ -24,7 +24,7 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
     public static function fromRoot(string $opusRoot): self
     {
         return new self(
-            new SiteCommandService($opusRoot),
+            new LayeredSiteCommandService($opusRoot),
             new SiteArchiveExporter($opusRoot),
             ApplicationCommandDispatcher::fromRoot($opusRoot)
         );
@@ -242,16 +242,36 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
         if ($siteId === '') {
             throw new OpusConsoleException('OPUS_SERVE_SITE_ID_REQUIRED');
         }
+        $mode = strtolower(trim($this->option(
+            $arguments,
+            'mode',
+            ''
+        )));
+        if (!in_array($mode, ['front', 'back'], true)) {
+            throw new OpusConsoleException(
+                'OPUS_SERVE_RUNTIME_MODE_REQUIRED'
+            );
+        }
         $host = $this->option($arguments, 'host', '127.0.0.1');
-        $portRaw = $this->option($arguments, 'port', '8791');
+        $portRaw = $this->option(
+            $arguments,
+            'port',
+            $mode === 'front' ? '8000' : '8792'
+        );
         if (preg_match('/^[0-9]+$/', $portRaw) !== 1) {
             throw new OpusConsoleException('OPUS_SERVE_PORT_INVALID');
         }
         fwrite(
             STDOUT,
-            'OPUS_SERVE_URL:http://' . $host . ':' . $portRaw . '/' . PHP_EOL
+            'OPUS_SERVE_MODE:' . $mode . PHP_EOL
+            . 'OPUS_SERVE_URL:http://' . $host . ':' . $portRaw . '/' . PHP_EOL
         );
-        return $this->sites->serve($siteId, $host, (int) $portRaw);
+        return $this->sites->serve(
+            $siteId,
+            $host,
+            (int) $portRaw,
+            $mode
+        );
     }
 
     /** @param array<string,mixed> $request @param list<string> $allowedRoles */
