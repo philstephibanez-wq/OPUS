@@ -253,6 +253,7 @@ final class OwasysCreationController
                 'score_css' => $basePath . '/asset/css/owasys.css',
                 'theme_css' => $basePath . '/asset/themes/owasys/css/theme.css?v=p117q',
                 'language_css' => $basePath . '/asset/css/language-switcher.css',
+                'creation_css' => $basePath . '/asset/css/creation.css?v=p117u-hf9',
                 'password_js' => $basePath . '/asset/js/password-visibility.js',
             ],
             'urls' => [
