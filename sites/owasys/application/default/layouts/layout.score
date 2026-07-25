@@ -8,9 +8,6 @@
   <link rel="stylesheet" href="{{ assets.theme_css }}">
   <link rel="stylesheet" href="{{ assets.language_css }}">
   <link rel="stylesheet" href="{{ assets.fsm_css }}">
-  [[ if: assets.creation_css ]]
-    <link rel="stylesheet" href="{{ assets.creation_css }}">
-  [[ endif ]]
 </head>
 <body data-opus-application="owasys" data-opus-state="{{ fsm.state }}" data-opus-module="{{ fsm.module }}">
 <div class="ow-shell ow-shell-horizontal-navigation">

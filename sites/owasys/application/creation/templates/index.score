@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="{{ assets.creation_css }}">
+
 [[ if: creation.has_error ]]
   <section class="ow-card ow-error" role="alert">
     <h2>[[ i18n: creation.error.title ]]</h2>
