@@ -4,18 +4,35 @@ declare(strict_types=1);
 namespace Opus\Console\Application;
 
 use Opus\File\File;
+use Opus\File\FileInterface;
 use Opus\File\StructuredFileLoader;
+use Opus\File\StructuredFileLoaderInterface;
 
 /**
- * Discovers application-owned Composer command providers from each OPUS site.
+ * Resolve application-owned Composer commands without bootstrapping every site.
  *
- * Each application owns its provider configuration below sites/<site>/config.
- * OPUS only supplies the generic discovery and dispatch boundary.
+ * Registry metadata is read eagerly. A provider bootstrap is loaded only after
+ * one command resolves to exactly one provider. Framework commands therefore do
+ * not execute application bootstraps, and unrelated sites never share a process
+ * merely because the OPUS console starts.
  */
 final class ApplicationCommandDispatcher implements ApplicationCommandDispatcherInterface
 {
-    /** @var list<ApplicationCommandProviderInterface> */
-    private array $providers = [];
+    private const REGISTRY_CONTRACT =
+        'OPUS_APPLICATION_COMMAND_PROVIDER_REGISTRY_V1';
+
+    private readonly FileInterface $fileService;
+    private readonly StructuredFileLoaderInterface $structuredFileLoader;
+
+    /**
+     * @var list<array{
+     *     site_id:string,
+     *     site_root:string,
+     *     bootstrap:string,
+     *     commands:list<string>
+     * }>
+     */
+    private array $providerDescriptors = [];
 
     private function __construct(string $opusRoot)
     {
@@ -24,55 +41,13 @@ final class ApplicationCommandDispatcher implements ApplicationCommandDispatcher
             throw new \RuntimeException('OPUS_APPLICATION_COMMAND_ROOT_INVALID');
         }
 
-        $file = File::instance();
-        $loader = StructuredFileLoader::instance();
-        $registries = $file->matching(
+        $this->fileService = File::instance();
+        $this->structuredFileLoader = StructuredFileLoader::instance();
+
+        foreach ($this->fileService->matching(
             $root . '/sites/*/config/composer.commands.json'
-        );
-
-        foreach ($registries as $registryFile) {
-            $registry = $loader->read($registryFile);
-            if (($registry['contract'] ?? null)
-                !== 'OPUS_APPLICATION_COMMAND_PROVIDER_REGISTRY_V1') {
-                throw new \RuntimeException(
-                    'OPUS_APPLICATION_COMMAND_REGISTRY_CONTRACT_INVALID:'
-                    . $this->relative($root, $registryFile)
-                );
-            }
-
-            $siteRoot = dirname(dirname($registryFile));
-            $declaredSite = trim((string) ($registry['site_id'] ?? ''));
-            if ($declaredSite === '' || $declaredSite !== basename($siteRoot)) {
-                throw new \RuntimeException(
-                    'OPUS_APPLICATION_COMMAND_REGISTRY_SITE_INVALID:'
-                    . $this->relative($root, $registryFile)
-                );
-            }
-
-            foreach ((array) ($registry['providers'] ?? []) as $provider) {
-                if (!is_array($provider) || ($provider['enabled'] ?? false) !== true) {
-                    continue;
-                }
-                $bootstrap = $this->safeRelative(
-                    (string) ($provider['bootstrap'] ?? '')
-                );
-                $path = $siteRoot . '/' . $bootstrap;
-                if (!$file->exists($path)) {
-                    throw new \RuntimeException(
-                        'OPUS_APPLICATION_COMMAND_BOOTSTRAP_MISSING:'
-                        . $this->relative($root, $path)
-                    );
-                }
-
-                $instance = require $path;
-                if (!$instance instanceof ApplicationCommandProviderInterface) {
-                    throw new \RuntimeException(
-                        'OPUS_APPLICATION_COMMAND_PROVIDER_INVALID:'
-                        . $this->relative($root, $path)
-                    );
-                }
-                $this->providers[] = $instance;
-            }
+        ) as $registryFile) {
+            $this->registerDescriptors($root, $registryFile);
         }
     }
 
@@ -83,22 +58,12 @@ final class ApplicationCommandDispatcher implements ApplicationCommandDispatcher
 
     public function supports(string $command): bool
     {
-        foreach ($this->providers as $provider) {
-            if ($provider->supports($command)) {
-                return true;
-            }
-        }
-        return false;
+        return $this->matchingDescriptors($command) !== [];
     }
 
     public function execute(string $command, array $arguments, array $request): array
     {
-        $matches = array_values(array_filter(
-            $this->providers,
-            static fn (ApplicationCommandProviderInterface $provider): bool =>
-                $provider->supports($command)
-        ));
-
+        $matches = $this->matchingDescriptors($command);
         if ($matches === []) {
             throw new \RuntimeException(
                 'OPUS_APPLICATION_COMMAND_UNKNOWN:' . $command
@@ -110,7 +75,131 @@ final class ApplicationCommandDispatcher implements ApplicationCommandDispatcher
             );
         }
 
-        return $matches[0]->execute($command, $arguments, $request);
+        $provider = $this->loadProvider($matches[0]);
+        if (!$provider->supports($command)) {
+            throw new \RuntimeException(
+                'OPUS_APPLICATION_COMMAND_PROVIDER_CONTRACT_MISMATCH:'
+                . $command
+            );
+        }
+
+        return $provider->execute($command, $arguments, $request);
+    }
+
+    private function registerDescriptors(string $root, string $registryFile): void
+    {
+        $registry = $this->structuredFileLoader->read($registryFile);
+        if (($registry['contract'] ?? null) !== self::REGISTRY_CONTRACT) {
+            throw new \RuntimeException(
+                'OPUS_APPLICATION_COMMAND_REGISTRY_CONTRACT_INVALID:'
+                . $this->relative($root, $registryFile)
+            );
+        }
+
+        $siteRoot = dirname(dirname($registryFile));
+        $declaredSite = trim((string) ($registry['site_id'] ?? ''));
+        if ($declaredSite === '' || $declaredSite !== basename($siteRoot)) {
+            throw new \RuntimeException(
+                'OPUS_APPLICATION_COMMAND_REGISTRY_SITE_INVALID:'
+                . $this->relative($root, $registryFile)
+            );
+        }
+
+        foreach ((array) ($registry['providers'] ?? []) as $provider) {
+            if (!is_array($provider) || ($provider['enabled'] ?? false) !== true) {
+                continue;
+            }
+
+            $bootstrap = $this->safeRelative(
+                (string) ($provider['bootstrap'] ?? '')
+            );
+            $commands = $this->commands($provider['commands'] ?? null);
+            if ($commands === []) {
+                throw new \RuntimeException(
+                    'OPUS_APPLICATION_COMMAND_PROVIDER_COMMANDS_INVALID:'
+                    . $declaredSite
+                );
+            }
+
+            $this->providerDescriptors[] = [
+                'site_id' => $declaredSite,
+                'site_root' => $siteRoot,
+                'bootstrap' => $bootstrap,
+                'commands' => $commands,
+            ];
+        }
+    }
+
+    /**
+     * @return list<array{
+     *     site_id:string,
+     *     site_root:string,
+     *     bootstrap:string,
+     *     commands:list<string>
+     * }>
+     */
+    private function matchingDescriptors(string $command): array
+    {
+        return array_values(array_filter(
+            $this->providerDescriptors,
+            static fn (array $descriptor): bool => in_array(
+                $command,
+                $descriptor['commands'],
+                true
+            )
+        ));
+    }
+
+    /**
+     * @param array{
+     *     site_id:string,
+     *     site_root:string,
+     *     bootstrap:string,
+     *     commands:list<string>
+     * } $descriptor
+     */
+    private function loadProvider(
+        array $descriptor
+    ): ApplicationCommandProviderInterface {
+        $path = $descriptor['site_root'] . '/' . $descriptor['bootstrap'];
+        if (!$this->fileService->exists($path)) {
+            throw new \RuntimeException(
+                'OPUS_APPLICATION_COMMAND_BOOTSTRAP_MISSING:'
+                . $descriptor['site_id'] . '/' . $descriptor['bootstrap']
+            );
+        }
+
+        $instance = require $path;
+        if (!$instance instanceof ApplicationCommandProviderInterface) {
+            throw new \RuntimeException(
+                'OPUS_APPLICATION_COMMAND_PROVIDER_INVALID:'
+                . $descriptor['site_id'] . '/' . $descriptor['bootstrap']
+            );
+        }
+
+        return $instance;
+    }
+
+    /** @return list<string> */
+    private function commands(mixed $value): array
+    {
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $commands = [];
+        foreach ($value as $command) {
+            $candidate = trim((string) $command);
+            if ($candidate === ''
+                || preg_match('/^[a-z0-9][a-z0-9:_-]*$/', $candidate) !== 1) {
+                throw new \RuntimeException(
+                    'OPUS_APPLICATION_COMMAND_PROVIDER_COMMAND_INVALID'
+                );
+            }
+            $commands[] = $candidate;
+        }
+
+        return array_values(array_unique($commands));
     }
 
     private function safeRelative(string $path): string

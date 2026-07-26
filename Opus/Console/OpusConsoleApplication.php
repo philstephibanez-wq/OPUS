@@ -14,11 +14,21 @@ use Opus\File\Json;
 /** Public Composer-facing command application supplied by the OPUS framework. */
 final class OpusConsoleApplication implements OpusConsoleApplicationInterface
 {
+    private ?ApplicationCommandDispatcherInterface $applications;
+    private readonly string $opusRoot;
+
     public function __construct(
         private readonly SiteCommandServiceInterface $sites,
         private readonly SiteArchiveExporterInterface $exporter,
-        private readonly ApplicationCommandDispatcherInterface $applications
+        ?ApplicationCommandDispatcherInterface $applications = null,
+        string $opusRoot = ''
     ) {
+        $root = rtrim(str_replace('\\', '/', $opusRoot), '/');
+        if ($applications === null && ($root === '' || !is_dir($root))) {
+            throw new OpusConsoleException('OPUS_CONSOLE_ROOT_INVALID');
+        }
+        $this->applications = $applications;
+        $this->opusRoot = $root;
     }
 
     public static function fromRoot(string $opusRoot): self
@@ -26,7 +36,8 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
         return new self(
             new LayeredSiteCommandService($opusRoot),
             new SiteArchiveExporter($opusRoot),
-            ApplicationCommandDispatcher::fromRoot($opusRoot)
+            null,
+            $opusRoot
         );
     }
 
@@ -100,17 +111,30 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
         array $arguments,
         array $request
     ): array {
-        if (!$this->applications->supports($command)) {
+        $applications = $this->applicationDispatcher();
+        if (!$applications->supports($command)) {
             throw new OpusConsoleException(
                 'OPUS_CONSOLE_UNKNOWN_COMMAND:' . $command
             );
         }
 
-        return $this->applications->execute(
+        return $applications->execute(
             $command,
             $this->positionals($arguments),
             $request
         );
+    }
+
+
+    private function applicationDispatcher(): ApplicationCommandDispatcherInterface
+    {
+        if ($this->applications === null) {
+            $this->applications = ApplicationCommandDispatcher::fromRoot(
+                $this->opusRoot
+            );
+        }
+
+        return $this->applications;
     }
 
     /** @return array<string,mixed> */
