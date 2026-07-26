@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "pl",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Zmień hasło",
+    "auth.change_password_description": "Zastąp tymczasowe hasło runtime.",
+    "auth.confirm_new_password": "Potwierdź nowe hasło",
+    "auth.current_password": "Bieżące hasło",
+    "auth.error.current_password_invalid": "Bieżące hasło jest nieprawidłowe.",
+    "auth.error.password_mismatch": "Potwierdzenie hasła nie jest zgodne.",
+    "auth.error.password_too_short": "Nowe hasło jest zbyt krótkie.",
+    "auth.error.password_unchanged": "Nowe hasło musi różnić się od bieżącego hasła.",
+    "auth.error.runtime_user_missing": "Nie znaleziono użytkownika sesji wykonawczej.",
+    "auth.new_password": "Nowe hasło"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

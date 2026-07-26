@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "et",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Muuda parooli",
+    "auth.change_password_description": "Asenda ajutine runtime-parool.",
+    "auth.confirm_new_password": "Kinnita uus parool",
+    "auth.current_password": "Praegune parool",
+    "auth.error.current_password_invalid": "Praegune parool on vale.",
+    "auth.error.password_mismatch": "Parooli kinnitus ei ühti.",
+    "auth.error.password_too_short": "Uus parool on liiga lühike.",
+    "auth.error.password_unchanged": "Uus parool peab praegusest paroolist erinema.",
+    "auth.error.runtime_user_missing": "Käitusaegse seansi kasutajat ei leitud.",
+    "auth.new_password": "Uus parool"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

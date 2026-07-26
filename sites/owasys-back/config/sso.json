@@ -1,0 +1,22 @@
+{
+  "contract": "OPUS_SSO_CONFIGURATION_V1",
+  "default_provider": "auth0-proxy",
+  "providers": {
+    "auth0-proxy": {
+      "enabled": true,
+      "trusted_proxy_addresses": [
+        "127.0.0.1",
+        "::1"
+      ],
+      "proxy_secret_env": "OPUS_OWASYS_AUTH0_PROXY_SECRET"
+    },
+    "service-hmac": {
+      "enabled": true,
+      "token_env": "OPUS_OWASYS_BACKEND_TOKEN",
+      "hmac_env": "OPUS_OWASYS_BACKEND_HMAC"
+    }
+  },
+  "session": {
+    "identity_key": "owasys_back_identity"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "hu",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Jelszó módosítása",
+    "auth.change_password_description": "Az ideiglenes runtime jelszó lecserélése.",
+    "auth.confirm_new_password": "Új jelszó megerősítése",
+    "auth.current_password": "Jelenlegi jelszó",
+    "auth.error.current_password_invalid": "A jelenlegi jelszó érvénytelen.",
+    "auth.error.password_mismatch": "A jelszó megerősítése nem egyezik.",
+    "auth.error.password_too_short": "Az új jelszó túl rövid.",
+    "auth.error.password_unchanged": "Az új jelszónak különböznie kell a jelenlegitől.",
+    "auth.error.runtime_user_missing": "A futásidejű munkamenet felhasználója nem található.",
+    "auth.new_password": "Új jelszó"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

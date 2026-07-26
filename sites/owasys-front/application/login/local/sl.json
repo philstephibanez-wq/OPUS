@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "sl",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Neveljavno uporabniško ime ali geslo.",
+    "auth.error.required_credentials": "Uporabniško ime in geslo sta obvezna.",
+    "auth.password.hide": "Skrij geslo",
+    "auth.password.show": "Prikaži geslo",
+    "auth.password_field": "Geslo",
+    "auth.sign_in": "Prijava",
+    "auth.sign_in_description": "Odprite overjeno runtime sejo OWASYS.",
+    "auth.username": "Uporabniško ime"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

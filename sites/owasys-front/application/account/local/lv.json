@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "lv",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Mainīt paroli",
+    "auth.change_password_description": "Aizstāt pagaidu runtime paroli.",
+    "auth.confirm_new_password": "Apstiprināt jauno paroli",
+    "auth.current_password": "Pašreizējā parole",
+    "auth.error.current_password_invalid": "Pašreizējā parole nav derīga.",
+    "auth.error.password_mismatch": "Paroles apstiprinājums nesakrīt.",
+    "auth.error.password_too_short": "Jaunā parole ir pārāk īsa.",
+    "auth.error.password_unchanged": "Jaunajai parolei jāatšķiras no pašreizējās paroles.",
+    "auth.error.runtime_user_missing": "Izpildlaika sesijas lietotājs nav atrasts.",
+    "auth.new_password": "Jaunā parole"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "es",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Cambiar contraseña",
+    "auth.change_password_description": "Sustituir la contraseña runtime temporal.",
+    "auth.confirm_new_password": "Confirmar la nueva contraseña",
+    "auth.current_password": "Contraseña actual",
+    "auth.error.current_password_invalid": "La contraseña actual no es válida.",
+    "auth.error.password_mismatch": "La confirmación de la contraseña no coincide.",
+    "auth.error.password_too_short": "La nueva contraseña es demasiado corta.",
+    "auth.error.password_unchanged": "La nueva contraseña debe ser distinta de la actual.",
+    "auth.error.runtime_user_missing": "No se encontró el usuario de la sesión de ejecución.",
+    "auth.new_password": "Nueva contraseña"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

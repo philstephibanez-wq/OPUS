@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "pt",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Nome de utilizador ou palavra-passe inválidos.",
+    "auth.error.required_credentials": "O nome de utilizador e a palavra-passe são obrigatórios.",
+    "auth.password.hide": "Ocultar palavra-passe",
+    "auth.password.show": "Mostrar palavra-passe",
+    "auth.password_field": "Palavra-passe",
+    "auth.sign_in": "Iniciar sessão",
+    "auth.sign_in_description": "Abrir uma sessão runtime autenticada do OWASYS.",
+    "auth.username": "Nome de utilizador"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

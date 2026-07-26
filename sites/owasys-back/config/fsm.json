@@ -1,0 +1,81 @@
+{
+  "contract": "OWASYS_BACK_FSM_V1",
+  "name": "OWASYS backend execution FSM",
+  "source_of_truth": "config",
+  "initial_state": "api",
+  "states": [
+    {
+      "id": "api",
+      "module": "api",
+      "route": "api/v1/executions"
+    },
+    {
+      "id": "security",
+      "module": "security",
+      "route": "internal/security"
+    },
+    {
+      "id": "composer",
+      "module": "composer",
+      "route": "internal/composer"
+    }
+  ],
+  "events": [
+    {
+      "id": "receive"
+    },
+    {
+      "id": "authenticate"
+    },
+    {
+      "id": "authorize"
+    },
+    {
+      "id": "dispatch"
+    },
+    {
+      "id": "succeed"
+    },
+    {
+      "id": "fail"
+    }
+  ],
+  "transitions": [
+    {
+      "id": "t_receive",
+      "from": "*",
+      "event": "receive",
+      "to": "api"
+    },
+    {
+      "id": "t_authenticate",
+      "from": "api",
+      "event": "authenticate",
+      "to": "security"
+    },
+    {
+      "id": "t_authorize",
+      "from": "security",
+      "event": "authorize",
+      "to": "composer"
+    },
+    {
+      "id": "t_dispatch",
+      "from": "composer",
+      "event": "dispatch",
+      "to": "composer"
+    },
+    {
+      "id": "t_succeed",
+      "from": "composer",
+      "event": "succeed",
+      "to": "api"
+    },
+    {
+      "id": "t_fail",
+      "from": "*",
+      "event": "fail",
+      "to": "api"
+    }
+  ]
+}

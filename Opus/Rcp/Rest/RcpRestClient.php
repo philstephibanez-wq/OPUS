@@ -6,12 +6,7 @@ namespace Opus\Rcp\Rest;
 use Opus\File\Json;
 use Opus\File\StructuredFileLoader;
 
-/**
- * Generic server-side client for a secured OPUS REST/Composer backend.
- *
- * Secrets remain server-side. The complete JSON envelope is authenticated by
- * bearer and HMAC credentials configured through environment variables.
- */
+/** Secured server-side REST client for Composer-backed OPUS operations. */
 final class RcpRestClient implements RcpRestClientInterface
 {
     private function __construct(
@@ -26,15 +21,27 @@ final class RcpRestClient implements RcpRestClientInterface
     public static function fromConfig(string $configFile): self
     {
         $config = StructuredFileLoader::instance()->read($configFile);
-        if (($config['contract'] ?? null)
-            !== 'OPUS_RCP_REST_CLIENT_CONFIG_V1') {
+        $contract = (string) ($config['contract'] ?? '');
+        if (!in_array($contract, [
+            'OPUS_RCP_REST_CLIENT_CONFIG_V1',
+            'OPUS_RCP_REST_CLIENT_CONFIG_V2',
+        ], true)) {
             throw new \RuntimeException(
                 'OPUS_RCP_CLIENT_CONFIG_CONTRACT_INVALID'
             );
         }
 
-        $endpoint = trim((string) ($config['endpoint'] ?? ''));
+        $endpoint = $contract === 'OPUS_RCP_REST_CLIENT_CONFIG_V2'
+            ? self::environmentValue(
+                self::environmentName(
+                    (string) ($config['endpoint_env'] ?? ''),
+                    'OPUS_RCP_ENDPOINT_ENV_INVALID'
+                ),
+                'OPUS_RCP_ENDPOINT_NOT_CONFIGURED'
+            )
+            : trim((string) ($config['endpoint'] ?? ''));
         self::assertEndpoint($endpoint);
+
         $tokenEnvironment = self::environmentName(
             (string) ($config['token_env'] ?? ''),
             'OPUS_RCP_TOKEN_ENV_INVALID'
@@ -43,16 +50,13 @@ final class RcpRestClient implements RcpRestClientInterface
             (string) ($config['hmac_env'] ?? ''),
             'OPUS_RCP_HMAC_ENV_INVALID'
         );
-
         $timeout = (int) ($config['timeout_seconds'] ?? 0);
         $maximum = (int) ($config['max_response_bytes'] ?? 0);
         if ($timeout < 1 || $timeout > 600) {
             throw new \RuntimeException('OPUS_RCP_TIMEOUT_INVALID');
         }
         if ($maximum < 4096 || $maximum > 16777216) {
-            throw new \RuntimeException(
-                'OPUS_RCP_RESPONSE_LIMIT_INVALID'
-            );
+            throw new \RuntimeException('OPUS_RCP_RESPONSE_LIMIT_INVALID');
         }
 
         return new self(
@@ -72,12 +76,13 @@ final class RcpRestClient implements RcpRestClientInterface
         if (preg_match('/^[a-z][a-z0-9.-]*$/', $operation) !== 1) {
             throw new \RuntimeException('OPUS_RCP_OPERATION_INVALID');
         }
-
         $token = $this->secret($this->tokenEnvironment, 'TOKEN');
         $hmacSecret = $this->secret($this->hmacEnvironment, 'HMAC');
         $executionId = bin2hex(random_bytes(16));
+        $traceId = $this->traceId();
         $request = [
-            'contract' => 'OPUS_RCP_REST_EXECUTION_REQUEST_V1',
+            'contract' => 'OPUS_RCP_REST_EXECUTION_REQUEST_V2',
+            'trace_id' => $traceId,
             'execution_id' => $executionId,
             'operation' => $operation,
             'actor' => $this->actor($actor),
@@ -85,17 +90,14 @@ final class RcpRestClient implements RcpRestClientInterface
             'requested_at_utc' => gmdate('c'),
             'expires_at_utc' => gmdate('c', time() + 120),
         ];
-
         $encoded = Json::instance()->encode($request, false);
         $timestamp = (string) time();
-        $nonce = $executionId;
         $path = (string) (parse_url($this->endpoint, PHP_URL_PATH) ?: '/');
         $signature = hash_hmac(
             'sha256',
-            $this->canonical('POST', $path, $timestamp, $nonce, $encoded),
+            $this->canonical('POST', $path, $timestamp, $executionId, $encoded),
             $hmacSecret
         );
-
         $context = stream_context_create([
             'http' => [
                 'method' => 'POST',
@@ -104,8 +106,9 @@ final class RcpRestClient implements RcpRestClientInterface
                 'header' => implode("\r\n", [
                     'Authorization: Bearer ' . $token,
                     'X-Opus-Rcp-Timestamp: ' . $timestamp,
-                    'X-Opus-Rcp-Nonce: ' . $nonce,
+                    'X-Opus-Rcp-Nonce: ' . $executionId,
                     'X-Opus-Rcp-Signature: ' . $signature,
+                    'X-Opus-Trace-Id: ' . $traceId,
                     'Content-Type: application/json',
                     'Accept: application/json',
                     'Accept-Language: ' . $this->localeHeader(),
@@ -114,22 +117,18 @@ final class RcpRestClient implements RcpRestClientInterface
                 'content' => $encoded,
             ],
         ]);
-
         $stream = @fopen($this->endpoint, 'rb', false, $context);
         unset($token, $hmacSecret, $signature, $request, $parameters);
         if ($stream === false) {
             throw new \RuntimeException('OPUS_RCP_CONNECTION_FAILED');
         }
-
         try {
             $response = stream_get_contents(
                 $stream,
                 $this->maxResponseBytes + 1
             );
             if (!is_string($response)) {
-                throw new \RuntimeException(
-                    'OPUS_RCP_RESPONSE_READ_FAILED'
-                );
+                throw new \RuntimeException('OPUS_RCP_RESPONSE_READ_FAILED');
             }
             if (strlen($response) > $this->maxResponseBytes) {
                 throw new \RuntimeException(
@@ -147,13 +146,9 @@ final class RcpRestClient implements RcpRestClientInterface
         $status = self::httpStatus($headers);
         $contentType = self::headerValue($headers, 'content-type');
         $decoded = null;
-
         if (self::jsonContentType($contentType)) {
             try {
-                $decoded = Json::instance()->parse(
-                    $response,
-                    $this->endpoint
-                );
+                $decoded = Json::instance()->parse($response, $this->endpoint);
             } catch (\Throwable $cause) {
                 throw new \RuntimeException(
                     $status >= 400
@@ -164,15 +159,12 @@ final class RcpRestClient implements RcpRestClientInterface
                 );
             }
         }
-
         if ($status < 200 || $status >= 300) {
             $code = is_array($decoded)
                 ? trim((string) ($decoded['error_code'] ?? ''))
                 : '';
             if (preg_match('/^[A-Z0-9_:-]{3,240}$/', $code) === 1) {
-                throw new \RuntimeException(
-                    $this->withTraceId($code, $decoded)
-                );
+                throw new \RuntimeException($this->withTraceId($code, $decoded));
             }
             throw new \RuntimeException(
                 'OPUS_RCP_BACKEND_HTTP_ERROR:' . $status
@@ -190,27 +182,26 @@ final class RcpRestClient implements RcpRestClientInterface
             );
         }
         if (($decoded['execution_id'] ?? null) !== $executionId) {
-            throw new \RuntimeException(
-                'OPUS_RCP_EXECUTION_ID_MISMATCH'
-            );
+            throw new \RuntimeException('OPUS_RCP_EXECUTION_ID_MISMATCH');
+        }
+        if (($decoded['trace_id'] ?? null) !== $traceId) {
+            throw new \RuntimeException('OPUS_RCP_TRACE_ID_MISMATCH');
         }
         if (($decoded['status'] ?? null) !== 'succeeded') {
             $code = trim((string) (
                 $decoded['error_code'] ?? 'OPUS_RCP_COMMAND_FAILED'
             ));
-            $safeCode = preg_match('/^[A-Z0-9_:-]{3,240}$/', $code) === 1
-                ? $code
-                : 'OPUS_RCP_COMMAND_FAILED';
-            throw new \RuntimeException(
-                $this->withTraceId($safeCode, $decoded)
-            );
+            throw new \RuntimeException($this->withTraceId(
+                preg_match('/^[A-Z0-9_:-]{3,240}$/', $code) === 1
+                    ? $code
+                    : 'OPUS_RCP_COMMAND_FAILED',
+                $decoded
+            ));
         }
-
         return is_array($decoded['result'] ?? null)
             ? $decoded['result']
             : ['value' => $decoded['result'] ?? null];
     }
-
 
     /** @param array<string,mixed>|null $payload */
     private function withTraceId(string $code, ?array $payload): string
@@ -218,20 +209,17 @@ final class RcpRestClient implements RcpRestClientInterface
         $traceId = is_array($payload)
             ? trim((string) ($payload['trace_id'] ?? ''))
             : '';
-        if (preg_match('/^[a-f0-9]{16,64}$/', $traceId) !== 1) {
-            return $code;
-        }
-        return $code . ':TRACE:' . strtoupper($traceId);
+        return preg_match('/^[a-f0-9]{16,64}$/', $traceId) === 1
+            ? $code . ':TRACE:' . strtoupper($traceId)
+            : $code;
     }
 
     /** @param list<string> $headers */
     private static function httpStatus(array $headers): int
     {
         foreach ($headers as $header) {
-            if (!is_string($header)) {
-                continue;
-            }
-            if (preg_match('/^HTTP\/\S+\s+(\d{3})(?:\s|$)/i', $header, $match) === 1) {
+            if (is_string($header)
+                && preg_match('/^HTTP\/\S+\s+(\d{3})(?:\s|$)/i', $header, $match) === 1) {
                 return (int) $match[1];
             }
         }
@@ -243,10 +231,8 @@ final class RcpRestClient implements RcpRestClientInterface
     {
         $prefix = strtolower($name) . ':';
         foreach ($headers as $header) {
-            if (!is_string($header)) {
-                continue;
-            }
-            if (str_starts_with(strtolower($header), $prefix)) {
+            if (is_string($header)
+                && str_starts_with(strtolower($header), $prefix)) {
                 return trim(substr($header, strlen($prefix)));
             }
         }
@@ -265,10 +251,7 @@ final class RcpRestClient implements RcpRestClientInterface
     {
         $subject = trim((string) ($actor['subject'] ?? $actor['id'] ?? ''));
         $roles = is_array($actor['roles'] ?? null)
-            ? array_values(array_unique(array_filter(
-                $actor['roles'],
-                'is_string'
-            )))
+            ? array_values(array_unique(array_filter($actor['roles'], 'is_string')))
             : [];
         $provider = trim((string) ($actor['provider'] ?? ''));
         if ($subject === '' || $roles === [] || $provider === '') {
@@ -292,6 +275,16 @@ final class RcpRestClient implements RcpRestClientInterface
         return $secret;
     }
 
+    private function traceId(): string
+    {
+        $traceId = getenv('OPUS_TRACE_ID');
+        if (is_string($traceId)
+            && preg_match('/^[a-f0-9]{16,64}$/', $traceId) === 1) {
+            return $traceId;
+        }
+        return bin2hex(random_bytes(16));
+    }
+
     private function canonical(
         string $method,
         string $path,
@@ -313,15 +306,22 @@ final class RcpRestClient implements RcpRestClientInterface
             : 'fr-FR';
     }
 
-    private static function environmentName(
-        string $value,
-        string $error
-    ): string {
+    private static function environmentName(string $value, string $error): string
+    {
         $value = trim($value);
         if (preg_match('/^[A-Z][A-Z0-9_]{2,127}$/', $value) !== 1) {
             throw new \RuntimeException($error);
         }
         return $value;
+    }
+
+    private static function environmentValue(string $name, string $error): string
+    {
+        $value = getenv($name);
+        if (!is_string($value) || trim($value) === '') {
+            throw new \RuntimeException($error . ':' . $name);
+        }
+        return trim($value);
     }
 
     private static function assertEndpoint(string $endpoint): void
@@ -333,12 +333,7 @@ final class RcpRestClient implements RcpRestClientInterface
         $scheme = strtolower((string) ($parts['scheme'] ?? ''));
         $host = strtolower((string) ($parts['host'] ?? ''));
         $path = (string) ($parts['path'] ?? '');
-        $local = in_array(
-            $host,
-            ['127.0.0.1', 'localhost', '::1'],
-            true
-        );
-
+        $local = in_array($host, ['127.0.0.1', 'localhost', '::1'], true);
         if (!in_array($scheme, ['https', 'http'], true)
             || ($scheme === 'http' && !$local)
             || $path === ''

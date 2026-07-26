@@ -48,6 +48,12 @@ interface SiteCommandServiceInterface extends
         bool $write
     ): array;
 
+    public function devServer(
+        string $applicationId,
+        string $host,
+        int $port
+    ): int;
+
     public function serve(
         string $siteId,
         string $host,

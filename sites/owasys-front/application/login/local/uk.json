@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "uk",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Неправильне ім’я користувача або пароль.",
+    "auth.error.required_credentials": "Ім’я користувача та пароль є обов’язковими.",
+    "auth.password.hide": "Приховати пароль",
+    "auth.password.show": "Показати пароль",
+    "auth.password_field": "Пароль",
+    "auth.sign_in": "Увійти",
+    "auth.sign_in_description": "Відкрити автентифікований runtime-сеанс OWASYS.",
+    "auth.username": "Ім’я користувача"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

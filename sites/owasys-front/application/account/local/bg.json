@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "bg",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Смяна на паролата",
+    "auth.change_password_description": "Замяна на временната runtime парола.",
+    "auth.confirm_new_password": "Потвърдете новата парола",
+    "auth.current_password": "Текуща парола",
+    "auth.error.current_password_invalid": "Текущата парола е невалидна.",
+    "auth.error.password_mismatch": "Потвърждението на паролата не съвпада.",
+    "auth.error.password_too_short": "Новата парола е твърде кратка.",
+    "auth.error.password_unchanged": "Новата парола трябва да се различава от текущата.",
+    "auth.error.runtime_user_missing": "Потребителят за runtime сесията не е намерен.",
+    "auth.new_password": "Нова парола"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

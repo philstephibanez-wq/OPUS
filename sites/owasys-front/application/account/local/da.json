@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "da",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Skift adgangskode",
+    "auth.change_password_description": "Erstat den midlertidige runtime-adgangskode.",
+    "auth.confirm_new_password": "Bekræft den nye adgangskode",
+    "auth.current_password": "Nuværende adgangskode",
+    "auth.error.current_password_invalid": "Den nuværende adgangskode er ugyldig.",
+    "auth.error.password_mismatch": "Bekræftelsen af adgangskoden stemmer ikke overens.",
+    "auth.error.password_too_short": "Den nye adgangskode er for kort.",
+    "auth.error.password_unchanged": "Den nye adgangskode skal være forskellig fra den nuværende.",
+    "auth.error.runtime_user_missing": "Brugeren til runtime-sessionen blev ikke fundet.",
+    "auth.new_password": "Ny adgangskode"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

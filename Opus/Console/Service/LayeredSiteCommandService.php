@@ -467,6 +467,18 @@ final class LayeredSiteCommandService implements
         );
     }
 
+    public function devServer(
+        string $applicationId,
+        string $host,
+        int $port
+    ): int {
+        return $this->legacy->devServer(
+            $applicationId,
+            $host,
+            $port
+        );
+    }
+
     public function serve(
         string $siteId,
         string $host,

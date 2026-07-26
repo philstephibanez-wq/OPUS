@@ -1,0 +1,4 @@
+<section class="opus-runtime-error" aria-labelledby="runtime-error-title">
+  <h1 id="runtime-error-title">{{ error.code }}</h1>
+  <p>Trace : <code>{{ error.trace_id }}</code></p>
+</section>

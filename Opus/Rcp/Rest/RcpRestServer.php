@@ -21,13 +21,7 @@ use Opus\Rcp\Security\RcpIdentityInterface;
 use Opus\Rcp\Security\RcpRequestAuthenticator;
 use Opus\Rcp\Security\RcpRequestAuthenticatorInterface;
 
-/**
- * Generic secured REST boundary for typed Composer-backed OPUS operations.
- *
- * Clients supply only an operation identifier and typed parameters. Executable
- * paths, Composer script names, working directories and shell fragments are
- * resolved exclusively from trusted configuration.
- */
+/** Secured REST boundary for typed Composer-backed OPUS operations. */
 final class RcpRestServer implements RcpRestServerInterface
 {
     /** @param array<string,mixed> $config */
@@ -42,69 +36,45 @@ final class RcpRestServer implements RcpRestServerInterface
     ) {
     }
 
-    public static function fromRoot(
-        string $opusRoot,
-        string $configRelative
-    ): self {
+    public static function fromRoot(string $opusRoot, string $configRelative): self
+    {
         $root = rtrim(str_replace('\\', '/', $opusRoot), '/');
         if ($root === '' || !is_dir($root)) {
             throw new \RuntimeException('OPUS_RCP_ROOT_INVALID');
         }
-
         $loader = StructuredFileLoader::instance();
-        $config = $loader->read(
-            $root . '/' . self::safeRelative($configRelative)
-        );
-        if (($config['contract'] ?? null)
-            !== 'OPUS_RCP_REST_SERVER_CONFIG_V2') {
-            throw new \RuntimeException(
-                'OPUS_RCP_REST_CONFIG_CONTRACT_INVALID'
-            );
+        $config = $loader->read($root . '/' . self::safeRelative($configRelative));
+        if (($config['contract'] ?? null) !== 'OPUS_RCP_REST_SERVER_CONFIG_V2') {
+            throw new \RuntimeException('OPUS_RCP_REST_CONFIG_CONTRACT_INVALID');
         }
-
-        $catalogRelative = self::safeRelative(
-            (string) ($config['operation_catalog'] ?? '')
-        );
-        $storeRelative = self::safeRelative(
-            (string) ($config['execution_store'] ?? '')
-        );
+        $catalog = self::safeRelative((string) ($config['operation_catalog'] ?? ''));
+        $store = self::safeRelative((string) ($config['execution_store'] ?? ''));
         $diagnostics = is_array($config['diagnostics'] ?? null)
-            ? $config['diagnostics']
-            : [];
-        $logRelative = self::safeRelative(
-            (string) ($diagnostics['log_directory'] ?? '')
-        );
-        $profilerRelative = self::safeRelative(
-            (string) ($diagnostics['profiler_directory'] ?? '')
-        );
+            ? $config['diagnostics'] : [];
+        $logDirectory = self::safeRelative((string) ($diagnostics['log_directory'] ?? ''));
+        $profilerDirectory = self::safeRelative((string) ($diagnostics['profiler_directory'] ?? ''));
         $logFile = trim((string) ($diagnostics['log_file'] ?? ''));
         if (preg_match('/^[A-Za-z0-9._-]+\.log$/', $logFile) !== 1) {
-            throw new \RuntimeException(
-                'OPUS_RCP_DIAGNOSTIC_LOG_FILE_INVALID'
-            );
+            throw new \RuntimeException('OPUS_RCP_DIAGNOSTIC_LOG_FILE_INVALID');
         }
-
-        $logger = new Logger($root . '/' . $logRelative, $logFile);
-        $profiler = new Profiler($root . '/' . $profilerRelative);
-        $executor = new ComposerCommandExecutor(
-            $root,
-            self::composerCommand($root, $config),
-            (int) ($config['timeout_seconds'] ?? 120),
-            (int) ($config['max_output_bytes'] ?? 2097152),
-            $logger,
-            $profiler
-        );
-
+        $logger = new Logger($root . '/' . $logDirectory, $logFile);
+        $profiler = new Profiler($root . '/' . $profilerDirectory);
         return new self(
             $config,
-            ComposerCommandRegistry::fromRoot($root, $catalogRelative),
-            $executor,
+            ComposerCommandRegistry::fromRoot($root, $catalog),
+            new ComposerCommandExecutor(
+                $root,
+                self::composerCommand($root, $config),
+                (int) ($config['timeout_seconds'] ?? 120),
+                (int) ($config['max_output_bytes'] ?? 2097152),
+                $logger,
+                $profiler
+            ),
             new RcpRequestAuthenticator(
                 is_array($config['authentication'] ?? null)
-                    ? $config['authentication']
-                    : []
+                    ? $config['authentication'] : []
             ),
-            new RcpExecutionStore($root . '/' . $storeRelative),
+            new RcpExecutionStore($root . '/' . $store),
             $logger,
             $profiler
         );
@@ -113,12 +83,8 @@ final class RcpRestServer implements RcpRestServerInterface
     public function handle(Request $request): Response
     {
         $path = '/' . trim($request->path, '/');
-        $base = '/' . trim(
-            (string) ($this->config['base_path'] ?? '/api/v1'),
-            '/'
-        );
+        $base = '/' . trim((string) ($this->config['base_path'] ?? '/api/v1'), '/');
         $locale = $this->locale();
-
         if ($request->method === 'GET' && $path === $base . '/status') {
             return Response::json([
                 'contract' => 'OPUS_RCP_REST_STATUS_V1',
@@ -128,38 +94,33 @@ final class RcpRestServer implements RcpRestServerInterface
                 'locale' => $locale,
             ]);
         }
-
-        if ($request->method !== 'POST'
-            || $path !== $base . '/executions') {
-            return $this->errorCode(
-                'OPUS_RCP_REST_ROUTE_NOT_FOUND',
-                404,
-                $locale
-            );
+        if ($request->method !== 'POST' || $path !== $base . '/executions') {
+            return $this->errorCode('OPUS_RCP_REST_ROUTE_NOT_FOUND', 404, $locale);
         }
-
         return $this->execute($request, $locale);
     }
 
     private function execute(Request $request, string $locale): Response
     {
+        $incomingTraceId = trim((string) (
+            $_SERVER['HTTP_X_OPUS_TRACE_ID'] ?? ''
+        ));
+        $traceId = preg_match('/^[a-f0-9]{16,64}$/', $incomingTraceId) === 1
+            ? $incomingTraceId
+            : bin2hex(random_bytes(16));
         $fsmConfig = is_array($this->config['fsm'] ?? null)
             ? $this->config['fsm']
             : [];
-        $transitions = is_array($fsmConfig['transitions'] ?? null)
-            ? $fsmConfig['transitions']
-            : [];
         $fsm = new RcpExecutionStateMachine(
             (string) ($fsmConfig['initial_state'] ?? 'received'),
-            $transitions
+            is_array($fsmConfig['transitions'] ?? null)
+                ? $fsmConfig['transitions']
+                : []
         );
-
-        $trace = $this->profiler->start();
-        $traceId = $trace->getTraceId();
+        $this->profiler->start($traceId);
         $executionId = '';
         $operation = '';
         $terminalStatus = 'failed';
-
         $this->logger->info('rcp.rest', 'execution.received', [
             'method' => $request->method,
             'path' => $request->path,
@@ -171,11 +132,27 @@ final class RcpRestServer implements RcpRestServerInterface
 
         try {
             $payload = $request->jsonBody();
-            if (($payload['contract'] ?? null)
-                !== 'OPUS_RCP_REST_EXECUTION_REQUEST_V1') {
+            $contract = (string) ($payload['contract'] ?? '');
+            if (!in_array($contract, [
+                'OPUS_RCP_REST_EXECUTION_REQUEST_V1',
+                'OPUS_RCP_REST_EXECUTION_REQUEST_V2',
+            ], true)) {
                 throw new \RuntimeException(
                     'OPUS_RCP_REQUEST_CONTRACT_INVALID'
                 );
+            }
+            $payloadTraceId = trim((string) ($payload['trace_id'] ?? ''));
+            if ($contract === 'OPUS_RCP_REST_EXECUTION_REQUEST_V2') {
+                if (preg_match('/^[a-f0-9]{16,64}$/', $payloadTraceId) !== 1) {
+                    throw new \RuntimeException(
+                        'OPUS_RCP_TRACE_ID_INVALID'
+                    );
+                }
+                if ($payloadTraceId !== $traceId) {
+                    throw new \RuntimeException(
+                        'OPUS_RCP_TRACE_ID_MISMATCH'
+                    );
+                }
             }
 
             $executionId = trim((string) (
@@ -183,7 +160,6 @@ final class RcpRestServer implements RcpRestServerInterface
             ));
             $operation = trim((string) ($payload['operation'] ?? ''));
             $parameters = $payload['parameters'] ?? null;
-
             if (preg_match('/^[a-f0-9]{32}$/', $executionId) !== 1) {
                 throw new \RuntimeException(
                     'OPUS_RCP_EXECUTION_ID_INVALID'
@@ -192,22 +168,9 @@ final class RcpRestServer implements RcpRestServerInterface
             if (!is_array($parameters)) {
                 throw new \RuntimeException('OPUS_RCP_PARAMETERS_INVALID');
             }
-
-            $this->logger->info('rcp.rest', 'execution.validated', [
-                'execution_id' => $executionId,
-                'operation' => $operation,
-                'parameter_count' => count($parameters),
-            ], $traceId);
-            $this->profiler->event('rcp.rest', 'execution.validated', [
-                'execution_id' => $executionId,
-                'operation' => $operation,
-                'parameter_count' => count($parameters),
-            ]);
-
-            $expiresAt = trim((string) (
+            $expiry = strtotime(trim((string) (
                 $payload['expires_at_utc'] ?? ''
-            ));
-            $expiry = strtotime($expiresAt);
+            )));
             if ($expiry === false
                 || $expiry < time()
                 || $expiry > time() + 300) {
@@ -223,10 +186,11 @@ final class RcpRestServer implements RcpRestServerInterface
                 $_SERVER
             );
             $fsm->transition('authenticated');
-            $identityData = $identity->toArray();
             $this->profiler->event('rcp.fsm', 'authenticated', [
                 'execution_id' => $executionId,
-                'provider' => (string) ($identityData['provider'] ?? ''),
+                'provider' => (string) (
+                    $identity->toArray()['provider'] ?? ''
+                ),
                 'role_count' => count($identity->roles()),
             ]);
 
@@ -244,13 +208,13 @@ final class RcpRestServer implements RcpRestServerInterface
             );
             $commandRequest = [
                 'contract' => 'OPUS_RCP_COMPOSER_COMMAND_REQUEST_V1',
+                'trace_id' => $traceId,
                 'execution_id' => $executionId,
                 'operation' => $operation,
                 'actor' => $identity->toArray(),
                 'parameters' => $parameters,
                 'requested_at_utc' => gmdate('c'),
             ];
-
             $fsm->transition('dispatching');
             $this->profiler->event('rcp.fsm', 'dispatching', [
                 'execution_id' => $executionId,
@@ -293,8 +257,12 @@ final class RcpRestServer implements RcpRestServerInterface
                 'operation' => $operation,
                 'fsm_state' => $fsm->state(),
             ], $traceId);
+            $this->profiler->event('rcp.rest', 'execution.succeeded', [
+                'execution_id' => $executionId,
+                'operation' => $operation,
+                'fsm_state' => $fsm->state(),
+            ]);
             unset($parameters, $commandRequest, $commandResult);
-
             return Response::json($record, 201);
         } catch (\Throwable $error) {
             try {
@@ -303,25 +271,7 @@ final class RcpRestServer implements RcpRestServerInterface
                 }
             } catch (\Throwable) {
             }
-
             $code = $this->safeErrorCode($error);
-            $this->logger->error('rcp.rest', 'execution.failed', [
-                'execution_id' => $executionId,
-                'operation' => $operation,
-                'error_code' => $code,
-                'exception_class' => $error::class,
-                'exception_file' => $error->getFile(),
-                'exception_line' => $error->getLine(),
-                'fsm_state' => $fsm->state(),
-            ], $traceId);
-            $this->profiler->event('rcp.rest', 'execution.failed', [
-                'execution_id' => $executionId,
-                'operation' => $operation,
-                'error_code' => $code,
-                'exception_class' => $error::class,
-                'fsm_state' => $fsm->state(),
-            ]);
-
             $record = [
                 'contract' => 'OPUS_RCP_REST_EXECUTION_V1',
                 'trace_id' => $traceId,
@@ -337,12 +287,25 @@ final class RcpRestServer implements RcpRestServerInterface
                 ],
                 'completed_at_utc' => gmdate('c'),
             ];
-
+            $this->logger->error('rcp.rest', 'execution.failed', [
+                'execution_id' => $executionId,
+                'operation' => $operation,
+                'error_code' => $code,
+                'exception_class' => $error::class,
+                'exception_file' => $error->getFile(),
+                'exception_line' => $error->getLine(),
+                'fsm_state' => $fsm->state(),
+            ], $traceId);
+            $this->profiler->event('rcp.rest', 'execution.failed', [
+                'execution_id' => $executionId,
+                'operation' => $operation,
+                'error_code' => $code,
+                'fsm_state' => $fsm->state(),
+            ]);
             if (preg_match('/^[a-f0-9]{32}$/', $executionId) === 1
                 && !$this->store->exists($executionId)) {
                 $this->store->write($executionId, $record);
             }
-
             $status = match (true) {
                 str_contains($code, 'AUTH') => 401,
                 str_contains($code, 'ACL') => 403,
@@ -350,7 +313,6 @@ final class RcpRestServer implements RcpRestServerInterface
                 str_contains($code, 'REPLAY') => 409,
                 default => 400,
             };
-
             return Response::json($record, $status);
         } finally {
             $this->profiler->stop([
@@ -365,15 +327,11 @@ final class RcpRestServer implements RcpRestServerInterface
     }
 
     /** @param array<string,mixed> $entry */
-    private function assertAuthorized(
-        RcpIdentityInterface $identity,
-        array $entry
-    ): void {
+    private function assertAuthorized(RcpIdentityInterface $identity, array $entry): void
+    {
         $required = is_array($entry['roles'] ?? null)
-            ? array_values(array_filter($entry['roles'], 'is_string'))
-            : [];
-        if ($required === []
-            || array_intersect($required, $identity->roles()) === []) {
+            ? array_values(array_filter($entry['roles'], 'is_string')) : [];
+        if ($required === [] || array_intersect($required, $identity->roles()) === []) {
             throw new \RuntimeException('OPUS_RCP_ACL_DENIED');
         }
     }
@@ -381,33 +339,18 @@ final class RcpRestServer implements RcpRestServerInterface
     private function locale(): string
     {
         $supported = is_array($this->config['supported_locales'] ?? null)
-            ? array_values(array_filter(
-                $this->config['supported_locales'],
-                'is_string'
-            ))
-            : [];
-        $default = trim((string) (
-            $this->config['default_locale'] ?? ''
-        ));
+            ? array_values(array_filter($this->config['supported_locales'], 'is_string')) : [];
+        $default = trim((string) ($this->config['default_locale'] ?? ''));
         if ($supported === [] || $default === '') {
-            throw new \RuntimeException(
-                'OPUS_RCP_LOCALE_CONFIG_INVALID'
-            );
+            throw new \RuntimeException('OPUS_RCP_LOCALE_CONFIG_INVALID');
         }
-
         return BrowserLocaleNegotiator::forLocales($supported, $default)
-            ->negotiate(
-                is_string($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? null)
-                    ? $_SERVER['HTTP_ACCEPT_LANGUAGE']
-                    : null
-            )->value;
+            ->negotiate(is_string($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? null)
+                ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : null)->value;
     }
 
-    private function errorCode(
-        string $code,
-        int $status,
-        string $locale
-    ): Response {
+    private function errorCode(string $code, int $status, string $locale): Response
+    {
         return Response::json([
             'contract' => 'OPUS_RCP_REST_ERROR_V1',
             'status' => 'failed',
@@ -421,8 +364,7 @@ final class RcpRestServer implements RcpRestServerInterface
     {
         $message = trim($error->getMessage());
         return preg_match('/^[A-Z0-9_:-]{3,240}$/', $message) === 1
-            ? $message
-            : 'OPUS_RCP_EXECUTION_FAILED';
+            ? $message : 'OPUS_RCP_EXECUTION_FAILED';
     }
 
     /** @param array<string,mixed> $config @return list<string> */
@@ -478,7 +420,6 @@ final class RcpRestServer implements RcpRestServerInterface
             }
             $resolved[] = $part;
         }
-
         return $resolved;
     }
 
@@ -496,13 +437,15 @@ final class RcpRestServer implements RcpRestServerInterface
             }
             $candidates[] = $explicit;
         }
-
         $candidates[] = $root . '/composer.phar';
 
         $path = getenv('PATH');
         if (is_string($path) && $path !== '') {
             foreach (explode(PATH_SEPARATOR, $path) as $directory) {
-                $directory = trim($directory, " \t\n\r\0\x0B\"");
+                $directory = trim(
+                    $directory,
+                    " \t\n\r\0\x0B\""
+                );
                 if ($directory !== '') {
                     $candidates[] = rtrim($directory, '/\\')
                         . '/composer.phar';
@@ -510,13 +453,12 @@ final class RcpRestServer implements RcpRestServerInterface
             }
         }
 
-        $knownRoots = [
+        foreach ([
             getenv('ProgramData'),
             getenv('APPDATA'),
             getenv('LOCALAPPDATA'),
             getenv('USERPROFILE'),
-        ];
-        foreach ($knownRoots as $knownRoot) {
+        ] as $knownRoot) {
             if (!is_string($knownRoot) || trim($knownRoot) === '') {
                 continue;
             }
@@ -538,14 +480,11 @@ final class RcpRestServer implements RcpRestServerInterface
                 continue;
             }
             $seen[$signature] = true;
-            if (!self::absolutePath($candidate)) {
-                continue;
-            }
-            if (File::instance()->exists($candidate) && is_file($candidate)) {
+            if (self::absolutePath($candidate)
+                && File::instance()->exists($candidate)) {
                 return [PHP_BINARY, $candidate];
             }
         }
-
         throw new \RuntimeException('OPUS_RCP_COMPOSER_NOT_FOUND');
     }
 
@@ -559,8 +498,7 @@ final class RcpRestServer implements RcpRestServerInterface
     private static function safeRelative(string $path): string
     {
         $path = trim(str_replace('\\', '/', $path), '/');
-        if ($path === ''
-            || str_contains($path, '..')
+        if ($path === '' || str_contains($path, '..')
             || preg_match('/^[A-Za-z]:\//', $path) === 1) {
             throw new \RuntimeException('OPUS_RCP_CONFIG_PATH_INVALID');
         }

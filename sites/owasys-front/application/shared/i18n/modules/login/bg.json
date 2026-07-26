@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "bg",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Невалидно потребителско име или парола.",
+    "auth.error.required_credentials": "Потребителското име и паролата са задължителни.",
+    "auth.password.hide": "Скриване на паролата",
+    "auth.password.show": "Показване на паролата",
+    "auth.password_field": "Парола",
+    "auth.sign_in": "Вход",
+    "auth.sign_in_description": "Отваряне на удостоверена runtime сесия на OWASYS.",
+    "auth.username": "Потребителско име"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

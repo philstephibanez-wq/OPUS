@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "fi",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Vaihda salasana",
+    "auth.change_password_description": "Korvaa väliaikainen runtime-salasana.",
+    "auth.confirm_new_password": "Vahvista uusi salasana",
+    "auth.current_password": "Nykyinen salasana",
+    "auth.error.current_password_invalid": "Nykyinen salasana on virheellinen.",
+    "auth.error.password_mismatch": "Salasanan vahvistus ei täsmää.",
+    "auth.error.password_too_short": "Uusi salasana on liian lyhyt.",
+    "auth.error.password_unchanged": "Uuden salasanan on oltava eri kuin nykyinen salasana.",
+    "auth.error.runtime_user_missing": "Ajonaikaisen istunnon käyttäjää ei löytynyt.",
+    "auth.new_password": "Uusi salasana"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

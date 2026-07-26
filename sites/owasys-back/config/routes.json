@@ -1,0 +1,10 @@
+{
+  "contract": "OPUS_SIGNAL_ROUTES_V2",
+  "rule": "Backend exposes secured API signals only.",
+  "system_routes": {
+    "api/v1/status": "status"
+  },
+  "routes": {
+    "api/v1/executions": "execute"
+  }
+}

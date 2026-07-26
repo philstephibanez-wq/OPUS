@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "cs",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Neplatné uživatelské jméno nebo heslo.",
+    "auth.error.required_credentials": "Uživatelské jméno a heslo jsou povinné.",
+    "auth.password.hide": "Skrýt heslo",
+    "auth.password.show": "Zobrazit heslo",
+    "auth.password_field": "Heslo",
+    "auth.sign_in": "Přihlášení",
+    "auth.sign_in_description": "Otevřít ověřenou runtime relaci OWASYS.",
+    "auth.username": "Uživatelské jméno"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

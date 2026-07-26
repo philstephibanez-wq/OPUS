@@ -1,0 +1,30 @@
+{
+  "contract": "OWASYS_DISTRIBUTION_V1",
+  "product": "OWASYS",
+  "role": "opus-user-deliverable",
+  "portable": true,
+  "supported_operating_system_families": [
+    "windows",
+    "linux"
+  ],
+  "installation_root": "runtime-resolved",
+  "machine_specific_paths_allowed": false,
+  "local_stack_dependency_allowed": false,
+  "environment_contract": {
+    "variable": "OPUS_ENV",
+    "development_values": [
+      "dev",
+      "local",
+      "development"
+    ],
+    "production_value": "prod",
+    "machine_identity_is_environment": false
+  },
+  "generated_application_contract": {
+    "portable": true,
+    "relative_paths_only": true,
+    "profiler_mandatory": true,
+    "profiler_development_only": true,
+    "profiler_production_available": false
+  }
+}

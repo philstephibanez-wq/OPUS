@@ -61,6 +61,7 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
                 'list:routes' => $this->listRoutes($arguments, $request),
                 'create:page' => $this->createPage($arguments, $request),
                 'create:rubric' => $this->createRubric($arguments, $request),
+                'dev:server' => $this->devServer($arguments, $request),
                 'serve:site' => $this->serve($arguments, $request),
                 default => $this->applicationCommand(
                     $command,
@@ -231,6 +232,46 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
             (string) $positionals[2],
             $this->option($arguments, 'title', ''),
             $this->flag($arguments, 'write')
+        );
+    }
+
+    /** @param list<string> $arguments @param array<string,mixed> $request */
+    private function devServer(array $arguments, array $request): int
+    {
+        $this->assertRcpActor($request, ['admin', 'developer']);
+        $applicationId = (string) (
+            $this->positionals($arguments)[0] ?? ''
+        );
+        if ($applicationId === '') {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_APPLICATION_ID_REQUIRED'
+            );
+        }
+
+        $host = trim($this->option($arguments, 'host', ''));
+        if ($host === '') {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_HOST_REQUIRED'
+            );
+        }
+        $portRaw = trim($this->option($arguments, 'port', ''));
+        if ($portRaw === '' || preg_match('/^[0-9]+$/', $portRaw) !== 1) {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_PORT_REQUIRED'
+            );
+        }
+
+        fwrite(
+            STDOUT,
+            'OPUS_DEV_SERVER_APPLICATION:' . $applicationId . PHP_EOL
+            . 'OPUS_DEV_SERVER_URL:http://' . $host . ':' . $portRaw . '/'
+            . PHP_EOL
+        );
+
+        return $this->sites->devServer(
+            $applicationId,
+            $host,
+            (int) $portRaw
         );
     }
 
@@ -406,7 +447,8 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
             'composer opus:create-page -- <site> <module> <page> <path> [--title=...] [--write]',
             'composer opus:create-rubric -- <site> <module> <path> [--title=...] [--write]',
             'composer opus:export-site -- <site> [output.zip] [--overwrite]',
-            'composer opus:serve-site -- <site> [--host=127.0.0.1] [--port=8791]',
+            'composer opus:dev-server -- <application-id> --host=<local-address> --port=<local-port>',
+            'composer opus:serve-site -- <site> --mode=<front|back> --host=<local-address> --port=<local-port> (deprecated)',
             'Application commands are discovered below sites/*/config/composer.commands.json.',
         ];
         fwrite(STDOUT, implode(PHP_EOL, $lines) . PHP_EOL);

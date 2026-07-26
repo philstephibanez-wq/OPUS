@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "nl",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Ongeldige gebruikersnaam of wachtwoord.",
+    "auth.error.required_credentials": "Gebruikersnaam en wachtwoord zijn verplicht.",
+    "auth.password.hide": "Wachtwoord verbergen",
+    "auth.password.show": "Wachtwoord tonen",
+    "auth.password_field": "Wachtwoord",
+    "auth.sign_in": "Aanmelden",
+    "auth.sign_in_description": "Open een geauthenticeerde OWASYS-runtime-sessie.",
+    "auth.username": "Gebruikersnaam"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "pl",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Nieprawidłowa nazwa użytkownika lub hasło.",
+    "auth.error.required_credentials": "Nazwa użytkownika i hasło są wymagane.",
+    "auth.password.hide": "Ukryj hasło",
+    "auth.password.show": "Pokaż hasło",
+    "auth.password_field": "Hasło",
+    "auth.sign_in": "Zaloguj się",
+    "auth.sign_in_description": "Otwórz uwierzytelnioną sesję runtime OWASYS.",
+    "auth.username": "Nazwa użytkownika"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

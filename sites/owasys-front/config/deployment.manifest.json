@@ -1,0 +1,11 @@
+{
+  "contract": "OWASYS_APPLICATION_DEPLOYMENT_MANIFEST_V1",
+  "application_id": "owasys-front",
+  "surface": "frontend",
+  "shared_contract_version": "1.0.0",
+  "api_contract_version": "1.0.0",
+  "minimum_opus_version": "8.1.0",
+  "development_server_in_production": false,
+  "runtime_file_sharing": false,
+  "secrets_in_artifact": false
+}

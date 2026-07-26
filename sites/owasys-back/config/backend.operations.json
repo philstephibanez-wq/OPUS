@@ -1,0 +1,105 @@
+{
+  "contract": "OPUS_RCP_COMPOSER_OPERATION_CATALOG_V1",
+  "operations": {
+    "site.create": {
+      "composer_script": "opus:create-site",
+      "roles": [
+        "admin",
+        "developer"
+      ],
+      "arguments": [
+        {
+          "name": "site_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        },
+        {
+          "name": "profile",
+          "required": true,
+          "option": "--profile",
+          "pattern": "^(frontend|backend|fullstack)$",
+          "max_length": 16
+        },
+        {
+          "name": "write",
+          "flag": "--write",
+          "type": "boolean"
+        }
+      ]
+    },
+    "site.validate": {
+      "composer_script": "opus:validate-site",
+      "roles": [
+        "admin",
+        "developer",
+        "viewer"
+      ],
+      "arguments": [
+        {
+          "name": "site_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        }
+      ]
+    },
+    "site.routes.list": {
+      "composer_script": "opus:list-routes",
+      "roles": [
+        "admin",
+        "developer",
+        "viewer"
+      ],
+      "arguments": [
+        {
+          "name": "site_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        }
+      ]
+    },
+    "registry.sync": {
+      "composer_script": "owasys:registry-sync",
+      "roles": [
+        "admin",
+        "developer",
+        "viewer"
+      ],
+      "arguments": []
+    },
+    "registry.select": {
+      "composer_script": "owasys:registry-select",
+      "roles": [
+        "admin",
+        "developer"
+      ],
+      "arguments": [
+        {
+          "name": "application_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        }
+      ]
+    },
+    "registry.clear": {
+      "composer_script": "owasys:registry-clear",
+      "roles": [
+        "admin",
+        "developer"
+      ],
+      "arguments": []
+    },
+    "security.admin-password.change": {
+      "composer_script": "owasys:admin-password-change",
+      "roles": [
+        "admin",
+        "developer"
+      ],
+      "arguments": [],
+      "secret_input": true
+    }
+  }
+}

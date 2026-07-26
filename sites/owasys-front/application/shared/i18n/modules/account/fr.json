@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "fr",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Changer le mot de passe",
+    "auth.change_password_description": "Remplacer le mot de passe runtime temporaire.",
+    "auth.confirm_new_password": "Confirmer le nouveau mot de passe",
+    "auth.current_password": "Mot de passe actuel",
+    "auth.error.current_password_invalid": "Le mot de passe actuel est incorrect.",
+    "auth.error.password_mismatch": "La confirmation du mot de passe ne correspond pas.",
+    "auth.error.password_too_short": "Le nouveau mot de passe est trop court.",
+    "auth.error.password_unchanged": "Le nouveau mot de passe doit être différent du mot de passe actuel.",
+    "auth.error.runtime_user_missing": "L’utilisateur de la session runtime est introuvable.",
+    "auth.new_password": "Nouveau mot de passe"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

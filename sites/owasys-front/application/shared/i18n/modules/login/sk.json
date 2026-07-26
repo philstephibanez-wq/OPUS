@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "sk",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Neplatné používateľské meno alebo heslo.",
+    "auth.error.required_credentials": "Používateľské meno a heslo sú povinné.",
+    "auth.password.hide": "Skryť heslo",
+    "auth.password.show": "Zobraziť heslo",
+    "auth.password_field": "Heslo",
+    "auth.sign_in": "Prihlásiť sa",
+    "auth.sign_in_description": "Otvoriť overenú runtime reláciu OWASYS.",
+    "auth.username": "Používateľské meno"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

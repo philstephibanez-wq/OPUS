@@ -24,6 +24,7 @@
 *.local.php
 *.secret.php
 /runtime/owasys/backend-env.cmd
+/runtime/development/
 
 # Site runtime state
 #

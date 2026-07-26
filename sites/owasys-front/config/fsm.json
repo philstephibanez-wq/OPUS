@@ -1,0 +1,201 @@
+{
+  "contract": "OWASYS_FRONT_FSM_V1",
+  "name": "OWASYS front navigation FSM",
+  "source_of_truth": "config",
+  "initial_state": "login",
+  "states": [
+    {
+      "id": "login",
+      "module": "login",
+      "route": "login",
+      "requires_auth": false
+    },
+    {
+      "id": "account",
+      "module": "account",
+      "route": "account/password",
+      "requires_auth": true
+    },
+    {
+      "id": "registry",
+      "module": "registry",
+      "route": "applications",
+      "requires_auth": true
+    },
+    {
+      "id": "creation",
+      "module": "creation",
+      "route": "applications/new",
+      "requires_auth": true
+    },
+    {
+      "id": "structure",
+      "module": "structure",
+      "route": "structure",
+      "requires_auth": true
+    },
+    {
+      "id": "data",
+      "module": "data",
+      "route": "data",
+      "requires_auth": true
+    },
+    {
+      "id": "workflows",
+      "module": "workflows",
+      "route": "workflows",
+      "requires_auth": true
+    },
+    {
+      "id": "security",
+      "module": "security",
+      "route": "security",
+      "requires_auth": true
+    },
+    {
+      "id": "source",
+      "module": "source",
+      "route": "source",
+      "requires_auth": true
+    },
+    {
+      "id": "build",
+      "module": "build",
+      "route": "build",
+      "requires_auth": true
+    }
+  ],
+  "events": [
+    {
+      "id": "open_login"
+    },
+    {
+      "id": "open_account"
+    },
+    {
+      "id": "login_success"
+    },
+    {
+      "id": "login_failed"
+    },
+    {
+      "id": "change_app"
+    },
+    {
+      "id": "open_creation"
+    },
+    {
+      "id": "application_created"
+    },
+    {
+      "id": "application_creation_failed"
+    },
+    {
+      "id": "open_structure"
+    },
+    {
+      "id": "open_data"
+    },
+    {
+      "id": "open_workflows"
+    },
+    {
+      "id": "open_security"
+    },
+    {
+      "id": "open_source"
+    },
+    {
+      "id": "open_build"
+    },
+    {
+      "id": "logout"
+    }
+  ],
+  "transitions": [
+    {
+      "id": "t_login",
+      "from": "*",
+      "event": "open_login",
+      "to": "login"
+    },
+    {
+      "id": "t_login_success",
+      "from": "login",
+      "event": "login_success",
+      "to": "registry"
+    },
+    {
+      "id": "t_account",
+      "from": "*",
+      "event": "open_account",
+      "to": "account"
+    },
+    {
+      "id": "t_registry",
+      "from": "*",
+      "event": "change_app",
+      "to": "registry"
+    },
+    {
+      "id": "t_creation",
+      "from": "*",
+      "event": "open_creation",
+      "to": "creation"
+    },
+    {
+      "id": "t_created",
+      "from": "creation",
+      "event": "application_created",
+      "to": "build"
+    },
+    {
+      "id": "t_creation_failed",
+      "from": "creation",
+      "event": "application_creation_failed",
+      "to": "creation"
+    },
+    {
+      "id": "t_structure",
+      "from": "*",
+      "event": "open_structure",
+      "to": "structure"
+    },
+    {
+      "id": "t_data",
+      "from": "*",
+      "event": "open_data",
+      "to": "data"
+    },
+    {
+      "id": "t_workflows",
+      "from": "*",
+      "event": "open_workflows",
+      "to": "workflows"
+    },
+    {
+      "id": "t_security",
+      "from": "*",
+      "event": "open_security",
+      "to": "security"
+    },
+    {
+      "id": "t_source",
+      "from": "*",
+      "event": "open_source",
+      "to": "source"
+    },
+    {
+      "id": "t_build",
+      "from": "*",
+      "event": "open_build",
+      "to": "build"
+    },
+    {
+      "id": "t_logout",
+      "from": "*",
+      "event": "logout",
+      "to": "login"
+    }
+  ]
+}

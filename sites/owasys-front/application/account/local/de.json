@@ -1,0 +1,19 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "de",
+  "scope": "account",
+  "messages": {
+    "auth.change_password": "Passwort ändern",
+    "auth.change_password_description": "Das temporäre Runtime-Passwort ersetzen.",
+    "auth.confirm_new_password": "Neues Passwort bestätigen",
+    "auth.current_password": "Aktuelles Passwort",
+    "auth.error.current_password_invalid": "Das aktuelle Passwort ist ungültig.",
+    "auth.error.password_mismatch": "Die Passwortbestätigung stimmt nicht überein.",
+    "auth.error.password_too_short": "Das neue Passwort ist zu kurz.",
+    "auth.error.password_unchanged": "Das neue Passwort muss sich vom aktuellen Passwort unterscheiden.",
+    "auth.error.runtime_user_missing": "Der Benutzer der Laufzeitsitzung wurde nicht gefunden.",
+    "auth.new_password": "Neues Passwort"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

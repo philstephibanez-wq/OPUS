@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "mt",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Isem tal-utent jew password mhux validi.",
+    "auth.error.required_credentials": "L-isem tal-utent u l-password huma meħtieġa.",
+    "auth.password.hide": "Aħbi l-password",
+    "auth.password.show": "Uri l-password",
+    "auth.password_field": "Password",
+    "auth.sign_in": "Idħol",
+    "auth.sign_in_description": "Iftaħ sessjoni runtime awtentikata ta’ OWASYS.",
+    "auth.username": "Isem tal-utent"
+  },
+  "plurals": {},
+  "grammatical": {}
+}

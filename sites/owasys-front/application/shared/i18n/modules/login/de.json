@@ -1,0 +1,17 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "de",
+  "scope": "login",
+  "messages": {
+    "auth.error.invalid_credentials": "Ungültiger Benutzername oder ungültiges Passwort.",
+    "auth.error.required_credentials": "Benutzername und Passwort sind erforderlich.",
+    "auth.password.hide": "Passwort ausblenden",
+    "auth.password.show": "Passwort anzeigen",
+    "auth.password_field": "Passwort",
+    "auth.sign_in": "Anmelden",
+    "auth.sign_in_description": "Eine authentifizierte OWASYS-Runtime-Sitzung öffnen.",
+    "auth.username": "Benutzername"
+  },
+  "plurals": {},
+  "grammatical": {}
+}
