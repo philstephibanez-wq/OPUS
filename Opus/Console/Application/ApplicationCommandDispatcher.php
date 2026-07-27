@@ -15,6 +15,10 @@ use Opus\File\StructuredFileLoaderInterface;
  * one command resolves to exactly one provider. Framework commands therefore do
  * not execute application bootstraps, and unrelated sites never share a process
  * merely because the OPUS console starts.
+ *
+ * Composer-facing aliases remain registry metadata. They are resolved only
+ * after the owning application descriptor has been selected, so an RCP request
+ * cannot load a provider from another application that declares the same alias.
  */
 final class ApplicationCommandDispatcher implements ApplicationCommandDispatcherInterface
 {
@@ -29,7 +33,8 @@ final class ApplicationCommandDispatcher implements ApplicationCommandDispatcher
      *     site_id:string,
      *     site_root:string,
      *     bootstrap:string,
-     *     commands:list<string>
+     *     commands:list<string>,
+     *     aliases:array<string,string>
      * }>
      */
     private array $providerDescriptors = [];
@@ -78,15 +83,23 @@ final class ApplicationCommandDispatcher implements ApplicationCommandDispatcher
             );
         }
 
-        $provider = $this->loadProvider($matches[0]);
-        if (!$provider->supports($command)) {
+        $descriptor = $matches[0];
+        $canonicalCommand = $this->canonicalCommand(
+            $descriptor,
+            $command
+        );
+        $provider = $this->loadProvider($descriptor);
+        if (!$provider->supports($canonicalCommand)) {
             throw new \RuntimeException(
-                'OPUS_APPLICATION_COMMAND_PROVIDER_CONTRACT_MISMATCH:'
-                . $command
+                'OPUS_APPLICATION_COMMAND_PROVIDER_CONTRACT_MISMATCH'
             );
         }
 
-        return $provider->execute($command, $arguments, $request);
+        return $provider->execute(
+            $canonicalCommand,
+            $arguments,
+            $request
+        );
     }
 
     private function registerDescriptors(string $root, string $registryFile): void
@@ -108,6 +121,10 @@ final class ApplicationCommandDispatcher implements ApplicationCommandDispatcher
             );
         }
 
+        $aliases = $this->aliases($registry['aliases'] ?? null);
+        $declaredCommands = [];
+        $descriptorOffset = count($this->providerDescriptors);
+
         foreach ((array) ($registry['providers'] ?? []) as $provider) {
             if (!is_array($provider) || ($provider['enabled'] ?? false) !== true) {
                 continue;
@@ -124,12 +141,39 @@ final class ApplicationCommandDispatcher implements ApplicationCommandDispatcher
                 );
             }
 
+            foreach ($commands as $declaredCommand) {
+                $declaredCommands[$declaredCommand] = true;
+            }
+
             $this->providerDescriptors[] = [
                 'site_id' => $declaredSite,
                 'site_root' => $siteRoot,
                 'bootstrap' => $bootstrap,
                 'commands' => $commands,
+                'aliases' => [],
             ];
+        }
+
+        foreach ($aliases as $alias => $target) {
+            if (!isset($declaredCommands[$target])) {
+                throw new \RuntimeException(
+                    'OPUS_APPLICATION_COMMAND_ALIAS_TARGET_UNKNOWN:'
+                    . $declaredSite
+                );
+            }
+        }
+
+        $descriptorCount = count($this->providerDescriptors);
+        for ($index = $descriptorOffset; $index < $descriptorCount; ++$index) {
+            $commands = $this->providerDescriptors[$index]['commands'];
+            $this->providerDescriptors[$index]['aliases'] = array_filter(
+                $aliases,
+                static fn (string $target): bool => in_array(
+                    $target,
+                    $commands,
+                    true
+                )
+            );
         }
     }
 
@@ -138,7 +182,8 @@ final class ApplicationCommandDispatcher implements ApplicationCommandDispatcher
      *     site_id:string,
      *     site_root:string,
      *     bootstrap:string,
-     *     commands:list<string>
+     *     commands:list<string>,
+     *     aliases:array<string,string>
      * }>
      */
     private function matchingDescriptors(
@@ -150,12 +195,27 @@ final class ApplicationCommandDispatcher implements ApplicationCommandDispatcher
             static fn (array $descriptor): bool => (
                 $applicationId === ''
                 || $descriptor['site_id'] === $applicationId
-            ) && in_array(
-                $command,
-                $descriptor['commands'],
-                true
+            ) && (
+                in_array($command, $descriptor['commands'], true)
+                || array_key_exists($command, $descriptor['aliases'])
             )
         ));
+    }
+
+    /**
+     * @param array{
+     *     site_id:string,
+     *     site_root:string,
+     *     bootstrap:string,
+     *     commands:list<string>,
+     *     aliases:array<string,string>
+     * } $descriptor
+     */
+    private function canonicalCommand(
+        array $descriptor,
+        string $command
+    ): string {
+        return $descriptor['aliases'][$command] ?? $command;
     }
 
     /** @param array<string,mixed> $request */
@@ -187,7 +247,8 @@ final class ApplicationCommandDispatcher implements ApplicationCommandDispatcher
      *     site_id:string,
      *     site_root:string,
      *     bootstrap:string,
-     *     commands:list<string>
+     *     commands:list<string>,
+     *     aliases:array<string,string>
      * } $descriptor
      */
     private function loadProvider(
@@ -221,17 +282,58 @@ final class ApplicationCommandDispatcher implements ApplicationCommandDispatcher
 
         $commands = [];
         foreach ($value as $command) {
-            $candidate = trim((string) $command);
-            if ($candidate === ''
-                || preg_match('/^[a-z0-9][a-z0-9:_-]*$/', $candidate) !== 1) {
-                throw new \RuntimeException(
-                    'OPUS_APPLICATION_COMMAND_PROVIDER_COMMAND_INVALID'
-                );
-            }
+            $candidate = $this->commandName(
+                $command,
+                'OPUS_APPLICATION_COMMAND_PROVIDER_COMMAND_INVALID'
+            );
             $commands[] = $candidate;
         }
 
         return array_values(array_unique($commands));
+    }
+
+    /** @return array<string,string> */
+    private function aliases(mixed $value): array
+    {
+        if ($value === null) {
+            return [];
+        }
+        if (!is_array($value)) {
+            throw new \RuntimeException(
+                'OPUS_APPLICATION_COMMAND_ALIASES_INVALID'
+            );
+        }
+
+        $aliases = [];
+        foreach ($value as $alias => $target) {
+            $aliasName = $this->commandName(
+                $alias,
+                'OPUS_APPLICATION_COMMAND_ALIAS_INVALID'
+            );
+            $targetName = $this->commandName(
+                $target,
+                'OPUS_APPLICATION_COMMAND_ALIAS_TARGET_INVALID'
+            );
+            if (isset($aliases[$aliasName])
+                && $aliases[$aliasName] !== $targetName) {
+                throw new \RuntimeException(
+                    'OPUS_APPLICATION_COMMAND_ALIAS_CONFLICT'
+                );
+            }
+            $aliases[$aliasName] = $targetName;
+        }
+
+        return $aliases;
+    }
+
+    private function commandName(mixed $value, string $error): string
+    {
+        $candidate = trim((string) $value);
+        if ($candidate === ''
+            || preg_match('/^[a-z0-9][a-z0-9:_-]*$/', $candidate) !== 1) {
+            throw new \RuntimeException($error);
+        }
+        return $candidate;
     }
 
     private function safeRelative(string $path): string
