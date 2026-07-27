@@ -88,18 +88,23 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
             $this->output($result, $format);
             return 0;
         } catch (\Throwable $error) {
+            $errorCode = $this->safeErrorCode($error);
             $payload = [
                 'contract' => 'OPUS_CONSOLE_ERROR_V1',
                 'status' => 'failed',
-                'error_code' => $this->safeErrorCode($error),
+                'error_code' => $errorCode,
             ];
             if ($format === 'json') {
+                $payload['diagnostic'] = $this->diagnostic(
+                    $error,
+                    $errorCode
+                );
                 fwrite(
                     STDOUT,
                     Json::instance()->encode($payload, false) . PHP_EOL
                 );
             } else {
-                fwrite(STDERR, $payload['error_code'] . PHP_EOL);
+                fwrite(STDERR, $errorCode . PHP_EOL);
             }
             return 20;
         }
@@ -442,9 +447,86 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
     private function safeErrorCode(\Throwable $error): string
     {
         $message = trim($error->getMessage());
-        return preg_match('/^[A-Z0-9_:-]{3,240}$/', $message) === 1
+        if (preg_match('/^[A-Z0-9_:-]{3,240}$/', $message) === 1) {
+            return $message;
+        }
+        if (preg_match(
+            '/^([A-Z][A-Z0-9_]{2,239})(?::|$)/',
+            $message,
+            $matches
+        ) === 1) {
+            return (string) $matches[1];
+        }
+        return 'OPUS_CONSOLE_COMMAND_FAILED';
+    }
+
+    /** @return array<string,int|string> */
+    private function diagnostic(
+        \Throwable $error,
+        string $errorCode
+    ): array {
+        $message = $this->safeDiagnosticMessage($error->getMessage());
+        $file = $this->diagnosticFile($error->getFile());
+        $line = max(0, $error->getLine());
+
+        return [
+            'error_code' => $errorCode,
+            'exception_class' => $error::class,
+            'exception_file' => $file,
+            'exception_line' => $line,
+            'exception_message' => $message,
+            'fingerprint' => substr(hash(
+                'sha256',
+                $error::class . '|' . $file . '|' . $line . '|' . $message
+            ), 0, 24),
+        ];
+    }
+
+    private function safeDiagnosticMessage(string $message): string
+    {
+        $message = trim(preg_replace(
+            '/[\x00-\x1F\x7F]+/',
+            ' ',
+            $message
+        ) ?? '');
+        $message = preg_replace(
+            '~\b(password|token|secret|authorization|hmac)\b\s*[:=]\s*[^\s,;]+~i',
+            '$1=<redacted>',
+            $message
+        ) ?? $message;
+        $message = preg_replace(
+            '#\bBearer\s+[A-Za-z0-9._~+/=-]+#i',
+            'Bearer <redacted>',
+            $message
+        ) ?? $message;
+        if ($this->opusRoot !== '') {
+            $message = str_ireplace(
+                str_replace('/', '\\', $this->opusRoot),
+                '<OPUS_ROOT>',
+                $message
+            );
+            $message = str_ireplace(
+                $this->opusRoot,
+                '<OPUS_ROOT>',
+                $message
+            );
+        }
+        return strlen($message) <= 512
             ? $message
-            : 'OPUS_CONSOLE_COMMAND_FAILED';
+            : substr($message, 0, 509) . '...';
+    }
+
+    private function diagnosticFile(string $file): string
+    {
+        $file = str_replace('\\', '/', trim($file));
+        if ($file === '') {
+            return '';
+        }
+        $root = rtrim($this->opusRoot, '/') . '/';
+        if ($this->opusRoot !== '' && str_starts_with($file, $root)) {
+            return substr($file, strlen($root));
+        }
+        return '<external>/' . basename($file);
     }
 
     private function help(): void
