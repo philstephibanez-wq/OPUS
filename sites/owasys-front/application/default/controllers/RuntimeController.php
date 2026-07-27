@@ -731,12 +731,7 @@ final class OwasysRuntimeController
     private function registryModel(): OwasysRegistryModel
     {
         if (!$this->registryModel instanceof OwasysRegistryModel) {
-            $opusRoot = dirname(dirname($this->siteRoot));
-            $this->registryModel = new OwasysRegistryModel(
-                $this->siteRoot,
-                $opusRoot,
-                OwasysApplicationSingletonInspector::instance($opusRoot)
-            );
+            $this->registryModel = new OwasysRegistryModel($this->siteRoot);
         }
 
         return $this->registryModel;
