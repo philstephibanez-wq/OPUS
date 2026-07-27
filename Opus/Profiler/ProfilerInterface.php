@@ -31,4 +31,7 @@ interface ProfilerInterface extends
 
     /** @param array<string,mixed> $summary */
     public function writeTrace(Trace $trace, array $summary = []): string;
+
+    /** @return list<array<string,mixed>> */
+    public function readTrace(string $traceId): array;
 }
