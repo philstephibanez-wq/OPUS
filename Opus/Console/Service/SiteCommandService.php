@@ -590,6 +590,7 @@ final class SiteCommandService implements SiteCommandServiceInterface
             );
         }
 
+        $this->assertDevelopmentDerivedSecretHost($site, $host);
         $environment = getenv();
         $environment = is_array($environment) ? $environment : [];
         $environment = $this->applicationEnvironment(
@@ -751,7 +752,8 @@ final class SiteCommandService implements SiteCommandServiceInterface
 
             $hasValue = array_key_exists('value', $binding);
             $hasSource = array_key_exists('environment', $binding);
-            if ($hasValue === $hasSource) {
+            $hasDevelopment = array_key_exists('development', $binding);
+            if ((int) $hasValue + (int) $hasSource + (int) $hasDevelopment !== 1) {
                 throw new OpusConsoleException(
                     'OPUS_APPLICATION_ENVIRONMENT_BINDING_AMBIGUOUS:'
                     . $targetName
@@ -765,8 +767,18 @@ final class SiteCommandService implements SiteCommandServiceInterface
                     . $targetName
                 );
             }
-
-            if ($hasValue) {
+            if ($hasDevelopment) {
+                if ($environmentName !== 'dev' || !$secret) {
+                    throw new OpusConsoleException(
+                        'OPUS_APPLICATION_ENVIRONMENT_DEVELOPMENT_BINDING_INVALID:'
+                        . $targetName
+                    );
+                }
+                $value = $this->developmentDerivedSecret(
+                    $binding['development'],
+                    $targetName
+                );
+            } elseif ($hasValue) {
                 $value = $binding['value'];
                 if (!is_string($value) || trim($value) === '') {
                     throw new OpusConsoleException(
@@ -795,6 +807,80 @@ final class SiteCommandService implements SiteCommandServiceInterface
 
         $environment['OPUS_ENV'] = $environmentName;
         return $environment;
+    }
+
+    /** @param mixed $configuration */
+    private function developmentDerivedSecret(
+        mixed $configuration,
+        string $targetName
+    ): string {
+        if (!is_array($configuration)
+            || ($configuration['contract'] ?? null)
+                !== 'OPUS_DEVELOPMENT_DERIVED_SECRET_V1') {
+            throw new OpusConsoleException(
+                'OPUS_APPLICATION_ENVIRONMENT_DEVELOPMENT_SECRET_CONTRACT_INVALID:'
+                . $targetName
+            );
+        }
+
+        $channel = trim((string) ($configuration['channel'] ?? ''));
+        if (preg_match('/^[a-z][a-z0-9._-]{2,127}$/', $channel) !== 1) {
+            throw new OpusConsoleException(
+                'OPUS_APPLICATION_ENVIRONMENT_DEVELOPMENT_SECRET_CHANNEL_INVALID:'
+                . $targetName
+            );
+        }
+
+        $machine = trim((string) (getenv('COMPUTERNAME') ?: php_uname('n')));
+        if ($machine === '') {
+            throw new OpusConsoleException(
+                'OPUS_APPLICATION_ENVIRONMENT_DEVELOPMENT_MACHINE_INVALID'
+            );
+        }
+        $machineKey = hash(
+            'sha256',
+            'OPUS_DEVELOPMENT_MACHINE_V1|' . $machine . '|' . $this->opusRoot,
+            true
+        );
+
+        return hash_hmac(
+            'sha256',
+            $channel . '|' . $targetName,
+            $machineKey
+        );
+    }
+
+    /** @param array<string,mixed> $site */
+    private function assertDevelopmentDerivedSecretHost(
+        array $site,
+        string $host
+    ): void {
+        if (in_array(strtolower($host), ['127.0.0.1', 'localhost', '::1'], true)) {
+            return;
+        }
+
+        $configuration = is_array($site['environments'] ?? null)
+            ? $site['environments']
+            : [];
+        $sections = is_array($configuration['sections'] ?? null)
+            ? $configuration['sections']
+            : [];
+        $development = is_array($sections['dev'] ?? null)
+            ? $sections['dev']
+            : [];
+        $variables = is_array($development['variables'] ?? null)
+            ? $development['variables']
+            : [];
+
+        foreach ($variables as $targetName => $binding) {
+            if (is_array($binding)
+                && array_key_exists('development', $binding)) {
+                throw new OpusConsoleException(
+                    'OPUS_DEV_SERVER_DERIVED_SECRET_HOST_NOT_LOOPBACK:'
+                    . (string) $targetName
+                );
+            }
+        }
     }
 
     /**
