@@ -564,11 +564,7 @@ final class SiteCommandService implements SiteCommandServiceInterface
         int $port
     ): int {
         $applicationId = $this->siteId($applicationId);
-        if (!in_array($host, ['127.0.0.1', 'localhost', '::1'], true)) {
-            throw new OpusConsoleException(
-                'OPUS_DEV_SERVER_HOST_NOT_LOCAL:' . $host
-            );
-        }
+        $host = $this->developmentHost($host);
         if ($port < 1024 || $port > 65535) {
             throw new OpusConsoleException('OPUS_DEV_SERVER_PORT_INVALID');
         }
@@ -598,6 +594,13 @@ final class SiteCommandService implements SiteCommandServiceInterface
         $environment = is_array($environment) ? $environment : [];
         $environment = $this->developmentEnvironment(
             $siteRoot,
+            $development,
+            $environment
+        );
+        $environment = $this->developmentNetworkEnvironment(
+            $applicationId,
+            $host,
+            $port,
             $development,
             $environment
         );
@@ -742,6 +745,201 @@ final class SiteCommandService implements SiteCommandServiceInterface
             }
         }
         return $environment;
+    }
+
+    /**
+     * @param array<string,mixed> $development
+     * @param array<string,string> $environment
+     * @return array<string,string>
+     */
+    private function developmentNetworkEnvironment(
+        string $applicationId,
+        string $host,
+        int $port,
+        array $development,
+        array $environment
+    ): array {
+        $network = is_array($development['network'] ?? null)
+            ? $development['network']
+            : [];
+        if (($network['contract'] ?? null)
+            !== 'OPUS_DEVELOPMENT_NETWORK_BINDING_V1') {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_NETWORK_BINDING_INVALID'
+            );
+        }
+
+        $local = is_array($network['local'] ?? null)
+            ? $network['local']
+            : [];
+        $localHostEnvironment = $this->developmentEnvironmentName(
+            (string) ($local['host_env'] ?? ''),
+            'OPUS_DEV_SERVER_LOCAL_HOST_ENV_INVALID'
+        );
+        $localPortEnvironment = $this->developmentEnvironmentName(
+            (string) ($local['port_env'] ?? ''),
+            'OPUS_DEV_SERVER_LOCAL_PORT_ENV_INVALID'
+        );
+        $localUrlEnvironment = $this->developmentEnvironmentName(
+            (string) ($local['url_env'] ?? ''),
+            'OPUS_DEV_SERVER_LOCAL_URL_ENV_INVALID'
+        );
+
+        $environment[$localHostEnvironment] = $host;
+        $environment[$localPortEnvironment] = (string) $port;
+        $environment[$localUrlEnvironment] = $this->developmentUrl(
+            $host,
+            $port
+        );
+
+        $peer = is_array($network['peer'] ?? null)
+            ? $network['peer']
+            : [];
+        $peerApplicationId = $this->siteId(
+            (string) ($peer['application_id'] ?? '')
+        );
+        if ($peerApplicationId === $applicationId) {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_PEER_APPLICATION_INVALID'
+            );
+        }
+
+        $peerHostEnvironment = $this->developmentEnvironmentName(
+            (string) ($peer['host_env'] ?? ''),
+            'OPUS_DEV_SERVER_PEER_HOST_ENV_INVALID'
+        );
+        $peerPortEnvironment = $this->developmentEnvironmentName(
+            (string) ($peer['port_env'] ?? ''),
+            'OPUS_DEV_SERVER_PEER_PORT_ENV_INVALID'
+        );
+        $peerUrlEnvironment = $this->developmentEnvironmentName(
+            (string) ($peer['url_env'] ?? ''),
+            'OPUS_DEV_SERVER_PEER_URL_ENV_INVALID'
+        );
+
+        foreach ([
+            $peerHostEnvironment,
+            $peerPortEnvironment,
+            $peerUrlEnvironment,
+        ] as $name) {
+            if (!isset($environment[$name])
+                || trim((string) $environment[$name]) === '') {
+                throw new OpusConsoleException(
+                    'OPUS_DEV_SERVER_PEER_ENVIRONMENT_MISSING:' . $name
+                );
+            }
+        }
+
+        $peerHost = $this->developmentHost(
+            (string) $environment[$peerHostEnvironment]
+        );
+        if (in_array($peerHost, ['0.0.0.0', '::'], true)) {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_PEER_HOST_UNROUTABLE'
+            );
+        }
+        $peerPort = $this->developmentPeerPort(
+            (string) $environment[$peerPortEnvironment]
+        );
+        $peerUrl = trim((string) $environment[$peerUrlEnvironment]);
+        $this->assertDevelopmentPeerUrl($peerUrl, $peerHost, $peerPort);
+
+        $environment[$peerHostEnvironment] = $peerHost;
+        $environment[$peerPortEnvironment] = (string) $peerPort;
+        $environment[$peerUrlEnvironment] = $peerUrl;
+
+        return $environment;
+    }
+
+    private function developmentEnvironmentName(
+        string $name,
+        string $errorCode
+    ): string {
+        $name = trim($name);
+        if (preg_match('/^[A-Z][A-Z0-9_]{2,127}$/', $name) !== 1) {
+            throw new OpusConsoleException($errorCode);
+        }
+        return $name;
+    }
+
+    private function developmentHost(string $host): string
+    {
+        $host = trim($host);
+        if ($host === ''
+            || strlen($host) > 253
+            || str_contains($host, "\0")
+            || str_contains($host, '/')
+            || str_contains($host, '\\')) {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_HOST_INVALID:' . $host
+            );
+        }
+        if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
+            return strtolower($host);
+        }
+        if (preg_match(
+            '/^(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)(?:\.(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?))*$/',
+            $host
+        ) !== 1) {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_HOST_INVALID:' . $host
+            );
+        }
+        return strtolower($host);
+    }
+
+    private function developmentPeerPort(string $port): int
+    {
+        $port = trim($port);
+        if (preg_match('/^[0-9]{1,5}$/', $port) !== 1) {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_PEER_PORT_INVALID'
+            );
+        }
+        $resolved = (int) $port;
+        if ($resolved < 1 || $resolved > 65535) {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_PEER_PORT_INVALID'
+            );
+        }
+        return $resolved;
+    }
+
+    private function assertDevelopmentPeerUrl(
+        string $url,
+        string $expectedHost,
+        int $expectedPort
+    ): void {
+        $parts = parse_url($url);
+        if (!is_array($parts)) {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_PEER_URL_INVALID'
+            );
+        }
+        $scheme = strtolower(trim((string) ($parts['scheme'] ?? '')));
+        $host = strtolower(trim((string) ($parts['host'] ?? '')));
+        $port = isset($parts['port'])
+            ? (int) $parts['port']
+            : ($scheme === 'https' ? 443 : ($scheme === 'http' ? 80 : 0));
+        if (!in_array($scheme, ['http', 'https'], true)
+            || $host === ''
+            || $host !== strtolower($expectedHost)
+            || $port !== $expectedPort
+            || isset($parts['user'])
+            || isset($parts['pass'])
+            || isset($parts['fragment'])) {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_PEER_URL_INVALID'
+            );
+        }
+    }
+
+    private function developmentUrl(string $host, int $port): string
+    {
+        $authority = str_contains($host, ':')
+            ? '[' . $host . ']'
+            : $host;
+        return 'http://' . $authority . ':' . $port . '/';
     }
 
     /** @param array<string,mixed> $development */

@@ -47,6 +47,80 @@
     "sv-FI",
     "uk-UA"
   ],
+  "i18n": {
+    "contract": "OPUS_APPLICATION_I18N_POLICY_V4",
+    "default_source": "browser",
+    "fallback_locale": "fr-FR",
+    "catalog_format": "json",
+    "supported_catalog_formats": [
+      "json",
+      "yaml",
+      "yml",
+      "xml"
+    ],
+    "locale_tag_style": "bcp47",
+    "allow_regional_variants": true,
+    "catalogs_versioned": true,
+    "regional_overlay_policy": "explicit-empty-overlay-inherits-base-language",
+    "silent_fallback": false,
+    "selectable_locales": "regional-only",
+    "bare_language_policy": "map-to-default-regional-locale",
+    "language_defaults": {
+      "bg": "bg-BG",
+      "hr": "hr-HR",
+      "cs": "cs-CZ",
+      "da": "da-DK",
+      "nl": "nl-NL",
+      "en": "en-IE",
+      "et": "et-EE",
+      "fi": "fi-FI",
+      "fr": "fr-FR",
+      "de": "de-DE",
+      "el": "el-GR",
+      "hu": "hu-HU",
+      "ga": "ga-IE",
+      "it": "it-IT",
+      "lv": "lv-LV",
+      "lt": "lt-LT",
+      "mt": "mt-MT",
+      "pl": "pl-PL",
+      "pt": "pt-PT",
+      "ro": "ro-RO",
+      "sk": "sk-SK",
+      "sl": "sl-SI",
+      "es": "es-ES",
+      "sv": "sv-SE",
+      "uk": "uk-UA"
+    },
+    "catalog_base_locales": [
+      "bg",
+      "hr",
+      "cs",
+      "da",
+      "nl",
+      "en",
+      "et",
+      "fi",
+      "fr",
+      "de",
+      "el",
+      "hu",
+      "ga",
+      "it",
+      "lv",
+      "lt",
+      "mt",
+      "pl",
+      "pt",
+      "ro",
+      "sk",
+      "sl",
+      "es",
+      "sv",
+      "uk"
+    ],
+    "catalog_base_locales_visible": false
+  },
   "application_surface": {
     "contract": "OPUS_APPLICATION_SURFACE_V1",
     "type": "backend"
@@ -75,9 +149,26 @@
       "contract": "OPUS_DEVELOPMENT_ENVIRONMENT_BINDING_V1",
       "file": "var/development/environment.json",
       "required": [
+        "OPUS_OWASYS_FRONTEND_HOST",
+        "OPUS_OWASYS_FRONTEND_PORT",
+        "OPUS_OWASYS_FRONTEND_ENDPOINT",
         "OPUS_OWASYS_BACKEND_TOKEN",
         "OPUS_OWASYS_BACKEND_HMAC"
       ]
+    },
+    "network": {
+      "contract": "OPUS_DEVELOPMENT_NETWORK_BINDING_V1",
+      "local": {
+        "host_env": "OPUS_DEV_SERVER_HOST",
+        "port_env": "OPUS_DEV_SERVER_PORT",
+        "url_env": "OPUS_DEV_SERVER_URL"
+      },
+      "peer": {
+        "application_id": "owasys-front",
+        "host_env": "OPUS_OWASYS_FRONTEND_HOST",
+        "port_env": "OPUS_OWASYS_FRONTEND_PORT",
+        "url_env": "OPUS_OWASYS_FRONTEND_ENDPOINT"
+      }
     }
   },
   "auth": {
