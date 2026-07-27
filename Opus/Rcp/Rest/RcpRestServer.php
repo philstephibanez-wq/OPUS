@@ -47,6 +47,7 @@ final class RcpRestServer implements RcpRestServerInterface
         if (($config['contract'] ?? null) !== 'OPUS_RCP_REST_SERVER_CONFIG_V2') {
             throw new \RuntimeException('OPUS_RCP_REST_CONFIG_CONTRACT_INVALID');
         }
+        self::applicationId($config);
         $catalog = self::safeRelative((string) ($config['operation_catalog'] ?? ''));
         $store = self::safeRelative((string) ($config['execution_store'] ?? ''));
         $diagnostics = is_array($config['diagnostics'] ?? null)
@@ -208,6 +209,7 @@ final class RcpRestServer implements RcpRestServerInterface
             );
             $commandRequest = [
                 'contract' => 'OPUS_RCP_COMPOSER_COMMAND_REQUEST_V1',
+                'application_id' => self::applicationId($this->config),
                 'trace_id' => $traceId,
                 'execution_id' => $executionId,
                 'operation' => $operation,
@@ -324,6 +326,18 @@ final class RcpRestServer implements RcpRestServerInterface
                 'fsm_state' => $fsm->state(),
             ]);
         }
+    }
+
+    /** @param array<string,mixed> $config */
+    private static function applicationId(array $config): string
+    {
+        $applicationId = trim((string) ($config['application_id'] ?? ''));
+        if (preg_match('/^[a-z][a-z0-9-]*$/', $applicationId) !== 1) {
+            throw new \RuntimeException(
+                'OPUS_RCP_APPLICATION_ID_INVALID'
+            );
+        }
+        return $applicationId;
     }
 
     /** @param array<string,mixed> $entry */

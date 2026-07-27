@@ -1,5 +1,6 @@
 {
   "contract": "OPUS_RCP_REST_SERVER_CONFIG_V2",
+  "application_id": "owasys-back",
   "base_path": "/api/v1",
   "operation_catalog": "sites/owasys-back/config/backend.operations.json",
   "execution_store": "sites/owasys-back/var/rcp/executions",

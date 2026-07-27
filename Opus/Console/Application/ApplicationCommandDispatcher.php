@@ -63,15 +63,18 @@ final class ApplicationCommandDispatcher implements ApplicationCommandDispatcher
 
     public function execute(string $command, array $arguments, array $request): array
     {
-        $matches = $this->matchingDescriptors($command);
+        $applicationId = $this->requestApplicationId($request);
+        $matches = $this->matchingDescriptors($command, $applicationId);
         if ($matches === []) {
             throw new \RuntimeException(
-                'OPUS_APPLICATION_COMMAND_UNKNOWN:' . $command
+                $applicationId === ''
+                    ? 'OPUS_APPLICATION_COMMAND_UNKNOWN'
+                    : 'OPUS_APPLICATION_COMMAND_TARGET_PROVIDER_MISSING'
             );
         }
         if (count($matches) !== 1) {
             throw new \RuntimeException(
-                'OPUS_APPLICATION_COMMAND_AMBIGUOUS:' . $command
+                'OPUS_APPLICATION_COMMAND_AMBIGUOUS'
             );
         }
 
@@ -138,16 +141,45 @@ final class ApplicationCommandDispatcher implements ApplicationCommandDispatcher
      *     commands:list<string>
      * }>
      */
-    private function matchingDescriptors(string $command): array
-    {
+    private function matchingDescriptors(
+        string $command,
+        string $applicationId = ''
+    ): array {
         return array_values(array_filter(
             $this->providerDescriptors,
-            static fn (array $descriptor): bool => in_array(
+            static fn (array $descriptor): bool => (
+                $applicationId === ''
+                || $descriptor['site_id'] === $applicationId
+            ) && in_array(
                 $command,
                 $descriptor['commands'],
                 true
             )
         ));
+    }
+
+    /** @param array<string,mixed> $request */
+    private function requestApplicationId(array $request): string
+    {
+        $contract = trim((string) ($request['contract'] ?? ''));
+        $applicationId = trim((string) (
+            $request['application_id'] ?? ''
+        ));
+
+        if ($contract === 'OPUS_RCP_COMPOSER_COMMAND_REQUEST_V1'
+            && $applicationId === '') {
+            throw new \RuntimeException(
+                'OPUS_APPLICATION_COMMAND_TARGET_REQUIRED'
+            );
+        }
+        if ($applicationId !== ''
+            && preg_match('/^[a-z][a-z0-9-]*$/', $applicationId) !== 1) {
+            throw new \RuntimeException(
+                'OPUS_APPLICATION_COMMAND_TARGET_INVALID'
+            );
+        }
+
+        return $applicationId;
     }
 
     /**
