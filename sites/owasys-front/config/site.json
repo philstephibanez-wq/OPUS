@@ -145,17 +145,6 @@
       "log": "var/logs/owasys-front.log",
       "profiler": "var/profiler/dev-server"
     },
-    "environment": {
-      "contract": "OPUS_DEVELOPMENT_ENVIRONMENT_BINDING_V1",
-      "file": "var/development/environment.json",
-      "required": [
-        "OPUS_OWASYS_BACKEND_HOST",
-        "OPUS_OWASYS_BACKEND_PORT",
-        "OPUS_OWASYS_BACKEND_ENDPOINT",
-        "OPUS_OWASYS_BACKEND_TOKEN",
-        "OPUS_OWASYS_BACKEND_HMAC"
-      ]
-    },
     "network": {
       "contract": "OPUS_DEVELOPMENT_NETWORK_BINDING_V1",
       "local": {
@@ -180,5 +169,75 @@
     "peer_application_id": "owasys-back",
     "configuration": "config/rcp.json",
     "cross_application_filesystem_access": false
+  },
+  "environments": {
+    "contract": "OPUS_APPLICATION_ENVIRONMENTS_V1",
+    "selector_environment": "OPUS_ENV",
+    "default": "prod",
+    "sections": {
+      "dev": {
+        "variables": {
+          "OPUS_OWASYS_BACKEND_HOST": {
+            "value": "127.0.0.1"
+          },
+          "OPUS_OWASYS_BACKEND_PORT": {
+            "value": "8080"
+          },
+          "OPUS_OWASYS_BACKEND_ENDPOINT": {
+            "value": "http://127.0.0.1:8080/api/v1/executions"
+          },
+          "OPUS_OWASYS_BACKEND_TOKEN": {
+            "environment": "OPUS_OWASYS_BACKEND_TOKEN",
+            "secret": true
+          },
+          "OPUS_OWASYS_BACKEND_HMAC": {
+            "environment": "OPUS_OWASYS_BACKEND_HMAC",
+            "secret": true
+          }
+        }
+      },
+      "test": {
+        "variables": {
+          "OPUS_OWASYS_BACKEND_HOST": {
+            "value": "127.0.0.1"
+          },
+          "OPUS_OWASYS_BACKEND_PORT": {
+            "value": "18000"
+          },
+          "OPUS_OWASYS_BACKEND_ENDPOINT": {
+            "value": "http://127.0.0.1:18000/api/v1/executions"
+          },
+          "OPUS_OWASYS_BACKEND_TOKEN": {
+            "environment": "OPUS_TEST_OWASYS_BACKEND_TOKEN",
+            "secret": true
+          },
+          "OPUS_OWASYS_BACKEND_HMAC": {
+            "environment": "OPUS_TEST_OWASYS_BACKEND_HMAC",
+            "secret": true
+          }
+        }
+      },
+      "prod": {
+        "variables": {
+          "OPUS_OWASYS_BACKEND_HOST": {
+            "environment": "OPUS_OWASYS_BACKEND_HOST"
+          },
+          "OPUS_OWASYS_BACKEND_PORT": {
+            "environment": "OPUS_OWASYS_BACKEND_PORT"
+          },
+          "OPUS_OWASYS_BACKEND_ENDPOINT": {
+            "environment": "OPUS_OWASYS_BACKEND_ENDPOINT"
+          },
+          "OPUS_OWASYS_BACKEND_TOKEN": {
+            "environment": "OPUS_OWASYS_BACKEND_TOKEN",
+            "secret": true
+          },
+          "OPUS_OWASYS_BACKEND_HMAC": {
+            "environment": "OPUS_OWASYS_BACKEND_HMAC",
+            "secret": true
+          }
+        }
+      }
+    }
   }
 }

@@ -592,9 +592,9 @@ final class SiteCommandService implements SiteCommandServiceInterface
 
         $environment = getenv();
         $environment = is_array($environment) ? $environment : [];
-        $environment = $this->developmentEnvironment(
-            $siteRoot,
-            $development,
+        $environment = $this->applicationEnvironment(
+            $site,
+            'dev',
             $environment
         );
         $environment = $this->developmentNetworkEnvironment(
@@ -604,7 +604,7 @@ final class SiteCommandService implements SiteCommandServiceInterface
             $development,
             $environment
         );
-        $environment['OPUS_ENV'] = 'development';
+        $environment['OPUS_ENV'] = 'dev';
         $this->recordDevelopmentServerStart(
             $applicationId,
             $siteRoot,
@@ -688,62 +688,112 @@ final class SiteCommandService implements SiteCommandServiceInterface
     }
 
     /**
-     * @param array<string,mixed> $development
+     * @param array<string,mixed> $site
      * @param array<string,string> $environment
      * @return array<string,string>
      */
-    private function developmentEnvironment(
-        string $siteRoot,
-        array $development,
+    private function applicationEnvironment(
+        array $site,
+        string $environmentName,
         array $environment
     ): array {
-        $binding = is_array($development['environment'] ?? null)
-            ? $development['environment']
+        $configuration = is_array($site['environments'] ?? null)
+            ? $site['environments']
             : [];
-        if (($binding['contract'] ?? null)
-            !== 'OPUS_DEVELOPMENT_ENVIRONMENT_BINDING_V1') {
+        if (($configuration['contract'] ?? null)
+            !== 'OPUS_APPLICATION_ENVIRONMENTS_V1') {
             throw new OpusConsoleException(
-                'OPUS_DEV_SERVER_ENVIRONMENT_BINDING_INVALID'
+                'OPUS_APPLICATION_ENVIRONMENTS_CONTRACT_INVALID'
             );
         }
-        $relative = $this->safeRelative((string) ($binding['file'] ?? ''));
-        $configFile = $siteRoot . '/' . $relative;
-        if (!$this->file->exists($configFile)) {
+
+        $environmentName = strtolower(trim($environmentName));
+        if (preg_match('/^[a-z][a-z0-9_-]{1,31}$/', $environmentName) !== 1) {
             throw new OpusConsoleException(
-                'OPUS_DEV_SERVER_ENVIRONMENT_FILE_MISSING'
+                'OPUS_APPLICATION_ENVIRONMENT_NAME_INVALID'
             );
         }
-        $config = $this->loader->read($configFile);
-        if (($config['contract'] ?? null)
-            !== 'OPUS_DEVELOPMENT_ENVIRONMENT_V1'
-            || !is_array($config['values'] ?? null)) {
+
+        $sections = is_array($configuration['sections'] ?? null)
+            ? $configuration['sections']
+            : [];
+        $section = is_array($sections[$environmentName] ?? null)
+            ? $sections[$environmentName]
+            : null;
+        if ($section === null) {
             throw new OpusConsoleException(
-                'OPUS_DEV_SERVER_ENVIRONMENT_CONTRACT_INVALID'
+                'OPUS_APPLICATION_ENVIRONMENT_SECTION_MISSING:'
+                . $environmentName
             );
         }
-        foreach ($config['values'] as $name => $value) {
-            if (!is_string($name)
-                || preg_match('/^[A-Z][A-Z0-9_]{2,127}$/', $name) !== 1
-                || !is_string($value)
-                || $value === '') {
+
+        $variables = is_array($section['variables'] ?? null)
+            ? $section['variables']
+            : [];
+        if ($variables === []) {
+            throw new OpusConsoleException(
+                'OPUS_APPLICATION_ENVIRONMENT_VARIABLES_EMPTY:'
+                . $environmentName
+            );
+        }
+
+        foreach ($variables as $targetName => $binding) {
+            $targetName = $this->developmentEnvironmentName(
+                is_string($targetName) ? $targetName : '',
+                'OPUS_APPLICATION_ENVIRONMENT_TARGET_INVALID'
+            );
+            if (!is_array($binding)) {
                 throw new OpusConsoleException(
-                    'OPUS_DEV_SERVER_ENVIRONMENT_VALUE_INVALID'
+                    'OPUS_APPLICATION_ENVIRONMENT_BINDING_INVALID:'
+                    . $targetName
                 );
             }
-            $environment[$name] = $value;
-        }
-        $required = is_array($binding['required'] ?? null)
-            ? array_values(array_filter($binding['required'], 'is_string'))
-            : [];
-        foreach ($required as $name) {
-            if (preg_match('/^[A-Z][A-Z0-9_]{2,127}$/', $name) !== 1
-                || !isset($environment[$name])
-                || trim((string) $environment[$name]) === '') {
+
+            $hasValue = array_key_exists('value', $binding);
+            $hasSource = array_key_exists('environment', $binding);
+            if ($hasValue === $hasSource) {
                 throw new OpusConsoleException(
-                    'OPUS_DEV_SERVER_REQUIRED_ENVIRONMENT_MISSING:' . $name
+                    'OPUS_APPLICATION_ENVIRONMENT_BINDING_AMBIGUOUS:'
+                    . $targetName
                 );
             }
+
+            $secret = ($binding['secret'] ?? false) === true;
+            if ($secret && $hasValue) {
+                throw new OpusConsoleException(
+                    'OPUS_APPLICATION_ENVIRONMENT_SECRET_LITERAL_FORBIDDEN:'
+                    . $targetName
+                );
+            }
+
+            if ($hasValue) {
+                $value = $binding['value'];
+                if (!is_string($value) || trim($value) === '') {
+                    throw new OpusConsoleException(
+                        'OPUS_APPLICATION_ENVIRONMENT_VALUE_INVALID:'
+                        . $targetName
+                    );
+                }
+            } else {
+                $sourceName = $this->developmentEnvironmentName(
+                    (string) ($binding['environment'] ?? ''),
+                    'OPUS_APPLICATION_ENVIRONMENT_SOURCE_INVALID'
+                );
+                $value = isset($environment[$sourceName])
+                    ? (string) $environment[$sourceName]
+                    : '';
+                if (trim($value) === '') {
+                    throw new OpusConsoleException(
+                        'OPUS_APPLICATION_ENVIRONMENT_SOURCE_MISSING:'
+                        . $sourceName
+                    );
+                }
+            }
+
+            $environment[$targetName] = $value;
         }
+
+        $environment['OPUS_ENV'] = $environmentName;
         return $environment;
     }
 
