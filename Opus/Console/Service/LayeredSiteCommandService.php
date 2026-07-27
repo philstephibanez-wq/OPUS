@@ -108,8 +108,6 @@ final class LayeredSiteCommandService implements
             $layers['shared'] . '/i18n/default',
             'www',
             'www/asset',
-            'var/logs',
-            'var/profiler',
         ];
         if (in_array('front', $modes, true)) {
             $requiredDirectories[] = $layers['front'];

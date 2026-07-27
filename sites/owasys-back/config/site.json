@@ -67,30 +67,27 @@
   "development_server": {
     "contract": "OPUS_DEVELOPMENT_SERVER_V1",
     "enabled": true,
-    "registry": {
-      "contract": "OPUS_DEVELOPMENT_SERVER_REGISTRY_V1",
-      "file": "runtime/development/servers.json"
-    },
-    "secrets": {
-      "contract": "OPUS_RUNTIME_SECRET_BINDING_V1",
-      "scope": "opus-root",
-      "store": "runtime/development/owasys-rcp-secrets.json",
-      "bindings": {
-        "OPUS_OWASYS_BACKEND_TOKEN": "owasys_backend_token",
-        "OPUS_OWASYS_BACKEND_HMAC": "owasys_backend_hmac"
-      }
-    },
     "diagnostics": {
       "log": "var/logs/owasys-back.log",
       "profiler": "var/profiler/dev-server"
+    },
+    "environment": {
+      "contract": "OPUS_DEVELOPMENT_ENVIRONMENT_BINDING_V1",
+      "file": "var/development/environment.json",
+      "required": [
+        "OPUS_OWASYS_BACKEND_TOKEN",
+        "OPUS_OWASYS_BACKEND_HMAC"
+      ]
     }
-  },
-  "shared_contract": {
-    "source": "sites/owasys-shared/deployment/compatibility.json",
-    "version": "1.0.0",
-    "api_contract_version": "1.0.0"
   },
   "auth": {
     "minimum_password_length": 10
+  },
+  "exchange": {
+    "contract": "OWASYS_REST_EXCHANGE_V1",
+    "transport": "rest",
+    "peer_application_id": "owasys-front",
+    "configuration": "config/backend.rest.json",
+    "cross_application_filesystem_access": false
   }
 }
