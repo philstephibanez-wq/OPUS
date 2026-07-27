@@ -4,8 +4,6 @@ declare(strict_types=1);
 namespace Opus\Console\Service;
 
 use Opus\Console\OpusConsoleException;
-use Opus\Console\Development\DevelopmentServerRegistry;
-use Opus\Console\Development\DevelopmentServerRegistryInterface;
 use Opus\File\File;
 use Opus\File\StructuredFileLoader;
 use Opus\Scaffold\SiteScaffoldPlan;
@@ -114,8 +112,6 @@ final class SiteCommandService implements SiteCommandServiceInterface
                 $standardLayout['back_modules'],
                 'www',
                 'www/asset',
-                'var/logs',
-                'var/profiler',
             ];
             $requiredFiles = [
                 'config/site.json',
@@ -136,8 +132,6 @@ final class SiteCommandService implements SiteCommandServiceInterface
                 'application/default',
                 'application/default/local',
                 'www',
-                'var/logs',
-                'var/profiler',
             ];
             $requiredFiles = [
                 'config/site.json',
@@ -600,47 +594,42 @@ final class SiteCommandService implements SiteCommandServiceInterface
             );
         }
 
-        $registry = $this->developmentServerRegistry($development);
         $environment = getenv();
         $environment = is_array($environment) ? $environment : [];
         $environment = $this->developmentEnvironment(
+            $siteRoot,
             $development,
-            $environment,
-            $registry
+            $environment
         );
-        $registry->register($applicationId, $host, $port);
-        try {
-            $this->recordDevelopmentServerStart(
-                $applicationId,
-                $siteRoot,
-                $development,
-                $host,
-                $port
+        $environment['OPUS_ENV'] = 'development';
+        $this->recordDevelopmentServerStart(
+            $applicationId,
+            $siteRoot,
+            $development,
+            $host,
+            $port
+        );
+        $process = proc_open(
+            [
+                PHP_BINARY,
+                '-S',
+                $host . ':' . $port,
+                '-t',
+                $publicRoot,
+                $router,
+            ],
+            [0 => STDIN, 1 => STDOUT, 2 => STDERR],
+            $pipes,
+            $this->opusRoot,
+            $environment,
+            ['bypass_shell' => true]
+        );
+        if (!is_resource($process)) {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_PROCESS_START_FAILED'
             );
-            $process = proc_open(
-                [
-                    PHP_BINARY,
-                    '-S',
-                    $host . ':' . $port,
-                    '-t',
-                    $publicRoot,
-                    $router,
-                ],
-                [0 => STDIN, 1 => STDOUT, 2 => STDERR],
-                $pipes,
-                $this->opusRoot,
-                $environment,
-                ['bypass_shell' => true]
-            );
-            if (!is_resource($process)) {
-                throw new OpusConsoleException(
-                    'OPUS_DEV_SERVER_PROCESS_START_FAILED'
-                );
-            }
-            return (int) proc_close($process);
-        } finally {
-            $registry->unregister($applicationId);
         }
+        return (int) proc_close($process);
     }
 
     public function serve(
@@ -695,74 +684,62 @@ final class SiteCommandService implements SiteCommandServiceInterface
         return (int) proc_close($process);
     }
 
-    /** @param array<string,mixed> $development */
-    private function developmentServerRegistry(
-        array $development
-    ): DevelopmentServerRegistryInterface {
-        $registry = is_array($development['registry'] ?? null)
-            ? $development['registry']
-            : [];
-        if (($registry['contract'] ?? null)
-            !== DevelopmentServerRegistry::CONTRACT) {
-            throw new OpusConsoleException(
-                'OPUS_DEV_SERVER_REGISTRY_CONFIG_INVALID'
-            );
-        }
-        $relative = $this->safeRelative((string) ($registry['file'] ?? ''));
-        return DevelopmentServerRegistry::forFile(
-            $this->opusRoot . '/' . $relative
-        );
-    }
-
     /**
      * @param array<string,mixed> $development
      * @param array<string,string> $environment
      * @return array<string,string>
      */
     private function developmentEnvironment(
+        string $siteRoot,
         array $development,
-        array $environment,
-        DevelopmentServerRegistryInterface $registry
+        array $environment
     ): array {
-        $peers = is_array($development['peers'] ?? null)
-            ? $development['peers']
+        $binding = is_array($development['environment'] ?? null)
+            ? $development['environment']
             : [];
-        foreach ($peers as $environmentName => $peer) {
-            if (!is_string($environmentName)
-                || preg_match('/^[A-Z][A-Z0-9_]{2,127}$/', $environmentName) !== 1
-                || !is_array($peer)) {
+        if (($binding['contract'] ?? null)
+            !== 'OPUS_DEVELOPMENT_ENVIRONMENT_BINDING_V1') {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_ENVIRONMENT_BINDING_INVALID'
+            );
+        }
+        $relative = $this->safeRelative((string) ($binding['file'] ?? ''));
+        $configFile = $siteRoot . '/' . $relative;
+        if (!$this->file->exists($configFile)) {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_ENVIRONMENT_FILE_MISSING'
+            );
+        }
+        $config = $this->loader->read($configFile);
+        if (($config['contract'] ?? null)
+            !== 'OPUS_DEVELOPMENT_ENVIRONMENT_V1'
+            || !is_array($config['values'] ?? null)) {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_ENVIRONMENT_CONTRACT_INVALID'
+            );
+        }
+        foreach ($config['values'] as $name => $value) {
+            if (!is_string($name)
+                || preg_match('/^[A-Z][A-Z0-9_]{2,127}$/', $name) !== 1
+                || !is_string($value)
+                || $value === '') {
                 throw new OpusConsoleException(
-                    'OPUS_DEV_SERVER_PEER_BINDING_INVALID'
+                    'OPUS_DEV_SERVER_ENVIRONMENT_VALUE_INVALID'
                 );
             }
-            $environment[$environmentName] = $registry->endpoint(
-                (string) ($peer['application_id'] ?? ''),
-                (string) ($peer['path'] ?? '')
-            );
-        }
-
-        $policy = is_array($development['secrets'] ?? null)
-            ? $development['secrets']
-            : null;
-        if ($policy === null) {
-            return $environment;
-        }
-        if (($policy['contract'] ?? null)
-            !== 'OPUS_RUNTIME_SECRET_BINDING_V1'
-            || ($policy['scope'] ?? null) !== 'opus-root') {
-            throw new OpusConsoleException(
-                'OPUS_DEV_SERVER_SECRET_BINDING_INVALID'
-            );
-        }
-        $store = $this->safeRelative((string) ($policy['store'] ?? ''));
-        $bindings = is_array($policy['bindings'] ?? null)
-            ? $policy['bindings']
-            : [];
-        $resolved = RuntimeSecretStore::forPath(
-            $this->opusRoot . '/' . $store
-        )->ensure($bindings);
-        foreach ($resolved as $name => $value) {
             $environment[$name] = $value;
+        }
+        $required = is_array($binding['required'] ?? null)
+            ? array_values(array_filter($binding['required'], 'is_string'))
+            : [];
+        foreach ($required as $name) {
+            if (preg_match('/^[A-Z][A-Z0-9_]{2,127}$/', $name) !== 1
+                || !isset($environment[$name])
+                || trim((string) $environment[$name]) === '') {
+                throw new OpusConsoleException(
+                    'OPUS_DEV_SERVER_REQUIRED_ENVIRONMENT_MISSING:' . $name
+                );
+            }
         }
         return $environment;
     }
