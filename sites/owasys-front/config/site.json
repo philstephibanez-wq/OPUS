@@ -177,6 +177,12 @@
     "sections": {
       "dev": {
         "variables": {
+          "OPUS_DEV_SERVER_HOST": {
+            "value": "127.0.0.1"
+          },
+          "OPUS_DEV_SERVER_PORT": {
+            "value": "8000"
+          },
           "OPUS_OWASYS_BACKEND_HOST": {
             "value": "127.0.0.1"
           },

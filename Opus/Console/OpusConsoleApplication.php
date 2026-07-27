@@ -273,29 +273,17 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
         }
 
         $host = trim($this->option($arguments, 'host', ''));
-        if ($host === '') {
-            throw new OpusConsoleException(
-                'OPUS_DEV_SERVER_HOST_REQUIRED'
-            );
-        }
         $portRaw = trim($this->option($arguments, 'port', ''));
-        if ($portRaw === '' || preg_match('/^[0-9]+$/', $portRaw) !== 1) {
+        if ($portRaw !== '' && preg_match('/^[0-9]+$/', $portRaw) !== 1) {
             throw new OpusConsoleException(
-                'OPUS_DEV_SERVER_PORT_REQUIRED'
+                'OPUS_DEV_SERVER_PORT_INVALID'
             );
         }
-
-        fwrite(
-            STDOUT,
-            'OPUS_DEV_SERVER_APPLICATION:' . $applicationId . PHP_EOL
-            . 'OPUS_DEV_SERVER_URL:http://' . $host . ':' . $portRaw . '/'
-            . PHP_EOL
-        );
 
         return $this->sites->devServer(
             $applicationId,
             $host,
-            (int) $portRaw
+            $portRaw === '' ? 0 : (int) $portRaw
         );
     }
 

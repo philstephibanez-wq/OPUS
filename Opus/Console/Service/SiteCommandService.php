@@ -564,11 +564,6 @@ final class SiteCommandService implements SiteCommandServiceInterface
         int $port
     ): int {
         $applicationId = $this->siteId($applicationId);
-        $host = $this->developmentHost($host);
-        if ($port < 1024 || $port > 65535) {
-            throw new OpusConsoleException('OPUS_DEV_SERVER_PORT_INVALID');
-        }
-
         $siteRoot = $this->siteRoot($applicationId);
         $site = $this->loader->read($siteRoot . '/config/site.json');
         $development = is_array($site['development_server'] ?? null)
@@ -590,7 +585,6 @@ final class SiteCommandService implements SiteCommandServiceInterface
             );
         }
 
-        $this->assertDevelopmentDerivedSecretHost($site, $host);
         $environment = getenv();
         $environment = is_array($environment) ? $environment : [];
         $environment = $this->applicationEnvironment(
@@ -598,6 +592,13 @@ final class SiteCommandService implements SiteCommandServiceInterface
             'dev',
             $environment
         );
+        [$host, $port] = $this->developmentServerBinding(
+            $host,
+            $port,
+            $development,
+            $environment
+        );
+        $this->assertDevelopmentDerivedSecretHost($site, $host);
         $environment = $this->developmentNetworkEnvironment(
             $applicationId,
             $host,
@@ -606,6 +607,12 @@ final class SiteCommandService implements SiteCommandServiceInterface
             $environment
         );
         $environment['OPUS_ENV'] = 'dev';
+        fwrite(
+            STDOUT,
+            'OPUS_DEV_SERVER_APPLICATION:' . $applicationId . PHP_EOL
+            . 'OPUS_DEV_SERVER_URL:' . $this->developmentUrl($host, $port)
+            . PHP_EOL
+        );
         $this->recordDevelopmentServerStart(
             $applicationId,
             $siteRoot,
@@ -848,6 +855,65 @@ final class SiteCommandService implements SiteCommandServiceInterface
             $channel . '|' . $targetName,
             $machineKey
         );
+    }
+
+    /**
+     * @param array<string,mixed> $development
+     * @param array<string,string> $environment
+     * @return array{0:string,1:int}
+     */
+    private function developmentServerBinding(
+        string $hostOverride,
+        int $portOverride,
+        array $development,
+        array $environment
+    ): array {
+        $network = is_array($development['network'] ?? null)
+            ? $development['network']
+            : [];
+        if (($network['contract'] ?? null)
+            !== 'OPUS_DEVELOPMENT_NETWORK_BINDING_V1') {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_NETWORK_BINDING_INVALID'
+            );
+        }
+
+        $local = is_array($network['local'] ?? null)
+            ? $network['local']
+            : [];
+        $hostEnvironment = $this->developmentEnvironmentName(
+            (string) ($local['host_env'] ?? ''),
+            'OPUS_DEV_SERVER_LOCAL_HOST_ENV_INVALID'
+        );
+        $portEnvironment = $this->developmentEnvironmentName(
+            (string) ($local['port_env'] ?? ''),
+            'OPUS_DEV_SERVER_LOCAL_PORT_ENV_INVALID'
+        );
+
+        $configuredHost = trim((string) ($environment[$hostEnvironment] ?? ''));
+        $configuredPort = trim((string) ($environment[$portEnvironment] ?? ''));
+        if ($configuredHost === '') {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_CONFIG_HOST_MISSING:' . $hostEnvironment
+            );
+        }
+        if ($configuredPort === '') {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_CONFIG_PORT_MISSING:' . $portEnvironment
+            );
+        }
+
+        $host = trim($hostOverride) === ''
+            ? $this->developmentHost($configuredHost)
+            : $this->developmentHost($hostOverride);
+        $port = $portOverride === 0
+            ? $this->developmentPeerPort($configuredPort)
+            : $portOverride;
+        if ($port < 1024 || $port > 65535) {
+            throw new OpusConsoleException('OPUS_DEV_SERVER_PORT_INVALID');
+        }
+
+        return [$host, $port];
     }
 
     /** @param array<string,mixed> $site */
