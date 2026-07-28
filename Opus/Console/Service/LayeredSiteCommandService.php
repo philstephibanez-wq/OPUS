@@ -71,6 +71,14 @@ final class LayeredSiteCommandService implements
         ];
     }
 
+    public function delete(
+        string $siteId,
+        string $confirmation,
+        bool $write
+    ): array {
+        return $this->legacy->delete($siteId, $confirmation, $write);
+    }
+
     public function validate(string $siteId): array
     {
         $siteId = $this->siteId($siteId);

@@ -23,7 +23,7 @@
   "events": [
     {"id":"open_login"},{"id":"open_account"},{"id":"login_success"},{"id":"login_failed"},
     {"id":"password_change_required"},{"id":"password_changed"},{"id":"password_change_failed"},
-    {"id":"select_app"},{"id":"change_app"},{"id":"clear_app_context"},{"id":"create_new_app"},
+    {"id":"select_app"},{"id":"change_app"},{"id":"clear_app_context"},{"id":"create_new_app"},{"id":"application_deleted"},
     {"id":"open_creation"},{"id":"application_created"},{"id":"application_creation_failed"},{"id":"cancel_creation"},
     {"id":"registry_action_failed"},{"id":"open_structure"},{"id":"open_data"},{"id":"open_workflows"},
     {"id":"open_security"},{"id":"open_source"},{"id":"open_build"},{"id":"auth_required"},{"id":"logout"}
@@ -39,6 +39,7 @@
     {"id":"t_select_app","from":"registry","event":"select_app","to":"structure","guards":["app_exists"],"actions":["set_current_app"],"visual":true},
     {"id":"t_clear_context","from":"registry","event":"clear_app_context","to":"registry","actions":["clear_current_app"]},
     {"id":"t_create_app","from":"registry","event":"create_new_app","to":"creation","actions":["clear_current_app"],"visual":true},
+    {"id":"t_delete_app","from":"registry","event":"application_deleted","to":"registry","actions":["clear_current_app"]},
     {"id":"t_open_creation","from":"*","event":"open_creation","to":"creation"},
     {"id":"t_creation_created","from":"creation","event":"application_created","to":"build","guards":["app_exists"],"actions":["set_current_app"],"visual":true},
     {"id":"t_creation_failed","from":"creation","event":"application_creation_failed","to":"creation"},

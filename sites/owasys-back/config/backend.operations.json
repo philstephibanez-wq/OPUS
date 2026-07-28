@@ -28,6 +28,33 @@
         }
       ]
     },
+    "site.delete": {
+      "composer_script": "opus:delete-site",
+      "roles": [
+        "admin",
+        "developer"
+      ],
+      "arguments": [
+        {
+          "name": "site_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        },
+        {
+          "name": "confirmation",
+          "required": true,
+          "option": "--confirm",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        },
+        {
+          "name": "write",
+          "flag": "--write",
+          "type": "boolean"
+        }
+      ]
+    },
     "site.validate": {
       "composer_script": "opus:validate-site",
       "roles": [

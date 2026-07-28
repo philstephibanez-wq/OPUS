@@ -635,6 +635,13 @@ final class OwasysRuntimeController
                 'singleton_class' => (string) ($singleton['class'] ?? ''),
                 'singleton_entrypoint' => (string) ($singleton['entrypoint'] ?? ''),
                 'singleton_error' => (string) ($singleton['error'] ?? ''),
+                'deletable' => ($entry['generated_by'] ?? null) === 'composer'
+                    && ($entry['role'] ?? null) === 'generated-opus-application'
+                    && !in_array(
+                        $entryId,
+                        ['owasys-front', 'owasys-back'],
+                        true
+                    ),
             ];
         }
 
@@ -686,6 +693,8 @@ final class OwasysRuntimeController
                 'error_application_required' => ($result['error'] ?? null) === 'registry.error.application_required',
                 'error_application_not_found' => ($result['error'] ?? null) === 'registry.error.application_not_found',
                 'error_action_invalid' => ($result['error'] ?? null) === 'registry.error.action_invalid',
+                'error_application_protected' => ($result['error'] ?? null) === 'registry.error.application_protected',
+                'error_delete_confirmation' => ($result['error'] ?? null) === 'registry.error.delete_confirmation',
                 'singleton_all_compliant' => $entries !== [] && $singletonNoncompliant === 0,
                 'singleton_has_noncompliant' => $singletonNoncompliant > 0,
                 'discovery_clean' => $discoveryConflicts === [],

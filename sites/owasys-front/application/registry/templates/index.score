@@ -1,6 +1,8 @@
 [[ if: registry.error_application_required ]]<p class="ow-error">[[ i18n: registry.error.application_required ]]</p>[[ endif ]]
 [[ if: registry.error_application_not_found ]]<p class="ow-error">[[ i18n: registry.error.application_not_found ]]</p>[[ endif ]]
 [[ if: registry.error_action_invalid ]]<p class="ow-error">[[ i18n: registry.error.action_invalid ]]</p>[[ endif ]]
+[[ if: registry.error_application_protected ]]<p class="ow-error">[[ i18n: registry.error.application_protected ]]</p>[[ endif ]]
+[[ if: registry.error_delete_confirmation ]]<p class="ow-error">[[ i18n: registry.error.delete_confirmation ]]</p>[[ endif ]]
 <section class="ow-card ow-context-panel">
   <div class="ow-section-heading">
     <div>
@@ -118,6 +120,16 @@
               <em>[[ if: entry.current ]][[ i18n: registry.current_application ]][[ else ]][[ i18n: registry.work_on_this_app ]][[ endif ]]</em>
             </button>
           </form>
+          [[ if: entry.deletable ]]
+            <form method="post" action="{{ urls.current }}" class="ow-delete-form">
+              <input type="hidden" name="owasys_action" value="delete-app">
+              <input type="hidden" name="owasys_app_id" value="{{ entry.id }}">
+              <label>[[ i18n: registry.delete.confirmation ]] <strong>{{ entry.id }}</strong>
+                <input type="text" name="owasys_delete_confirmation" required autocomplete="off">
+              </label>
+              <button class="ow-button ow-button-danger" type="submit">[[ i18n: registry.delete.application ]]</button>
+            </form>
+          [[ endif ]]
         </article>
       [[ endforeach ]]
     </div>

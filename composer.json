@@ -20,6 +20,7 @@
         "opus": "Opus\\Composer\\ComposerScripts::run",
         "opus:create-application": "Opus\\Composer\\ComposerScripts::run",
         "opus:create-site": "Opus\\Composer\\ComposerScripts::run",
+        "opus:delete-site": "Opus\\Composer\\ComposerScripts::run",
         "opus:add-language": "Opus\\Composer\\ComposerScripts::run",
         "opus:dev-server": "Opus\\Composer\\ComposerScripts::run",
         "opus:serve-site": "Opus\\Composer\\ComposerScripts::run",

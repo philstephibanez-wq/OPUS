@@ -66,6 +66,7 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
                     $arguments,
                     $request
                 ),
+                'delete:site' => $this->delete($arguments, $request),
                 'export:site' => $this->export($arguments, $request),
                 'add:language' => $this->addLanguage($arguments, $request),
                 'validate:site' => $this->validate($arguments, $request),
@@ -167,6 +168,21 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
             $siteId,
             $this->flag($arguments, 'write'),
             $this->option($arguments, 'profile', 'fullstack')
+        );
+    }
+
+    /** @param list<string> $arguments @param array<string,mixed> $request */
+    private function delete(array $arguments, array $request): array
+    {
+        $this->assertRcpActor($request, ['admin', 'developer']);
+        $siteId = (string) ($this->positionals($arguments)[0] ?? '');
+        if ($siteId === '') {
+            throw new OpusConsoleException('OPUS_DELETE_SITE_ID_REQUIRED');
+        }
+        return $this->sites->delete(
+            $siteId,
+            $this->option($arguments, 'confirm', ''),
+            $this->flag($arguments, 'write')
         );
     }
 
@@ -432,7 +448,11 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
                 $skip = false;
                 continue;
             }
-            if (in_array($argument, ['--title', '--host', '--port', '--profile'], true)) {
+            if (in_array(
+                $argument,
+                ['--title', '--host', '--port', '--profile', '--confirm'],
+                true
+            )) {
                 $skip = true;
                 continue;
             }
@@ -535,6 +555,7 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
             'OPUS Console',
             'composer opus:create-application -- <id> [--profile=frontend|backend|fullstack] [--write]',
             'composer opus:create-site -- <id> [--profile=frontend|backend|fullstack] [--write]',
+            'composer opus:delete-site -- <id> --confirm=<id> [--write]',
             'composer opus:add-language -- <site> <locale> [--write]',
             'composer opus:validate-site -- <site>',
             'composer opus:list-routes -- <site>',

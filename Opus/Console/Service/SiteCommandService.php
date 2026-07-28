@@ -71,6 +71,68 @@ final class SiteCommandService implements SiteCommandServiceInterface
         ];
     }
 
+    public function delete(
+        string $siteId,
+        string $confirmation,
+        bool $write
+    ): array {
+        $siteId = $this->siteId($siteId);
+        if (in_array($siteId, ['owasys-front', 'owasys-back'], true)) {
+            throw new OpusConsoleException(
+                'OPUS_DELETE_SITE_PROTECTED:' . $siteId
+            );
+        }
+        if (!hash_equals($siteId, trim(strtolower($confirmation)))) {
+            throw new OpusConsoleException(
+                'OPUS_DELETE_SITE_CONFIRMATION_INVALID'
+            );
+        }
+
+        $siteRoot = $this->siteRoot($siteId);
+        $canonicalRoot = $this->opusRoot . '/sites/' . $siteId;
+        $resolvedRoot = realpath($siteRoot);
+        $resolvedSites = realpath($this->opusRoot . '/sites');
+        if ($resolvedRoot === false
+            || $resolvedSites === false
+            || dirname(str_replace('\\', '/', $resolvedRoot))
+                !== str_replace('\\', '/', $resolvedSites)
+            || str_replace('\\', '/', $resolvedRoot) !== $canonicalRoot
+            || is_link($siteRoot)) {
+            throw new OpusConsoleException(
+                'OPUS_DELETE_SITE_ROOT_NOT_CANONICAL:' . $siteId
+            );
+        }
+
+        $site = $this->loader->read($siteRoot . '/config/site.json');
+        if (($site['contract'] ?? null) !== 'OPUS_SITE_STANDARD_CONTRACT_CORE'
+            || strtolower(trim((string) ($site['site_id'] ?? ''))) !== $siteId
+            || ($site['generated_by'] ?? null) !== 'composer'
+            || ($site['role'] ?? null) !== 'generated-opus-application') {
+            throw new OpusConsoleException(
+                'OPUS_DELETE_SITE_NOT_GENERATED:' . $siteId
+            );
+        }
+
+        $entryCount = $this->deletionEntryCount($siteRoot);
+        if ($write) {
+            $this->deleteDirectoryTree($siteRoot);
+            if (file_exists($siteRoot)) {
+                throw new OpusConsoleException(
+                    'OPUS_DELETE_SITE_INCOMPLETE:' . $siteId
+                );
+            }
+        }
+
+        return [
+            'contract' => 'OPUS_CONSOLE_SITE_DELETE_RESULT_V1',
+            'site_id' => $siteId,
+            'mode' => $write ? 'write' : 'preview',
+            'site_root' => 'sites/' . $siteId,
+            'entry_count' => $entryCount,
+            'deleted' => $write,
+        ];
+    }
+
     public function validate(string $siteId): array
     {
         $siteId = $this->siteId($siteId);
@@ -1561,6 +1623,55 @@ final class SiteCommandService implements SiteCommandServiceInterface
             throw new OpusConsoleException('OPUS_SITE_NOT_FOUND:' . $siteId);
         }
         return $root;
+    }
+
+    private function deletionEntryCount(string $siteRoot): int
+    {
+        $count = 0;
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator(
+                $siteRoot,
+                \FilesystemIterator::SKIP_DOTS
+            ),
+            \RecursiveIteratorIterator::CHILD_FIRST
+        );
+        foreach ($iterator as $entry) {
+            if ($entry->isLink()) {
+                throw new OpusConsoleException(
+                    'OPUS_DELETE_SITE_LINK_FORBIDDEN'
+                );
+            }
+            $count++;
+        }
+        return $count;
+    }
+
+    private function deleteDirectoryTree(string $siteRoot): void
+    {
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator(
+                $siteRoot,
+                \FilesystemIterator::SKIP_DOTS
+            ),
+            \RecursiveIteratorIterator::CHILD_FIRST
+        );
+        foreach ($iterator as $entry) {
+            if ($entry->isLink()) {
+                throw new OpusConsoleException(
+                    'OPUS_DELETE_SITE_LINK_FORBIDDEN'
+                );
+            }
+            $path = str_replace('\\', '/', $entry->getPathname());
+            $deleted = $entry->isDir() ? rmdir($path) : unlink($path);
+            if (!$deleted) {
+                throw new OpusConsoleException(
+                    'OPUS_DELETE_SITE_ENTRY_FAILED'
+                );
+            }
+        }
+        if (!rmdir($siteRoot)) {
+            throw new OpusConsoleException('OPUS_DELETE_SITE_ROOT_FAILED');
+        }
     }
 
     private function siteId(string $value): string

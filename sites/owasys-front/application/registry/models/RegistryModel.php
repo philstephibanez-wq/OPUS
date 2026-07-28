@@ -108,6 +108,31 @@ final class OwasysRegistryModel
         $this->snapshot = null;
     }
 
+    /** @param array<string,mixed> $actor @return array<string,mixed> */
+    public function delete(
+        string $applicationId,
+        string $confirmation,
+        array $actor
+    ): array {
+        $result = $this->rcp->execute(
+            'site.delete',
+            [
+                'site_id' => $applicationId,
+                'confirmation' => $confirmation,
+                'write' => true,
+            ],
+            $this->actor($actor)
+        );
+        if (($result['contract'] ?? null)
+            !== 'OPUS_CONSOLE_SITE_DELETE_RESULT_V1'
+            || ($result['deleted'] ?? null) !== true
+            || ($result['site_id'] ?? null) !== $applicationId) {
+            throw new RuntimeException('OWASYS_SITE_DELETE_RESULT_INVALID');
+        }
+        $this->snapshot = null;
+        return $result;
+    }
+
     /** @return array<string,mixed> */
     private function snapshot(): array
     {

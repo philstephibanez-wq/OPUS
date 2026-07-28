@@ -17,6 +17,13 @@ interface SiteCommandServiceInterface extends
     ): array;
 
     /** @return array<string,mixed> */
+    public function delete(
+        string $siteId,
+        string $confirmation,
+        bool $write
+    ): array;
+
+    /** @return array<string,mixed> */
     public function validate(string $siteId): array;
 
     /** @return array<string,mixed> */
