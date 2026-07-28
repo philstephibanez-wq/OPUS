@@ -24,7 +24,8 @@
               <input type="hidden" name="owasys_action" value="source-read">
               <input type="hidden" name="owasys_source_path" value="{{ file.path }}">
               <button class="ow-source-file" type="submit" [[ if: file.selected ]]aria-current="true"[[ endif ]]>
-                <strong>{{ file.name }}</strong>
+                <span class="ow-source-file-marker" aria-hidden="true">✓</span>
+                <span class="ow-source-file-name">{{ file.name }}</span>
                 <small>{{ file.bytes }}</small>
               </button>
             </form>
@@ -32,19 +33,16 @@
         </div>
       [[ endif ]]
     </article>
-    <article class="ow-card">
-      [[ if: source.selected ]]
-        <h3>{{ source.path }}</h3>
-        <div class="ow-tags">
-          <span>{{ source.bytes }}</span>
-          <span>{{ source.sha256 }}</span>
-        </div>
-        <div class="ow-source-editor-host" data-context="OWASYS_SOURCE_CONTENT_EDITOR">
-          <textarea class="ow-source-content" data-source-path="{{ source.path }}" readonly>{{ source.content }}</textarea>
-        </div>
-      [[ else ]]
-        <p class="ow-muted">{{ page.summary }}</p>
-      [[ endif ]]
+    <article class="ow-card" data-context="OWASYS_SOURCE_SELECTION">
+      <h3 data-source-selection-path>{{ source.path }}</h3>
+      <div class="ow-tags" data-source-selection-metadata [[ if: source.unselected ]]hidden[[ endif ]]>
+        <span data-source-selection-bytes>{{ source.bytes }}</span>
+        <span data-source-selection-sha256>{{ source.sha256 }}</span>
+      </div>
+      <p class="ow-muted" data-source-selection-empty [[ if: source.selected ]]hidden[[ endif ]]>{{ page.summary }}</p>
+      <div class="ow-source-editor-host" data-context="OWASYS_SOURCE_CONTENT_EDITOR" [[ if: source.unselected ]]hidden[[ endif ]]>
+        <textarea class="ow-source-content" data-source-path="{{ source.path }}" readonly>{{ source.content }}</textarea>
+      </div>
     </article>
   </div>
 </section>

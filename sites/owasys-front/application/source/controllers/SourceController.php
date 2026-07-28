@@ -4,6 +4,7 @@ declare(strict_types=1);
 use Opus\File\StructuredFileLoader;
 use Opus\Fsm\FsmProcessor;
 use Opus\Fsm\FsmSiteLoader;
+use Opus\Http\Response;
 use Opus\I18n\BrowserLocaleNegotiator;
 
 /** Server-rendered, read-only source browser for the selected OPUS application. */
@@ -71,6 +72,18 @@ final class OwasysSourceController
                     !== 'source-read') {
                     throw new RuntimeException('OWASYS_SOURCE_ACTION_INVALID');
                 }
+                if ($this->expectsJson()) {
+                    $selected = $this->source->read(
+                        (string) ($currentApp['id'] ?? ''),
+                        (string) ($_POST['owasys_source_path'] ?? ''),
+                        $identity
+                    );
+                    Response::json([
+                        'contract' => 'OWASYS_SOURCE_SELECTION_V1',
+                        'selected' => $selected,
+                    ])->send();
+                    return;
+                }
                 $browse = $this->source->browse(
                     (string) ($currentApp['id'] ?? ''),
                     (string) ($_POST['owasys_source_path'] ?? ''),
@@ -86,6 +99,13 @@ final class OwasysSourceController
             }
         } catch (Throwable $error) {
             $errorCode = $this->safeErrorCode($error);
+            if ($this->expectsJson()) {
+                Response::json([
+                    'contract' => 'OWASYS_SOURCE_SELECTION_ERROR_V1',
+                    'error_code' => $errorCode,
+                ], 422)->send();
+                return;
+            }
             http_response_code(422);
         }
 
@@ -242,6 +262,7 @@ final class OwasysSourceController
                 'files' => $files,
                 'truncated' => ($listing['truncated'] ?? false) === true,
                 'selected' => is_array($selected),
+                'unselected' => !is_array($selected),
                 'path' => $selectedPath,
                 'bytes' => (string) ($selected['bytes'] ?? ''),
                 'sha256' => (string) ($selected['sha256'] ?? ''),
@@ -330,6 +351,14 @@ final class OwasysSourceController
         return preg_match('/^[A-Z0-9_:-]{3,240}$/', $message) === 1
             ? $message
             : 'OWASYS_SOURCE_FAILED';
+    }
+
+    private function expectsJson(): bool
+    {
+        return str_contains(
+            strtolower((string) ($_SERVER['HTTP_ACCEPT'] ?? '')),
+            'application/json'
+        );
     }
 
     private function routeUrl(string $locale, string $route): string

@@ -70,7 +70,44 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedButton.scrollIntoView({ block: 'nearest' });
   }
 
-  tree.addEventListener('submit', (event) => {
+  let editor = null;
+  const selection = document.querySelector(
+    '[data-context="OWASYS_SOURCE_SELECTION"]'
+  );
+  const host = document.querySelector(
+    '[data-context="OWASYS_SOURCE_CONTENT_EDITOR"]'
+  );
+  const initialTextarea = host?.querySelector('textarea[data-source-path]');
+
+  const ensureEditor = (content, path) => {
+    if (!(host instanceof HTMLElement)
+        || window.OWASYSCodeMirror?.contract !== 'OWASYS_CODEMIRROR_6_V1') {
+      return;
+    }
+    host.hidden = false;
+    if (editor === null) {
+      host.replaceChildren();
+      editor = window.OWASYSCodeMirror.create({
+        parent: host,
+        value: content,
+        path,
+        onChange: () => {}
+      });
+      editor.setReadOnly(true);
+      return;
+    }
+    editor.setPath(path);
+    editor.setValue(content);
+  };
+
+  if (initialTextarea instanceof HTMLTextAreaElement) {
+    ensureEditor(
+      initialTextarea.value,
+      String(initialTextarea.dataset.sourcePath || '')
+    );
+  }
+
+  tree.addEventListener('submit', async (event) => {
     const form = event.target;
     if (!(form instanceof HTMLFormElement)) {
       return;
@@ -86,28 +123,45 @@ document.addEventListener('DOMContentLoaded', () => {
     button.disabled = false;
     button.classList.add('is-loading');
     button.setAttribute('aria-busy', 'true');
+    if (!window.fetch || !(selection instanceof HTMLElement)) {
+      return;
+    }
+    event.preventDefault();
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { Accept: 'application/json' },
+        credentials: 'same-origin'
+      });
+      const result = await response.json();
+      if (!response.ok
+          || result.contract !== 'OWASYS_SOURCE_SELECTION_V1'
+          || typeof result.selected?.content !== 'string') {
+        throw new Error('OWASYS_SOURCE_SELECTION_RESPONSE_INVALID');
+      }
+      const selected = result.selected;
+      ensureEditor(selected.content, selected.path);
+      selection.querySelector('[data-source-selection-path]').textContent =
+        selected.path;
+      selection.querySelector('[data-source-selection-bytes]').textContent =
+        String(selected.bytes);
+      selection.querySelector('[data-source-selection-sha256]').textContent =
+        selected.sha256;
+      selection.querySelector('[data-source-selection-metadata]').hidden =
+        false;
+      selection.querySelector('[data-source-selection-empty]').hidden = true;
+      tree.querySelectorAll('.ow-source-file').forEach((candidate) => {
+        candidate.removeAttribute('aria-current');
+      });
+      button.setAttribute('aria-current', 'true');
+    } catch (error) {
+      form.submit();
+    }
+    tree.querySelectorAll('.ow-source-file').forEach((candidate) => {
+      candidate.disabled = false;
+      candidate.classList.remove('is-loading');
+      candidate.removeAttribute('aria-busy');
+    });
   });
-
-  const textarea = document.querySelector(
-    '[data-context="OWASYS_SOURCE_CONTENT_EDITOR"] textarea[data-source-path]'
-  );
-  const host = document.querySelector(
-    '[data-context="OWASYS_SOURCE_CONTENT_EDITOR"]'
-  );
-  if (!(textarea instanceof HTMLTextAreaElement)
-      || !(host instanceof HTMLElement)
-      || window.OWASYSCodeMirror?.contract !== 'OWASYS_CODEMIRROR_6_V1') {
-    return;
-  }
-
-  const content = textarea.value;
-  const path = String(textarea.dataset.sourcePath || '');
-  textarea.remove();
-  const editor = window.OWASYSCodeMirror.create({
-    parent: host,
-    value: content,
-    path,
-    onChange: () => {}
-  });
-  editor.setReadOnly(true);
 });
