@@ -31,7 +31,9 @@
         "owasys:registry-sync": "Opus\\Composer\\ComposerScripts::run",
         "owasys:registry-select": "Opus\\Composer\\ComposerScripts::run",
         "owasys:registry-clear": "Opus\\Composer\\ComposerScripts::run",
-        "owasys:admin-password-change": "Opus\\Composer\\ComposerScripts::run"
+        "owasys:admin-password-change": "Opus\\Composer\\ComposerScripts::run",
+        "owasys:source-list": "Opus\\Composer\\ComposerScripts::run",
+        "owasys:source-read": "Opus\\Composer\\ComposerScripts::run"
     },
     "repositories": [
         {

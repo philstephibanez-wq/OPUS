@@ -1,0 +1,48 @@
+[[ if: source.has_error ]]
+<p class="ow-error"><code>{{ source.error_code }}</code></p>
+[[ endif ]]
+<section class="ow-card">
+  <div class="ow-section-heading">
+    <div>
+      <h2>{{ page.title }}</h2>
+      <p class="ow-muted">{{ page.summary }}</p>
+    </div>
+    <div class="ow-tags">
+      <span>[[ i18n: common.id ]]: {{ current_app.id }}</span>
+      <span>[[ i18n: common.root ]]: {{ current_app.root }}</span>
+    </div>
+  </div>
+  <div class="ow-grid">
+    <article class="ow-card">
+      <h3>{{ page.title }}</h3>
+      [[ if: source.empty ]]
+        <p class="ow-muted">{{ page.summary }}</p>
+      [[ else ]]
+        <div class="ow-source-file-list">
+          [[ foreach: source.files as file ]]
+            <form method="post" action="{{ urls.current }}">
+              <input type="hidden" name="owasys_action" value="source-read">
+              <input type="hidden" name="owasys_source_path" value="{{ file.path }}">
+              <button class="ow-button ow-button-secondary" type="submit" [[ if: file.selected ]]aria-current="true"[[ endif ]]>
+                <strong>{{ file.path }}</strong>
+                <small>{{ file.bytes }}</small>
+              </button>
+            </form>
+          [[ endforeach ]]
+        </div>
+      [[ endif ]]
+    </article>
+    <article class="ow-card">
+      [[ if: source.selected ]]
+        <h3>{{ source.path }}</h3>
+        <div class="ow-tags">
+          <span>{{ source.bytes }}</span>
+          <span>{{ source.sha256 }}</span>
+        </div>
+        <pre class="ow-source-content"><code>{{ source.content }}</code></pre>
+      [[ else ]]
+        <p class="ow-muted">{{ page.summary }}</p>
+      [[ endif ]]
+    </article>
+  </div>
+</section>

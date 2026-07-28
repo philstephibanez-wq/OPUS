@@ -66,9 +66,11 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
             $this->profiler->event('owasys.front', 'request.received', [
                 'path' => $path,
             ]);
-            [$controller, $creation] = $this->components();
+            [$controller, $creation, $source] = $this->components();
             if ($creation->matchesCurrentRequest()) {
                 $creation->run();
+            } elseif ($source->matchesCurrentRequest()) {
+                $source->run();
             } else {
                 $controller->run();
             }
@@ -101,7 +103,7 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
         }
     }
 
-    /** @return array{0:OwasysRuntimeController,1:OwasysCreationController} */
+    /** @return array{0:OwasysRuntimeController,1:OwasysCreationController,2:OwasysSourceController} */
     private function components(): array
     {
         $siteConfig = \Opus\File\StructuredFileLoader::instance()->read(
@@ -127,6 +129,14 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 $renderer,
                 $registry,
                 new OwasysApplicationCreationModel($this->siteRoot, $registry)
+            ),
+            new OwasysSourceController(
+                $this->siteRoot,
+                $siteConfig,
+                $session,
+                $security,
+                $renderer,
+                new OwasysSourceModel($this->siteRoot)
             ),
         ];
     }

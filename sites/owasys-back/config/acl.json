@@ -9,12 +9,14 @@
       "registry:*",
       "creation:*",
       "site:*",
-      "account:change"
+      "account:change",
+      "source:*"
     ],
     "viewer": [
       "registry:open",
       "site:validate",
-      "site:routes:list"
+      "site:routes:list",
+      "source:read"
     ]
   }
 }

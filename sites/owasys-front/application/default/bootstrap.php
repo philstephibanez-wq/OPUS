@@ -45,6 +45,8 @@ $files = [
     'application/registry/controllers/RegistryController.php',
     'application/creation/models/ApplicationCreationModel.php',
     'application/creation/controllers/CreationController.php',
+    'application/source/models/SourceModel.php',
+    'application/source/controllers/SourceController.php',
     'application/default/services/FsmActionHandlers.php',
     'application/default/controllers/RuntimeController.php',
     'application/default/ApplicationInterface.php',
