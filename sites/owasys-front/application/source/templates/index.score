@@ -20,15 +20,11 @@
       [[ else ]]
         <div class="ow-source-file-tree" data-context="OWASYS_SOURCE_FILE_TREE">
           [[ foreach: source.files as file ]]
-            <form method="post" action="{{ urls.current }}" data-source-path="{{ file.path }}">
-              <input type="hidden" name="owasys_action" value="source-read">
-              <input type="hidden" name="owasys_source_path" value="{{ file.path }}">
-              <button class="ow-source-file" type="submit" [[ if: file.selected ]]aria-current="true"[[ endif ]]>
+            <a class="ow-source-file" href="{{ file.url }}" data-source-path="{{ file.path }}" [[ if: file.selected ]]aria-current="page"[[ endif ]]>
                 <span class="ow-source-file-marker" aria-hidden="true">✓</span>
                 <span class="ow-source-file-name">{{ file.name }}</span>
                 <small>{{ file.bytes }}</small>
-              </button>
-            </form>
+            </a>
           [[ endforeach ]]
         </div>
       [[ endif ]]

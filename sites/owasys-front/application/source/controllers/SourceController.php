@@ -31,16 +31,19 @@ final class OwasysSourceController
     public function matchesCurrentRequest(): bool
     {
         [, $route] = $this->resolveRequest();
-        return $route === 'source';
+        return $route === 'source' || str_starts_with($route, 'source/');
     }
 
     public function run(): void
     {
         $this->startSession();
         [$locale, $route] = $this->resolveRequest();
-        if ($route !== 'source') {
+        if ($route !== 'source' && !str_starts_with($route, 'source/')) {
             throw new RuntimeException('OWASYS_SOURCE_ROUTE_MISMATCH');
         }
+        $sourcePath = $route === 'source'
+            ? ''
+            : substr($route, strlen('source/'));
         $identity = $this->session->user();
         if (!is_array($identity)) {
             $this->redirect($locale, 'login');
@@ -55,7 +58,7 @@ final class OwasysSourceController
         $fsm = FsmSiteLoader::processorForSiteRoot($this->siteRoot);
         $state = $this->enterSourceState($fsm, $identity, $currentApp);
         $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
-        if (!in_array($method, ['GET', 'POST'], true)) {
+        if ($method !== 'GET') {
             throw new RuntimeException('OWASYS_SOURCE_METHOD_NOT_ALLOWED');
         }
 
@@ -67,15 +70,11 @@ final class OwasysSourceController
         $selected = null;
         $errorCode = null;
         try {
-            if ($method === 'POST') {
-                if (trim((string) ($_POST['owasys_action'] ?? ''))
-                    !== 'source-read') {
-                    throw new RuntimeException('OWASYS_SOURCE_ACTION_INVALID');
-                }
+            if ($sourcePath !== '') {
                 if ($this->expectsJson()) {
                     $selected = $this->source->read(
                         (string) ($currentApp['id'] ?? ''),
-                        (string) ($_POST['owasys_source_path'] ?? ''),
+                        $sourcePath,
                         $identity
                     );
                     Response::json([
@@ -86,7 +85,7 @@ final class OwasysSourceController
                 }
                 $browse = $this->source->browse(
                     (string) ($currentApp['id'] ?? ''),
-                    (string) ($_POST['owasys_source_path'] ?? ''),
+                    $sourcePath,
                     $identity
                 );
                 $listing = $browse['listing'];
@@ -189,6 +188,7 @@ final class OwasysSourceController
                 'name' => basename($path),
                 'bytes' => (string) ($file['bytes'] ?? '0'),
                 'selected' => $path === $selectedPath,
+                'url' => $this->sourceUrl($locale, $path),
             ];
         }
 
@@ -365,6 +365,18 @@ final class OwasysSourceController
     {
         return $this->basePath() . '/' . rawurlencode($locale)
             . '/' . ltrim($route, '/');
+    }
+
+    private function sourceUrl(string $locale, string $path): string
+    {
+        $segments = array_filter(explode('/', trim($path, '/')), 'strlen');
+        if ($segments === []) {
+            throw new RuntimeException('OWASYS_SOURCE_PATH_INVALID');
+        }
+        return $this->routeUrl(
+            $locale,
+            'source/' . implode('/', array_map('rawurlencode', $segments))
+        );
     }
 
     private function basePath(): string

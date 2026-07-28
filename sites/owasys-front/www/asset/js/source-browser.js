@@ -6,11 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  const forms = [...tree.querySelectorAll('form[data-source-path]')];
+  const links = [...tree.querySelectorAll('a[data-source-path]')];
   const root = { directories: new Map(), files: [] };
 
-  forms.forEach((form) => {
-    const path = String(form.dataset.sourcePath || '');
+  links.forEach((link) => {
+    const path = String(link.dataset.sourcePath || '');
     const parts = path.split('/').filter(Boolean);
     const name = parts.pop();
     if (!name) {
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       node = node.directories.get(part);
     });
-    node.files.push({ name, form });
+    node.files.push({ name, link });
   });
 
   const renderNode = (node, parent, depth = 0) => {
@@ -46,10 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     [...node.files]
       .sort((left, right) => left.name.localeCompare(right.name))
-      .forEach(({ form }) => {
+      .forEach(({ link }) => {
         const item = document.createElement('li');
         item.className = 'ow-source-tree-node';
-        item.append(form);
+        item.append(link);
         parent.append(item);
       });
   };
@@ -58,16 +58,16 @@ document.addEventListener('DOMContentLoaded', () => {
   renderNode(root, list);
   tree.replaceChildren(list);
 
-  const selectedButton = tree.querySelector(
-    '.ow-source-file[aria-current="true"]'
+  const selectedLink = tree.querySelector(
+    '.ow-source-file[aria-current="page"]'
   );
-  if (selectedButton instanceof HTMLButtonElement) {
-    let ancestor = selectedButton.closest('details');
+  if (selectedLink instanceof HTMLAnchorElement) {
+    let ancestor = selectedLink.closest('details');
     while (ancestor instanceof HTMLDetailsElement) {
       ancestor.open = true;
       ancestor = ancestor.parentElement?.closest('details') || null;
     }
-    selectedButton.scrollIntoView({ block: 'nearest' });
+    selectedLink.scrollIntoView({ block: 'nearest' });
   }
 
   let editor = null;
@@ -107,30 +107,35 @@ document.addEventListener('DOMContentLoaded', () => {
     );
   }
 
-  tree.addEventListener('submit', async (event) => {
-    const form = event.target;
-    if (!(form instanceof HTMLFormElement)) {
+  window.addEventListener('popstate', () => {
+    window.location.reload();
+  });
+
+  tree.addEventListener('click', async (event) => {
+    const link = event.target instanceof Element
+      ? event.target.closest('a[data-source-path]')
+      : null;
+    if (!(link instanceof HTMLAnchorElement)) {
       return;
     }
-    const button = form.querySelector('.ow-source-file');
-    if (!(button instanceof HTMLButtonElement)) {
+    if (event.button !== 0 || event.ctrlKey || event.metaKey
+        || event.shiftKey || event.altKey) {
       return;
     }
-    tree.querySelectorAll('.ow-source-file').forEach((candidate) => {
-      candidate.classList.remove('is-loading');
-      candidate.disabled = true;
-    });
-    button.disabled = false;
-    button.classList.add('is-loading');
-    button.setAttribute('aria-busy', 'true');
     if (!window.fetch || !(selection instanceof HTMLElement)) {
       return;
     }
     event.preventDefault();
+    tree.querySelectorAll('.ow-source-file').forEach((candidate) => {
+      candidate.classList.remove('is-loading');
+      candidate.setAttribute('aria-disabled', 'true');
+    });
+    link.removeAttribute('aria-disabled');
+    link.classList.add('is-loading');
+    link.setAttribute('aria-busy', 'true');
     try {
-      const response = await fetch(form.action, {
-        method: 'POST',
-        body: new FormData(form),
+      const response = await fetch(link.href, {
+        method: 'GET',
         headers: { Accept: 'application/json' },
         credentials: 'same-origin'
       });
@@ -154,12 +159,17 @@ document.addEventListener('DOMContentLoaded', () => {
       tree.querySelectorAll('.ow-source-file').forEach((candidate) => {
         candidate.removeAttribute('aria-current');
       });
-      button.setAttribute('aria-current', 'true');
+      link.setAttribute('aria-current', 'page');
+      window.history.pushState(
+        { contract: 'OWASYS_SOURCE_URL_STATE_V1', path: selected.path },
+        '',
+        link.href
+      );
     } catch (error) {
-      form.submit();
+      window.location.assign(link.href);
     }
     tree.querySelectorAll('.ow-source-file').forEach((candidate) => {
-      candidate.disabled = false;
+      candidate.removeAttribute('aria-disabled');
       candidate.classList.remove('is-loading');
       candidate.removeAttribute('aria-busy');
     });
