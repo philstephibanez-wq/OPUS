@@ -61,12 +61,29 @@ final class OwasysRegistryRepository
     public function synchronize(string $seedFile): array
     {
         $db = $this->open();
+        $transactionOpen = false;
 
         try {
             $this->ensureSchema($db);
+            $db->exec('BEGIN IMMEDIATE');
+            $transactionOpen = true;
             $seedImported = $this->importSeed($db, $seedFile);
             $discovery = $this->importDiscoveredSites($db);
+            $reconciliation = $this->reconcileWithDiscoveredSites(
+                $db,
+                is_array($discovery['canonical_entries'] ?? null)
+                    ? $discovery['canonical_entries']
+                    : []
+            );
             $total = $this->countApplications($db);
+            $db->exec('COMMIT');
+            $transactionOpen = false;
+        } catch (Throwable $exception) {
+            if ($transactionOpen) {
+                $db->exec('ROLLBACK');
+            }
+
+            throw $exception;
         } finally {
             $db->close();
         }
@@ -82,6 +99,15 @@ final class OwasysRegistryRepository
             'discovery_conflicts' => is_array($discovery['conflicts'] ?? null)
                 ? $discovery['conflicts']
                 : [],
+            'stale_removed' => (int) (
+                $reconciliation['stale_removed'] ?? 0
+            ),
+            'stale_ids' => is_array(
+                $reconciliation['stale_ids'] ?? null
+            ) ? $reconciliation['stale_ids'] : [],
+            'stale_context_cleared' => (
+                $reconciliation['stale_context_cleared'] ?? false
+            ) === true,
             'total' => $total,
         ];
     }
@@ -431,6 +457,7 @@ SQL);
             if (!in_array(
                 $contract,
                 [
+                    'OPUS_SITE_STANDARD_CONTRACT_CORE',
                     'OPUS_SITE_APPLICATION_TREE_V2',
                     'OPUS_SITE_APPLICATION_TREE_V1_ETERNAL',
                 ],
@@ -441,11 +468,16 @@ SQL);
 
             $siteDir = basename(dirname(dirname($siteJsonFile)));
             $siteId = trim((string) ($site['site_id'] ?? $siteDir));
+            $profile = is_array($site['application_profile'] ?? null)
+                ? $site['application_profile']
+                : [];
             $candidate = [
                 'id' => $siteId,
                 'slug' => (string) ($site['slug'] ?? $siteId),
                 'name' => (string) ($site['site_name'] ?? $siteId),
-                'kind' => (string) ($site['kind'] ?? 'fullstack'),
+                'kind' => (string) (
+                    $profile['type'] ?? $site['kind'] ?? 'fullstack'
+                ),
                 'root_path' => 'sites/' . $siteDir,
                 'public_root' => (string) ($site['public_root'] ?? 'www'),
                 'default_locale' => (string) ($site['default_locale'] ?? 'fr-FR'),
@@ -467,6 +499,7 @@ SQL);
         $imported = 0;
         $duplicateRoots = 0;
         $conflicts = [];
+        $canonicalEntries = [];
 
         foreach ($groups as $siteId => $candidates) {
             usort(
@@ -492,6 +525,7 @@ SQL);
 
             if (is_array($canonical)) {
                 $this->upsertApplication($db, $canonical, 'discovered');
+                $canonicalEntries[] = $canonical;
                 $imported++;
             }
 
@@ -515,6 +549,91 @@ SQL);
             'duplicate_ids' => count($conflicts),
             'duplicate_roots' => $duplicateRoots,
             'conflicts' => $conflicts,
+            'canonical_entries' => $canonicalEntries,
+        ];
+    }
+
+    /**
+     * Removes SQLite applications that are no longer canonical filesystem
+     * applications. The current context is cleared when its application
+     * disappears; technical reconciliation never creates a select event.
+     *
+     * @param list<array<string,mixed>> $canonicalEntries
+     * @return array<string,mixed>
+     */
+    private function reconcileWithDiscoveredSites(
+        SQLite3 $db,
+        array $canonicalEntries
+    ): array {
+        $canonicalRoots = [];
+
+        foreach ($canonicalEntries as $entry) {
+            $normalized = $this->normalizeEntry($entry, 'discovered');
+            $canonicalRoots[$normalized['id']] = $normalized['root_path'];
+        }
+
+        $result = $db->query(
+            'SELECT id, root_path FROM owasys_applications ORDER BY id ASC'
+        );
+
+        if (!$result instanceof SQLite3Result) {
+            throw new RuntimeException(
+                'OWASYS_REGISTRY_RECONCILIATION_QUERY_FAILED'
+            );
+        }
+
+        $staleIds = [];
+
+        while (($row = $result->fetchArray(SQLITE3_ASSOC)) !== false) {
+            $id = (string) ($row['id'] ?? '');
+            $root = trim(
+                str_replace('\\', '/', (string) ($row['root_path'] ?? '')),
+                '/'
+            );
+
+            if (($canonicalRoots[$id] ?? null) !== $root) {
+                $staleIds[] = $id;
+            }
+        }
+
+        $result->finalize();
+        $current = $this->getContextValue($db, 'current_app');
+        $currentId = is_array($current)
+            ? trim((string) ($current['id'] ?? ''))
+            : '';
+        $contextCleared = $currentId !== ''
+            && in_array($currentId, $staleIds, true);
+
+        if ($contextCleared) {
+            $this->deleteContextValue($db, 'current_app');
+        }
+
+        $stmt = $db->prepare(
+            'DELETE FROM owasys_applications WHERE id = :id'
+        );
+
+        if (!$stmt instanceof SQLite3Stmt) {
+            throw new RuntimeException(
+                'OWASYS_REGISTRY_RECONCILIATION_DELETE_PREPARE_FAILED'
+            );
+        }
+
+        foreach ($staleIds as $staleId) {
+            $stmt->reset();
+            $stmt->bindValue(':id', $staleId, SQLITE3_TEXT);
+            $deleteResult = $stmt->execute();
+
+            if ($deleteResult instanceof SQLite3Result) {
+                $deleteResult->finalize();
+            }
+        }
+
+        $stmt->close();
+
+        return [
+            'stale_removed' => count($staleIds),
+            'stale_ids' => $staleIds,
+            'stale_context_cleared' => $contextCleared,
         ];
     }
 
