@@ -163,6 +163,7 @@ final class OwasysSourceController
             }
             $files[] = [
                 'path' => $path,
+                'name' => basename($path),
                 'bytes' => (string) ($file['bytes'] ?? '0'),
                 'selected' => $path === $selectedPath,
             ];
@@ -212,6 +213,10 @@ final class OwasysSourceController
                     . '/asset/css/language-switcher.css',
                 'password_js' => $basePath
                     . '/asset/js/password-visibility.js',
+                'source_codemirror_js' => $basePath
+                    . '/asset/vendor/codemirror/owasys-codemirror.js',
+                'source_browser_js' => $basePath
+                    . '/asset/js/source-browser.js',
             ],
             'urls' => [
                 'home' => $this->routeUrl($locale, 'applications'),
@@ -229,6 +234,7 @@ final class OwasysSourceController
                 $routeUrl
             ),
             'source' => [
+                'browser_enabled' => true,
                 'empty' => $files === [],
                 'files' => $files,
                 'truncated' => ($listing['truncated'] ?? false) === true,

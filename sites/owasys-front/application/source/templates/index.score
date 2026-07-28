@@ -18,13 +18,13 @@
       [[ if: source.empty ]]
         <p class="ow-muted">{{ page.summary }}</p>
       [[ else ]]
-        <div class="ow-source-file-list">
+        <div class="ow-source-file-tree" data-context="OWASYS_SOURCE_FILE_TREE">
           [[ foreach: source.files as file ]]
-            <form method="post" action="{{ urls.current }}">
+            <form method="post" action="{{ urls.current }}" data-source-path="{{ file.path }}">
               <input type="hidden" name="owasys_action" value="source-read">
               <input type="hidden" name="owasys_source_path" value="{{ file.path }}">
-              <button class="ow-button ow-button-secondary" type="submit" [[ if: file.selected ]]aria-current="true"[[ endif ]]>
-                <strong>{{ file.path }}</strong>
+              <button class="ow-source-file" type="submit" [[ if: file.selected ]]aria-current="true"[[ endif ]]>
+                <strong>{{ file.name }}</strong>
                 <small>{{ file.bytes }}</small>
               </button>
             </form>
@@ -39,7 +39,9 @@
           <span>{{ source.bytes }}</span>
           <span>{{ source.sha256 }}</span>
         </div>
-        <pre class="ow-source-content"><code>{{ source.content }}</code></pre>
+        <div class="ow-source-editor-host" data-context="OWASYS_SOURCE_CONTENT_EDITOR">
+          <textarea class="ow-source-content" data-source-path="{{ source.path }}" readonly>{{ source.content }}</textarea>
+        </div>
       [[ else ]]
         <p class="ow-muted">{{ page.summary }}</p>
       [[ endif ]]

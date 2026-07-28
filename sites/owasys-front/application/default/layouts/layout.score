@@ -59,6 +59,10 @@
   <script src="{{ assets.opus_mermaid_js }}" defer></script>
   <script src="{{ assets.fsm_mermaid_js }}" defer></script>
 [[ endif ]]
+[[ if: source.browser_enabled ]]
+  <script src="{{ assets.source_codemirror_js }}" defer></script>
+  <script src="{{ assets.source_browser_js }}" defer></script>
+[[ endif ]]
 <script src="{{ assets.password_js }}" defer></script>
 </body>
 </html>
