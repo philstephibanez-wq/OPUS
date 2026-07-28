@@ -1,1 +1,0 @@
-<section class="ow-card ow-page-registry"><h2>{{ page.title }}</h2><p>{{ page.summary }}</p></section>

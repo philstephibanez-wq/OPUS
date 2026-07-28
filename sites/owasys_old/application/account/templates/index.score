@@ -1,1 +1,0 @@
-<section class="ow-card ow-page-account"><h2>{{ page.title }}</h2><p>{{ page.summary }}</p></section>
