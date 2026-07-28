@@ -299,6 +299,28 @@
           "max_length": 512
         }
       ]
+    },
+    "source.browse": {
+      "composer_script": "owasys:source-browse",
+      "roles": [
+        "admin",
+        "developer",
+        "viewer"
+      ],
+      "arguments": [
+        {
+          "name": "site_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        },
+        {
+          "name": "path",
+          "required": true,
+          "pattern": "^[A-Za-z0-9._/-]+$",
+          "max_length": 512
+        }
+      ]
     }
   }
 }

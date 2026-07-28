@@ -32,6 +32,14 @@ final class OwasysScorePageRenderer
         $assets['fsm_mermaid_js'] = $assetBase
             . '/js/fsm-mermaid.js?v=p117k';
 
+        $source = is_array($data['source'] ?? null)
+            ? $data['source']
+            : [];
+        $data['source'] = array_replace(
+            ['browser_enabled' => false],
+            $source
+        );
+
         $locale = trim((string) ($data['locale']['code'] ?? ''));
         $module = trim((string) ($data['fsm']['module'] ?? ''));
 

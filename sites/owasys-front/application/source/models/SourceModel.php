@@ -54,6 +54,32 @@ final class OwasysSourceModel
         return $result;
     }
 
+    /** @param array<string,mixed> $actor @return array<string,mixed> */
+    public function browse(
+        string $siteId,
+        string $path,
+        array $actor
+    ): array {
+        $result = $this->rcp->execute(
+            'source.browse',
+            [
+                'site_id' => $this->siteId($siteId),
+                'path' => $this->path($path),
+            ],
+            $this->actor($actor)
+        );
+        if (($result['contract'] ?? null) !== 'OWASYS_SOURCE_BROWSE_V1'
+            || !is_array($result['listing'] ?? null)
+            || !is_array($result['selected'] ?? null)
+            || ($result['listing']['contract'] ?? null)
+                !== 'OPUS_SITE_SOURCE_LIST_V1'
+            || ($result['selected']['contract'] ?? null)
+                !== 'OPUS_SITE_SOURCE_FILE_V1') {
+            throw new RuntimeException('OWASYS_SOURCE_BROWSE_RESULT_INVALID');
+        }
+        return $result;
+    }
+
     private function siteId(string $siteId): string
     {
         $siteId = strtolower(trim($siteId));

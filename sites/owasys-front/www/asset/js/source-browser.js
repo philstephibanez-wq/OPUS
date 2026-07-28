@@ -58,6 +58,36 @@ document.addEventListener('DOMContentLoaded', () => {
   renderNode(root, list);
   tree.replaceChildren(list);
 
+  const selectedButton = tree.querySelector(
+    '.ow-source-file[aria-current="true"]'
+  );
+  if (selectedButton instanceof HTMLButtonElement) {
+    let ancestor = selectedButton.closest('details');
+    while (ancestor instanceof HTMLDetailsElement) {
+      ancestor.open = true;
+      ancestor = ancestor.parentElement?.closest('details') || null;
+    }
+    selectedButton.scrollIntoView({ block: 'nearest' });
+  }
+
+  tree.addEventListener('submit', (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement)) {
+      return;
+    }
+    const button = form.querySelector('.ow-source-file');
+    if (!(button instanceof HTMLButtonElement)) {
+      return;
+    }
+    tree.querySelectorAll('.ow-source-file').forEach((candidate) => {
+      candidate.classList.remove('is-loading');
+      candidate.disabled = true;
+    });
+    button.disabled = false;
+    button.classList.add('is-loading');
+    button.setAttribute('aria-busy', 'true');
+  });
+
   const textarea = document.querySelector(
     '[data-context="OWASYS_SOURCE_CONTENT_EDITOR"] textarea[data-source-path]'
   );

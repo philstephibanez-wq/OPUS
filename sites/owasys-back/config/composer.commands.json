@@ -19,7 +19,8 @@
       "bootstrap": "application/source/console.php",
       "commands": [
         "owasys:source:list",
-        "owasys:source:read"
+        "owasys:source:read",
+        "owasys:source:browse"
       ]
     }
   ],
@@ -29,6 +30,7 @@
     "owasys:registry-clear": "owasys:registry:clear",
     "owasys:admin-password-change": "owasys:security:admin-password:change",
     "owasys:source-list": "owasys:source:list",
-    "owasys:source-read": "owasys:source:read"
+    "owasys:source-read": "owasys:source:read",
+    "owasys:source-browse": "owasys:source:browse"
   }
 }

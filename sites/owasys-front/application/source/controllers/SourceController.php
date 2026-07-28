@@ -66,18 +66,21 @@ final class OwasysSourceController
         $selected = null;
         $errorCode = null;
         try {
-            $listing = $this->source->list(
-                (string) ($currentApp['id'] ?? ''),
-                $identity
-            );
             if ($method === 'POST') {
                 if (trim((string) ($_POST['owasys_action'] ?? ''))
                     !== 'source-read') {
                     throw new RuntimeException('OWASYS_SOURCE_ACTION_INVALID');
                 }
-                $selected = $this->source->read(
+                $browse = $this->source->browse(
                     (string) ($currentApp['id'] ?? ''),
                     (string) ($_POST['owasys_source_path'] ?? ''),
+                    $identity
+                );
+                $listing = $browse['listing'];
+                $selected = $browse['selected'];
+            } else {
+                $listing = $this->source->list(
+                    (string) ($currentApp['id'] ?? ''),
                     $identity
                 );
             }

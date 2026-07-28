@@ -11,6 +11,7 @@ final class OwasysSourceCommandProvider implements OwasysSourceCommandProviderIn
     private const COMMANDS = [
         'owasys:source:list' => true,
         'owasys:source:read' => true,
+        'owasys:source:browse' => true,
     ];
 
     private readonly AclPolicy $acl;
@@ -45,10 +46,24 @@ final class OwasysSourceCommandProvider implements OwasysSourceCommandProviderIn
                 $siteId,
                 (string) ($arguments[1] ?? '')
             ),
+            'owasys:source:browse' => $this->browse(
+                $siteId,
+                (string) ($arguments[1] ?? '')
+            ),
             default => throw new RuntimeException(
                 'OWASYS_SOURCE_COMMAND_UNKNOWN:' . $command
             ),
         };
+    }
+
+    /** @return array<string,mixed> */
+    private function browse(string $siteId, string $path): array
+    {
+        return [
+            'contract' => 'OWASYS_SOURCE_BROWSE_V1',
+            'listing' => $this->inspector->list($siteId),
+            'selected' => $this->inspector->read($siteId, $path),
+        ];
     }
 
     /** @param array<string,mixed> $actor */
