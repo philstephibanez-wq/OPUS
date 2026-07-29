@@ -1,9 +1,0 @@
-{
-  "contract": "OPUS_I18N_CATALOG_V2",
-  "locale": "pt-PT",
-  "scope": "account",
-  "inherits": "pt",
-  "messages": {},
-  "plurals": {},
-  "grammatical": {}
-}
