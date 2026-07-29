@@ -7,7 +7,7 @@ use Opus\Console\Application\ApplicationCommandDispatcher;
 use Opus\Console\Application\ApplicationCommandDispatcherInterface;
 use Opus\Console\Service\SiteArchiveExporter;
 use Opus\Console\Service\SiteArchiveExporterInterface;
-use Opus\Console\Service\LayeredSiteCommandService;
+use Opus\Console\Service\SiteCommandService;
 use Opus\Console\Service\SiteCommandServiceInterface;
 use Opus\File\Json;
 
@@ -34,7 +34,7 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
     public static function fromRoot(string $opusRoot): self
     {
         return new self(
-            new LayeredSiteCommandService($opusRoot),
+            new SiteCommandService($opusRoot),
             new SiteArchiveExporter($opusRoot),
             null,
             $opusRoot
