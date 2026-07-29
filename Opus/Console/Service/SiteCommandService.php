@@ -146,6 +146,11 @@ final class SiteCommandService implements SiteCommandServiceInterface
         }
 
         $site = $this->loader->read($siteConfigFile);
+        if (array_key_exists('application_layers', $site)) {
+            throw new OpusConsoleException(
+                'OPUS_SITE_LAYERED_CONTRACT_FORBIDDEN'
+            );
+        }
         $fsmRelative = $this->fsmRelativePath($site);
         $standardLayout = $this->standardLayout($site);
         $surface = $this->applicationSurface($site);
