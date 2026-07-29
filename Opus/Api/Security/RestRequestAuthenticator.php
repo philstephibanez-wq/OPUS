@@ -1,18 +1,18 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus\Rcp\Security;
+namespace Opus\Api\Security;
 
 use Opus\Http\Request;
 
 /**
- * Authenticates a secured RCP transport and its delegated application actor.
+ * Authenticates a secured REST_API transport and its delegated application actor.
  *
  * Environment-HMAC mode proves service identity and binds the complete request
  * body to the HTTP method, path, timestamp and nonce. Auth0 proxy mode is an
  * alternative transport adapter behind the same identity contract.
  */
-final class RcpRequestAuthenticator implements RcpRequestAuthenticatorInterface
+final class RestRequestAuthenticator implements RestRequestAuthenticatorInterface
 {
     /** @param array<string,mixed> $config */
     public function __construct(private readonly array $config)
@@ -21,29 +21,26 @@ final class RcpRequestAuthenticator implements RcpRequestAuthenticatorInterface
 
     public function authenticate(
         Request $request,
-        array $payload,
         array $server
-    ): RcpIdentityInterface {
+    ): RestIdentityInterface {
         $mode = trim((string) ($this->config['mode'] ?? ''));
         return match ($mode) {
             'environment_hmac' => $this->environmentHmac(
                 $request,
-                $payload,
                 $server
             ),
             'auth0_proxy' => $this->auth0Proxy($server),
             default => throw new \RuntimeException(
-                'OPUS_RCP_AUTH_MODE_UNSUPPORTED'
+                'OPUS_REST_API_AUTH_MODE_UNSUPPORTED'
             ),
         };
     }
 
-    /** @param array<string,mixed> $payload @param array<string,mixed> $server */
+    /** @param array<string,mixed> $server */
     private function environmentHmac(
         Request $request,
-        array $payload,
         array $server
-    ): RcpIdentityInterface {
+    ): RestIdentityInterface {
         $minimum = max(
             32,
             (int) ($this->config['minimum_secret_length'] ?? 32)
@@ -56,15 +53,18 @@ final class RcpRequestAuthenticator implements RcpRequestAuthenticatorInterface
 
         if (!str_starts_with($authorization, 'Bearer ')
             || !hash_equals($token, substr($authorization, 7))) {
-            throw new \RuntimeException('OPUS_RCP_AUTHENTICATION_FAILED');
+            throw new \RuntimeException('OPUS_REST_API_AUTHENTICATION_FAILED');
         }
 
         $timestamp = trim(
-            (string) ($server['HTTP_X_OPUS_RCP_TIMESTAMP'] ?? '')
+            (string) ($server['HTTP_X_OPUS_REST_TIMESTAMP'] ?? '')
         );
-        $nonce = trim((string) ($server['HTTP_X_OPUS_RCP_NONCE'] ?? ''));
+        $nonce = trim((string) ($server['HTTP_X_OPUS_REST_NONCE'] ?? ''));
         $provided = strtolower(trim(
-            (string) ($server['HTTP_X_OPUS_RCP_SIGNATURE'] ?? '')
+            (string) ($server['HTTP_X_OPUS_REST_SIGNATURE'] ?? '')
+        ));
+        $actorHeader = trim((string) (
+            $server['HTTP_X_OPUS_REST_ACTOR'] ?? ''
         ));
         $skew = max(
             5,
@@ -79,7 +79,7 @@ final class RcpRequestAuthenticator implements RcpRequestAuthenticatorInterface
             || preg_match('/^[a-f0-9]{32,64}$/', $nonce) !== 1
             || preg_match('/^[a-f0-9]{64}$/', $provided) !== 1) {
             throw new \RuntimeException(
-                'OPUS_RCP_SIGNATURE_HEADERS_INVALID'
+                'OPUS_REST_API_SIGNATURE_HEADERS_INVALID'
             );
         }
 
@@ -90,6 +90,7 @@ final class RcpRequestAuthenticator implements RcpRequestAuthenticatorInterface
                 '/' . ltrim($request->path, '/'),
                 $timestamp,
                 $nonce,
+                $actorHeader,
                 $request->body()
             ),
             $hmac
@@ -97,24 +98,37 @@ final class RcpRequestAuthenticator implements RcpRequestAuthenticatorInterface
         unset($token, $hmac);
 
         if (!hash_equals($expected, $provided)) {
-            throw new \RuntimeException('OPUS_RCP_SIGNATURE_INVALID');
+            throw new \RuntimeException('OPUS_REST_API_SIGNATURE_INVALID');
         }
 
-        $executionId = trim((string) ($payload['execution_id'] ?? ''));
-        if ($executionId !== '' && !hash_equals($executionId, $nonce)) {
+        $padding = (4 - strlen($actorHeader) % 4) % 4;
+        $actorJson = base64_decode(
+            strtr($actorHeader . str_repeat('=', $padding), '-_', '+/'),
+            true
+        );
+        if (!is_string($actorJson)) {
+            throw new \RuntimeException('OPUS_REST_API_ACTOR_HEADER_INVALID');
+        }
+        try {
+            $actor = \Opus\File\Json::instance()->parse(
+                $actorJson,
+                'X-Opus-Rest-Actor'
+            );
+        } catch (\Throwable $error) {
             throw new \RuntimeException(
-                'OPUS_RCP_NONCE_EXECUTION_MISMATCH'
+                'OPUS_REST_API_ACTOR_HEADER_INVALID',
+                0,
+                $error
             );
         }
-
-        return $this->delegatedIdentity($payload['actor'] ?? null);
+        return $this->delegatedIdentity($actor);
     }
 
     /** @param mixed $actor */
-    private function delegatedIdentity($actor): RcpIdentityInterface
+    private function delegatedIdentity($actor): RestIdentityInterface
     {
         if (!is_array($actor)) {
-            throw new \RuntimeException('OPUS_RCP_ACTOR_INVALID');
+            throw new \RuntimeException('OPUS_REST_API_ACTOR_INVALID');
         }
 
         $subject = trim((string) ($actor['subject'] ?? $actor['id'] ?? ''));
@@ -150,10 +164,10 @@ final class RcpRequestAuthenticator implements RcpRequestAuthenticatorInterface
             || array_diff($roles, $allowedRoles) !== []
             || $provider === ''
             || !in_array($provider, $allowedProviders, true)) {
-            throw new \RuntimeException('OPUS_RCP_ACTOR_INVALID');
+            throw new \RuntimeException('OPUS_REST_API_ACTOR_INVALID');
         }
 
-        return new RcpIdentity(
+        return new RestIdentity(
             $subject,
             $roles,
             $provider,
@@ -162,7 +176,7 @@ final class RcpRequestAuthenticator implements RcpRequestAuthenticatorInterface
     }
 
     /** @param array<string,mixed> $server */
-    private function auth0Proxy(array $server): RcpIdentityInterface
+    private function auth0Proxy(array $server): RestIdentityInterface
     {
         $remote = trim((string) ($server['REMOTE_ADDR'] ?? ''));
         $trusted = is_array(
@@ -176,7 +190,7 @@ final class RcpRequestAuthenticator implements RcpRequestAuthenticatorInterface
 
         if (!in_array($remote, $trusted, true)) {
             throw new \RuntimeException(
-                'OPUS_RCP_PROXY_ADDRESS_UNTRUSTED'
+                'OPUS_REST_API_PROXY_ADDRESS_UNTRUSTED'
             );
         }
 
@@ -192,7 +206,7 @@ final class RcpRequestAuthenticator implements RcpRequestAuthenticatorInterface
             || strlen($expected) < 32
             || !hash_equals($expected, $provided)) {
             throw new \RuntimeException(
-                'OPUS_RCP_PROXY_AUTHENTICATION_FAILED'
+                'OPUS_REST_API_PROXY_AUTHENTICATION_FAILED'
             );
         }
 
@@ -209,11 +223,11 @@ final class RcpRequestAuthenticator implements RcpRequestAuthenticatorInterface
 
         if ($subject === '' || $roles === []) {
             throw new \RuntimeException(
-                'OPUS_RCP_AUTH0_IDENTITY_INVALID'
+                'OPUS_REST_API_AUTH0_IDENTITY_INVALID'
             );
         }
 
-        return new RcpIdentity(
+        return new RestIdentity(
             $subject,
             $roles,
             'auth0-proxy',
@@ -226,7 +240,7 @@ final class RcpRequestAuthenticator implements RcpRequestAuthenticatorInterface
         $service = trim((string) ($this->config['service'] ?? ''));
         if ($service === ''
             || preg_match('/^[a-z][a-z0-9.-]{1,127}$/', $service) !== 1) {
-            throw new \RuntimeException('OPUS_RCP_SERVICE_INVALID');
+            throw new \RuntimeException('OPUS_REST_API_SERVICE_INVALID');
         }
         return $service;
     }
@@ -240,7 +254,7 @@ final class RcpRequestAuthenticator implements RcpRequestAuthenticatorInterface
         $secret = $environment !== '' ? getenv($environment) : false;
         if (!is_string($secret) || strlen($secret) < $minimum) {
             throw new \RuntimeException(
-                'OPUS_RCP_SERVER_' . $type . '_NOT_CONFIGURED'
+                'OPUS_REST_API_SERVER_' . $type . '_NOT_CONFIGURED'
             );
         }
         return $secret;
@@ -251,12 +265,14 @@ final class RcpRequestAuthenticator implements RcpRequestAuthenticatorInterface
         string $path,
         string $timestamp,
         string $nonce,
+        string $actor,
         string $body
     ): string {
         return strtoupper($method) . "\n"
             . '/' . ltrim($path, '/') . "\n"
             . $timestamp . "\n"
             . $nonce . "\n"
+            . hash('sha256', $actor) . "\n"
             . hash('sha256', $body);
     }
 }

@@ -28,8 +28,19 @@ final class Response implements ResponseInterface
         return new self($body, $status, ['Content-Type' => 'text/html; charset=utf-8']);
     }
 
+    /** @param array<string,string> $headers */
+    public static function empty(int $status, array $headers = []): self
+    {
+        return new self('', $status, $headers);
+    }
+
     /** @param mixed $payload */
-    public static function json($payload, int $status = 200): self
+    /** @param array<string,string> $headers */
+    public static function json(
+        $payload,
+        int $status = 200,
+        array $headers = []
+    ): self
     {
         $body = json_encode(
             $payload,
@@ -39,7 +50,10 @@ final class Response implements ResponseInterface
             $body = '{"error":"json_encode failed"}';
             $status = 500;
         }
-        return new self($body, $status, ['Content-Type' => 'application/json; charset=utf-8']);
+        return new self($body, $status, array_merge(
+            ['Content-Type' => 'application/json; charset=utf-8'],
+            $headers
+        ));
     }
 
     public function send(): void

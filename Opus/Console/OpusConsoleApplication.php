@@ -56,7 +56,7 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
         $arguments = $this->withoutOption($arguments, 'format');
         $request = $this->stdinRequest();
         if (($request['contract'] ?? null)
-            === 'OPUS_RCP_COMPOSER_COMMAND_REQUEST_V1') {
+            === 'OPUS_REST_API_COMPOSER_COMMAND_REQUEST_V1') {
             $format = 'json';
         }
 
@@ -159,7 +159,7 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
     /** @param list<string> $arguments @param array<string,mixed> $request */
     private function create(array $arguments, array $request): array
     {
-        $this->assertRcpActor($request, ['admin', 'developer']);
+        $this->assertRestActor($request, ['admin', 'developer']);
         $siteId = (string) ($this->positionals($arguments)[0] ?? '');
         if ($siteId === '') {
             throw new OpusConsoleException('OPUS_CREATE_SITE_ID_REQUIRED');
@@ -174,7 +174,7 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
     /** @param list<string> $arguments @param array<string,mixed> $request */
     private function delete(array $arguments, array $request): array
     {
-        $this->assertRcpActor($request, ['admin', 'developer']);
+        $this->assertRestActor($request, ['admin', 'developer']);
         $siteId = (string) ($this->positionals($arguments)[0] ?? '');
         if ($siteId === '') {
             throw new OpusConsoleException('OPUS_DELETE_SITE_ID_REQUIRED');
@@ -189,7 +189,7 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
     /** @param list<string> $arguments @param array<string,mixed> $request */
     private function export(array $arguments, array $request): array
     {
-        $this->assertRcpActor($request, ['admin', 'developer']);
+        $this->assertRestActor($request, ['admin', 'developer']);
         $positionals = $this->positionals($arguments);
         $siteId = (string) ($positionals[0] ?? '');
         if ($siteId === '') {
@@ -205,7 +205,7 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
     /** @param list<string> $arguments @param array<string,mixed> $request */
     private function addLanguage(array $arguments, array $request): array
     {
-        $this->assertRcpActor($request, ['admin', 'developer']);
+        $this->assertRestActor($request, ['admin', 'developer']);
         $positionals = $this->positionals($arguments);
         if (($positionals[0] ?? '') === '' || ($positionals[1] ?? '') === '') {
             throw new OpusConsoleException(
@@ -222,7 +222,7 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
     /** @param list<string> $arguments @param array<string,mixed> $request */
     private function validate(array $arguments, array $request): array
     {
-        $this->assertRcpActor($request, ['admin', 'developer', 'viewer']);
+        $this->assertRestActor($request, ['admin', 'developer', 'viewer']);
         $siteId = (string) ($this->positionals($arguments)[0] ?? '');
         if ($siteId === '') {
             throw new OpusConsoleException('OPUS_VALIDATE_SITE_ID_REQUIRED');
@@ -233,7 +233,7 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
     /** @param list<string> $arguments @param array<string,mixed> $request */
     private function listRoutes(array $arguments, array $request): array
     {
-        $this->assertRcpActor($request, ['admin', 'developer', 'viewer']);
+        $this->assertRestActor($request, ['admin', 'developer', 'viewer']);
         $siteId = (string) ($this->positionals($arguments)[0] ?? '');
         if ($siteId === '') {
             throw new OpusConsoleException('OPUS_LIST_ROUTES_SITE_ID_REQUIRED');
@@ -244,7 +244,7 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
     /** @param list<string> $arguments @param array<string,mixed> $request */
     private function createPage(array $arguments, array $request): array
     {
-        $this->assertRcpActor($request, ['admin', 'developer']);
+        $this->assertRestActor($request, ['admin', 'developer']);
         $positionals = $this->positionals($arguments);
         if (count($positionals) < 4) {
             throw new OpusConsoleException(
@@ -264,7 +264,7 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
     /** @param list<string> $arguments @param array<string,mixed> $request */
     private function createRubric(array $arguments, array $request): array
     {
-        $this->assertRcpActor($request, ['admin', 'developer']);
+        $this->assertRestActor($request, ['admin', 'developer']);
         $positionals = $this->positionals($arguments);
         if (count($positionals) < 3) {
             throw new OpusConsoleException(
@@ -283,7 +283,7 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
     /** @param list<string> $arguments @param array<string,mixed> $request */
     private function devServer(array $arguments, array $request): int
     {
-        $this->assertRcpActor($request, ['admin', 'developer']);
+        $this->assertRestActor($request, ['admin', 'developer']);
         $applicationId = (string) (
             $this->positionals($arguments)[0] ?? ''
         );
@@ -311,7 +311,7 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
     /** @param list<string> $arguments @param array<string,mixed> $request */
     private function serve(array $arguments, array $request): int
     {
-        $this->assertRcpActor($request, ['admin', 'developer']);
+        $this->assertRestActor($request, ['admin', 'developer']);
         $siteId = (string) ($this->positionals($arguments)[0] ?? '');
         if ($siteId === '') {
             throw new OpusConsoleException('OPUS_SERVE_SITE_ID_REQUIRED');
@@ -349,14 +349,14 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
     }
 
     /** @param array<string,mixed> $request @param list<string> $allowedRoles */
-    private function assertRcpActor(array $request, array $allowedRoles): void
+    private function assertRestActor(array $request, array $allowedRoles): void
     {
         if ($request === []) {
             return;
         }
         if (($request['contract'] ?? null)
-            !== 'OPUS_RCP_COMPOSER_COMMAND_REQUEST_V1') {
-            throw new OpusConsoleException('OPUS_RCP_COMMAND_REQUEST_INVALID');
+            !== 'OPUS_REST_API_COMPOSER_COMMAND_REQUEST_V1') {
+            throw new OpusConsoleException('OPUS_REST_API_COMMAND_REQUEST_INVALID');
         }
         $actor = is_array($request['actor'] ?? null)
             ? $request['actor']
@@ -373,7 +373,7 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
             || $roles === []
             || $provider === ''
             || array_intersect($roles, $allowedRoles) === []) {
-            throw new OpusConsoleException('OPUS_RCP_COMMAND_ACL_DENIED');
+            throw new OpusConsoleException('OPUS_REST_API_COMMAND_ACL_DENIED');
         }
     }
 

@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus\Rcp\Rest;
+namespace Opus\Api\Rest;
 
-interface RcpExecutionStoreInterface extends
+interface RestReplayStoreInterface extends
     \Opus\Framework\OpusFrameworkComponentInterface,
     \Opus\Framework\OpusExceptionAwareInterface,
     \Opus\Framework\OpusProfilerAwareInterface,

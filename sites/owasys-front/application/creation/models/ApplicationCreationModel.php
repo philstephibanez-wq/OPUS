@@ -1,21 +1,21 @@
 <?php
 declare(strict_types=1);
 
-use Opus\Rcp\Rest\RcpRestClient;
-use Opus\Rcp\Rest\RcpRestClientInterface;
+use Opus\Api\Rest\RestClient;
+use Opus\Api\Rest\RestClientInterface;
 
 /** OWASYS frontend projection for OPUS application creation through REST + Composer. */
 final class OwasysApplicationCreationModel
 {
-    private readonly RcpRestClientInterface $rcp;
+    private readonly RestClientInterface $rest;
 
     public function __construct(
         string $siteRoot,
         private readonly OwasysRegistryModel $registry,
-        ?RcpRestClientInterface $rcp = null
+        ?RestClientInterface $rest = null
     ) {
-        $this->rcp = $rcp ?? RcpRestClient::fromConfig(
-            rtrim(str_replace('\\', '/', $siteRoot), '/') . '/config/rcp.json'
+        $this->rest = $rest ?? RestClient::fromConfig(
+            rtrim(str_replace('\\', '/', $siteRoot), '/') . '/config/rest-api.json'
         );
     }
 
@@ -37,12 +37,12 @@ final class OwasysApplicationCreationModel
             throw new RuntimeException('OWASYS_CREATION_PROFILE_INVALID');
         }
 
-        $command = $this->rcp->execute(
-            'site.create',
+        $command = $this->rest->request(
+            'POST',
+            '/api/v1/applications',
             [
                 'site_id' => $siteId,
                 'profile' => $profile,
-                'write' => true,
             ],
             $this->actor($actor)
         );

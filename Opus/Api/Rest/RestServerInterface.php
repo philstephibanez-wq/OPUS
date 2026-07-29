@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus\Rcp\Rest;
+namespace Opus\Api\Rest;
 
 use Opus\Http\Request;
 use Opus\Http\Response;
 
-interface RcpRestServerInterface extends
+interface RestServerInterface extends
     \Opus\Framework\OpusFrameworkComponentInterface,
     \Opus\Framework\OpusExceptionAwareInterface,
     \Opus\Framework\OpusProfilerAwareInterface,

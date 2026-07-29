@@ -336,7 +336,7 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
     private function actor(array $request): array
     {
         if (($request['contract'] ?? null)
-            !== 'OPUS_RCP_COMPOSER_COMMAND_REQUEST_V1') {
+            !== 'OPUS_REST_API_COMPOSER_COMMAND_REQUEST_V1') {
             throw new RuntimeException(
                 'OWASYS_COMMAND_REQUEST_CONTRACT_INVALID'
             );

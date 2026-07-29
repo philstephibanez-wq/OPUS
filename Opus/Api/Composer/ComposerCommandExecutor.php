@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus\Rcp\Composer;
+namespace Opus\Api\Composer;
 
 use Opus\File\Json;
 use Opus\Log\LoggerInterface;
@@ -24,13 +24,13 @@ final class ComposerCommandExecutor implements ComposerCommandExecutorInterface
     ) {
         if ($this->composerCommand === []
             || array_filter($this->composerCommand, 'is_string') !== $this->composerCommand) {
-            throw new \RuntimeException('OPUS_RCP_COMPOSER_COMMAND_INVALID');
+            throw new \RuntimeException('OPUS_REST_API_COMPOSER_COMMAND_INVALID');
         }
         if ($this->timeoutSeconds < 1 || $this->timeoutSeconds > 600) {
-            throw new \RuntimeException('OPUS_RCP_TIMEOUT_INVALID');
+            throw new \RuntimeException('OPUS_REST_API_TIMEOUT_INVALID');
         }
         if ($this->maxOutputBytes < 4096 || $this->maxOutputBytes > 16777216) {
-            throw new \RuntimeException('OPUS_RCP_OUTPUT_LIMIT_INVALID');
+            throw new \RuntimeException('OPUS_REST_API_OUTPUT_LIMIT_INVALID');
         }
     }
 
@@ -41,7 +41,7 @@ final class ComposerCommandExecutor implements ComposerCommandExecutorInterface
             ? array_values(array_filter($entry['argv'], 'is_string'))
             : [];
         if ($script === '' || preg_match('/^[a-z0-9][a-z0-9:_-]*$/', $script) !== 1) {
-            throw new \RuntimeException('OPUS_RCP_COMPOSER_SCRIPT_INVALID');
+            throw new \RuntimeException('OPUS_REST_API_COMPOSER_SCRIPT_INVALID');
         }
 
         [$trace, $ownsTrace] = $this->trace($request);
@@ -66,12 +66,12 @@ final class ComposerCommandExecutor implements ComposerCommandExecutorInterface
             '--format=json',
         ];
 
-        $this->logger->info('rcp.composer', 'command.started', [
+        $this->logger->info('rest_api.composer', 'command.started', [
             'script' => $script,
             'argv_count' => count($argv),
-            'execution_id' => $this->safeExecutionId($request),
+            'request_id' => $this->safeRequestId($request),
         ], $traceId);
-        $this->profiler->event('rcp.composer', 'command.started', [
+        $this->profiler->event('rest_api.composer', 'command.started', [
             'script' => $script,
             'argv_count' => count($argv),
         ]);
@@ -92,13 +92,13 @@ final class ComposerCommandExecutor implements ComposerCommandExecutorInterface
             );
             if (!is_resource($process)) {
                 throw new \RuntimeException(
-                    'OPUS_RCP_COMPOSER_PROCESS_START_FAILED'
+                    'OPUS_REST_API_COMPOSER_PROCESS_START_FAILED'
                 );
             }
 
             $encoded = Json::instance()->encode($request, false);
             if (fwrite($pipes[0], $encoded) === false) {
-                throw new \RuntimeException('OPUS_RCP_STDIN_WRITE_FAILED');
+                throw new \RuntimeException('OPUS_REST_API_STDIN_WRITE_FAILED');
             }
             fclose($pipes[0]);
             unset($encoded, $request);
@@ -153,24 +153,24 @@ final class ComposerCommandExecutor implements ComposerCommandExecutorInterface
             if ($exitCode !== 0 || $status !== 'succeeded') {
                 $code = trim((string) (
                     $result['error_code']
-                    ?? 'OPUS_RCP_COMPOSER_COMMAND_FAILED'
+                    ?? 'OPUS_REST_API_COMPOSER_COMMAND_FAILED'
                 ));
                 throw new \RuntimeException(
                     preg_match('/^[A-Z0-9_:-]{3,240}$/', $code) === 1
                         ? $code
-                        : 'OPUS_RCP_COMPOSER_COMMAND_FAILED'
+                        : 'OPUS_REST_API_COMPOSER_COMMAND_FAILED'
                 );
             }
 
             $durationMs = round((microtime(true) - $startedAt) * 1000, 3);
-            $this->logger->info('rcp.composer', 'command.succeeded', [
+            $this->logger->info('rest_api.composer', 'command.succeeded', [
                 'script' => $script,
                 'exit_code' => $exitCode,
                 'duration_ms' => $durationMs,
                 'stdout_bytes' => strlen($stdout),
                 'stderr_bytes' => strlen($stderr),
             ], $traceId);
-            $this->profiler->event('rcp.composer', 'command.succeeded', [
+            $this->profiler->event('rest_api.composer', 'command.succeeded', [
                 'script' => $script,
                 'exit_code' => $exitCode,
                 'duration_ms' => $durationMs,
@@ -217,12 +217,12 @@ final class ComposerCommandExecutor implements ComposerCommandExecutorInterface
             $stderr .= is_string($err) ? $err : '';
             if (strlen($stdout) + strlen($stderr) > $this->maxOutputBytes) {
                 proc_terminate($process);
-                throw new \RuntimeException('OPUS_RCP_OUTPUT_LIMIT_EXCEEDED');
+                throw new \RuntimeException('OPUS_REST_API_OUTPUT_LIMIT_EXCEEDED');
             }
 
             $status = proc_get_status($process);
             if (!is_array($status)) {
-                throw new \RuntimeException('OPUS_RCP_PROCESS_STATUS_FAILED');
+                throw new \RuntimeException('OPUS_REST_API_PROCESS_STATUS_FAILED');
             }
             if (($status['running'] ?? false) !== true) {
                 $exitCode = (int) ($status['exitcode'] ?? -1);
@@ -235,7 +235,7 @@ final class ComposerCommandExecutor implements ComposerCommandExecutorInterface
             if (microtime(true) >= $deadline) {
                 proc_terminate($process);
                 throw new \RuntimeException(
-                    'OPUS_RCP_COMPOSER_COMMAND_TIMEOUT'
+                    'OPUS_REST_API_COMPOSER_COMMAND_TIMEOUT'
                 );
             }
             usleep(20000);
@@ -274,11 +274,11 @@ final class ComposerCommandExecutor implements ComposerCommandExecutorInterface
         }
         if ($exitCode !== 0) {
             throw new \RuntimeException(
-                'OPUS_RCP_COMPOSER_COMMAND_FAILED'
+                'OPUS_REST_API_COMPOSER_COMMAND_FAILED'
             );
         }
 
-        throw new \RuntimeException('OPUS_RCP_COMPOSER_RESULT_MISSING');
+        throw new \RuntimeException('OPUS_REST_API_COMPOSER_RESULT_MISSING');
     }
 
     /** @return list<string> */
@@ -361,7 +361,7 @@ final class ComposerCommandExecutor implements ComposerCommandExecutorInterface
             return $observed;
         }
         throw new \RuntimeException(
-            'OPUS_RCP_PROCESS_EXIT_CODE_UNAVAILABLE'
+            'OPUS_REST_API_PROCESS_EXIT_CODE_UNAVAILABLE'
         );
     }
 
@@ -372,7 +372,7 @@ final class ComposerCommandExecutor implements ComposerCommandExecutorInterface
         if ($active instanceof TraceInterface) {
             return [$active, false];
         }
-        $executionId = $this->safeExecutionId($request);
+        $executionId = $this->safeRequestId($request);
         return [
             $this->profiler->start($executionId !== '' ? $executionId : null),
             true,
@@ -380,9 +380,9 @@ final class ComposerCommandExecutor implements ComposerCommandExecutorInterface
     }
 
     /** @param array<string,mixed> $request */
-    private function safeExecutionId(array $request): string
+    private function safeRequestId(array $request): string
     {
-        $executionId = trim((string) ($request['execution_id'] ?? ''));
+        $executionId = trim((string) ($request['request_id'] ?? ''));
         return preg_match('/^[a-f0-9]{16,64}$/', $executionId) === 1
             ? $executionId
             : '';
@@ -413,13 +413,13 @@ final class ComposerCommandExecutor implements ComposerCommandExecutorInterface
             'stderr_excerpt' => $this->diagnosticExcerpt($stderr),
         ];
         $this->logger->error(
-            'rcp.composer',
+            'rest_api.composer',
             'command.failed',
             $context,
             $traceId
         );
         $this->profiler->event(
-            'rcp.composer',
+            'rest_api.composer',
             'command.failed',
             $context
         );
@@ -430,7 +430,7 @@ final class ComposerCommandExecutor implements ComposerCommandExecutorInterface
         $message = trim($error->getMessage());
         return preg_match('/^[A-Z0-9_:-]{3,240}$/', $message) === 1
             ? $message
-            : 'OPUS_RCP_COMPOSER_COMMAND_FAILED';
+            : 'OPUS_REST_API_COMPOSER_COMMAND_FAILED';
     }
 
     private function diagnosticExcerpt(string $output): string

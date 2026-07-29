@@ -164,10 +164,10 @@
     "minimum_password_length": 10
   },
   "exchange": {
-    "contract": "OWASYS_REST_EXCHANGE_V1",
+    "contract": "OWASYS_REST_EXCHANGE_V2",
     "transport": "rest",
     "peer_application_id": "owasys-back",
-    "configuration": "config/rcp.json",
+    "configuration": "config/rest-api.json",
     "cross_application_filesystem_access": false
   },
   "environments": {
@@ -190,7 +190,7 @@
             "value": "8080"
           },
           "OPUS_OWASYS_BACKEND_ENDPOINT": {
-            "value": "http://127.0.0.1:8080/api/v1/executions"
+            "value": "http://127.0.0.1:8080"
           },
           "OPUS_OWASYS_BACKEND_TOKEN": {
             "development": {
@@ -217,7 +217,7 @@
             "value": "18000"
           },
           "OPUS_OWASYS_BACKEND_ENDPOINT": {
-            "value": "http://127.0.0.1:18000/api/v1/executions"
+            "value": "http://127.0.0.1:18000"
           },
           "OPUS_OWASYS_BACKEND_TOKEN": {
             "environment": "OPUS_TEST_OWASYS_BACKEND_TOKEN",

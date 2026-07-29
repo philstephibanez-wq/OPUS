@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 use Opus\Http\Request;
-use Opus\Rcp\Rest\RcpRestServer;
+use Opus\Api\Rest\RestServer;
 
 /** Secured OWASYS REST-to-Composer backend controller. */
 final class OwasysBackendApiController
@@ -23,7 +23,7 @@ final class OwasysBackendApiController
 
     public function run(): void
     {
-        RcpRestServer::fromRoot(
+        RestServer::fromRoot(
             $this->opusRoot,
             'sites/owasys-back/config/backend.rest.json'
         )->handle($this->request())->send();

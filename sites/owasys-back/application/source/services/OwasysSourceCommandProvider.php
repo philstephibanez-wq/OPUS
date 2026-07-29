@@ -5,7 +5,7 @@ use Opus\Application\Inspection\SiteSourceInspector;
 use Opus\Application\Inspection\SiteSourceInspectorInterface;
 use Opus\Security\Acl\AclPolicy;
 
-/** Application-owned adapter exposing generic OPUS source inspection to RCP. */
+/** Application-owned adapter exposing generic OPUS source inspection to REST_API. */
 final class OwasysSourceCommandProvider implements OwasysSourceCommandProviderInterface
 {
     private const COMMANDS = [
@@ -86,7 +86,7 @@ final class OwasysSourceCommandProvider implements OwasysSourceCommandProviderIn
     private function actor(array $request): array
     {
         if (($request['contract'] ?? null)
-            !== 'OPUS_RCP_COMPOSER_COMMAND_REQUEST_V1') {
+            !== 'OPUS_REST_API_COMPOSER_COMMAND_REQUEST_V1') {
             throw new RuntimeException(
                 'OWASYS_SOURCE_COMMAND_REQUEST_CONTRACT_INVALID'
             );

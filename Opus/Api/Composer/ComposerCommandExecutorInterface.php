@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus\Rcp\Composer;
+namespace Opus\Api\Composer;
 
 interface ComposerCommandExecutorInterface extends
     \Opus\Framework\OpusFrameworkComponentInterface,

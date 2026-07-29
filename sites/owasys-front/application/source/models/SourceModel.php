@@ -1,29 +1,31 @@
 <?php
 declare(strict_types=1);
 
-use Opus\Rcp\Rest\RcpRestClient;
-use Opus\Rcp\Rest\RcpRestClientInterface;
+use Opus\Api\Rest\RestClient;
+use Opus\Api\Rest\RestClientInterface;
 
 /** Read-only frontend projection of OPUS application source through secured REST. */
 final class OwasysSourceModel
 {
-    private readonly RcpRestClientInterface $rcp;
+    private readonly RestClientInterface $rest;
 
     public function __construct(
         string $siteRoot,
-        ?RcpRestClientInterface $rcp = null
+        ?RestClientInterface $rest = null
     ) {
-        $this->rcp = $rcp ?? RcpRestClient::fromConfig(
-            rtrim(str_replace('\\', '/', $siteRoot), '/') . '/config/rcp.json'
+        $this->rest = $rest ?? RestClient::fromConfig(
+            rtrim(str_replace('\\', '/', $siteRoot), '/') . '/config/rest-api.json'
         );
     }
 
     /** @param array<string,mixed> $actor @return array<string,mixed> */
     public function list(string $siteId, array $actor): array
     {
-        $result = $this->rcp->execute(
-            'source.list',
-            ['site_id' => $this->siteId($siteId)],
+        $siteId = $this->siteId($siteId);
+        $result = $this->rest->request(
+            'GET',
+            '/api/v1/applications/' . rawurlencode($siteId) . '/sources',
+            [],
             $this->actor($actor)
         );
         if (($result['contract'] ?? null) !== 'OPUS_SITE_SOURCE_LIST_V1'
@@ -39,12 +41,14 @@ final class OwasysSourceModel
         string $path,
         array $actor
     ): array {
-        $result = $this->rcp->execute(
-            'source.read',
-            [
-                'site_id' => $this->siteId($siteId),
-                'path' => $this->path($path),
-            ],
+        $siteId = $this->siteId($siteId);
+        $path = $this->path($path);
+        $resourcePath = implode('/', array_map('rawurlencode', explode('/', $path)));
+        $result = $this->rest->request(
+            'GET',
+            '/api/v1/applications/' . rawurlencode($siteId)
+                . '/sources/' . $resourcePath,
+            [],
             $this->actor($actor)
         );
         if (($result['contract'] ?? null) !== 'OPUS_SITE_SOURCE_FILE_V1'
@@ -60,24 +64,11 @@ final class OwasysSourceModel
         string $path,
         array $actor
     ): array {
-        $result = $this->rcp->execute(
-            'source.browse',
-            [
-                'site_id' => $this->siteId($siteId),
-                'path' => $this->path($path),
-            ],
-            $this->actor($actor)
-        );
-        if (($result['contract'] ?? null) !== 'OWASYS_SOURCE_BROWSE_V1'
-            || !is_array($result['listing'] ?? null)
-            || !is_array($result['selected'] ?? null)
-            || ($result['listing']['contract'] ?? null)
-                !== 'OPUS_SITE_SOURCE_LIST_V1'
-            || ($result['selected']['contract'] ?? null)
-                !== 'OPUS_SITE_SOURCE_FILE_V1') {
-            throw new RuntimeException('OWASYS_SOURCE_BROWSE_RESULT_INVALID');
-        }
-        return $result;
+        return [
+            'contract' => 'OWASYS_SOURCE_BROWSE_V1',
+            'listing' => $this->list($siteId, $actor),
+            'selected' => $this->read($siteId, $path, $actor),
+        ];
     }
 
     private function siteId(string $siteId): string

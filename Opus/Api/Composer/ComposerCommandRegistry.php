@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus\Rcp\Composer;
+namespace Opus\Api\Composer;
 
 use Opus\File\StructuredFileLoader;
 
@@ -19,18 +19,18 @@ final class ComposerCommandRegistry implements ComposerCommandRegistryInterface
         $relative = $this->safeRelative($catalogRelative);
         $loader = StructuredFileLoader::instance();
         $catalog = $loader->read($root . '/' . $relative);
-        if (($catalog['contract'] ?? null) !== 'OPUS_RCP_COMPOSER_OPERATION_CATALOG_V1') {
-            throw new \RuntimeException('OPUS_RCP_OPERATION_CATALOG_CONTRACT_INVALID');
+        if (($catalog['contract'] ?? null) !== 'OPUS_REST_API_COMPOSER_OPERATION_CATALOG_V1') {
+            throw new \RuntimeException('OPUS_REST_API_OPERATION_CATALOG_CONTRACT_INVALID');
         }
         $operations = $catalog['operations'] ?? null;
         if (!is_array($operations) || $operations === []) {
-            throw new \RuntimeException('OPUS_RCP_OPERATION_CATALOG_EMPTY');
+            throw new \RuntimeException('OPUS_REST_API_OPERATION_CATALOG_EMPTY');
         }
 
         $composer = $loader->read($root . '/composer.json');
         $scripts = $composer['scripts'] ?? null;
         if (!is_array($scripts)) {
-            throw new \RuntimeException('OPUS_RCP_COMPOSER_SCRIPTS_MISSING');
+            throw new \RuntimeException('OPUS_REST_API_COMPOSER_SCRIPTS_MISSING');
         }
 
         $this->operations = $operations;
@@ -48,15 +48,15 @@ final class ComposerCommandRegistry implements ComposerCommandRegistryInterface
     {
         $operation = trim($operation);
         if (preg_match('/^[a-z][a-z0-9.-]*$/', $operation) !== 1) {
-            throw new \RuntimeException('OPUS_RCP_OPERATION_INVALID');
+            throw new \RuntimeException('OPUS_REST_API_OPERATION_INVALID');
         }
         $entry = $this->operations[$operation] ?? null;
         if (!is_array($entry)) {
-            throw new \RuntimeException('OPUS_RCP_OPERATION_UNKNOWN');
+            throw new \RuntimeException('OPUS_REST_API_OPERATION_UNKNOWN');
         }
         $script = trim((string) ($entry['composer_script'] ?? ''));
         if ($script === '' || !array_key_exists($script, $this->composerScripts)) {
-            throw new \RuntimeException('OPUS_RCP_COMPOSER_SCRIPT_UNDECLARED');
+            throw new \RuntimeException('OPUS_REST_API_COMPOSER_SCRIPT_UNDECLARED');
         }
         $entry['operation'] = $operation;
         $entry['composer_script'] = $script;
@@ -99,16 +99,16 @@ final class ComposerCommandRegistry implements ComposerCommandRegistryInterface
 
         foreach ($definitions as $definition) {
             if (!is_array($definition)) {
-                throw new \RuntimeException('OPUS_RCP_ARGUMENT_DEFINITION_INVALID');
+                throw new \RuntimeException('OPUS_REST_API_ARGUMENT_DEFINITION_INVALID');
             }
             $name = trim((string) ($definition['name'] ?? ''));
             if ($name === '' || preg_match('/^[a-z][a-z0-9_]*$/', $name) !== 1) {
-                throw new \RuntimeException('OPUS_RCP_ARGUMENT_NAME_INVALID');
+                throw new \RuntimeException('OPUS_REST_API_ARGUMENT_NAME_INVALID');
             }
             $known[$name] = true;
             $present = array_key_exists($name, $parameters);
             if (($definition['required'] ?? false) === true && !$present) {
-                throw new \RuntimeException('OPUS_RCP_ARGUMENT_REQUIRED:' . $name);
+                throw new \RuntimeException('OPUS_REST_API_ARGUMENT_REQUIRED:' . $name);
             }
             if (!$present) {
                 continue;
@@ -117,7 +117,7 @@ final class ComposerCommandRegistry implements ComposerCommandRegistryInterface
             $value = $parameters[$name];
             if (($definition['type'] ?? null) === 'boolean') {
                 if (!is_bool($value)) {
-                    throw new \RuntimeException('OPUS_RCP_ARGUMENT_TYPE_INVALID:' . $name);
+                    throw new \RuntimeException('OPUS_REST_API_ARGUMENT_TYPE_INVALID:' . $name);
                 }
                 if ($value && isset($definition['flag'])) {
                     $arguments[] = (string) $definition['flag'];
@@ -125,16 +125,16 @@ final class ComposerCommandRegistry implements ComposerCommandRegistryInterface
                 continue;
             }
             if (!is_string($value)) {
-                throw new \RuntimeException('OPUS_RCP_ARGUMENT_TYPE_INVALID:' . $name);
+                throw new \RuntimeException('OPUS_REST_API_ARGUMENT_TYPE_INVALID:' . $name);
             }
             $value = trim($value);
             $maximum = max(1, (int) ($definition['max_length'] ?? 1024));
             if (strlen($value) > $maximum || str_contains($value, "\0")) {
-                throw new \RuntimeException('OPUS_RCP_ARGUMENT_LENGTH_INVALID:' . $name);
+                throw new \RuntimeException('OPUS_REST_API_ARGUMENT_LENGTH_INVALID:' . $name);
             }
             $pattern = (string) ($definition['pattern'] ?? '');
             if ($pattern !== '' && @preg_match('/' . str_replace('/', '\/', $pattern) . '/D', $value) !== 1) {
-                throw new \RuntimeException('OPUS_RCP_ARGUMENT_VALUE_INVALID:' . $name);
+                throw new \RuntimeException('OPUS_REST_API_ARGUMENT_VALUE_INVALID:' . $name);
             }
 
             if (isset($definition['option'])) {
@@ -146,7 +146,7 @@ final class ComposerCommandRegistry implements ComposerCommandRegistryInterface
 
         foreach (array_keys($parameters) as $name) {
             if (is_string($name) && !isset($known[$name])) {
-                throw new \RuntimeException('OPUS_RCP_ARGUMENT_UNKNOWN:' . $name);
+                throw new \RuntimeException('OPUS_REST_API_ARGUMENT_UNKNOWN:' . $name);
             }
         }
 
@@ -161,7 +161,7 @@ final class ComposerCommandRegistry implements ComposerCommandRegistryInterface
             || str_contains($path, '..')
             || preg_match('/^[A-Za-z]:\//', $path) === 1
         ) {
-            throw new \RuntimeException('OPUS_RCP_CONFIG_PATH_INVALID');
+            throw new \RuntimeException('OPUS_REST_API_CONFIG_PATH_INVALID');
         }
         return $path;
     }

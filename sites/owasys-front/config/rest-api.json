@@ -1,6 +1,6 @@
 {
-  "contract": "OPUS_RCP_REST_CLIENT_CONFIG_V2",
-  "endpoint_env": "OPUS_OWASYS_BACKEND_ENDPOINT",
+  "contract": "OPUS_REST_API_CLIENT_CONFIG_V1",
+  "base_url_env": "OPUS_OWASYS_BACKEND_ENDPOINT",
   "token_env": "OPUS_OWASYS_BACKEND_TOKEN",
   "hmac_env": "OPUS_OWASYS_BACKEND_HMAC",
   "timeout_seconds": 120,

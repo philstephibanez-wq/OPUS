@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus\Rcp\Rest;
+namespace Opus\Api\Rest;
 
 use Opus\File\File;
 use Opus\File\StructuredFileLoader;
 
 /** File-backed idempotency and execution-result store. */
-final class RcpExecutionStore implements RcpExecutionStoreInterface
+final class RestReplayStore implements RestReplayStoreInterface
 {
     private readonly string $root;
     private readonly File $file;
@@ -17,7 +17,7 @@ final class RcpExecutionStore implements RcpExecutionStoreInterface
     {
         $root = rtrim(str_replace('\\', '/', $root), '/');
         if ($root === '' || str_contains($root, "\0")) {
-            throw new \RuntimeException('OPUS_RCP_EXECUTION_STORE_ROOT_INVALID');
+            throw new \RuntimeException('OPUS_REST_API_EXECUTION_STORE_ROOT_INVALID');
         }
         $this->root = $root;
         $this->file = File::instance();
@@ -42,7 +42,7 @@ final class RcpExecutionStore implements RcpExecutionStoreInterface
     private function path(string $executionId): string
     {
         if (preg_match('/^[a-f0-9]{32}$/', $executionId) !== 1) {
-            throw new \RuntimeException('OPUS_RCP_EXECUTION_ID_INVALID');
+            throw new \RuntimeException('OPUS_REST_API_EXECUTION_ID_INVALID');
         }
         return $this->root . '/' . $executionId . '.json';
     }

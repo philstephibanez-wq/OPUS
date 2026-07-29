@@ -1,5 +1,5 @@
 {
-  "contract": "OPUS_RCP_COMPOSER_OPERATION_CATALOG_V1",
+  "contract": "OPUS_REST_API_COMPOSER_OPERATION_CATALOG_V1",
   "operations": {
     "site.create": {
       "composer_script": "opus:create-site",

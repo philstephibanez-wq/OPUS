@@ -1,14 +1,116 @@
 {
-  "contract": "OPUS_RCP_REST_SERVER_CONFIG_V2",
+  "contract": "OPUS_REST_API_SERVER_CONFIG_V1",
   "application_id": "owasys-back",
   "base_path": "/api/v1",
   "operation_catalog": "sites/owasys-back/config/backend.operations.json",
-  "execution_store": "sites/owasys-back/var/rcp/executions",
+  "replay_store": "sites/owasys-back/var/rest/replay",
   "composer_command": [
     "@composer"
   ],
   "timeout_seconds": 120,
   "max_output_bytes": 2097152,
+  "resources": [
+    {
+      "method": "GET",
+      "path": "/api/v1/applications",
+      "operation": "registry.sync",
+      "success_status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/applications",
+      "operation": "site.create",
+      "parameters": {
+        "write": true
+      },
+      "success_status": 201,
+      "location": "/api/v1/applications/{site_id}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/applications/{site_id}",
+      "operation": "site.delete",
+      "parameters": {
+        "write": true
+      },
+      "success_status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/applications/{site_id}/validation",
+      "operation": "site.validate",
+      "success_status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/applications/{site_id}/routes",
+      "operation": "site.routes.list",
+      "success_status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/applications/{site_id}/languages",
+      "operation": "site.language.add",
+      "parameters": {
+        "write": true
+      },
+      "success_status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/applications/{site_id}/pages",
+      "operation": "site.page.create",
+      "parameters": {
+        "write": true
+      },
+      "success_status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/applications/{site_id}/rubrics",
+      "operation": "site.rubric.create",
+      "parameters": {
+        "write": true
+      },
+      "success_status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/applications/{site_id}/exports",
+      "operation": "site.export",
+      "success_status": 201
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/applications/{site_id}/sources",
+      "operation": "source.list",
+      "success_status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/applications/{site_id}/sources/{*path}",
+      "operation": "source.read",
+      "success_status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/session/application/{application_id}",
+      "operation": "registry.select",
+      "success_status": 200
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/session/application",
+      "operation": "registry.clear",
+      "success_status": 200
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/security/admin-password",
+      "operation": "security.admin-password.change",
+      "success_status": 200
+    }
+  ],
   "supported_locales": [
     "bg-BG",
     "hr-HR",
@@ -97,6 +199,6 @@
   "diagnostics": {
     "log_directory": "sites/owasys-back/var/logs",
     "log_file": "owasys-back.log",
-    "profiler_directory": "sites/owasys-back/var/profiler/rcp"
+    "profiler_directory": "sites/owasys-back/var/profiler/rest"
   }
 }

@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus\Rcp\Fsm;
+namespace Opus\Api\Fsm;
 
-interface RcpExecutionStateMachineInterface extends
+interface RestRequestStateMachineInterface extends
     \Opus\Framework\OpusFrameworkComponentInterface,
     \Opus\Framework\OpusExceptionAwareInterface,
     \Opus\Framework\OpusProfilerAwareInterface,

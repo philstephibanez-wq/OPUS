@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus\Rcp\Security;
+namespace Opus\Api\Security;
 
-interface RcpIdentityInterface extends
+interface RestIdentityInterface extends
     \Opus\Framework\OpusFrameworkComponentInterface,
     \Opus\Framework\OpusExceptionAwareInterface,
     \Opus\Framework\OpusProfilerAwareInterface,

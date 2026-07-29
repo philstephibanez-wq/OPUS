@@ -7,7 +7,7 @@
     {
       "id": "api",
       "module": "api",
-      "route": "api/v1/executions"
+      "route": "api/v1"
     },
     {
       "id": "security",

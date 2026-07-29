@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus\Rcp\Security;
+namespace Opus\Api\Security;
 
-/** Authenticated RCP service and user identity. */
-final class RcpIdentity implements RcpIdentityInterface
+/** Authenticated REST_API service and user identity. */
+final class RestIdentity implements RestIdentityInterface
 {
     /** @param list<string> $roles */
     public function __construct(
@@ -14,7 +14,7 @@ final class RcpIdentity implements RcpIdentityInterface
         private readonly string $service
     ) {
         if ($this->subjectValue === '') {
-            throw new \RuntimeException('OPUS_RCP_IDENTITY_SUBJECT_INVALID');
+            throw new \RuntimeException('OPUS_REST_API_IDENTITY_SUBJECT_INVALID');
         }
     }
 

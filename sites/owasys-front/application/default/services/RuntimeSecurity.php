@@ -2,8 +2,8 @@
 declare(strict_types=1);
 
 use Opus\File\StructuredFileLoader;
-use Opus\Rcp\Rest\RcpRestClient;
-use Opus\Rcp\Rest\RcpRestClientInterface;
+use Opus\Api\Rest\RestClient;
+use Opus\Api\Rest\RestClientInterface;
 use Opus\Security\Acl\AclDecision;
 use Opus\Security\Acl\AclPolicy;
 use Opus\Security\Sso\Auth0ProxySsoProvider;
@@ -15,7 +15,7 @@ final class OwasysRuntimeSecurity
 {
     private readonly AclPolicy $acl;
     private readonly SsoManager $sso;
-    private readonly RcpRestClientInterface $rcp;
+    private readonly RestClientInterface $rest;
     private readonly string $defaultProvider;
 
     /** @param array<string,mixed> $siteConfig */
@@ -101,8 +101,8 @@ final class OwasysRuntimeSecurity
         }
 
         $this->sso = new SsoManager($providers);
-        $this->rcp = RcpRestClient::fromConfig(
-            $this->siteRoot . '/config/rcp.json'
+        $this->rest = RestClient::fromConfig(
+            $this->siteRoot . '/config/rest-api.json'
         );
     }
 
@@ -141,8 +141,9 @@ final class OwasysRuntimeSecurity
             throw new RuntimeException('OWASYS_PASSWORD_CONFIRMATION_MISMATCH');
         }
 
-        $result = $this->rcp->execute(
-            'security.admin-password.change',
+        $result = $this->rest->request(
+            'PATCH',
+            '/api/v1/security/admin-password',
             [
                 'current_password' => (string) (
                     $post['owasys_current_password'] ?? ''
@@ -165,7 +166,7 @@ final class OwasysRuntimeSecurity
 
         $returned = $result['identity'] ?? null;
         if (!is_array($returned)) {
-            throw new RuntimeException('OPUS_RCP_PASSWORD_IDENTITY_MISSING');
+            throw new RuntimeException('OPUS_REST_API_PASSWORD_IDENTITY_MISSING');
         }
 
         return new SsoIdentity(

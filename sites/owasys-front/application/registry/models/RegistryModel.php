@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-use Opus\Rcp\Rest\RcpRestClient;
-use Opus\Rcp\Rest\RcpRestClientInterface;
+use Opus\Api\Rest\RestClient;
+use Opus\Api\Rest\RestClientInterface;
 
 /** Read-only frontend projection of the Registry through secured REST. */
 final class OwasysRegistryModel
 {
-    private readonly RcpRestClientInterface $rcp;
+    private readonly RestClientInterface $rest;
     private readonly OwasysAuthSession $session;
 
     /** @var array<string,mixed>|null */
@@ -15,8 +15,8 @@ final class OwasysRegistryModel
 
     public function __construct(string $siteRoot)
     {
-        $this->rcp = RcpRestClient::fromConfig(
-            rtrim(str_replace('\\', '/', $siteRoot), '/') . '/config/rcp.json'
+        $this->rest = RestClient::fromConfig(
+            rtrim(str_replace('\\', '/', $siteRoot), '/') . '/config/rest-api.json'
         );
         $this->session = new OwasysAuthSession();
     }
@@ -24,8 +24,9 @@ final class OwasysRegistryModel
     /** @return array<string,mixed> */
     public function synchronize(): array
     {
-        $result = $this->rcp->execute(
-            'registry.sync',
+        $result = $this->rest->request(
+            'GET',
+            '/api/v1/applications',
             [],
             $this->sessionActor()
         );
@@ -93,9 +94,10 @@ final class OwasysRegistryModel
         if ($applicationId === '') {
             throw new RuntimeException('OWASYS_REGISTRY_APPLICATION_ID_MISSING');
         }
-        $this->rcp->execute(
-            'registry.select',
-            ['application_id' => $applicationId],
+        $this->rest->request(
+            'PUT',
+            '/api/v1/session/application/' . rawurlencode($applicationId),
+            [],
             $this->actor($actor)
         );
         $this->snapshot = null;
@@ -104,7 +106,12 @@ final class OwasysRegistryModel
     /** @param array<string,mixed> $actor */
     public function clear(array $actor): void
     {
-        $this->rcp->execute('registry.clear', [], $this->actor($actor));
+        $this->rest->request(
+            'DELETE',
+            '/api/v1/session/application',
+            [],
+            $this->actor($actor)
+        );
         $this->snapshot = null;
     }
 
@@ -114,12 +121,11 @@ final class OwasysRegistryModel
         string $confirmation,
         array $actor
     ): array {
-        $result = $this->rcp->execute(
-            'site.delete',
+        $result = $this->rest->request(
+            'DELETE',
+            '/api/v1/applications/' . rawurlencode($applicationId),
             [
-                'site_id' => $applicationId,
                 'confirmation' => $confirmation,
-                'write' => true,
             ],
             $this->actor($actor)
         );

@@ -1,10 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace Opus\Rcp\Fsm;
+namespace Opus\Api\Fsm;
 
 /** Strict finite-state machine for one REST/Composer execution lifecycle. */
-final class RcpExecutionStateMachine implements RcpExecutionStateMachineInterface
+final class RestRequestStateMachine implements RestRequestStateMachineInterface
 {
     private string $current;
     /** @var list<string> */
@@ -16,7 +16,7 @@ final class RcpExecutionStateMachine implements RcpExecutionStateMachineInterfac
         private readonly array $transitions
     ) {
         if ($initialState === '' || !array_key_exists($initialState, $transitions)) {
-            throw new \RuntimeException('OPUS_RCP_FSM_INITIAL_STATE_INVALID');
+            throw new \RuntimeException('OPUS_REST_API_FSM_INITIAL_STATE_INVALID');
         }
         $this->current = $initialState;
         $this->history = [$initialState];
@@ -32,7 +32,7 @@ final class RcpExecutionStateMachine implements RcpExecutionStateMachineInterfac
         $allowed = $this->transitions[$this->current] ?? [];
         if (!in_array($target, $allowed, true)) {
             throw new \RuntimeException(
-                'OPUS_RCP_FSM_TRANSITION_INVALID:' . $this->current . ':' . $target
+                'OPUS_REST_API_FSM_TRANSITION_INVALID:' . $this->current . ':' . $target
             );
         }
         $this->current = $target;

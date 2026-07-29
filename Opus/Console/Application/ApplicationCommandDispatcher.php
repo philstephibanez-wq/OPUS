@@ -17,7 +17,7 @@ use Opus\File\StructuredFileLoaderInterface;
  * merely because the OPUS console starts.
  *
  * Composer-facing aliases remain registry metadata. They are resolved only
- * after the owning application descriptor has been selected, so an RCP request
+ * after the owning application descriptor has been selected, so an REST_API request
  * cannot load a provider from another application that declares the same alias.
  */
 final class ApplicationCommandDispatcher implements ApplicationCommandDispatcherInterface
@@ -226,7 +226,7 @@ final class ApplicationCommandDispatcher implements ApplicationCommandDispatcher
             $request['application_id'] ?? ''
         ));
 
-        if ($contract === 'OPUS_RCP_COMPOSER_COMMAND_REQUEST_V1'
+        if ($contract === 'OPUS_REST_API_COMPOSER_COMMAND_REQUEST_V1'
             && $applicationId === '') {
             throw new \RuntimeException(
                 'OPUS_APPLICATION_COMMAND_TARGET_REQUIRED'
