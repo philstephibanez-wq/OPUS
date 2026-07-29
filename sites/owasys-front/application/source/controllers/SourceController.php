@@ -6,6 +6,7 @@ use Opus\Fsm\FsmProcessor;
 use Opus\Fsm\FsmSessionStore;
 use Opus\Fsm\FsmSiteLoader;
 use Opus\Http\Response;
+use Opus\Http\UrlBuilder;
 use Opus\I18n\BrowserLocaleNegotiator;
 
 /** Server-rendered, read-only source browser for the selected OPUS application. */
@@ -66,6 +67,13 @@ final class OwasysSourceController
             $sourcePath,
             $identity,
             $currentApp
+        );
+        $this->applyProfilerSignal(
+            $fsm,
+            $store,
+            $locale,
+            $sourcePath,
+            $identity
         );
         $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
         if ($method !== 'GET') {
@@ -247,7 +255,12 @@ final class OwasysSourceController
                     'name' => $this->locales->name($code),
                     'flag' => $basePath . '/asset/flags/'
                         . rawurlencode($this->locales->flagCode($code)) . '.svg',
-                    'url' => $this->routeUrl($code, 'source'),
+                    'url' => $this->routeUrl(
+                        $code,
+                        $selectedPath === ''
+                            ? 'source'
+                            : $this->sourceRoute($selectedPath)
+                    ),
                     'active' => $code === $locale,
                 ],
                 $this->locales->codes()
@@ -387,8 +400,12 @@ final class OwasysSourceController
 
     private function routeUrl(string $locale, string $route): string
     {
-        return $this->basePath() . '/' . rawurlencode($locale)
-            . '/' . ltrim($route, '/');
+        $segments = array_values(array_filter(
+            explode('/', trim($route, '/')),
+            'strlen'
+        ));
+        array_unshift($segments, $locale);
+        return (new UrlBuilder($this->basePath()))->build($segments);
     }
 
     private function sourceUrl(string $locale, string $path): string
@@ -397,9 +414,8 @@ final class OwasysSourceController
         if ($segments === []) {
             throw new RuntimeException('OWASYS_SOURCE_PATH_INVALID');
         }
-        return $this->routeUrl(
-            $locale,
-            'source/' . implode('/', array_map('rawurlencode', $segments))
+        return (new UrlBuilder($this->basePath()))->build(
+            array_merge([$locale, 'source'], array_values($segments))
         );
     }
 
@@ -409,7 +425,49 @@ final class OwasysSourceController
         if ($segments === []) {
             throw new RuntimeException('OWASYS_SOURCE_PATH_INVALID');
         }
-        return 'source/' . implode('/', array_map('rawurlencode', $segments));
+        return 'source/' . implode('/', $segments);
+    }
+
+    /** @param array<string,mixed> $identity */
+    private function applyProfilerSignal(
+        FsmProcessor $fsm,
+        FsmSessionStore $store,
+        string $locale,
+        string $sourcePath,
+        array $identity
+    ): void {
+        $raw = $_GET['profiler'] ?? null;
+        if ($raw !== null && (string) $raw !== '1') {
+            throw new RuntimeException('OWASYS_PROFILER_OPTION_INVALID');
+        }
+        $isOpen = array_key_exists('profiler_open', $fsm->memory())
+            && $fsm->peek('profiler_open') === true;
+        $context = [
+            'identity' => $identity,
+            'is_authenticated' => true,
+            'roles' => is_array($identity['roles'] ?? null)
+                ? $identity['roles']
+                : [],
+            'locale' => $locale,
+            'source_path' => $sourcePath,
+            'return_url' => $this->routeUrl(
+                $locale,
+                $sourcePath === '' ? 'source' : $this->sourceRoute($sourcePath)
+            ),
+            'trace_id' => trim((string) getenv('OPUS_TRACE_ID')),
+            'profiler_open' => true,
+            'profiler_closed' => false,
+        ];
+        if ((string) $raw === '1' && !$isOpen) {
+            $this->security->assertAllowed($identity, 'profiler', 'view');
+            $fsm->transition('source', 'open_profiler', $context);
+            $store->persist($fsm);
+        } elseif ($raw === null && $isOpen) {
+            $context['profiler_open'] = false;
+            $context['profiler_closed'] = true;
+            $fsm->transition('source', 'close_profiler', $context);
+            $store->persist($fsm);
+        }
     }
 
     private function basePath(): string

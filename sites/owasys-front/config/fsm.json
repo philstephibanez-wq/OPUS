@@ -26,7 +26,7 @@
     {"id":"select_app"},{"id":"change_app"},{"id":"clear_app_context"},{"id":"create_new_app"},{"id":"application_deleted"},
     {"id":"open_creation"},{"id":"application_created"},{"id":"application_creation_failed"},{"id":"cancel_creation"},
     {"id":"registry_action_failed"},{"id":"open_structure"},{"id":"open_data"},{"id":"open_workflows"},
-    {"id":"open_security"},{"id":"open_source"},{"id":"open_build"},{"id":"auth_required"},{"id":"logout"}
+    {"id":"open_security"},{"id":"open_source"},{"id":"open_profiler"},{"id":"close_profiler"},{"id":"open_build"},{"id":"auth_required"},{"id":"logout"}
   ],
   "transitions": [
     {"id":"t_open_login","from":"*","event":"open_login","to":"login"},
@@ -53,6 +53,8 @@
     {"id":"t_open_source","from":"*","event":"open_source","to":"source","guards":["current_app_required"],"visual":true,"visual_from":"security"},
     {"id":"t_source_file","from":"source","event":"open_source_file","to":"source","guards":["current_app_required"],"runtime_operations":[{"op":"push","context":"source_path"},{"op":"poke","name":"source_path","context":"source_path"},{"op":"poke","name":"locale","context":"locale"}]},
     {"id":"t_source_locale","from":"source","event":"change_locale","to":"source","guards":["current_app_required"],"runtime_operations":[{"op":"poke","name":"locale","context":"locale"}]},
+    {"id":"t_source_profiler_open","from":"source","event":"open_profiler","to":"source","guards":["current_app_required"],"runtime_operations":[{"op":"push","context":"return_url"},{"op":"poke","name":"profiler_open","context":"profiler_open"},{"op":"poke","name":"profiler_trace_id","context":"trace_id"}]},
+    {"id":"t_source_profiler_close","from":"source","event":"close_profiler","to":"source","guards":["current_app_required"],"runtime_operations":[{"op":"pop","name":"profiler_return_url"},{"op":"poke","name":"profiler_open","context":"profiler_open"}]},
     {"id":"t_open_build","from":"*","event":"open_build","to":"build","guards":["current_app_required"],"visual":true,"visual_from":"source"},
     {"id":"t_auth_required","from":"*","event":"auth_required","to":"login","actions":["clear_session"]},
     {"id":"t_logout","from":"*","event":"logout","to":"login","actions":["clear_current_app","clear_session"]}

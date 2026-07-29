@@ -54,6 +54,11 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
         $status = 'failed';
         $path = $this->requestPath();
         try {
+            if (preg_match('~(?:^|/)profiler=[^/]*(?:/|$)~', trim($path, '/')) === 1) {
+                throw new RuntimeException(
+                    'OWASYS_PROFILER_QUERY_SYNTAX_REQUIRED'
+                );
+            }
             if ($path === '/api' || str_starts_with($path, '/api/')) {
                 throw new RuntimeException('OWASYS_FRONT_API_FORBIDDEN');
             }
@@ -65,15 +70,30 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
             ], $traceId);
             $this->profiler->event('owasys.front', 'request.received', [
                 'path' => $path,
+                'profiler_requested' => (string) (
+                    $_GET['profiler'] ?? ''
+                ) === '1',
             ]);
             [$controller, $creation, $source] = $this->components();
             if ($creation->matchesCurrentRequest()) {
+                $this->profiler->event('routing', 'controller.selected', [
+                    'controller' => 'creation',
+                ]);
                 $creation->run();
             } elseif ($source->matchesCurrentRequest()) {
+                $this->profiler->event('routing', 'controller.selected', [
+                    'controller' => 'source',
+                ]);
                 $source->run();
             } else {
+                $this->profiler->event('routing', 'controller.selected', [
+                    'controller' => 'runtime',
+                ]);
                 $controller->run();
             }
+            $this->profiler->event('score', 'response.rendered', [
+                'path' => $path,
+            ]);
             $status = 'completed';
             $this->logger->info('owasys.front', 'request.completed', [
                 'path' => $path,

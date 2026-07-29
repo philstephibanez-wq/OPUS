@@ -5,6 +5,7 @@ use Opus\I18n\ApplicationTranslationRuntime;
 use Opus\I18n\TranslationRuntimeInterface;
 use Opus\File\StructuredFileLoader;
 use Opus\Template\ScoreTemplateRenderer;
+use Opus\Http\UrlBuilder;
 
 final class OwasysScorePageRenderer
 {
@@ -60,6 +61,20 @@ final class OwasysScorePageRenderer
         );
 
         $data['assets'] = $assets;
+        $traceId = trim((string) getenv('OPUS_TRACE_ID'));
+        $requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
+        $path = parse_url($requestUri, PHP_URL_PATH);
+        $path = is_string($path) ? $path : '/';
+        $profilerRequested = (string) ($_GET['profiler'] ?? '') === '1';
+        $urlBuilder = new UrlBuilder();
+        $data['profiler'] = [
+            'visible' => $profilerRequested,
+            'hidden' => !$profilerRequested,
+            'trace_id' => $traceId,
+            'open_url' => $urlBuilder->withQuery($path, ['profiler' => 1]),
+            'close_url' => $urlBuilder->withQuery($path, []),
+            'correlation' => 'front → REST → back → Composer',
+        ];
         $data = $this->normalizeI18nViewData($data, $i18n);
         $data['fsm_diagram'] = $this->fsmMermaid->build($data);
         $data['body'] = [

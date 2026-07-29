@@ -52,6 +52,23 @@
     [[ if: fsm_diagram.visible ]]
       [[ include:default/templates/partials/fsm-mermaid.score ]]
     [[ endif ]]
+    [[ if: profiler.visible ]]
+      <aside class="ow-card" data-context="OPUS_PROFILER_PANEL">
+        <div class="ow-section-heading">
+          <div>
+            <h2>OPUS Profiler</h2>
+            <p class="ow-muted">{{ profiler.correlation }}</p>
+          </div>
+          <a href="{{ profiler.close_url }}">×</a>
+        </div>
+        <div class="ow-tags">
+          <span>trace_id: {{ profiler.trace_id }}</span>
+          <span>FSM: {{ fsm.state }}</span>
+        </div>
+      </aside>
+    [[ else ]]
+      <p><a href="{{ profiler.open_url }}">OPUS Profiler</a></p>
+    [[ endif ]]
     {{{ body.html }}}
   </main>
 </div>
