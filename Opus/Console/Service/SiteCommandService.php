@@ -675,6 +675,11 @@ final class SiteCommandService implements SiteCommandServiceInterface
             . 'OPUS_DEV_SERVER_URL:' . $this->developmentUrl($host, $port)
             . PHP_EOL
         );
+        $this->resetDevelopmentDiagnostics(
+            $applicationId,
+            $siteRoot,
+            $development
+        );
         $this->recordDevelopmentServerStart(
             $applicationId,
             $siteRoot,
@@ -1204,6 +1209,35 @@ final class SiteCommandService implements SiteCommandServiceInterface
             ? '[' . $host . ']'
             : $host;
         return 'http://' . $authority . ':' . $port . '/';
+    }
+
+    /** @param array<string,mixed> $development */
+    private function resetDevelopmentDiagnostics(
+        string $applicationId,
+        string $siteRoot,
+        array $development
+    ): void {
+        $diagnostics = is_array($development['diagnostics'] ?? null)
+            ? $development['diagnostics']
+            : [];
+        $relativeLog = $this->safeRelative((string) (
+            $diagnostics['log'] ?? ''
+        ));
+        $relativeProfiler = $this->safeRelative((string) (
+            $diagnostics['profiler'] ?? ''
+        ));
+        if ($relativeLog === '' || $relativeProfiler === '') {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_DIAGNOSTICS_PATH_MISSING:'
+                . $applicationId
+            );
+        }
+
+        $this->file->writeAtomic($siteRoot . '/' . $relativeLog, '');
+        $this->file->writeAtomic(
+            $siteRoot . '/var/profiler/' . $applicationId . '.jsonl',
+            ''
+        );
     }
 
     /** @param array<string,mixed> $development */

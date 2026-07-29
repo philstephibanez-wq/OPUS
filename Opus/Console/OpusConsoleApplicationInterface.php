@@ -11,4 +11,11 @@ interface OpusConsoleApplicationInterface extends
 {
     /** @param list<string> $argv */
     public function run(array $argv): int;
+
+    /**
+     * @param list<string> $argv
+     * @param array<string,mixed> $request
+     * @return array<string,mixed>
+     */
+    public function runRest(array $argv, array $request): array;
 }

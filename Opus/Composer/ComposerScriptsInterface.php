@@ -25,4 +25,18 @@ interface ComposerScriptsInterface extends
      * @throws \RuntimeException when the event or command contract is invalid.
      */
     public static function run(object $event): void;
+
+    /**
+     * Dispatches an allow-listed Composer script without booting another
+     * Composer process.
+     *
+     * @param list<string> $arguments
+     * @param array<string,mixed> $request
+     * @return array<string,mixed>
+     */
+    public static function runRest(
+        string $alias,
+        array $arguments,
+        array $request
+    ): array;
 }

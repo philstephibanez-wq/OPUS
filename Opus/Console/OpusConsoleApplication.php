@@ -61,26 +61,7 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
         }
 
         try {
-            $result = match ($command) {
-                'create:application', 'create:site' => $this->create(
-                    $arguments,
-                    $request
-                ),
-                'delete:site' => $this->delete($arguments, $request),
-                'export:site' => $this->export($arguments, $request),
-                'add:language' => $this->addLanguage($arguments, $request),
-                'validate:site' => $this->validate($arguments, $request),
-                'list:routes' => $this->listRoutes($arguments, $request),
-                'create:page' => $this->createPage($arguments, $request),
-                'create:rubric' => $this->createRubric($arguments, $request),
-                'dev:server' => $this->devServer($arguments, $request),
-                'serve:site' => $this->serve($arguments, $request),
-                default => $this->applicationCommand(
-                    $command,
-                    $arguments,
-                    $request
-                ),
-            };
+            $result = $this->executeCommand($command, $arguments, $request);
 
             if (is_int($result)) {
                 return $result;
@@ -109,6 +90,71 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
             }
             return 20;
         }
+    }
+
+    public function runRest(array $argv, array $request): array
+    {
+        if (($request['contract'] ?? null)
+            !== 'OPUS_REST_API_COMPOSER_COMMAND_REQUEST_V1') {
+            throw new OpusConsoleException(
+                'OPUS_REST_API_COMMAND_REQUEST_INVALID'
+            );
+        }
+
+        $arguments = $argv;
+        array_shift($arguments);
+        $command = trim((string) array_shift($arguments));
+        $arguments = $this->withoutOption($arguments, 'format');
+        if ($command === '') {
+            throw new OpusConsoleException(
+                'OPUS_REST_API_COMPOSER_COMMAND_REQUIRED'
+            );
+        }
+
+        $result = $this->executeCommand($command, $arguments, $request);
+        if (!is_array($result)) {
+            throw new OpusConsoleException(
+                'OPUS_REST_API_COMPOSER_RESULT_INVALID'
+            );
+        }
+
+        return [
+            'contract' => 'OPUS_CONSOLE_COMMAND_RESULT_V1',
+            'status' => 'succeeded',
+            'data' => $result,
+        ];
+    }
+
+    /**
+     * @param list<string> $arguments
+     * @param array<string,mixed> $request
+     * @return array<string,mixed>|int
+     */
+    private function executeCommand(
+        string $command,
+        array $arguments,
+        array $request
+    ): array|int {
+        return match ($command) {
+            'create:application', 'create:site' => $this->create(
+                $arguments,
+                $request
+            ),
+            'delete:site' => $this->delete($arguments, $request),
+            'export:site' => $this->export($arguments, $request),
+            'add:language' => $this->addLanguage($arguments, $request),
+            'validate:site' => $this->validate($arguments, $request),
+            'list:routes' => $this->listRoutes($arguments, $request),
+            'create:page' => $this->createPage($arguments, $request),
+            'create:rubric' => $this->createRubric($arguments, $request),
+            'dev:server' => $this->devServer($arguments, $request),
+            'serve:site' => $this->serve($arguments, $request),
+            default => $this->applicationCommand(
+                $command,
+                $arguments,
+                $request
+            ),
+        };
     }
 
     /** @param list<string> $arguments @param array<string,mixed> $request */

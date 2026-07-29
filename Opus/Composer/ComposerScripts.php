@@ -55,6 +55,27 @@ final class ComposerScripts implements ComposerScriptsInterface
         }
     }
 
+    public static function runRest(
+        string $alias,
+        array $arguments,
+        array $request
+    ): array {
+        if (array_filter($arguments, 'is_string') !== $arguments) {
+            throw new \RuntimeException(
+                'OPUS_COMPOSER_EVENT_ARGUMENTS_INVALID'
+            );
+        }
+        $arguments = array_values($arguments);
+        $opusRoot = dirname(__DIR__, 2);
+        $command = self::resolveCommand($opusRoot, $alias, $arguments);
+
+        return OpusConsoleApplication::fromRoot($opusRoot)->runRest([
+            'scripts/opus.php',
+            $command,
+            ...$arguments,
+        ], $request);
+    }
+
     /**
      * @param list<string> $arguments
      */

@@ -5,7 +5,7 @@
   "operation_catalog": "sites/owasys-back/config/backend.operations.json",
   "replay_store": "sites/owasys-back/var/rest/replay",
   "composer_command": [
-    "@composer"
+    "@in-process"
   ],
   "timeout_seconds": 120,
   "max_output_bytes": 2097152,

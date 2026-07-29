@@ -401,6 +401,9 @@ final class RestServer implements RestServerInterface
         if ($selected === ['@composer']) {
             return self::discoverComposerCommand($root);
         }
+        if ($selected === ['@in-process']) {
+            return $selected;
+        }
         if ($selected === []) {
             throw new \RuntimeException('OPUS_REST_API_COMPOSER_COMMAND_MISSING');
         }

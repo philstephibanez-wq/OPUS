@@ -76,6 +76,60 @@ final class ComposerCommandExecutor implements ComposerCommandExecutorInterface
             'argv_count' => count($argv),
         ]);
 
+        if ($this->composerCommand === ['@in-process']) {
+            try {
+                $result = \Opus\Composer\ComposerScripts::runRest(
+                    $script,
+                    $argv,
+                    $request
+                );
+                $durationMs = round(
+                    (microtime(true) - $startedAt) * 1000,
+                    3
+                );
+                $this->logger->info(
+                    'rest_api.composer',
+                    'script.succeeded',
+                    [
+                        'script' => $script,
+                        'execution_mode' => 'in_process',
+                        'duration_ms' => $durationMs,
+                    ],
+                    $traceId
+                );
+                $this->profiler->event(
+                    'rest_api.composer',
+                    'script.succeeded',
+                    [
+                        'script' => $script,
+                        'execution_mode' => 'in_process',
+                        'duration_ms' => $durationMs,
+                    ]
+                );
+                return $result;
+            } catch (\Throwable $error) {
+                $this->recordFailure(
+                    $script,
+                    $traceId,
+                    $error,
+                    '',
+                    '',
+                    -1,
+                    -1,
+                    $startedAt
+                );
+                throw $error;
+            } finally {
+                if ($ownsTrace) {
+                    $this->profiler->stop([
+                        'component' => self::class,
+                        'script' => $script,
+                        'execution_mode' => 'in_process',
+                    ]);
+                }
+            }
+        }
+
         try {
             $descriptors = [
                 0 => ['pipe', 'r'],
