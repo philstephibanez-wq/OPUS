@@ -51,6 +51,8 @@
     {"id":"t_open_workflows","from":"*","event":"open_workflows","to":"workflows","guards":["current_app_required"],"visual":true,"visual_from":"data"},
     {"id":"t_open_security","from":"*","event":"open_security","to":"security","guards":["current_app_required"],"visual":true,"visual_from":"workflows"},
     {"id":"t_open_source","from":"*","event":"open_source","to":"source","guards":["current_app_required"],"visual":true,"visual_from":"security"},
+    {"id":"t_source_file","from":"source","event":"open_source_file","to":"source","guards":["current_app_required"],"runtime_operations":[{"op":"push","context":"source_path"},{"op":"poke","name":"source_path","context":"source_path"},{"op":"poke","name":"locale","context":"locale"}]},
+    {"id":"t_source_locale","from":"source","event":"change_locale","to":"source","guards":["current_app_required"],"runtime_operations":[{"op":"poke","name":"locale","context":"locale"}]},
     {"id":"t_open_build","from":"*","event":"open_build","to":"build","guards":["current_app_required"],"visual":true,"visual_from":"source"},
     {"id":"t_auth_required","from":"*","event":"auth_required","to":"login","actions":["clear_session"]},
     {"id":"t_logout","from":"*","event":"logout","to":"login","actions":["clear_current_app","clear_session"]}

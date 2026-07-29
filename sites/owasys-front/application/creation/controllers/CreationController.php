@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use Opus\Fsm\FsmProcessor;
+use Opus\Fsm\FsmSessionStore;
 use Opus\Fsm\FsmSiteLoader;
 use Opus\File\StructuredFileLoader;
 use Opus\I18n\BrowserLocaleNegotiator;
@@ -11,7 +12,7 @@ use Opus\Profiler\Profiler;
 /** OWASYS application creation workflow. All writes cross REST then Composer. */
 final class OwasysCreationController
 {
-    private const STATE_KEY = 'opus_fsm_state_owasys';
+    private const FSM_SESSION_KEY = 'opus.fsm.owasys-front';
 
     private readonly OwasysLocaleRegistry $locales;
     private readonly OwasysNavigationBuilder $navigation;
@@ -56,7 +57,9 @@ final class OwasysCreationController
 
         $fsmConfig = $this->fsmConfig();
         $fsm = FsmSiteLoader::processorForSiteRoot($this->siteRoot);
-        $state = $this->enterCreationState($fsm, $identity);
+        $fsmStore = new FsmSessionStore(self::FSM_SESSION_KEY);
+        $fsmStore->restore($fsm);
+        $state = $this->enterCreationState($fsm, $fsmStore, $identity);
         $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
 
         if ($method === 'GET') {
@@ -74,7 +77,7 @@ final class OwasysCreationController
                 'identity' => $identity,
                 'is_authenticated' => true,
             ]);
-            $_SESSION[self::STATE_KEY] = (string) $transition['to_state'];
+            $fsmStore->persist($fsm);
             $this->redirect($locale, 'applications');
         }
         if ($action !== 'create-application') {
@@ -113,7 +116,7 @@ final class OwasysCreationController
                 $this->security,
                 $this->registry
             ))->dispatcher()->dispatch($transition, $context);
-            $_SESSION[self::STATE_KEY] = (string) $transition['to_state'];
+            $fsmStore->persist($fsm);
 
             $this->profiler->event('owasys.creation', 'creation.succeeded', [
                 'profile' => $profile,
@@ -136,7 +139,7 @@ final class OwasysCreationController
                     'identity' => $identity,
                     'is_authenticated' => true,
                 ]);
-                $_SESSION[self::STATE_KEY] = (string) $transition['to_state'];
+                $fsmStore->persist($fsm);
             } catch (Throwable $fsmError) {
                 $this->logger->error(
                     'owasys.creation',
@@ -184,12 +187,13 @@ final class OwasysCreationController
     }
 
     /** @param array<string,mixed> $identity */
-    private function enterCreationState(FsmProcessor $fsm, array $identity): string
+    private function enterCreationState(
+        FsmProcessor $fsm,
+        FsmSessionStore $store,
+        array $identity
+    ): string
     {
-        $current = trim((string) ($_SESSION[self::STATE_KEY] ?? $fsm->initialState()));
-        if (!$fsm->hasState($current)) {
-            $current = $fsm->initialState();
-        }
+        $current = $fsm->currentState();
         if ($current !== 'creation') {
             $transition = $fsm->transition($current, 'open_creation', [
                 'identity' => $identity,
@@ -197,7 +201,7 @@ final class OwasysCreationController
                 'roles' => is_array($identity['roles'] ?? null) ? $identity['roles'] : [],
             ]);
             $current = (string) $transition['to_state'];
-            $_SESSION[self::STATE_KEY] = $current;
+            $store->persist($fsm);
         }
         return $current;
     }

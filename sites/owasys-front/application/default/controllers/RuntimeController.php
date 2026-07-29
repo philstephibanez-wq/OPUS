@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use Opus\Fsm\FsmProcessor;
+use Opus\Fsm\FsmSessionStore;
 use Opus\Fsm\FsmSiteLoader;
 use Opus\File\StructuredFileLoader;
 use Opus\I18n\BrowserLocaleNegotiator;
@@ -9,7 +10,7 @@ use Opus\Security\Sso\SsoIdentity;
 
 final class OwasysRuntimeController
 {
-    private const STATE_KEY = 'opus_fsm_state_owasys';
+    private const FSM_SESSION_KEY = 'opus.fsm.owasys-front';
 
     private readonly OwasysLocaleRegistry $locales;
     private readonly OwasysNavigationBuilder $navigation;
@@ -36,6 +37,8 @@ final class OwasysRuntimeController
 
         $fsmConfig = $this->loadFsmConfig();
         $fsm = FsmSiteLoader::processorForSiteRoot($this->siteRoot);
+        $fsmStore = new FsmSessionStore(self::FSM_SESSION_KEY);
+        $fsmStore->restore($fsm);
         $currentState = $this->currentState($fsm);
         $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
         $identity = $this->session->user();
@@ -91,7 +94,7 @@ final class OwasysRuntimeController
                 );
 
                 $this->actionHandlersFor($transition)->dispatcher()->dispatch($transition, $context);
-                $_SESSION[self::STATE_KEY] = $targetState;
+                $fsmStore->persist($fsm);
             } catch (Throwable $error) {
                 $handled = $this->handleTransitionFailure(
                     $error,
@@ -329,14 +332,11 @@ final class OwasysRuntimeController
 
     private function currentState(FsmProcessor $fsm): string
     {
-        $current = trim((string) ($_SESSION[self::STATE_KEY] ?? $fsm->initialState()));
-        if (!$fsm->hasState($current)) {
-            $current = $fsm->initialState();
-        }
+        $current = $fsm->currentState();
 
         if (!$this->session->isAuthenticated() && $current !== $fsm->initialState()) {
-            $current = $fsm->initialState();
-            $_SESSION[self::STATE_KEY] = $current;
+            $fsm->reset();
+            $current = $fsm->currentState();
         }
 
         return $current;
@@ -404,7 +404,7 @@ final class OwasysRuntimeController
             $transition = $fsm->transition($currentState, 'auth_required', $context);
             $this->actionHandlersFor($transition)->dispatcher()->dispatch($transition, $context);
             $state = (string) $transition['to_state'];
-            $_SESSION[self::STATE_KEY] = $state;
+            (new FsmSessionStore(self::FSM_SESSION_KEY))->persist($fsm);
 
             return [
                 'state' => $state,
@@ -421,7 +421,7 @@ final class OwasysRuntimeController
             $transition = $fsm->transition($currentState, 'change_app', $context);
             $this->assertTargetStateAccess($fsm, (string) $transition['to_state'], $context);
             $state = (string) $transition['to_state'];
-            $_SESSION[self::STATE_KEY] = $state;
+            (new FsmSessionStore(self::FSM_SESSION_KEY))->persist($fsm);
 
             return [
                 'state' => $state,
@@ -435,7 +435,7 @@ final class OwasysRuntimeController
         if ($passwordError !== null && $currentState === 'account') {
             $failure = $fsm->transition($currentState, 'password_change_failed', $context);
             $state = (string) $failure['to_state'];
-            $_SESSION[self::STATE_KEY] = $state;
+            (new FsmSessionStore(self::FSM_SESSION_KEY))->persist($fsm);
 
             return [
                 'state' => $state,

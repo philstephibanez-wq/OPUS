@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 use Opus\File\StructuredFileLoader;
 use Opus\Fsm\FsmProcessor;
+use Opus\Fsm\FsmSessionStore;
 use Opus\Fsm\FsmSiteLoader;
 use Opus\Http\Response;
 use Opus\I18n\BrowserLocaleNegotiator;
@@ -10,7 +11,7 @@ use Opus\I18n\BrowserLocaleNegotiator;
 /** Server-rendered, read-only source browser for the selected OPUS application. */
 final class OwasysSourceController
 {
-    private const STATE_KEY = 'opus_fsm_state_owasys';
+    private const FSM_SESSION_KEY = 'opus.fsm.owasys-front';
 
     private readonly OwasysLocaleRegistry $locales;
     private readonly OwasysNavigationBuilder $navigation;
@@ -56,7 +57,16 @@ final class OwasysSourceController
 
         $fsmConfig = $this->fsmConfig();
         $fsm = FsmSiteLoader::processorForSiteRoot($this->siteRoot);
-        $state = $this->enterSourceState($fsm, $identity, $currentApp);
+        $store = new FsmSessionStore(self::FSM_SESSION_KEY);
+        $store->restore($fsm);
+        $state = $this->enterSourceState(
+            $fsm,
+            $store,
+            $locale,
+            $sourcePath,
+            $identity,
+            $currentApp
+        );
         $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
         if ($method !== 'GET') {
             throw new RuntimeException('OWASYS_SOURCE_METHOD_NOT_ALLOWED');
@@ -123,31 +133,45 @@ final class OwasysSourceController
     /** @param array<string,mixed> $identity @param array<string,mixed> $currentApp */
     private function enterSourceState(
         FsmProcessor $fsm,
+        FsmSessionStore $store,
+        string $locale,
+        string $sourcePath,
         array $identity,
         array $currentApp
     ): string {
-        $current = trim((string) (
-            $_SESSION[self::STATE_KEY] ?? $fsm->initialState()
-        ));
-        if (!$fsm->hasState($current)) {
-            $current = $fsm->initialState();
-        }
+        $current = $fsm->currentState();
+        $context = [
+            'identity' => $identity,
+            'is_authenticated' => true,
+            'roles' => is_array($identity['roles'] ?? null)
+                ? $identity['roles']
+                : [],
+            'current_app' => $currentApp,
+            'has_current_app' => true,
+            'locale' => $locale,
+            'source_path' => $sourcePath,
+        ];
         if ($current !== 'source') {
-            $transition = $fsm->transition($current, 'open_source', [
-                'identity' => $identity,
-                'is_authenticated' => true,
-                'roles' => is_array($identity['roles'] ?? null)
-                    ? $identity['roles']
-                    : [],
-                'current_app' => $currentApp,
-                'has_current_app' => true,
-            ]);
+            $transition = $fsm->transition($current, 'open_source', $context);
             $current = (string) ($transition['to_state'] ?? '');
             if ($current !== 'source') {
                 throw new RuntimeException('OWASYS_SOURCE_FSM_STATE_INVALID');
             }
-            $_SESSION[self::STATE_KEY] = $current;
         }
+        $previousLocale = array_key_exists('locale', $fsm->memory())
+            ? (string) $fsm->peek('locale')
+            : '';
+        $rememberedPath = array_key_exists('source_path', $fsm->memory())
+            ? (string) $fsm->peek('source_path')
+            : '';
+        if ($sourcePath === '' && $previousLocale !== ''
+            && $previousLocale !== $locale && $rememberedPath !== '') {
+            $fsm->transition('source', 'change_locale', $context);
+            $store->persist($fsm);
+            $this->redirect($locale, $this->sourceRoute($rememberedPath));
+        }
+        $fsm->transition('source', 'open_source_file', $context);
+        $store->persist($fsm);
         return $current;
     }
 
@@ -377,6 +401,15 @@ final class OwasysSourceController
             $locale,
             'source/' . implode('/', array_map('rawurlencode', $segments))
         );
+    }
+
+    private function sourceRoute(string $path): string
+    {
+        $segments = array_filter(explode('/', trim($path, '/')), 'strlen');
+        if ($segments === []) {
+            throw new RuntimeException('OWASYS_SOURCE_PATH_INVALID');
+        }
+        return 'source/' . implode('/', array_map('rawurlencode', $segments));
     }
 
     private function basePath(): string

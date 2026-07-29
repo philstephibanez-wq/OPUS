@@ -12,8 +12,8 @@ use RuntimeException;
  *
  * The processor is deliberately small and strict: it never invents a fallback
  * state, never ignores an unknown guard, and refuses ambiguous transitions.
- * Runtime storage/history is intentionally outside this class; callers pass the
- * current state and receive the next state/action result.
+ * State, memory and stack belong to the processor. Persistence is delegated to
+ * an explicit store, but callers must not duplicate FSM state ownership.
  */
 final class FsmProcessor implements FsmProcessorInterface
 {
@@ -34,6 +34,16 @@ final class FsmProcessor implements FsmProcessorInterface
     /** @var array<string,callable> */
     private array $guardHandlers = [];
 
+    private string $currentState;
+
+    /** @var array<string,mixed> */
+    private array $memory = [];
+
+    /** @var list<mixed> */
+    private array $stack = [];
+
+    private string $stackType = 'fifo';
+
     /**
      * @param array<string,mixed> $fsm
      * @param array<string,callable> $guardHandlers
@@ -43,6 +53,7 @@ final class FsmProcessor implements FsmProcessorInterface
         $this->guardHandlers = $guardHandlers;
         $this->fsm = $fsm;
         $this->validateFsm();
+        $this->currentState = $this->initialState();
     }
 
     /**
@@ -71,6 +82,108 @@ final class FsmProcessor implements FsmProcessorInterface
     public function initialState(): string
     {
         return (string) $this->fsm['initial_state'];
+    }
+
+    public function currentState(): string
+    {
+        return $this->currentState;
+    }
+
+    public function reset(): void
+    {
+        $this->currentState = $this->initialState();
+        $this->memory = [];
+        $this->stack = [];
+        $this->stackType = 'fifo';
+    }
+
+    /** @return array<string,mixed> */
+    public function memory(): array
+    {
+        return $this->memory;
+    }
+
+    public function peek(string $name): mixed
+    {
+        if ($name === '' || !array_key_exists($name, $this->memory)) {
+            throw new RuntimeException('OPUS_FSM_MEMORY_KEY_UNKNOWN: ' . $name);
+        }
+        return $this->memory[$name];
+    }
+
+    public function poke(string $name, mixed $value): void
+    {
+        if ($name === '') {
+            throw new InvalidArgumentException('OPUS_FSM_MEMORY_KEY_REQUIRED');
+        }
+        $this->memory[$name] = $value;
+    }
+
+    /** @return list<mixed> */
+    public function stack(): array
+    {
+        return $this->stack;
+    }
+
+    public function push(mixed $value): void
+    {
+        $this->stack[] = $value;
+    }
+
+    public function pop(): mixed
+    {
+        if ($this->stack === []) {
+            return null;
+        }
+        return $this->stackType === 'lifo'
+            ? array_pop($this->stack)
+            : array_shift($this->stack);
+    }
+
+    public function setStackType(string $type): void
+    {
+        if (!in_array($type, ['fifo', 'lifo'], true)) {
+            throw new InvalidArgumentException(
+                'OPUS_FSM_STACK_TYPE_INVALID: ' . $type
+            );
+        }
+        $this->stackType = $type;
+    }
+
+    /** @return array<string,mixed> */
+    public function snapshot(): array
+    {
+        return [
+            'contract' => 'OPUS_FSM_RUNTIME_SNAPSHOT_V1',
+            'fsm_contract' => $this->contract(),
+            'state' => $this->currentState,
+            'memory' => $this->memory,
+            'stack' => $this->stack,
+            'stack_type' => $this->stackType,
+        ];
+    }
+
+    /** @param array<string,mixed> $snapshot */
+    public function restore(array $snapshot): void
+    {
+        if (($snapshot['contract'] ?? null) !== 'OPUS_FSM_RUNTIME_SNAPSHOT_V1'
+            || ($snapshot['fsm_contract'] ?? null) !== $this->contract()) {
+            throw new RuntimeException('OPUS_FSM_RUNTIME_SNAPSHOT_INVALID');
+        }
+        $state = (string) ($snapshot['state'] ?? '');
+        if (!$this->hasState($state)) {
+            throw new RuntimeException(
+                'OPUS_FSM_RUNTIME_SNAPSHOT_STATE_UNKNOWN: ' . $state
+            );
+        }
+        if (!is_array($snapshot['memory'] ?? null)
+            || !is_array($snapshot['stack'] ?? null)) {
+            throw new RuntimeException('OPUS_FSM_RUNTIME_SNAPSHOT_DATA_INVALID');
+        }
+        $this->setStackType((string) ($snapshot['stack_type'] ?? ''));
+        $this->currentState = $state;
+        $this->memory = $snapshot['memory'];
+        $this->stack = array_values($snapshot['stack']);
     }
 
     /** @return array<string,mixed> */
@@ -108,6 +221,7 @@ final class FsmProcessor implements FsmProcessorInterface
             throw new RuntimeException('OPUS_FSM_EVENT_REQUIRED');
         }
 
+        $this->currentState = $currentState;
         $transition = $this->findTransition($currentState, $event);
         if ($transition === null) {
             throw new RuntimeException(
@@ -136,6 +250,8 @@ final class FsmProcessor implements FsmProcessorInterface
         }
 
         $actions = $this->transitionActions($transition);
+        $this->currentState = $target;
+        $this->applyMemoryOperations($transition, $context);
 
         return [
             'contract' => self::RESULT_CONTRACT,
@@ -148,6 +264,7 @@ final class FsmProcessor implements FsmProcessorInterface
             'actions' => $actions,
             'action' => $actions[0] ?? '',
             'target_state' => $this->statesById[$target],
+            'runtime' => $this->snapshot(),
         ];
     }
 
@@ -248,19 +365,73 @@ final class FsmProcessor implements FsmProcessorInterface
     /** @return array<string,mixed>|null */
     private function findTransition(string $currentState, string $event): ?array
     {
-        $wildcard = null;
+        $stateAny = null;
+        $globalExact = null;
+        $globalAny = null;
+        $default = null;
         foreach ($this->transitions() as $transition) {
-            if (($transition['event'] ?? null) !== $event) {
-                continue;
-            }
-            if (($transition['from'] ?? null) === $currentState) {
+            $from = (string) ($transition['from'] ?? '');
+            $candidateEvent = (string) ($transition['event'] ?? '');
+            if ($from === $currentState && $candidateEvent === $event) {
                 return $transition;
             }
-            if (($transition['from'] ?? null) === '*') {
-                $wildcard = $transition;
+            if ($from === $currentState && $candidateEvent === '__any__') {
+                $stateAny = $transition;
+            } elseif ($from === '*' && $candidateEvent === $event) {
+                $globalExact = $transition;
+            } elseif ($from === '*' && $candidateEvent === '__any__') {
+                $globalAny = $transition;
+            } elseif ($candidateEvent === '__default__') {
+                $default = $transition;
             }
         }
-        return $wildcard;
+        return $stateAny ?? $globalExact ?? $globalAny ?? $default;
+    }
+
+    /**
+     * @param array<string,mixed> $transition
+     * @param array<string,mixed> $context
+     */
+    private function applyMemoryOperations(
+        array $transition,
+        array $context
+    ): void {
+        $operations = $transition['runtime_operations'] ?? [];
+        if (!is_array($operations)) {
+            throw new RuntimeException('OPUS_FSM_RUNTIME_OPERATIONS_INVALID');
+        }
+        foreach ($operations as $operation) {
+            if (!is_array($operation)) {
+                throw new RuntimeException('OPUS_FSM_RUNTIME_OPERATION_INVALID');
+            }
+            $name = (string) ($operation['name'] ?? '');
+            $contextKey = (string) ($operation['context'] ?? '');
+            switch ((string) ($operation['op'] ?? '')) {
+                case 'poke':
+                    if ($contextKey === '' || !array_key_exists($contextKey, $context)) {
+                        throw new RuntimeException(
+                            'OPUS_FSM_RUNTIME_CONTEXT_MISSING: ' . $contextKey
+                        );
+                    }
+                    $this->poke($name, $context[$contextKey]);
+                    break;
+                case 'push':
+                    if ($contextKey === '' || !array_key_exists($contextKey, $context)) {
+                        throw new RuntimeException(
+                            'OPUS_FSM_RUNTIME_CONTEXT_MISSING: ' . $contextKey
+                        );
+                    }
+                    $this->push($context[$contextKey]);
+                    break;
+                case 'pop':
+                    $this->poke($name, $this->pop());
+                    break;
+                default:
+                    throw new RuntimeException(
+                        'OPUS_FSM_RUNTIME_OPERATION_UNKNOWN'
+                    );
+            }
+        }
     }
 
     /** @param array<string,mixed> $transition @return list<string> */
