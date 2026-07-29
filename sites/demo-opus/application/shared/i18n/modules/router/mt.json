@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "mt",
+    "scope": "router",
+    "messages": {
+        "page.title": "Router",
+        "page.subtitle": "Modulu OPUS immexxi minn FSM: router"
+    }
+}
+

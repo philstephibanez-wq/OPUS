@@ -1,0 +1,8 @@
+{
+    "contract": "OPUS_BACK_MODULE_V1",
+    "module": "modules",
+    "runtime_mode": "back",
+    "commands_via_composer": true,
+    "rest_required": true,
+    "acl_default": "deny"
+}

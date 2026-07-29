@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "mt",
+    "scope": "architecture",
+    "messages": {
+        "page.title": "Arkitettura",
+        "page.subtitle": "Modulu OPUS immexxi minn FSM: architecture"
+    }
+}
+

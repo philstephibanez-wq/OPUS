@@ -1,0 +1,19 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "mt",
+    "scope": "default",
+    "messages": {
+        "language": "Lingwa",
+        "menu.home": "Paġna ewlenija",
+        "menu.architecture": "Arkitettura",
+        "menu.router": "Router",
+        "menu.modules": "Moduli",
+        "menu.controllers": "Kontrolluri",
+        "menu.views": "Veduti",
+        "menu.models": "Mudelli",
+        "menu.i18n": "Internazzjonalizzazzjoni",
+        "error.title": "Żball OPUS",
+        "error.request_failed": "It-talba falliet."
+    }
+}
+

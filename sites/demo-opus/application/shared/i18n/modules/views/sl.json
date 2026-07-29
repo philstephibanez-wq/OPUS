@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "sl",
+    "scope": "views",
+    "messages": {
+        "page.title": "Pogledi",
+        "page.subtitle": "Modul OPUS, ki ga upravlja FSM: views"
+    }
+}
+

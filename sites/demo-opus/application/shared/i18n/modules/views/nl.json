@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "nl",
+    "scope": "views",
+    "messages": {
+        "page.title": "Weergaven",
+        "page.subtitle": "Door FSM aangestuurde OPUS-module: views"
+    }
+}
+

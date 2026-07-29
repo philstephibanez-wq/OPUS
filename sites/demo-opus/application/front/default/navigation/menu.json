@@ -1,0 +1,38 @@
+{
+    "contract": "OPUS_MENU_REGISTRY_V1",
+    "items": [
+        {
+            "route": "home.index",
+            "label": "menu.home"
+        },
+        {
+            "route": "architecture.index",
+            "label": "menu.architecture"
+        },
+        {
+            "route": "router.index",
+            "label": "menu.router"
+        },
+        {
+            "route": "modules.index",
+            "label": "menu.modules"
+        },
+        {
+            "route": "controllers.index",
+            "label": "menu.controllers"
+        },
+        {
+            "route": "views.index",
+            "label": "menu.views"
+        },
+        {
+            "route": "models.index",
+            "label": "menu.models"
+        },
+        {
+            "route": "i18n.index",
+            "label": "menu.i18n"
+        }
+    ]
+}
+

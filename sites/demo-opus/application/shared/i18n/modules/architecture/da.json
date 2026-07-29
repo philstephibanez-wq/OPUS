@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "da",
+    "scope": "architecture",
+    "messages": {
+        "page.title": "Arkitektur",
+        "page.subtitle": "FSM-styret OPUS-modul: architecture"
+    }
+}
+

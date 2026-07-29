@@ -105,6 +105,13 @@ final class RestClient implements RestClientInterface
             'X-Opus-Rest-Signature: ' . $signature,
             'X-Opus-Rest-Actor: ' . $actorHeader,
         ];
+        $traceId = trim((string) getenv('OPUS_TRACE_ID'));
+        if ($traceId !== '') {
+            if (preg_match('/^[a-f0-9]{16,64}$/D', $traceId) !== 1) {
+                throw new \RuntimeException('OPUS_REST_API_TRACE_ID_INVALID');
+            }
+            $headers[] = 'X-Opus-Trace-Id: ' . $traceId;
+        }
 
         $context = stream_context_create(['http' => [
             'method' => $method,

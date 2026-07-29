@@ -73,7 +73,8 @@ final class OwasysSourceController
             $store,
             $locale,
             $sourcePath,
-            $identity
+            $identity,
+            $currentApp
         );
         $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
         if ($method !== 'GET') {
@@ -428,13 +429,17 @@ final class OwasysSourceController
         return 'source/' . implode('/', $segments);
     }
 
-    /** @param array<string,mixed> $identity */
+    /**
+     * @param array<string,mixed> $identity
+     * @param array<string,mixed> $currentApp
+     */
     private function applyProfilerSignal(
         FsmProcessor $fsm,
         FsmSessionStore $store,
         string $locale,
         string $sourcePath,
-        array $identity
+        array $identity,
+        array $currentApp
     ): void {
         $raw = $_GET['profiler'] ?? null;
         if ($raw !== null && (string) $raw !== '1') {
@@ -448,6 +453,8 @@ final class OwasysSourceController
             'roles' => is_array($identity['roles'] ?? null)
                 ? $identity['roles']
                 : [],
+            'current_app' => $currentApp,
+            'has_current_app' => true,
             'locale' => $locale,
             'source_path' => $sourcePath,
             'return_url' => $this->routeUrl(

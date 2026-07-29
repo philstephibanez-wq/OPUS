@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "en",
+    "scope": "i18n",
+    "messages": {
+        "page.title": "Internationalization",
+        "page.subtitle": "FSM-driven OPUS module: i18n"
+    }
+}
+

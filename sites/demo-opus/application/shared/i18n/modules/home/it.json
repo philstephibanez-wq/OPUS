@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "it",
+    "scope": "home",
+    "messages": {
+        "page.title": "Home",
+        "page.subtitle": "Modulo OPUS pilotato da FSM: home"
+    }
+}
+

@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "ga",
+    "scope": "views",
+    "messages": {
+        "page.title": "Amhairc",
+        "page.subtitle": "Modúl OPUS arna rialú ag FSM: views"
+    }
+}
+

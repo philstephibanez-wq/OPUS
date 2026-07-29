@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "pl",
+    "scope": "views",
+    "messages": {
+        "page.title": "Widoki",
+        "page.subtitle": "Moduł OPUS sterowany przez FSM: views"
+    }
+}
+

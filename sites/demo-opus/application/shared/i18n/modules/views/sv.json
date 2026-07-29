@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "sv",
+    "scope": "views",
+    "messages": {
+        "page.title": "Vyer",
+        "page.subtitle": "FSM-styrd OPUS-modul: views"
+    }
+}
+

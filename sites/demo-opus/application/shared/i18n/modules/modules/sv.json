@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "sv",
+    "scope": "modules",
+    "messages": {
+        "page.title": "Moduler",
+        "page.subtitle": "FSM-styrd OPUS-modul: modules"
+    }
+}
+

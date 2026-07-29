@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "da",
+    "scope": "router",
+    "messages": {
+        "page.title": "Router",
+        "page.subtitle": "FSM-styret OPUS-modul: router"
+    }
+}
+

@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "fi",
+    "scope": "architecture",
+    "messages": {
+        "page.title": "Arkkitehtuuri",
+        "page.subtitle": "FSM-ohjattu OPUS-moduuli: architecture"
+    }
+}
+

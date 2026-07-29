@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "fi",
+    "scope": "router",
+    "messages": {
+        "page.title": "Reititin",
+        "page.subtitle": "FSM-ohjattu OPUS-moduuli: router"
+    }
+}
+

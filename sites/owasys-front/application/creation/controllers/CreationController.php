@@ -31,7 +31,7 @@ final class OwasysCreationController
     ) {
         $this->locales = new OwasysLocaleRegistry($siteConfig);
         $this->navigation = new OwasysNavigationBuilder($security);
-        $this->logger = new Logger($siteRoot . '/var/logs', 'owasys-frontend.log');
+        $this->logger = new Logger($siteRoot . '/var/logs', 'owasys-front.log');
         $this->profiler = new Profiler($siteRoot . '/var/profiler');
     }
 
@@ -88,7 +88,12 @@ final class OwasysCreationController
         $this->security->assertAllowed($identity, 'creation', 'write');
         $siteId = strtolower(trim((string) ($_POST['owasys_site_id'] ?? '')));
         $profile = strtolower(trim((string) ($_POST['owasys_profile'] ?? '')));
-        $trace = $this->profiler->start();
+        $parentTraceId = trim((string) getenv('OPUS_TRACE_ID'));
+        $trace = $this->profiler->start(
+            preg_match('/^[a-f0-9]{16,64}$/D', $parentTraceId) === 1
+                ? $parentTraceId
+                : null
+        );
         $traceId = $trace->getTraceId();
         $this->profiler->event('owasys.creation', 'creation.requested', [
             'profile' => $profile,

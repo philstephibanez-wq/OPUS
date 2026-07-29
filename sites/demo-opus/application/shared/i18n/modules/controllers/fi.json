@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "fi",
+    "scope": "controllers",
+    "messages": {
+        "page.title": "Ohjaimet",
+        "page.subtitle": "FSM-ohjattu OPUS-moduuli: controllers"
+    }
+}
+

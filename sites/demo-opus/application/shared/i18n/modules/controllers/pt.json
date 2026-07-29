@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "pt",
+    "scope": "controllers",
+    "messages": {
+        "page.title": "Controladores",
+        "page.subtitle": "Módulo OPUS controlado por FSM: controllers"
+    }
+}
+

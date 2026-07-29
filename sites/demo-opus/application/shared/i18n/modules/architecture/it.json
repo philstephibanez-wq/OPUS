@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "it",
+    "scope": "architecture",
+    "messages": {
+        "page.title": "Architettura",
+        "page.subtitle": "Modulo OPUS pilotato da FSM: architecture"
+    }
+}
+

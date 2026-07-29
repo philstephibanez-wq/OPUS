@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "hu",
+    "scope": "i18n",
+    "messages": {
+        "page.title": "Nemzetköziesítés",
+        "page.subtitle": "FSM által vezérelt OPUS-modul: i18n"
+    }
+}
+

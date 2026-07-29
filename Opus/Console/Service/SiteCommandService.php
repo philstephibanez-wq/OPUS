@@ -149,6 +149,24 @@ final class SiteCommandService implements SiteCommandServiceInterface
         $fsmRelative = $this->fsmRelativePath($site);
         $standardLayout = $this->standardLayout($site);
         $surface = $this->applicationSurface($site);
+        if ($standardLayout === null) {
+            $forbiddenPaths = [
+                'application/shared',
+                'application/front',
+                'application/back',
+            ];
+            if ($surface === 'frontend') {
+                $forbiddenPaths[] = 'config/backend.rest.json';
+                $forbiddenPaths[] = 'config/backend.operations.json';
+            }
+            foreach ($forbiddenPaths as $forbiddenPath) {
+                if (file_exists($siteRoot . '/' . $forbiddenPath)) {
+                    throw new OpusConsoleException(
+                        'OPUS_SITE_OBSOLETE_LAYER_PRESENT:' . $forbiddenPath
+                    );
+                }
+            }
+        }
 
         if ($standardLayout !== null) {
             $runtime = is_array($site['runtime'] ?? null)

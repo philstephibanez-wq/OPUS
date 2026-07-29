@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "cs",
+    "scope": "router",
+    "messages": {
+        "page.title": "Směrovač",
+        "page.subtitle": "Modul OPUS řízený FSM: router"
+    }
+}
+
