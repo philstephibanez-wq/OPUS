@@ -454,6 +454,14 @@ SQL);
 
             $contract = (string) ($site['contract'] ?? '');
 
+            if ($contract === 'OPUS_SITE_LAYERED_CONTRACT_V2'
+                || array_key_exists('application_layers', $site)) {
+                throw new RuntimeException(
+                    'OWASYS_REGISTRY_LAYERED_SITE_FORBIDDEN:'
+                    . $this->relativeFromOpusRoot($siteJsonFile)
+                );
+            }
+
             if (!in_array(
                 $contract,
                 [
