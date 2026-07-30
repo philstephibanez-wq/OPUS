@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "mt",
+    "scope": "modules",
+    "messages": {
+        "page.title": "Moduli",
+        "page.subtitle": "Modulu OPUS immexxi minn FSM: modules"
+    }
+}
+

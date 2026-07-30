@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "hu",
+    "scope": "views",
+    "messages": {
+        "page.title": "Nézetek",
+        "page.subtitle": "FSM által vezérelt OPUS-modul: views"
+    }
+}
+

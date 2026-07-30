@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "lt",
+    "scope": "modules",
+    "messages": {
+        "page.title": "Moduliai",
+        "page.subtitle": "FSM valdomas OPUS modulis: modules"
+    }
+}
+

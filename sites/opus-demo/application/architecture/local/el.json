@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "el",
+    "scope": "architecture",
+    "messages": {
+        "page.title": "Αρχιτεκτονική",
+        "page.subtitle": "Μονάδα OPUS ελεγχόμενη από FSM: architecture"
+    }
+}
+

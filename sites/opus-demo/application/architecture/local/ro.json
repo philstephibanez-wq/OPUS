@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "ro",
+    "scope": "architecture",
+    "messages": {
+        "page.title": "Arhitectură",
+        "page.subtitle": "Modul OPUS controlat de FSM: architecture"
+    }
+}
+

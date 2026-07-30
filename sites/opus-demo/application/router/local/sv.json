@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "sv",
+    "scope": "router",
+    "messages": {
+        "page.title": "Router",
+        "page.subtitle": "FSM-styrd OPUS-modul: router"
+    }
+}
+

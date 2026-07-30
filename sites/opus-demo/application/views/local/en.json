@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "en",
+    "scope": "views",
+    "messages": {
+        "page.title": "Views",
+        "page.subtitle": "FSM-driven OPUS module: views"
+    }
+}
+

@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "sl",
+    "scope": "architecture",
+    "messages": {
+        "page.title": "Arhitektura",
+        "page.subtitle": "Modul OPUS, ki ga upravlja FSM: architecture"
+    }
+}
+

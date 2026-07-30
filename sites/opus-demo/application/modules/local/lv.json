@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "lv",
+    "scope": "modules",
+    "messages": {
+        "page.title": "Moduļi",
+        "page.subtitle": "FSM vadīts OPUS modulis: modules"
+    }
+}
+

@@ -1,0 +1,19 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "sk",
+    "scope": "default",
+    "messages": {
+        "language": "Jazyk",
+        "menu.home": "Domov",
+        "menu.architecture": "Architektúra",
+        "menu.router": "Smerovač",
+        "menu.modules": "Moduly",
+        "menu.controllers": "Radiče",
+        "menu.views": "Zobrazenia",
+        "menu.models": "Modely",
+        "menu.i18n": "Internacionalizácia",
+        "error.title": "Chyba OPUS",
+        "error.request_failed": "Požiadavka zlyhala."
+    }
+}
+

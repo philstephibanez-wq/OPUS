@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "el",
+    "scope": "views",
+    "messages": {
+        "page.title": "Προβολές",
+        "page.subtitle": "Μονάδα OPUS ελεγχόμενη από FSM: views"
+    }
+}
+

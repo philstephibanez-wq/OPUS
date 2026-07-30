@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "cs",
+    "scope": "modules",
+    "messages": {
+        "page.title": "Moduly",
+        "page.subtitle": "Modul OPUS řízený FSM: modules"
+    }
+}
+

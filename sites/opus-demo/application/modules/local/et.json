@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "et",
+    "scope": "modules",
+    "messages": {
+        "page.title": "Moodulid",
+        "page.subtitle": "FSM-i juhitud OPUS-moodul: modules"
+    }
+}
+

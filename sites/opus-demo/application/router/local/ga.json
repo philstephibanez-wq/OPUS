@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "ga",
+    "scope": "router",
+    "messages": {
+        "page.title": "Ródaire",
+        "page.subtitle": "Modúl OPUS arna rialú ag FSM: router"
+    }
+}
+

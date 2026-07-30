@@ -1,0 +1,12 @@
+{
+    "contract": "OPUS_MODULE_ACL_POLICY_V1",
+    "resource": "i18n",
+    "default": "deny",
+    "open": [
+        "anonymous",
+        "viewer",
+        "developer",
+        "admin"
+    ]
+}
+

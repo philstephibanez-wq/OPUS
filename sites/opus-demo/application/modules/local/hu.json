@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "hu",
+    "scope": "modules",
+    "messages": {
+        "page.title": "Modulok",
+        "page.subtitle": "FSM által vezérelt OPUS-modul: modules"
+    }
+}
+

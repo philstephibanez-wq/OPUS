@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "lt",
+    "scope": "router",
+    "messages": {
+        "page.title": "Maršrutizatorius",
+        "page.subtitle": "FSM valdomas OPUS modulis: router"
+    }
+}
+

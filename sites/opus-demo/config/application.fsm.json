@@ -1,0 +1,186 @@
+{
+    "contract": "OPUS_APPLICATION_FSM_V1",
+    "site_id": "opus-demo",
+    "initial_state": "home",
+    "states": [
+        {
+            "id": "home",
+            "module": "home",
+            "route": "/",
+            "title_key": "menu.home",
+            "summary_key": "page.subtitle",
+            "navigation": {
+                "label": "menu.home"
+            }
+        },
+        {
+            "id": "architecture",
+            "module": "architecture",
+            "route": "/architecture",
+            "title_key": "menu.architecture",
+            "summary_key": "page.subtitle",
+            "navigation": {
+                "label": "menu.architecture"
+            }
+        },
+        {
+            "id": "router",
+            "module": "router",
+            "route": "/router",
+            "title_key": "menu.router",
+            "summary_key": "page.subtitle",
+            "navigation": {
+                "label": "menu.router"
+            }
+        },
+        {
+            "id": "modules",
+            "module": "modules",
+            "route": "/modules",
+            "title_key": "menu.modules",
+            "summary_key": "page.subtitle",
+            "navigation": {
+                "label": "menu.modules"
+            }
+        },
+        {
+            "id": "controllers",
+            "module": "controllers",
+            "route": "/controllers",
+            "title_key": "menu.controllers",
+            "summary_key": "page.subtitle",
+            "navigation": {
+                "label": "menu.controllers"
+            }
+        },
+        {
+            "id": "views",
+            "module": "views",
+            "route": "/views",
+            "title_key": "menu.views",
+            "summary_key": "page.subtitle",
+            "navigation": {
+                "label": "menu.views"
+            }
+        },
+        {
+            "id": "models",
+            "module": "models",
+            "route": "/models",
+            "title_key": "menu.models",
+            "summary_key": "page.subtitle",
+            "navigation": {
+                "label": "menu.models"
+            }
+        },
+        {
+            "id": "i18n",
+            "module": "i18n",
+            "route": "/i18n",
+            "title_key": "menu.i18n",
+            "summary_key": "page.subtitle",
+            "navigation": {
+                "label": "menu.i18n"
+            }
+        }
+    ],
+    "transitions": [
+        {
+            "id": "open.home",
+            "from": "*",
+            "event": "open_home",
+            "to": "home",
+            "guards": [
+                "route_exists"
+            ],
+            "actions": [
+                "render_route"
+            ]
+        },
+        {
+            "id": "open.architecture",
+            "from": "*",
+            "event": "open_architecture",
+            "to": "architecture",
+            "guards": [
+                "route_exists"
+            ],
+            "actions": [
+                "render_route"
+            ]
+        },
+        {
+            "id": "open.router",
+            "from": "*",
+            "event": "open_router",
+            "to": "router",
+            "guards": [
+                "route_exists"
+            ],
+            "actions": [
+                "render_route"
+            ]
+        },
+        {
+            "id": "open.modules",
+            "from": "*",
+            "event": "open_modules",
+            "to": "modules",
+            "guards": [
+                "route_exists"
+            ],
+            "actions": [
+                "render_route"
+            ]
+        },
+        {
+            "id": "open.controllers",
+            "from": "*",
+            "event": "open_controllers",
+            "to": "controllers",
+            "guards": [
+                "route_exists"
+            ],
+            "actions": [
+                "render_route"
+            ]
+        },
+        {
+            "id": "open.views",
+            "from": "*",
+            "event": "open_views",
+            "to": "views",
+            "guards": [
+                "route_exists"
+            ],
+            "actions": [
+                "render_route"
+            ]
+        },
+        {
+            "id": "open.models",
+            "from": "*",
+            "event": "open_models",
+            "to": "models",
+            "guards": [
+                "route_exists"
+            ],
+            "actions": [
+                "render_route"
+            ]
+        },
+        {
+            "id": "open.i18n",
+            "from": "*",
+            "event": "open_i18n",
+            "to": "i18n",
+            "guards": [
+                "route_exists"
+            ],
+            "actions": [
+                "render_route"
+            ]
+        }
+    ]
+}
+

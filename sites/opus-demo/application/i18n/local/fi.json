@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "fi",
+    "scope": "i18n",
+    "messages": {
+        "page.title": "Kansainvälistäminen",
+        "page.subtitle": "FSM-ohjattu OPUS-moduuli: i18n"
+    }
+}
+

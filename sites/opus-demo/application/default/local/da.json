@@ -1,0 +1,19 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "da",
+    "scope": "default",
+    "messages": {
+        "language": "Sprog",
+        "menu.home": "Hjem",
+        "menu.architecture": "Arkitektur",
+        "menu.router": "Router",
+        "menu.modules": "Moduler",
+        "menu.controllers": "Controllere",
+        "menu.views": "Visninger",
+        "menu.models": "Modeller",
+        "menu.i18n": "Internationalisering",
+        "error.title": "OPUS-fejl",
+        "error.request_failed": "Anmodningen mislykkedes."
+    }
+}
+

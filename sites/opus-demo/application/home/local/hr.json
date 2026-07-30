@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "hr",
+    "scope": "home",
+    "messages": {
+        "page.title": "Početna",
+        "page.subtitle": "OPUS modul kojim upravlja FSM: home"
+    }
+}
+

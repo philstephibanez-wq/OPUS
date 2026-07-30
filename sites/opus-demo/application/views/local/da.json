@@ -1,0 +1,10 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "da",
+    "scope": "views",
+    "messages": {
+        "page.title": "Visninger",
+        "page.subtitle": "FSM-styret OPUS-modul: views"
+    }
+}
+
