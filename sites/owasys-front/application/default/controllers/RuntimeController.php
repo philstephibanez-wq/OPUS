@@ -115,7 +115,13 @@ final class OwasysRuntimeController
 
         if ($redirectAfterTransition) {
             $state = $fsm->state($targetState);
-            $this->redirect($locale, (string) ($state['route'] ?? 'login'));
+            $this->redirect(
+                $locale,
+                (string) ($state['route'] ?? 'login'),
+                $event === 'create_new_app'
+                    ? ['owasys_new' => '1']
+                    : []
+            );
         }
 
         $this->renderState(
@@ -840,9 +846,18 @@ final class OwasysRuntimeController
             : rtrim($directory, '/');
     }
 
-    private function redirect(string $locale, string $route): never
+    /** @param array<string,string> $query */
+    private function redirect(
+        string $locale,
+        string $route,
+        array $query = []
+    ): never
     {
-        header('Location: ' . $this->routeUrl($locale, $route), true, 303);
+        $url = $this->routeUrl($locale, $route);
+        if ($query !== []) {
+            $url .= '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+        }
+        header('Location: ' . $url, true, 303);
         exit;
     }
 

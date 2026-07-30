@@ -69,36 +69,43 @@
     <form method="post" action="{{ urls.current }}" class="ow-creation-form">
       <label class="ow-check"><input type="checkbox" name="owasys_authentication_required" value="1" [[ if: creation.authentication_required ]]checked[[ endif ]]> [[ i18n: creation.security.authentication ]]</label>
       <label class="ow-check"><input type="checkbox" name="owasys_login_page" value="1" [[ if: creation.login_page ]]checked[[ endif ]]> [[ i18n: creation.security.login_page ]]</label>
+      [[ if: creation.error_security_login ]]<p class="ow-field-error" role="alert">[[ i18n: creation.error.security_login ]]</p>[[ endif ]]
       <fieldset class="ow-profile-selector">
         <legend>[[ i18n: creation.security.provider ]]</legend>
         <label class="ow-card ow-profile-option"><input type="radio" name="owasys_provider" value="session" required [[ if: creation.provider_session ]]checked[[ endif ]]><strong>[[ i18n: creation.security.provider_session_label ]]</strong><span>[[ i18n: creation.security.provider_session ]]</span></label>
         <label class="ow-card ow-profile-option"><input type="radio" name="owasys_provider" value="local-password" required [[ if: creation.provider_local_password ]]checked[[ endif ]]><strong>[[ i18n: creation.security.provider_local_label ]]</strong><span>[[ i18n: creation.security.provider_local ]]</span></label>
         <label class="ow-card ow-profile-option"><input type="radio" name="owasys_provider" value="auth0-proxy" required [[ if: creation.provider_auth0_proxy ]]checked[[ endif ]]><strong>[[ i18n: creation.security.provider_auth0_label ]]</strong><span>[[ i18n: creation.security.provider_auth0 ]]</span></label>
       </fieldset>
+      [[ if: creation.error_security_provider ]]<p class="ow-field-error" role="alert">[[ i18n: creation.error.security_provider ]]</p>[[ endif ]]
       <div class="ow-form-field">
         <label for="owasys-roles">[[ i18n: creation.security.roles ]]</label>
         <input id="owasys-roles" name="owasys_roles" type="text" value="{{ creation.roles }}" required maxlength="512">
         <small class="ow-muted">[[ i18n: creation.security.list_help ]]</small>
+        [[ if: creation.error_security_roles ]]<p class="ow-field-error" role="alert">[[ i18n: creation.error.security_roles ]]</p>[[ endif ]]
       </div>
       <div class="ow-form-field">
         <label for="owasys-home-roles">[[ i18n: creation.security.home_roles ]]</label>
         <input id="owasys-home-roles" name="owasys_home_roles" type="text" value="{{ creation.home_roles }}" required maxlength="512">
         <small class="ow-muted">[[ i18n: creation.security.home_roles_help ]]</small>
+        [[ if: creation.error_security_home_roles ]]<p class="ow-field-error" role="alert">[[ i18n: creation.error.security_home_roles ]]</p>[[ endif ]]
       </div>
       <div class="ow-form-field">
         <label for="owasys-permissions">[[ i18n: creation.security.permissions ]]</label>
         <input id="owasys-permissions" name="owasys_permissions" type="text" value="{{ creation.permissions }}" required maxlength="512">
         <small class="ow-muted">[[ i18n: creation.security.permissions_help ]]</small>
+        [[ if: creation.error_security_permissions ]]<p class="ow-field-error" role="alert">[[ i18n: creation.error.security_permissions ]]</p>[[ endif ]]
       </div>
       <div class="ow-form-field">
         <label for="owasys-users">[[ i18n: creation.security.users ]]</label>
         <input id="owasys-users" name="owasys_initial_users" type="text" value="{{ creation.initial_users }}" maxlength="512">
         <small class="ow-muted">[[ i18n: creation.security.users_help ]]</small>
+        [[ if: creation.error_security_users ]]<p class="ow-field-error" role="alert">[[ i18n: creation.error.security_users ]]</p>[[ endif ]]
       </div>
       <div class="ow-form-field">
         <label for="owasys-user-role">[[ i18n: creation.security.user_role ]]</label>
         <input id="owasys-user-role" name="owasys_initial_user_role" type="text" value="{{ creation.initial_user_role }}" maxlength="64">
         <small class="ow-muted">[[ i18n: creation.security.user_role_help ]]</small>
+        [[ if: creation.error_security_user_role ]]<p class="ow-field-error" role="alert">[[ i18n: creation.error.security_user_role ]]</p>[[ endif ]]
       </div>
       <div class="ow-inline-form">
         <button class="ow-button ow-button-secondary" type="submit" name="owasys_action" value="previous-basics">[[ i18n: creation.previous ]]</button>

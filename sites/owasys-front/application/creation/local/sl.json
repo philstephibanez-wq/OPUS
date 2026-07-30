@@ -57,7 +57,14 @@
     "creation.security.permissions": "Permissions",
     "creation.security.permissions_help": "Comma-separated resource:action permissions.",
     "creation.security.user_role": "Initial user role",
-    "creation.security.user_role_help": "Role assigned to every initial local user."
+    "creation.security.user_role_help": "Role assigned to every initial local user.",
+    "creation.error.security_provider": "The selected authentication provider is invalid.",
+    "creation.error.security_login": "The login page, authentication setting and selected provider are incompatible.",
+    "creation.error.security_roles": "Roles must contain valid identifiers and cannot be empty.",
+    "creation.error.security_home_roles": "Every homepage role must be declared; an authenticated homepage cannot allow anonymous.",
+    "creation.error.security_permissions": "Permissions must use the resource:action format and cannot be empty.",
+    "creation.error.security_users": "Initial users require the Local password provider.",
+    "creation.error.security_user_role": "The initial user role must be declared in the roles list."
   },
   "plurals": {},
   "grammatical": {}

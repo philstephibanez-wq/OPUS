@@ -73,6 +73,11 @@ final class OwasysCreationController
         $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
 
         if ($method === 'GET') {
+            if ((string) ($_GET['owasys_new'] ?? '') === '1') {
+                unset($_SESSION[self::DRAFT_SESSION_KEY]);
+                $wizard->reset();
+                $wizardStore->persist($wizard);
+            }
             $draft = $this->draft();
             $draft['step'] = $wizard->currentState();
             $this->render(
@@ -146,6 +151,10 @@ final class OwasysCreationController
                 );
             } catch (Throwable $error) {
                 http_response_code(422);
+                $diagnostic = $this->recordValidationFailure(
+                    'basics',
+                    $error
+                );
                 $this->render(
                     $fsmConfig,
                     $state,
@@ -159,8 +168,9 @@ final class OwasysCreationController
                             $_POST['owasys_profile'] ?? ''
                         ))),
                         'step' => 'basics',
+                        ...$diagnostic,
                     ]),
-                    $this->creationErrorKey($this->safeErrorCode($error))
+                    $this->creationErrorKey($diagnostic['error_code'])
                 );
             }
             return;
@@ -187,13 +197,18 @@ final class OwasysCreationController
                 http_response_code(422);
                 $draft = $this->draft();
                 $draft['step'] = 'security';
+                $draft = $this->securityInputDraft($draft);
+                $diagnostic = $this->recordValidationFailure(
+                    'security',
+                    $error
+                );
                 $this->render(
                     $fsmConfig,
                     $state,
                     $locale,
                     $identity,
-                    $draft,
-                    $this->creationErrorKey($this->safeErrorCode($error))
+                    array_replace($draft, $diagnostic),
+                    $this->creationErrorKey($diagnostic['error_code'])
                 );
             }
             return;
@@ -364,7 +379,7 @@ final class OwasysCreationController
     ): void {
         $basePath = $this->basePath();
         $routeUrl = fn (string $target): string => $this->routeUrl($locale, $target);
-        $profile = (string) ($form['profile'] ?? 'fullstack');
+        $profile = (string) ($form['profile'] ?? '');
         $currentApp = $this->session->currentApp();
         $data = [
             'page' => ['title' => '', 'summary' => ''],
@@ -436,7 +451,7 @@ final class OwasysCreationController
                 'profile' => $profile,
                 'profile_frontend' => $profile === 'frontend',
                 'profile_backend' => $profile === 'backend',
-                'profile_fullstack' => !in_array($profile, ['frontend', 'backend'], true),
+                'profile_fullstack' => $profile === 'fullstack',
                 'authentication_required' =>
                     ($form['authentication_required'] ?? false) === true,
                 'login_page' => ($form['login_page'] ?? false) === true,
@@ -466,6 +481,20 @@ final class OwasysCreationController
                 'error_profile' => $errorKey === 'creation.error.profile',
                 'error_exists' => $errorKey === 'creation.error.exists',
                 'error_backend' => $errorKey === 'creation.error.backend',
+                'error_security_provider' =>
+                    $errorKey === 'creation.error.security_provider',
+                'error_security_login' =>
+                    $errorKey === 'creation.error.security_login',
+                'error_security_roles' =>
+                    $errorKey === 'creation.error.security_roles',
+                'error_security_home_roles' =>
+                    $errorKey === 'creation.error.security_home_roles',
+                'error_security_permissions' =>
+                    $errorKey === 'creation.error.security_permissions',
+                'error_security_users' =>
+                    $errorKey === 'creation.error.security_users',
+                'error_security_user_role' =>
+                    $errorKey === 'creation.error.security_user_role',
                 'error_action' => $errorKey === 'creation.error.action',
                 'error_method' => $errorKey === 'creation.error.method',
                 'trace_id' => (string) ($form['trace_id'] ?? ''),
@@ -483,7 +512,7 @@ final class OwasysCreationController
         return is_array($draft) ? $draft : [
             'step' => 'basics',
             'site_id' => '',
-            'profile' => 'fullstack',
+            'profile' => '',
             'authentication_required' => false,
             'login_page' => false,
             'provider' => 'session',
@@ -612,6 +641,86 @@ final class OwasysCreationController
             'initial_users' => $users,
             'initial_user_role' => $users === [] ? '' : $initialUserRole,
         ]);
+    }
+
+    /** @param array<string,mixed> $draft @return array<string,mixed> */
+    private function securityInputDraft(array $draft): array
+    {
+        return array_replace($draft, [
+            'authentication_required' =>
+                isset($_POST['owasys_authentication_required']),
+            'login_page' => isset($_POST['owasys_login_page']),
+            'provider' => strtolower(trim((string) (
+                $_POST['owasys_provider'] ?? 'session'
+            ))),
+            'roles' => $this->submittedList('owasys_roles'),
+            'permissions' => $this->submittedList(
+                'owasys_permissions'
+            ),
+            'home_roles' => $this->submittedList(
+                'owasys_home_roles'
+            ),
+            'initial_users' => $this->submittedList(
+                'owasys_initial_users'
+            ),
+            'initial_user_role' => strtolower(trim((string) (
+                $_POST['owasys_initial_user_role'] ?? ''
+            ))),
+        ]);
+    }
+
+    /** @return list<string> */
+    private function submittedList(string $name): array
+    {
+        $result = [];
+        foreach (preg_split(
+            '/[\s,;]+/',
+            strtolower(trim((string) ($_POST[$name] ?? '')))
+        ) ?: [] as $value) {
+            if ($value !== '') {
+                $result[] = $value;
+            }
+        }
+        return $result;
+    }
+
+    /** @return array{trace_id:string,error_code:string} */
+    private function recordValidationFailure(
+        string $stage,
+        Throwable $error
+    ): array {
+        $code = $this->safeErrorCode($error);
+        $parentTraceId = trim((string) getenv('OPUS_TRACE_ID'));
+        $trace = $this->profiler->start(
+            preg_match('/^[a-f0-9]{16,64}$/D', $parentTraceId) === 1
+                ? $parentTraceId
+                : null
+        );
+        $traceId = $trace->getTraceId();
+        $context = [
+            'stage' => $stage,
+            'error_code' => $code,
+        ];
+        $this->profiler->event(
+            'owasys.creation',
+            'creation.validation_failed',
+            $context
+        );
+        $this->logger->warning(
+            'owasys.creation',
+            'creation.validation_failed',
+            $context,
+            $traceId
+        );
+        $this->profiler->stop([
+            'status' => 'validation_failed',
+            'workflow' => 'application_creation',
+            ...$context,
+        ]);
+        return [
+            'trace_id' => $traceId,
+            'error_code' => $code,
+        ];
     }
 
     /** @return list<string> */
@@ -744,6 +853,22 @@ final class OwasysCreationController
             str_contains($code, 'SITE_ID') || str_contains($code, 'APPLICATION_ID') => 'creation.error.site_id',
             str_contains($code, 'PROFILE') => 'creation.error.profile',
             str_contains($code, 'PATH_ALREADY_EXISTS') || str_contains($code, 'ALREADY_EXISTS') => 'creation.error.exists',
+            str_contains($code, 'LOGIN_') ||
+                str_contains($code, 'PUBLIC_PROVIDER') =>
+                'creation.error.security_login',
+            str_contains($code, 'PROVIDER_INVALID') =>
+                'creation.error.security_provider',
+            str_contains($code, 'HOME_ROLE') ||
+                str_contains($code, 'AUTH_HOME_ANONYMOUS') =>
+                'creation.error.security_home_roles',
+            str_contains($code, 'PERMISSION') =>
+                'creation.error.security_permissions',
+            str_contains($code, 'USERS_PROVIDER') =>
+                'creation.error.security_users',
+            str_contains($code, 'USER_ROLE') =>
+                'creation.error.security_user_role',
+            str_contains($code, 'IDENTIFIER') =>
+                'creation.error.security_roles',
             default => 'creation.error.backend',
         };
     }

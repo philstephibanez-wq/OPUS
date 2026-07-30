@@ -57,7 +57,14 @@
     "creation.security.permissions": "Permissions",
     "creation.security.permissions_help": "Permissions resource:action séparées par des virgules.",
     "creation.security.user_role": "Rôle des utilisateurs initiaux",
-    "creation.security.user_role_help": "Rôle affecté à chaque utilisateur local initial."
+    "creation.security.user_role_help": "Rôle affecté à chaque utilisateur local initial.",
+    "creation.error.security_provider": "Le fournisseur d’authentification sélectionné est invalide.",
+    "creation.error.security_login": "La page de connexion, l’authentification et le fournisseur sélectionné sont incompatibles.",
+    "creation.error.security_roles": "Les rôles doivent contenir des identifiants valides et ne peuvent pas être vides.",
+    "creation.error.security_home_roles": "Chaque rôle autorisé sur l’accueil doit être déclaré ; un accueil authentifié ne peut pas autoriser anonymous.",
+    "creation.error.security_permissions": "Les permissions doivent utiliser le format resource:action et ne peuvent pas être vides.",
+    "creation.error.security_users": "Les utilisateurs initiaux nécessitent le fournisseur Mot de passe local.",
+    "creation.error.security_user_role": "Le rôle des utilisateurs initiaux doit être déclaré dans la liste des rôles."
   },
   "plurals": {},
   "grammatical": {}
