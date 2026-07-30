@@ -77,14 +77,21 @@ final class OwasysScorePageRenderer
         ];
         $data = $this->normalizeI18nViewData($data, $i18n);
         $data['fsm_diagram'] = $this->fsmMermaid->build($data);
-        $data['body'] = [
-            'html' => $renderer->render($bodyTemplate, $data),
-        ];
-
-        return $renderer->render(
+        $bodyHtml = $renderer->render($bodyTemplate, $data);
+        $bodyPlaceholder = 'OPUS_BODY_FRAGMENT_'
+            . strtoupper(bin2hex(random_bytes(24)));
+        $data['body'] = ['html' => $bodyPlaceholder];
+        $layoutHtml = $renderer->render(
             'default/layouts/layout.score',
             $data
         );
+        if (substr_count($layoutHtml, $bodyPlaceholder) !== 1) {
+            throw new RuntimeException(
+                'OWASYS_SCORE_BODY_FRAGMENT_PLACEHOLDER_INVALID'
+            );
+        }
+
+        return str_replace($bodyPlaceholder, $bodyHtml, $layoutHtml);
     }
 
     /** @param array<string,mixed> $data */

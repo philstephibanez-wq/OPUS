@@ -1,6 +1,6 @@
 {
     "contract": "OPUS_APPLICATION_FSM_V1",
-    "site_id": "owasys-test",
+    "site_id": "test2",
     "initial_state": "home",
     "states": [
         {

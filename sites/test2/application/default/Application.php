@@ -6,7 +6,7 @@ use Opus\Http\Response;
 use Opus\Log\Logger;
 use Opus\Profiler\Profiler;
 
-final class OwasysTestApplication
+final class Test2Application
 {
     private static ?self $instance = null;
     private readonly GeneratedSiteRuntime $runtime;
@@ -18,7 +18,7 @@ final class OwasysTestApplication
         $this->runtime = new GeneratedSiteRuntime($siteRoot);
         $this->logger = new Logger(
             $siteRoot . '/var/logs',
-            'owasys-test.log'
+            'test2.log'
         );
         $this->profiler = new Profiler($siteRoot . '/var/profiler');
     }

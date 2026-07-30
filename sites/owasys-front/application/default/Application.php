@@ -192,9 +192,22 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
 
     private function safeErrorCode(Throwable $error): string
     {
-        $message = trim($error->getMessage());
-        return preg_match('/^[A-Z0-9_:-]{3,240}$/', $message) === 1
-            ? $message
-            : 'OWASYS_FRONT_RUNTIME_FAILED';
+        $current = $error;
+        do {
+            $message = trim($current->getMessage());
+            if (preg_match('/^[A-Z0-9_:-]{3,240}$/D', $message) === 1) {
+                return $message;
+            }
+            if (preg_match(
+                '/(?:^|[^A-Z0-9_])((?:OPUS|OWASYS|SCORE)_[A-Z0-9_:-]{2,240})/',
+                $message,
+                $match
+            ) === 1) {
+                return rtrim((string) $match[1], ':');
+            }
+            $current = $current->getPrevious();
+        } while ($current instanceof Throwable);
+
+        return 'OWASYS_FRONT_RUNTIME_FAILED';
     }
 }

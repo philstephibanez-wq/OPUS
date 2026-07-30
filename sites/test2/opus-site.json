@@ -1,7 +1,7 @@
 {
-    "site_id": "owasys-test",
+    "site_id": "test2",
     "contract": "OPUS_SITE_STANDARD_CONTRACT_CORE",
     "dispatch_model": "fsm-module-first",
-    "application_profile": "fullstack"
+    "application_profile": "frontend"
 }
 

@@ -1,19 +1,19 @@
 {
-    "site_id": "owasys-test",
-    "site_name": "OPUS owasys-test",
+    "site_id": "test2",
+    "site_name": "OPUS test2",
     "role": "generated-opus-application",
-    "kind": "fullstack",
+    "kind": "frontend",
     "status": "generated",
-    "blueprint": "opus-fullstack",
+    "blueprint": "opus-frontend",
     "generated_by": "composer",
     "contract": "OPUS_SITE_STANDARD_CONTRACT_CORE",
     "application_profile": {
         "contract": "OPUS_APPLICATION_PROFILE_V1",
-        "type": "fullstack",
+        "type": "frontend",
         "capabilities": {
             "presentation": true,
-            "api": true,
-            "persistence": true
+            "api": false,
+            "persistence": false
         }
     },
     "creation_blueprint": {
@@ -102,7 +102,7 @@
         "contract": "OPUS_APPLICATION_DIAGNOSTICS_V1",
         "logger": {
             "required": true,
-            "file": "var/logs/owasys-test.log"
+            "file": "var/logs/test2.log"
         },
         "profiler": {
             "required": true,
@@ -123,7 +123,7 @@
     "runtime": {
         "contract": "OPUS_APPLICATION_SINGLETON_V1",
         "architecture": "singleton",
-        "class": "OwasysTestApplication",
+        "class": "Test2Application",
         "file": "application/default/Application.php",
         "bootstrap": "application/default/bootstrap.php",
         "entrypoint": "www/index.php",

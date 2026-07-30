@@ -11,4 +11,4 @@ if (!is_file($autoload)) {
 require_once $autoload;
 require_once __DIR__ . '/Application.php';
 
-OwasysTestApplication::instance($siteRoot)->run();
+Test2Application::instance($siteRoot)->run();
