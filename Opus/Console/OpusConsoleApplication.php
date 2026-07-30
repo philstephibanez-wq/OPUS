@@ -213,8 +213,25 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
         return $this->sites->create(
             $siteId,
             $this->flag($arguments, 'write'),
-            $this->option($arguments, 'profile', 'fullstack')
+            $this->option($arguments, 'profile', 'fullstack'),
+            $this->creationBlueprint($arguments)
         );
+    }
+
+    /** @param list<string> $arguments @return array<string,mixed> */
+    private function creationBlueprint(array $arguments): array
+    {
+        $encoded = $this->option($arguments, 'blueprint', '');
+        if ($encoded === '') {
+            return [];
+        }
+        $decoded = Json::instance()->parse($encoded, 'command:blueprint');
+        if (!is_array($decoded)) {
+            throw new OpusConsoleException(
+                'OPUS_CREATE_SITE_BLUEPRINT_INVALID'
+            );
+        }
+        return $decoded;
     }
 
     /** @param list<string> $arguments @param array<string,mixed> $request */

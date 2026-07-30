@@ -22,6 +22,12 @@
           "max_length": 16
         },
         {
+          "name": "blueprint",
+          "required": true,
+          "option": "--blueprint",
+          "max_length": 8192
+        },
+        {
           "name": "write",
           "flag": "--write",
           "type": "boolean"

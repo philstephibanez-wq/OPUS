@@ -39,11 +39,12 @@ final class SiteCommandService implements SiteCommandServiceInterface
     public function create(
         string $siteId,
         bool $write,
-        string $profile = 'fullstack'
+        string $profile = 'fullstack',
+        array $blueprint = []
     ): array {
         $siteId = $this->siteId($siteId);
         $profile = $this->applicationProfile($profile);
-        $plan = SiteScaffoldPlan::forSite($siteId, $profile);
+        $plan = SiteScaffoldPlan::forSite($siteId, $profile, $blueprint);
         $writer = new ScaffoldWriter($this->opusRoot);
         $writer->assertPathDoesNotExist($plan->rootRelativePath());
 
@@ -63,6 +64,7 @@ final class SiteCommandService implements SiteCommandServiceInterface
             'contract' => 'OPUS_CONSOLE_SITE_CREATE_RESULT_V1',
             'site_id' => $siteId,
             'profile' => $profile,
+            'blueprint_contract' => 'OPUS_SITE_CREATION_BLUEPRINT_V1',
             'mode' => $write ? 'write' : 'preview',
             'site_root' => 'sites/' . $siteId,
             'entries' => $entries,

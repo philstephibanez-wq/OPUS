@@ -13,7 +13,8 @@ interface SiteCommandServiceInterface extends
     public function create(
         string $siteId,
         bool $write,
-        string $profile = 'fullstack'
+        string $profile = 'fullstack',
+        array $blueprint = []
     ): array;
 
     /** @return array<string,mixed> */

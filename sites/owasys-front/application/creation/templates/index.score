@@ -15,52 +15,124 @@
 [[ endif ]]
 
 <section class="ow-card ow-creation-wizard">
-  <div class="ow-section-heading">
-    <div>
-      <h2>[[ i18n: creation.choose_profile ]]</h2>
-      <p class="ow-muted">[[ i18n: creation.choose_profile_description ]]</p>
+  <ol class="ow-wizard-steps">
+    <li>[[ i18n: creation.step.basics ]]</li>
+    <li>[[ i18n: creation.step.security ]]</li>
+    <li>[[ i18n: creation.step.review ]]</li>
+  </ol>
+
+  [[ if: creation.step_basics ]]
+    <div class="ow-section-heading">
+      <div>
+        <h2>[[ i18n: creation.choose_profile ]]</h2>
+        <p class="ow-muted">[[ i18n: creation.choose_profile_description ]]</p>
+      </div>
     </div>
-  </div>
+    <form method="post" action="{{ urls.current }}" class="ow-creation-form">
+      <div class="ow-form-field">
+        <label for="owasys-site-id">[[ i18n: creation.site_id ]]</label>
+        <input id="owasys-site-id" name="owasys_site_id" type="text" value="{{ creation.site_id }}" required minlength="1" maxlength="64" pattern="[a-z][a-z0-9-]*" autocomplete="off" spellcheck="false">
+        <small class="ow-muted">[[ i18n: creation.site_id_help ]]</small>
+      </div>
+      <fieldset class="ow-profile-selector">
+        <legend>[[ i18n: creation.profile ]]</legend>
+        <label class="ow-card ow-profile-option">
+          <input type="radio" name="owasys_profile" value="frontend" required [[ if: creation.profile_frontend ]]checked[[ endif ]]>
+          <strong>[[ i18n: creation.profile.frontend ]]</strong>
+          <span>[[ i18n: creation.profile.frontend_description ]]</span>
+        </label>
+        <label class="ow-card ow-profile-option">
+          <input type="radio" name="owasys_profile" value="backend" required [[ if: creation.profile_backend ]]checked[[ endif ]]>
+          <strong>[[ i18n: creation.profile.backend ]]</strong>
+          <span>[[ i18n: creation.profile.backend_description ]]</span>
+        </label>
+        <label class="ow-card ow-profile-option">
+          <input type="radio" name="owasys_profile" value="fullstack" required [[ if: creation.profile_fullstack ]]checked[[ endif ]]>
+          <strong>[[ i18n: creation.profile.fullstack ]]</strong>
+          <span>[[ i18n: creation.profile.fullstack_description ]]</span>
+        </label>
+      </fieldset>
+      <div class="ow-inline-form">
+        <button class="ow-button" type="submit" name="owasys_action" value="next-security">[[ i18n: creation.next ]]</button>
+        <button class="ow-button ow-button-secondary" type="submit" name="owasys_action" value="cancel-creation">[[ i18n: creation.cancel ]]</button>
+      </div>
+    </form>
+  [[ endif ]]
 
-  <form method="post" action="{{ urls.current }}" class="ow-creation-form">
-    <div class="ow-form-field">
-      <label for="owasys-site-id">[[ i18n: creation.site_id ]]</label>
-      <input
-        id="owasys-site-id"
-        name="owasys_site_id"
-        type="text"
-        value="{{ creation.site_id }}"
-        required
-        minlength="1"
-        maxlength="64"
-        pattern="[a-z][a-z0-9-]*"
-        autocomplete="off"
-        spellcheck="false">
-      <small class="ow-muted">[[ i18n: creation.site_id_help ]]</small>
+  [[ if: creation.step_security ]]
+    <div class="ow-section-heading">
+      <div>
+        <h2>[[ i18n: creation.security.title ]]</h2>
+        <p class="ow-muted">[[ i18n: creation.security.description ]]</p>
+      </div>
     </div>
+    <form method="post" action="{{ urls.current }}" class="ow-creation-form">
+      <label class="ow-check"><input type="checkbox" name="owasys_authentication_required" value="1" [[ if: creation.authentication_required ]]checked[[ endif ]]> [[ i18n: creation.security.authentication ]]</label>
+      <label class="ow-check"><input type="checkbox" name="owasys_login_page" value="1" [[ if: creation.login_page ]]checked[[ endif ]]> [[ i18n: creation.security.login_page ]]</label>
+      <fieldset class="ow-profile-selector">
+        <legend>[[ i18n: creation.security.provider ]]</legend>
+        <label class="ow-card ow-profile-option"><input type="radio" name="owasys_provider" value="session" required [[ if: creation.provider_session ]]checked[[ endif ]]><strong>[[ i18n: creation.security.provider_session_label ]]</strong><span>[[ i18n: creation.security.provider_session ]]</span></label>
+        <label class="ow-card ow-profile-option"><input type="radio" name="owasys_provider" value="local-password" required [[ if: creation.provider_local_password ]]checked[[ endif ]]><strong>[[ i18n: creation.security.provider_local_label ]]</strong><span>[[ i18n: creation.security.provider_local ]]</span></label>
+        <label class="ow-card ow-profile-option"><input type="radio" name="owasys_provider" value="auth0-proxy" required [[ if: creation.provider_auth0_proxy ]]checked[[ endif ]]><strong>[[ i18n: creation.security.provider_auth0_label ]]</strong><span>[[ i18n: creation.security.provider_auth0 ]]</span></label>
+      </fieldset>
+      <div class="ow-form-field">
+        <label for="owasys-roles">[[ i18n: creation.security.roles ]]</label>
+        <input id="owasys-roles" name="owasys_roles" type="text" value="{{ creation.roles }}" required maxlength="512">
+        <small class="ow-muted">[[ i18n: creation.security.list_help ]]</small>
+      </div>
+      <div class="ow-form-field">
+        <label for="owasys-home-roles">[[ i18n: creation.security.home_roles ]]</label>
+        <input id="owasys-home-roles" name="owasys_home_roles" type="text" value="{{ creation.home_roles }}" required maxlength="512">
+        <small class="ow-muted">[[ i18n: creation.security.home_roles_help ]]</small>
+      </div>
+      <div class="ow-form-field">
+        <label for="owasys-permissions">[[ i18n: creation.security.permissions ]]</label>
+        <input id="owasys-permissions" name="owasys_permissions" type="text" value="{{ creation.permissions }}" required maxlength="512">
+        <small class="ow-muted">[[ i18n: creation.security.permissions_help ]]</small>
+      </div>
+      <div class="ow-form-field">
+        <label for="owasys-users">[[ i18n: creation.security.users ]]</label>
+        <input id="owasys-users" name="owasys_initial_users" type="text" value="{{ creation.initial_users }}" maxlength="512">
+        <small class="ow-muted">[[ i18n: creation.security.users_help ]]</small>
+      </div>
+      <div class="ow-form-field">
+        <label for="owasys-user-role">[[ i18n: creation.security.user_role ]]</label>
+        <input id="owasys-user-role" name="owasys_initial_user_role" type="text" value="{{ creation.initial_user_role }}" maxlength="64">
+        <small class="ow-muted">[[ i18n: creation.security.user_role_help ]]</small>
+      </div>
+      <div class="ow-inline-form">
+        <button class="ow-button ow-button-secondary" type="submit" name="owasys_action" value="previous-basics">[[ i18n: creation.previous ]]</button>
+        <button class="ow-button" type="submit" name="owasys_action" value="review-creation">[[ i18n: creation.review ]]</button>
+        <button class="ow-button ow-button-secondary" type="submit" name="owasys_action" value="cancel-creation">[[ i18n: creation.cancel ]]</button>
+      </div>
+    </form>
+  [[ endif ]]
 
-    <fieldset class="ow-profile-selector">
-      <legend>[[ i18n: creation.profile ]]</legend>
-      <label class="ow-card ow-profile-option">
-        <input type="radio" name="owasys_profile" value="frontend" required [[ if: creation.profile_frontend ]]checked[[ endif ]]>
-        <strong>[[ i18n: creation.profile.frontend ]]</strong>
-        <span>[[ i18n: creation.profile.frontend_description ]]</span>
-      </label>
-      <label class="ow-card ow-profile-option">
-        <input type="radio" name="owasys_profile" value="backend" required [[ if: creation.profile_backend ]]checked[[ endif ]]>
-        <strong>[[ i18n: creation.profile.backend ]]</strong>
-        <span>[[ i18n: creation.profile.backend_description ]]</span>
-      </label>
-      <label class="ow-card ow-profile-option">
-        <input type="radio" name="owasys_profile" value="fullstack" required [[ if: creation.profile_fullstack ]]checked[[ endif ]]>
-        <strong>[[ i18n: creation.profile.fullstack ]]</strong>
-        <span>[[ i18n: creation.profile.fullstack_description ]]</span>
-      </label>
-    </fieldset>
-
-    <div class="ow-inline-form">
-      <button class="ow-button" type="submit" name="owasys_action" value="create-application">[[ i18n: creation.submit ]]</button>
+  [[ if: creation.step_review ]]
+    <div class="ow-section-heading">
+      <div>
+        <h2>[[ i18n: creation.review.title ]]</h2>
+        <p class="ow-muted">[[ i18n: creation.review.description ]]</p>
+      </div>
+    </div>
+    <dl class="ow-review">
+      <dt>[[ i18n: creation.site_id ]]</dt><dd>{{ creation.site_id }}</dd>
+      <dt>[[ i18n: creation.profile ]]</dt><dd>{{ creation.profile }}</dd>
+      <dt>[[ i18n: creation.security.authentication ]]</dt><dd>{{ creation.authentication_required }}</dd>
+      <dt>[[ i18n: creation.security.login_page ]]</dt><dd>{{ creation.login_page }}</dd>
+      <dt>[[ i18n: creation.security.provider ]]</dt><dd>{{ creation.provider }}</dd>
+      <dt>[[ i18n: creation.security.roles ]]</dt><dd>{{ creation.roles }}</dd>
+      <dt>[[ i18n: creation.security.permissions ]]</dt><dd>{{ creation.permissions }}</dd>
+      <dt>[[ i18n: creation.security.home_roles ]]</dt><dd>{{ creation.home_roles }}</dd>
+      <dt>[[ i18n: creation.security.users ]]</dt><dd>{{ creation.initial_users }}</dd>
+      <dt>[[ i18n: creation.security.user_role ]]</dt><dd>{{ creation.initial_user_role }}</dd>
+      <dt>[[ i18n: creation.locales ]]</dt><dd>{{ creation.locales_summary }}</dd>
+      <dt>[[ i18n: creation.result ]]</dt><dd>[[ i18n: creation.result_minimal ]]</dd>
+    </dl>
+    <form method="post" action="{{ urls.current }}" class="ow-inline-form">
+      <button class="ow-button ow-button-secondary" type="submit" name="owasys_action" value="previous-security">[[ i18n: creation.previous ]]</button>
+      <button class="ow-button" type="submit" name="owasys_action" value="confirm-creation">[[ i18n: creation.submit ]]</button>
       <button class="ow-button ow-button-secondary" type="submit" name="owasys_action" value="cancel-creation">[[ i18n: creation.cancel ]]</button>
-    </div>
-  </form>
+    </form>
+  [[ endif ]]
 </section>

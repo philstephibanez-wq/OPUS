@@ -401,54 +401,48 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
         'uk' => 'Модуль OPUS, керований FSM: ',
     ];
 
-    /** @var array<string,list<string>> */
-    private const PROFILE_MODULES = [
-        self::PROFILE_FRONTEND => [
-            'home',
-            'architecture',
-            'router',
-            'modules',
-            'controllers',
-            'views',
-            'i18n',
-        ],
-        self::PROFILE_BACKEND => [
-            'home',
-            'architecture',
-            'router',
-            'modules',
-            'controllers',
-            'models',
-            'i18n',
-        ],
-        self::PROFILE_FULLSTACK => [
-            'home',
-            'architecture',
-            'router',
-            'modules',
-            'controllers',
-            'views',
-            'models',
-            'i18n',
-        ],
+    /** @var array<string,string> */
+    private const LOGIN_LABELS = [
+        'bg' => 'Вход', 'hr' => 'Prijava', 'cs' => 'Přihlášení',
+        'da' => 'Log ind', 'nl' => 'Aanmelden', 'en' => 'Sign in',
+        'et' => 'Logi sisse', 'fi' => 'Kirjaudu', 'fr' => 'Connexion',
+        'de' => 'Anmelden', 'el' => 'Σύνδεση', 'hu' => 'Bejelentkezés',
+        'ga' => 'Sínigh isteach', 'it' => 'Accesso', 'lv' => 'Pieteikties',
+        'lt' => 'Prisijungti', 'mt' => 'Idħol', 'pl' => 'Logowanie',
+        'pt' => 'Iniciar sessão', 'ro' => 'Autentificare',
+        'sk' => 'Prihlásenie', 'sl' => 'Prijava', 'es' => 'Acceso',
+        'sv' => 'Logga in', 'uk' => 'Вхід',
+    ];
+
+    /** @var list<string> */
+    private const PROFILES = [
+        self::PROFILE_FRONTEND,
+        self::PROFILE_BACKEND,
+        self::PROFILE_FULLSTACK,
     ];
 
     private function __construct(
         private readonly string $siteId,
-        private readonly string $profile
+        private readonly string $profile,
+        private readonly array $blueprint
     ) {
     }
 
     public static function forSite(
         string $siteId,
-        string $profile = self::PROFILE_FULLSTACK
+        string $profile = self::PROFILE_FULLSTACK,
+        array $blueprint = []
     ): self {
         $siteId = trim(strtolower($siteId));
         if (preg_match('/^[a-z][a-z0-9-]*$/', $siteId) !== 1) {
             throw new \InvalidArgumentException('OPUS_APPLICATION_ID_INVALID:' . $siteId);
         }
         $profile = self::normalizeProfile($profile);
-        return new self($siteId, $profile);
+        return new self(
+            $siteId,
+            $profile,
+            self::normalizeBlueprint($blueprint)
+        );
     }
 
     public function profile(): string
@@ -459,7 +453,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
     /** @return list<string> */
     public static function profiles(): array
     {
-        return array_keys(self::PROFILE_MODULES);
+        return self::PROFILES;
     }
 
     public function rootRelativePath(): string
@@ -497,6 +491,9 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             "sites/{$site}/var/logs",
             "sites/{$site}/var/profiler",
         ];
+        if ($this->blueprint['security']['provider'] === 'local-password') {
+            $directories[] = "sites/{$site}/var/auth";
+        }
         foreach ($this->modules() as $module) {
             foreach (['', '/acl', '/helpers', '/javascript', '/local', '/models', '/templates', '/views'] as $suffix) {
                 $directories[] = "sites/{$site}/application/{$module}{$suffix}";
@@ -536,11 +533,30 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             "sites/{$site}/application/default/templates/components/script.score" => '<script src="{{ asset.src }}" defer></script>' . "\n",
             "sites/{$site}/application/default/navigation/menu.json" => $this->json($this->menuConfig()),
             "sites/{$site}/www/asset/css/default.css" => $this->defaultCss(),
-            "sites/{$site}/www/asset/js/default.js" => "document.documentElement.dataset.opusRuntime='ready';\n",
             "sites/{$site}/www/asset/themes/starter/css/theme.css" => "body.opus-site{--opus-theme:starter}\n",
-            "sites/{$site}/www/asset/themes/starter/js/theme.js" => "document.documentElement.dataset.opusTheme='starter';\n",
             "sites/{$site}/www/index.php" => $this->frontController(),
         ];
+        if ($this->blueprint['security']['initial_users'] !== []) {
+            $files["sites/{$site}/config/security.onboarding.json"] =
+                $this->json([
+                    'contract' => 'OPUS_SECURITY_ONBOARDING_V1',
+                    'provider' => 'local-password',
+                    'identities' => array_map(
+                        fn (string $subject): array => [
+                            'subject' => $subject,
+                            'roles' => [
+                                $this->blueprint['security'][
+                                    'initial_user_role'
+                                ],
+                            ],
+                            'status' => 'password-setup-required',
+                        ],
+                        $this->blueprint['security']['initial_users']
+                    ),
+                    'runtime_store' => 'var/auth/local-users.json',
+                    'secrets_versioned' => false,
+                ]);
+        }
 
         foreach (self::SUPPORTED_LOCALES as $locale) {
             $files["sites/{$site}/application/default/local/{$locale}.json"] = $this->json(
@@ -548,14 +564,16 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             );
         }
         foreach ($this->modules() as $module) {
-            $files["sites/{$site}/application/{$module}/templates/index.score"] = '<section class="opus-card"><h2>{{ page.title }}</h2><p>{{ page.subtitle }}</p></section>' . "\n";
+            $files["sites/{$site}/application/{$module}/templates/index.score"] =
+                $this->moduleTemplate($module);
             $files["sites/{$site}/application/{$module}/views/index.php"] = $this->viewModel($module);
-            $files["sites/{$site}/application/{$module}/javascript/{$module}.js"] = "document.documentElement.dataset.opusModule='{$module}';\n";
             $files["sites/{$site}/application/{$module}/acl/policy.json"] = $this->json([
                 'contract' => 'OPUS_MODULE_ACL_POLICY_V1',
                 'resource' => $module,
                 'default' => 'deny',
-                'open' => ['anonymous', 'viewer', 'developer', 'admin'],
+                'open' => $module === 'home'
+                    ? $this->blueprint['security']['home_roles']
+                    : ['anonymous'],
             ]);
             foreach (self::SUPPORTED_LOCALES as $locale) {
                 $files["sites/{$site}/application/{$module}/local/{$locale}.json"] = $this->json(
@@ -587,6 +605,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
                 'type' => $this->profile,
                 'capabilities' => $this->profileCapabilities(),
             ],
+            'creation_blueprint' => $this->blueprint,
             'default_locale' => self::FALLBACK_LOCALE,
             'locales' => self::SUPPORTED_LOCALES,
             'locale_negotiation' => [
@@ -600,7 +619,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
                 'contract' => 'OPUS_APPLICATION_DIAGNOSTICS_V1',
                 'logger' => [
                     'required' => true,
-                    'file' => 'var/logs/application.log',
+                    'file' => 'var/logs/' . $this->siteId . '.log',
                 ],
                 'profiler' => [
                     'required' => true,
@@ -645,10 +664,10 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
                 'label' => 'menu.' . $module,
                 'title_key' => 'page.title',
                 'subtitle_key' => 'page.subtitle',
-                'acl' => 'public',
+                'acl' => $module,
                 'fsm_state' => $module,
                 'dispatch_action' => 'render_route',
-                'show_in_menu' => true,
+                'show_in_menu' => $module === 'home',
                 'order' => ($index + 1) * 10,
             ];
         }
@@ -709,13 +728,16 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
     /** @return array<string,mixed> */
     private function aclConfig(): array
     {
+        $roles = $this->blueprint['security']['roles'];
+        $homeRoles = $this->blueprint['security']['home_roles'];
         return [
             'contract' => 'OPUS_GENERATED_APPLICATION_ACL_V1',
             'default' => 'deny',
+            'roles' => $roles,
+            'permissions' => $this->blueprint['security']['permissions'],
             'policies' => [
-                'public' => ['roles' => ['anonymous', 'viewer', 'developer', 'admin']],
-                'authenticated' => ['roles' => ['viewer', 'developer', 'admin']],
-                'administration' => ['roles' => ['developer', 'admin']],
+                'home' => ['roles' => $homeRoles],
+                'login' => ['roles' => ['anonymous']],
             ],
         ];
     }
@@ -723,14 +745,24 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
     /** @return array<string,mixed> */
     private function ssoConfig(): array
     {
+        $provider = (string) $this->blueprint['security']['provider'];
+        $login = (bool) $this->blueprint['security']['login_page'];
         return [
             'contract' => 'OPUS_GENERATED_APPLICATION_SSO_V1',
             'session_name' => 'OPUS_' . strtoupper(str_replace('-', '_', $this->siteId)),
             'session_identity_key' => 'opus_identity',
+            'authentication_required' => (bool) $this->blueprint['security']['authentication_required'],
+            'login_page' => $login,
+            'default_provider' => $provider,
             'providers' => [
-                'session' => ['enabled' => true],
+                'session' => ['enabled' => $provider === 'session'],
+                'local-password' => [
+                    'enabled' => $provider === 'local-password',
+                    'runtime_store' => 'var/auth/local-users.json',
+                    'secrets_versioned' => false,
+                ],
                 'auth0-proxy' => [
-                    'enabled' => true,
+                    'enabled' => $provider === 'auth0-proxy',
                     'trusted_proxy_addresses' => ['127.0.0.1', '::1'],
                     'proxy_secret_env' => 'OPUS_AUTH0_PROXY_SECRET',
                     'subject_header' => 'HTTP_X_OPUS_AUTH0_SUBJECT',
@@ -754,7 +786,10 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             'contract' => 'OPUS_I18N_CATALOG_V1',
             'locale' => $locale,
             'scope' => 'default',
-            'messages' => self::DEFAULT_MESSAGES[$locale],
+            'messages' => array_replace(
+                self::DEFAULT_MESSAGES[$locale],
+                ['menu.login' => self::LOGIN_LABELS[$locale]]
+            ),
         ];
     }
 
@@ -768,8 +803,10 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             );
         }
 
-        $titleKey = 'menu.' . $module;
-        if (!array_key_exists($titleKey, self::DEFAULT_MESSAGES[$locale])) {
+        $title = $module === 'login'
+            ? self::LOGIN_LABELS[$locale]
+            : (self::DEFAULT_MESSAGES[$locale]['menu.' . $module] ?? null);
+        if (!is_string($title)) {
             throw new \RuntimeException(
                 'OPUS_APPLICATION_MODULE_TRANSLATION_MISSING:'
                 . $locale
@@ -783,9 +820,13 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             'locale' => $locale,
             'scope' => $module,
             'messages' => [
-                'page.title' => self::DEFAULT_MESSAGES[$locale][$titleKey],
+                'page.title' => $title,
                 'page.subtitle' => self::MODULE_SUBTITLE_PREFIXES[$locale]
                     . $module,
+                'auth.username' => 'Username',
+                'auth.password' => 'Password',
+                'auth.submit' => self::LOGIN_LABELS[$locale],
+                'auth.error' => 'Authentication failed.',
             ],
         ];
     }
@@ -793,6 +834,22 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
     private function viewModel(string $module): string
     {
         return "<?php\ndeclare(strict_types=1);\n\nreturn [\n    'module' => " . var_export($module, true) . ",\n    'page' => ['title' => '', 'subtitle' => ''],\n];\n";
+    }
+
+    private function moduleTemplate(string $module): string
+    {
+        if ($module !== 'login') {
+            return '<section class="opus-card"><h2>{{ page.title }}</h2>'
+                . '<p>{{ page.subtitle }}</p></section>' . "\n";
+        }
+        return '<section class="opus-card"><h2>{{ page.title }}</h2>'
+            . '<p>{{ page.subtitle }}</p>'
+            . '[[ if: auth.error ]]<p role="alert">[[ i18n: auth.error ]]</p>[[ endif ]]'
+            . '<form method="post">'
+            . '<label>[[ i18n: auth.username ]]<input name="username" autocomplete="username" required></label>'
+            . '<label>[[ i18n: auth.password ]]<input name="password" type="password" autocomplete="current-password" required></label>'
+            . '<button type="submit">[[ i18n: auth.submit ]]</button>'
+            . '</form></section>' . "\n";
     }
 
     private function layoutTemplate(): string
@@ -829,7 +886,7 @@ final class {{APPLICATION_CLASS}}
         $this->runtime = new GeneratedSiteRuntime($siteRoot);
         $this->logger = new Logger(
             $siteRoot . '/var/logs',
-            'application.log'
+            '{{LOG_FILE}}'
         );
         $this->profiler = new Profiler($siteRoot . '/var/profiler');
     }
@@ -959,7 +1016,11 @@ final class {{APPLICATION_CLASS}}
     }
 }
 PHP;
-        return str_replace('{{APPLICATION_CLASS}}', $class, $source);
+        return str_replace(
+            ['{{APPLICATION_CLASS}}', '{{LOG_FILE}}'],
+            [$class, $this->siteId . '.log'],
+            $source
+        );
     }
 
     private function bootstrap(): string
@@ -1011,7 +1072,9 @@ PHP;
     /** @return list<string> */
     private function modules(): array
     {
-        return self::PROFILE_MODULES[$this->profile];
+        return (bool) $this->blueprint['security']['login_page']
+            ? ['home', 'login']
+            : ['home'];
     }
 
     /** @return array{presentation:bool,api:bool,persistence:bool} */
@@ -1042,12 +1105,194 @@ PHP;
     private static function normalizeProfile(string $profile): string
     {
         $profile = strtolower(trim($profile));
-        if (!array_key_exists($profile, self::PROFILE_MODULES)) {
+        if (!in_array($profile, self::PROFILES, true)) {
             throw new \InvalidArgumentException(
                 'OPUS_APPLICATION_PROFILE_INVALID:' . $profile
             );
         }
         return $profile;
+    }
+
+    /** @param array<string,mixed> $blueprint @return array<string,mixed> */
+    private static function normalizeBlueprint(array $blueprint): array
+    {
+        if ($blueprint === []) {
+            $blueprint = [
+                'contract' => 'OPUS_SITE_CREATION_BLUEPRINT_V1',
+                'security' => [
+                    'authentication_required' => false,
+                    'login_page' => false,
+                    'provider' => 'session',
+                    'roles' => ['anonymous', 'admin'],
+                    'permissions' => ['home:view'],
+                    'home_roles' => ['anonymous', 'admin'],
+                    'initial_users' => [],
+                    'initial_user_role' => '',
+                ],
+            ];
+        }
+        if (($blueprint['contract'] ?? null)
+            !== 'OPUS_SITE_CREATION_BLUEPRINT_V1') {
+            throw new \InvalidArgumentException(
+                'OPUS_APPLICATION_BLUEPRINT_CONTRACT_INVALID'
+            );
+        }
+        $security = is_array($blueprint['security'] ?? null)
+            ? $blueprint['security']
+            : null;
+        if (!is_array($security)
+            || !is_bool($security['authentication_required'] ?? null)
+            || !is_bool($security['login_page'] ?? null)) {
+            throw new \InvalidArgumentException(
+                'OPUS_APPLICATION_BLUEPRINT_SECURITY_INVALID'
+            );
+        }
+        $provider = strtolower(trim((string) (
+            $security['provider'] ?? ''
+        )));
+        if (!in_array(
+            $provider,
+            ['session', 'local-password', 'auth0-proxy'],
+            true
+        )) {
+            throw new \InvalidArgumentException(
+                'OPUS_APPLICATION_BLUEPRINT_PROVIDER_INVALID'
+            );
+        }
+        if (($security['login_page'] ?? false) === true
+            && ($security['authentication_required'] ?? false) !== true) {
+            throw new \InvalidArgumentException(
+                'OPUS_APPLICATION_BLUEPRINT_LOGIN_WITHOUT_AUTH'
+            );
+        }
+        if ($provider === 'local-password'
+            && ($security['login_page'] ?? false) !== true) {
+            throw new \InvalidArgumentException(
+                'OPUS_APPLICATION_BLUEPRINT_LOCAL_LOGIN_REQUIRED'
+            );
+        }
+        if (($security['login_page'] ?? false) === true
+            && $provider !== 'local-password') {
+            throw new \InvalidArgumentException(
+                'OPUS_APPLICATION_BLUEPRINT_LOGIN_PROVIDER_INVALID'
+            );
+        }
+        $roles = self::identifiers($security['roles'] ?? null, 'ROLES');
+        $homeRoles = self::identifiers(
+            $security['home_roles'] ?? null,
+            'HOME_ROLES'
+        );
+        if (array_diff($homeRoles, $roles) !== []) {
+            throw new \InvalidArgumentException(
+                'OPUS_APPLICATION_BLUEPRINT_HOME_ROLE_UNKNOWN'
+            );
+        }
+        $permissions = self::permissions(
+            $security['permissions'] ?? null
+        );
+        if (($security['authentication_required'] ?? false) !== true
+            && (($security['login_page'] ?? false) === true
+                || $provider !== 'session')) {
+            throw new \InvalidArgumentException(
+                'OPUS_APPLICATION_BLUEPRINT_PUBLIC_PROVIDER_INVALID'
+            );
+        }
+        if (($security['authentication_required'] ?? false) === true
+            && in_array('anonymous', $homeRoles, true)) {
+            throw new \InvalidArgumentException(
+                'OPUS_APPLICATION_BLUEPRINT_AUTH_HOME_ANONYMOUS'
+            );
+        }
+        $users = self::identifiers(
+            $security['initial_users'] ?? [],
+            'INITIAL_USERS',
+            true
+        );
+        if ($users !== [] && $provider !== 'local-password') {
+            throw new \InvalidArgumentException(
+                'OPUS_APPLICATION_BLUEPRINT_USERS_PROVIDER_INVALID'
+            );
+        }
+        $initialUserRole = strtolower(trim((string) (
+            $security['initial_user_role'] ?? ''
+        )));
+        if ($users !== []
+            && !in_array($initialUserRole, $roles, true)) {
+            throw new \InvalidArgumentException(
+                'OPUS_APPLICATION_BLUEPRINT_USER_ROLE_UNKNOWN'
+            );
+        }
+        $security['provider'] = $provider;
+        $security['roles'] = $roles;
+        $security['permissions'] = $permissions;
+        $security['home_roles'] = $homeRoles;
+        $security['initial_users'] = $users;
+        $security['initial_user_role'] =
+            $users === [] ? '' : $initialUserRole;
+        return [
+            'contract' => 'OPUS_SITE_CREATION_BLUEPRINT_V1',
+            'result' => 'minimal-home',
+            'locales' => self::SUPPORTED_LOCALES,
+            'security' => $security,
+        ];
+    }
+
+    /** @return list<string> */
+    private static function identifiers(
+        mixed $value,
+        string $field,
+        bool $allowEmpty = false
+    ): array {
+        if (!is_array($value)) {
+            throw new \InvalidArgumentException(
+                'OPUS_APPLICATION_BLUEPRINT_' . $field . '_INVALID'
+            );
+        }
+        $result = [];
+        foreach ($value as $identifier) {
+            $identifier = strtolower(trim((string) $identifier));
+            if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $identifier) !== 1) {
+                throw new \InvalidArgumentException(
+                    'OPUS_APPLICATION_BLUEPRINT_' . $field . '_INVALID'
+                );
+            }
+            $result[$identifier] = true;
+        }
+        if ($result === [] && !$allowEmpty) {
+            throw new \InvalidArgumentException(
+                'OPUS_APPLICATION_BLUEPRINT_' . $field . '_EMPTY'
+            );
+        }
+        return array_keys($result);
+    }
+
+    /** @return list<string> */
+    private static function permissions(mixed $value): array
+    {
+        if (!is_array($value)) {
+            throw new \InvalidArgumentException(
+                'OPUS_APPLICATION_BLUEPRINT_PERMISSIONS_INVALID'
+            );
+        }
+        $result = [];
+        foreach ($value as $permission) {
+            $permission = strtolower(trim((string) $permission));
+            if (preg_match(
+                '/^[a-z][a-z0-9.-]{0,63}:[a-z][a-z0-9.-]{0,63}$/D',
+                $permission
+            ) !== 1) {
+                throw new \InvalidArgumentException(
+                    'OPUS_APPLICATION_BLUEPRINT_PERMISSIONS_INVALID'
+                );
+            }
+            $result[$permission] = true;
+        }
+        if ($result === []) {
+            throw new \InvalidArgumentException(
+                'OPUS_APPLICATION_BLUEPRINT_PERMISSIONS_EMPTY'
+            );
+        }
+        return array_keys($result);
     }
 
     /** @param array<string,mixed> $data */

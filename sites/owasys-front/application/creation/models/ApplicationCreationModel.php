@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 use Opus\Api\Rest\RestClient;
 use Opus\Api\Rest\RestClientInterface;
+use Opus\File\Json;
 
 /** OWASYS frontend projection for OPUS application creation through REST + Composer. */
 final class OwasysApplicationCreationModel
@@ -26,6 +27,7 @@ final class OwasysApplicationCreationModel
     public function create(
         string $siteId,
         string $profile,
+        array $blueprint,
         array $actor
     ): array {
         $siteId = strtolower(trim($siteId));
@@ -36,6 +38,18 @@ final class OwasysApplicationCreationModel
         if (!in_array($profile, ['frontend', 'backend', 'fullstack'], true)) {
             throw new RuntimeException('OWASYS_CREATION_PROFILE_INVALID');
         }
+        if (($blueprint['contract'] ?? null)
+            !== 'OPUS_SITE_CREATION_BLUEPRINT_V1') {
+            throw new RuntimeException(
+                'OWASYS_CREATION_BLUEPRINT_CONTRACT_INVALID'
+            );
+        }
+        $encodedBlueprint = Json::instance()->encode($blueprint, false);
+        if (strlen($encodedBlueprint) > 8192) {
+            throw new RuntimeException(
+                'OWASYS_CREATION_BLUEPRINT_TOO_LARGE'
+            );
+        }
 
         $command = $this->rest->request(
             'POST',
@@ -43,6 +57,7 @@ final class OwasysApplicationCreationModel
             [
                 'site_id' => $siteId,
                 'profile' => $profile,
+                'blueprint' => $encodedBlueprint,
             ],
             $this->actor($actor)
         );
@@ -52,10 +67,35 @@ final class OwasysApplicationCreationModel
             throw new RuntimeException('OWASYS_CREATION_COMMAND_RESULT_INVALID');
         }
 
-        $this->registry->synchronize();
-        $application = $this->registry->find($siteId);
-        if (!is_array($application)) {
-            throw new RuntimeException('OWASYS_CREATION_REGISTRY_ENTRY_MISSING');
+        try {
+            $this->registry->synchronize();
+            $application = $this->registry->find($siteId);
+            if (!is_array($application)) {
+                throw new RuntimeException(
+                    'OWASYS_CREATION_REGISTRY_ENTRY_MISSING'
+                );
+            }
+        } catch (Throwable $error) {
+            try {
+                $rollback = $this->rest->request(
+                    'DELETE',
+                    '/api/v1/applications/' . rawurlencode($siteId),
+                    ['confirmation' => $siteId],
+                    $this->actor($actor)
+                );
+                if (($rollback['deleted'] ?? false) !== true) {
+                    throw new RuntimeException(
+                        'OWASYS_CREATION_ROLLBACK_RESULT_INVALID'
+                    );
+                }
+            } catch (Throwable $rollbackError) {
+                throw new RuntimeException(
+                    'OWASYS_CREATION_ROLLBACK_FAILED',
+                    0,
+                    $rollbackError
+                );
+            }
+            throw $error;
         }
 
         return [

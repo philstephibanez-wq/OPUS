@@ -1,0 +1,16 @@
+{
+  "contract": "OPUS_APPLICATION_FSM_V1",
+  "name": "OWASYS application creation wizard",
+  "initial_state": "basics",
+  "states": [
+    {"id": "basics"},
+    {"id": "security"},
+    {"id": "review"}
+  ],
+  "transitions": [
+    {"id": "wizard.basics.security", "from": "basics", "event": "continue_security", "to": "security"},
+    {"id": "wizard.security.basics", "from": "security", "event": "return_basics", "to": "basics"},
+    {"id": "wizard.security.review", "from": "security", "event": "continue_review", "to": "review"},
+    {"id": "wizard.review.security", "from": "review", "event": "return_security", "to": "security"}
+  ]
+}

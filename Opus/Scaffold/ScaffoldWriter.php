@@ -58,34 +58,66 @@ final class ScaffoldWriter implements ScaffoldWriterInterface
 
     public function writePlan(ScaffoldPlanInterface $plan): void
     {
-        foreach ($plan->entries() as $entry) {
-            $absolute = $this->absolutePath($entry->relativePath);
+        $createdFiles = [];
+        $createdDirectories = [];
 
-            if ($entry->type === ScaffoldEntry::TYPE_DIRECTORY) {
-                if (!is_dir($absolute)
-                    && !mkdir($absolute, 0775, true)
-                    && !is_dir($absolute)) {
+        try {
+            foreach ($plan->entries() as $entry) {
+                $absolute = $this->absolutePath($entry->relativePath);
+
+                if ($entry->type === ScaffoldEntry::TYPE_DIRECTORY) {
+                    if (!is_dir($absolute)
+                        && !mkdir($absolute, 0775, true)
+                        && !is_dir($absolute)) {
+                        throw new OpusConsoleException(
+                            'OPUS_SCAFFOLD_DIRECTORY_CREATE_FAILED:'
+                            . $entry->relativePath
+                        );
+                    }
+                    $createdDirectories[] = $absolute;
+                    continue;
+                }
+
+                if ($entry->type !== ScaffoldEntry::TYPE_FILE) {
                     throw new OpusConsoleException(
-                        'OPUS_SCAFFOLD_DIRECTORY_CREATE_FAILED:'
+                        'OPUS_SCAFFOLD_ENTRY_TYPE_INVALID:' . $entry->type
+                    );
+                }
+                if (file_exists($absolute)) {
+                    throw new OpusConsoleException(
+                        'OPUS_SCAFFOLD_FILE_ALREADY_EXISTS:'
                         . $entry->relativePath
                     );
                 }
-                continue;
-            }
 
-            if ($entry->type !== ScaffoldEntry::TYPE_FILE) {
+                $this->file->writeAtomic($absolute, $entry->content);
+                $createdFiles[] = $absolute;
+            }
+        } catch (\Throwable $error) {
+            foreach (array_reverse($createdFiles) as $file) {
+                try {
+                    $this->file->delete($file);
+                } catch (\Throwable) {
+                }
+            }
+            foreach (array_reverse(array_unique($createdDirectories)) as $directory) {
+                if (is_dir($directory) && !@rmdir($directory)) {
+                    throw new OpusConsoleException(
+                        'OPUS_SCAFFOLD_ROLLBACK_INCOMPLETE',
+                        0,
+                        $error
+                    );
+                }
+            }
+            $planRoot = $this->absolutePath($plan->rootRelativePath());
+            if (is_dir($planRoot) && !@rmdir($planRoot)) {
                 throw new OpusConsoleException(
-                    'OPUS_SCAFFOLD_ENTRY_TYPE_INVALID:' . $entry->type
+                    'OPUS_SCAFFOLD_ROLLBACK_INCOMPLETE',
+                    0,
+                    $error
                 );
             }
-            if (file_exists($absolute)) {
-                throw new OpusConsoleException(
-                    'OPUS_SCAFFOLD_FILE_ALREADY_EXISTS:'
-                    . $entry->relativePath
-                );
-            }
-
-            $this->file->writeAtomic($absolute, $entry->content);
+            throw $error;
         }
     }
 

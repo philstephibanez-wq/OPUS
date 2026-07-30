@@ -17,7 +17,8 @@ interface SiteScaffoldPlanInterface extends
 {
     public static function forSite(
         string $siteId,
-        string $profile = 'fullstack'
+        string $profile = 'fullstack',
+        array $blueprint = []
     ): self;
 
     /** @return list<string> */

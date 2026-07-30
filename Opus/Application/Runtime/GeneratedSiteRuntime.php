@@ -10,6 +10,8 @@ use Opus\Http\Response;
 use Opus\I18n\ApplicationTranslationRuntime;
 use Opus\I18n\BrowserLocaleNegotiator;
 use Opus\Template\ScoreTemplateRenderer;
+use Opus\Security\Sso\LocalPasswordSsoProvider;
+use Opus\Security\Sso\SsoManager;
 
 /**
  * Generic FSM-module-first runtime used by applications generated through Composer.
@@ -46,6 +48,10 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
 
             [$locale, $routePath] = $this->requestPath($site);
             $route = $this->matchRoute($routes, $routePath);
+            $loginResponse = $this->handleLogin($sso, $route, $locale);
+            if ($loginResponse instanceof Response) {
+                return $loginResponse;
+            }
             $identity = $this->identity($sso);
             $this->assertAllowed($acl, (string) ($route['acl'] ?? 'public'), $identity);
             $state = $this->transition($site, $route, $identity);
@@ -172,6 +178,60 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
         return ['subject' => 'anonymous', 'roles' => ['anonymous'], 'provider' => 'anonymous'];
     }
 
+    /** @param array<string,mixed> $sso @param array<string,mixed> $route */
+    private function handleLogin(
+        array $sso,
+        array $route,
+        string $locale
+    ): ?Response {
+        if ((string) ($route['module'] ?? '') !== 'login'
+            || strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'))
+                !== 'POST') {
+            return null;
+        }
+        $providerId = trim((string) ($sso['default_provider'] ?? ''));
+        $providers = is_array($sso['providers'] ?? null)
+            ? $sso['providers']
+            : [];
+        $provider = is_array($providers[$providerId] ?? null)
+            ? $providers[$providerId]
+            : null;
+        if ($providerId !== 'local-password'
+            || !is_array($provider)
+            || ($provider['enabled'] ?? false) !== true) {
+            throw new \RuntimeException(
+                'OPUS_GENERATED_LOGIN_PROVIDER_UNSUPPORTED'
+            );
+        }
+        $store = $this->safeRelative((string) (
+            $provider['runtime_store'] ?? ''
+        ));
+        $manager = new SsoManager([
+            new LocalPasswordSsoProvider(
+                $this->siteRoot . '/' . $store
+            ),
+        ]);
+        try {
+            $identity = $manager->authenticate($providerId, [
+                'username' => (string) ($_POST['username'] ?? ''),
+                'password' => (string) ($_POST['password'] ?? ''),
+            ]);
+            $key = trim((string) (
+                $sso['session_identity_key'] ?? 'opus_identity'
+            ));
+            $_SESSION[$key] = $identity->toSession();
+            unset($_SESSION['opus_login_error']);
+            return Response::empty(303, [
+                'Location' => '/' . rawurlencode($locale),
+            ]);
+        } catch (\Throwable) {
+            $_SESSION['opus_login_error'] = true;
+            return null;
+        } finally {
+            unset($_POST['password']);
+        }
+    }
+
     /** @param array<string,mixed> $acl @param array{subject:string,roles:list<string>,provider:string} $identity */
     private function assertAllowed(array $acl, string $policyId, array $identity): void
     {
@@ -275,10 +335,7 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
             'default/templates/components/stylesheet.score',
             ['asset' => ['href' => '/asset/themes/' . rawurlencode((string) ($site['theme'] ?? 'starter')) . '/css/theme.css']]
         );
-        $js = $renderer->render(
-            'default/templates/components/script.score',
-            ['asset' => ['src' => '/asset/themes/' . rawurlencode((string) ($site['theme'] ?? 'starter')) . '/js/theme.js']]
-        );
+        $js = '';
 
         $data = array_replace_recursive($viewModel, [
             'lang' => $locale,
@@ -289,6 +346,9 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                 'contract' => (string) ($site['contract'] ?? ''),
             ],
             'identity' => $identity,
+            'auth' => [
+                'error' => ($_SESSION['opus_login_error'] ?? false) === true,
+            ],
             'menu_item' => [],
             'common' => ['menu' => $menu],
             'assets' => ['css' => $css, 'js' => $js],

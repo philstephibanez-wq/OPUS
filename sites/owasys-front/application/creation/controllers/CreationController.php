@@ -13,6 +13,9 @@ use Opus\Profiler\Profiler;
 final class OwasysCreationController
 {
     private const FSM_SESSION_KEY = 'opus.fsm.owasys-front';
+    private const WIZARD_FSM_SESSION_KEY =
+        'opus.fsm.owasys-front.creation-wizard';
+    private const DRAFT_SESSION_KEY = 'owasys.creation.blueprint';
 
     private readonly OwasysLocaleRegistry $locales;
     private readonly OwasysNavigationBuilder $navigation;
@@ -60,10 +63,26 @@ final class OwasysCreationController
         $fsmStore = new FsmSessionStore(self::FSM_SESSION_KEY);
         $fsmStore->restore($fsm);
         $state = $this->enterCreationState($fsm, $fsmStore, $identity);
+        $wizard = FsmProcessor::fromJsonFile(
+            $this->siteRoot . '/config/creation.wizard.fsm.json'
+        );
+        $wizardStore = new FsmSessionStore(
+            self::WIZARD_FSM_SESSION_KEY
+        );
+        $wizardStore->restore($wizard);
         $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
 
         if ($method === 'GET') {
-            $this->render($fsmConfig, $state, $locale, $identity, [], null);
+            $draft = $this->draft();
+            $draft['step'] = $wizard->currentState();
+            $this->render(
+                $fsmConfig,
+                $state,
+                $locale,
+                $identity,
+                $draft,
+                null
+            );
             return;
         }
         if ($method !== 'POST') {
@@ -73,6 +92,9 @@ final class OwasysCreationController
 
         $action = trim((string) ($_POST['owasys_action'] ?? ''));
         if ($action === 'cancel-creation') {
+            unset($_SESSION[self::DRAFT_SESSION_KEY]);
+            $wizard->reset();
+            $wizardStore->persist($wizard);
             $transition = $fsm->transition($state, 'cancel_creation', [
                 'identity' => $identity,
                 'is_authenticated' => true,
@@ -80,14 +102,122 @@ final class OwasysCreationController
             $fsmStore->persist($fsm);
             $this->redirect($locale, 'applications');
         }
-        if ($action !== 'create-application') {
+        if ($action === 'previous-basics') {
+            $draft = $this->draft();
+            $transition = $wizard->transition(
+                $wizard->currentState(),
+                'return_basics'
+            );
+            $draft['step'] = (string) $transition['to_state'];
+            $wizardStore->persist($wizard);
+            $this->storeDraft($draft);
+            $this->render($fsmConfig, $state, $locale, $identity, $draft, null);
+            return;
+        }
+        if ($action === 'previous-security') {
+            $draft = $this->draft();
+            $transition = $wizard->transition(
+                $wizard->currentState(),
+                'return_security'
+            );
+            $draft['step'] = (string) $transition['to_state'];
+            $wizardStore->persist($wizard);
+            $this->storeDraft($draft);
+            $this->render($fsmConfig, $state, $locale, $identity, $draft, null);
+            return;
+        }
+        if ($action === 'next-security') {
+            try {
+                $draft = $this->basicsDraft();
+                $transition = $wizard->transition(
+                    $wizard->currentState(),
+                    'continue_security'
+                );
+                $draft['step'] = (string) $transition['to_state'];
+                $wizardStore->persist($wizard);
+                $this->storeDraft($draft);
+                $this->render(
+                    $fsmConfig,
+                    $state,
+                    $locale,
+                    $identity,
+                    $draft,
+                    null
+                );
+            } catch (Throwable $error) {
+                http_response_code(422);
+                $this->render(
+                    $fsmConfig,
+                    $state,
+                    $locale,
+                    $identity,
+                    array_replace($this->draft(), [
+                        'site_id' => strtolower(trim((string) (
+                            $_POST['owasys_site_id'] ?? ''
+                        ))),
+                        'profile' => strtolower(trim((string) (
+                            $_POST['owasys_profile'] ?? ''
+                        ))),
+                        'step' => 'basics',
+                    ]),
+                    $this->creationErrorKey($this->safeErrorCode($error))
+                );
+            }
+            return;
+        }
+        if ($action === 'review-creation') {
+            try {
+                $draft = $this->securityDraft($this->draft());
+                $transition = $wizard->transition(
+                    $wizard->currentState(),
+                    'continue_review'
+                );
+                $draft['step'] = (string) $transition['to_state'];
+                $wizardStore->persist($wizard);
+                $this->storeDraft($draft);
+                $this->render(
+                    $fsmConfig,
+                    $state,
+                    $locale,
+                    $identity,
+                    $draft,
+                    null
+                );
+            } catch (Throwable $error) {
+                http_response_code(422);
+                $draft = $this->draft();
+                $draft['step'] = 'security';
+                $this->render(
+                    $fsmConfig,
+                    $state,
+                    $locale,
+                    $identity,
+                    $draft,
+                    $this->creationErrorKey($this->safeErrorCode($error))
+                );
+            }
+            return;
+        }
+        if ($action !== 'confirm-creation') {
             $this->render($fsmConfig, $state, $locale, $identity, [], 'creation.error.action');
             return;
         }
 
         $this->security->assertAllowed($identity, 'creation', 'write');
-        $siteId = strtolower(trim((string) ($_POST['owasys_site_id'] ?? '')));
-        $profile = strtolower(trim((string) ($_POST['owasys_profile'] ?? '')));
+        $draft = $this->draft();
+        if (($draft['step'] ?? null) !== 'review') {
+            throw new RuntimeException(
+                'OWASYS_CREATION_REVIEW_REQUIRED'
+            );
+        }
+        if ($wizard->currentState() !== 'review') {
+            throw new RuntimeException(
+                'OWASYS_CREATION_WIZARD_STATE_INVALID'
+            );
+        }
+        $siteId = (string) ($draft['site_id'] ?? '');
+        $profile = (string) ($draft['profile'] ?? '');
+        $blueprint = $this->blueprint($draft);
         $parentTraceId = trim((string) getenv('OPUS_TRACE_ID'));
         $trace = $this->profiler->start(
             preg_match('/^[a-f0-9]{16,64}$/D', $parentTraceId) === 1
@@ -106,7 +236,12 @@ final class OwasysCreationController
         );
 
         try {
-            $result = $this->creation->create($siteId, $profile, $identity);
+            $result = $this->creation->create(
+                $siteId,
+                $profile,
+                $blueprint,
+                $identity
+            );
             $application = $result['application'];
             $context = [
                 'identity' => $identity,
@@ -122,6 +257,9 @@ final class OwasysCreationController
                 $this->registry
             ))->dispatcher()->dispatch($transition, $context);
             $fsmStore->persist($fsm);
+            unset($_SESSION[self::DRAFT_SESSION_KEY]);
+            $wizard->reset();
+            $wizardStore->persist($wizard);
 
             $this->profiler->event('owasys.creation', 'creation.succeeded', [
                 'profile' => $profile,
@@ -181,8 +319,8 @@ final class OwasysCreationController
                 $locale,
                 $identity,
                 [
-                    'site_id' => $siteId,
-                    'profile' => $profile,
+                    ...$draft,
+                    'step' => 'review',
                     'trace_id' => $traceId,
                     'error_code' => $code,
                 ],
@@ -291,10 +429,38 @@ final class OwasysCreationController
                 'error_runtime_user_missing' => false,
             ],
             'creation' => [
+                'step_basics' => ($form['step'] ?? 'basics') === 'basics',
+                'step_security' => ($form['step'] ?? '') === 'security',
+                'step_review' => ($form['step'] ?? '') === 'review',
                 'site_id' => (string) ($form['site_id'] ?? ''),
+                'profile' => $profile,
                 'profile_frontend' => $profile === 'frontend',
                 'profile_backend' => $profile === 'backend',
                 'profile_fullstack' => !in_array($profile, ['frontend', 'backend'], true),
+                'authentication_required' =>
+                    ($form['authentication_required'] ?? false) === true,
+                'login_page' => ($form['login_page'] ?? false) === true,
+                'provider_session' =>
+                    ($form['provider'] ?? 'session') === 'session',
+                'provider_local_password' =>
+                    ($form['provider'] ?? '') === 'local-password',
+                'provider_auth0_proxy' =>
+                    ($form['provider'] ?? '') === 'auth0-proxy',
+                'provider' => (string) ($form['provider'] ?? 'session'),
+                'roles' => implode(', ', is_array($form['roles'] ?? null)
+                    ? $form['roles'] : ['anonymous', 'admin']),
+                'permissions' => implode(', ', is_array(
+                    $form['permissions'] ?? null
+                ) ? $form['permissions'] : ['home:view']),
+                'home_roles' => implode(', ', is_array(
+                    $form['home_roles'] ?? null
+                ) ? $form['home_roles'] : ['anonymous', 'admin']),
+                'initial_users' => implode(', ', is_array(
+                    $form['initial_users'] ?? null
+                ) ? $form['initial_users'] : []),
+                'initial_user_role' =>
+                    (string) ($form['initial_user_role'] ?? 'admin'),
+                'locales_summary' => 'bg, hr, cs, da, nl, en, et, fi, fr, de, el, hu, ga, it, lv, lt, mt, pl, pt, ro, sk, sl, es, sv, uk',
                 'has_error' => $errorKey !== null,
                 'error_site_id' => $errorKey === 'creation.error.site_id',
                 'error_profile' => $errorKey === 'creation.error.profile',
@@ -308,6 +474,213 @@ final class OwasysCreationController
         ];
         header('Content-Type: text/html; charset=UTF-8');
         $this->renderer->emit('creation/templates/index.score', $data);
+    }
+
+    /** @return array<string,mixed> */
+    private function draft(): array
+    {
+        $draft = $_SESSION[self::DRAFT_SESSION_KEY] ?? null;
+        return is_array($draft) ? $draft : [
+            'step' => 'basics',
+            'site_id' => '',
+            'profile' => 'fullstack',
+            'authentication_required' => false,
+            'login_page' => false,
+            'provider' => 'session',
+                'roles' => ['anonymous', 'admin'],
+                'permissions' => ['home:view'],
+                'home_roles' => ['anonymous', 'admin'],
+            'initial_users' => [],
+            'initial_user_role' => 'admin',
+        ];
+    }
+
+    /** @param array<string,mixed> $draft */
+    private function storeDraft(array $draft): void
+    {
+        $_SESSION[self::DRAFT_SESSION_KEY] = $draft;
+    }
+
+    /** @return array<string,mixed> */
+    private function basicsDraft(): array
+    {
+        $siteId = strtolower(trim((string) (
+            $_POST['owasys_site_id'] ?? ''
+        )));
+        $profile = strtolower(trim((string) (
+            $_POST['owasys_profile'] ?? ''
+        )));
+        if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $siteId) !== 1) {
+            throw new RuntimeException('OWASYS_CREATION_SITE_ID_INVALID');
+        }
+        if (!in_array(
+            $profile,
+            ['frontend', 'backend', 'fullstack'],
+            true
+        )) {
+            throw new RuntimeException('OWASYS_CREATION_PROFILE_INVALID');
+        }
+        return array_replace($this->draft(), [
+            'site_id' => $siteId,
+            'profile' => $profile,
+        ]);
+    }
+
+    /** @param array<string,mixed> $draft @return array<string,mixed> */
+    private function securityDraft(array $draft): array
+    {
+        $authentication = isset($_POST['owasys_authentication_required']);
+        $login = isset($_POST['owasys_login_page']);
+        $provider = strtolower(trim((string) (
+            $_POST['owasys_provider'] ?? 'session'
+        )));
+        if (!in_array(
+            $provider,
+            ['session', 'local-password', 'auth0-proxy'],
+            true
+        )) {
+            throw new RuntimeException(
+                'OWASYS_CREATION_PROVIDER_INVALID'
+            );
+        }
+        if ($login && !$authentication) {
+            throw new RuntimeException(
+                'OWASYS_CREATION_LOGIN_WITHOUT_AUTH'
+            );
+        }
+        if ($provider === 'local-password' && !$login) {
+            throw new RuntimeException(
+                'OWASYS_CREATION_LOCAL_LOGIN_REQUIRED'
+            );
+        }
+        if ($login && $provider !== 'local-password') {
+            throw new RuntimeException(
+                'OWASYS_CREATION_LOGIN_PROVIDER_INVALID'
+            );
+        }
+        $roles = $this->identifierList(
+            (string) ($_POST['owasys_roles'] ?? ''),
+            false
+        );
+        $homeRoles = $this->identifierList(
+            (string) ($_POST['owasys_home_roles'] ?? ''),
+            false
+        );
+        if (array_diff($homeRoles, $roles) !== []) {
+            throw new RuntimeException(
+                'OWASYS_CREATION_HOME_ROLE_UNKNOWN'
+            );
+        }
+        $permissions = $this->permissionList(
+            (string) ($_POST['owasys_permissions'] ?? '')
+        );
+        if (!$authentication && ($login || $provider !== 'session')) {
+            throw new RuntimeException(
+                'OWASYS_CREATION_PUBLIC_PROVIDER_INVALID'
+            );
+        }
+        if ($authentication && in_array('anonymous', $homeRoles, true)) {
+            throw new RuntimeException(
+                'OWASYS_CREATION_AUTH_HOME_ANONYMOUS'
+            );
+        }
+        $users = $this->identifierList(
+            (string) ($_POST['owasys_initial_users'] ?? ''),
+            true
+        );
+        if ($users !== [] && $provider !== 'local-password') {
+            throw new RuntimeException(
+                'OWASYS_CREATION_USERS_PROVIDER_INVALID'
+            );
+        }
+        $initialUserRole = strtolower(trim((string) (
+            $_POST['owasys_initial_user_role'] ?? ''
+        )));
+        if ($users !== []
+            && !in_array($initialUserRole, $roles, true)) {
+            throw new RuntimeException(
+                'OWASYS_CREATION_USER_ROLE_UNKNOWN'
+            );
+        }
+        return array_replace($draft, [
+            'authentication_required' => $authentication,
+            'login_page' => $login,
+            'provider' => $provider,
+            'roles' => $roles,
+            'permissions' => $permissions,
+            'home_roles' => $homeRoles,
+            'initial_users' => $users,
+            'initial_user_role' => $users === [] ? '' : $initialUserRole,
+        ]);
+    }
+
+    /** @return list<string> */
+    private function identifierList(string $value, bool $allowEmpty): array
+    {
+        $result = [];
+        foreach (preg_split('/[\s,;]+/', strtolower(trim($value))) ?: [] as $id) {
+            if ($id === '') {
+                continue;
+            }
+            if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $id) !== 1) {
+                throw new RuntimeException(
+                    'OWASYS_CREATION_IDENTIFIER_INVALID'
+                );
+            }
+            $result[$id] = true;
+        }
+        if ($result === [] && !$allowEmpty) {
+            throw new RuntimeException(
+                'OWASYS_CREATION_IDENTIFIER_REQUIRED'
+            );
+        }
+        return array_keys($result);
+    }
+
+    /** @return list<string> */
+    private function permissionList(string $value): array
+    {
+        $result = [];
+        foreach (preg_split('/[\s,;]+/', strtolower(trim($value))) ?: [] as $id) {
+            if ($id === '') {
+                continue;
+            }
+            if (preg_match(
+                '/^[a-z][a-z0-9.-]{0,63}:[a-z][a-z0-9.-]{0,63}$/D',
+                $id
+            ) !== 1) {
+                throw new RuntimeException(
+                    'OWASYS_CREATION_PERMISSION_INVALID'
+                );
+            }
+            $result[$id] = true;
+        }
+        if ($result === []) {
+            throw new RuntimeException(
+                'OWASYS_CREATION_PERMISSION_REQUIRED'
+            );
+        }
+        return array_keys($result);
+    }
+
+    /** @param array<string,mixed> $draft @return array<string,mixed> */
+    private function blueprint(array $draft): array
+    {
+        return [
+            'contract' => 'OPUS_SITE_CREATION_BLUEPRINT_V1',
+            'security' => [
+                'authentication_required' =>
+                    ($draft['authentication_required'] ?? false) === true,
+                'login_page' => ($draft['login_page'] ?? false) === true,
+                'provider' => (string) ($draft['provider'] ?? ''),
+                'roles' => $draft['roles'] ?? [],
+                'permissions' => $draft['permissions'] ?? [],
+                'home_roles' => $draft['home_roles'] ?? [],
+                'initial_users' => $draft['initial_users'] ?? [],
+                'initial_user_role' =>
+                    (string) ($draft['initial_user_role'] ?? ''),
+            ],
+        ];
     }
 
     /** @return array{0:string,1:string} */

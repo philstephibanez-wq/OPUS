@@ -9,6 +9,46 @@ body[data-opus-state="creation"] .ow-creation-form {
   margin-top: 18px;
 }
 
+body[data-opus-state="creation"] .ow-wizard-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+}
+
+body[data-opus-state="creation"] .ow-wizard-steps li,
+body[data-opus-state="creation"] .ow-check,
+body[data-opus-state="creation"] .ow-review {
+  padding: 12px;
+  border: 1px solid var(--ow-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .045);
+}
+
+body[data-opus-state="creation"] .ow-check {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+body[data-opus-state="creation"] .ow-review {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) minmax(0, 2fr);
+  gap: 10px 18px;
+  margin: 18px 0;
+}
+
+body[data-opus-state="creation"] .ow-review dt {
+  font-weight: 800;
+}
+
+body[data-opus-state="creation"] .ow-review dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
 body[data-opus-state="creation"] .ow-form-field {
   display: grid;
   grid-template-columns: minmax(12rem, max-content) minmax(14rem, 28rem) minmax(16rem, 1fr);
@@ -135,6 +175,10 @@ body[data-opus-state="creation"] .ow-creation-form > .ow-inline-form {
 }
 
 @media (max-width: 760px) {
+  body[data-opus-state="creation"] .ow-wizard-steps,
+  body[data-opus-state="creation"] .ow-review {
+    grid-template-columns: 1fr;
+  }
   body[data-opus-state="creation"] .ow-form-field {
     grid-template-columns: 1fr;
   }
