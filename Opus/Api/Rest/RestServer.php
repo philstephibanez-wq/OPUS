@@ -30,7 +30,6 @@ final class RestServer implements RestServerInterface
         private readonly ComposerCommandRegistryInterface $registry,
         private readonly ComposerCommandExecutorInterface $executor,
         private readonly RestRequestAuthenticatorInterface $authenticator,
-        private readonly RestReplayStoreInterface $replayStore,
         private readonly LoggerInterface $logger,
         private readonly ProfilerInterface $profiler
     ) {
@@ -78,9 +77,6 @@ final class RestServer implements RestServerInterface
             new RestRequestAuthenticator(
                 is_array($config['authentication'] ?? null)
                     ? $config['authentication'] : []
-            ),
-            new RestReplayStore(
-                $root . '/' . self::safeRelative((string) ($config['replay_store'] ?? ''))
             ),
             $logger,
             $profiler
@@ -156,9 +152,8 @@ final class RestServer implements RestServerInterface
             if ($request->method === 'GET' && $request->body() !== '') {
                 throw new \RuntimeException('OPUS_REST_API_GET_BODY_FORBIDDEN');
             }
-            if (preg_match('/^[a-f0-9]{32,64}$/', $nonce) !== 1
-                || $this->replayStore->exists($nonce)) {
-                throw new \RuntimeException('OPUS_REST_API_REPLAY_REJECTED');
+            if (preg_match('/^[a-f0-9]{32,64}$/', $nonce) !== 1) {
+                throw new \RuntimeException('OPUS_REST_API_NONCE_INVALID');
             }
             $identity = $this->authenticator->authenticate($request, $_SERVER);
             $fsm->transition('authenticated');
@@ -195,12 +190,6 @@ final class RestServer implements RestServerInterface
             if (!is_array($result)) {
                 throw new \RuntimeException('OPUS_REST_API_COMPOSER_RESULT_INVALID');
             }
-            $this->replayStore->write($nonce, [
-                'contract' => 'OPUS_REST_API_REPLAY_RECORD_V1',
-                'request_id' => $nonce,
-                'trace_id' => $traceId,
-                'completed_at_utc' => gmdate('c'),
-            ]);
             $headers = ['X-Opus-Trace-Id' => $traceId];
             $status = (int) ($route['success_status'] ?? 200);
             $location = $this->location($route, $parameters);
