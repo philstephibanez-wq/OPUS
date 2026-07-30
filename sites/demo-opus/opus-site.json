@@ -1,7 +1,0 @@
-{
-    "site_id": "demo-opus",
-    "contract": "OPUS_SITE_LAYERED_CONTRACT_V2",
-    "dispatch_model": "fsm-module-first",
-    "application_profile": "fullstack",
-    "application_layout": "shared-front-back"
-}
