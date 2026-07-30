@@ -651,14 +651,14 @@ final class SiteCommandService implements SiteCommandServiceInterface
         $applicationId = $this->siteId($applicationId);
         $siteRoot = $this->siteRoot($applicationId);
         $site = $this->loader->read($siteRoot . '/config/site.json');
-        $development = is_array($site['development_server'] ?? null)
-            ? $site['development_server']
-            : [];
+        $development = $this->developmentServerConfiguration(
+            $site,
+            $applicationId
+        );
         if (($development['contract'] ?? null)
-            !== 'OPUS_DEVELOPMENT_SERVER_V1'
-            || ($development['enabled'] ?? false) !== true) {
+            !== 'OPUS_DEVELOPMENT_SERVER_V1') {
             throw new OpusConsoleException(
-                'OPUS_DEV_SERVER_NOT_ENABLED:' . $applicationId
+                'OPUS_DEV_SERVER_CONTRACT_INVALID:' . $applicationId
             );
         }
 
@@ -672,11 +672,13 @@ final class SiteCommandService implements SiteCommandServiceInterface
 
         $environment = getenv();
         $environment = is_array($environment) ? $environment : [];
-        $environment = $this->applicationEnvironment(
-            $site,
-            'dev',
-            $environment
-        );
+        if (array_key_exists('environments', $site)) {
+            $environment = $this->applicationEnvironment(
+                $site,
+                'dev',
+                $environment
+            );
+        }
         [$host, $port] = $this->developmentServerBinding(
             $host,
             $port,
@@ -731,6 +733,47 @@ final class SiteCommandService implements SiteCommandServiceInterface
             );
         }
         return (int) proc_close($process);
+    }
+
+    /**
+     * Build the generic local-development contract for any valid OPUS site.
+     *
+     * A site may refine the binding, peer and diagnostic settings through its
+     * manifest. The manifest does not have to opt in to the framework command:
+     * invoking opus:dev-server is itself the explicit development-only action.
+     *
+     * @param array<string,mixed> $site
+     * @return array<string,mixed>
+     */
+    private function developmentServerConfiguration(
+        array $site,
+        string $applicationId
+    ): array {
+        if (!array_key_exists('development_server', $site)) {
+            return [
+                'contract' => 'OPUS_DEVELOPMENT_SERVER_V1',
+                'diagnostics' => [
+                    'log' => 'var/logs/' . $applicationId . '.log',
+                    'profiler' => 'var/profiler',
+                ],
+                'network' => [
+                    'contract' => 'OPUS_DEVELOPMENT_NETWORK_BINDING_V1',
+                    'local' => [
+                        'host_env' => 'OPUS_DEV_SERVER_HOST',
+                        'port_env' => 'OPUS_DEV_SERVER_PORT',
+                        'url_env' => 'OPUS_DEV_SERVER_URL',
+                    ],
+                ],
+            ];
+        }
+
+        if (!is_array($site['development_server'])) {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_CONTRACT_INVALID:' . $applicationId
+            );
+        }
+
+        return $site['development_server'];
     }
 
     public function serve(
@@ -980,18 +1023,12 @@ final class SiteCommandService implements SiteCommandServiceInterface
             'OPUS_DEV_SERVER_LOCAL_PORT_ENV_INVALID'
         );
 
-        $configuredHost = trim((string) ($environment[$hostEnvironment] ?? ''));
-        $configuredPort = trim((string) ($environment[$portEnvironment] ?? ''));
-        if ($configuredHost === '') {
-            throw new OpusConsoleException(
-                'OPUS_DEV_SERVER_CONFIG_HOST_MISSING:' . $hostEnvironment
-            );
-        }
-        if ($configuredPort === '') {
-            throw new OpusConsoleException(
-                'OPUS_DEV_SERVER_CONFIG_PORT_MISSING:' . $portEnvironment
-            );
-        }
+        $configuredHost = trim((string) (
+            $environment[$hostEnvironment] ?? '127.0.0.1'
+        ));
+        $configuredPort = trim((string) (
+            $environment[$portEnvironment] ?? '8000'
+        ));
 
         $host = trim($hostOverride) === ''
             ? $this->developmentHost($configuredHost)
@@ -1087,6 +1124,9 @@ final class SiteCommandService implements SiteCommandServiceInterface
         $peer = is_array($network['peer'] ?? null)
             ? $network['peer']
             : [];
+        if ($peer === []) {
+            return $environment;
+        }
         $peerApplicationId = $this->siteId(
             (string) ($peer['application_id'] ?? '')
         );
@@ -1244,17 +1284,11 @@ final class SiteCommandService implements SiteCommandServiceInterface
             ? $development['diagnostics']
             : [];
         $relativeLog = $this->safeRelative((string) (
-            $diagnostics['log'] ?? ''
+            $diagnostics['log'] ?? 'var/logs/' . $applicationId . '.log'
         ));
         $relativeProfiler = $this->safeRelative((string) (
-            $diagnostics['profiler'] ?? ''
+            $diagnostics['profiler'] ?? 'var/profiler'
         ));
-        if ($relativeLog === '' || $relativeProfiler === '') {
-            throw new OpusConsoleException(
-                'OPUS_DEV_SERVER_DIAGNOSTICS_PATH_MISSING:'
-                . $applicationId
-            );
-        }
 
         $this->file->writeAtomic($siteRoot . '/' . $relativeLog, '');
         $this->file->writeAtomic(
@@ -1275,10 +1309,10 @@ final class SiteCommandService implements SiteCommandServiceInterface
             ? $development['diagnostics']
             : [];
         $relativeLog = $this->safeRelative((string) (
-            $diagnostics['log'] ?? ''
+            $diagnostics['log'] ?? 'var/logs/' . $applicationId . '.log'
         ));
         $relativeProfiler = $this->safeRelative((string) (
-            $diagnostics['profiler'] ?? ''
+            $diagnostics['profiler'] ?? 'var/profiler'
         ));
         $absoluteLog = $siteRoot . '/' . $relativeLog;
         $profiler = new Profiler($siteRoot . '/' . $relativeProfiler);
