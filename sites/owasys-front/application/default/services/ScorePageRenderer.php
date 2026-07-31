@@ -73,7 +73,10 @@ final class OwasysScorePageRenderer
             'trace_id' => $traceId,
             'open_url' => $urlBuilder->withQuery($path, ['profiler' => 1]),
             'close_url' => $urlBuilder->withQuery($path, []),
-            'correlation' => 'front → REST → back → Composer',
+            'iframe_url' => $urlBuilder->withQuery(
+                '/_opus/profiler/trace/' . $traceId,
+                []
+            ),
         ];
         $data = $this->normalizeI18nViewData($data, $i18n);
         $data['fsm_diagram'] = $this->fsmMermaid->build($data);

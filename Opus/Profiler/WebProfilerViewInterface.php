@@ -3,13 +3,17 @@ declare(strict_types=1);
 
 namespace Opus\Profiler;
 
+use Opus\Framework\OpusExceptionAwareInterface;
 use Opus\Framework\OpusFrameworkComponentInterface;
+use Opus\Framework\OpusProfilerAwareInterface;
+use Opus\Framework\OpusSelfDocumentingInterface;
 
-interface WebProfilerViewInterface extends OpusFrameworkComponentInterface,
-    \Opus\Framework\OpusExceptionAwareInterface,
-    \Opus\Framework\OpusProfilerAwareInterface,
-    \Opus\Framework\OpusSelfDocumentingInterface
+interface WebProfilerViewInterface extends
+    OpusFrameworkComponentInterface,
+    OpusExceptionAwareInterface,
+    OpusProfilerAwareInterface,
+    OpusSelfDocumentingInterface
 {
-    public function renderIndex(array $traces, array $fsmMaps): string;
-    public function renderTrace(array $trace, array $fsmMaps): string;
+    /** @param array<string,mixed> $trace */
+    public function renderTrace(array $trace): string;
 }

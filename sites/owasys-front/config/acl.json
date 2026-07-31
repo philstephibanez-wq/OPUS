@@ -13,6 +13,7 @@
       "workflows:*",
       "security:open",
       "source:*",
+      "profiler:view",
       "build:*",
       "account:*"
     ],

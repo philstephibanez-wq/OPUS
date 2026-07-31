@@ -2,9 +2,12 @@
 declare(strict_types=1);
 
 use Opus\Http\Response;
+use Opus\Http\Request;
 use Opus\I18n\ApplicationTranslationRuntime;
 use Opus\Log\Logger;
 use Opus\Profiler\Profiler;
+use Opus\Profiler\WebProfilerController;
+use Opus\Profiler\WebProfilerView;
 use Opus\Template\ScoreTemplateRenderer;
 
 /** Autonomous Singleton composition root for the OWASYS SCORE frontend. */
@@ -64,6 +67,11 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 'path' => $path,
                 'profiler_requested' => (string) ($_GET['profiler'] ?? '') === '1',
             ]);
+            if ($this->isProfilerTracePath($path)) {
+                $this->serveProfilerTrace();
+                $status = 'completed';
+                return;
+            }
             [$controller, $creation, $source] = $this->components();
             if ($creation->matchesCurrentRequest()) {
                 $this->profiler->event('routing', 'controller.selected', [
@@ -112,6 +120,41 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
             ]);
             putenv('OPUS_TRACE_ID');
         }
+    }
+
+    private function isProfilerTracePath(string $path): bool
+    {
+        return preg_match(
+            '~^/_opus/profiler/trace/[a-f0-9]{16,64}$~D',
+            $path
+        ) === 1;
+    }
+
+    private function serveProfilerTrace(): void
+    {
+        $environment = strtolower(trim((string) getenv('OPUS_ENV')));
+        if (!in_array($environment, ['dev', 'local', 'development'], true)) {
+            throw new RuntimeException('OPUS_PROFILER_ENVIRONMENT_FORBIDDEN');
+        }
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+        $siteConfig = \Opus\File\StructuredFileLoader::instance()->read(
+            $this->siteRoot . '/config/site.json'
+        );
+        $session = new OwasysAuthSession();
+        $security = new OwasysRuntimeSecurity($this->siteRoot, $siteConfig);
+        $security->assertAllowed($session->user(), 'profiler', 'view');
+
+        if (!headers_sent()) {
+            header("Content-Security-Policy: frame-ancestors 'self'");
+            header('X-Frame-Options: SAMEORIGIN');
+        }
+        (new WebProfilerController(
+            $this->profiler,
+            new WebProfilerView(),
+            true
+        ))->handle(Request::fromGlobals($this->siteRoot))->send();
     }
 
     /** @return array{0:OwasysRuntimeController,1:OwasysCreationController,2:OwasysSourceController} */

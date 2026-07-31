@@ -3,111 +3,93 @@ declare(strict_types=1);
 
 namespace Opus\Profiler;
 
-use Opus\Profiler\Collector\ConfigCollector;
-use Opus\Profiler\Collector\DatabaseCollector;
-use Opus\Profiler\Collector\ExceptionCollector;
-use Opus\Profiler\Collector\MailCollector;
-use Opus\Profiler\Collector\MemoryCollector;
-use Opus\Profiler\Collector\ProfilerCollectorInterface;
-use Opus\Profiler\Collector\RequestCollector;
-use Opus\Profiler\Collector\RoutingCollector;
-use Opus\Profiler\Collector\RuntimeCollector;
-use Opus\Profiler\Collector\TemplateCollector;
 use Opus\Template\ScoreTemplateRenderer;
 
+/** Builds the filtered view-model consumed by the generic SCORE profiler. */
 final class WebProfilerView implements WebProfilerViewInterface
 {
-    public function renderIndex(array $traces, array $fsmMaps): string
+    public function renderTrace(array $trace): string
     {
-        return $this->render('layout.score', [
-            'title' => 'OPUS Web Profiler',
-            'mode' => 'index',
-            'has_trace' => false,
-            'traces' => $traces,
-            'trace' => [],
-            'panels' => [],
-            'fsm_maps' => $this->normalizeFsmMaps($fsmMaps),
-        ]);
-    }
+        $events = $this->normalizeEvents((array) ($trace['events'] ?? []));
+        $spans = $this->normalizeSpans((array) ($trace['spans'] ?? []));
+        $statusCounts = is_array($trace['status_counts'] ?? null)
+            ? $trace['status_counts']
+            : [];
 
-    public function renderTrace(array $trace, array $fsmMaps): string
-    {
-        $panels = [];
-        foreach ($this->collectors() as $collector) {
-            $events = $collector->collect($trace);
-            $panels[] = [
-                'id' => $collector->category(),
-                'label' => $collector->label(),
-                'count' => count($events),
+        return (new ScoreTemplateRenderer(__DIR__ . '/templates/web_profiler'))->render(
+            'layout.score',
+            [
+                'title' => 'OPUS Profiler',
+                'trace' => [
+                    'trace_id' => (string) ($trace['trace_id'] ?? ''),
+                    'started_at' => (string) ($trace['started_at'] ?? ''),
+                    'duration_ms' => (string) ($trace['duration_ms'] ?? ''),
+                    'event_count' => (string) count($events),
+                    'span_count' => (string) count($spans),
+                    'success_count' => (string) ($statusCounts['success'] ?? 0),
+                    'warning_count' => (string) ($statusCounts['warning'] ?? 0),
+                    'error_count' => (string) ($statusCounts['error'] ?? 0),
+                    'unavailable_count' => (string) ($statusCounts['unavailable'] ?? 0),
+                ],
                 'events' => $events,
-            ];
-        }
-        return $this->render('layout.score', [
-            'title' => 'OPUS Web Profiler · ' . (string)($trace['trace_id'] ?? ''),
-            'mode' => 'trace',
-            'has_trace' => true,
-            'traces' => [],
-            'trace' => [
-                'trace_id' => (string)($trace['trace_id'] ?? ''),
-                'started_at' => (string)($trace['started_at'] ?? ''),
-                'duration_ms' => (string)($trace['duration_ms'] ?? ''),
-                'event_count' => (string)($trace['event_count'] ?? count((array)($trace['events'] ?? []))),
-            ],
-            'panels' => $panels,
-            'fsm_maps' => $this->normalizeFsmMaps($fsmMaps),
-        ]);
+                'events_available' => $events !== [],
+                'spans' => $spans,
+                'spans_available' => $spans !== [],
+            ]
+        );
     }
 
-    private function render(string $template, array $data): string
-    {
-        $this->requireScoreRuntime();
-        $renderer = new ScoreTemplateRenderer(__DIR__ . '/templates/web_profiler');
-        return $renderer->render($template, $data);
-    }
-
-    private function requireScoreRuntime(): void
-    {
-        require_once __DIR__ . '/../Score/TemplateException.php';
-        require_once __DIR__ . '/../Score/TemplateRendererInterface.php';
-        require_once __DIR__ . '/../Score/ScoreTemplateRenderer.php';
-    }
-
-    /** @return list<ProfilerCollectorInterface> */
-    private function collectors(): array
-    {
-        $base = __DIR__ . '/Collector';
-        foreach ([
-            'ProfilerCollectorInterface.php', 'RequestCollectorInterface.php', 'RequestCollector.php',
-            'RoutingCollectorInterface.php', 'RoutingCollector.php',
-            'ExceptionCollectorInterface.php', 'ExceptionCollector.php',
-            'TemplateCollectorInterface.php', 'TemplateCollector.php',
-            'DatabaseCollectorInterface.php', 'DatabaseCollector.php',
-            'ConfigCollectorInterface.php', 'ConfigCollector.php',
-            'MailCollectorInterface.php', 'MailCollector.php',
-            'MemoryCollectorInterface.php', 'MemoryCollector.php',
-            'RuntimeCollectorInterface.php', 'RuntimeCollector.php',
-        ] as $file) {
-            require_once $base . '/' . $file;
-        }
-        return [
-            new RequestCollector(),
-            new RoutingCollector(),
-            new ExceptionCollector(),
-            new TemplateCollector(),
-            new DatabaseCollector(),
-            new ConfigCollector(),
-            new MailCollector(),
-            new MemoryCollector(),
-            new RuntimeCollector(),
-        ];
-    }
-
-    private function normalizeFsmMaps(array $fsmMaps): array
+    /** @param array<int,mixed> $events @return list<array<string,string>> */
+    private function normalizeEvents(array $events): array
     {
         $rows = [];
-        foreach ($fsmMaps as $id) {
-            $rows[] = ['id' => (string)$id];
+        foreach ($events as $event) {
+            if (!is_array($event)) {
+                continue;
+            }
+            $rows[] = [
+                'index' => (string) ($event['index'] ?? ''),
+                'elapsed_ms' => (string) ($event['elapsed_ms'] ?? ''),
+                'type' => (string) ($event['type'] ?? (
+                    ($event['category'] ?? '') . '.' . ($event['name'] ?? '')
+                )),
+                'status' => (string) ($event['status'] ?? 'unavailable'),
+                'span_id' => (string) ($event['span_id'] ?? ''),
+                'parent_span_id' => (string) ($event['parent_span_id'] ?? ''),
+                'context_json' => $this->encode((array) ($event['context'] ?? [])),
+            ];
         }
         return $rows;
+    }
+
+    /** @param array<int,mixed> $spans @return list<array<string,string>> */
+    private function normalizeSpans(array $spans): array
+    {
+        $rows = [];
+        foreach ($spans as $span) {
+            if (!is_array($span)) {
+                continue;
+            }
+            $rows[] = [
+                'span_id' => (string) ($span['span_id'] ?? ''),
+                'parent_span_id' => (string) ($span['parent_span_id'] ?? ''),
+                'operation' => (string) (
+                    ($span['category'] ?? '') . '.' . ($span['name'] ?? '')
+                ),
+                'status' => (string) ($span['status'] ?? 'unavailable'),
+                'duration_ms' => (string) ($span['duration_ms'] ?? ''),
+                'context_json' => $this->encode((array) ($span['context'] ?? [])),
+            ];
+        }
+        return $rows;
+    }
+
+    /** @param array<string,mixed> $value */
+    private function encode(array $value): string
+    {
+        return json_encode(
+            $value,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        ) ?: '{}';
     }
 }

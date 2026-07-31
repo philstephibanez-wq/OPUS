@@ -57,14 +57,11 @@
         <div class="ow-section-heading">
           <div>
             <h2>OPUS Profiler</h2>
-            <p class="ow-muted">{{ profiler.correlation }}</p>
+            <p class="ow-muted">trace_id: {{ profiler.trace_id }}</p>
           </div>
           <a href="{{ profiler.close_url }}">×</a>
         </div>
-        <div class="ow-tags">
-          <span>trace_id: {{ profiler.trace_id }}</span>
-          <span>FSM: {{ fsm.state }}</span>
-        </div>
+        <iframe class="ow-profiler-frame" src="{{ profiler.iframe_url }}" title="OPUS Profiler"></iframe>
       </aside>
     [[ else ]]
       <p><a href="{{ profiler.open_url }}">OPUS Profiler</a></p>

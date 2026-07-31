@@ -37,7 +37,10 @@ final class Kernel
         $this->rootDir = rtrim($rootDir, '/\\');
         $this->profiler = new Profiler($this->rootDir . '/var/profiler');
         $this->fsmRuntimeConfigLoader = new FsmRuntimeConfigLoader($this->rootDir . '/config/fsm_runtime');
-        $this->webProfilerController = new WebProfilerController($this->rootDir, $this->fsmRuntimeConfigLoader);
+        $this->webProfilerController = new WebProfilerController(
+            $this->profiler,
+            new \Opus\Profiler\WebProfilerView()
+        );
         $this->applications = new ApplicationRegistry($this->rootDir);
         $this->i18n = new I18n();
         $view = new View($this, $this->i18n);
