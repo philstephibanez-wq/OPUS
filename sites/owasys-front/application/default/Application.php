@@ -26,9 +26,7 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
         $siteRoot = rtrim(str_replace('\\', '/', $siteRoot), '/');
         if (self::$instance instanceof self) {
             if (self::$instance->siteRoot !== $siteRoot) {
-                throw new RuntimeException(
-                    'OWASYS_FRONT_SINGLETON_CONTEXT_MISMATCH'
-                );
+                throw new RuntimeException('OWASYS_FRONT_SINGLETON_CONTEXT_MISMATCH');
             }
             return self::$instance;
         }
@@ -41,9 +39,7 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
 
     public function __wakeup(): void
     {
-        throw new RuntimeException(
-            'OWASYS_FRONT_SINGLETON_UNSERIALIZE_FORBIDDEN'
-        );
+        throw new RuntimeException('OWASYS_FRONT_SINGLETON_UNSERIALIZE_FORBIDDEN');
     }
 
     public function run(): void
@@ -55,24 +51,18 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
         $path = $this->requestPath();
         try {
             if (preg_match('~(?:^|/)profiler=[^/]*(?:/|$)~', trim($path, '/')) === 1) {
-                throw new RuntimeException(
-                    'OWASYS_PROFILER_QUERY_SYNTAX_REQUIRED'
-                );
+                throw new RuntimeException('OWASYS_PROFILER_QUERY_SYNTAX_REQUIRED');
             }
             if ($path === '/api' || str_starts_with($path, '/api/')) {
                 throw new RuntimeException('OWASYS_FRONT_API_FORBIDDEN');
             }
             $this->logger->info('owasys.front', 'request.received', [
-                'method' => strtoupper((string) (
-                    $_SERVER['REQUEST_METHOD'] ?? 'GET'
-                )),
+                'method' => strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')),
                 'path' => $path,
             ], $traceId);
             $this->profiler->event('owasys.front', 'request.received', [
                 'path' => $path,
-                'profiler_requested' => (string) (
-                    $_GET['profiler'] ?? ''
-                ) === '1',
+                'profiler_requested' => (string) ($_GET['profiler'] ?? '') === '1',
             ]);
             [$controller, $creation, $source] = $this->components();
             if ($creation->matchesCurrentRequest()) {
@@ -91,9 +81,7 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 ]);
                 $controller->run();
             }
-            $this->profiler->event('score', 'response.rendered', [
-                'path' => $path,
-            ]);
+            $this->profiler->event('score', 'response.rendered', ['path' => $path]);
             $status = 'completed';
             $this->logger->info('owasys.front', 'request.completed', [
                 'path' => $path,
@@ -106,9 +94,12 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 'exception_file' => $error->getFile(),
                 'exception_line' => $error->getLine(),
             ], $traceId);
-            $this->profiler->event('owasys.front', 'request.failed', [
-                'error_code' => $code,
-            ]);
+            $this->profiler->event(
+                'owasys.front',
+                'request.failed',
+                ['error_code' => $code],
+                'error'
+            );
             if (!headers_sent()) {
                 header('X-Opus-Trace-Id: ' . $traceId);
             }
@@ -148,7 +139,12 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 $security,
                 $renderer,
                 $registry,
-                new OwasysApplicationCreationModel($this->siteRoot, $registry)
+                new OwasysApplicationCreationModel(
+                    $this->siteRoot,
+                    $registry,
+                    null,
+                    $this->profiler
+                )
             ),
             new OwasysSourceController(
                 $this->siteRoot,

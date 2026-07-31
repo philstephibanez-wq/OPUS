@@ -4,6 +4,7 @@ declare(strict_types=1);
 use Opus\Api\Rest\RestClient;
 use Opus\Api\Rest\RestClientInterface;
 use Opus\File\Json;
+use Opus\Profiler\ProfilerInterface;
 
 /** OWASYS frontend projection for OPUS application creation through REST + Composer. */
 final class OwasysApplicationCreationModel
@@ -13,10 +14,12 @@ final class OwasysApplicationCreationModel
     public function __construct(
         string $siteRoot,
         private readonly OwasysRegistryModel $registry,
-        ?RestClientInterface $rest = null
+        ?RestClientInterface $rest = null,
+        ?ProfilerInterface $profiler = null
     ) {
         $this->rest = $rest ?? RestClient::fromConfig(
-            rtrim(str_replace('\\', '/', $siteRoot), '/') . '/config/rest-api.json'
+            rtrim(str_replace('\\', '/', $siteRoot), '/') . '/config/rest-api.json',
+            $profiler
         );
     }
 
