@@ -1,1 +1,0 @@
-<section class="opus-card"><h2>{{ page.title }}</h2><p>{{ page.subtitle }}</p></section>

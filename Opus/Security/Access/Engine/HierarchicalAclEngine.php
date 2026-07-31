@@ -65,7 +65,8 @@ final class HierarchicalAclEngine implements AclRuleEngineInterface, Hierarchica
         $effectiveRoles = $this->effectiveRoles($identity);
         $resourceLineage = $this->resourceLineage($resource);
         $trace = [];
-        $lastMatchedRule = null;
+        $matchedAllows = [];
+        $matchedDenies = [];
 
         foreach ($this->rules as $index => $rule) {
             $effect = (string) ($rule['effect'] ?? '');
@@ -91,11 +92,16 @@ final class HierarchicalAclEngine implements AclRuleEngineInterface, Hierarchica
             ];
 
             if ($matched) {
-                $lastMatchedRule = [
+                $matchedRule = [
                     'index' => $index,
                     'effect' => $effect,
                     'description' => (string) ($rule['description'] ?? ''),
                 ];
+                if ($effect === 'deny') {
+                    $matchedDenies[] = $matchedRule;
+                } else {
+                    $matchedAllows[] = $matchedRule;
+                }
             }
         }
 
@@ -106,17 +112,20 @@ final class HierarchicalAclEngine implements AclRuleEngineInterface, Hierarchica
             'effective_roles' => $effectiveRoles,
             'resource_lineage' => $resourceLineage,
             'trace' => $trace,
+            'matched_allows' => $matchedAllows,
+            'matched_denies' => $matchedDenies,
         ];
 
-        if ($lastMatchedRule === null) {
-            return AccessDecision::denied('OPUS_ACL_DEFAULT_DENY', $context);
-        }
-
-        $context['matched_rule'] = $lastMatchedRule;
-        if ($lastMatchedRule['effect'] === 'deny') {
+        if ($matchedDenies !== []) {
+            $context['matched_rule'] = $matchedDenies[0];
             return AccessDecision::denied('OPUS_ACL_RULE_DENIED', $context);
         }
 
+        if ($matchedAllows === []) {
+            return AccessDecision::denied('OPUS_ACL_DEFAULT_DENY', $context);
+        }
+
+        $context['matched_rule'] = $matchedAllows[0];
         return AccessDecision::granted('OPUS_ACL_RULE_ALLOWED', $context);
     }
 

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Opus\Security\Access;
 
+use Opus\File\StructuredFileLoader;
 use Opus\Security\Access\Engine\AclRuleEngineInterface;
 use Opus\Security\Access\Engine\HierarchicalAclEngine;
 use Opus\Security\Identity\IdentityContextInterface;
@@ -35,14 +36,7 @@ final class ConfigAclPolicy implements AclPolicyInterface, ConfigAclPolicyInterf
 
     public static function fromFile(string $path): self
     {
-        if (!is_file($path)) {
-            throw new \RuntimeException('OPUS_ACL_POLICY_CONFIG_MISSING: ' . $path);
-        }
-
-        $decoded = json_decode((string) file_get_contents($path), true);
-        if (!is_array($decoded)) {
-            throw new \RuntimeException('OPUS_ACL_POLICY_CONFIG_JSON_INVALID: ' . $path);
-        }
+        $decoded = StructuredFileLoader::instance()->read($path);
         if (($decoded['contract'] ?? '') !== 'OPUS_ACL_POLICY_REGISTRY_V1') {
             throw new \RuntimeException('OPUS_ACL_POLICY_CONFIG_CONTRACT_INVALID: ' . $path);
         }
