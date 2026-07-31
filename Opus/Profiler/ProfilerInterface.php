@@ -23,6 +23,24 @@ interface ProfilerInterface extends
     public function event(
         string $category,
         string $name,
+        array $context = [],
+        string $status = 'success',
+        ?string $spanId = null,
+        ?string $parentSpanId = null
+    ): string;
+
+    /** @param array<string,mixed> $context */
+    public function beginSpan(
+        string $category,
+        string $name,
+        array $context = [],
+        ?string $parentSpanId = null
+    ): string;
+
+    /** @param array<string,mixed> $context */
+    public function endSpan(
+        string $spanId,
+        string $status = 'success',
         array $context = []
     ): void;
 
@@ -32,6 +50,10 @@ interface ProfilerInterface extends
     /** @param array<string,mixed> $summary */
     public function writeTrace(Trace $trace, array $summary = []): string;
 
-    /** @return list<array<string,mixed>> */
+    /**
+     * Reads both OPUS_PROFILER_TRACE_V1 and OPUS_PROFILER_TRACE_V2 records.
+     *
+     * @return list<array<string,mixed>>
+     */
     public function readTrace(string $traceId): array;
 }
