@@ -58,15 +58,28 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
         putenv('OPUS_TRACE_ID=' . $traceId);
         $status = 'failed';
         $path = $this->requestPath();
+        $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
+        $httpSpanId = $this->profiler->beginSpan('http', 'http.request', [
+            'method' => $method,
+            'path' => $path,
+        ]);
+        $httpSpanEnded = false;
         try {
+            $this->profiler->event('http', 'http.request.received', [
+                'method' => $method,
+                'path' => $path,
+            ], 'success', $httpSpanId);
             if (preg_match('~(?:^|/)profiler=[^/]*(?:/|$)~', trim($path, '/')) === 1) {
                 throw new RuntimeException('OWASYS_PROFILER_QUERY_SYNTAX_REQUIRED');
             }
             if ($path === '/api' || str_starts_with($path, '/api/')) {
                 throw new RuntimeException('OWASYS_FRONT_API_FORBIDDEN');
             }
+            $this->profiler->event('http', 'http.route.resolved', [
+                'path' => $path,
+            ], 'success', $httpSpanId);
             $this->logger->info('owasys.front', 'request.received', [
-                'method' => strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')),
+                'method' => $method,
                 'path' => $path,
             ], $traceId);
             $this->profiler->event('owasys.front', 'request.received', [
@@ -76,30 +89,52 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
             if ($this->isProfilerTracePath($path)) {
                 $this->serveProfilerTrace();
                 $status = 'completed';
+                $responseStatus = http_response_code();
+                $this->profiler->event('http', 'http.response.sent', [
+                    'status_code' => $responseStatus,
+                ], 'success', $httpSpanId);
+                $this->profiler->endSpan($httpSpanId, 'success', [
+                    'status_code' => $responseStatus,
+                ]);
+                $httpSpanEnded = true;
                 return;
             }
             [$controller, $creation, $source] = $this->components();
             if ($creation->matchesCurrentRequest()) {
                 $this->profiler->event('routing', 'controller.selected', [
                     'controller' => 'creation',
-                ]);
+                ], 'success', $httpSpanId);
                 $creation->run();
             } elseif ($source->matchesCurrentRequest()) {
                 $this->profiler->event('routing', 'controller.selected', [
                     'controller' => 'source',
-                ]);
+                ], 'success', $httpSpanId);
                 $source->run();
             } else {
                 $this->profiler->event('routing', 'controller.selected', [
                     'controller' => 'runtime',
-                ]);
+                ], 'success', $httpSpanId);
                 $controller->run();
             }
-            $this->profiler->event('score', 'response.rendered', ['path' => $path]);
+            $this->profiler->event(
+                'score',
+                'response.rendered',
+                ['path' => $path],
+                'success',
+                $httpSpanId
+            );
             $status = 'completed';
             $this->logger->info('owasys.front', 'request.completed', [
                 'path' => $path,
             ], $traceId);
+            $responseStatus = http_response_code();
+            $this->profiler->event('http', 'http.response.sent', [
+                'status_code' => $responseStatus,
+            ], 'success', $httpSpanId);
+            $this->profiler->endSpan($httpSpanId, 'success', [
+                'status_code' => $responseStatus,
+            ]);
+            $httpSpanEnded = true;
         } catch (Throwable $error) {
             $code = $this->safeErrorCode($error);
             $this->logger->error('owasys.front', 'request.failed', [
@@ -112,13 +147,27 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 'owasys.front',
                 'request.failed',
                 ['error_code' => $code],
-                'error'
+                'error',
+                $httpSpanId
             );
+            $this->profiler->event('http', 'http.exception.caught', [
+                'error_code' => $code,
+                'exception_class' => $error::class,
+            ], 'error', $httpSpanId);
+            $this->profiler->endSpan($httpSpanId, 'error', [
+                'error_code' => $code,
+            ]);
+            $httpSpanEnded = true;
             if (!headers_sent()) {
                 header('X-Opus-Trace-Id: ' . $traceId);
             }
             $this->renderFailure($code, $traceId);
         } finally {
+            if (!$httpSpanEnded) {
+                $this->profiler->endSpan($httpSpanId, 'error', [
+                    'error_code' => 'OWASYS_HTTP_REQUEST_INCOMPLETE',
+                ]);
+            }
             $this->profiler->stop([
                 'component' => self::class,
                 'status' => $status,
