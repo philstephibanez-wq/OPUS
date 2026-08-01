@@ -36,6 +36,8 @@ if (FrameworkAssetResponder::serveCurrentRequest($opusRoot)) {
 }
 $files = [
     'application/default/models/AuthSession.php',
+    'application/default/services/SessionRuntimeInterface.php',
+    'application/default/services/SessionRuntime.php',
     'application/default/services/RuntimeSecurity.php',
     'application/default/services/LocaleRegistry.php',
     'application/default/services/NavigationBuilder.php',

@@ -23,7 +23,8 @@ final class OwasysRuntimeController
         private readonly array $siteConfig,
         private readonly OwasysAuthSession $session,
         private readonly OwasysRuntimeSecurity $security,
-        private readonly OwasysScorePageRenderer $renderer
+        private readonly OwasysScorePageRenderer $renderer,
+        private readonly OwasysSessionRuntimeInterface $sessionRuntime
     ) {
         $this->locales = new OwasysLocaleRegistry($siteConfig);
         $this->navigation = new OwasysNavigationBuilder($security);
@@ -31,7 +32,7 @@ final class OwasysRuntimeController
 
     public function run(): void
     {
-        $this->startSession();
+        $this->sessionRuntime->start();
 
         [$locale, $routeKey] = $this->resolveRequest();
 
@@ -133,25 +134,6 @@ final class OwasysRuntimeController
             $requestResult,
             $errorKey
         );
-    }
-
-    private function startSession(): void
-    {
-        if (session_status() !== PHP_SESSION_NONE) {
-            return;
-        }
-
-        $auth = is_array($this->siteConfig['auth'] ?? null)
-            ? $this->siteConfig['auth']
-            : [];
-        $name = (string) ($auth['session_name'] ?? 'OWASYS_LOCAL_SESSION');
-
-        if (preg_match('/^[A-Za-z0-9_-]+$/', $name) !== 1) {
-            $this->fail(500, 'OWASYS_SESSION_NAME_INVALID');
-        }
-
-        session_name($name);
-        session_start();
     }
 
     /** @return array{0:string,1:string} */

@@ -30,6 +30,7 @@ final class OwasysCreationController
         private readonly OwasysRuntimeSecurity $security,
         private readonly OwasysScorePageRenderer $renderer,
         private readonly OwasysRegistryModel $registry,
+        private readonly OwasysSessionRuntimeInterface $sessionRuntime,
         private readonly OwasysApplicationCreationModel $creation
     ) {
         $this->locales = new OwasysLocaleRegistry($siteConfig);
@@ -46,7 +47,7 @@ final class OwasysCreationController
 
     public function run(): void
     {
-        $this->startSession();
+        $this->sessionRuntime->start();
         [$locale, $route] = $this->resolveRequest();
         if ($route !== 'applications/new') {
             throw new RuntimeException('OWASYS_CREATION_ROUTE_MISMATCH');
@@ -829,22 +830,6 @@ final class OwasysCreationController
             throw new RuntimeException('OWASYS_CREATION_FSM_PATH_INVALID');
         }
         return StructuredFileLoader::instance()->read($this->siteRoot . '/' . $relative);
-    }
-
-    private function startSession(): void
-    {
-        if (session_status() !== PHP_SESSION_NONE) {
-            return;
-        }
-        $auth = is_array($this->siteConfig['auth'] ?? null)
-            ? $this->siteConfig['auth']
-            : [];
-        $name = (string) ($auth['session_name'] ?? 'OWASYS_LOCAL_SESSION');
-        if (preg_match('/^[A-Za-z0-9_-]+$/', $name) !== 1) {
-            throw new RuntimeException('OWASYS_SESSION_NAME_INVALID');
-        }
-        session_name($name);
-        session_start();
     }
 
     private function creationErrorKey(string $code): string

@@ -17,11 +17,17 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
     private static ?self $instance = null;
     private readonly Logger $logger;
     private readonly Profiler $profiler;
+    private readonly array $siteConfig;
+    private readonly OwasysSessionRuntime $sessionRuntime;
 
     private function __construct(private readonly string $siteRoot)
     {
         $this->logger = new Logger($siteRoot . '/var/logs', 'owasys-front.log');
         $this->profiler = new Profiler($siteRoot . '/var/profiler/runtime');
+        $this->siteConfig = \Opus\File\StructuredFileLoader::instance()->read(
+            $siteRoot . '/config/site.json'
+        );
+        $this->sessionRuntime = new OwasysSessionRuntime($this->siteConfig);
     }
 
     public static function instance(string $siteRoot): self
@@ -136,14 +142,9 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
         if (!in_array($environment, ['dev', 'local', 'development'], true)) {
             throw new RuntimeException('OPUS_PROFILER_ENVIRONMENT_FORBIDDEN');
         }
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
-        }
-        $siteConfig = \Opus\File\StructuredFileLoader::instance()->read(
-            $this->siteRoot . '/config/site.json'
-        );
+        $this->sessionRuntime->start();
         $session = new OwasysAuthSession();
-        $security = new OwasysRuntimeSecurity($this->siteRoot, $siteConfig);
+        $security = new OwasysRuntimeSecurity($this->siteRoot, $this->siteConfig);
         $security->assertAllowed($session->user(), 'profiler', 'view');
 
         if (!headers_sent()) {
@@ -160,28 +161,27 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
     /** @return array{0:OwasysRuntimeController,1:OwasysCreationController,2:OwasysSourceController} */
     private function components(): array
     {
-        $siteConfig = \Opus\File\StructuredFileLoader::instance()->read(
-            $this->siteRoot . '/config/site.json'
-        );
         $session = new OwasysAuthSession();
-        $security = new OwasysRuntimeSecurity($this->siteRoot, $siteConfig);
+        $security = new OwasysRuntimeSecurity($this->siteRoot, $this->siteConfig);
         $renderer = new OwasysScorePageRenderer($this->siteRoot);
         $registry = new OwasysRegistryModel($this->siteRoot);
         return [
             new OwasysRuntimeController(
                 $this->siteRoot,
-                $siteConfig,
+                $this->siteConfig,
                 $session,
                 $security,
-                $renderer
+                $renderer,
+                $this->sessionRuntime
             ),
             new OwasysCreationController(
                 $this->siteRoot,
-                $siteConfig,
+                $this->siteConfig,
                 $session,
                 $security,
                 $renderer,
                 $registry,
+                $this->sessionRuntime,
                 new OwasysApplicationCreationModel(
                     $this->siteRoot,
                     $registry,
@@ -191,10 +191,11 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
             ),
             new OwasysSourceController(
                 $this->siteRoot,
-                $siteConfig,
+                $this->siteConfig,
                 $session,
                 $security,
                 $renderer,
+                $this->sessionRuntime,
                 new OwasysSourceModel($this->siteRoot)
             ),
         ];

@@ -12,7 +12,10 @@ final class OwasysAuthSession
     {
         $identity = $_SESSION[self::IDENTITY_KEY] ?? null;
         if (is_array($identity)) {
-            return $identity;
+            $normalized = $this->normalizeIdentity($identity);
+            $_SESSION[self::IDENTITY_KEY] = $normalized;
+
+            return $normalized;
         }
 
         $legacy = $_SESSION[self::LEGACY_IDENTITY_KEY] ?? null;
@@ -20,43 +23,24 @@ final class OwasysAuthSession
             return null;
         }
 
-        $roles = is_array($legacy['roles'] ?? null)
-            ? array_values(array_filter($legacy['roles'], 'is_string'))
-            : [(string) ($legacy['profile'] ?? 'viewer')];
-
-        $identity = [
-            'subject' => (string) ($legacy['subject'] ?? $legacy['id'] ?? ''),
-            'id' => (string) ($legacy['id'] ?? $legacy['subject'] ?? ''),
-            'label' => (string) ($legacy['label'] ?? $legacy['id'] ?? ''),
-            'roles' => $roles === [] ? ['viewer'] : $roles,
-            'profile' => (string) ($legacy['profile'] ?? ($roles[0] ?? 'viewer')),
-            'provider' => (string) ($legacy['provider'] ?? 'local-password'),
-            'must_change_password' => ($legacy['must_change_password'] ?? false) === true,
-            'authenticated_at' => (string) ($legacy['authenticated_at'] ?? $legacy['started_at'] ?? gmdate('c')),
-        ];
-
-        $_SESSION[self::IDENTITY_KEY] = $identity;
+        $normalized = $this->normalizeIdentity($legacy);
+        $_SESSION[self::IDENTITY_KEY] = $normalized;
         unset($_SESSION[self::LEGACY_IDENTITY_KEY]);
 
-        return $identity;
+        return $normalized;
     }
 
     public function isAuthenticated(): bool
     {
-        $identity = $this->user();
-
-        return is_array($identity) && (string) ($identity['subject'] ?? $identity['id'] ?? '') !== '';
+        return $this->user() !== null;
     }
 
     /** @param array<string,mixed> $identity */
     public function start(array $identity): void
     {
-        if ((string) ($identity['subject'] ?? $identity['id'] ?? '') === '') {
-            throw new RuntimeException('OWASYS_SSO_SESSION_IDENTITY_INVALID');
-        }
-
+        $normalized = $this->normalizeIdentity($identity);
         session_regenerate_id(true);
-        $_SESSION[self::IDENTITY_KEY] = $identity;
+        $_SESSION[self::IDENTITY_KEY] = $normalized;
         unset($_SESSION[self::LEGACY_IDENTITY_KEY]);
     }
 
@@ -67,7 +51,7 @@ final class OwasysAuthSession
             throw new RuntimeException('OWASYS_SSO_SESSION_NOT_AUTHENTICATED');
         }
 
-        $_SESSION[self::IDENTITY_KEY] = $identity;
+        $_SESSION[self::IDENTITY_KEY] = $this->normalizeIdentity($identity);
     }
 
     /** @return array<string,mixed>|null */
@@ -103,5 +87,76 @@ final class OwasysAuthSession
             $_SESSION[self::CURRENT_APP_KEY]
         );
         session_regenerate_id(true);
+    }
+
+    /**
+     * Normalizes the single session identity contract consumed by UI, FSM and ACL.
+     *
+     * The historical profile field is accepted only when the roles field is absent.
+     * An explicitly empty or malformed roles field remains invalid and cannot be
+     * promoted through profile.
+     *
+     * @param array<string,mixed> $identity
+     * @return array<string,mixed>
+     */
+    private function normalizeIdentity(array $identity): array
+    {
+        $subject = trim((string) ($identity['subject'] ?? $identity['id'] ?? ''));
+        if ($subject === '') {
+            throw new RuntimeException('OWASYS_SSO_SESSION_IDENTITY_INVALID');
+        }
+
+        if (array_key_exists('roles', $identity)) {
+            if (!is_array($identity['roles'])) {
+                throw new RuntimeException('OWASYS_SSO_SESSION_ROLES_INVALID');
+            }
+            $roles = $this->normalizeRoles($identity['roles']);
+        } else {
+            $profile = trim((string) ($identity['profile'] ?? ''));
+            $roles = $profile === '' ? [] : [$profile];
+        }
+
+        if ($roles === []) {
+            throw new RuntimeException('OWASYS_SSO_SESSION_ROLES_INVALID');
+        }
+
+        $label = trim((string) ($identity['label'] ?? $subject));
+        $provider = trim((string) ($identity['provider'] ?? 'local-password'));
+        if ($provider === '') {
+            throw new RuntimeException('OWASYS_SSO_SESSION_PROVIDER_INVALID');
+        }
+
+        return [
+            'subject' => $subject,
+            'id' => $subject,
+            'label' => $label === '' ? $subject : $label,
+            'roles' => $roles,
+            'profile' => $roles[0],
+            'provider' => $provider,
+            'must_change_password' => ($identity['must_change_password'] ?? false) === true,
+            'authenticated_at' => trim((string) (
+                $identity['authenticated_at']
+                    ?? $identity['started_at']
+                    ?? gmdate('c')
+            )),
+        ];
+    }
+
+    /** @param array<mixed> $roles @return list<string> */
+    private function normalizeRoles(array $roles): array
+    {
+        $normalized = [];
+        foreach ($roles as $role) {
+            if (!is_string($role)) {
+                throw new RuntimeException('OWASYS_SSO_SESSION_ROLES_INVALID');
+            }
+            $role = trim($role);
+            if ($role === '') {
+                throw new RuntimeException('OWASYS_SSO_SESSION_ROLES_INVALID');
+            }
+            $normalized[$role] = true;
+        }
+
+        return array_keys($normalized);
     }
 }

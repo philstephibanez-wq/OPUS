@@ -24,6 +24,7 @@ final class OwasysSourceController
         private readonly OwasysAuthSession $session,
         private readonly OwasysRuntimeSecurity $security,
         private readonly OwasysScorePageRenderer $renderer,
+        private readonly OwasysSessionRuntimeInterface $sessionRuntime,
         private readonly OwasysSourceModel $source
     ) {
         $this->locales = new OwasysLocaleRegistry($siteConfig);
@@ -38,7 +39,7 @@ final class OwasysSourceController
 
     public function run(): void
     {
-        $this->startSession();
+        $this->sessionRuntime->start();
         [$locale, $route] = $this->resolveRequest();
         if ($route !== 'source' && !str_starts_with($route, 'source/')) {
             throw new RuntimeException('OWASYS_SOURCE_ROUTE_MISMATCH');
@@ -365,22 +366,6 @@ final class OwasysSourceController
         return StructuredFileLoader::instance()->read(
             $this->siteRoot . '/' . $relative
         );
-    }
-
-    private function startSession(): void
-    {
-        if (session_status() !== PHP_SESSION_NONE) {
-            return;
-        }
-        $auth = is_array($this->siteConfig['auth'] ?? null)
-            ? $this->siteConfig['auth']
-            : [];
-        $name = (string) ($auth['session_name'] ?? 'OWASYS_LOCAL_SESSION');
-        if (preg_match('/^[A-Za-z0-9_-]+$/', $name) !== 1) {
-            throw new RuntimeException('OWASYS_SESSION_NAME_INVALID');
-        }
-        session_name($name);
-        session_start();
     }
 
     private function safeErrorCode(Throwable $error): string
