@@ -189,6 +189,86 @@ final class Trace implements TraceInterface
         $this->endedAt = microtime(true);
     }
 
+    /** @param array<string,mixed> $record */
+    public function importRecord(array $record, ?string $rootParentSpanId = null): void
+    {
+        $this->assertOpen();
+        if (($record['schema'] ?? null) !== 'OPUS_PROFILER_TRACE_V2'
+            || ($record['trace_id'] ?? null) !== $this->traceId) {
+            throw new \InvalidArgumentException('OPUS_PROFILER_REMOTE_RECORD_CONTRACT_INVALID');
+        }
+        if ($rootParentSpanId !== null) {
+            $this->assertKnownSpan($rootParentSpanId);
+        }
+
+        $remoteSpans = is_array($record['spans'] ?? null) ? $record['spans'] : [];
+        foreach ($remoteSpans as $span) {
+            if (!is_array($span)) {
+                throw new \InvalidArgumentException('OPUS_PROFILER_REMOTE_SPAN_INVALID');
+            }
+            $spanId = strtolower(trim((string) ($span['span_id'] ?? '')));
+            $this->assertId($spanId, 'OPUS_PROFILER_REMOTE_SPAN_ID_INVALID');
+            if (isset($this->spans[$spanId])) {
+                throw new \LogicException('OPUS_PROFILER_REMOTE_SPAN_DUPLICATE:' . $spanId);
+            }
+            $parent = $span['parent_span_id'] ?? null;
+            $parent = is_string($parent) && $parent !== '' ? $parent : $rootParentSpanId;
+            if ($parent !== null) {
+                $this->assertId($parent, 'OPUS_PROFILER_REMOTE_PARENT_SPAN_ID_INVALID');
+            }
+            $category = $this->normalizeLabel((string) ($span['category'] ?? ''), 'OPUS_PROFILER_REMOTE_SPAN_CATEGORY_INVALID');
+            $name = $this->normalizeLabel((string) ($span['name'] ?? ''), 'OPUS_PROFILER_REMOTE_SPAN_NAME_INVALID');
+            $status = $this->normalizeStatus((string) ($span['status'] ?? 'unavailable'));
+            $this->spans[$spanId] = [
+                'span_id' => $spanId,
+                'parent_span_id' => $parent,
+                'category' => $category,
+                'name' => $name,
+                'status' => $status,
+                'started_at' => (string) ($span['started_at'] ?? ''),
+                'started_elapsed_ms' => (float) ($span['started_elapsed_ms'] ?? 0.0),
+                'ended_at' => (string) ($span['ended_at'] ?? ''),
+                'duration_ms' => (float) ($span['duration_ms'] ?? 0.0),
+                'context' => $this->redactValue((array) ($span['context'] ?? [])),
+                'result' => $this->redactValue((array) ($span['result'] ?? [])),
+                'remote' => true,
+            ];
+        }
+
+        $remoteEvents = is_array($record['events'] ?? null) ? $record['events'] : [];
+        foreach ($remoteEvents as $event) {
+            if (!is_array($event)) {
+                throw new \InvalidArgumentException('OPUS_PROFILER_REMOTE_EVENT_INVALID');
+            }
+            $category = $this->normalizeLabel((string) ($event['category'] ?? ''), 'OPUS_PROFILER_REMOTE_EVENT_CATEGORY_INVALID');
+            $name = $this->normalizeLabel((string) ($event['name'] ?? ''), 'OPUS_PROFILER_REMOTE_EVENT_NAME_INVALID');
+            $status = $this->normalizeStatus((string) ($event['status'] ?? 'unavailable'));
+            $spanId = strtolower(trim((string) ($event['span_id'] ?? '')));
+            $this->assertId($spanId, 'OPUS_PROFILER_REMOTE_EVENT_SPAN_ID_INVALID');
+            $parent = $event['parent_span_id'] ?? null;
+            $parent = is_string($parent) && $parent !== '' ? $parent : $rootParentSpanId;
+            if ($parent !== null) {
+                $this->assertId($parent, 'OPUS_PROFILER_REMOTE_EVENT_PARENT_ID_INVALID');
+            }
+            $this->events[] = [
+                'event_id' => bin2hex(random_bytes(16)),
+                'index' => count($this->events) + 1,
+                'observed_at' => (string) ($event['observed_at'] ?? ''),
+                'elapsed_ms' => (float) ($event['elapsed_ms'] ?? 0.0),
+                'type' => $category . '.' . $name,
+                'component' => $category,
+                'category' => $category,
+                'name' => $name,
+                'status' => $status,
+                'span_id' => $spanId,
+                'parent_span_id' => $parent,
+                'memory' => [],
+                'context' => $this->redactValue((array) ($event['context'] ?? [])),
+                'remote' => true,
+            ];
+        }
+    }
+
     /** @param array<string,mixed> $summary @return array<string,mixed> */
     public function toArray(array $summary = []): array
     {

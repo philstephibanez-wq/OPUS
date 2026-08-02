@@ -58,6 +58,13 @@ interface TraceInterface extends
 
     public function finish(): void;
 
+    /**
+     * Imports one measured record from another component of the same trace.
+     *
+     * @param array<string,mixed> $record
+     */
+    public function importRecord(array $record, ?string $rootParentSpanId = null): void;
+
     /** @param array<string,mixed> $summary @return array<string,mixed> */
     public function toArray(array $summary = []): array;
 }

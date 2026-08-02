@@ -208,11 +208,15 @@ final class RestServer implements RestServerInterface
                 'operation' => $operation,
                 'status_code' => $status,
             ], $traceId);
-            return Response::json([
+            $payload = [
                 'contract' => 'OPUS_REST_API_RESPONSE_V1',
                 'data' => $result,
                 'trace_id' => $traceId,
-            ], $status, $headers);
+            ];
+            if ($this->profilerRequested()) {
+                $payload['profiler_records'] = $this->profiler->readTrace($traceId);
+            }
+            return Response::json($payload, $status, $headers);
         } catch (\Throwable $error) {
             try {
                 if ($fsm->state() !== 'failed') {
@@ -246,6 +250,13 @@ final class RestServer implements RestServerInterface
                 'fsm_state' => $fsm->state(),
             ]);
         }
+    }
+
+    private function profilerRequested(): bool
+    {
+        $environment = strtolower(trim((string) getenv('OPUS_ENV')));
+        return in_array($environment, ['dev', 'local', 'development'], true)
+            && trim((string) ($_SERVER['HTTP_X_OPUS_PROFILER'] ?? '')) === '1';
     }
 
     /**

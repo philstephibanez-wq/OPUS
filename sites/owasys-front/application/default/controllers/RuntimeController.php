@@ -736,7 +736,10 @@ final class OwasysRuntimeController
     private function registryModel(): OwasysRegistryModel
     {
         if (!$this->registryModel instanceof OwasysRegistryModel) {
-            $this->registryModel = new OwasysRegistryModel($this->siteRoot);
+            $this->registryModel = new OwasysRegistryModel(
+                $this->siteRoot,
+                $this->profiler
+            );
         }
 
         return $this->registryModel;

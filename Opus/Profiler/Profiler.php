@@ -182,6 +182,18 @@ final class Profiler implements ProfilerInterface
         return $records;
     }
 
+    /** @param list<array<string,mixed>> $records */
+    public function importRecords(array $records, ?string $rootParentSpanId = null): void
+    {
+        $trace = $this->requireActiveTrace();
+        foreach ($records as $record) {
+            if (!is_array($record)) {
+                throw new \InvalidArgumentException('OPUS_PROFILER_REMOTE_RECORD_INVALID');
+            }
+            $trace->importRecord($record, $rootParentSpanId);
+        }
+    }
+
     private function requireActiveTrace(): Trace
     {
         if ($this->activeTrace === null) {

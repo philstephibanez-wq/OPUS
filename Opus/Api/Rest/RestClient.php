@@ -117,6 +117,9 @@ final class RestClient implements RestClientInterface
             $traceId = $this->traceId();
             if ($traceId !== null) {
                 $headers[] = 'X-Opus-Trace-Id: ' . $traceId;
+                if (self::profilerEnvironment()) {
+                    $headers[] = 'X-Opus-Profiler: 1';
+                }
             }
 
             $context = stream_context_create(['http' => [
@@ -147,6 +150,10 @@ final class RestClient implements RestClientInterface
             $data = $decoded['data'] ?? null;
             if (!is_array($data)) {
                 throw new \RuntimeException('OPUS_REST_API_RESPONSE_DATA_INVALID');
+            }
+            $records = $decoded['profiler_records'] ?? [];
+            if (is_array($records) && $records !== [] && $spanId !== null) {
+                $this->profiler?->importRecords($records, $spanId);
             }
             $this->finishRestSpan($spanId, 'success', [
                 'event_type' => 'rest.response.received',
@@ -223,6 +230,15 @@ final class RestClient implements RestClientInterface
             throw new \RuntimeException('OPUS_REST_API_TRACE_ID_INVALID');
         }
         return $traceId;
+    }
+
+    private static function profilerEnvironment(): bool
+    {
+        return in_array(
+            strtolower(trim((string) getenv('OPUS_ENV'))),
+            ['dev', 'local', 'development'],
+            true
+        );
     }
 
     private static function errorCode(\Throwable $cause): string

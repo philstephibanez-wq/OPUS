@@ -56,4 +56,7 @@ interface ProfilerInterface extends
      * @return list<array<string,mixed>>
      */
     public function readTrace(string $traceId): array;
+
+    /** @param list<array<string,mixed>> $records */
+    public function importRecords(array $records, ?string $rootParentSpanId = null): void;
 }

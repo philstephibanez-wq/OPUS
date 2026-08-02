@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 use Opus\Api\Rest\RestClient;
 use Opus\Api\Rest\RestClientInterface;
+use Opus\Profiler\ProfilerInterface;
 
 /** Read-only frontend projection of the Registry through secured REST. */
 final class OwasysRegistryModel
@@ -13,10 +14,14 @@ final class OwasysRegistryModel
     /** @var array<string,mixed>|null */
     private ?array $snapshot = null;
 
-    public function __construct(string $siteRoot)
+    public function __construct(
+        string $siteRoot,
+        ?ProfilerInterface $profiler = null
+    )
     {
         $this->rest = RestClient::fromConfig(
-            rtrim(str_replace('\\', '/', $siteRoot), '/') . '/config/rest-api.json'
+            rtrim(str_replace('\\', '/', $siteRoot), '/') . '/config/rest-api.json',
+            $profiler
         );
         $this->session = new OwasysAuthSession();
     }
