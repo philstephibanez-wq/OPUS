@@ -87,7 +87,7 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 'profiler_requested' => (string) ($_GET['profiler'] ?? '') === '1',
             ]);
             if ($this->isProfilerTracePath($path)) {
-                $this->serveProfilerTrace();
+                $this->serveProfilerTrace($httpSpanId);
                 $status = 'completed';
                 $responseStatus = http_response_code();
                 $this->profiler->event('http', 'http.response.sent', [
@@ -99,7 +99,7 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 $httpSpanEnded = true;
                 return;
             }
-            [$controller, $creation, $source] = $this->components();
+            [$controller, $creation, $source] = $this->components($httpSpanId);
             if ($creation->matchesCurrentRequest()) {
                 $this->profiler->event('routing', 'controller.selected', [
                     'controller' => 'creation',
@@ -185,7 +185,7 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
         ) === 1;
     }
 
-    private function serveProfilerTrace(): void
+    private function serveProfilerTrace(string $httpSpanId): void
     {
         $environment = strtolower(trim((string) getenv('OPUS_ENV')));
         if (!in_array($environment, ['dev', 'local', 'development'], true)) {
@@ -193,7 +193,12 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
         }
         $this->sessionRuntime->start();
         $session = new OwasysAuthSession();
-        $security = new OwasysRuntimeSecurity($this->siteRoot, $this->siteConfig);
+        $security = new OwasysRuntimeSecurity(
+            $this->siteRoot,
+            $this->siteConfig,
+            $this->profiler,
+            $httpSpanId
+        );
         $security->assertAllowed($session->user(), 'profiler', 'view');
 
         if (!headers_sent()) {
@@ -208,10 +213,15 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
     }
 
     /** @return array{0:OwasysRuntimeController,1:OwasysCreationController,2:OwasysSourceController} */
-    private function components(): array
+    private function components(string $httpSpanId): array
     {
         $session = new OwasysAuthSession();
-        $security = new OwasysRuntimeSecurity($this->siteRoot, $this->siteConfig);
+        $security = new OwasysRuntimeSecurity(
+            $this->siteRoot,
+            $this->siteConfig,
+            $this->profiler,
+            $httpSpanId
+        );
         $renderer = new OwasysScorePageRenderer($this->siteRoot);
         $registry = new OwasysRegistryModel($this->siteRoot);
         return [

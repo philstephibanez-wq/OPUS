@@ -10,6 +10,7 @@ use Opus\Security\Sso\Auth0ProxySsoProvider;
 use Opus\Security\Sso\LocalPasswordSsoProvider;
 use Opus\Security\Sso\SsoIdentity;
 use Opus\Security\Sso\SsoManager;
+use Opus\Profiler\ProfilerInterface;
 
 final class OwasysRuntimeSecurity
 {
@@ -21,9 +22,16 @@ final class OwasysRuntimeSecurity
     /** @param array<string,mixed> $siteConfig */
     public function __construct(
         private readonly string $siteRoot,
-        array $siteConfig
+        array $siteConfig,
+        ?ProfilerInterface $profiler = null,
+        ?string $parentSpanId = null
     ) {
-        $this->acl = new AclPolicy($siteRoot . '/config/acl.json');
+        $this->acl = new AclPolicy(
+            $siteRoot . '/config/acl.json',
+            null,
+            $profiler,
+            $parentSpanId
+        );
 
         $ssoConfig = StructuredFileLoader::instance()->read(
             $siteRoot . '/config/sso.json'
