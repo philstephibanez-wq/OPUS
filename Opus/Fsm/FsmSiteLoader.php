@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Opus\Fsm;
 
 use Opus\File\StructuredFileLoader;
+use Opus\Profiler\ProfilerInterface;
 use RuntimeException;
 
 /**
@@ -29,7 +30,9 @@ final class FsmSiteLoader implements FsmSiteLoaderInterface
     public static function processorForSite(
         string $opusRoot,
         string $siteId,
-        array $guardHandlers = []
+        array $guardHandlers = [],
+        ?ProfilerInterface $profiler = null,
+        ?string $parentSpanId = null
     ): FsmProcessor {
         if ($siteId === '' || preg_match('/^[A-Za-z0-9_-]+$/', $siteId) !== 1) {
             throw new RuntimeException('OPUS_FSM_SITE_ID_INVALID: ' . $siteId);
@@ -39,7 +42,9 @@ final class FsmSiteLoader implements FsmSiteLoaderInterface
             rtrim($opusRoot, DIRECTORY_SEPARATOR)
             . DIRECTORY_SEPARATOR . 'sites'
             . DIRECTORY_SEPARATOR . $siteId,
-            $guardHandlers
+            $guardHandlers,
+            $profiler,
+            $parentSpanId
         );
     }
 
@@ -48,11 +53,18 @@ final class FsmSiteLoader implements FsmSiteLoaderInterface
      */
     public static function processorForSiteRoot(
         string $siteRoot,
-        array $guardHandlers = []
+        array $guardHandlers = [],
+        ?ProfilerInterface $profiler = null,
+        ?string $parentSpanId = null
     ): FsmProcessor {
         $resolved = self::resolve($siteRoot);
 
-        return FsmProcessor::fromJsonFile($resolved['fsm_path'], $guardHandlers);
+        return FsmProcessor::fromJsonFile(
+            $resolved['fsm_path'],
+            $guardHandlers,
+            $profiler,
+            $parentSpanId
+        );
     }
 
     /**

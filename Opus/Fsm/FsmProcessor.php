@@ -5,6 +5,7 @@ namespace Opus\Fsm;
 
 use InvalidArgumentException;
 use Opus\File\StructuredFileLoader;
+use Opus\Profiler\ProfilerInterface;
 use RuntimeException;
 
 /**
@@ -48,8 +49,12 @@ final class FsmProcessor implements FsmProcessorInterface
      * @param array<string,mixed> $fsm
      * @param array<string,callable> $guardHandlers
      */
-    public function __construct(array $fsm, array $guardHandlers = [])
-    {
+    public function __construct(
+        array $fsm,
+        array $guardHandlers = [],
+        private readonly ?ProfilerInterface $profiler = null,
+        private readonly ?string $parentSpanId = null
+    ) {
         $this->guardHandlers = $guardHandlers;
         $this->fsm = $fsm;
         $this->validateFsm();
@@ -63,7 +68,9 @@ final class FsmProcessor implements FsmProcessorInterface
      */
     public static function fromJsonFile(
         string $path,
-        array $guardHandlers = []
+        array $guardHandlers = [],
+        ?ProfilerInterface $profiler = null,
+        ?string $parentSpanId = null
     ): self {
         try {
             $decoded = StructuredFileLoader::instance()->read($path);
@@ -71,7 +78,7 @@ final class FsmProcessor implements FsmProcessorInterface
             throw new RuntimeException('OPUS_FSM_JSON_INVALID: ' . $path, 0, $cause);
         }
 
-        return new self($decoded, $guardHandlers);
+        return new self($decoded, $guardHandlers, $profiler, $parentSpanId);
     }
 
     public function contract(): string
@@ -221,51 +228,156 @@ final class FsmProcessor implements FsmProcessorInterface
             throw new RuntimeException('OPUS_FSM_EVENT_REQUIRED');
         }
 
-        $this->currentState = $currentState;
-        $transition = $this->findTransition($currentState, $event);
-        if ($transition === null) {
-            throw new RuntimeException(
-                'OPUS_FSM_TRANSITION_NOT_FOUND: '
-                . $currentState . ':' . $event
-            );
-        }
+        $startedAt = microtime(true);
+        $spanId = $this->beginTransitionSpan($currentState, $event);
 
-        $target = (string) ($transition['to'] ?? '');
-        if ($target === '' || !isset($this->statesById[$target])) {
-            throw new RuntimeException(
-                'OPUS_FSM_TARGET_STATE_UNKNOWN: ' . $target
-            );
-        }
-
-        foreach ($this->transitionGuards($transition) as $guard) {
-            if (!$this->evaluateGuard(
-                $guard,
-                $currentState,
-                $event,
-                $transition,
-                $context
-            )) {
-                throw new RuntimeException('OPUS_FSM_GUARD_FAILED: ' . $guard);
+        try {
+            $this->currentState = $currentState;
+            $transition = $this->findTransition($currentState, $event);
+            if ($transition === null) {
+                throw new RuntimeException(
+                    'OPUS_FSM_TRANSITION_NOT_FOUND: '
+                    . $currentState . ':' . $event
+                );
             }
+
+            $target = (string) ($transition['to'] ?? '');
+            if ($target === '' || !isset($this->statesById[$target])) {
+                throw new RuntimeException(
+                    'OPUS_FSM_TARGET_STATE_UNKNOWN: ' . $target
+                );
+            }
+
+            $transitionId = (string) ($transition['id'] ?? '');
+            foreach ($this->transitionGuards($transition) as $guard) {
+                $allowed = $this->evaluateGuard(
+                    $guard,
+                    $currentState,
+                    $event,
+                    $transition,
+                    $context
+                );
+                $this->profileEvent('fsm.guard.evaluated', [
+                    'fsm_contract' => $this->contract(),
+                    'transition_id' => $transitionId,
+                    'guard' => $guard,
+                    'result' => $allowed ? 'allowed' : 'denied',
+                ], $allowed ? 'success' : 'error', $spanId);
+                if (!$allowed) {
+                    throw new RuntimeException('OPUS_FSM_GUARD_FAILED: ' . $guard);
+                }
+            }
+
+            $actions = $this->transitionActions($transition);
+            $this->currentState = $target;
+            $this->applyMemoryOperations($transition, $context);
+            $completed = [
+                'fsm_contract' => $this->contract(),
+                'transition_id' => $transitionId,
+                'from_state' => $currentState,
+                'event' => $event,
+                'to_state' => $target,
+                'guards' => $this->transitionGuards($transition),
+                'actions' => $actions,
+                'duration_ms' => $this->durationMs($startedAt),
+            ];
+            $this->profileEvent(
+                'fsm.transition.completed',
+                $completed,
+                'success',
+                $spanId
+            );
+            $this->endTransitionSpan($spanId, 'success', $completed);
+
+            return [
+                'contract' => self::RESULT_CONTRACT,
+                'fsm_contract' => $this->contract(),
+                'from_state' => $currentState,
+                'event' => $event,
+                'to_state' => $target,
+                'transition_id' => $transitionId,
+                'guards' => $this->transitionGuards($transition),
+                'actions' => $actions,
+                'action' => $actions[0] ?? '',
+                'target_state' => $this->statesById[$target],
+                'runtime' => $this->snapshot(),
+            ];
+        } catch (\Throwable $error) {
+            $failed = [
+                'fsm_contract' => $this->contract(),
+                'from_state' => $currentState,
+                'event' => $event,
+                'duration_ms' => $this->durationMs($startedAt),
+                'exception_class' => $error::class,
+            ];
+            $this->profileEvent(
+                'fsm.transition.failed',
+                $failed,
+                'error',
+                $spanId
+            );
+            $this->endTransitionSpan($spanId, 'error', $failed);
+            throw $error;
         }
+    }
 
-        $actions = $this->transitionActions($transition);
-        $this->currentState = $target;
-        $this->applyMemoryOperations($transition, $context);
-
-        return [
-            'contract' => self::RESULT_CONTRACT,
+    private function beginTransitionSpan(
+        string $currentState,
+        string $event
+    ): ?string {
+        if ($this->profiler?->getActiveTrace() === null) {
+            return null;
+        }
+        $context = [
             'fsm_contract' => $this->contract(),
             'from_state' => $currentState,
             'event' => $event,
-            'to_state' => $target,
-            'transition_id' => (string) ($transition['id'] ?? ''),
-            'guards' => $this->transitionGuards($transition),
-            'actions' => $actions,
-            'action' => $actions[0] ?? '',
-            'target_state' => $this->statesById[$target],
-            'runtime' => $this->snapshot(),
         ];
+        $spanId = $this->profiler->beginSpan(
+            'fsm',
+            'fsm.transition',
+            $context,
+            $this->parentSpanId
+        );
+
+        return $spanId;
+    }
+
+    /** @param array<string,mixed> $context */
+    private function profileEvent(
+        string $name,
+        array $context,
+        string $status,
+        ?string $spanId
+    ): void {
+        if ($spanId === null || $this->profiler?->getActiveTrace() === null) {
+            return;
+        }
+        $this->profiler->event(
+            'fsm',
+            $name,
+            $context,
+            $status,
+            $spanId,
+            $this->parentSpanId
+        );
+    }
+
+    /** @param array<string,mixed> $context */
+    private function endTransitionSpan(
+        ?string $spanId,
+        string $status,
+        array $context
+    ): void {
+        if ($spanId === null || $this->profiler?->getActiveTrace() === null) {
+            return;
+        }
+        $this->profiler->endSpan($spanId, $status, $context);
+    }
+
+    private function durationMs(float $startedAt): float
+    {
+        return round((microtime(true) - $startedAt) * 1000, 3);
     }
 
     /** @return list<array<string,mixed>> */

@@ -231,7 +231,9 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 $session,
                 $security,
                 $renderer,
-                $this->sessionRuntime
+                $this->sessionRuntime,
+                $this->profiler,
+                $httpSpanId
             ),
             new OwasysCreationController(
                 $this->siteRoot,

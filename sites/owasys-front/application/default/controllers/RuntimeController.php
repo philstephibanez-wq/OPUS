@@ -6,6 +6,7 @@ use Opus\Fsm\FsmSessionStore;
 use Opus\Fsm\FsmSiteLoader;
 use Opus\File\StructuredFileLoader;
 use Opus\I18n\BrowserLocaleNegotiator;
+use Opus\Profiler\ProfilerInterface;
 use Opus\Security\Sso\SsoIdentity;
 
 final class OwasysRuntimeController
@@ -24,7 +25,9 @@ final class OwasysRuntimeController
         private readonly OwasysAuthSession $session,
         private readonly OwasysRuntimeSecurity $security,
         private readonly OwasysScorePageRenderer $renderer,
-        private readonly OwasysSessionRuntimeInterface $sessionRuntime
+        private readonly OwasysSessionRuntimeInterface $sessionRuntime,
+        private readonly ?ProfilerInterface $profiler = null,
+        private readonly ?string $parentSpanId = null
     ) {
         $this->locales = new OwasysLocaleRegistry($siteConfig);
         $this->navigation = new OwasysNavigationBuilder($security);
@@ -37,7 +40,12 @@ final class OwasysRuntimeController
         [$locale, $routeKey] = $this->resolveRequest();
 
         $fsmConfig = $this->loadFsmConfig();
-        $fsm = FsmSiteLoader::processorForSiteRoot($this->siteRoot);
+        $fsm = FsmSiteLoader::processorForSiteRoot(
+            $this->siteRoot,
+            [],
+            $this->profiler,
+            $this->parentSpanId
+        );
         $fsmStore = new FsmSessionStore(self::FSM_SESSION_KEY);
         $fsmStore->restore($fsm);
         $currentState = $this->currentState($fsm);

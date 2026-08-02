@@ -11,6 +11,10 @@
     .metric,.panel{background:var(--panel);border:1px solid var(--line);border-radius:.75rem;padding:.8rem}.metric small{display:block;color:var(--muted)}
     .panel{margin-bottom:1rem;overflow:auto}table{width:100%;border-collapse:collapse}th,td{padding:.55rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
     th{color:var(--muted);font-size:.75rem;text-transform:uppercase}code,pre{font-family:ui-monospace,monospace}pre{margin:0;white-space:pre-wrap;max-width:42rem}.missing{color:var(--muted)}
+    .tabs{display:flex;gap:.4rem;overflow-x:auto;padding:.15rem 0 .8rem;position:sticky;top:0;background:var(--bg);z-index:2}
+    .tab{white-space:nowrap;color:var(--text);text-decoration:none;border:1px solid var(--line);border-radius:.55rem;padding:.5rem .7rem;background:var(--panel)}
+    .tab:hover,.tab:focus{border-color:#7da2ff;background:#202a3d}.tab-count{color:var(--muted);font-size:.75rem}
+    .tab-panel{display:none}.tab-panel:first-child{display:block}.tab-panels:has(.tab-panel:target) .tab-panel:first-child{display:none}.tab-panel:target{display:block}
   </style>
 </head>
 <body data-opus-component="web-profiler">
@@ -18,38 +22,39 @@
     <h1>{{ title }}</h1>
     <p><code>{{ trace.trace_id }}</code></p>
   </header>
-  <section class="summary">
-    <div class="metric"><small>Duration</small>{{ trace.duration_ms }} ms</div>
-    <div class="metric"><small>Events</small>{{ trace.event_count }}</div>
-    <div class="metric"><small>Spans</small>{{ trace.span_count }}</div>
-    <div class="metric"><small>Success</small>{{ trace.success_count }}</div>
-    <div class="metric"><small>Warnings</small>{{ trace.warning_count }}</div>
-    <div class="metric"><small>Errors</small>{{ trace.error_count }}</div>
-    <div class="metric"><small>Unavailable</small>{{ trace.unavailable_count }}</div>
-  </section>
-  <section class="panel">
-    <h2>Spans</h2>
-    [[ if: spans_available ]]
-      <table><thead><tr><th>Operation</th><th>Status</th><th>Duration</th><th>Span</th><th>Parent</th><th>Context</th></tr></thead><tbody>
-      [[ foreach: spans as span ]]
-        <tr><td>{{ span.operation }}</td><td>{{ span.status }}</td><td>{{ span.duration_ms }} ms</td><td><code>{{ span.span_id }}</code></td><td><code>{{ span.parent_span_id }}</code></td><td><pre>{{ span.context_json }}</pre></td></tr>
-      [[ endforeach ]]
-      </tbody></table>
-    [[ else ]]
-      <p class="missing">No span was collected for this trace.</p>
-    [[ endif ]]
-  </section>
-  <section class="panel">
-    <h2>Chronology</h2>
-    [[ if: events_available ]]
-      <table><thead><tr><th>#</th><th>+ms</th><th>Type</th><th>Status</th><th>Span</th><th>Parent</th><th>Context</th></tr></thead><tbody>
-      [[ foreach: events as event ]]
-        <tr><td>{{ event.index }}</td><td>{{ event.elapsed_ms }}</td><td>{{ event.type }}</td><td>{{ event.status }}</td><td><code>{{ event.span_id }}</code></td><td><code>{{ event.parent_span_id }}</code></td><td><pre>{{ event.context_json }}</pre></td></tr>
-      [[ endforeach ]]
-      </tbody></table>
-    [[ else ]]
-      <p class="missing">No event was collected for this trace.</p>
-    [[ endif ]]
-  </section>
+  <nav class="tabs" aria-label="Profiler panels">
+    [[ foreach: panels as panel ]]
+      <a class="tab" href="#panel-{{ panel.id }}">{{ panel.label }} <span class="tab-count">{{ panel.count }}</span></a>
+    [[ endforeach ]]
+  </nav>
+  <main class="tab-panels">
+    [[ foreach: panels as panel ]]
+      <section class="panel tab-panel" id="panel-{{ panel.id }}">
+        <h2>{{ panel.label }}</h2>
+        [[ if: panel.summary ]]
+          <div class="summary">
+            <div class="metric"><small>Duration</small>{{ trace.duration_ms }} ms</div>
+            <div class="metric"><small>Events</small>{{ trace.event_count }}</div>
+            <div class="metric"><small>Spans</small>{{ trace.span_count }}</div>
+            <div class="metric"><small>Success</small>{{ trace.success_count }}</div>
+            <div class="metric"><small>Warnings</small>{{ trace.warning_count }}</div>
+            <div class="metric"><small>Errors</small>{{ trace.error_count }}</div>
+            <div class="metric"><small>Unavailable</small>{{ trace.unavailable_count }}</div>
+          </div>
+        [[ endif ]]
+        [[ if: panel.details ]]
+          [[ if: panel.rows_available ]]
+            <table><thead><tr><th>Kind</th><th>#</th><th>+ms</th><th>Type</th><th>Status</th><th>Span</th><th>Parent</th><th>Context</th></tr></thead><tbody>
+            [[ foreach: panel.rows as row ]]
+              <tr><td>{{ row.kind }}</td><td>{{ row.index }}</td><td>{{ row.elapsed_ms }}</td><td>{{ row.type }}</td><td>{{ row.status }}</td><td><code>{{ row.span_id }}</code></td><td><code>{{ row.parent_span_id }}</code></td><td><pre>{{ row.context_json }}</pre></td></tr>
+            [[ endforeach ]]
+            </tbody></table>
+          [[ else ]]
+            <p class="missing">No measured event or span is available for this panel.</p>
+          [[ endif ]]
+        [[ endif ]]
+      </section>
+    [[ endforeach ]]
+  </main>
 </body>
 </html>
