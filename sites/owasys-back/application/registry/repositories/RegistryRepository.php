@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 use Opus\File\File;
 use Opus\File\StructuredFileLoader;
+use Opus\Database\DatabaseOperationProfilerInterface;
 
 final class OwasysRegistryRepository
 {
@@ -22,7 +23,8 @@ final class OwasysRegistryRepository
     public function __construct(
         private readonly string $siteRoot,
         private readonly string $opusRoot,
-        private readonly string $databaseRelative = self::DEFAULT_DATABASE
+        private readonly string $databaseRelative = self::DEFAULT_DATABASE,
+        private readonly ?DatabaseOperationProfilerInterface $databaseProfiler = null
     ) {
         if (!class_exists(SQLite3::class)) {
             throw new RuntimeException(
@@ -39,12 +41,14 @@ final class OwasysRegistryRepository
     public static function forSite(
         string $siteRoot,
         string $opusRoot,
-        ?string $databaseRelative = null
+        ?string $databaseRelative = null,
+        ?DatabaseOperationProfilerInterface $databaseProfiler = null
     ): self {
         return new self(
             rtrim($siteRoot, DIRECTORY_SEPARATOR),
             rtrim($opusRoot, DIRECTORY_SEPARATOR),
-            $databaseRelative ?? self::DEFAULT_DATABASE
+            $databaseRelative ?? self::DEFAULT_DATABASE,
+            $databaseProfiler
         );
     }
 
@@ -65,7 +69,7 @@ final class OwasysRegistryRepository
 
         try {
             $this->ensureSchema($db);
-            $db->exec('BEGIN IMMEDIATE');
+            $this->exec($db, 'BEGIN IMMEDIATE', 'transaction.begin');
             $transactionOpen = true;
             $seedImported = $this->importSeed($db, $seedFile);
             $discovery = $this->importDiscoveredSites($db);
@@ -76,11 +80,11 @@ final class OwasysRegistryRepository
                     : []
             );
             $total = $this->countApplications($db);
-            $db->exec('COMMIT');
+            $this->exec($db, 'COMMIT', 'transaction.commit');
             $transactionOpen = false;
         } catch (Throwable $exception) {
             if ($transactionOpen) {
-                $db->exec('ROLLBACK');
+                $this->exec($db, 'ROLLBACK', 'transaction.rollback');
             }
 
             throw $exception;
@@ -119,7 +123,7 @@ final class OwasysRegistryRepository
 
         try {
             $this->ensureSchema($db);
-            $result = $db->query(
+            $result = $this->query($db,
                 'SELECT id, slug, name, kind, root_path, public_root, '
                 . 'default_locale, theme, status, blueprint, generated_by, '
                 . 'role, source, updated_at '
@@ -157,7 +161,7 @@ final class OwasysRegistryRepository
 
         try {
             $this->ensureSchema($db);
-            $stmt = $db->prepare(
+            $stmt = $this->prepare($db,
                 'SELECT id, application_id, event_type, payload_json, '
                 . 'created_at FROM owasys_application_events '
                 . 'ORDER BY id DESC LIMIT :limit'
@@ -170,7 +174,7 @@ final class OwasysRegistryRepository
             }
 
             $stmt->bindValue(':limit', $limit, SQLITE3_INTEGER);
-            $result = $stmt->execute();
+            $result = $this->execute($stmt, 'runtime_event.recent');
 
             if (!$result instanceof SQLite3Result) {
                 throw new RuntimeException(
@@ -333,17 +337,21 @@ final class OwasysRegistryRepository
             );
         }
 
-        $db = new SQLite3($path);
+        $db = $this->measure(
+            'connection.open',
+            fn (): SQLite3 => new SQLite3($path),
+            ['database' => $this->relativeDatabasePath()]
+        );
         $db->enableExceptions(true);
         $db->busyTimeout(5000);
-        $db->exec('PRAGMA foreign_keys = ON');
+        $this->exec($db, 'PRAGMA foreign_keys = ON', 'connection.configure');
 
         return $db;
     }
 
     private function ensureSchema(SQLite3 $db): void
     {
-        $db->exec(<<<'SQL'
+        $this->exec($db, <<<'SQL'
 CREATE TABLE IF NOT EXISTS owasys_applications (
     id TEXT PRIMARY KEY,
     slug TEXT NOT NULL,
@@ -362,9 +370,9 @@ CREATE TABLE IF NOT EXISTS owasys_applications (
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 )
-SQL);
+SQL, 'schema.application.ensure');
 
-        $db->exec(<<<'SQL'
+        $this->exec($db, <<<'SQL'
 CREATE TABLE IF NOT EXISTS owasys_application_events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     application_id TEXT NOT NULL,
@@ -375,15 +383,15 @@ CREATE TABLE IF NOT EXISTS owasys_application_events (
         REFERENCES owasys_applications(id)
         ON DELETE CASCADE
 )
-SQL);
+SQL, 'schema.event.ensure');
 
-        $db->exec(<<<'SQL'
+        $this->exec($db, <<<'SQL'
 CREATE TABLE IF NOT EXISTS owasys_runtime_context (
     key TEXT PRIMARY KEY,
     value_json TEXT NOT NULL,
     updated_at TEXT NOT NULL
 )
-SQL);
+SQL, 'schema.context.ensure');
     }
 
     private function importSeed(SQLite3 $db, string $seedFile): int
@@ -580,7 +588,7 @@ SQL);
             $canonicalRoots[$normalized['id']] = $normalized['root_path'];
         }
 
-        $result = $db->query(
+        $result = $this->query($db,
             'SELECT id, root_path FROM owasys_applications ORDER BY id ASC'
         );
 
@@ -616,7 +624,7 @@ SQL);
             $this->deleteContextValue($db, 'current_app');
         }
 
-        $stmt = $db->prepare(
+        $stmt = $this->prepare($db,
             'DELETE FROM owasys_applications WHERE id = :id'
         );
 
@@ -629,7 +637,7 @@ SQL);
         foreach ($staleIds as $staleId) {
             $stmt->reset();
             $stmt->bindValue(':id', $staleId, SQLITE3_TEXT);
-            $deleteResult = $stmt->execute();
+            $deleteResult = $this->execute($stmt, 'application.delete');
 
             if ($deleteResult instanceof SQLite3Result) {
                 $deleteResult->finalize();
@@ -732,7 +740,7 @@ ON CONFLICT(id) DO UPDATE SET
     updated_at = excluded.updated_at
 SQL;
 
-        $stmt = $db->prepare($sql);
+        $stmt = $this->prepare($db, $sql, 'application.upsert.prepare');
 
         if (!$stmt instanceof SQLite3Stmt) {
             throw new RuntimeException(
@@ -753,7 +761,7 @@ SQL;
         $stmt->bindValue(':created_at', $now, SQLITE3_TEXT);
         $stmt->bindValue(':updated_at', $now, SQLITE3_TEXT);
 
-        $result = $stmt->execute();
+        $result = $this->execute($stmt, 'application.upsert');
 
         if ($result instanceof SQLite3Result) {
             $result->finalize();
@@ -884,8 +892,12 @@ SQL;
 
     private function countApplications(SQLite3 $db): int
     {
-        $count = $db->querySingle(
-            'SELECT COUNT(*) FROM owasys_applications'
+        $count = $this->measure(
+            'application.count',
+            fn (): mixed => $db->querySingle(
+                'SELECT COUNT(*) FROM owasys_applications'
+            ),
+            ['statement_type' => 'select']
         );
 
         return is_numeric($count) ? (int) $count : 0;
@@ -895,7 +907,7 @@ SQL;
         SQLite3 $db,
         string $applicationId
     ): bool {
-        $stmt = $db->prepare(
+        $stmt = $this->prepare($db,
             'SELECT id FROM owasys_applications '
             . 'WHERE id = :id LIMIT 1'
         );
@@ -907,7 +919,7 @@ SQL;
         }
 
         $stmt->bindValue(':id', $applicationId, SQLITE3_TEXT);
-        $result = $stmt->execute();
+        $result = $this->execute($stmt, 'application.exists');
 
         if (!$result instanceof SQLite3Result) {
             throw new RuntimeException(
@@ -928,7 +940,7 @@ SQL;
         string $key
     ): ?array {
         $this->assertRuntimeKey($key);
-        $stmt = $db->prepare(
+        $stmt = $this->prepare($db,
             'SELECT value_json FROM owasys_runtime_context '
             . 'WHERE key = :key LIMIT 1'
         );
@@ -940,7 +952,7 @@ SQL;
         }
 
         $stmt->bindValue(':key', $key, SQLITE3_TEXT);
-        $result = $stmt->execute();
+        $result = $this->execute($stmt, 'application.read');
 
         if (!$result instanceof SQLite3Result) {
             throw new RuntimeException(
@@ -978,7 +990,7 @@ SQL;
             | JSON_THROW_ON_ERROR
         );
 
-        $stmt = $db->prepare(
+        $stmt = $this->prepare($db,
             'INSERT INTO owasys_runtime_context '
             . '(key, value_json, updated_at) '
             . 'VALUES (:key, :value_json, :updated_at) '
@@ -996,7 +1008,7 @@ SQL;
         $stmt->bindValue(':key', $key, SQLITE3_TEXT);
         $stmt->bindValue(':value_json', $json, SQLITE3_TEXT);
         $stmt->bindValue(':updated_at', gmdate('c'), SQLITE3_TEXT);
-        $result = $stmt->execute();
+        $result = $this->execute($stmt, 'runtime_context.write');
 
         if ($result instanceof SQLite3Result) {
             $result->finalize();
@@ -1010,7 +1022,7 @@ SQL;
         string $key
     ): void {
         $this->assertRuntimeKey($key);
-        $stmt = $db->prepare(
+        $stmt = $this->prepare($db,
             'DELETE FROM owasys_runtime_context WHERE key = :key'
         );
 
@@ -1021,7 +1033,7 @@ SQL;
         }
 
         $stmt->bindValue(':key', $key, SQLITE3_TEXT);
-        $result = $stmt->execute();
+        $result = $this->execute($stmt, 'runtime_context.clear');
 
         if ($result instanceof SQLite3Result) {
             $result->finalize();
@@ -1051,7 +1063,7 @@ SQL;
             | JSON_UNESCAPED_UNICODE
             | JSON_THROW_ON_ERROR
         );
-        $stmt = $db->prepare(
+        $stmt = $this->prepare($db,
             'INSERT INTO owasys_application_events '
             . '(application_id, event_type, payload_json, created_at) '
             . 'VALUES (:application_id, :event_type, '
@@ -1073,7 +1085,7 @@ SQL;
         $stmt->bindValue(':event_type', $eventType, SQLITE3_TEXT);
         $stmt->bindValue(':payload_json', $json, SQLITE3_TEXT);
         $stmt->bindValue(':created_at', gmdate('c'), SQLITE3_TEXT);
-        $result = $stmt->execute();
+        $result = $this->execute($stmt, 'runtime_event.append');
 
         if ($result instanceof SQLite3Result) {
             $result->finalize();
@@ -1153,5 +1165,88 @@ SQL;
         return str_starts_with($normalized, $root)
             ? substr($normalized, strlen($root))
             : $normalized;
+    }
+
+    private function exec(
+        SQLite3 $database,
+        string $sql,
+        string $operation
+    ): bool {
+        return $this->measure(
+            $operation,
+            fn (): bool => $database->exec($sql),
+            ['statement_type' => $this->statementType($sql)]
+        );
+    }
+
+    private function query(
+        SQLite3 $database,
+        string $sql,
+        string $operation = 'query'
+    ): SQLite3Result|false {
+        return $this->measure(
+            $operation,
+            fn (): SQLite3Result|false => $database->query($sql),
+            ['statement_type' => $this->statementType($sql)]
+        );
+    }
+
+    private function prepare(
+        SQLite3 $database,
+        string $sql,
+        string $operation = 'statement.prepare'
+    ): SQLite3Stmt|false {
+        return $this->measure(
+            $operation,
+            fn (): SQLite3Stmt|false => $database->prepare($sql),
+            ['statement_type' => $this->statementType($sql)]
+        );
+    }
+
+    private function execute(
+        SQLite3Stmt $statement,
+        string $operation
+    ): SQLite3Result|false {
+        return $this->measure(
+            $operation,
+            fn (): SQLite3Result|false => $statement->execute()
+        );
+    }
+
+    /**
+     * @template T
+     * @param callable():T $operation
+     * @param array<string,mixed> $context
+     * @return T
+     */
+    private function measure(
+        string $name,
+        callable $operation,
+        array $context = []
+    ): mixed {
+        if ($this->databaseProfiler === null) {
+            return $operation();
+        }
+
+        return $this->databaseProfiler->measure(
+            'sqlite3',
+            $name,
+            $operation,
+            $context + [
+                'database' => $this->relativeDatabasePath(),
+                'resource' => 'owasys_registry',
+                'origin' => self::class,
+            ]
+        );
+    }
+
+    private function statementType(string $sql): string
+    {
+        $normalized = ltrim($sql);
+        if (preg_match('/^([A-Za-z]+)/', $normalized, $match) !== 1) {
+            return 'unknown';
+        }
+
+        return strtolower($match[1]);
     }
 }

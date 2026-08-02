@@ -2,8 +2,10 @@
 declare(strict_types=1);
 
 use Opus\Console\Application\ApplicationCommandProviderInterface;
+use Opus\Database\DatabaseOperationProfiler;
 use Opus\File\File;
 use Opus\File\StructuredFileLoader;
+use Opus\Profiler\Profiler;
 use Opus\Security\Acl\AclPolicy;
 use Opus\Security\Sso\LocalPasswordSsoProvider;
 use Opus\Security\Sso\SsoManager;
@@ -19,12 +21,17 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
     ];
 
     private readonly AclPolicy $acl;
+    private readonly Profiler $profiler;
+    private ?string $activeComposerSpanId = null;
 
     public function __construct(
         private readonly string $siteRoot,
         private readonly string $opusRoot
     ) {
         $this->acl = new AclPolicy($this->siteRoot . '/config/acl.json');
+        $this->profiler = new Profiler(
+            $this->siteRoot . '/var/profiler/runtime'
+        );
     }
 
     public function supports(string $command): bool
@@ -44,20 +51,51 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
         }
 
         $actor = $this->actor($request);
+        $traceId = strtolower(trim((string) ($request['trace_id'] ?? '')));
+        if (preg_match('/^[a-f0-9]{16,64}$/D', $traceId) !== 1) {
+            throw new RuntimeException('OWASYS_COMMAND_TRACE_ID_INVALID');
+        }
+        $ownsTrace = $this->profiler->getActiveTrace() === null;
+        if ($ownsTrace) {
+            $this->profiler->start($traceId);
+        }
+        $spanId = $this->profiler->beginSpan(
+            'composer',
+            'composer.command',
+            ['command' => $command]
+        );
+        $this->activeComposerSpanId = $spanId;
 
-        return match ($command) {
-            'owasys:registry:sync' => $this->registrySnapshot($actor),
-            'owasys:registry:select' => $this->registrySelect(
-                $arguments,
-                $actor
-            ),
-            'owasys:registry:clear' => $this->registryClear($actor),
-            'owasys:security:admin-password:change' =>
-                $this->changePassword($request, $actor),
-            default => throw new RuntimeException(
-                'OWASYS_COMMAND_UNKNOWN:' . $command
-            ),
-        };
+        try {
+            $result = match ($command) {
+                'owasys:registry:sync' => $this->registrySnapshot($actor),
+                'owasys:registry:select' => $this->registrySelect(
+                    $arguments,
+                    $actor
+                ),
+                'owasys:registry:clear' => $this->registryClear($actor),
+                'owasys:security:admin-password:change' =>
+                    $this->changePassword($request, $actor),
+                default => throw new RuntimeException(
+                    'OWASYS_COMMAND_UNKNOWN:' . $command
+                ),
+            };
+            $this->profiler->endSpan($spanId, 'success');
+            return $result;
+        } catch (Throwable $error) {
+            $this->profiler->endSpan($spanId, 'error', [
+                'exception_class' => $error::class,
+            ]);
+            throw $error;
+        } finally {
+            $this->activeComposerSpanId = null;
+            if ($ownsTrace) {
+                $this->profiler->stop([
+                    'component' => self::class,
+                    'command' => $command,
+                ]);
+            }
+        }
     }
 
     /** @param array<string,mixed> $actor */
@@ -366,7 +404,12 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
     {
         return OwasysRegistryRepository::forSite(
             $this->siteRoot,
-            $this->opusRoot
+            $this->opusRoot,
+            null,
+            new DatabaseOperationProfiler(
+                $this->profiler,
+                $this->activeComposerSpanId
+            )
         );
     }
 
