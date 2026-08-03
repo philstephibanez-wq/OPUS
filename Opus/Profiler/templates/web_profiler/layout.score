@@ -1,62 +1,29 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ title }}</title>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ title }}</title>
   <style>
-    :root{color-scheme:dark;--bg:#10131a;--panel:#171b25;--line:#30384d;--text:#eef3ff;--muted:#9ba7bd}
-    *{box-sizing:border-box}body{margin:0;padding:1rem;background:var(--bg);color:var(--text);font-family:system-ui,sans-serif}
-    h1,h2{margin:.2rem 0 1rem}.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:.6rem;margin-bottom:1rem}
-    .metric,.panel{background:var(--panel);border:1px solid var(--line);border-radius:.75rem;padding:.8rem}.metric small{display:block;color:var(--muted)}
-    .panel{margin-bottom:1rem;overflow:auto}table{width:100%;border-collapse:collapse}th,td{padding:.55rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-    th{color:var(--muted);font-size:.75rem;text-transform:uppercase}code,pre{font-family:ui-monospace,monospace}pre{margin:0;white-space:pre-wrap;max-width:42rem}.missing{color:var(--muted)}
-    .tabs{display:flex;gap:.4rem;overflow-x:auto;padding:.15rem 0 .8rem;position:sticky;top:0;background:var(--bg);z-index:2}
-    .tab{white-space:nowrap;color:var(--text);text-decoration:none;border:1px solid var(--line);border-radius:.55rem;padding:.5rem .7rem;background:var(--panel)}
-    .tab:hover,.tab:focus{border-color:#7da2ff;background:#202a3d}.tab-count{color:var(--muted);font-size:.75rem}
-    .tab:first-child{border-color:#7da2ff;background:#294c70;color:#fff;font-weight:700}.tabs:has(+.tab-panels .tab-panel:target) .tab:first-child{border-color:var(--line);background:var(--panel);font-weight:400}
-    body:has(#panel-summary:target) .tab[href="#panel-summary"],body:has(#panel-timeline:target) .tab[href="#panel-timeline"],body:has(#panel-http:target) .tab[href="#panel-http"],body:has(#panel-routing:target) .tab[href="#panel-routing"],body:has(#panel-fsm:target) .tab[href="#panel-fsm"],body:has(#panel-score:target) .tab[href="#panel-score"],body:has(#panel-security:target) .tab[href="#panel-security"],body:has(#panel-database:target) .tab[href="#panel-database"],body:has(#panel-rest:target) .tab[href="#panel-rest"],body:has(#panel-composer:target) .tab[href="#panel-composer"],body:has(#panel-session:target) .tab[href="#panel-session"],body:has(#panel-cache:target) .tab[href="#panel-cache"],body:has(#panel-i18n:target) .tab[href="#panel-i18n"],body:has(#panel-logs:target) .tab[href="#panel-logs"],body:has(#panel-exceptions:target) .tab[href="#panel-exceptions"],body:has(#panel-configuration:target) .tab[href="#panel-configuration"],body:has(#panel-runtime:target) .tab[href="#panel-runtime"],body:has(#panel-performance:target) .tab[href="#panel-performance"]{border-color:#7da2ff;background:#294c70;color:#fff;font-weight:700}
+    :root{color-scheme:dark;--bg:#10131a;--panel:#171b25;--line:#30384d;--text:#eef3ff;--muted:#9ba7bd;--accent:#7da2ff}
+    *{box-sizing:border-box}body{margin:0;padding:1rem;background:var(--bg);color:var(--text);font-family:system-ui,sans-serif}h1,h2{margin:.2rem 0 1rem}
+    .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:.6rem;margin-bottom:1rem}.metric,.panel{background:var(--panel);border:1px solid var(--line);border-radius:.75rem;padding:.8rem}.metric small{display:block;color:var(--muted)}
+    .panel{margin-bottom:1rem;overflow:auto}table{width:100%;border-collapse:collapse;table-layout:auto}th,td{padding:.55rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{color:var(--muted);font-size:.75rem;text-transform:uppercase}code,pre{font-family:ui-monospace,monospace}.missing,.context-summary{color:var(--muted)}
+    .tabs{display:flex;gap:.4rem;overflow-x:auto;padding:.15rem 0 .8rem;position:sticky;top:0;background:var(--bg);z-index:2}.tab{white-space:nowrap;color:var(--text);text-decoration:none;border:1px solid var(--line);border-radius:.55rem;padding:.5rem .7rem;background:var(--panel)}.tab:hover,.tab:focus{border-color:var(--accent);background:#202a3d}.tab-count{color:var(--muted);font-size:.75rem}.tab:first-child{border-color:var(--accent);background:#294c70;color:#fff;font-weight:700}.tabs:has(+.tab-panels .tab-panel:target) .tab:first-child{border-color:var(--line);background:var(--panel);font-weight:400}
+    body:has(#panel-summary:target) .tab[href="#panel-summary"],body:has(#panel-timeline:target) .tab[href="#panel-timeline"],body:has(#panel-http:target) .tab[href="#panel-http"],body:has(#panel-routing:target) .tab[href="#panel-routing"],body:has(#panel-fsm:target) .tab[href="#panel-fsm"],body:has(#panel-score:target) .tab[href="#panel-score"],body:has(#panel-security:target) .tab[href="#panel-security"],body:has(#panel-database:target) .tab[href="#panel-database"],body:has(#panel-rest:target) .tab[href="#panel-rest"],body:has(#panel-composer:target) .tab[href="#panel-composer"],body:has(#panel-session:target) .tab[href="#panel-session"],body:has(#panel-cache:target) .tab[href="#panel-cache"],body:has(#panel-i18n:target) .tab[href="#panel-i18n"],body:has(#panel-logs:target) .tab[href="#panel-logs"],body:has(#panel-exceptions:target) .tab[href="#panel-exceptions"],body:has(#panel-configuration:target) .tab[href="#panel-configuration"],body:has(#panel-runtime:target) .tab[href="#panel-runtime"],body:has(#panel-performance:target) .tab[href="#panel-performance"]{border-color:var(--accent);background:#294c70;color:#fff;font-weight:700}
     .tab-panel{display:none}.tab-panel:first-child{display:block}.tab-panels:has(.tab-panel:target) .tab-panel:first-child{display:none}.tab-panel:target{display:block}
+    .trace-row>td{white-space:nowrap}.trace-row .type{white-space:normal;min-width:13rem}.trace-row .context-cell{white-space:normal;min-width:18rem;max-width:34rem}.detail-row>td{padding:0 .55rem 1rem}.detail{border-left:3px solid var(--accent);padding:.7rem;background:#121722}.detail summary{cursor:pointer;font-weight:700}.detail-grid{margin-top:.7rem;table-layout:fixed}.detail-grid .path{width:30%;overflow-wrap:anywhere}.detail-grid .value{white-space:pre-wrap;overflow-wrap:anywhere}.raw{margin-top:.7rem}.raw pre{margin:.5rem 0 0;white-space:pre-wrap;overflow-wrap:anywhere;max-height:28rem;overflow:auto;background:#0c0f15;padding:.7rem;border-radius:.45rem}
   </style>
 </head>
-<body data-opus-component="web-profiler">
-  <header>
-    <h1>{{ title }}</h1>
-    <p><code>{{ trace.trace_id }}</code></p>
-  </header>
-  <nav class="tabs" aria-label="Profiler panels">
-    [[ foreach: panels as panel ]]
-      <a class="tab" href="#panel-{{ panel.id }}">{{ panel.label }} <span class="tab-count">{{ panel.count }}</span></a>
-    [[ endforeach ]]
-  </nav>
-  <main class="tab-panels">
-    [[ foreach: panels as panel ]]
-      <section class="panel tab-panel" id="panel-{{ panel.id }}">
-        <h2>{{ panel.label }}</h2>
-        [[ if: panel.summary ]]
-          <div class="summary">
-            <div class="metric"><small>Duration</small>{{ trace.duration_ms }} ms</div>
-            <div class="metric"><small>Events</small>{{ trace.event_count }}</div>
-            <div class="metric"><small>Spans</small>{{ trace.span_count }}</div>
-            <div class="metric"><small>Success</small>{{ trace.success_count }}</div>
-            <div class="metric"><small>Warnings</small>{{ trace.warning_count }}</div>
-            <div class="metric"><small>Errors</small>{{ trace.error_count }}</div>
-            <div class="metric"><small>Unavailable</small>{{ trace.unavailable_count }}</div>
-          </div>
-        [[ endif ]]
-        [[ if: panel.details ]]
-          [[ if: panel.rows_available ]]
-            <table><thead><tr><th>Kind</th><th>#</th><th>+ms</th><th>Type</th><th>Status</th><th>Span</th><th>Parent</th><th>Context</th></tr></thead><tbody>
-            [[ foreach: panel.rows as row ]]
-              <tr><td>{{ row.kind }}</td><td>{{ row.index }}</td><td>{{ row.elapsed_ms }}</td><td>{{ row.type }}</td><td>{{ row.status }}</td><td><code>{{ row.span_id }}</code></td><td><code>{{ row.parent_span_id }}</code></td><td><pre>{{ row.context_json }}</pre></td></tr>
-            [[ endforeach ]]
-            </tbody></table>
-          [[ else ]]
-            <p class="missing">No measured event or span is available for this panel.</p>
-          [[ endif ]]
-        [[ endif ]]
-      </section>
-    [[ endforeach ]]
-  </main>
-</body>
-</html>
+<body data-opus-component="web-profiler"><header><h1>{{ title }}</h1><p><code>{{ trace.trace_id }}</code></p></header>
+  <nav class="tabs" aria-label="Panneaux du Profiler">[[ foreach: panels as panel ]]<a class="tab" href="#panel-{{ panel.id }}">{{ panel.label }} <span class="tab-count">{{ panel.count }}</span></a>[[ endforeach ]]</nav>
+  <main class="tab-panels">[[ foreach: panels as panel ]]<section class="panel tab-panel" id="panel-{{ panel.id }}"><h2>{{ panel.label }}</h2>
+    [[ if: panel.summary ]]<div class="summary"><div class="metric"><small>Durée</small>{{ trace.duration_ms }} ms</div><div class="metric"><small>Événements</small>{{ trace.event_count }}</div><div class="metric"><small>Étapes</small>{{ trace.span_count }}</div><div class="metric"><small>Succès</small>{{ trace.success_count }}</div><div class="metric"><small>Avertissements</small>{{ trace.warning_count }}</div><div class="metric"><small>Erreurs</small>{{ trace.error_count }}</div><div class="metric"><small>Indisponibles</small>{{ trace.unavailable_count }}</div></div>[[ endif ]]
+    [[ if: panel.details ]][[ if: panel.rows_available ]]
+      <table><thead><tr><th>Nature</th><th>#</th><th>+ms</th><th>Type</th><th>Statut</th><th>ID d’étape</th><th>Étape parente</th><th>Résumé</th></tr></thead><tbody>
+      [[ foreach: panel.rows as row ]]<tr class="trace-row"><td>{{ row.kind }}</td><td>{{ row.index }}</td><td>{{ row.elapsed_ms }}</td><td class="type">{{ row.type }}</td><td>{{ row.status }}</td><td><code>{{ row.span_id }}</code></td><td><code>{{ row.parent_span_id }}</code></td><td class="context-cell"><span class="context-summary">{{ row.context_summary }}</span></td></tr>
+      <tr class="detail-row"><td colspan="8"><details class="detail"><summary>Détails de débogage</summary>
+        [[ if: row.context_available ]]<table class="detail-grid"><thead><tr><th>Chemin</th><th>Type</th><th>Valeur</th></tr></thead><tbody>[[ foreach: row.context_fields as field ]]<tr><td class="path"><code>{{ field.path }}</code></td><td>{{ field.type }}</td><td class="value"><code>{{ field.value }}</code></td></tr>[[ endforeach ]]</tbody></table>[[ endif ]]
+        <details class="raw"><summary>JSON brut</summary><pre>{{ row.context_json }}</pre></details>
+      </details></td></tr>[[ endforeach ]]</tbody></table>
+    [[ else ]]<p class="missing">Aucun événement ni aucune étape mesurée pour ce panneau.</p>[[ endif ]][[ endif ]]
+  </section>[[ endforeach ]]</main>
+</body></html>

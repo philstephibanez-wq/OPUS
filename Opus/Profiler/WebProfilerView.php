@@ -13,59 +13,38 @@ final class WebProfilerView implements WebProfilerViewInterface
         $events = $this->normalizeEvents((array) ($trace['events'] ?? []));
         $spans = $this->normalizeSpans((array) ($trace['spans'] ?? []));
         $panels = $this->buildPanels($events, $spans);
-        $statusCounts = is_array($trace['status_counts'] ?? null)
-            ? $trace['status_counts']
-            : [];
+        $statusCounts = is_array($trace['status_counts'] ?? null) ? $trace['status_counts'] : [];
 
-        return (new ScoreTemplateRenderer(__DIR__ . '/templates/web_profiler'))->render(
-            'layout.score',
-            [
-                'title' => 'OPUS Profiler',
-                'trace' => [
-                    'trace_id' => (string) ($trace['trace_id'] ?? ''),
-                    'started_at' => (string) ($trace['started_at'] ?? ''),
-                    'duration_ms' => (string) ($trace['duration_ms'] ?? ''),
-                    'event_count' => (string) count($events),
-                    'span_count' => (string) count($spans),
-                    'success_count' => (string) ($statusCounts['success'] ?? 0),
-                    'warning_count' => (string) ($statusCounts['warning'] ?? 0),
-                    'error_count' => (string) ($statusCounts['error'] ?? 0),
-                    'unavailable_count' => (string) ($statusCounts['unavailable'] ?? 0),
-                ],
-                'events' => $events,
-                'events_available' => $events !== [],
-                'spans' => $spans,
-                'spans_available' => $spans !== [],
-                'panels' => $panels,
-            ]
-        );
+        return (new ScoreTemplateRenderer(__DIR__ . '/templates/web_profiler'))->render('layout.score', [
+            'title' => 'OPUS Profiler',
+            'trace' => [
+                'trace_id' => (string) ($trace['trace_id'] ?? ''),
+                'started_at' => (string) ($trace['started_at'] ?? ''),
+                'duration_ms' => (string) ($trace['duration_ms'] ?? ''),
+                'event_count' => (string) count($events),
+                'span_count' => (string) count($spans),
+                'success_count' => (string) ($statusCounts['success'] ?? 0),
+                'warning_count' => (string) ($statusCounts['warning'] ?? 0),
+                'error_count' => (string) ($statusCounts['error'] ?? 0),
+                'unavailable_count' => (string) ($statusCounts['unavailable'] ?? 0),
+            ],
+            'panels' => $panels,
+        ]);
     }
 
-    /**
-     * Builds the fixed profiler navigation without claiming unobserved activity.
-     *
-     * @param list<array<string,string>> $events
-     * @param list<array<string,string>> $spans
-     * @return list<array<string,mixed>>
-     */
+    /** @param list<array<string,mixed>> $events @param list<array<string,mixed>> $spans @return list<array<string,mixed>> */
     private function buildPanels(array $events, array $spans): array
     {
         $definitions = [
-            'summary' => ['Summary', []],
-            'timeline' => ['Timeline', ['*']],
+            'summary' => ['Summary', []], 'timeline' => ['Timeline', ['*']],
             'http' => ['Request / Response', ['http', 'request', 'response']],
-            'routing' => ['Routing / Controller', ['routing', 'controller']],
-            'fsm' => ['FSM', ['fsm']],
+            'routing' => ['Routing / Controller', ['routing', 'controller']], 'fsm' => ['FSM', ['fsm']],
             'score' => ['SCORE', ['score', 'template', 'asset']],
             'security' => ['Security / ACL / SSO', ['security', 'acl', 'sso', 'auth']],
-            'database' => ['Database', ['database']],
-            'rest' => ['REST', ['rest', 'rcp']],
-            'composer' => ['Composer', ['composer']],
-            'session' => ['Session', ['session']],
-            'cache' => ['Cache', ['cache']],
-            'i18n' => ['I18n', ['i18n', 'translation', 'locale']],
-            'logs' => ['Logs', ['log', 'logger']],
-            'exceptions' => ['Exceptions', ['exception']],
+            'database' => ['Database', ['database']], 'rest' => ['REST', ['rest', 'rcp']],
+            'composer' => ['Composer', ['composer']], 'session' => ['Session', ['session']],
+            'cache' => ['Cache', ['cache']], 'i18n' => ['I18n', ['i18n', 'translation', 'locale']],
+            'logs' => ['Logs', ['log', 'logger']], 'exceptions' => ['Exceptions', ['exception']],
             'configuration' => ['Configuration', ['config', 'configuration']],
             'runtime' => ['Runtime PHP / OPUS', ['runtime', 'profiler']],
             'performance' => ['Performance', ['memory', 'performance']],
@@ -84,77 +63,102 @@ final class WebProfilerView implements WebProfilerViewInterface
                 }
             }
             $panels[] = [
-                'id' => $id,
-                'label' => $label,
-                'count' => (string) count($rows),
-                'rows' => $rows,
-                'rows_available' => $rows !== [],
-                'summary' => $id === 'summary',
-                'details' => $id !== 'summary',
+                'id' => $id, 'label' => $label, 'count' => (string) count($rows), 'rows' => $rows,
+                'rows_available' => $rows !== [], 'summary' => $id === 'summary', 'details' => $id !== 'summary',
             ];
         }
-
         return $panels;
     }
 
-    /** @param array<int,mixed> $events @return list<array<string,string>> */
+    /** @param array<int,mixed> $events @return list<array<string,mixed>> */
     private function normalizeEvents(array $events): array
     {
         $rows = [];
         foreach ($events as $event) {
-            if (!is_array($event)) {
-                continue;
-            }
-            $rows[] = [
-                'kind' => 'Event',
-                'index' => (string) ($event['index'] ?? ''),
-                'elapsed_ms' => (string) ($event['elapsed_ms'] ?? ''),
-                'category' => (string) ($event['category'] ?? ''),
-                'type' => (string) ($event['type'] ?? (
-                    ($event['category'] ?? '') . '.' . ($event['name'] ?? '')
-                )),
-                'status' => (string) ($event['status'] ?? 'unavailable'),
-                'span_id' => (string) ($event['span_id'] ?? ''),
-                'parent_span_id' => (string) ($event['parent_span_id'] ?? ''),
-                'context_json' => $this->encode((array) ($event['context'] ?? [])),
-            ];
+            if (!is_array($event)) { continue; }
+            $rows[] = $this->buildRow(
+                'Événement', (string) ($event['index'] ?? ''), (string) ($event['elapsed_ms'] ?? ''),
+                (string) ($event['category'] ?? ''),
+                (string) ($event['type'] ?? (($event['category'] ?? '') . '.' . ($event['name'] ?? ''))),
+                (string) ($event['status'] ?? 'unavailable'), (string) ($event['span_id'] ?? ''),
+                (string) ($event['parent_span_id'] ?? ''), (array) ($event['context'] ?? [])
+            );
         }
         return $rows;
     }
 
-    /** @param array<int,mixed> $spans @return list<array<string,string>> */
+    /** @param array<int,mixed> $spans @return list<array<string,mixed>> */
     private function normalizeSpans(array $spans): array
     {
         $rows = [];
         foreach ($spans as $span) {
-            if (!is_array($span)) {
-                continue;
-            }
-            $rows[] = [
-                'kind' => 'Span',
-                'index' => '',
-                'elapsed_ms' => (string) ($span['duration_ms'] ?? ''),
-                'category' => (string) ($span['category'] ?? ''),
-                'type' => (string) (($span['category'] ?? '') . '.' . ($span['name'] ?? '')),
-                'span_id' => (string) ($span['span_id'] ?? ''),
-                'parent_span_id' => (string) ($span['parent_span_id'] ?? ''),
-                'operation' => (string) (
-                    ($span['category'] ?? '') . '.' . ($span['name'] ?? '')
-                ),
-                'status' => (string) ($span['status'] ?? 'unavailable'),
-                'duration_ms' => (string) ($span['duration_ms'] ?? ''),
-                'context_json' => $this->encode((array) ($span['context'] ?? [])),
-            ];
+            if (!is_array($span)) { continue; }
+            $category = (string) ($span['category'] ?? '');
+            $rows[] = $this->buildRow(
+                'Étape', '', (string) ($span['duration_ms'] ?? ''), $category,
+                $category . '.' . (string) ($span['name'] ?? ''),
+                (string) ($span['status'] ?? 'unavailable'), (string) ($span['span_id'] ?? ''),
+                (string) ($span['parent_span_id'] ?? ''), (array) ($span['context'] ?? [])
+            );
         }
         return $rows;
+    }
+
+    /** @param array<string,mixed> $context @return array<string,mixed> */
+    private function buildRow(string $kind, string $index, string $elapsed, string $category, string $type, string $status, string $spanId, string $parentSpanId, array $context): array
+    {
+        $fields = $this->flattenContext($context);
+        return [
+            'kind' => $kind, 'index' => $index, 'elapsed_ms' => $elapsed, 'category' => $category,
+            'type' => $type, 'status' => $status, 'span_id' => $spanId, 'parent_span_id' => $parentSpanId,
+            'context_summary' => $this->contextSummary($fields), 'context_fields' => $fields,
+            'context_available' => $fields !== [], 'context_json' => $this->encode($context),
+        ];
+    }
+
+    /** @param array<string,mixed> $context @return list<array<string,string>> */
+    private function flattenContext(array $context): array
+    {
+        $fields = [];
+        $walk = static function (mixed $value, string $path) use (&$walk, &$fields): void {
+            if (is_array($value)) {
+                if ($value === []) {
+                    $fields[] = ['path' => $path, 'type' => 'array', 'value' => '[]'];
+                    return;
+                }
+                foreach ($value as $key => $child) {
+                    $walk($child, $path === '' ? (string) $key : $path . '.' . $key);
+                }
+                return;
+            }
+            $type = get_debug_type($value);
+            if (is_bool($value)) { $display = $value ? 'true' : 'false'; }
+            elseif ($value === null) { $display = 'null'; }
+            elseif (is_scalar($value)) { $display = (string) $value; }
+            else { $display = '[' . $type . ']'; }
+            $fields[] = ['path' => $path === '' ? '(value)' : $path, 'type' => $type, 'value' => $display];
+        };
+        $walk($context, '');
+        return $fields;
+    }
+
+    /** @param list<array<string,string>> $fields */
+    private function contextSummary(array $fields): string
+    {
+        if ($fields === []) { return 'Aucun détail'; }
+        $parts = [];
+        foreach (array_slice($fields, 0, 3) as $field) {
+            $value = $field['value'];
+            if (strlen($value) > 48) { $value = substr($value, 0, 45) . '…'; }
+            $parts[] = $field['path'] . '=' . $value;
+        }
+        if (count($fields) > 3) { $parts[] = '+' . (count($fields) - 3) . ' champs'; }
+        return implode(' · ', $parts);
     }
 
     /** @param array<string,mixed> $value */
     private function encode(array $value): string
     {
-        return json_encode(
-            $value,
-            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
-        ) ?: '{}';
+        return json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}';
     }
 }
