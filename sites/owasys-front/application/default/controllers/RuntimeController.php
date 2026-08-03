@@ -55,7 +55,7 @@ final class OwasysRuntimeController
         $errorKey = null;
 
         try {
-            $resolved = $this->resolveSignal(
+            $resolved = $this->resolveRequestSignal(
                 $method,
                 $routeKey,
                 $currentState,
@@ -198,7 +198,7 @@ final class OwasysRuntimeController
      * @param array<string,mixed>|null $identity
      * @return array<string,mixed>
      */
-    private function resolveSignal(
+    private function resolveRequestSignal(
         string $method,
         string $routeKey,
         string $currentState,
@@ -861,3 +861,4 @@ final class OwasysRuntimeController
         exit($message);
     }
 }
+
