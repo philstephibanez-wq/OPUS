@@ -11,7 +11,7 @@ final class OwasysRegistryController
     public function handle(string $method, array $post): array
     {
         $sync = $this->model->synchronize();
-        $event = null;
+        $signal = null;
         $selectedApp = null;
         $error = null;
 
@@ -27,13 +27,13 @@ final class OwasysRegistryController
                     if ($selectedApp === null) {
                         $error = 'registry.error.application_not_found';
                     } else {
-                        $event = 'select_app';
+                        $signal = 'select_app';
                     }
                 }
             } elseif ($action === 'clear-app-context') {
-                $event = 'clear_app_context';
+                $signal = 'clear_app_context';
             } elseif ($action === 'create-new-app') {
-                $event = 'create_new_app';
+                $signal = 'create_new_app';
             } elseif ($action === 'delete-app') {
                 $applicationId = trim((string) ($post['owasys_app_id'] ?? ''));
                 $confirmation = trim((string) (
@@ -58,7 +58,7 @@ final class OwasysRegistryController
                         $this->sessionActor()
                     );
                     $sync = $this->model->synchronize();
-                    $event = 'application_deleted';
+                    $signal = 'application_deleted';
                 }
             } else {
                 $error = 'registry.error.action_invalid';
@@ -66,14 +66,14 @@ final class OwasysRegistryController
         }
 
         if ($error !== null) {
-            $event = 'registry_action_failed';
+            $signal = 'registry_action_failed';
         }
 
         return [
             'sync' => $sync,
             'entries' => $this->model->entries(),
             'recent_events' => $this->model->recentEvents(8),
-            'event' => $event,
+            'signal' => $signal,
             'selected_app' => $selectedApp,
             'error' => $error,
         ];

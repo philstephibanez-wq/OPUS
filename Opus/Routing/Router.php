@@ -85,7 +85,7 @@ final class Router implements RouterInterface
             return Response::html('<h1>409</h1><p>FSM transition rejected.</p>', 409);
         }
 
-        $targetState = trim((string)($transition['to_state'] ?? ''));
+        $targetState = trim((string)($transition['next_state'] ?? ''));
         if ($targetState === '') {
             throw new RuntimeException(
                 'OPUS_ROUTER_FSM_TARGET_STATE_MISSING: '

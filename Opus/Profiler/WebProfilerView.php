@@ -107,13 +107,35 @@ final class WebProfilerView implements WebProfilerViewInterface
     /** @param array<string,mixed> $context @return array<string,mixed> */
     private function buildRow(string $kind, string $index, string $elapsed, string $category, string $type, string $status, string $spanId, string $parentSpanId, array $context): array
     {
+        if ($category === 'fsm') {
+            unset($context['fsm_contract']);
+        }
         $fields = $this->flattenContext($context);
         return [
             'kind' => $kind, 'index' => $index, 'elapsed_ms' => $elapsed, 'category' => $category,
             'type' => $type, 'status' => $status, 'span_id' => $spanId, 'parent_span_id' => $parentSpanId,
-            'context_summary' => $this->contextSummary($fields), 'context_fields' => $fields,
+            'context_summary' => $category === 'fsm'
+                ? $this->fsmSummary($context)
+                : $this->contextSummary($fields),
+            'context_fields' => $fields,
             'context_available' => $fields !== [], 'context_json' => $this->encode($context),
         ];
+    }
+
+    /** @param array<string,mixed> $context */
+    private function fsmSummary(array $context): string
+    {
+        $table = trim((string) ($context['table_fsm'] ?? ''));
+        $current = trim((string) ($context['current_state'] ?? ''));
+        $signal = trim((string) ($context['signal'] ?? ''));
+        $next = trim((string) ($context['next_state'] ?? ''));
+
+        if ($table === '' || $current === '' || $signal === '') {
+            return $this->contextSummary($this->flattenContext($context));
+        }
+
+        return $table . ' · ' . $current . ' + ' . $signal . ' → '
+            . ($next !== '' ? $next : 'transition_not_found');
     }
 
     /** @param array<string,mixed> $context @return list<array<string,string>> */

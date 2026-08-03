@@ -114,7 +114,7 @@ final class OwasysCreationController
                 $wizard->currentState(),
                 'return_basics'
             );
-            $draft['step'] = (string) $transition['to_state'];
+            $draft['step'] = (string) $transition['next_state'];
             $wizardStore->persist($wizard);
             $this->storeDraft($draft);
             $this->render($fsmConfig, $state, $locale, $identity, $draft, null);
@@ -126,7 +126,7 @@ final class OwasysCreationController
                 $wizard->currentState(),
                 'return_security'
             );
-            $draft['step'] = (string) $transition['to_state'];
+            $draft['step'] = (string) $transition['next_state'];
             $wizardStore->persist($wizard);
             $this->storeDraft($draft);
             $this->render($fsmConfig, $state, $locale, $identity, $draft, null);
@@ -139,7 +139,7 @@ final class OwasysCreationController
                     $wizard->currentState(),
                     'continue_security'
                 );
-                $draft['step'] = (string) $transition['to_state'];
+                $draft['step'] = (string) $transition['next_state'];
                 $wizardStore->persist($wizard);
                 $this->storeDraft($draft);
                 $this->render(
@@ -183,7 +183,7 @@ final class OwasysCreationController
                     $wizard->currentState(),
                     'continue_review'
                 );
-                $draft['step'] = (string) $transition['to_state'];
+                $draft['step'] = (string) $transition['next_state'];
                 $wizardStore->persist($wizard);
                 $this->storeDraft($draft);
                 $this->render(
@@ -359,7 +359,7 @@ final class OwasysCreationController
                 'is_authenticated' => true,
                 'roles' => is_array($identity['roles'] ?? null) ? $identity['roles'] : [],
             ]);
-            $current = (string) $transition['to_state'];
+            $current = (string) $transition['next_state'];
             $store->persist($fsm);
         }
         return $current;

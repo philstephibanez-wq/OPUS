@@ -145,22 +145,22 @@ final class OwasysFsmMermaidBuilder
                 ?? $transition['from']
                 ?? ''
             ));
-            $to = trim((string) ($transition['to'] ?? ''));
+            $to = trim((string) ($transition['next_state'] ?? ''));
 
             if (!isset($nodes[$from], $nodes[$to])) {
                 continue;
             }
 
-            $event = $this->label(
+            $signal = $this->label(
                 str_replace(
                     '_',
                     ' ',
-                    (string) ($transition['event'] ?? 'event')
+                    (string) ($transition['signal'] ?? 'signal')
                 )
             );
 
             $lines[] = '    ' . $from
-                . ' -->|' . $event . '| '
+                . ' -->|' . $signal . '| '
                 . $to;
         }
 

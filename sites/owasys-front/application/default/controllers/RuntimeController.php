@@ -55,7 +55,7 @@ final class OwasysRuntimeController
         $errorKey = null;
 
         try {
-            $resolved = $this->resolveEvent(
+            $resolved = $this->resolveSignal(
                 $method,
                 $routeKey,
                 $currentState,
@@ -67,8 +67,8 @@ final class OwasysRuntimeController
             }
             $this->fail(400, 'OWASYS_REQUEST_REJECTED:' . $error->getMessage());
         }
-        $event = (string) ($resolved['event'] ?? '');
-        $eventContext = is_array($resolved['context'] ?? null)
+        $signal = (string) ($resolved['signal'] ?? '');
+        $signalContext = is_array($resolved['context'] ?? null)
             ? $resolved['context']
             : [];
         $requestResult = is_array($resolved['result'] ?? null)
@@ -81,7 +81,7 @@ final class OwasysRuntimeController
 
         $context = array_replace(
             $this->fsmContext($identity),
-            $eventContext,
+            $signalContext,
             [
                 'identity' => $identity,
                 'post' => $_POST,
@@ -92,10 +92,10 @@ final class OwasysRuntimeController
 
         $targetState = $currentState;
 
-        if ($event !== '') {
+        if ($signal !== '') {
             try {
-                $transition = $fsm->transition($currentState, $event, $context);
-                $targetState = (string) ($transition['to_state'] ?? '');
+                $transition = $fsm->transition($currentState, $signal, $context);
+                $targetState = (string) ($transition['next_state'] ?? '');
                 $this->assertTargetStateAccess(
                     $fsm,
                     $targetState,
@@ -127,7 +127,7 @@ final class OwasysRuntimeController
             $this->redirect(
                 $locale,
                 (string) ($state['route'] ?? 'login'),
-                $event === 'create_new_app'
+                $signal === 'create_new_app'
                     ? ['owasys_new' => '1']
                     : []
             );
@@ -198,7 +198,7 @@ final class OwasysRuntimeController
      * @param array<string,mixed>|null $identity
      * @return array<string,mixed>
      */
-    private function resolveEvent(
+    private function resolveSignal(
         string $method,
         string $routeKey,
         string $currentState,
@@ -210,7 +210,7 @@ final class OwasysRuntimeController
             && $routeKey !== 'account/password'
             && $routeKey !== 'logout'
         ) {
-            return ['event' => 'open_account', 'redirect' => true];
+            return ['signal' => 'open_account', 'redirect' => true];
         }
 
         if ($method === 'POST') {
@@ -221,7 +221,7 @@ final class OwasysRuntimeController
                     $pending = $this->security->authenticate($_POST);
 
                     return [
-                        'event' => $pending->mustChangePassword
+                        'signal' => $pending->mustChangePassword
                             ? 'password_change_required'
                             : 'login_success',
                         'context' => [
@@ -232,7 +232,7 @@ final class OwasysRuntimeController
                     ];
                 } catch (Throwable) {
                     return [
-                        'event' => 'login_failed',
+                        'signal' => 'login_failed',
                         'error' => 'auth.error.invalid_credentials',
                         'redirect' => false,
                     ];
@@ -241,7 +241,7 @@ final class OwasysRuntimeController
 
             if ($routeKey === 'account/password' && $action === 'change-password') {
                 if (!is_array($identity)) {
-                    return ['event' => 'auth_required', 'redirect' => true];
+                    return ['signal' => 'auth_required', 'redirect' => true];
                 }
 
                 $this->security->assertAllowed($identity, 'account', 'change');
@@ -252,7 +252,7 @@ final class OwasysRuntimeController
                     || (string) ($_POST['owasys_confirm_password'] ?? '') === ''
                 ) {
                     return [
-                        'event' => 'password_change_failed',
+                        'signal' => 'password_change_failed',
                         'error' => 'auth.error.required_credentials',
                     ];
                 }
@@ -262,27 +262,27 @@ final class OwasysRuntimeController
                     !== (string) ($_POST['owasys_confirm_password'] ?? '')
                 ) {
                     return [
-                        'event' => 'password_change_failed',
+                        'signal' => 'password_change_failed',
                         'error' => 'auth.error.password_mismatch',
                     ];
                 }
 
                 return [
-                    'event' => 'password_changed',
+                    'signal' => 'password_changed',
                     'redirect' => true,
                 ];
             }
 
             if ($routeKey === 'applications') {
                 if (!is_array($identity)) {
-                    return ['event' => 'auth_required', 'redirect' => true];
+                    return ['signal' => 'auth_required', 'redirect' => true];
                 }
 
                 $this->security->assertAllowed($identity, 'registry', 'write');
                 $result = $this->registryController()->handle($method, $_POST);
 
                 return [
-                    'event' => (string) ($result['event'] ?? 'registry_action_failed'),
+                    'signal' => (string) ($result['signal'] ?? 'registry_action_failed'),
                     'context' => [
                         'selected_app' => is_array($result['selected_app'] ?? null)
                             ? $result['selected_app']
@@ -307,12 +307,12 @@ final class OwasysRuntimeController
 
         if ($routeKey === 'login') {
             return $identity === null
-                ? ['event' => 'open_login']
-                : ['event' => 'change_app', 'redirect' => true];
+                ? ['signal' => 'open_login']
+                : ['signal' => 'change_app', 'redirect' => true];
         }
 
         if ($routeKey === 'account/password') {
-            return ['event' => 'open_account'];
+            return ['signal' => 'open_account'];
         }
 
         $signal = $this->resolveSignal($routeKey);
@@ -321,7 +321,7 @@ final class OwasysRuntimeController
         }
 
         return [
-            'event' => $signal,
+            'signal' => $signal,
             'redirect' => $signal === 'logout',
         ];
     }
@@ -399,7 +399,7 @@ final class OwasysRuntimeController
         if ($message === 'OWASYS_AUTH_REQUIRED') {
             $transition = $fsm->transition($currentState, 'auth_required', $context);
             $this->actionHandlersFor($transition)->dispatcher()->dispatch($transition, $context);
-            $state = (string) $transition['to_state'];
+            $state = (string) $transition['next_state'];
             (new FsmSessionStore(self::FSM_SESSION_KEY))->persist($fsm);
 
             return [
@@ -415,8 +415,8 @@ final class OwasysRuntimeController
             || str_contains($message, 'OPUS_FSM_GUARD_FAILED: current_app_required')
         ) {
             $transition = $fsm->transition($currentState, 'change_app', $context);
-            $this->assertTargetStateAccess($fsm, (string) $transition['to_state'], $context);
-            $state = (string) $transition['to_state'];
+            $this->assertTargetStateAccess($fsm, (string) $transition['next_state'], $context);
+            $state = (string) $transition['next_state'];
             (new FsmSessionStore(self::FSM_SESSION_KEY))->persist($fsm);
 
             return [
@@ -430,7 +430,7 @@ final class OwasysRuntimeController
         $passwordError = $this->passwordErrorKey($message);
         if ($passwordError !== null && $currentState === 'account') {
             $failure = $fsm->transition($currentState, 'password_change_failed', $context);
-            $state = (string) $failure['to_state'];
+            $state = (string) $failure['next_state'];
             (new FsmSessionStore(self::FSM_SESSION_KEY))->persist($fsm);
 
             return [

@@ -20,6 +20,8 @@ interface FsmProcessorInterface extends
     \Opus\Framework\OpusProfilerAwareInterface,
     \Opus\Framework\OpusSelfDocumentingInterface
 {
+    public function name(): string;
+
     public function currentState(): string;
 
     public function reset(): void;

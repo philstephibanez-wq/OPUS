@@ -20,7 +20,7 @@
       "route": "internal/composer"
     }
   ],
-  "events": [
+  "signals": [
     {
       "id": "receive"
     },
@@ -44,38 +44,38 @@
     {
       "id": "t_receive",
       "from": "*",
-      "event": "receive",
-      "to": "api"
+      "signal": "receive",
+      "next_state": "api"
     },
     {
       "id": "t_authenticate",
       "from": "api",
-      "event": "authenticate",
-      "to": "security"
+      "signal": "authenticate",
+      "next_state": "security"
     },
     {
       "id": "t_authorize",
       "from": "security",
-      "event": "authorize",
-      "to": "composer"
+      "signal": "authorize",
+      "next_state": "composer"
     },
     {
       "id": "t_dispatch",
       "from": "composer",
-      "event": "dispatch",
-      "to": "composer"
+      "signal": "dispatch",
+      "next_state": "composer"
     },
     {
       "id": "t_succeed",
       "from": "composer",
-      "event": "succeed",
-      "to": "api"
+      "signal": "succeed",
+      "next_state": "api"
     },
     {
       "id": "t_fail",
       "from": "*",
-      "event": "fail",
-      "to": "api"
+      "signal": "fail",
+      "next_state": "api"
     }
   ]
 }

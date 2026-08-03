@@ -16,7 +16,7 @@ use RuntimeException;
 final class FsmActionDispatcher implements FsmActionDispatcherInterface
 {
     private const RESULT_CONTRACT = 'OPUS_FSM_ACTION_DISPATCH_RESULT_V1';
-    private const PROCESSOR_RESULT_CONTRACT = 'OPUS_FSM_PROCESSOR_RESULT_V1';
+    private const PROCESSOR_RESULT_CONTRACT = 'OPUS_FSM_PROCESSOR_RESULT_V2';
 
     /** @var array<string,callable> */
     private array $handlers = [];
@@ -80,9 +80,10 @@ final class FsmActionDispatcher implements FsmActionDispatcherInterface
 
         return [
             'contract' => self::RESULT_CONTRACT,
-            'from_state' => (string) $transitionResult['from_state'],
-            'event' => (string) $transitionResult['event'],
-            'to_state' => (string) $transitionResult['to_state'],
+            'table_fsm' => (string) $transitionResult['table_fsm'],
+            'current_state' => (string) $transitionResult['current_state'],
+            'signal' => (string) $transitionResult['signal'],
+            'next_state' => (string) $transitionResult['next_state'],
             'transition_id' => (string) ($transitionResult['transition_id'] ?? ''),
             'actions' => $actions,
             'executed' => $executed,
@@ -99,7 +100,7 @@ final class FsmActionDispatcher implements FsmActionDispatcherInterface
     public function dispatchAndReturnState(array $transitionResult, array $context = []): string
     {
         $this->dispatch($transitionResult, $context);
-        return (string) $transitionResult['to_state'];
+        return (string) $transitionResult['next_state'];
     }
 
     /**
@@ -135,7 +136,7 @@ final class FsmActionDispatcher implements FsmActionDispatcherInterface
             throw new InvalidArgumentException('OPUS_FSM_PROCESSOR_RESULT_CONTRACT_INVALID');
         }
 
-        foreach (['from_state', 'event', 'to_state'] as $field) {
+        foreach (['table_fsm', 'current_state', 'signal', 'next_state'] as $field) {
             if (!isset($transitionResult[$field]) || !is_string($transitionResult[$field]) || $transitionResult[$field] === '') {
                 throw new InvalidArgumentException('OPUS_FSM_PROCESSOR_RESULT_FIELD_INVALID: ' . $field);
             }

@@ -1,6 +1,6 @@
 {
   "contract": "OPUS_SIGNAL_ROUTES_V2",
-  "rule": "Every route resolves to a frontend FSM event.",
+  "rule": "Every route resolves to a frontend FSM signal.",
   "system_routes": {
     "login": "open_login",
     "account/password": "open_account"

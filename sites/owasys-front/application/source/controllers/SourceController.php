@@ -163,7 +163,7 @@ final class OwasysSourceController
         ];
         if ($current !== 'source') {
             $transition = $fsm->transition($current, 'open_source', $context);
-            $current = (string) ($transition['to_state'] ?? '');
+            $current = (string) ($transition['next_state'] ?? '');
             if ($current !== 'source') {
                 throw new RuntimeException('OWASYS_SOURCE_FSM_STATE_INVALID');
             }

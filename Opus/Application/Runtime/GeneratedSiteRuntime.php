@@ -268,7 +268,7 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
         }
         if ($target !== $current) {
             $result = $fsm->transition($current, 'open_' . $target, ['identity' => $identity]);
-            $current = (string) ($result['to_state'] ?? '');
+            $current = (string) ($result['next_state'] ?? '');
         }
         $_SESSION[$sessionKey] = $current;
         return $current;

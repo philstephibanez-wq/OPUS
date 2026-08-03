@@ -18,7 +18,7 @@ use RuntimeException;
  */
 final class FsmProcessor implements FsmProcessorInterface
 {
-    private const RESULT_CONTRACT = 'OPUS_FSM_PROCESSOR_RESULT_V1';
+    private const RESULT_CONTRACT = 'OPUS_FSM_PROCESSOR_RESULT_V2';
 
     /** @var array<string,true> */
     private const CANONICAL_CONTRACTS = [
@@ -84,6 +84,11 @@ final class FsmProcessor implements FsmProcessorInterface
     public function contract(): string
     {
         return (string) $this->fsm['contract'];
+    }
+
+    public function name(): string
+    {
+        return (string) $this->fsm['name'];
     }
 
     public function initialState(): string
@@ -209,14 +214,14 @@ final class FsmProcessor implements FsmProcessorInterface
     }
 
     /**
-     * Executes a transition for a current state and event.
+     * Executes a transition for a current state and signal.
      *
      * @param array<string,mixed> $context Runtime facts available to guards.
      * @return array<string,mixed>
      */
     public function transition(
         string $currentState,
-        string $event,
+        string $signal,
         array $context = []
     ): array {
         if ($currentState === '' || !isset($this->statesById[$currentState])) {
@@ -224,24 +229,27 @@ final class FsmProcessor implements FsmProcessorInterface
                 'OPUS_FSM_CURRENT_STATE_UNKNOWN: ' . $currentState
             );
         }
-        if ($event === '') {
-            throw new RuntimeException('OPUS_FSM_EVENT_REQUIRED');
+        if ($signal === '') {
+            throw new RuntimeException('OPUS_FSM_SIGNAL_REQUIRED');
         }
 
         $startedAt = microtime(true);
-        $spanId = $this->beginTransitionSpan($currentState, $event);
+        $spanId = $this->beginTransitionSpan($currentState, $signal);
+
+        $nextState = null;
 
         try {
             $this->currentState = $currentState;
-            $transition = $this->findTransition($currentState, $event);
+            $transition = $this->findTransition($currentState, $signal);
             if ($transition === null) {
                 throw new RuntimeException(
                     'OPUS_FSM_TRANSITION_NOT_FOUND: '
-                    . $currentState . ':' . $event
+                    . $currentState . ':' . $signal
                 );
             }
 
-            $target = (string) ($transition['to'] ?? '');
+            $target = (string) ($transition['next_state'] ?? '');
+            $nextState = $target;
             if ($target === '' || !isset($this->statesById[$target])) {
                 throw new RuntimeException(
                     'OPUS_FSM_TARGET_STATE_UNKNOWN: ' . $target
@@ -253,12 +261,15 @@ final class FsmProcessor implements FsmProcessorInterface
                 $allowed = $this->evaluateGuard(
                     $guard,
                     $currentState,
-                    $event,
+                    $signal,
                     $transition,
                     $context
                 );
                 $this->profileEvent('fsm.guard.evaluated', [
-                    'fsm_contract' => $this->contract(),
+                    'table_fsm' => $this->name(),
+                    'current_state' => $currentState,
+                    'signal' => $signal,
+                    'next_state' => $target,
                     'transition_id' => $transitionId,
                     'guard' => $guard,
                     'result' => $allowed ? 'allowed' : 'denied',
@@ -272,11 +283,11 @@ final class FsmProcessor implements FsmProcessorInterface
             $this->currentState = $target;
             $this->applyMemoryOperations($transition, $context);
             $completed = [
-                'fsm_contract' => $this->contract(),
+                'table_fsm' => $this->name(),
                 'transition_id' => $transitionId,
-                'from_state' => $currentState,
-                'event' => $event,
-                'to_state' => $target,
+                'current_state' => $currentState,
+                'signal' => $signal,
+                'next_state' => $target,
                 'guards' => $this->transitionGuards($transition),
                 'actions' => $actions,
                 'duration_ms' => $this->durationMs($startedAt),
@@ -291,10 +302,10 @@ final class FsmProcessor implements FsmProcessorInterface
 
             return [
                 'contract' => self::RESULT_CONTRACT,
-                'fsm_contract' => $this->contract(),
-                'from_state' => $currentState,
-                'event' => $event,
-                'to_state' => $target,
+                'table_fsm' => $this->name(),
+                'current_state' => $currentState,
+                'signal' => $signal,
+                'next_state' => $target,
                 'transition_id' => $transitionId,
                 'guards' => $this->transitionGuards($transition),
                 'actions' => $actions,
@@ -303,10 +314,20 @@ final class FsmProcessor implements FsmProcessorInterface
                 'runtime' => $this->snapshot(),
             ];
         } catch (\Throwable $error) {
+            $failureReason = str_starts_with(
+                $error->getMessage(),
+                'OPUS_FSM_TRANSITION_NOT_FOUND:'
+            ) ? 'transition_not_found' : (
+                str_starts_with($error->getMessage(), 'OPUS_FSM_GUARD_FAILED:')
+                    ? 'guard_refused'
+                    : 'transition_failed'
+            );
             $failed = [
-                'fsm_contract' => $this->contract(),
-                'from_state' => $currentState,
-                'event' => $event,
+                'table_fsm' => $this->name(),
+                'current_state' => $currentState,
+                'signal' => $signal,
+                'next_state' => $nextState,
+                'failure_reason' => $failureReason,
                 'duration_ms' => $this->durationMs($startedAt),
                 'exception_class' => $error::class,
             ];
@@ -323,15 +344,15 @@ final class FsmProcessor implements FsmProcessorInterface
 
     private function beginTransitionSpan(
         string $currentState,
-        string $event
+        string $signal
     ): ?string {
         if ($this->profiler?->getActiveTrace() === null) {
             return null;
         }
         $context = [
-            'fsm_contract' => $this->contract(),
-            'from_state' => $currentState,
-            'event' => $event,
+            'table_fsm' => $this->name(),
+            'current_state' => $currentState,
+            'signal' => $signal,
         ];
         $spanId = $this->profiler->beginSpan(
             'fsm',
@@ -408,6 +429,11 @@ final class FsmProcessor implements FsmProcessorInterface
             );
         }
 
+        $name = trim((string) ($this->fsm['name'] ?? ''));
+        if ($name === '') {
+            throw new InvalidArgumentException('OPUS_FSM_NAME_REQUIRED');
+        }
+
         $states = $this->fsm['states'] ?? null;
         if (!is_array($states) || $states === []) {
             throw new InvalidArgumentException('OPUS_FSM_STATES_MISSING');
@@ -446,9 +472,9 @@ final class FsmProcessor implements FsmProcessorInterface
                 throw new InvalidArgumentException('OPUS_FSM_TRANSITION_INVALID');
             }
             $from = (string) ($transition['from'] ?? '');
-            $event = (string) ($transition['event'] ?? '');
-            $to = (string) ($transition['to'] ?? '');
-            if ($from === '' || $event === '' || $to === '') {
+            $signal = (string) ($transition['signal'] ?? '');
+            $to = (string) ($transition['next_state'] ?? '');
+            if ($from === '' || $signal === '' || $to === '') {
                 throw new InvalidArgumentException(
                     'OPUS_FSM_TRANSITION_FIELDS_INVALID'
                 );
@@ -464,7 +490,7 @@ final class FsmProcessor implements FsmProcessorInterface
                 );
             }
 
-            $signature = $from . ':' . $event;
+            $signature = $from . ':' . $signal;
             if (isset($seen[$signature])) {
                 throw new InvalidArgumentException(
                     'OPUS_FSM_DUPLICATE_TRANSITION: ' . $signature
@@ -475,7 +501,7 @@ final class FsmProcessor implements FsmProcessorInterface
     }
 
     /** @return array<string,mixed>|null */
-    private function findTransition(string $currentState, string $event): ?array
+    private function findTransition(string $currentState, string $signal): ?array
     {
         $stateAny = null;
         $globalExact = null;
@@ -483,17 +509,17 @@ final class FsmProcessor implements FsmProcessorInterface
         $default = null;
         foreach ($this->transitions() as $transition) {
             $from = (string) ($transition['from'] ?? '');
-            $candidateEvent = (string) ($transition['event'] ?? '');
-            if ($from === $currentState && $candidateEvent === $event) {
+            $candidateSignal = (string) ($transition['signal'] ?? '');
+            if ($from === $currentState && $candidateSignal === $signal) {
                 return $transition;
             }
-            if ($from === $currentState && $candidateEvent === '__any__') {
+            if ($from === $currentState && $candidateSignal === '__any__') {
                 $stateAny = $transition;
-            } elseif ($from === '*' && $candidateEvent === $event) {
+            } elseif ($from === '*' && $candidateSignal === $signal) {
                 $globalExact = $transition;
-            } elseif ($from === '*' && $candidateEvent === '__any__') {
+            } elseif ($from === '*' && $candidateSignal === '__any__') {
                 $globalAny = $transition;
-            } elseif ($candidateEvent === '__default__') {
+            } elseif ($candidateSignal === '__default__') {
                 $default = $transition;
             }
         }
@@ -597,7 +623,7 @@ final class FsmProcessor implements FsmProcessorInterface
     private function evaluateGuard(
         string $guard,
         string $currentState,
-        string $event,
+        string $signal,
         array $transition,
         array $context
     ): bool {
@@ -608,7 +634,7 @@ final class FsmProcessor implements FsmProcessorInterface
         if (isset($this->guardHandlers[$guard])) {
             return (bool) ($this->guardHandlers[$guard])(
                 $currentState,
-                $event,
+                $signal,
                 $transition,
                 $context,
                 $this
@@ -616,7 +642,7 @@ final class FsmProcessor implements FsmProcessorInterface
         }
 
         if ($guard === 'route_exists') {
-            $target = (string) ($transition['to'] ?? '');
+            $target = (string) ($transition['next_state'] ?? '');
             return isset($this->statesById[$target])
                 && (string) ($this->statesById[$target]['route'] ?? '') !== '';
         }
