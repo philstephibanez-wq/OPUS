@@ -82,9 +82,16 @@ final class RestClient implements RestClientInterface
         }
 
         $json = $body === [] ? '' : Json::instance()->encode(['data' => $body]);
-        $spanId = $this->beginRestSpan($method, $resource, strlen($json));
+        $spanId = $this->beginRestSpan(
+            $method,
+            $resource,
+            strlen($json),
+            $body
+        );
         $status = 0;
         $responseBytes = 0;
+        $responseHeaders = [];
+        $responseBody = null;
         try {
             $actorHeader = rtrim(strtr(
                 base64_encode(Json::instance()->encode($actor, false)),
@@ -138,7 +145,9 @@ final class RestClient implements RestClientInterface
                 throw new \RuntimeException('OPUS_REST_API_RESPONSE_TOO_LARGE');
             }
             $status = self::status($http_response_header ?? []);
+            $responseHeaders = self::safeResponseHeaders($http_response_header ?? []);
             $decoded = Json::instance()->parse($response, $resource);
+            $responseBody = $decoded;
             if ($status < 200 || $status >= 300) {
                 $code = trim((string) ($decoded['error_code'] ?? ''));
                 throw new \RuntimeException(
@@ -159,6 +168,8 @@ final class RestClient implements RestClientInterface
                 'event_type' => 'rest.response.received',
                 'http_status' => $status,
                 'response_bytes' => $responseBytes,
+                'response_headers' => $responseHeaders,
+                'response_body' => $data,
             ]);
 
             return $data;
@@ -167,6 +178,8 @@ final class RestClient implements RestClientInterface
                 'event_type' => 'rest.request.failed',
                 'http_status' => $status > 0 ? $status : null,
                 'response_bytes' => $responseBytes,
+                'response_headers' => $responseHeaders,
+                'response_body' => $responseBody,
                 'error_code' => self::errorCode($cause),
                 'exception_class' => $cause::class,
             ]);
@@ -185,7 +198,13 @@ final class RestClient implements RestClientInterface
         return 0;
     }
 
-    private function beginRestSpan(string $method, string $resource, int $requestBytes): ?string
+    /** @param array<string,mixed> $requestBody */
+    private function beginRestSpan(
+        string $method,
+        string $resource,
+        int $requestBytes,
+        array $requestBody
+    ): ?string
     {
         if ($this->profiler === null || $this->profiler->getActiveTrace() === null) {
             return null;
@@ -196,7 +215,30 @@ final class RestClient implements RestClientInterface
             'method' => $method,
             'route' => $resource,
             'request_bytes' => $requestBytes,
+            'request_headers' => [
+                'accept' => 'application/json',
+                'content-type' => 'application/json',
+            ],
+            'request_body' => $requestBody,
         ]);
+    }
+
+    /** @param list<string> $headers @return array<string,string> */
+    private static function safeResponseHeaders(array $headers): array
+    {
+        $allowed = ['content-type', 'content-length', 'etag', 'location', 'x-opus-trace-id'];
+        $result = [];
+        foreach ($headers as $header) {
+            if (!str_contains($header, ':')) {
+                continue;
+            }
+            [$name, $value] = array_map('trim', explode(':', $header, 2));
+            $normalized = strtolower($name);
+            if (in_array($normalized, $allowed, true)) {
+                $result[$normalized] = $value;
+            }
+        }
+        return $result;
     }
 
     /** @param array<string,mixed> $context */

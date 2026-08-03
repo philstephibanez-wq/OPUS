@@ -8,7 +8,7 @@ use Opus\Framework\OpusFrameworkComponentInterface;
 use Opus\Framework\OpusProfilerAwareInterface;
 use Opus\Framework\OpusSelfDocumentingInterface;
 
-/** Contract for safe, driver-neutral database operation measurements. */
+/** Contract for safe, driver-neutral database measurements with debug details. */
 interface DatabaseOperationProfilerInterface extends
     OpusFrameworkComponentInterface,
     OpusExceptionAwareInterface,
@@ -27,4 +27,12 @@ interface DatabaseOperationProfilerInterface extends
         callable $operation,
         array $context = []
     ): mixed;
+
+    /** @param array<string,mixed> $context */
+    public function result(
+        string $driver,
+        string $operationName,
+        mixed $result,
+        array $context = []
+    ): void;
 }

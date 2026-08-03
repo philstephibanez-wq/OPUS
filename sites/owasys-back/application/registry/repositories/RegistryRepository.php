@@ -11,6 +11,10 @@ final class OwasysRegistryRepository
 
     private const DEFAULT_DATABASE = 'var/registry/owasys.sqlite';
     private const SYSTEM_APPLICATION_ID = 'owasys';
+    private const PROFILER_RESULT_ROW_LIMIT = 50;
+
+    /** @var array<int,int> */
+    private array $profiledResultRows = [];
 
     /** @var list<string> */
     private const ALLOWED_KINDS = [
@@ -136,7 +140,7 @@ final class OwasysRegistryRepository
 
             $entries = [];
 
-            while (($row = $result->fetchArray(SQLITE3_ASSOC)) !== false) {
+            while (($row = $this->fetch($result, 'application.list')) !== false) {
                 $entries[] = $this->entryFromRow($row);
             }
 
@@ -184,7 +188,7 @@ final class OwasysRegistryRepository
 
             $events = [];
 
-            while (($row = $result->fetchArray(SQLITE3_ASSOC)) !== false) {
+            while (($row = $this->fetch($result, 'runtime_event.recent')) !== false) {
                 $payload = json_decode(
                     (string) ($row['payload_json'] ?? '{}'),
                     true
@@ -600,7 +604,7 @@ SQL, 'schema.context.ensure');
 
         $staleIds = [];
 
-        while (($row = $result->fetchArray(SQLITE3_ASSOC)) !== false) {
+        while (($row = $this->fetch($result, 'application.reconcile')) !== false) {
             $id = (string) ($row['id'] ?? '');
             $root = trim(
                 str_replace('\\', '/', (string) ($row['root_path'] ?? '')),
@@ -927,7 +931,7 @@ SQL;
             );
         }
 
-        $row = $result->fetchArray(SQLITE3_ASSOC);
+        $row = $this->fetch($result, 'application.exists');
         $result->finalize();
         $stmt->close();
 
@@ -960,7 +964,7 @@ SQL;
             );
         }
 
-        $row = $result->fetchArray(SQLITE3_ASSOC);
+        $row = $this->fetch($result, 'application.read');
         $result->finalize();
         $stmt->close();
 
@@ -1175,7 +1179,10 @@ SQL;
         return $this->measure(
             $operation,
             fn (): bool => $database->exec($sql),
-            ['statement_type' => $this->statementType($sql)]
+            [
+                'statement_type' => $this->statementType($sql),
+                'sql' => $sql,
+            ]
         );
     }
 
@@ -1187,7 +1194,10 @@ SQL;
         return $this->measure(
             $operation,
             fn (): SQLite3Result|false => $database->query($sql),
-            ['statement_type' => $this->statementType($sql)]
+            [
+                'statement_type' => $this->statementType($sql),
+                'sql' => $sql,
+            ]
         );
     }
 
@@ -1199,7 +1209,10 @@ SQL;
         return $this->measure(
             $operation,
             fn (): SQLite3Stmt|false => $database->prepare($sql),
-            ['statement_type' => $this->statementType($sql)]
+            [
+                'statement_type' => $this->statementType($sql),
+                'sql' => $sql,
+            ]
         );
     }
 
@@ -1211,6 +1224,35 @@ SQL;
             $operation,
             fn (): SQLite3Result|false => $statement->execute()
         );
+    }
+
+    /** @return array<string,mixed>|false */
+    private function fetch(SQLite3Result $result, string $operation): array|false
+    {
+        $row = $result->fetchArray(SQLITE3_ASSOC);
+        $resultId = spl_object_id($result);
+        $rowNumber = ($this->profiledResultRows[$resultId] ?? 0) + 1;
+        $this->profiledResultRows[$resultId] = $rowNumber;
+        if ($this->databaseProfiler !== null
+            && ($rowNumber <= self::PROFILER_RESULT_ROW_LIMIT
+                || $rowNumber === self::PROFILER_RESULT_ROW_LIMIT + 1)) {
+            $this->databaseProfiler->result(
+                'sqlite3',
+                $operation,
+                $row !== false && $rowNumber === self::PROFILER_RESULT_ROW_LIMIT + 1
+                    ? ['truncated' => true, 'displayed_rows' => self::PROFILER_RESULT_ROW_LIMIT]
+                    : ($row === false ? ['end_of_result' => true] : $row),
+                [
+                    'database' => $this->relativeDatabasePath(),
+                    'resource' => 'owasys_registry',
+                    'origin' => self::class,
+                ]
+            );
+        }
+        if ($row === false) {
+            unset($this->profiledResultRows[$resultId]);
+        }
+        return $row;
     }
 
     /**

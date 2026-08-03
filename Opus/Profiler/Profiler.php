@@ -19,9 +19,11 @@ final class Profiler implements ProfilerInterface
 
     private string $storageFile;
     private ?Trace $activeTrace = null;
+    private ProfilerContextSanitizerInterface $contextSanitizer;
 
     public function __construct(string $storagePath)
     {
+        $this->contextSanitizer = new ProfilerContextSanitizer();
         $this->storageFile = $this->resolveStorageFile($storagePath);
         $storageDirectory = dirname($this->storageFile);
         if (!is_dir($storageDirectory)
@@ -60,7 +62,7 @@ final class Profiler implements ProfilerInterface
         return $this->requireActiveTrace()->addEvent(
             $category,
             $name,
-            $context,
+            (array) $this->contextSanitizer->sanitize($context),
             $status,
             $spanId,
             $parentSpanId
@@ -77,7 +79,7 @@ final class Profiler implements ProfilerInterface
         return $this->requireActiveTrace()->beginSpan(
             $category,
             $name,
-            $context,
+            (array) $this->contextSanitizer->sanitize($context),
             $parentSpanId
         );
     }
@@ -88,7 +90,11 @@ final class Profiler implements ProfilerInterface
         string $status = 'success',
         array $context = []
     ): void {
-        $this->requireActiveTrace()->endSpan($spanId, $status, $context);
+        $this->requireActiveTrace()->endSpan(
+            $spanId,
+            $status,
+            (array) $this->contextSanitizer->sanitize($context)
+        );
     }
 
     /** @param array<string,mixed> $summary */
@@ -97,7 +103,10 @@ final class Profiler implements ProfilerInterface
         $trace = $this->requireActiveTrace();
         $trace->addEvent('profiler', 'trace.stopped');
         $trace->finish();
-        $path = $this->writeTrace($trace, $summary);
+        $path = $this->writeTrace(
+            $trace,
+            (array) $this->contextSanitizer->sanitize($summary)
+        );
         $this->activeTrace = null;
 
         return $path;

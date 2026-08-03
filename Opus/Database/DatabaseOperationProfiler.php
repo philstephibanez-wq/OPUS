@@ -5,7 +5,7 @@ namespace Opus\Database;
 
 use Opus\Profiler\ProfilerInterface;
 
-/** Measures database operations without retaining SQL text or parameters. */
+/** Measures database operations with bounded, centrally sanitized diagnostics. */
 final class DatabaseOperationProfiler implements DatabaseOperationProfilerInterface
 {
     public function __construct(
@@ -54,10 +54,16 @@ final class DatabaseOperationProfiler implements DatabaseOperationProfilerInterf
 
         try {
             $result = $operation();
+            $resultContext = $safeContext;
+            if (is_array($result) || is_scalar($result) || $result === null) {
+                $resultContext['result'] = $result;
+            } elseif (is_object($result)) {
+                $resultContext['result_type'] = $result::class;
+            }
             $this->profiler->event(
                 'database',
                 $this->successEventName($operationName),
-                $safeContext + [
+                $resultContext + [
                     'duration_ms' => $this->durationMs($startedAt),
                 ],
                 'success',
@@ -86,6 +92,22 @@ final class DatabaseOperationProfiler implements DatabaseOperationProfilerInterf
         }
     }
 
+    public function result(
+        string $driver,
+        string $operationName,
+        mixed $result,
+        array $context = []
+    ): void {
+        if ($this->profiler->getActiveTrace() === null) {
+            return;
+        }
+        $this->profiler->event('database', 'database.result.observed', [
+            'driver' => strtolower(trim($driver)),
+            'operation' => strtolower(trim($operationName)),
+            'result' => $result,
+        ] + $this->safeContext($context));
+    }
+
     /** @param array<string,mixed> $context @return array<string,mixed> */
     private function safeContext(array $context): array
     {
@@ -95,6 +117,13 @@ final class DatabaseOperationProfiler implements DatabaseOperationProfilerInterf
             'statement_type',
             'transaction',
             'origin',
+            'sql',
+            'parameters',
+            'result',
+            'affected_rows',
+            'returned_rows',
+            'columns',
+            'result_type',
         ];
         return array_intersect_key($context, array_fill_keys($allowed, true));
     }
