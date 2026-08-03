@@ -141,6 +141,7 @@ final class RestServer implements RestServerInterface
             is_array($fsmConfig['transitions'] ?? null) ? $fsmConfig['transitions'] : []
         );
         $this->profiler->start($traceId);
+        $profilerFinalized = false;
         $terminalStatus = 'failed';
         $operation = (string) ($route['operation'] ?? '');
         $this->logger->info('rest.api', 'request.received', [
@@ -214,7 +215,26 @@ final class RestServer implements RestServerInterface
                 'trace_id' => $traceId,
             ];
             if ($this->profilerRequested()) {
-                $payload['profiler_records'] = $this->profiler->readTrace($traceId);
+                $profilerFinalized = true;
+                if ($this->finalizeProfiler(
+                    $traceId,
+                    $operation,
+                    $terminalStatus,
+                    $fsm->state()
+                )) {
+                    try {
+                        $payload['profiler_records'] = $this->profiler->readTrace(
+                            $traceId
+                        );
+                    } catch (\Throwable $profilerError) {
+                        $this->logProfilerFailure(
+                            'profiler.read.failed',
+                            $profilerError,
+                            $traceId,
+                            $operation
+                        );
+                    }
+                }
             }
             return Response::json($payload, $status, $headers);
         } catch (\Throwable $error) {
@@ -242,13 +262,57 @@ final class RestServer implements RestServerInterface
             ], $traceId);
             return $this->error($code, $status, $locale, ['X-Opus-Trace-Id' => $traceId]);
         } finally {
+            if (!$profilerFinalized) {
+                $this->finalizeProfiler(
+                    $traceId,
+                    $operation,
+                    $terminalStatus,
+                    $fsm->state()
+                );
+            }
+        }
+    }
+
+    private function finalizeProfiler(
+        string $traceId,
+        string $operation,
+        string $terminalStatus,
+        string $fsmState
+    ): bool {
+        try {
             $this->profiler->stop([
                 'component' => self::class,
                 'trace_id' => $traceId,
                 'operation' => $operation,
                 'status' => $terminalStatus,
-                'fsm_state' => $fsm->state(),
+                'fsm_state' => $fsmState,
             ]);
+            return true;
+        } catch (\Throwable $profilerError) {
+            $this->logProfilerFailure(
+                'profiler.stop.failed',
+                $profilerError,
+                $traceId,
+                $operation
+            );
+            return false;
+        }
+    }
+
+    private function logProfilerFailure(
+        string $event,
+        \Throwable $error,
+        string $traceId,
+        string $operation
+    ): void {
+        try {
+            $this->logger->error('rest.api', $event, [
+                'operation' => $operation,
+                'exception_class' => $error::class,
+                'exception_file' => $error->getFile(),
+                'exception_line' => $error->getLine(),
+            ], $traceId);
+        } catch (\Throwable) {
         }
     }
 
@@ -382,8 +446,14 @@ final class RestServer implements RestServerInterface
     private function safeErrorCode(\Throwable $error): string
     {
         $message = trim($error->getMessage());
-        return preg_match('/^[A-Z0-9_:-]{3,240}$/', $message) === 1
-            ? $message : 'OPUS_REST_API_REQUEST_FAILED';
+        if (preg_match(
+            '/^([A-Z][A-Z0-9_]{2,119})(?::|$)/D',
+            $message,
+            $matches
+        ) === 1) {
+            return $matches[1];
+        }
+        return 'OPUS_REST_API_REQUEST_FAILED';
     }
 
     private function traceId(): string
