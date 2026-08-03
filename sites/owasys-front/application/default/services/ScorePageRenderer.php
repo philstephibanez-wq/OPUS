@@ -6,13 +6,17 @@ use Opus\I18n\TranslationRuntimeInterface;
 use Opus\File\StructuredFileLoader;
 use Opus\Template\ScoreTemplateRenderer;
 use Opus\Http\UrlBuilder;
+use Opus\Profiler\ProfilerInterface;
 
 final class OwasysScorePageRenderer
 {
     private readonly OwasysFsmMermaidBuilder $fsmMermaid;
 
-    public function __construct(private readonly string $siteRoot)
-    {
+    public function __construct(
+        private readonly string $siteRoot,
+        private readonly ?ProfilerInterface $profiler = null,
+        private readonly ?string $parentSpanId = null
+    ) {
         $this->fsmMermaid = new OwasysFsmMermaidBuilder($siteRoot);
     }
 
@@ -57,7 +61,9 @@ final class OwasysScorePageRenderer
         );
         $renderer = new ScoreTemplateRenderer(
             $this->siteRoot . '/application',
-            $i18n
+            $i18n,
+            $this->profiler,
+            $this->parentSpanId
         );
 
         $data['assets'] = $assets;

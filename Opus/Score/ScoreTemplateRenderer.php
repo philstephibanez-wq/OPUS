@@ -7,16 +7,21 @@ use DateTimeImmutable;
 use Opus\Contract\ContractException;
 use Opus\I18n\Gender;
 use Opus\I18n\TranslationRuntimeInterface;
+use Opus\Profiler\ProfilerInterface;
 use Stringable;
 
 final class ScoreTemplateRenderer implements TemplateRendererInterface,
     ScoreTemplateRendererInterface
 {
     private string $templateRoot;
+    /** @var list<string> */
+    private array $activeSpanIds = [];
 
     public function __construct(
         string $templateRoot,
-        private readonly ?TranslationRuntimeInterface $i18n = null
+        private readonly ?TranslationRuntimeInterface $i18n = null,
+        private readonly ?ProfilerInterface $profiler = null,
+        private readonly ?string $parentSpanId = null
     ) {
         if (!is_dir($templateRoot)) {
             throw ContractException::because(
@@ -50,7 +55,62 @@ final class ScoreTemplateRenderer implements TemplateRendererInterface,
             );
         }
 
-        return $this->renderTemplate($template, $data, []);
+        $spanId = null;
+        if ($this->profiler?->getActiveTrace() !== null) {
+            $spanId = $this->profiler->beginSpan(
+                'score',
+                'score.render',
+                [
+                    'template' => $template,
+                    'template_root' => $this->templateRoot,
+                    'view_model_keys' => array_values(array_map('strval', array_keys($data))),
+                ],
+                $this->parentSpanId
+            );
+            $this->activeSpanIds[] = $spanId;
+        }
+
+        try {
+            $output = $this->renderTemplate($template, $data, []);
+            if ($spanId !== null) {
+                $result = [
+                    'template' => $template,
+                    'output_bytes' => strlen($output),
+                ];
+                $this->profiler?->event(
+                    'score',
+                    'score.render.completed',
+                    $result,
+                    'success',
+                    $spanId,
+                    $this->parentSpanId
+                );
+                $this->profiler?->endSpan($spanId, 'success', $result);
+            }
+            return $output;
+        } catch (\Throwable $error) {
+            if ($spanId !== null) {
+                $failure = [
+                    'template' => $template,
+                    'exception_class' => $error::class,
+                    'error_code' => $this->safeErrorCode($error),
+                ];
+                $this->profiler?->event(
+                    'score',
+                    'score.render.failed',
+                    $failure,
+                    'error',
+                    $spanId,
+                    $this->parentSpanId
+                );
+                $this->profiler?->endSpan($spanId, 'error', $failure);
+            }
+            throw $error;
+        } finally {
+            if ($spanId !== null) {
+                array_pop($this->activeSpanIds);
+            }
+        }
     }
 
     /**
@@ -70,6 +130,23 @@ final class ScoreTemplateRenderer implements TemplateRendererInterface,
         }
 
         $path = $this->resolveTemplatePath($template);
+        $spanId = $this->activeScoreSpanId();
+        if ($spanId !== null) {
+            $this->profiler?->event(
+                'score',
+                str_contains(str_replace('\\', '/', $template), '/layouts/')
+                    ? 'score.layout.resolved'
+                    : 'score.template.resolved',
+                [
+                    'template' => $template,
+                    'depth' => count($stack),
+                    'fragment' => $stack !== [],
+                ],
+                'success',
+                $spanId,
+                $this->parentSpanId
+            );
+        }
         $source = file_get_contents($path);
 
         if ($source === false) {
@@ -97,7 +174,36 @@ final class ScoreTemplateRenderer implements TemplateRendererInterface,
 
         $stack[] = $template;
 
-        return $this->renderNodes($nodes, $data, $stack);
+        $output = $this->renderNodes($nodes, $data, $stack);
+        if ($spanId !== null) {
+            $this->profiler?->event(
+                'score',
+                'score.fragment.rendered',
+                [
+                    'template' => $template,
+                    'depth' => count($stack) - 1,
+                    'output_bytes' => strlen($output),
+                ],
+                'success',
+                $spanId,
+                $this->parentSpanId
+            );
+        }
+        return $output;
+    }
+
+    private function activeScoreSpanId(): ?string
+    {
+        $spanId = end($this->activeSpanIds);
+        return is_string($spanId) && $spanId !== '' ? $spanId : null;
+    }
+
+    private function safeErrorCode(\Throwable $error): string
+    {
+        $message = trim($error->getMessage());
+        return preg_match('/^[A-Z0-9_:-]{3,240}$/D', $message) === 1
+            ? $message
+            : 'OPUS_SCORE_RENDER_FAILED';
     }
 
     /**

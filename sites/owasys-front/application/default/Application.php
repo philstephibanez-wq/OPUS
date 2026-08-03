@@ -222,7 +222,11 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
             $this->profiler,
             $httpSpanId
         );
-        $renderer = new OwasysScorePageRenderer($this->siteRoot);
+        $renderer = new OwasysScorePageRenderer(
+            $this->siteRoot,
+            $this->profiler,
+            $httpSpanId
+        );
         $registry = new OwasysRegistryModel($this->siteRoot);
         return [
             new OwasysRuntimeController(
@@ -271,7 +275,8 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
         );
         $renderer = new ScoreTemplateRenderer(
             $this->siteRoot . '/application',
-            $i18n
+            $i18n,
+            $this->profiler
         );
         Response::html($renderer->render(
             'default/templates/runtime-error.score',
