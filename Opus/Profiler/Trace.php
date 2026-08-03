@@ -36,6 +36,8 @@ final class Trace implements TraceInterface
     private array $events = [];
     /** @var array<string,array<string,mixed>> */
     private array $spans = [];
+    /** @var array<string,true> */
+    private array $importedRemoteRecordIds = [];
 
     public function __construct(?string $traceId = null)
     {
@@ -201,6 +203,12 @@ final class Trace implements TraceInterface
             $this->assertKnownSpan($rootParentSpanId);
         }
 
+        $recordId = strtolower(trim((string) ($record['record_id'] ?? '')));
+        $this->assertId($recordId, 'OPUS_PROFILER_REMOTE_RECORD_ID_INVALID');
+        if (isset($this->importedRemoteRecordIds[$recordId])) {
+            return;
+        }
+
         $remoteSpans = is_array($record['spans'] ?? null) ? $record['spans'] : [];
         foreach ($remoteSpans as $span) {
             if (!is_array($span)) {
@@ -267,6 +275,8 @@ final class Trace implements TraceInterface
                 'remote' => true,
             ];
         }
+
+        $this->importedRemoteRecordIds[$recordId] = true;
     }
 
     /** @param array<string,mixed> $summary @return array<string,mixed> */

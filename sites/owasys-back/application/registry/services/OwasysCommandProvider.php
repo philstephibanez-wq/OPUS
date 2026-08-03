@@ -196,12 +196,13 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
     private function registryClear(array $actor): array
     {
         $this->assertAllowed($actor, 'registry', 'write');
-        $this->repository()->clearCurrentApplication(
+        $cleared = $this->repository()->clearCurrentApplication(
             (string) $actor['subject']
         );
         return [
-            'contract' => 'OWASYS_REGISTRY_CLEAR_COMMAND_RESULT_V1',
-            'cleared' => true,
+            'contract' => 'OWASYS_REGISTRY_CLEAR_COMMAND_RESULT_V2',
+            'cleared' => $cleared,
+            'already_empty' => !$cleared,
         ];
     }
 

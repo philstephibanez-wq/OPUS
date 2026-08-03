@@ -10,7 +10,7 @@ final class OwasysRegistryRepository
     public const CONTRACT = 'OWASYS_REGISTRY_SQLITE_V1';
 
     private const DEFAULT_DATABASE = 'var/registry/owasys.sqlite';
-    private const SYSTEM_APPLICATION_ID = 'owasys';
+    private const BACKEND_APPLICATION_ID = 'owasys-back';
     private const PROFILER_RESULT_ROW_LIMIT = 50;
 
     /** @var array<int,int> */
@@ -251,18 +251,21 @@ final class OwasysRegistryRepository
         }
     }
 
-    public function clearCurrentApplication(string $actorId): void
+    public function clearCurrentApplication(string $actorId): bool
     {
         $db = $this->open();
 
         try {
             $this->ensureSchema($db);
             $current = $this->getContextValue($db, 'current_app');
+
+            if (!is_array($current)) {
+                return false;
+            }
+
             $this->deleteContextValue($db, 'current_app');
 
-            $applicationId = is_array($current)
-                ? (string) ($current['id'] ?? '')
-                : '';
+            $applicationId = (string) ($current['id'] ?? '');
 
             $this->recordEvent(
                 $db,
@@ -273,6 +276,8 @@ final class OwasysRegistryRepository
                     'previous_application' => $current,
                 ]
             );
+
+            return true;
         } finally {
             $db->close();
         }
@@ -296,7 +301,7 @@ final class OwasysRegistryRepository
                 $db,
                 $this->safeEventApplicationId(
                     $db,
-                    self::SYSTEM_APPLICATION_ID
+                    self::BACKEND_APPLICATION_ID
                 ),
                 'create_new_app',
                 $value
@@ -1112,10 +1117,10 @@ SQL;
         if (
             $this->applicationExists(
                 $db,
-                self::SYSTEM_APPLICATION_ID
+                self::BACKEND_APPLICATION_ID
             )
         ) {
-            return self::SYSTEM_APPLICATION_ID;
+            return self::BACKEND_APPLICATION_ID;
         }
 
         throw new RuntimeException(

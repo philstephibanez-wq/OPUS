@@ -445,7 +445,11 @@ final class OwasysRuntimeController
             $this->fail(403, $message);
         }
 
-        $this->fail(409, 'OWASYS_FSM_RUNTIME_REJECTED:' . $message);
+        if (str_starts_with($message, 'OPUS_FSM_')) {
+            $this->fail(409, 'OWASYS_FSM_RUNTIME_REJECTED:' . $message);
+        }
+
+        $this->fail(409, $message);
     }
 
     private function passwordErrorKey(string $message): ?string
@@ -861,4 +865,3 @@ final class OwasysRuntimeController
         exit($message);
     }
 }
-
