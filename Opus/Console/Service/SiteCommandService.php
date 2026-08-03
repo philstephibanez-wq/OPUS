@@ -56,6 +56,8 @@ final class SiteCommandService implements SiteCommandServiceInterface
             $plan->entries()
         );
 
+        $this->assertProfileScaffoldPlan($profile, $entries);
+
         if ($write) {
             $writer->writePlan($plan);
         }
@@ -303,6 +305,7 @@ final class SiteCommandService implements SiteCommandServiceInterface
                     'OPUS_APPLICATION_PROFILE_KIND_MISMATCH'
                 );
             }
+            $this->assertProfileFilesystem($siteRoot, $profile);
         }
 
         if (($site['dispatch_model'] ?? null) !== 'fsm-module-first') {
@@ -1514,6 +1517,80 @@ final class SiteCommandService implements SiteCommandServiceInterface
             );
         }
         return $profile;
+    }
+
+    /** @param list<array{type:string,path:string}> $entries */
+    private function assertProfileScaffoldPlan(
+        string $profile,
+        array $entries
+    ): void {
+        foreach ($entries as $entry) {
+            $relative = strtolower(str_replace('\\', '/', $entry['path']));
+            if (str_contains($relative, '/shared/')) {
+                throw new OpusConsoleException(
+                    'OPUS_APPLICATION_PROFILE_SHARED_FORBIDDEN:'
+                    . $entry['path']
+                );
+            }
+            if ($profile !== SiteScaffoldPlan::PROFILE_BACKEND) {
+                continue;
+            }
+            if ($this->backendPresentationPath($relative)) {
+                throw new OpusConsoleException(
+                    'OPUS_APPLICATION_BACKEND_PRESENTATION_FORBIDDEN:'
+                    . $entry['path']
+                );
+            }
+        }
+    }
+
+    private function assertProfileFilesystem(
+        string $siteRoot,
+        string $profile
+    ): void {
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator(
+                $siteRoot,
+                \FilesystemIterator::SKIP_DOTS
+            )
+        );
+        foreach ($iterator as $entry) {
+            $relative = strtolower(str_replace(
+                '\\',
+                '/',
+                substr($entry->getPathname(), strlen($siteRoot) + 1)
+            ));
+            if (str_contains('/' . $relative . '/', '/shared/')) {
+                throw new OpusConsoleException(
+                    'OPUS_APPLICATION_PROFILE_SHARED_FORBIDDEN:' . $relative
+                );
+            }
+            if ($profile === SiteScaffoldPlan::PROFILE_BACKEND
+                && $this->backendPresentationPath($relative)) {
+                throw new OpusConsoleException(
+                    'OPUS_APPLICATION_BACKEND_PRESENTATION_FORBIDDEN:'
+                    . $relative
+                );
+            }
+        }
+    }
+
+    private function backendPresentationPath(string $relative): bool
+    {
+        $relative = strtolower(str_replace('\\', '/', $relative));
+        $basename = basename($relative);
+        return str_ends_with($basename, '.score')
+            || preg_match('/\.(?:js|mjs|cjs|ts|tsx)$/D', $basename) === 1
+            || in_array(
+                $basename,
+                ['package.json', 'package-lock.json', 'yarn.lock',
+                    'pnpm-lock.yaml'],
+                true
+            )
+            || str_contains('/' . $relative . '/', '/javascript/')
+            || str_contains('/' . $relative . '/', '/www/asset/js/')
+            || str_contains('/' . $relative . '/', '/templates/')
+            || str_contains('/' . $relative . '/', '/layouts/');
     }
 
     /** @param array<string,mixed> $site */

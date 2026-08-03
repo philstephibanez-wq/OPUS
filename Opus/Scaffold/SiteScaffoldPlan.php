@@ -1087,7 +1087,7 @@ PHP;
                 'persistence' => false,
             ],
             self::PROFILE_BACKEND => [
-                'presentation' => true,
+                'presentation' => false,
                 'api' => true,
                 'persistence' => true,
             ],
