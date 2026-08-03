@@ -75,9 +75,6 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
             if ($path === '/api' || str_starts_with($path, '/api/')) {
                 throw new RuntimeException('OWASYS_FRONT_API_FORBIDDEN');
             }
-            $this->profiler->event('http', 'http.route.resolved', [
-                'path' => $path,
-            ], 'success', $httpSpanId);
             $this->logger->info('owasys.front', 'request.received', [
                 'method' => $method,
                 'path' => $path,
@@ -87,6 +84,14 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 'profiler_requested' => (string) ($_GET['profiler'] ?? '') === '1',
             ]);
             if ($this->isProfilerTracePath($path)) {
+                $this->recordRoutingDecision(
+                    $path,
+                    'profiler',
+                    WebProfilerController::class,
+                    'handle',
+                    'application/default/Application.php::isProfilerTracePath',
+                    $httpSpanId
+                );
                 $this->serveProfilerTrace($httpSpanId);
                 $status = 'completed';
                 $responseStatus = http_response_code();
@@ -101,19 +106,34 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
             }
             [$controller, $creation, $source] = $this->components($httpSpanId);
             if ($creation->matchesCurrentRequest()) {
-                $this->profiler->event('routing', 'controller.selected', [
-                    'controller' => 'creation',
-                ], 'success', $httpSpanId);
+                $this->recordRoutingDecision(
+                    $path,
+                    'creation',
+                    OwasysCreationController::class,
+                    'run',
+                    'application/creation/controllers/CreationController.php::matchesCurrentRequest',
+                    $httpSpanId
+                );
                 $creation->run();
             } elseif ($source->matchesCurrentRequest()) {
-                $this->profiler->event('routing', 'controller.selected', [
-                    'controller' => 'source',
-                ], 'success', $httpSpanId);
+                $this->recordRoutingDecision(
+                    $path,
+                    'source',
+                    OwasysSourceController::class,
+                    'run',
+                    'application/source/controllers/SourceController.php::matchesCurrentRequest',
+                    $httpSpanId
+                );
                 $source->run();
             } else {
-                $this->profiler->event('routing', 'controller.selected', [
-                    'controller' => 'runtime',
-                ], 'success', $httpSpanId);
+                $this->recordRoutingDecision(
+                    $path,
+                    'runtime',
+                    OwasysRuntimeController::class,
+                    'run',
+                    'application/default/Application.php::runtimeFallback',
+                    $httpSpanId
+                );
                 $controller->run();
             }
             $this->profiler->event(
@@ -294,6 +314,56 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
             is_string($path) ? rawurldecode($path) : '/',
             '/'
         );
+    }
+
+    private function recordRoutingDecision(
+        string $path,
+        string $controllerId,
+        string $controllerClass,
+        string $controllerAction,
+        string $ruleSource,
+        string $httpSpanId
+    ): void {
+        $segments = array_values(array_filter(
+            explode('/', trim($path, '/')),
+            static fn (string $segment): bool => $segment !== ''
+        ));
+        $supportedLocales = is_array($this->siteConfig['locales'] ?? null)
+            ? $this->siteConfig['locales']
+            : [];
+        $locale = in_array($segments[0] ?? '', $supportedLocales, true)
+            ? (string) array_shift($segments)
+            : '';
+        $route = implode('/', $segments);
+        if ($route === '') {
+            $route = $controllerId === 'profiler' ? trim($path, '/') : 'login';
+        }
+        $parameters = [];
+        if ($locale !== '') {
+            $parameters['locale'] = $locale;
+        }
+        if ($controllerId === 'source' && str_starts_with($route, 'source/')) {
+            $parameters['source_path'] = substr($route, strlen('source/'));
+        }
+
+        $context = [
+            'request_path' => $path,
+            'normalized_route' => $route,
+            'rule_source' => $ruleSource,
+            'route_parameters' => $parameters,
+        ];
+        $this->profiler->event(
+            'http',
+            'route.resolved',
+            $context,
+            'success',
+            $httpSpanId
+        );
+        $this->profiler->event('http', 'controller.selected', $context + [
+            'controller_id' => $controllerId,
+            'controller_class' => $controllerClass,
+            'controller_action' => $controllerAction,
+        ], 'success', $httpSpanId);
     }
 
     private function safeErrorCode(Throwable $error): string

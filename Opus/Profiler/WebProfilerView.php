@@ -57,7 +57,13 @@ final class WebProfilerView implements WebProfilerViewInterface
                 $rows = array_merge($spans, $events);
             } elseif ($id !== 'summary') {
                 foreach (array_merge($spans, $events) as $row) {
-                    if (in_array($row['category'], $categories, true)) {
+                    if (in_array($row['category'], $categories, true)
+                        || ($id === 'routing' && in_array(
+                            $row['type'],
+                            ['http.route.resolved', 'http.controller.selected'],
+                            true
+                        ))
+                    ) {
                         $rows[] = $row;
                     }
                 }
@@ -114,9 +120,12 @@ final class WebProfilerView implements WebProfilerViewInterface
         return [
             'kind' => $kind, 'index' => $index, 'elapsed_ms' => $elapsed, 'category' => $category,
             'type' => $type, 'status' => $status, 'span_id' => $spanId, 'parent_span_id' => $parentSpanId,
-            'context_summary' => $category === 'fsm'
-                ? $this->fsmSummary($context)
-                : $this->contextSummary($fields),
+            'context_summary' => match (true) {
+                $category === 'fsm' => $this->fsmSummary($context),
+                $type === 'http.route.resolved' => $this->routeSummary($context),
+                $type === 'http.controller.selected' => $this->controllerSummary($context),
+                default => $this->contextSummary($fields),
+            },
             'context_fields' => $fields,
             'context_available' => $fields !== [], 'context_json' => $this->encode($context),
         ];
@@ -136,6 +145,31 @@ final class WebProfilerView implements WebProfilerViewInterface
 
         return $table . ' · ' . $current . ' + ' . $signal . ' → '
             . ($next !== '' ? $next : 'transition_not_found');
+    }
+
+    /** @param array<string,mixed> $context */
+    private function routeSummary(array $context): string
+    {
+        $route = trim((string) ($context['normalized_route'] ?? ''));
+        $source = trim((string) ($context['rule_source'] ?? ''));
+        if ($route === '' || $source === '') {
+            return $this->contextSummary($this->flattenContext($context));
+        }
+
+        return $route . ' · règle ' . $source;
+    }
+
+    /** @param array<string,mixed> $context */
+    private function controllerSummary(array $context): string
+    {
+        $class = trim((string) ($context['controller_class'] ?? ''));
+        $action = trim((string) ($context['controller_action'] ?? ''));
+        $route = trim((string) ($context['normalized_route'] ?? ''));
+        if ($class === '' || $action === '') {
+            return $this->contextSummary($this->flattenContext($context));
+        }
+
+        return $class . '::' . $action . ($route !== '' ? ' · ' . $route : '');
     }
 
     /** @param array<string,mixed> $context @return list<array<string,string>> */
