@@ -240,6 +240,11 @@ final class SiteCommandService implements SiteCommandServiceInterface
                 $requiredFiles[] = 'application/default/layouts/layout.score';
             } else {
                 $requiredDirectories[] = 'application/api';
+                $requiredDirectories[] = 'application/api/controllers';
+                $requiredDirectories[] = 'var/profiler/rest';
+                $requiredFiles[] = 'config/backend.rest.json';
+                $requiredFiles[] = 'config/backend.operations.json';
+                $requiredFiles[] = 'application/api/controllers/BackendApiController.php';
             }
         }
 
@@ -371,7 +376,7 @@ final class SiteCommandService implements SiteCommandServiceInterface
                         'OPUS_SITE_ROUTE_MODULE_UNKNOWN:' . $module
                     );
                 }
-                foreach (['template', 'view'] as $field) {
+                foreach ($surface === 'backend' ? [] : ['template', 'view'] as $field) {
                     $relative = $this->safeRelative(
                         (string) ($route[$field] ?? '')
                     );

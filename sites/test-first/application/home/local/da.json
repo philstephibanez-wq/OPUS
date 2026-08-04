@@ -1,0 +1,14 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "da",
+    "scope": "home",
+    "messages": {
+        "page.title": "Hjem",
+        "page.subtitle": "FSM-styret OPUS-modul: home",
+        "auth.username": "Username",
+        "auth.password": "Password",
+        "auth.submit": "Log ind",
+        "auth.error": "Authentication failed."
+    }
+}
+

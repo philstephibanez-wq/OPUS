@@ -1,0 +1,14 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "ga",
+    "scope": "home",
+    "messages": {
+        "page.title": "Baile",
+        "page.subtitle": "Modúl OPUS arna rialú ag FSM: home",
+        "auth.username": "Username",
+        "auth.password": "Password",
+        "auth.submit": "Sínigh isteach",
+        "auth.error": "Authentication failed."
+    }
+}
+

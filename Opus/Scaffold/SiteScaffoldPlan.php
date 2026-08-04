@@ -464,6 +464,10 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
     /** @return list<ScaffoldEntry> */
     public function entries(): array
     {
+        if ($this->profile === self::PROFILE_BACKEND) {
+            return $this->backendEntries();
+        }
+
         $site = $this->siteId;
         $directories = [
             "sites/{$site}/config",
@@ -523,6 +527,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             "sites/{$site}/config/acl.json" => $this->json($this->aclConfig()),
             "sites/{$site}/config/sso.json" => $this->json($this->ssoConfig()),
             "sites/{$site}/application/default/bootstrap.php" => $this->bootstrap(),
+            "sites/{$site}/application/default/ApplicationInterface.php" => $this->applicationInterface(),
             "sites/{$site}/application/default/Application.php" => $this->applicationClass(),
             "sites/{$site}/application/default/layouts/layout.score" => $this->layoutTemplate(),
             "sites/{$site}/application/default/templates/error.score" => '<section class="opus-card opus-error" role="alert"><h2>{{ error.title }}</h2><p>{{ error.message }}</p><code>{{ error.code }}</code></section>' . "\n",
@@ -536,6 +541,10 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             "sites/{$site}/www/asset/themes/starter/css/theme.css" => "body.opus-site{--opus-theme:starter}\n",
             "sites/{$site}/www/index.php" => $this->frontController(),
         ];
+        if ($this->profile === self::PROFILE_FULLSTACK) {
+            $files["sites/{$site}/config/fullstack.correlation.json"] =
+                $this->json($this->fullstackCorrelationConfig());
+        }
         if ($this->blueprint['security']['initial_users'] !== []) {
             $files["sites/{$site}/config/security.onboarding.json"] =
                 $this->json([
@@ -874,7 +883,7 @@ use Opus\Http\Response;
 use Opus\Log\Logger;
 use Opus\Profiler\Profiler;
 
-final class {{APPLICATION_CLASS}}
+final class {{APPLICATION_CLASS}} implements {{APPLICATION_CLASS}}Interface
 {
     private static ?self $instance = null;
     private readonly GeneratedSiteRuntime $runtime;
@@ -1038,11 +1047,390 @@ if (!is_file($autoload)) {
     exit;
 }
 require_once $autoload;
+require_once __DIR__ . '/ApplicationInterface.php';
 require_once __DIR__ . '/Application.php';
 
 {{APPLICATION_CLASS}}::instance($siteRoot)->run();
 PHP;
         return str_replace('{{APPLICATION_CLASS}}', $class, $source);
+    }
+
+    private function applicationInterface(): string
+    {
+        $class = $this->applicationClassName();
+        return "<?php\ndeclare(strict_types=1);\n\ninterface {$class}Interface extends\n"
+            . "    \\Opus\\Framework\\OpusFrameworkComponentInterface,\n"
+            . "    \\Opus\\Framework\\OpusExceptionAwareInterface,\n"
+            . "    \\Opus\\Framework\\OpusProfilerAwareInterface,\n"
+            . "    \\Opus\\Framework\\OpusSelfDocumentingInterface\n"
+            . "{\n    public static function instance(string \$siteRoot): self;\n"
+            . "    public function run(): void;\n}\n";
+    }
+
+    /** @return list<ScaffoldEntry> */
+    private function backendEntries(): array
+    {
+        $site = $this->siteId;
+        $directories = [
+            "sites/{$site}/config",
+            "sites/{$site}/application",
+            "sites/{$site}/application/default",
+            "sites/{$site}/application/default/local",
+            "sites/{$site}/application/api",
+            "sites/{$site}/application/api/controllers",
+            "sites/{$site}/www",
+            "sites/{$site}/var",
+            "sites/{$site}/var/logs",
+            "sites/{$site}/var/profiler",
+            "sites/{$site}/var/profiler/rest",
+        ];
+        $entries = array_map(
+            static fn (string $path): ScaffoldEntry => ScaffoldEntry::directory($path),
+            $directories
+        );
+
+        $siteConfig = $this->siteConfig();
+        $siteConfig['application_surface'] = [
+            'contract' => 'OPUS_APPLICATION_SURFACE_V1',
+            'type' => 'backend',
+        ];
+        unset($siteConfig['theme'], $siteConfig['asset_root']);
+        $controller = $this->backendControllerClassName();
+        $files = [
+            "sites/{$site}/opus-site.json" => $this->json([
+                'site_id' => $site,
+                'contract' => 'OPUS_SITE_STANDARD_CONTRACT_CORE',
+                'dispatch_model' => 'fsm-module-first',
+                'application_profile' => self::PROFILE_BACKEND,
+            ]),
+            "sites/{$site}/config/site.json" => $this->json($siteConfig),
+            "sites/{$site}/config/routes.json" => $this->json([
+                'contract' => 'OPUS_ROUTE_REGISTRY_V1',
+                'dispatch_model' => 'fsm-module-first',
+                'routes' => [[
+                    'id' => 'api.dispatch',
+                    'path' => '/api/v1/{*resource}',
+                    'state' => 'api',
+                    'module' => 'api',
+                    'action' => 'dispatch',
+                    'acl' => 'api',
+                    'fsm_state' => 'api',
+                    'dispatch_action' => 'dispatch_rest',
+                    'show_in_menu' => false,
+                    'order' => 10,
+                ]],
+            ]),
+            "sites/{$site}/config/application.fsm.json" => $this->json([
+                'contract' => 'OPUS_APPLICATION_FSM_V1',
+                'site_id' => $site,
+                'initial_state' => 'api',
+                'states' => [[
+                    'id' => 'api',
+                    'module' => 'api',
+                    'route' => '/api/v1/{*resource}',
+                ]],
+                'transitions' => [[
+                    'id' => 'dispatch.api',
+                    'from' => '*',
+                    'event' => 'dispatch_api',
+                    'to' => 'api',
+                    'guards' => ['route_exists'],
+                    'actions' => ['dispatch_rest'],
+                ]],
+            ]),
+            "sites/{$site}/config/acl.json" => $this->json($this->aclConfig()),
+            "sites/{$site}/config/sso.json" => $this->json($this->ssoConfig()),
+            "sites/{$site}/config/backend.rest.json" => $this->json(
+                $this->backendRestConfig()
+            ),
+            "sites/{$site}/config/backend.operations.json" => $this->json(
+                $this->backendOperationsConfig()
+            ),
+            "sites/{$site}/application/default/ApplicationInterface.php" => $this->applicationInterface(),
+            "sites/{$site}/application/default/bootstrap.php" => $this->backendBootstrap(),
+            "sites/{$site}/application/default/Application.php" => $this->backendApplicationClass(),
+            "sites/{$site}/application/api/controllers/{$controller}Interface.php" => $this->backendControllerInterface(),
+            "sites/{$site}/application/api/controllers/BackendApiController.php" => $this->backendControllerClass(),
+            "sites/{$site}/www/index.php" => $this->frontController(),
+        ];
+        foreach (self::SUPPORTED_LOCALES as $locale) {
+            $files["sites/{$site}/application/default/local/{$locale}.json"] =
+                $this->json($this->defaultCatalog($locale));
+        }
+        foreach ($files as $path => $content) {
+            $entries[] = ScaffoldEntry::file($path, $content);
+        }
+        return $entries;
+    }
+
+    /** @return array<string,mixed> */
+    private function backendRestConfig(): array
+    {
+        $secret = strtoupper(str_replace('-', '_', $this->siteId));
+        return [
+            'contract' => 'OPUS_REST_API_SERVER_CONFIG_V1',
+            'application_id' => $this->siteId,
+            'base_path' => '/api/v1',
+            'operation_catalog' => 'sites/' . $this->siteId
+                . '/config/backend.operations.json',
+            'composer_command' => ['@in-process'],
+            'timeout_seconds' => 120,
+            'max_output_bytes' => 2097152,
+            'resources' => [[
+                'method' => 'GET',
+                'path' => '/api/v1/application/validation',
+                'operation' => 'site.validate',
+                'parameters' => ['site_id' => $this->siteId],
+                'success_status' => 200,
+            ]],
+            'supported_locales' => self::SUPPORTED_LOCALES,
+            'default_locale' => self::FALLBACK_LOCALE,
+            'authentication' => [
+                'mode' => 'environment_hmac',
+                'service' => $this->siteId . '-front',
+                'token_env' => 'OPUS_' . $secret . '_BACKEND_TOKEN',
+                'hmac_env' => 'OPUS_' . $secret . '_BACKEND_HMAC',
+                'minimum_secret_length' => 32,
+                'max_clock_skew_seconds' => 60,
+                'delegated_roles' => $this->blueprint['security']['roles'],
+                'delegated_providers' => ['session', 'local-password', 'auth0-proxy'],
+                'trusted_proxy_addresses' => ['127.0.0.1', '::1'],
+                'proxy_secret_env' => 'OPUS_' . $secret . '_AUTH0_PROXY_SECRET',
+            ],
+            'fsm' => [
+                'initial_state' => 'received',
+                'transitions' => [
+                    'received' => ['authenticated', 'failed'],
+                    'authenticated' => ['authorized', 'failed'],
+                    'authorized' => ['dispatching', 'failed'],
+                    'dispatching' => ['succeeded', 'failed'],
+                    'succeeded' => [],
+                    'failed' => [],
+                ],
+            ],
+            'diagnostics' => [
+                'log_directory' => 'sites/' . $this->siteId . '/var/logs',
+                'log_file' => $this->siteId . '.log',
+                'profiler_directory' => 'sites/' . $this->siteId
+                    . '/var/profiler/rest',
+            ],
+        ];
+    }
+
+    /** @return array<string,mixed> */
+    private function backendOperationsConfig(): array
+    {
+        return [
+            'contract' => 'OPUS_REST_API_COMPOSER_OPERATION_CATALOG_V1',
+            'operations' => [
+                'site.validate' => [
+                    'composer_script' => 'opus:validate-site',
+                    'roles' => $this->blueprint['security']['roles'],
+                    'arguments' => [[
+                        'name' => 'site_id',
+                        'required' => true,
+                        'pattern' => '^[a-z][a-z0-9-]*$',
+                        'max_length' => 64,
+                    ]],
+                ],
+            ],
+        ];
+    }
+
+    /** @return array<string,mixed> */
+    private function fullstackCorrelationConfig(): array
+    {
+        return [
+            'contract' => 'OPUS_FULLSTACK_REST_CORRELATION_V1',
+            'transport' => 'secured-rest',
+            'front_surface' => 'score',
+            'back_surface' => 'php-rest-composer',
+            'shared_directory_forbidden' => true,
+            'trace_header' => 'X-Opus-Trace-Id',
+            'request_header' => 'X-Opus-Rest-Nonce',
+            'flow' => ['front', 'rest', 'back', 'composer', 'back', 'rest', 'front'],
+        ];
+    }
+
+    private function backendControllerClassName(): string
+    {
+        return substr($this->applicationClassName(), 0, -11)
+            . 'BackendApiController';
+    }
+
+    private function backendControllerInterface(): string
+    {
+        $class = $this->backendControllerClassName();
+        return "<?php\ndeclare(strict_types=1);\n\ninterface {$class}Interface extends\n"
+            . "    \\Opus\\Framework\\OpusFrameworkComponentInterface,\n"
+            . "    \\Opus\\Framework\\OpusExceptionAwareInterface,\n"
+            . "    \\Opus\\Framework\\OpusProfilerAwareInterface,\n"
+            . "    \\Opus\\Framework\\OpusSelfDocumentingInterface\n"
+            . "{\n    public function matchesCurrentRequest(): bool;\n"
+            . "    public function run(): void;\n}\n";
+    }
+
+    private function backendControllerClass(): string
+    {
+        $class = $this->backendControllerClassName();
+        $config = 'sites/' . $this->siteId . '/config/backend.rest.json';
+        $source = <<<'PHP'
+<?php
+declare(strict_types=1);
+
+use Opus\Api\Rest\RestServer;
+use Opus\Http\Request;
+
+final class {{CONTROLLER}} implements {{CONTROLLER}}Interface
+{
+    private ?Request $request = null;
+
+    public function __construct(
+        private readonly string $siteRoot,
+        private readonly string $opusRoot
+    ) {
+    }
+
+    public function matchesCurrentRequest(): bool
+    {
+        return str_starts_with('/' . trim($this->request()->path, '/'), '/api/');
+    }
+
+    public function run(): void
+    {
+        RestServer::fromRoot($this->opusRoot, '{{CONFIG}}')
+            ->handle($this->request())->send();
+    }
+
+    private function request(): Request
+    {
+        return $this->request ??= Request::fromGlobals($this->opusRoot);
+    }
+}
+PHP;
+        return str_replace(['{{CONTROLLER}}', '{{CONFIG}}'], [$class, $config], $source);
+    }
+
+    private function backendApplicationClass(): string
+    {
+        $class = $this->applicationClassName();
+        $controller = $this->backendControllerClassName();
+        $source = <<<'PHP'
+<?php
+declare(strict_types=1);
+
+use Opus\Http\Response;
+use Opus\Log\Logger;
+use Opus\Profiler\Profiler;
+
+final class {{APPLICATION}} implements {{APPLICATION}}Interface
+{
+    private static ?self $instance = null;
+    private readonly Logger $logger;
+    private readonly Profiler $profiler;
+    private readonly {{CONTROLLER}} $controller;
+
+    private function __construct(private readonly string $siteRoot)
+    {
+        $this->logger = new Logger($siteRoot . '/var/logs', '{{LOG}}');
+        $this->profiler = new Profiler($siteRoot . '/var/profiler');
+        $this->controller = new {{CONTROLLER}}(
+            $siteRoot,
+            dirname(dirname($siteRoot))
+        );
+    }
+
+    public static function instance(string $siteRoot): self
+    {
+        $siteRoot = rtrim(str_replace('\\', '/', $siteRoot), '/');
+        if (self::$instance instanceof self) {
+            if (self::$instance->siteRoot !== $siteRoot) {
+                throw new RuntimeException('OPUS_APPLICATION_SINGLETON_ROOT_MISMATCH');
+            }
+            return self::$instance;
+        }
+        return self::$instance = new self($siteRoot);
+    }
+
+    private function __clone()
+    {
+    }
+
+    public function __wakeup(): void
+    {
+        throw new RuntimeException('OPUS_APPLICATION_SINGLETON_UNSERIALIZE_FORBIDDEN');
+    }
+
+    public function run(): void
+    {
+        $incoming = trim((string) ($_SERVER['HTTP_X_OPUS_TRACE_ID'] ?? ''));
+        $trace = $this->profiler->start(
+            preg_match('/^[a-f0-9]{16,64}$/', $incoming) === 1 ? $incoming : null
+        );
+        $traceId = $trace->getTraceId();
+        $status = 'failed';
+        try {
+            if (!$this->controller->matchesCurrentRequest()) {
+                throw new RuntimeException('OPUS_BACKEND_ROUTE_FORBIDDEN');
+            }
+            $this->logger->info('application.backend', 'request.received', [], $traceId);
+            $this->controller->run();
+            $status = 'completed';
+        } catch (Throwable $error) {
+            $this->logger->error('application.backend', 'request.failed', [
+                'error_code' => preg_match('/^[A-Z0-9_:-]{3,240}$/', $error->getMessage()) === 1
+                    ? $error->getMessage() : 'OPUS_BACKEND_RUNTIME_FAILED',
+            ], $traceId);
+            Response::json([
+                'contract' => 'OPUS_BACKEND_ERROR_V1',
+                'status' => 'failed',
+                'trace_id' => $traceId,
+            ], 500)->send();
+        } finally {
+            $this->profiler->stop([
+                'component' => self::class,
+                'status' => $status,
+                'trace_id' => $traceId,
+            ]);
+        }
+    }
+}
+PHP;
+        return str_replace(
+            ['{{APPLICATION}}', '{{CONTROLLER}}', '{{LOG}}'],
+            [$class, $controller, $this->siteId . '.log'],
+            $source
+        );
+    }
+
+    private function backendBootstrap(): string
+    {
+        $application = $this->applicationClassName();
+        $controller = $this->backendControllerClassName();
+        $source = <<<'PHP'
+<?php
+declare(strict_types=1);
+
+$siteRoot = dirname(__DIR__, 2);
+$opusRoot = dirname(dirname($siteRoot));
+$autoload = $opusRoot . '/vendor/autoload.php';
+if (!is_file($autoload)) {
+    http_response_code(500);
+    exit;
+}
+require_once $autoload;
+require_once dirname(__DIR__) . '/api/controllers/{{CONTROLLER}}Interface.php';
+require_once dirname(__DIR__) . '/api/controllers/BackendApiController.php';
+require_once __DIR__ . '/ApplicationInterface.php';
+require_once __DIR__ . '/Application.php';
+
+{{APPLICATION}}::instance($siteRoot)->run();
+PHP;
+        return str_replace(
+            ['{{APPLICATION}}', '{{CONTROLLER}}'],
+            [$application, $controller],
+            $source
+        );
     }
 
     private function applicationClassName(): string

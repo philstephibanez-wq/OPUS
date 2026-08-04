@@ -1,0 +1,14 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "mt",
+    "scope": "home",
+    "messages": {
+        "page.title": "Paġna ewlenija",
+        "page.subtitle": "Modulu OPUS immexxi minn FSM: home",
+        "auth.username": "Username",
+        "auth.password": "Password",
+        "auth.submit": "Idħol",
+        "auth.error": "Authentication failed."
+    }
+}
+

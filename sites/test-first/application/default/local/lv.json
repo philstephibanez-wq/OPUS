@@ -1,0 +1,20 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "lv",
+    "scope": "default",
+    "messages": {
+        "language": "Valoda",
+        "menu.home": "Sākums",
+        "menu.architecture": "Arhitektūra",
+        "menu.router": "Maršrutētājs",
+        "menu.modules": "Moduļi",
+        "menu.controllers": "Kontrolleri",
+        "menu.views": "Skati",
+        "menu.models": "Modeļi",
+        "menu.i18n": "Internacionalizācija",
+        "error.title": "OPUS kļūda",
+        "error.request_failed": "Pieprasījums neizdevās.",
+        "menu.login": "Pieteikties"
+    }
+}
+

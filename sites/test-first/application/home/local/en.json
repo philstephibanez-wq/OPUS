@@ -1,0 +1,14 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "en",
+    "scope": "home",
+    "messages": {
+        "page.title": "Home",
+        "page.subtitle": "FSM-driven OPUS module: home",
+        "auth.username": "Username",
+        "auth.password": "Password",
+        "auth.submit": "Sign in",
+        "auth.error": "Authentication failed."
+    }
+}
+
