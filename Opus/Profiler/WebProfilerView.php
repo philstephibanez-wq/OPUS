@@ -54,7 +54,7 @@ final class WebProfilerView implements WebProfilerViewInterface
         foreach ($definitions as $id => [$label, $categories]) {
             $rows = [];
             if ($id === 'timeline') {
-                $rows = array_merge($spans, $events);
+                $rows = $spans !== [] ? $spans : $events;
             } elseif ($id !== 'summary') {
                 foreach (array_merge($spans, $events) as $row) {
                     if (in_array($row['category'], $categories, true)

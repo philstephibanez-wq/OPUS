@@ -329,7 +329,9 @@ final class SiteCommandService implements SiteCommandServiceInterface
 
         $routeEntries = $this->routeEntries($routes, $role);
         $fsmContract = (string) ($fsm['contract'] ?? '');
+        $fsmName = trim((string) ($fsm['name'] ?? ''));
         if (preg_match('/^[A-Z][A-Z0-9_]*_FSM_V[0-9]+$/', $fsmContract) !== 1
+            || preg_match('/^[a-z][a-z0-9.-]{2,127}$/D', $fsmName) !== 1
             || !is_array($fsm['states'] ?? null)
             || $fsm['states'] === []) {
             throw new OpusConsoleException('OPUS_SITE_FSM_CONTRACT_INVALID');

@@ -582,7 +582,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
                 'default' => 'deny',
                 'open' => $module === 'home'
                     ? $this->blueprint['security']['home_roles']
-                    : ['anonymous'],
+                    : ['everyone'],
             ]);
             foreach (self::SUPPORTED_LOCALES as $locale) {
                 $files["sites/{$site}/application/{$module}/local/{$locale}.json"] = $this->json(
@@ -727,6 +727,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
         }
         return [
             'contract' => 'OPUS_APPLICATION_FSM_V1',
+            'name' => $this->siteId . '.application',
             'site_id' => $this->siteId,
             'initial_state' => 'home',
             'states' => $states,
@@ -746,7 +747,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             'permissions' => $this->blueprint['security']['permissions'],
             'policies' => [
                 'home' => ['roles' => $homeRoles],
-                'login' => ['roles' => ['anonymous']],
+                'login' => ['roles' => ['everyone']],
             ],
         ];
     }
@@ -1122,6 +1123,7 @@ PHP;
             ]),
             "sites/{$site}/config/application.fsm.json" => $this->json([
                 'contract' => 'OPUS_APPLICATION_FSM_V1',
+                'name' => $site . '.application',
                 'site_id' => $site,
                 'initial_state' => 'api',
                 'states' => [[
@@ -1511,9 +1513,9 @@ PHP;
                     'authentication_required' => false,
                     'login_page' => false,
                     'provider' => 'session',
-                    'roles' => ['anonymous', 'admin'],
+                    'roles' => ['admin'],
                     'permissions' => ['home:view'],
-                    'home_roles' => ['anonymous', 'admin'],
+                    'home_roles' => ['everyone'],
                     'initial_users' => [],
                     'initial_user_role' => '',
                 ],
@@ -1570,7 +1572,7 @@ PHP;
             $security['home_roles'] ?? null,
             'HOME_ROLES'
         );
-        if (array_diff($homeRoles, $roles) !== []) {
+        if (array_diff($homeRoles, array_merge($roles, ['everyone'])) !== []) {
             throw new \InvalidArgumentException(
                 'OPUS_APPLICATION_BLUEPRINT_HOME_ROLE_UNKNOWN'
             );
@@ -1586,7 +1588,7 @@ PHP;
             );
         }
         if (($security['authentication_required'] ?? false) === true
-            && in_array('anonymous', $homeRoles, true)) {
+            && in_array('everyone', $homeRoles, true)) {
             throw new \InvalidArgumentException(
                 'OPUS_APPLICATION_BLUEPRINT_AUTH_HOME_ANONYMOUS'
             );

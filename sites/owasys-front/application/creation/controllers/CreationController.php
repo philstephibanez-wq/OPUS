@@ -464,13 +464,13 @@ final class OwasysCreationController
                     ($form['provider'] ?? '') === 'auth0-proxy',
                 'provider' => (string) ($form['provider'] ?? 'session'),
                 'roles' => implode(', ', is_array($form['roles'] ?? null)
-                    ? $form['roles'] : ['anonymous', 'admin']),
+                    ? $form['roles'] : ['admin']),
                 'permissions' => implode(', ', is_array(
                     $form['permissions'] ?? null
                 ) ? $form['permissions'] : ['home:view']),
                 'home_roles' => implode(', ', is_array(
                     $form['home_roles'] ?? null
-                ) ? $form['home_roles'] : ['anonymous', 'admin']),
+                ) ? $form['home_roles'] : ['everyone']),
                 'initial_users' => implode(', ', is_array(
                     $form['initial_users'] ?? null
                 ) ? $form['initial_users'] : []),
@@ -517,9 +517,9 @@ final class OwasysCreationController
             'authentication_required' => false,
             'login_page' => false,
             'provider' => 'session',
-                'roles' => ['anonymous', 'admin'],
+                'roles' => ['admin'],
                 'permissions' => ['home:view'],
-                'home_roles' => ['anonymous', 'admin'],
+                'home_roles' => ['everyone'],
             'initial_users' => [],
             'initial_user_role' => 'admin',
         ];
@@ -596,7 +596,7 @@ final class OwasysCreationController
             (string) ($_POST['owasys_home_roles'] ?? ''),
             false
         );
-        if (array_diff($homeRoles, $roles) !== []) {
+        if (array_diff($homeRoles, array_merge($roles, ['everyone'])) !== []) {
             throw new RuntimeException(
                 'OWASYS_CREATION_HOME_ROLE_UNKNOWN'
             );
@@ -609,7 +609,7 @@ final class OwasysCreationController
                 'OWASYS_CREATION_PUBLIC_PROVIDER_INVALID'
             );
         }
-        if ($authentication && in_array('anonymous', $homeRoles, true)) {
+        if ($authentication && in_array('everyone', $homeRoles, true)) {
             throw new RuntimeException(
                 'OWASYS_CREATION_AUTH_HOME_ANONYMOUS'
             );
