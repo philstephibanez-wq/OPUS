@@ -1,0 +1,19 @@
+{
+    "contract": "OPUS_FULLSTACK_REST_CORRELATION_V1",
+    "transport": "secured-rest",
+    "front_surface": "score",
+    "back_surface": "php-rest-composer",
+    "shared_directory_forbidden": true,
+    "trace_header": "X-Opus-Trace-Id",
+    "request_header": "X-Opus-Rest-Nonce",
+    "flow": [
+        "front",
+        "rest",
+        "back",
+        "composer",
+        "back",
+        "rest",
+        "front"
+    ]
+}
+

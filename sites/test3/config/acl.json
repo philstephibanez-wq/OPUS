@@ -1,0 +1,24 @@
+{
+    "contract": "OPUS_GENERATED_APPLICATION_ACL_V1",
+    "default": "deny",
+    "roles": [
+        "admin",
+        "autre"
+    ],
+    "permissions": [
+        "home:view"
+    ],
+    "policies": {
+        "home": {
+            "roles": [
+                "everyone"
+            ]
+        },
+        "login": {
+            "roles": [
+                "everyone"
+            ]
+        }
+    }
+}
+
