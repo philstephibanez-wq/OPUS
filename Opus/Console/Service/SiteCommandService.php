@@ -158,6 +158,7 @@ final class SiteCommandService implements SiteCommandServiceInterface
         $fsmRelative = $this->fsmRelativePath($site);
         $standardLayout = $this->standardLayout($site);
         $surface = $this->applicationSurface($site);
+        $siteRole = (string) ($site['role'] ?? '');
         if ($standardLayout === null) {
             $forbiddenPaths = [
                 'application/shared',
@@ -238,7 +239,7 @@ final class SiteCommandService implements SiteCommandServiceInterface
                 $requiredDirectories[] = 'application/default/templates';
                 $requiredDirectories[] = 'www/asset';
                 $requiredFiles[] = 'application/default/layouts/layout.score';
-            } else {
+            } elseif ($siteRole === 'generated-opus-application') {
                 $requiredDirectories[] = 'application/api';
                 $requiredDirectories[] = 'application/api/controllers';
                 $requiredDirectories[] = 'var/profiler/rest';
@@ -331,7 +332,9 @@ final class SiteCommandService implements SiteCommandServiceInterface
         $fsmContract = (string) ($fsm['contract'] ?? '');
         $fsmName = trim((string) ($fsm['name'] ?? ''));
         if (preg_match('/^[A-Z][A-Z0-9_]*_FSM_V[0-9]+$/', $fsmContract) !== 1
-            || preg_match('/^[a-z][a-z0-9.-]{2,127}$/D', $fsmName) !== 1
+            || $fsmName === ''
+            || ($role === 'generated-opus-application'
+                && preg_match('/^[a-z][a-z0-9.-]{2,127}$/D', $fsmName) !== 1)
             || !is_array($fsm['states'] ?? null)
             || $fsm['states'] === []) {
             throw new OpusConsoleException('OPUS_SITE_FSM_CONTRACT_INVALID');

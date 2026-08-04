@@ -618,11 +618,6 @@ final class OwasysCreationController
             (string) ($_POST['owasys_initial_users'] ?? ''),
             true
         );
-        if ($users !== [] && $provider !== 'local-password') {
-            throw new RuntimeException(
-                'OWASYS_CREATION_USERS_PROVIDER_INVALID'
-            );
-        }
         $initialUserRole = strtolower(trim((string) (
             $_POST['owasys_initial_user_role'] ?? ''
         )));

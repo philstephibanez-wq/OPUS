@@ -243,7 +243,8 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
         $allowed = is_array($policy['roles'] ?? null)
             ? array_values(array_filter($policy['roles'], 'is_string'))
             : [];
-        if (array_intersect($identity['roles'], $allowed) === []) {
+        if (!in_array('everyone', $allowed, true)
+            && array_intersect($identity['roles'], $allowed) === []) {
             throw new \RuntimeException(
                 $identity['subject'] === 'anonymous'
                     ? 'OPUS_AUTH_REQUIRED'

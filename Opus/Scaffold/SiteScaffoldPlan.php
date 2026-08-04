@@ -546,25 +546,30 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
                 $this->json($this->fullstackCorrelationConfig());
         }
         if ($this->blueprint['security']['initial_users'] !== []) {
+            $provider = (string) $this->blueprint['security']['provider'];
+            $localPassword = $provider === 'local-password';
+            $onboarding = [
+                'contract' => 'OPUS_SECURITY_ONBOARDING_V1',
+                'provider' => $provider,
+                'identities' => array_map(
+                    fn (string $subject): array => [
+                        'subject' => $subject,
+                        'roles' => [$this->blueprint['security'][
+                            'initial_user_role'
+                        ]],
+                        'status' => $localPassword
+                            ? 'password-setup-required'
+                            : 'active',
+                    ],
+                    $this->blueprint['security']['initial_users']
+                ),
+                'secrets_versioned' => false,
+            ];
+            if ($localPassword) {
+                $onboarding['runtime_store'] = 'var/auth/local-users.json';
+            }
             $files["sites/{$site}/config/security.onboarding.json"] =
-                $this->json([
-                    'contract' => 'OPUS_SECURITY_ONBOARDING_V1',
-                    'provider' => 'local-password',
-                    'identities' => array_map(
-                        fn (string $subject): array => [
-                            'subject' => $subject,
-                            'roles' => [
-                                $this->blueprint['security'][
-                                    'initial_user_role'
-                                ],
-                            ],
-                            'status' => 'password-setup-required',
-                        ],
-                        $this->blueprint['security']['initial_users']
-                    ),
-                    'runtime_store' => 'var/auth/local-users.json',
-                    'secrets_versioned' => false,
-                ]);
+                $this->json($onboarding);
         }
 
         foreach (self::SUPPORTED_LOCALES as $locale) {
@@ -1598,11 +1603,6 @@ PHP;
             'INITIAL_USERS',
             true
         );
-        if ($users !== [] && $provider !== 'local-password') {
-            throw new \InvalidArgumentException(
-                'OPUS_APPLICATION_BLUEPRINT_USERS_PROVIDER_INVALID'
-            );
-        }
         $initialUserRole = strtolower(trim((string) (
             $security['initial_user_role'] ?? ''
         )));
