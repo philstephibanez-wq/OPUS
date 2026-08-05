@@ -532,8 +532,9 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             "sites/{$site}/application/default/layouts/layout.score" => $this->layoutTemplate(),
             "sites/{$site}/application/default/templates/error.score" => '<section class="opus-card opus-error" role="alert"><h2>{{ error.title }}</h2><p>{{ error.message }}</p><code>{{ error.code }}</code></section>' . "\n",
             "sites/{$site}/application/default/templates/components/header.score" => '<header class="opus-header"><h1>{{ site.name }}</h1><nav class="opus-menu">{{{ common.menu }}}</nav></header>' . "\n",
-            "sites/{$site}/application/default/templates/components/footer.score" => '<footer class="opus-footer">{{ site.name }}</footer>' . "\n",
+            "sites/{$site}/application/default/templates/components/footer.score" => '<footer class="opus-footer"><span>{{ site.name }}</span> {{{ common.profiler }}}</footer>' . "\n",
             "sites/{$site}/application/default/templates/components/menu-item.score" => '<a class="{{ menu_item.active_class }}" href="{{ menu_item.path }}">{{ menu_item.label }}</a>' . "\n",
+            "sites/{$site}/application/default/templates/components/profiler-link.score" => '<a class="opus-profiler-link" href="{{ profiler.path }}">[[ i18n: profiler.link ]]</a>' . "\n",
             "sites/{$site}/application/default/templates/components/stylesheet.score" => '<link rel="stylesheet" href="{{ asset.href }}">' . "\n",
             "sites/{$site}/application/default/templates/components/script.score" => '<script src="{{ asset.src }}" defer></script>' . "\n",
             "sites/{$site}/application/default/navigation/menu.json" => $this->json($this->menuConfig()),
@@ -685,6 +686,18 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
                 'order' => ($index + 1) * 10,
             ];
         }
+        $routes[] = [
+            'id' => 'profiler.trace',
+            'path' => '/_opus/profiler/trace/{trace_id}',
+            'state' => 'profiler',
+            'module' => 'profiler',
+            'action' => 'view',
+            'acl' => 'profiler:view',
+            'fsm_state' => 'profiler',
+            'dispatch_action' => 'render_profiler_trace',
+            'show_in_menu' => false,
+            'order' => 900,
+        ];
         return [
             'contract' => 'OPUS_ROUTE_REGISTRY_V1',
             'dispatch_model' => 'fsm-module-first',
@@ -730,6 +743,22 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
                 'actions' => ['render_route'],
             ];
         }
+        $states[] = [
+            'id' => 'profiler',
+            'module' => 'profiler',
+            'route' => '/_opus/profiler/trace/{trace_id}',
+            'title_key' => 'profiler.title',
+            'summary_key' => 'profiler.summary',
+            'navigation' => ['label' => 'OPUS Profiler'],
+        ];
+        $transitions[] = [
+            'id' => 'open.profiler',
+            'from' => '*',
+            'signal' => 'open_profiler',
+            'next_state' => 'profiler',
+            'guards' => ['route_exists'],
+            'actions' => ['render_profiler_trace'],
+        ];
         return [
             'contract' => 'OPUS_APPLICATION_FSM_V1',
             'name' => $this->siteId . '.application',
@@ -753,6 +782,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             'policies' => [
                 'home' => ['roles' => $homeRoles],
                 'login' => ['roles' => ['everyone']],
+                'profiler:view' => ['roles' => $roles],
             ],
         ];
     }
@@ -803,7 +833,10 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             'scope' => 'default',
             'messages' => array_replace(
                 self::DEFAULT_MESSAGES[$locale],
-                ['menu.login' => self::LOGIN_LABELS[$locale]]
+                [
+                    'menu.login' => self::LOGIN_LABELS[$locale],
+                    'profiler.link' => 'OPUS Profiler',
+                ]
             ),
         ];
     }
@@ -874,7 +907,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
 
     private function defaultCss(): string
     {
-        return "body.opus-site{margin:0;font-family:system-ui,Segoe UI,Arial,sans-serif;background:#eef3f8;color:#162336}.opus-header,.opus-footer{background:#24466d;color:#fff;padding:24px}.opus-shell{padding:24px;min-height:60vh}.opus-card{display:block;margin:12px 0;padding:16px;background:#fff;border:1px solid #d7e0eb;border-radius:12px}.opus-error{border-color:#a22}.opus-menu a{color:#fff;margin-right:12px}.is-active{font-weight:700}\n";
+        return "body.opus-site{margin:0;font-family:system-ui,Segoe UI,Arial,sans-serif;background:#eef3f8;color:#162336}.opus-header,.opus-footer{background:#24466d;color:#fff;padding:24px}.opus-shell{padding:24px;min-height:60vh}.opus-card{display:block;margin:12px 0;padding:16px;background:#fff;border:1px solid #d7e0eb;border-radius:12px}.opus-error{border-color:#a22}.opus-menu a,.opus-profiler-link{color:#fff;margin-right:12px}.is-active{font-weight:700}\n";
     }
 
     private function applicationClass(): string

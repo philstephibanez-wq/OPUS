@@ -1,0 +1,21 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "de",
+    "scope": "default",
+    "messages": {
+        "language": "Sprache",
+        "menu.home": "Startseite",
+        "menu.architecture": "Architektur",
+        "menu.router": "Router",
+        "menu.modules": "Module",
+        "menu.controllers": "Controller",
+        "menu.views": "Ansichten",
+        "menu.models": "Modelle",
+        "menu.i18n": "Internationalisierung",
+        "error.title": "OPUS-Fehler",
+        "error.request_failed": "Die Anfrage ist fehlgeschlagen.",
+        "menu.login": "Anmelden",
+        "profiler.link": "OPUS Profiler"
+    }
+}
+
