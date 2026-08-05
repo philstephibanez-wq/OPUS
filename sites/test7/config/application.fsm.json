@@ -1,7 +1,7 @@
 {
     "contract": "OPUS_APPLICATION_FSM_V1",
-    "name": "test6.application",
-    "site_id": "test6",
+    "name": "test7.application",
+    "site_id": "test7",
     "initial_state": "home",
     "states": [
         {

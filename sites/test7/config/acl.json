@@ -2,8 +2,7 @@
     "contract": "OPUS_GENERATED_APPLICATION_ACL_V1",
     "default": "deny",
     "roles": [
-        "admin",
-        "autre"
+        "admin"
     ],
     "permissions": [
         "home:view"
@@ -21,8 +20,7 @@
         },
         "profiler:view": {
             "roles": [
-                "admin",
-                "autre"
+                "admin"
             ]
         }
     }
