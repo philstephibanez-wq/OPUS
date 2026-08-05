@@ -532,7 +532,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             "sites/{$site}/application/default/layouts/layout.score" => $this->layoutTemplate(),
             "sites/{$site}/application/default/templates/error.score" => '<section class="opus-card opus-error" role="alert"><h2>{{ error.title }}</h2><p>{{ error.message }}</p><code>{{ error.code }}</code></section>' . "\n",
             "sites/{$site}/application/default/templates/components/header.score" => '<header class="opus-header"><h1>{{ site.name }}</h1><nav class="opus-menu">{{{ common.menu }}}</nav></header>' . "\n",
-            "sites/{$site}/application/default/templates/components/footer.score" => '<footer class="opus-footer">{{ site.contract }}</footer>' . "\n",
+            "sites/{$site}/application/default/templates/components/footer.score" => '<footer class="opus-footer">{{ site.name }}</footer>' . "\n",
             "sites/{$site}/application/default/templates/components/menu-item.score" => '<a class="{{ menu_item.active_class }}" href="{{ menu_item.path }}">{{ menu_item.label }}</a>' . "\n",
             "sites/{$site}/application/default/templates/components/stylesheet.score" => '<link rel="stylesheet" href="{{ asset.href }}">' . "\n",
             "sites/{$site}/application/default/templates/components/script.score" => '<script src="{{ asset.src }}" defer></script>' . "\n",
@@ -1030,6 +1030,7 @@ final class {{APPLICATION_CLASS}} implements {{APPLICATION_CLASS}}Interface
             : 'OPUS_APPLICATION_RUNTIME_FAILED';
     }
 }
+
 PHP;
         return str_replace(
             ['{{APPLICATION_CLASS}}', '{{LOG_FILE}}'],
@@ -1458,6 +1459,26 @@ PHP;
         return <<<'PHP'
 <?php
 declare(strict_types=1);
+
+if (PHP_SAPI === 'cli-server') {
+    $requestPath = parse_url(
+        (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+        PHP_URL_PATH
+    );
+    if (is_string($requestPath) && !str_contains($requestPath, "\0")) {
+        $publicRoot = str_replace('\\', '/', __DIR__);
+        $candidate = realpath(
+            __DIR__ . '/' . ltrim(rawurldecode($requestPath), '/')
+        );
+        if (is_string($candidate)) {
+            $candidate = str_replace('\\', '/', $candidate);
+            if (str_starts_with($candidate, $publicRoot . '/')
+                && is_file($candidate)) {
+                return false;
+            }
+        }
+    }
+}
 
 require dirname(__DIR__) . '/application/default/bootstrap.php';
 PHP;
