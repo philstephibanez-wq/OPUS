@@ -724,8 +724,8 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             $transitions[] = [
                 'id' => 'open.' . $module,
                 'from' => '*',
-                'event' => 'open_' . $module,
-                'to' => $module,
+                'signal' => 'open_' . $module,
+                'next_state' => $module,
                 'guards' => ['route_exists'],
                 'actions' => ['render_route'],
             ];
@@ -1139,8 +1139,8 @@ PHP;
                 'transitions' => [[
                     'id' => 'dispatch.api',
                     'from' => '*',
-                    'event' => 'dispatch_api',
-                    'to' => 'api',
+                    'signal' => 'dispatch_api',
+                    'next_state' => 'api',
                     'guards' => ['route_exists'],
                     'actions' => ['dispatch_rest'],
                 ]],
