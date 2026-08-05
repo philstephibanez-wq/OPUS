@@ -16,15 +16,23 @@ final class Profiler implements ProfilerInterface
 {
     private const SITE_CONTRACT = 'OPUS_SITE_STANDARD_CONTRACT_CORE';
     private const TRACE_ID_PATTERN = '/^[a-f0-9]{16,64}$/D';
+    private const DEFAULT_MAX_BYTES = 10485760;
+    private const DEFAULT_MAX_ARCHIVES = 5;
+    private const MIN_MAX_BYTES = 65536;
+    private const MAX_MAX_BYTES = 1073741824;
+    private const MAX_ARCHIVES = 100;
 
     private string $storageFile;
     private ?Trace $activeTrace = null;
     private ProfilerContextSanitizerInterface $contextSanitizer;
+    private int $maxBytes = self::DEFAULT_MAX_BYTES;
+    private int $maxArchives = self::DEFAULT_MAX_ARCHIVES;
 
     public function __construct(string $storagePath)
     {
         $this->contextSanitizer = new ProfilerContextSanitizer();
         $this->storageFile = $this->resolveStorageFile($storagePath);
+        $this->loadRetentionPolicy();
         $storageDirectory = dirname($this->storageFile);
         if (!is_dir($storageDirectory)
             && !mkdir($storageDirectory, 0775, true)
@@ -126,9 +134,7 @@ final class Profiler implements ProfilerInterface
         } catch (\JsonException $cause) {
             throw new \RuntimeException('OPUS_PROFILER_TRACE_JSON_ENCODE_FAILED', 0, $cause);
         }
-        if (file_put_contents($this->storageFile, $json . PHP_EOL, FILE_APPEND | LOCK_EX) === false) {
-            throw new \RuntimeException('OPUS_PROFILER_TRACE_WRITE_FAILED:' . $this->storageFile);
-        }
+        $this->appendRecord($json . PHP_EOL);
 
         return $this->storageFile;
     }
@@ -140,49 +146,65 @@ final class Profiler implements ProfilerInterface
         if (preg_match(self::TRACE_ID_PATTERN, $traceId) !== 1) {
             throw new \InvalidArgumentException('OPUS_PROFILER_TRACE_ID_INVALID');
         }
-        if (!is_file($this->storageFile)) {
+        $storageFiles = $this->retainedStorageFiles();
+        if ($storageFiles === []) {
             throw new \RuntimeException('OPUS_PROFILER_STORAGE_FILE_MISSING:' . $this->storageFile);
         }
-        $handle = fopen($this->storageFile, 'rb');
-        if ($handle === false) {
-            throw new \RuntimeException('OPUS_PROFILER_TRACE_READ_FAILED:' . $this->storageFile);
+        $lockFile = $this->storageFile . '.lock';
+        $lock = fopen($lockFile, 'c+b');
+        if ($lock === false) {
+            throw new \RuntimeException('OPUS_PROFILER_RETENTION_LOCK_OPEN_FAILED:' . $lockFile);
         }
 
         $records = [];
         try {
-            if (!flock($handle, LOCK_SH)) {
-                throw new \RuntimeException('OPUS_PROFILER_TRACE_LOCK_FAILED:' . $this->storageFile);
+            if (!flock($lock, LOCK_SH)) {
+                throw new \RuntimeException('OPUS_PROFILER_TRACE_LOCK_FAILED:' . $lockFile);
             }
-            $lineNumber = 0;
-            while (($line = fgets($handle)) !== false) {
-                ++$lineNumber;
-                $line = trim($line);
-                if ($line === '') {
-                    continue;
+            foreach ($storageFiles as $storageFile) {
+                $handle = fopen($storageFile, 'rb');
+                if ($handle === false) {
+                    throw new \RuntimeException('OPUS_PROFILER_TRACE_READ_FAILED:' . $storageFile);
                 }
                 try {
-                    $record = json_decode($line, true, 512, JSON_THROW_ON_ERROR);
-                } catch (\JsonException $cause) {
-                    throw new \RuntimeException(
-                        'OPUS_PROFILER_RECORD_JSON_INVALID:' . $lineNumber,
-                        0,
-                        $cause
-                    );
-                }
-                if (!is_array($record)) {
-                    throw new \RuntimeException('OPUS_PROFILER_RECORD_INVALID:' . $lineNumber);
-                }
-                $schema = $record['schema'] ?? null;
-                if (!in_array($schema, ['OPUS_PROFILER_TRACE_V1', 'OPUS_PROFILER_TRACE_V2'], true)) {
-                    throw new \RuntimeException('OPUS_PROFILER_RECORD_SCHEMA_INVALID:' . $lineNumber);
-                }
-                if (($record['trace_id'] ?? null) === $traceId) {
-                    $records[] = $record;
+                    $lineNumber = 0;
+                    while (($line = fgets($handle)) !== false) {
+                        ++$lineNumber;
+                        $line = trim($line);
+                        if ($line === '') {
+                            continue;
+                        }
+                        try {
+                            $record = json_decode($line, true, 512, JSON_THROW_ON_ERROR);
+                        } catch (\JsonException $cause) {
+                            throw new \RuntimeException(
+                                'OPUS_PROFILER_RECORD_JSON_INVALID:' . $storageFile . ':' . $lineNumber,
+                                0,
+                                $cause
+                            );
+                        }
+                        if (!is_array($record)) {
+                            throw new \RuntimeException(
+                                'OPUS_PROFILER_RECORD_INVALID:' . $storageFile . ':' . $lineNumber
+                            );
+                        }
+                        $schema = $record['schema'] ?? null;
+                        if (!in_array($schema, ['OPUS_PROFILER_TRACE_V1', 'OPUS_PROFILER_TRACE_V2'], true)) {
+                            throw new \RuntimeException(
+                                'OPUS_PROFILER_RECORD_SCHEMA_INVALID:' . $storageFile . ':' . $lineNumber
+                            );
+                        }
+                        if (($record['trace_id'] ?? null) === $traceId) {
+                            $records[] = $record;
+                        }
+                    }
+                } finally {
+                    fclose($handle);
                 }
             }
-            flock($handle, LOCK_UN);
+            flock($lock, LOCK_UN);
         } finally {
-            fclose($handle);
+            fclose($lock);
         }
         if ($records === []) {
             throw new \RuntimeException('OPUS_PROFILER_TRACE_NOT_FOUND:' . $traceId);
@@ -201,6 +223,126 @@ final class Profiler implements ProfilerInterface
             }
             $trace->importRecord($record, $rootParentSpanId);
         }
+    }
+
+    private function appendRecord(string $record): void
+    {
+        if (strlen($record) > $this->maxBytes) {
+            throw new \RuntimeException('OPUS_PROFILER_RECORD_EXCEEDS_RETENTION_LIMIT');
+        }
+        $lockFile = $this->storageFile . '.lock';
+        $lock = fopen($lockFile, 'c+b');
+        if ($lock === false) {
+            throw new \RuntimeException('OPUS_PROFILER_RETENTION_LOCK_OPEN_FAILED:' . $lockFile);
+        }
+        try {
+            if (!flock($lock, LOCK_EX)) {
+                throw new \RuntimeException('OPUS_PROFILER_RETENTION_LOCK_FAILED:' . $lockFile);
+            }
+            clearstatcache(true, $this->storageFile);
+            $currentBytes = is_file($this->storageFile) ? filesize($this->storageFile) : 0;
+            if ($currentBytes === false) {
+                throw new \RuntimeException('OPUS_PROFILER_STORAGE_STAT_FAILED:' . $this->storageFile);
+            }
+            if ($currentBytes > 0 && $currentBytes + strlen($record) > $this->maxBytes) {
+                $this->rotateStorage();
+            }
+            if (file_put_contents($this->storageFile, $record, FILE_APPEND) === false) {
+                throw new \RuntimeException('OPUS_PROFILER_TRACE_WRITE_FAILED:' . $this->storageFile);
+            }
+            fflush($lock);
+            flock($lock, LOCK_UN);
+        } finally {
+            fclose($lock);
+        }
+    }
+
+    /** @return list<string> */
+    private function retainedStorageFiles(): array
+    {
+        $files = [];
+        for ($index = $this->maxArchives; $index >= 1; --$index) {
+            $archive = $this->storageFile . '.' . $index;
+            if (is_file($archive)) {
+                $files[] = $archive;
+            }
+        }
+        if (is_file($this->storageFile)) {
+            $files[] = $this->storageFile;
+        }
+
+        return $files;
+    }
+
+    private function rotateStorage(): void
+    {
+        if ($this->maxArchives === 0) {
+            if (is_file($this->storageFile) && !unlink($this->storageFile)) {
+                throw new \RuntimeException('OPUS_PROFILER_STORAGE_TRUNCATE_FAILED:' . $this->storageFile);
+            }
+            return;
+        }
+        $oldest = $this->storageFile . '.' . $this->maxArchives;
+        if (is_file($oldest) && !unlink($oldest)) {
+            throw new \RuntimeException('OPUS_PROFILER_ARCHIVE_DELETE_FAILED:' . $oldest);
+        }
+        for ($index = $this->maxArchives - 1; $index >= 1; --$index) {
+            $source = $this->storageFile . '.' . $index;
+            if (!is_file($source)) {
+                continue;
+            }
+            $target = $this->storageFile . '.' . ($index + 1);
+            if (!rename($source, $target)) {
+                throw new \RuntimeException('OPUS_PROFILER_ARCHIVE_ROTATE_FAILED:' . $source);
+            }
+        }
+        if (is_file($this->storageFile)
+            && !rename($this->storageFile, $this->storageFile . '.1')
+        ) {
+            throw new \RuntimeException('OPUS_PROFILER_STORAGE_ROTATE_FAILED:' . $this->storageFile);
+        }
+    }
+
+    private function loadRetentionPolicy(): void
+    {
+        $siteRoot = $this->findSiteRoot(dirname($this->storageFile));
+        if ($siteRoot === null) {
+            return;
+        }
+        $siteConfigFile = $siteRoot . '/config/site.json';
+        try {
+            $site = StructuredFileLoader::instance()->read($siteConfigFile);
+        } catch (\Throwable $cause) {
+            throw new \RuntimeException(
+                'OPUS_PROFILER_RETENTION_CONFIG_INVALID:' . $siteConfigFile,
+                0,
+                $cause
+            );
+        }
+        $profiler = $site['diagnostics']['profiler'] ?? null;
+        $retention = is_array($profiler) ? ($profiler['retention'] ?? null) : null;
+        if ($retention === null) {
+            return;
+        }
+        if (!is_array($retention)) {
+            throw new \RuntimeException('OPUS_PROFILER_RETENTION_POLICY_INVALID:' . $siteConfigFile);
+        }
+        $maxBytes = filter_var($retention['max_bytes'] ?? null, FILTER_VALIDATE_INT);
+        $maxArchives = filter_var($retention['max_archives'] ?? null, FILTER_VALIDATE_INT);
+        if (!is_int($maxBytes)
+            || $maxBytes < self::MIN_MAX_BYTES
+            || $maxBytes > self::MAX_MAX_BYTES
+        ) {
+            throw new \RuntimeException('OPUS_PROFILER_RETENTION_MAX_BYTES_INVALID:' . $siteConfigFile);
+        }
+        if (!is_int($maxArchives)
+            || $maxArchives < 0
+            || $maxArchives > self::MAX_ARCHIVES
+        ) {
+            throw new \RuntimeException('OPUS_PROFILER_RETENTION_MAX_ARCHIVES_INVALID:' . $siteConfigFile);
+        }
+        $this->maxBytes = $maxBytes;
+        $this->maxArchives = $maxArchives;
     }
 
     private function requireActiveTrace(): Trace

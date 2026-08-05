@@ -640,6 +640,10 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
                     'required' => true,
                     'storage' => 'var/profiler',
                     'trace_id' => 'generated',
+                    'retention' => [
+                        'max_bytes' => 10485760,
+                        'max_archives' => 5,
+                    ],
                 ],
             ],
             'theme' => 'starter',
@@ -1066,7 +1070,6 @@ final class {{APPLICATION_CLASS}} implements {{APPLICATION_CLASS}}Interface
             : 'OPUS_APPLICATION_RUNTIME_FAILED';
     }
 }
-
 PHP;
         return str_replace(
             ['{{APPLICATION_CLASS}}', '{{LOG_FILE}}'],
