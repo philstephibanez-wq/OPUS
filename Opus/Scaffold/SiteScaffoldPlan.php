@@ -481,6 +481,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             "sites/{$site}/application/default/templates",
             "sites/{$site}/application/default/templates/components",
             "sites/{$site}/application/default/views",
+            "sites/{$site}/application/profiler",
             "sites/{$site}/www",
             "sites/{$site}/www/asset",
             "sites/{$site}/www/asset/css",
