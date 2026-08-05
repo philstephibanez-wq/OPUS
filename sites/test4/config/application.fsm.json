@@ -1,7 +1,7 @@
 {
     "contract": "OPUS_APPLICATION_FSM_V1",
-    "name": "test.application",
-    "site_id": "test",
+    "name": "test4.application",
+    "site_id": "test4",
     "initial_state": "home",
     "states": [
         {
@@ -19,8 +19,8 @@
         {
             "id": "open.home",
             "from": "*",
-            "event": "open_home",
-            "to": "home",
+            "signal": "open_home",
+            "next_state": "home",
             "guards": [
                 "route_exists"
             ],

@@ -1,6 +1,6 @@
 {
-    "site_id": "test",
-    "site_name": "OPUS test",
+    "site_id": "test4",
+    "site_name": "OPUS test4",
     "role": "generated-opus-application",
     "kind": "fullstack",
     "status": "generated",
@@ -51,8 +51,7 @@
             "login_page": false,
             "provider": "session",
             "roles": [
-                "admin",
-                "autre"
+                "admin"
             ],
             "permissions": [
                 "home:view"
@@ -105,7 +104,7 @@
         "contract": "OPUS_APPLICATION_DIAGNOSTICS_V1",
         "logger": {
             "required": true,
-            "file": "var/logs/test.log"
+            "file": "var/logs/test4.log"
         },
         "profiler": {
             "required": true,
@@ -126,7 +125,7 @@
     "runtime": {
         "contract": "OPUS_APPLICATION_SINGLETON_V1",
         "architecture": "singleton",
-        "class": "TestApplication",
+        "class": "Test4Application",
         "file": "application/default/Application.php",
         "bootstrap": "application/default/bootstrap.php",
         "entrypoint": "www/index.php",

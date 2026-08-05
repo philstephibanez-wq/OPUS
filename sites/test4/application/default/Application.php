@@ -6,7 +6,7 @@ use Opus\Http\Response;
 use Opus\Log\Logger;
 use Opus\Profiler\Profiler;
 
-final class TestApplication implements TestApplicationInterface
+final class Test4Application implements Test4ApplicationInterface
 {
     private static ?self $instance = null;
     private readonly GeneratedSiteRuntime $runtime;
@@ -18,7 +18,7 @@ final class TestApplication implements TestApplicationInterface
         $this->runtime = new GeneratedSiteRuntime($siteRoot);
         $this->logger = new Logger(
             $siteRoot . '/var/logs',
-            'test.log'
+            'test4.log'
         );
         $this->profiler = new Profiler($siteRoot . '/var/profiler');
     }

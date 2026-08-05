@@ -12,4 +12,4 @@ require_once $autoload;
 require_once __DIR__ . '/ApplicationInterface.php';
 require_once __DIR__ . '/Application.php';
 
-TestApplication::instance($siteRoot)->run();
+Test4Application::instance($siteRoot)->run();
