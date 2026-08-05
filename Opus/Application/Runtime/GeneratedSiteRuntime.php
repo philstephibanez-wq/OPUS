@@ -9,6 +9,7 @@ use Opus\Fsm\FsmSiteLoader;
 use Opus\Http\Response;
 use Opus\I18n\ApplicationTranslationRuntime;
 use Opus\I18n\BrowserLocaleNegotiator;
+use Opus\Profiler\ProfilerInterface;
 use Opus\Template\ScoreTemplateRenderer;
 use Opus\Security\Sso\LocalPasswordSsoProvider;
 use Opus\Security\Sso\SsoManager;
@@ -26,7 +27,10 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
     private readonly StructuredFileLoader $loader;
     private readonly File $file;
 
-    public function __construct(string $siteRoot)
+    public function __construct(
+        string $siteRoot,
+        private readonly ?ProfilerInterface $profiler = null
+    )
     {
         $root = rtrim(str_replace('\\', '/', $siteRoot), '/');
         if ($root === '' || !is_dir($root)) {
@@ -256,23 +260,57 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
     /** @param array<string,mixed> $site @param array<string,mixed> $route @param array{subject:string,roles:list<string>,provider:string} $identity */
     private function transition(array $site, array $route, array $identity): string
     {
-        $fsm = FsmSiteLoader::processorForSiteRoot($this->siteRoot);
+        $fsm = FsmSiteLoader::processorForSiteRoot(
+            $this->siteRoot,
+            [],
+            $this->profiler
+        );
         $target = trim((string) ($route['fsm_state'] ?? $route['state'] ?? ''));
         if (!$fsm->hasState($target)) {
             throw new \RuntimeException('OPUS_GENERATED_FSM_TARGET_UNKNOWN:' . $target);
         }
         $siteId = trim((string) ($site['site_id'] ?? 'site'));
+        $signal = 'open_' . $target;
+        $this->profileFsm('loaded', [
+            'table_fsm' => $fsm->name(),
+            'fsm_contract' => $fsm->contract(),
+            'initial_state' => $fsm->initialState(),
+            'target_state' => $target,
+        ]);
         $sessionKey = 'opus_fsm_state_' . preg_replace('/[^a-z0-9_]/i', '_', $siteId);
         $current = trim((string) ($_SESSION[$sessionKey] ?? $fsm->initialState()));
         if (!$fsm->hasState($current)) {
             $current = $fsm->initialState();
         }
+        $this->profileFsm('state.resolved', [
+            'table_fsm' => $fsm->name(),
+            'current_state' => $current,
+            'signal' => $signal,
+            'next_state' => $target,
+        ]);
         if ($target !== $current) {
-            $result = $fsm->transition($current, 'open_' . $target, ['identity' => $identity]);
+            $result = $fsm->transition($current, $signal, ['identity' => $identity]);
             $current = (string) ($result['next_state'] ?? '');
+        } else {
+            $this->profileFsm('transition.skipped', [
+                'table_fsm' => $fsm->name(),
+                'current_state' => $current,
+                'signal' => $signal,
+                'next_state' => $target,
+                'reason' => 'already_in_target_state',
+            ]);
         }
         $_SESSION[$sessionKey] = $current;
         return $current;
+    }
+
+    /** @param array<string,mixed> $context */
+    private function profileFsm(string $name, array $context): void
+    {
+        if ($this->profiler?->getActiveTrace() === null) {
+            return;
+        }
+        $this->profiler->event('fsm', $name, $context);
     }
 
     /** @param array<string,mixed> $site @param array<string,mixed> $routes @param array<string,mixed> $route @param array{subject:string,roles:list<string>,provider:string} $identity */

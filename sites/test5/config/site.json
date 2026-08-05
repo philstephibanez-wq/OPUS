@@ -51,8 +51,7 @@
             "login_page": false,
             "provider": "session",
             "roles": [
-                "admin",
-                "autre"
+                "admin"
             ],
             "permissions": [
                 "home:view"

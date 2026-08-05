@@ -15,12 +15,15 @@ final class Test5Application implements Test5ApplicationInterface
 
     private function __construct(private readonly string $siteRoot)
     {
-        $this->runtime = new GeneratedSiteRuntime($siteRoot);
         $this->logger = new Logger(
             $siteRoot . '/var/logs',
             'test5.log'
         );
         $this->profiler = new Profiler($siteRoot . '/var/profiler');
+        $this->runtime = new GeneratedSiteRuntime(
+            $siteRoot,
+            $this->profiler
+        );
     }
 
     public static function instance(string $siteRoot): self

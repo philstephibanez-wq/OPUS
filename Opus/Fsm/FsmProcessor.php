@@ -265,7 +265,7 @@ final class FsmProcessor implements FsmProcessorInterface
                     $transition,
                     $context
                 );
-                $this->profileEvent('fsm.guard.evaluated', [
+                $this->profileEvent('guard.evaluated', [
                     'table_fsm' => $this->name(),
                     'current_state' => $currentState,
                     'signal' => $signal,
@@ -293,7 +293,7 @@ final class FsmProcessor implements FsmProcessorInterface
                 'duration_ms' => $this->durationMs($startedAt),
             ];
             $this->profileEvent(
-                'fsm.transition.completed',
+                'transition.completed',
                 $completed,
                 'success',
                 $spanId
@@ -332,7 +332,7 @@ final class FsmProcessor implements FsmProcessorInterface
                 'exception_class' => $error::class,
             ];
             $this->profileEvent(
-                'fsm.transition.failed',
+                'transition.failed',
                 $failed,
                 'error',
                 $spanId
@@ -356,7 +356,7 @@ final class FsmProcessor implements FsmProcessorInterface
         ];
         $spanId = $this->profiler->beginSpan(
             'fsm',
-            'fsm.transition',
+            'transition',
             $context,
             $this->parentSpanId
         );
