@@ -20,7 +20,7 @@
         },
         "profiler:view": {
             "roles": [
-                "admin"
+                "everyone"
             ]
         }
     }

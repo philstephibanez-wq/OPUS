@@ -59,10 +59,8 @@
             "home_roles": [
                 "everyone"
             ],
-            "initial_users": [
-                "steve"
-            ],
-            "initial_user_role": "admin"
+            "initial_users": [],
+            "initial_user_role": ""
         }
     },
     "default_locale": "fr",

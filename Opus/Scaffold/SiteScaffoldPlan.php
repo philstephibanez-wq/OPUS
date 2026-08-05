@@ -787,7 +787,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             'policies' => [
                 'home' => ['roles' => $homeRoles],
                 'login' => ['roles' => ['everyone']],
-                'profiler:view' => ['roles' => $roles],
+                'profiler:view' => ['roles' => $homeRoles],
             ],
         ];
     }
