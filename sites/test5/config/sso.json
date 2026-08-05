@@ -1,6 +1,6 @@
 {
     "contract": "OPUS_GENERATED_APPLICATION_SSO_V1",
-    "session_name": "OPUS_TEST4",
+    "session_name": "OPUS_TEST5",
     "session_identity_key": "opus_identity",
     "authentication_required": false,
     "login_page": false,

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-interface Test4ApplicationInterface extends
+interface Test5ApplicationInterface extends
     \Opus\Framework\OpusFrameworkComponentInterface,
     \Opus\Framework\OpusExceptionAwareInterface,
     \Opus\Framework\OpusProfilerAwareInterface,
