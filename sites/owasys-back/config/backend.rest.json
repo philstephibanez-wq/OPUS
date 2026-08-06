@@ -104,6 +104,48 @@
       "success_status": 200
     },
     {
+      "method": "GET",
+      "path": "/api/v1/applications/{site_id}/git/status",
+      "operation": "git.status",
+      "success_status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/applications/{site_id}/git/history",
+      "operation": "git.history",
+      "success_status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/applications/{site_id}/git/diffs/{*path}",
+      "operation": "git.diff",
+      "success_status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/applications/{site_id}/git/index/{*path}",
+      "operation": "git.stage",
+      "success_status": 200
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/applications/{site_id}/git/index/{*path}",
+      "operation": "git.unstage",
+      "success_status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/applications/{site_id}/git/commits",
+      "operation": "git.commit",
+      "success_status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/applications/{site_id}/git/restores/{*path}",
+      "operation": "git.restore",
+      "success_status": 200
+    },
+    {
       "method": "PUT",
       "path": "/api/v1/session/application/{application_id}",
       "operation": "registry.select",

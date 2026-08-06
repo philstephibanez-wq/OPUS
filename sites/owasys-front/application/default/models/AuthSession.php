@@ -6,6 +6,11 @@ final class OwasysAuthSession
     private const IDENTITY_KEY = 'owasys_sso_identity';
     private const LEGACY_IDENTITY_KEY = 'owasys_user';
     private const CURRENT_APP_KEY = 'owasys_current_app';
+    private const ROLE_PRIORITY = [
+        'admin' => 0,
+        'developer' => 10,
+        'viewer' => 20,
+    ];
 
     /** @return array<string,mixed>|null */
     public function user(): ?array
@@ -91,10 +96,8 @@ final class OwasysAuthSession
 
     /**
      * Normalizes the single session identity contract consumed by UI, FSM and ACL.
-     *
-     * The historical profile field is accepted only when the roles field is absent.
-     * An explicitly empty or malformed roles field remains invalid and cannot be
-     * promoted through profile.
+     * The most privileged known role is projected as profile without removing any
+     * role from the authorization set.
      *
      * @param array<string,mixed> $identity
      * @return array<string,mixed>
@@ -113,7 +116,7 @@ final class OwasysAuthSession
             $roles = $this->normalizeRoles($identity['roles']);
         } else {
             $profile = trim((string) ($identity['profile'] ?? ''));
-            $roles = $profile === '' ? [] : [$profile];
+            $roles = $profile === '' ? [] : $this->normalizeRoles([$profile]);
         }
 
         if ($roles === []) {
@@ -150,13 +153,22 @@ final class OwasysAuthSession
             if (!is_string($role)) {
                 throw new RuntimeException('OWASYS_SSO_SESSION_ROLES_INVALID');
             }
-            $role = trim($role);
-            if ($role === '') {
+            $role = strtolower(trim($role));
+            if ($role === ''
+                || preg_match('/^[a-z][a-z0-9._-]{0,63}$/D', $role) !== 1) {
                 throw new RuntimeException('OWASYS_SSO_SESSION_ROLES_INVALID');
             }
             $normalized[$role] = true;
         }
 
-        return array_keys($normalized);
+        $result = array_keys($normalized);
+        usort($result, static function (string $left, string $right): int {
+            $leftPriority = self::ROLE_PRIORITY[$left] ?? 1000;
+            $rightPriority = self::ROLE_PRIORITY[$right] ?? 1000;
+
+            return $leftPriority <=> $rightPriority ?: strcmp($left, $right);
+        });
+
+        return $result;
     }
 }

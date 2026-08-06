@@ -153,8 +153,8 @@
         {
           "name": "title",
           "option": "--title",
-          "max_length": 160,
-          "pattern": "^[A-Za-z0-9 .,_()'\\-]*$"
+          "pattern": "^[A-Za-z0-9 .,_()'\\-]*$",
+          "max_length": 160
         },
         {
           "name": "write",
@@ -191,8 +191,8 @@
         {
           "name": "title",
           "option": "--title",
-          "max_length": 160,
-          "pattern": "^[A-Za-z0-9 .,_()'\\-]*$"
+          "pattern": "^[A-Za-z0-9 .,_()'\\-]*$",
+          "max_length": 160
         },
         {
           "name": "write",
@@ -216,7 +216,6 @@
         },
         {
           "name": "output_zip",
-          "required": false,
           "pattern": "^[A-Za-z0-9._/-]+$",
           "max_length": 256
         },
@@ -395,6 +394,167 @@
           "transport": "request",
           "trim": false,
           "max_length": 1048576
+        }
+      ]
+    },
+    "git.status": {
+      "composer_script": "owasys:git-status",
+      "roles": [
+        "admin",
+        "developer",
+        "viewer"
+      ],
+      "arguments": [
+        {
+          "name": "site_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        }
+      ]
+    },
+    "git.diff": {
+      "composer_script": "owasys:git-diff",
+      "roles": [
+        "admin",
+        "developer",
+        "viewer"
+      ],
+      "arguments": [
+        {
+          "name": "site_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        },
+        {
+          "name": "path",
+          "required": true,
+          "pattern": "^[A-Za-z0-9._/-]+$",
+          "max_length": 512
+        }
+      ]
+    },
+    "git.history": {
+      "composer_script": "owasys:git-history",
+      "roles": [
+        "admin",
+        "developer",
+        "viewer"
+      ],
+      "arguments": [
+        {
+          "name": "site_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        },
+        {
+          "name": "limit",
+          "pattern": "^(?:[1-9]|[1-4][0-9]|50)$",
+          "max_length": 2,
+          "transport": "request"
+        }
+      ]
+    },
+    "git.stage": {
+      "composer_script": "owasys:git-stage",
+      "roles": [
+        "admin",
+        "developer"
+      ],
+      "arguments": [
+        {
+          "name": "site_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        },
+        {
+          "name": "path",
+          "required": true,
+          "pattern": "^[A-Za-z0-9._/-]+$",
+          "max_length": 512
+        }
+      ]
+    },
+    "git.unstage": {
+      "composer_script": "owasys:git-unstage",
+      "roles": [
+        "admin",
+        "developer"
+      ],
+      "arguments": [
+        {
+          "name": "site_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        },
+        {
+          "name": "path",
+          "required": true,
+          "pattern": "^[A-Za-z0-9._/-]+$",
+          "max_length": 512
+        }
+      ]
+    },
+    "git.commit": {
+      "composer_script": "owasys:git-commit",
+      "roles": [
+        "admin",
+        "developer"
+      ],
+      "arguments": [
+        {
+          "name": "site_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        },
+        {
+          "name": "message",
+          "required": true,
+          "transport": "request",
+          "trim": false,
+          "pattern": "^[^\\x00-\\x1F\\x7F]{1,200}$",
+          "max_length": 200
+        }
+      ]
+    },
+    "git.restore": {
+      "composer_script": "owasys:git-restore",
+      "roles": [
+        "admin",
+        "developer"
+      ],
+      "arguments": [
+        {
+          "name": "site_id",
+          "required": true,
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "max_length": 64
+        },
+        {
+          "name": "path",
+          "required": true,
+          "pattern": "^[A-Za-z0-9._/-]+$",
+          "max_length": 512
+        },
+        {
+          "name": "expected_content_hash",
+          "required": true,
+          "transport": "request",
+          "pattern": "^[a-f0-9]{64}$",
+          "max_length": 64
+        },
+        {
+          "name": "confirmation",
+          "required": true,
+          "transport": "request",
+          "trim": false,
+          "pattern": "^RESTORE:[a-z][a-z0-9-]{0,63}:[A-Za-z0-9._/-]{1,512}:[a-f0-9]{64}$",
+          "max_length": 700
         }
       ]
     }

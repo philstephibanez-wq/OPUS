@@ -24,6 +24,20 @@
         "owasys:source:preview",
         "owasys:source:write"
       ]
+    },
+    {
+      "id": "owasys-back-git",
+      "enabled": true,
+      "bootstrap": "application/git/console.php",
+      "commands": [
+        "owasys:git:status",
+        "owasys:git:diff",
+        "owasys:git:history",
+        "owasys:git:stage",
+        "owasys:git:unstage",
+        "owasys:git:commit",
+        "owasys:git:restore"
+      ]
     }
   ],
   "aliases": {
@@ -35,6 +49,13 @@
     "owasys:source-read": "owasys:source:read",
     "owasys:source-browse": "owasys:source:browse",
     "owasys:source-preview": "owasys:source:preview",
-    "owasys:source-write": "owasys:source:write"
+    "owasys:source-write": "owasys:source:write",
+    "owasys:git-status": "owasys:git:status",
+    "owasys:git-diff": "owasys:git:diff",
+    "owasys:git-history": "owasys:git:history",
+    "owasys:git-stage": "owasys:git:stage",
+    "owasys:git-unstage": "owasys:git:unstage",
+    "owasys:git-commit": "owasys:git:commit",
+    "owasys:git-restore": "owasys:git:restore"
   }
 }

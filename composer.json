@@ -37,7 +37,14 @@
         "owasys:source-read": "Opus\\Composer\\ComposerScripts::run",
         "owasys:source-browse": "Opus\\Composer\\ComposerScripts::run",
         "owasys:source-preview": "Opus\\Composer\\ComposerScripts::run",
-        "owasys:source-write": "Opus\\Composer\\ComposerScripts::run"
+        "owasys:source-write": "Opus\\Composer\\ComposerScripts::run",
+        "owasys:git-status": "Opus\\Composer\\ComposerScripts::run",
+        "owasys:git-diff": "Opus\\Composer\\ComposerScripts::run",
+        "owasys:git-history": "Opus\\Composer\\ComposerScripts::run",
+        "owasys:git-stage": "Opus\\Composer\\ComposerScripts::run",
+        "owasys:git-unstage": "Opus\\Composer\\ComposerScripts::run",
+        "owasys:git-commit": "Opus\\Composer\\ComposerScripts::run",
+        "owasys:git-restore": "Opus\\Composer\\ComposerScripts::run"
     },
     "repositories": [
         {

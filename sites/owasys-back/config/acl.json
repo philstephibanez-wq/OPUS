@@ -10,13 +10,15 @@
       "creation:*",
       "site:*",
       "account:change",
-      "source:*"
+      "source:*",
+      "git:*"
     ],
     "viewer": [
       "registry:open",
       "site:validate",
       "site:routes:list",
-      "source:read"
+      "source:read",
+      "git:read"
     ]
   }
 }
