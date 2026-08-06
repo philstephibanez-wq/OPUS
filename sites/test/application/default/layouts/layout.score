@@ -8,7 +8,7 @@
 </head>
 <body class="opus-site">
 {{{ common.header }}}
-  <H1>TEST EDITEUR OK :)</H1>
+  <H1>TEST EDITEUR OK et ??? :)</H1>
 <main id="main-content" class="opus-shell">{{{ content }}}</main> 
 {{{ common.footer }}}
 {{{ assets.js }}}
