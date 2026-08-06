@@ -27,6 +27,7 @@ final class RestServer implements RestServerInterface
     /** @param array<string,mixed> $config */
     public function __construct(
         private readonly array $config,
+        private readonly RestResourceCatalogInterface $resources,
         private readonly ComposerCommandRegistryInterface $registry,
         private readonly ComposerCommandExecutorInterface $executor,
         private readonly RestRequestAuthenticatorInterface $authenticator,
@@ -46,7 +47,39 @@ final class RestServer implements RestServerInterface
         if (($config['contract'] ?? null) !== 'OPUS_REST_API_SERVER_CONFIG_V1') {
             throw new \RuntimeException('OPUS_REST_API_SERVER_CONFIG_CONTRACT_INVALID');
         }
-        self::validateRoutes($config['resources'] ?? null);
+        $catalogRelative = trim((string) ($config['resource_catalog'] ?? ''));
+        $inlineResources = $config['resources'] ?? null;
+        $externalCatalog = $catalogRelative !== ''
+            ? RestResourceCatalog::fromFile(
+                $root . '/' . self::safeRelative($catalogRelative)
+            )
+            : null;
+        $inlineCatalog = is_array($inlineResources)
+            ? RestResourceCatalog::fromArray(
+                $inlineResources,
+                (string) ($config['base_path'] ?? '')
+            )
+            : null;
+        if ($externalCatalog !== null && $inlineCatalog !== null) {
+            $externalCatalog->assertPeerFingerprint(
+                $inlineCatalog->fingerprint()
+            );
+        }
+        $resources = $externalCatalog ?? $inlineCatalog;
+        if ($resources === null) {
+            throw new \RuntimeException(
+                'OPUS_REST_API_RESOURCE_CATALOG_MISSING'
+            );
+        }
+        $configuredBase = '/' . trim(
+            (string) ($config['base_path'] ?? ''),
+            '/'
+        );
+        if (!hash_equals($resources->basePath(), $configuredBase)) {
+            throw new \RuntimeException(
+                'OPUS_REST_API_RESOURCE_CATALOG_BASE_MISMATCH'
+            );
+        }
         $diagnostics = is_array($config['diagnostics'] ?? null)
             ? $config['diagnostics'] : [];
         $logFile = trim((string) ($diagnostics['log_file'] ?? ''));
@@ -62,6 +95,7 @@ final class RestServer implements RestServerInterface
         );
         return new self(
             $config,
+            $resources,
             ComposerCommandRegistry::fromRoot(
                 $root,
                 self::safeRelative((string) ($config['operation_catalog'] ?? ''))
@@ -86,7 +120,7 @@ final class RestServer implements RestServerInterface
     public function handle(Request $request): Response
     {
         $path = '/' . trim($request->path, '/');
-        $base = '/' . trim((string) ($this->config['base_path'] ?? '/api/v1'), '/');
+        $base = $this->resources->basePath();
         $locale = $this->locale();
         if ($request->method === 'GET' && $path === $base . '/status') {
             return Response::json([
@@ -96,7 +130,12 @@ final class RestServer implements RestServerInterface
                     'transport' => 'rest',
                     'business_boundary' => 'composer',
                     'locale' => $locale,
+                    'catalog_fingerprint' =>
+                        $this->resources->fingerprint(),
                 ],
+            ], 200, [
+                'X-Opus-Rest-Catalog' =>
+                    $this->resources->fingerprint(),
             ]);
         }
         if ($path === $base . '/status') {
@@ -153,6 +192,9 @@ final class RestServer implements RestServerInterface
             if ($request->method === 'GET' && $request->body() !== '') {
                 throw new \RuntimeException('OPUS_REST_API_GET_BODY_FORBIDDEN');
             }
+            $this->resources->assertPeerFingerprint(
+                (string) ($_SERVER['HTTP_X_OPUS_REST_CATALOG'] ?? '')
+            );
             if (preg_match('/^[a-f0-9]{32,64}$/', $nonce) !== 1) {
                 throw new \RuntimeException('OPUS_REST_API_NONCE_INVALID');
             }
@@ -191,9 +233,16 @@ final class RestServer implements RestServerInterface
             if (!is_array($result)) {
                 throw new \RuntimeException('OPUS_REST_API_COMPOSER_RESULT_INVALID');
             }
-            $headers = ['X-Opus-Trace-Id' => $traceId];
-            $status = (int) ($route['success_status'] ?? 200);
-            $location = $this->location($route, $parameters);
+            $headers = [
+                'X-Opus-Trace-Id' => $traceId,
+                'X-Opus-Rest-Catalog' =>
+                    $this->resources->fingerprint(),
+            ];
+            $status = $this->resources->successStatus($route);
+            $location = $this->resources->location(
+                $route,
+                $parameters
+            );
             if ($location !== '') {
                 $headers['Location'] = $location;
             }
@@ -251,6 +300,7 @@ final class RestServer implements RestServerInterface
                 str_contains($code, 'UNKNOWN') => 404,
                 str_contains($code, 'REPLAY') => 409,
                 str_contains($code, 'CONFLICT') => 409,
+                str_contains($code, 'CATALOG') => 409,
                 default => 400,
             };
             $this->logger->error('rest.api', 'request.failed', [
@@ -325,62 +375,15 @@ final class RestServer implements RestServerInterface
     }
 
     /**
-     * @return array{0:?array<string,mixed>,1:array<string,string>,2:list<string>}
+     * @return array{
+     *   0:?array<string,mixed>,
+     *   1:array<string,string>,
+     *   2:list<string>
+     * }
      */
     private function resolve(string $method, string $path): array
     {
-        $allowed = [];
-        foreach ($this->config['resources'] as $route) {
-            if (!is_array($route)) {
-                continue;
-            }
-            $parameters = $this->match((string) $route['path'], $path);
-            if ($parameters === null) {
-                continue;
-            }
-            $routeMethod = strtoupper((string) $route['method']);
-            $allowed[] = $routeMethod;
-            if ($routeMethod === $method) {
-                return [$route, $parameters, []];
-            }
-        }
-        return [null, [], array_values(array_unique($allowed))];
-    }
-
-    /** @return array<string,string>|null */
-    private function match(string $template, string $path): ?array
-    {
-        $names = [];
-        $pattern = '';
-        foreach (explode('/', trim($template, '/')) as $segment) {
-            $pattern .= '/';
-            if (preg_match('/^\{(\*?)([a-z][a-z0-9_]*)\}$/', $segment, $part) === 1) {
-                $names[] = $part[2];
-                $pattern .= $part[1] === '*' ? '(.+)' : '([^/]+)';
-                continue;
-            }
-            $pattern .= preg_quote($segment, '~');
-        }
-        if (preg_match('~^' . $pattern . '$~D', $path, $matches) !== 1) {
-            return null;
-        }
-        $parameters = [];
-        foreach ($names as $index => $name) {
-            $parameters[$name] = rawurldecode((string) ($matches[$index + 1] ?? ''));
-        }
-        return $parameters;
-    }
-
-    /** @param array<string,mixed> $route @param array<string,mixed> $parameters */
-    private function location(array $route, array $parameters): string
-    {
-        $location = trim((string) ($route['location'] ?? ''));
-        foreach ($parameters as $name => $value) {
-            if (is_string($name) && is_string($value)) {
-                $location = str_replace('{' . $name . '}', rawurlencode($value), $location);
-            }
-        }
-        return $location;
+        return $this->resources->resolve($method, $path);
     }
 
     /** @param array<string,mixed> $entry */
@@ -390,24 +393,6 @@ final class RestServer implements RestServerInterface
             ? array_values(array_filter($entry['roles'], 'is_string')) : [];
         if ($required === [] || array_intersect($required, $identity->roles()) === []) {
             throw new \RuntimeException('OPUS_REST_API_ACL_DENIED');
-        }
-    }
-
-    /** @param mixed $routes */
-    private static function validateRoutes($routes): void
-    {
-        if (!is_array($routes) || $routes === []) {
-            throw new \RuntimeException('OPUS_REST_API_RESOURCES_EMPTY');
-        }
-        foreach ($routes as $route) {
-            if (!is_array($route)
-                || !in_array(strtoupper((string) ($route['method'] ?? '')), [
-                    'GET', 'POST', 'PUT', 'PATCH', 'DELETE',
-                ], true)
-                || !str_starts_with((string) ($route['path'] ?? ''), '/api/v1/')
-                || preg_match('/^[a-z][a-z0-9.-]*$/', (string) ($route['operation'] ?? '')) !== 1) {
-                throw new \RuntimeException('OPUS_REST_API_RESOURCE_DEFINITION_INVALID');
-            }
         }
     }
 
@@ -435,8 +420,16 @@ final class RestServer implements RestServerInterface
     }
 
     /** @param array<string,string> $headers */
-    private function error(string $code, int $status, string $locale, array $headers = []): Response
-    {
+    private function error(
+        string $code,
+        int $status,
+        string $locale,
+        array $headers = []
+    ): Response {
+        $headers = array_replace([
+            'X-Opus-Rest-Catalog' =>
+                $this->resources->fingerprint(),
+        ], $headers);
         return Response::json([
             'contract' => 'OPUS_REST_API_ERROR_V1',
             'error_code' => $code,

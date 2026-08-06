@@ -3,6 +3,8 @@
   "base_url_env": "OPUS_OWASYS_BACKEND_ENDPOINT",
   "token_env": "OPUS_OWASYS_BACKEND_TOKEN",
   "hmac_env": "OPUS_OWASYS_BACKEND_HMAC",
+  "resource_catalog": "rest.resources.json",
   "timeout_seconds": 120,
+  "max_request_bytes": 2097152,
   "max_response_bytes": 2097152
 }
