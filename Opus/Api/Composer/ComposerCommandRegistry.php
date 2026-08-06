@@ -105,6 +105,14 @@ final class ComposerCommandRegistry implements ComposerCommandRegistryInterface
             if ($name === '' || preg_match('/^[a-z][a-z0-9_]*$/', $name) !== 1) {
                 throw new \RuntimeException('OPUS_REST_API_ARGUMENT_NAME_INVALID');
             }
+            $transport = strtolower(trim((string) (
+                $definition['transport'] ?? 'argv'
+            )));
+            if (!in_array($transport, ['argv', 'request'], true)) {
+                throw new \RuntimeException(
+                    'OPUS_REST_API_ARGUMENT_TRANSPORT_INVALID:' . $name
+                );
+            }
             $known[$name] = true;
             $present = array_key_exists($name, $parameters);
             if (($definition['required'] ?? false) === true && !$present) {
@@ -119,7 +127,9 @@ final class ComposerCommandRegistry implements ComposerCommandRegistryInterface
                 if (!is_bool($value)) {
                     throw new \RuntimeException('OPUS_REST_API_ARGUMENT_TYPE_INVALID:' . $name);
                 }
-                if ($value && isset($definition['flag'])) {
+                if ($transport === 'argv'
+                    && $value
+                    && isset($definition['flag'])) {
                     $arguments[] = (string) $definition['flag'];
                 }
                 continue;
@@ -127,16 +137,25 @@ final class ComposerCommandRegistry implements ComposerCommandRegistryInterface
             if (!is_string($value)) {
                 throw new \RuntimeException('OPUS_REST_API_ARGUMENT_TYPE_INVALID:' . $name);
             }
-            $value = trim($value);
+            $trim = $definition['trim'] ?? true;
+            if (!is_bool($trim)) {
+                throw new \RuntimeException(
+                    'OPUS_REST_API_ARGUMENT_TRIM_INVALID:' . $name
+                );
+            }
+            $value = $trim ? trim($value) : $value;
             $maximum = max(1, (int) ($definition['max_length'] ?? 1024));
             if (strlen($value) > $maximum || str_contains($value, "\0")) {
                 throw new \RuntimeException('OPUS_REST_API_ARGUMENT_LENGTH_INVALID:' . $name);
             }
             $pattern = (string) ($definition['pattern'] ?? '');
-            if ($pattern !== '' && @preg_match('/' . str_replace('/', '\/', $pattern) . '/D', $value) !== 1) {
+            if ($pattern !== '' && @preg_match('/' . str_replace('/', '\\/', $pattern) . '/D', $value) !== 1) {
                 throw new \RuntimeException('OPUS_REST_API_ARGUMENT_VALUE_INVALID:' . $name);
             }
 
+            if ($transport === 'request') {
+                continue;
+            }
             if (isset($definition['option'])) {
                 $arguments[] = (string) $definition['option'] . '=' . $value;
             } else {

@@ -250,6 +250,7 @@ final class RestServer implements RestServerInterface
                 str_contains($code, 'ACL') => 403,
                 str_contains($code, 'UNKNOWN') => 404,
                 str_contains($code, 'REPLAY') => 409,
+                str_contains($code, 'CONFLICT') => 409,
                 default => 400,
             };
             $this->logger->error('rest.api', 'request.failed', [

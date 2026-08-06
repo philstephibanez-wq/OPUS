@@ -92,6 +92,18 @@
       "success_status": 200
     },
     {
+      "method": "POST",
+      "path": "/api/v1/applications/{site_id}/source-previews/{*path}",
+      "operation": "source.preview",
+      "success_status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/applications/{site_id}/sources/{*path}",
+      "operation": "source.write",
+      "success_status": 200
+    },
+    {
       "method": "PUT",
       "path": "/api/v1/session/application/{application_id}",
       "operation": "registry.select",

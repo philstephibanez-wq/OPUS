@@ -20,7 +20,9 @@
       "commands": [
         "owasys:source:list",
         "owasys:source:read",
-        "owasys:source:browse"
+        "owasys:source:browse",
+        "owasys:source:preview",
+        "owasys:source:write"
       ]
     }
   ],
@@ -31,6 +33,8 @@
     "owasys:admin-password-change": "owasys:security:admin-password:change",
     "owasys:source-list": "owasys:source:list",
     "owasys:source-read": "owasys:source:read",
-    "owasys:source-browse": "owasys:source:browse"
+    "owasys:source-browse": "owasys:source:browse",
+    "owasys:source-preview": "owasys:source:preview",
+    "owasys:source-write": "owasys:source:write"
   }
 }
