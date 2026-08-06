@@ -1,0 +1,21 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "ga",
+    "scope": "default",
+    "messages": {
+        "language": "Teanga",
+        "menu.home": "Baile",
+        "menu.architecture": "Ailtireacht",
+        "menu.router": "Ródaire",
+        "menu.modules": "Modúil",
+        "menu.controllers": "Rialaitheoirí",
+        "menu.views": "Amhairc",
+        "menu.models": "Samhlacha",
+        "menu.i18n": "Idirnáisiúnú",
+        "error.title": "Earráid OPUS",
+        "error.request_failed": "Theip ar an iarratas.",
+        "menu.login": "Sínigh isteach",
+        "profiler.link": "OPUS Profiler"
+    }
+}
+
