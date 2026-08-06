@@ -1,0 +1,29 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "de",
+  "scope": "source",
+  "messages": {
+    "source.files": "Dateien",
+    "source.no_files": "Keine bearbeitbare Quelldatei ist verfügbar.",
+    "source.truncated": "Die Dateiliste wurde durch die konfigurierte Sicherheitsgrenze gekürzt.",
+    "source.choose_file": "Wählen Sie eine Datei im Baum aus, um den Editor zu öffnen.",
+    "source.tabs": "Geöffnete Quelldateien",
+    "source.bytes": "Bytes",
+    "source.clean": "Gespeicherter Stand",
+    "source.dirty": "Nicht gespeicherte Änderungen",
+    "source.read_only": "Ihre Rolle hat nur Lesezugriff auf diese Quelle.",
+    "source.unsaved_confirm": "Diese Datei enthält nicht gespeicherte Änderungen. Andere Datei öffnen und Änderungen verlieren?",
+    "source.preview": "Vorschau",
+    "source.save": "Speichern",
+    "source.reload": "Vom Server neu laden",
+    "source.saved": "Die Quelldatei wurde gespeichert. Git-Staging und Commit bleiben getrennte Vorgänge.",
+    "source.conflict": "Die Datei wurde auf dem Server geändert. Nichts wurde überschrieben. Änderungen kopieren, neu laden, zusammenführen und erneut prüfen.",
+    "source.failed": "Der Quellvorgang ist fehlgeschlagen.",
+    "source.preview_title": "Änderungsvorschau",
+    "source.changed": "Geändert",
+    "source.no_changes": "Es wurde kein Unterschied erkannt.",
+    "source.diff_truncated": "Der angezeigte Diff wurde durch die Sicherheitsgrenze gekürzt."
+  },
+  "plurals": {},
+  "grammatical": {}
+}

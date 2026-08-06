@@ -1,0 +1,29 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "fr",
+  "scope": "source",
+  "messages": {
+    "source.files": "Fichiers",
+    "source.no_files": "Aucun fichier source éditable n’est disponible.",
+    "source.truncated": "La liste des fichiers est tronquée par la limite de sécurité configurée.",
+    "source.choose_file": "Sélectionnez un fichier dans l’arborescence pour ouvrir l’éditeur.",
+    "source.tabs": "Fichiers source ouverts",
+    "source.bytes": "Octets",
+    "source.clean": "État enregistré",
+    "source.dirty": "Modifications non enregistrées",
+    "source.read_only": "Votre rôle dispose d’un accès en lecture seule à cette source.",
+    "source.unsaved_confirm": "Ce fichier contient des modifications non enregistrées. Ouvrir un autre fichier et les perdre ?",
+    "source.preview": "Prévisualiser",
+    "source.save": "Enregistrer",
+    "source.reload": "Recharger depuis le serveur",
+    "source.saved": "Le fichier source a été enregistré. Le stage et le commit Git restent des opérations séparées.",
+    "source.conflict": "Le fichier a changé sur le serveur. Aucun écrasement n’a été effectué. Copiez vos modifications, rechargez, fusionnez puis prévisualisez à nouveau.",
+    "source.failed": "L’opération sur la source a échoué.",
+    "source.preview_title": "Prévisualisation des modifications",
+    "source.changed": "Modifié",
+    "source.no_changes": "Aucune différence n’a été détectée.",
+    "source.diff_truncated": "Le diff affiché est tronqué par la limite de sécurité."
+  },
+  "plurals": {},
+  "grammatical": {}
+}

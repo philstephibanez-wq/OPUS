@@ -1,0 +1,29 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "lt",
+  "scope": "source",
+  "messages": {
+    "source.files": "Failai",
+    "source.no_files": "Nėra redaguojamo šaltinio failų.",
+    "source.truncated": "Failų sąrašą sutrumpino nustatytas saugos limitas.",
+    "source.choose_file": "Pasirinkite failą medyje, kad atidarytumėte redaktorių.",
+    "source.tabs": "Atverti šaltinio failai",
+    "source.bytes": "Baitai",
+    "source.clean": "Išsaugota būsena",
+    "source.dirty": "Neišsaugoti pakeitimai",
+    "source.read_only": "Jūsų vaidmuo turi tik skaitymo prieigą prie šio šaltinio.",
+    "source.unsaved_confirm": "Faile yra neišsaugotų pakeitimų. Atverti kitą failą ir juos prarasti?",
+    "source.preview": "Peržiūra",
+    "source.save": "Išsaugoti",
+    "source.reload": "Įkelti iš naujo iš serverio",
+    "source.saved": "Šaltinio failas išsaugotas. Git stage ir commit lieka atskiros operacijos.",
+    "source.conflict": "Failas serveryje pasikeitė. Niekas nebuvo perrašyta. Nukopijuokite pakeitimus, įkelkite iš naujo, sujunkite ir vėl peržiūrėkite.",
+    "source.failed": "Šaltinio operacija nepavyko.",
+    "source.preview_title": "Pakeitimų peržiūra",
+    "source.changed": "Pakeista",
+    "source.no_changes": "Skirtumų neaptikta.",
+    "source.diff_truncated": "Rodomas diff sutrumpintas saugos limito."
+  },
+  "plurals": {},
+  "grammatical": {}
+}

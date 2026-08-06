@@ -1,0 +1,29 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "sv",
+  "scope": "source",
+  "messages": {
+    "source.files": "Filer",
+    "source.no_files": "Ingen redigerbar källfil är tillgänglig.",
+    "source.truncated": "Fillistan har kortats av den konfigurerade säkerhetsgränsen.",
+    "source.choose_file": "Välj en fil i trädet för att öppna redigeraren.",
+    "source.tabs": "Öppna källfiler",
+    "source.bytes": "Byte",
+    "source.clean": "Sparat läge",
+    "source.dirty": "Osparade ändringar",
+    "source.read_only": "Din roll har endast läsbehörighet till denna källa.",
+    "source.unsaved_confirm": "Filen innehåller osparade ändringar. Öppna en annan fil och förlora dem?",
+    "source.preview": "Förhandsgranska",
+    "source.save": "Spara",
+    "source.reload": "Läs in från servern igen",
+    "source.saved": "Källfilen sparades. Git-staging och commit är fortfarande separata åtgärder.",
+    "source.conflict": "Filen har ändrats på servern. Inget skrevs över. Kopiera ändringarna, läs in igen, sammanfoga och förhandsgranska på nytt.",
+    "source.failed": "Källåtgärden misslyckades.",
+    "source.preview_title": "Förhandsgranskning av ändringar",
+    "source.changed": "Ändrad",
+    "source.no_changes": "Ingen skillnad upptäcktes.",
+    "source.diff_truncated": "Den visade diffen har kortats av säkerhetsgränsen."
+  },
+  "plurals": {},
+  "grammatical": {}
+}

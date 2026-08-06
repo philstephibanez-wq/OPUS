@@ -1,0 +1,29 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "et",
+  "scope": "source",
+  "messages": {
+    "source.files": "Failid",
+    "source.no_files": "Muudetavat lähtefaili pole saadaval.",
+    "source.truncated": "Faililoend on seadistatud turvapiirangu tõttu kärbitud.",
+    "source.choose_file": "Redaktori avamiseks valige puust fail.",
+    "source.tabs": "Avatud lähtefailid",
+    "source.bytes": "Baiti",
+    "source.clean": "Salvestatud olek",
+    "source.dirty": "Salvestamata muudatused",
+    "source.read_only": "Teie rollil on sellele lähtele ainult lugemisõigus.",
+    "source.unsaved_confirm": "Fail sisaldab salvestamata muudatusi. Kas avada teine fail ja need kaotada?",
+    "source.preview": "Eelvaade",
+    "source.save": "Salvesta",
+    "source.reload": "Laadi serverist uuesti",
+    "source.saved": "Lähtefail salvestati. Git stage ja commit jäävad eraldi toiminguteks.",
+    "source.conflict": "Fail muutus serveris. Midagi ei kirjutatud üle. Kopeerige muudatused, laadige uuesti, ühendage ja vaadake uuesti eelvaadet.",
+    "source.failed": "Lähtetoiming nurjus.",
+    "source.preview_title": "Muudatuste eelvaade",
+    "source.changed": "Muudetud",
+    "source.no_changes": "Erinevust ei tuvastatud.",
+    "source.diff_truncated": "Kuvatud diff on turvapiirangu tõttu kärbitud."
+  },
+  "plurals": {},
+  "grammatical": {}
+}

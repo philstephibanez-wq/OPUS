@@ -1,0 +1,29 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "ro",
+  "scope": "source",
+  "messages": {
+    "source.files": "Fișiere",
+    "source.no_files": "Nu este disponibil niciun fișier sursă editabil.",
+    "source.truncated": "Lista de fișiere este trunchiată de limita de siguranță configurată.",
+    "source.choose_file": "Selectați un fișier din arbore pentru a deschide editorul.",
+    "source.tabs": "Fișiere sursă deschise",
+    "source.bytes": "Octeți",
+    "source.clean": "Stare salvată",
+    "source.dirty": "Modificări nesalvate",
+    "source.read_only": "Rolul dvs. are acces doar pentru citire la această sursă.",
+    "source.unsaved_confirm": "Fișierul conține modificări nesalvate. Deschideți alt fișier și le pierdeți?",
+    "source.preview": "Previzualizare",
+    "source.save": "Salvare",
+    "source.reload": "Reîncărcare de pe server",
+    "source.saved": "Fișierul sursă a fost salvat. Stage și commit Git rămân operații separate.",
+    "source.conflict": "Fișierul s-a modificat pe server. Nimic nu a fost suprascris. Copiați modificările, reîncărcați, combinați și previzualizați din nou.",
+    "source.failed": "Operația asupra sursei a eșuat.",
+    "source.preview_title": "Previzualizarea modificărilor",
+    "source.changed": "Modificat",
+    "source.no_changes": "Nu a fost detectată nicio diferență.",
+    "source.diff_truncated": "Diff-ul afișat este trunchiat de limita de siguranță."
+  },
+  "plurals": {},
+  "grammatical": {}
+}

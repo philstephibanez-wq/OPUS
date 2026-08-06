@@ -1,0 +1,29 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "fi",
+  "scope": "source",
+  "messages": {
+    "source.files": "Tiedostot",
+    "source.no_files": "Muokattavaa lähdetiedostoa ei ole saatavilla.",
+    "source.truncated": "Tiedostoluettelo on katkaistu määritetyn turvarajan vuoksi.",
+    "source.choose_file": "Avaa editori valitsemalla tiedosto puusta.",
+    "source.tabs": "Avoimet lähdetiedostot",
+    "source.bytes": "Tavua",
+    "source.clean": "Tallennettu tila",
+    "source.dirty": "Tallentamattomia muutoksia",
+    "source.read_only": "Roolillasi on tähän lähteeseen vain lukuoikeus.",
+    "source.unsaved_confirm": "Tiedostossa on tallentamattomia muutoksia. Avataanko toinen tiedosto ja menetetäänkö muutokset?",
+    "source.preview": "Esikatselu",
+    "source.save": "Tallenna",
+    "source.reload": "Lataa uudelleen palvelimelta",
+    "source.saved": "Lähdetiedosto tallennettiin. Git-vaiheistus ja commit ovat edelleen erillisiä toimintoja.",
+    "source.conflict": "Tiedosto muuttui palvelimella. Mitään ei korvattu. Kopioi muutokset, lataa uudelleen, yhdistä ja esikatsele uudelleen.",
+    "source.failed": "Lähdetoiminto epäonnistui.",
+    "source.preview_title": "Muutosten esikatselu",
+    "source.changed": "Muutettu",
+    "source.no_changes": "Eroja ei havaittu.",
+    "source.diff_truncated": "Näytetty diff on katkaistu turvarajan vuoksi."
+  },
+  "plurals": {},
+  "grammatical": {}
+}

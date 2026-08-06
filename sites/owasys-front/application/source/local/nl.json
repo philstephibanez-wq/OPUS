@@ -1,0 +1,29 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "nl",
+  "scope": "source",
+  "messages": {
+    "source.files": "Bestanden",
+    "source.no_files": "Er is geen bewerkbaar bronbestand beschikbaar.",
+    "source.truncated": "De bestandslijst is afgekapt door de ingestelde veiligheidslimiet.",
+    "source.choose_file": "Selecteer een bestand in de boom om de editor te openen.",
+    "source.tabs": "Geopende bronbestanden",
+    "source.bytes": "Bytes",
+    "source.clean": "Opgeslagen status",
+    "source.dirty": "Niet-opgeslagen wijzigingen",
+    "source.read_only": "Uw rol heeft alleen-lezen toegang tot deze bron.",
+    "source.unsaved_confirm": "Dit bestand bevat niet-opgeslagen wijzigingen. Een ander bestand openen en ze verliezen?",
+    "source.preview": "Voorbeeld",
+    "source.save": "Opslaan",
+    "source.reload": "Opnieuw laden van server",
+    "source.saved": "Het bronbestand is opgeslagen. Git-staging en commit blijven afzonderlijke handelingen.",
+    "source.conflict": "Het bestand is op de server gewijzigd. Niets is overschreven. Kopieer uw wijzigingen, laad opnieuw, voeg samen en bekijk opnieuw.",
+    "source.failed": "De bronbewerking is mislukt.",
+    "source.preview_title": "Voorbeeld van wijzigingen",
+    "source.changed": "Gewijzigd",
+    "source.no_changes": "Er is geen verschil gevonden.",
+    "source.diff_truncated": "De getoonde diff is afgekapt door de veiligheidslimiet."
+  },
+  "plurals": {},
+  "grammatical": {}
+}

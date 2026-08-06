@@ -1,0 +1,29 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "en",
+  "scope": "source",
+  "messages": {
+    "source.files": "Files",
+    "source.no_files": "No editable source file is available.",
+    "source.truncated": "The file list is truncated by the configured safety limit.",
+    "source.choose_file": "Select a file in the tree to open the editor.",
+    "source.tabs": "Open source files",
+    "source.bytes": "Bytes",
+    "source.clean": "Saved state",
+    "source.dirty": "Unsaved changes",
+    "source.read_only": "Your role has read-only access to this source.",
+    "source.unsaved_confirm": "This file contains unsaved changes. Open another file and lose them?",
+    "source.preview": "Preview",
+    "source.save": "Save",
+    "source.reload": "Reload from server",
+    "source.saved": "The source file was saved. Git staging and commit remain separate operations.",
+    "source.conflict": "The file changed on the server. Nothing was overwritten. Copy your changes, reload, merge, and preview again.",
+    "source.failed": "The source operation failed.",
+    "source.preview_title": "Change preview",
+    "source.changed": "Changed",
+    "source.no_changes": "No difference was detected.",
+    "source.diff_truncated": "The displayed diff is truncated by the safety limit."
+  },
+  "plurals": {},
+  "grammatical": {}
+}

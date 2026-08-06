@@ -1,0 +1,29 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "sl",
+  "scope": "source",
+  "messages": {
+    "source.files": "Datoteke",
+    "source.no_files": "Na voljo ni nobene izvorne datoteke za urejanje.",
+    "source.truncated": "Seznam datotek je skrajšan zaradi nastavljene varnostne omejitve.",
+    "source.choose_file": "Izberite datoteko v drevesu, da odprete urejevalnik.",
+    "source.tabs": "Odprte izvorne datoteke",
+    "source.bytes": "Bajti",
+    "source.clean": "Shranjeno stanje",
+    "source.dirty": "Neshranjene spremembe",
+    "source.read_only": "Vaša vloga ima do tega vira samo dostop za branje.",
+    "source.unsaved_confirm": "Datoteka vsebuje neshranjene spremembe. Odpreti drugo datoteko in jih izgubiti?",
+    "source.preview": "Predogled",
+    "source.save": "Shrani",
+    "source.reload": "Znova naloži s strežnika",
+    "source.saved": "Izvorna datoteka je shranjena. Git stage in commit ostajata ločeni operaciji.",
+    "source.conflict": "Datoteka se je na strežniku spremenila. Nič ni bilo prepisano. Kopirajte spremembe, znova naložite, združite in ponovno preglejte.",
+    "source.failed": "Operacija z virom ni uspela.",
+    "source.preview_title": "Predogled sprememb",
+    "source.changed": "Spremenjeno",
+    "source.no_changes": "Razlika ni bila zaznana.",
+    "source.diff_truncated": "Prikazani diff je skrajšan zaradi varnostne omejitve."
+  },
+  "plurals": {},
+  "grammatical": {}
+}

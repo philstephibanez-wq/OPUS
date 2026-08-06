@@ -1,0 +1,29 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "it",
+  "scope": "source",
+  "messages": {
+    "source.files": "File",
+    "source.no_files": "Non è disponibile alcun file sorgente modificabile.",
+    "source.truncated": "L’elenco dei file è troncato dal limite di sicurezza configurato.",
+    "source.choose_file": "Seleziona un file nell’albero per aprire l’editor.",
+    "source.tabs": "File sorgente aperti",
+    "source.bytes": "Byte",
+    "source.clean": "Stato salvato",
+    "source.dirty": "Modifiche non salvate",
+    "source.read_only": "Il tuo ruolo dispone del solo accesso in lettura a questa sorgente.",
+    "source.unsaved_confirm": "Questo file contiene modifiche non salvate. Aprire un altro file e perderle?",
+    "source.preview": "Anteprima",
+    "source.save": "Salva",
+    "source.reload": "Ricarica dal server",
+    "source.saved": "Il file sorgente è stato salvato. Staging e commit Git restano operazioni separate.",
+    "source.conflict": "Il file è cambiato sul server. Nulla è stato sovrascritto. Copia le modifiche, ricarica, unisci e visualizza di nuovo l’anteprima.",
+    "source.failed": "L’operazione sulla sorgente non è riuscita.",
+    "source.preview_title": "Anteprima delle modifiche",
+    "source.changed": "Modificato",
+    "source.no_changes": "Non è stata rilevata alcuna differenza.",
+    "source.diff_truncated": "Il diff visualizzato è troncato dal limite di sicurezza."
+  },
+  "plurals": {},
+  "grammatical": {}
+}

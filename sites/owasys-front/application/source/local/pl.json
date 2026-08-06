@@ -1,0 +1,29 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "pl",
+  "scope": "source",
+  "messages": {
+    "source.files": "Pliki",
+    "source.no_files": "Brak dostępnego pliku źródłowego do edycji.",
+    "source.truncated": "Lista plików została skrócona przez skonfigurowany limit bezpieczeństwa.",
+    "source.choose_file": "Wybierz plik w drzewie, aby otworzyć edytor.",
+    "source.tabs": "Otwarte pliki źródłowe",
+    "source.bytes": "Bajty",
+    "source.clean": "Stan zapisany",
+    "source.dirty": "Niezapisane zmiany",
+    "source.read_only": "Twoja rola ma dostęp tylko do odczytu tego źródła.",
+    "source.unsaved_confirm": "Ten plik zawiera niezapisane zmiany. Otworzyć inny plik i je utracić?",
+    "source.preview": "Podgląd",
+    "source.save": "Zapisz",
+    "source.reload": "Wczytaj ponownie z serwera",
+    "source.saved": "Plik źródłowy został zapisany. Stage i commit Git pozostają oddzielnymi operacjami.",
+    "source.conflict": "Plik zmienił się na serwerze. Nic nie zostało nadpisane. Skopiuj zmiany, wczytaj ponownie, połącz i ponownie wyświetl podgląd.",
+    "source.failed": "Operacja na źródle nie powiodła się.",
+    "source.preview_title": "Podgląd zmian",
+    "source.changed": "Zmieniono",
+    "source.no_changes": "Nie wykryto żadnej różnicy.",
+    "source.diff_truncated": "Wyświetlany diff został skrócony przez limit bezpieczeństwa."
+  },
+  "plurals": {},
+  "grammatical": {}
+}

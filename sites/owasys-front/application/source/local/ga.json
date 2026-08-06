@@ -1,0 +1,29 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "ga",
+  "scope": "source",
+  "messages": {
+    "source.files": "Comhaid",
+    "source.no_files": "Níl aon chomhad foinse ineagarthóireachta ar fáil.",
+    "source.truncated": "Ghearr an teorainn slándála chumraithe liosta na gcomhad.",
+    "source.choose_file": "Roghnaigh comhad sa chrann chun an t-eagarthóir a oscailt.",
+    "source.tabs": "Comhaid foinse oscailte",
+    "source.bytes": "Bearta",
+    "source.clean": "Staid sábháilte",
+    "source.dirty": "Athruithe gan sábháil",
+    "source.read_only": "Tá rochtain inléite amháin ag do ról ar an bhfoinse seo.",
+    "source.unsaved_confirm": "Tá athruithe gan sábháil sa chomhad. Oscail comhad eile agus caill iad?",
+    "source.preview": "Réamhamharc",
+    "source.save": "Sábháil",
+    "source.reload": "Athlódáil ón bhfreastalaí",
+    "source.saved": "Sábháladh an comhad foinse. Fanann Git stage agus commit mar oibríochtaí ar leith.",
+    "source.conflict": "D’athraigh an comhad ar an bhfreastalaí. Níor forscríobhadh aon rud. Cóipeáil na hathruithe, athlódáil, cumaisc agus réamhamharc arís.",
+    "source.failed": "Theip ar an oibríocht foinse.",
+    "source.preview_title": "Réamhamharc ar athruithe",
+    "source.changed": "Athraithe",
+    "source.no_changes": "Níor aimsíodh aon difríocht.",
+    "source.diff_truncated": "Ghearr an teorainn slándála an diff atá ar taispeáint."
+  },
+  "plurals": {},
+  "grammatical": {}
+}

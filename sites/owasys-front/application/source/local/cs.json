@@ -1,0 +1,29 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "cs",
+  "scope": "source",
+  "messages": {
+    "source.files": "Soubory",
+    "source.no_files": "Není k dispozici žádný upravitelný zdrojový soubor.",
+    "source.truncated": "Seznam souborů byl zkrácen nastaveným bezpečnostním limitem.",
+    "source.choose_file": "Výběrem souboru ve stromu otevřete editor.",
+    "source.tabs": "Otevřené zdrojové soubory",
+    "source.bytes": "Bajty",
+    "source.clean": "Uložený stav",
+    "source.dirty": "Neuložené změny",
+    "source.read_only": "Vaše role má k tomuto zdroji přístup pouze pro čtení.",
+    "source.unsaved_confirm": "Soubor obsahuje neuložené změny. Otevřít jiný soubor a změny ztratit?",
+    "source.preview": "Náhled",
+    "source.save": "Uložit",
+    "source.reload": "Načíst znovu ze serveru",
+    "source.saved": "Zdrojový soubor byl uložen. Stage a commit Git zůstávají oddělené operace.",
+    "source.conflict": "Soubor byl na serveru změněn. Nic nebylo přepsáno. Zkopírujte změny, načtěte znovu, slučte a znovu zobrazte náhled.",
+    "source.failed": "Operace se zdrojem selhala.",
+    "source.preview_title": "Náhled změn",
+    "source.changed": "Změněno",
+    "source.no_changes": "Nebyl zjištěn žádný rozdíl.",
+    "source.diff_truncated": "Zobrazený diff byl zkrácen bezpečnostním limitem."
+  },
+  "plurals": {},
+  "grammatical": {}
+}

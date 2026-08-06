@@ -26,7 +26,9 @@
     {"id":"select_app"},{"id":"change_app"},{"id":"clear_app_context"},{"id":"create_new_app"},{"id":"application_deleted"},
     {"id":"open_creation"},{"id":"application_created"},{"id":"application_creation_failed"},{"id":"cancel_creation"},
     {"id":"registry_action_failed"},{"id":"open_structure"},{"id":"open_data"},{"id":"open_workflows"},
-    {"id":"open_security"},{"id":"open_source"},{"id":"open_profiler"},{"id":"close_profiler"},{"id":"open_build"},{"id":"auth_required"},{"id":"logout"}
+    {"id":"open_security"},{"id":"open_source"},{"id":"preview_source"},{"id":"source_previewed"},
+    {"id":"write_source"},{"id":"source_written"},{"id":"source_conflict"},{"id":"source_action_failed"},
+    {"id":"open_profiler"},{"id":"close_profiler"},{"id":"open_build"},{"id":"auth_required"},{"id":"logout"}
   ],
   "transitions": [
     {"id":"t_open_login","from":"*","signal":"open_login","next_state":"login"},
@@ -53,6 +55,12 @@
     {"id":"t_open_source","from":"*","signal":"open_source","next_state":"source","guards":["current_app_required"],"visual":true,"visual_from":"security"},
     {"id":"t_source_file","from":"source","signal":"open_source_file","next_state":"source","guards":["current_app_required"],"runtime_operations":[{"op":"push","context":"source_path"},{"op":"poke","name":"source_path","context":"source_path"},{"op":"poke","name":"locale","context":"locale"}]},
     {"id":"t_source_locale","from":"source","signal":"change_locale","next_state":"source","guards":["current_app_required"],"runtime_operations":[{"op":"poke","name":"locale","context":"locale"}]},
+    {"id":"t_source_preview_requested","from":"source","signal":"preview_source","next_state":"source","guards":["current_app_required"]},
+    {"id":"t_source_previewed","from":"source","signal":"source_previewed","next_state":"source","guards":["current_app_required"]},
+    {"id":"t_source_write_requested","from":"source","signal":"write_source","next_state":"source","guards":["current_app_required"]},
+    {"id":"t_source_written","from":"source","signal":"source_written","next_state":"source","guards":["current_app_required"]},
+    {"id":"t_source_conflict","from":"source","signal":"source_conflict","next_state":"source","guards":["current_app_required"]},
+    {"id":"t_source_action_failed","from":"source","signal":"source_action_failed","next_state":"source","guards":["current_app_required"]},
     {"id":"t_source_profiler_open","from":"source","signal":"open_profiler","next_state":"source","guards":["current_app_required"],"runtime_operations":[{"op":"push","context":"return_url"},{"op":"poke","name":"profiler_open","context":"profiler_open"},{"op":"poke","name":"profiler_trace_id","context":"trace_id"}]},
     {"id":"t_source_profiler_close","from":"source","signal":"close_profiler","next_state":"source","guards":["current_app_required"],"runtime_operations":[{"op":"pop","name":"profiler_return_url"},{"op":"poke","name":"profiler_open","context":"profiler_open"}]},
     {"id":"t_open_build","from":"*","signal":"open_build","next_state":"build","guards":["current_app_required"],"visual":true,"visual_from":"source"},

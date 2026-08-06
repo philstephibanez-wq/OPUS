@@ -1,0 +1,29 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "hu",
+  "scope": "source",
+  "messages": {
+    "source.files": "Fájlok",
+    "source.no_files": "Nem érhető el szerkeszthető forrásfájl.",
+    "source.truncated": "A fájllistát a beállított biztonsági korlát csonkolta.",
+    "source.choose_file": "A szerkesztő megnyitásához válasszon fájlt a fában.",
+    "source.tabs": "Megnyitott forrásfájlok",
+    "source.bytes": "Bájt",
+    "source.clean": "Mentett állapot",
+    "source.dirty": "Nem mentett módosítások",
+    "source.read_only": "Az Ön szerepköre csak olvasási hozzáférést biztosít ehhez a forráshoz.",
+    "source.unsaved_confirm": "A fájl nem mentett módosításokat tartalmaz. Megnyit egy másik fájlt és elveszíti ezeket?",
+    "source.preview": "Előnézet",
+    "source.save": "Mentés",
+    "source.reload": "Újratöltés a szerverről",
+    "source.saved": "A forrásfájl mentve. A Git stage és commit továbbra is külön művelet.",
+    "source.conflict": "A fájl megváltozott a szerveren. Semmi nem lett felülírva. Másolja ki a módosításokat, töltsön újra, egyesítsen, majd tekintse meg újra.",
+    "source.failed": "A forrásművelet sikertelen.",
+    "source.preview_title": "Módosítások előnézete",
+    "source.changed": "Módosítva",
+    "source.no_changes": "Nem észlelhető eltérés.",
+    "source.diff_truncated": "A megjelenített diffet a biztonsági korlát csonkolta."
+  },
+  "plurals": {},
+  "grammatical": {}
+}

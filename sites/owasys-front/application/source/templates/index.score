@@ -1,7 +1,13 @@
-[[ if: source.has_error ]]
-<p class="ow-error"><code>{{ source.error_code }}</code></p>
+[[ if: source.saved ]]
+<p class="ow-source-notice ow-source-notice-success" data-context="OWASYS_SOURCE_SAVED">[[ i18n: source.saved ]]</p>
 [[ endif ]]
-<section class="ow-card">
+[[ if: source.conflict ]]
+<p class="ow-source-notice ow-source-notice-conflict" data-context="OWASYS_SOURCE_CONFLICT">[[ i18n: source.conflict ]] <a href="{{ source.reload_url }}">[[ i18n: source.reload ]]</a></p>
+[[ endif ]]
+[[ if: source.failed ]]
+<p class="ow-error" data-context="OWASYS_SOURCE_FAILURE">[[ i18n: source.failed ]] <code>{{ source.error_code }}</code></p>
+[[ endif ]]
+<section class="ow-card ow-source-module">
   <div class="ow-section-heading">
     <div>
       <h2>{{ page.title }}</h2>
@@ -12,33 +18,100 @@
       <span>[[ i18n: common.root ]]: {{ current_app.root }}</span>
     </div>
   </div>
-  <div class="ow-grid">
-    <article class="ow-card">
-      <h3>{{ page.title }}</h3>
+  [[ if: source.truncated ]]
+    <p class="ow-source-notice ow-source-notice-warning">[[ i18n: source.truncated ]]</p>
+  [[ endif ]]
+  <div class="ow-source-workspace">
+    <aside class="ow-card ow-source-browser-panel">
+      <h3>[[ i18n: source.files ]]</h3>
       [[ if: source.empty ]]
-        <p class="ow-muted">{{ page.summary }}</p>
+        <p class="ow-muted">[[ i18n: source.no_files ]]</p>
       [[ else ]]
         <div class="ow-source-file-tree" data-context="OWASYS_SOURCE_FILE_TREE">
           [[ foreach: source.files as file ]]
             <a class="ow-source-file" href="{{ file.url }}" data-source-path="{{ file.path }}" [[ if: file.selected ]]aria-current="page"[[ endif ]]>
-                <span class="ow-source-file-marker" aria-hidden="true">✓</span>
-                <span class="ow-source-file-name">{{ file.name }}</span>
-                <small>{{ file.bytes }}</small>
+              <span class="ow-source-file-marker" aria-hidden="true">✓</span>
+              <span class="ow-source-file-name">{{ file.name }}</span>
+              <small>{{ file.bytes }}</small>
             </a>
           [[ endforeach ]]
         </div>
       [[ endif ]]
-    </article>
-    <article class="ow-card" data-context="OWASYS_SOURCE_SELECTION">
-      <h3 data-source-selection-path>{{ source.path }}</h3>
-      <div class="ow-tags" data-source-selection-metadata [[ if: source.unselected ]]hidden[[ endif ]]>
-        <span data-source-selection-bytes>{{ source.bytes }}</span>
-        <span data-source-selection-sha256>{{ source.sha256 }}</span>
-      </div>
-      <p class="ow-muted" data-source-selection-empty [[ if: source.selected ]]hidden[[ endif ]]>{{ page.summary }}</p>
-      <div class="ow-source-editor-host" data-context="OWASYS_SOURCE_CONTENT_EDITOR" [[ if: source.unselected ]]hidden[[ endif ]]>
-        <textarea class="ow-source-content" data-source-path="{{ source.path }}" readonly>{{ source.content }}</textarea>
-      </div>
-    </article>
+    </aside>
+    <section class="ow-source-editor-panel">
+      <nav class="ow-source-tabs {{ source.selection_class }}" data-context="OWASYS_SOURCE_TABS" aria-label="[[ i18n: source.tabs ]]">
+        <ul data-source-tabs-list>
+          [[ if: source.selected ]]
+            <li><a href="{{ source.url }}" data-source-path="{{ source.path }}" data-source-tab-path="{{ source.path }}" aria-current="page">{{ source.name }}</a></li>
+          [[ endif ]]
+        </ul>
+      </nav>
+      <p class="ow-source-empty-selection {{ source.unselected_class }}" data-source-selection-empty>[[ i18n: source.choose_file ]]</p>
+      <article class="ow-card ow-source-selection {{ source.selection_class }}" data-context="OWASYS_SOURCE_SELECTION">
+        <div class="ow-source-selection-heading">
+          <div>
+            <h3 data-source-selection-path>{{ source.path }}</h3>
+            <div class="ow-tags" data-source-selection-metadata>
+              <span>[[ i18n: source.bytes ]]: <strong data-source-selection-bytes>{{ source.bytes }}</strong></span>
+              <span>SHA-256: <strong data-source-selection-sha256>{{ source.sha256 }}</strong></span>
+            </div>
+          </div>
+          <div class="ow-source-dirty-state" aria-live="polite">
+            <span data-source-clean [[ if: source.dirty ]]hidden[[ endif ]]>[[ i18n: source.clean ]]</span>
+            <span data-source-dirty [[ if: source.clean ]]hidden[[ endif ]]>[[ i18n: source.dirty ]]</span>
+          </div>
+        </div>
+        [[ if: source.read_only ]]
+          <p class="ow-source-notice ow-source-notice-warning">[[ i18n: source.read_only ]]</p>
+        [[ endif ]]
+        <form method="post" action="{{ source.form_action }}" class="ow-source-editor-form" data-context="OWASYS_SOURCE_EDITOR_FORM" data-source-editable="{{ source.editable_value }}" data-unsaved-message="[[ i18n: source.unsaved_confirm ]]">
+          <input type="hidden" name="csrf_token" value="{{ source.csrf_token }}">
+          <input type="hidden" name="expected_content_hash" value="{{ source.expected_sha256 }}" data-source-expected-hash>
+          <textarea data-source-server-content hidden readonly>{{ source.server_content }}</textarea>
+          <div class="ow-source-editor-host" data-context="OWASYS_SOURCE_CONTENT_EDITOR">
+            [[ if: source.editable ]]
+              <textarea class="ow-source-content" name="new_content" data-source-path="{{ source.path }}" spellcheck="false">{{ source.content }}</textarea>
+            [[ else ]]
+              <textarea class="ow-source-content" name="new_content" data-source-path="{{ source.path }}" spellcheck="false" readonly>{{ source.content }}</textarea>
+            [[ endif ]]
+          </div>
+          <div class="ow-source-actions">
+            [[ if: source.can_preview ]]
+              <button type="submit" name="source_action" value="preview" class="ow-button ow-button-secondary">[[ i18n: source.preview ]]</button>
+            [[ else ]]
+              <button type="submit" name="source_action" value="preview" class="ow-button ow-button-secondary" disabled>[[ i18n: source.preview ]]</button>
+            [[ endif ]]
+            [[ if: source.can_write ]]
+              <button type="submit" name="source_action" value="write" class="ow-button">[[ i18n: source.save ]]</button>
+            [[ else ]]
+              <button type="submit" name="source_action" value="write" class="ow-button" disabled>[[ i18n: source.save ]]</button>
+            [[ endif ]]
+            <a class="ow-button ow-button-secondary" href="{{ source.reload_url }}">[[ i18n: source.reload ]]</a>
+          </div>
+        </form>
+      </article>
+      <section class="ow-card ow-source-preview" data-context="OWASYS_SOURCE_PREVIEW" [[ if: source_preview.absent ]]hidden[[ endif ]]>
+        <div class="ow-section-heading">
+          <div>
+            <h3>[[ i18n: source.preview_title ]]</h3>
+            <p class="ow-muted">
+              [[ i18n: source.bytes ]]: {{ source_preview.current_bytes }} → {{ source_preview.proposed_bytes }}
+            </p>
+          </div>
+          [[ if: source_preview.changed ]]
+            <span class="ow-badge">[[ i18n: source.changed ]]</span>
+          [[ endif ]]
+        </div>
+        [[ if: source_preview.unchanged ]]
+          <p class="ow-muted">[[ i18n: source.no_changes ]]</p>
+        [[ endif ]]
+        [[ if: source_preview.changed ]]
+          <pre class="ow-source-diff">{{ source_preview.diff }}</pre>
+        [[ endif ]]
+        [[ if: source_preview.diff_truncated ]]
+          <p class="ow-source-notice ow-source-notice-warning">[[ i18n: source.diff_truncated ]]</p>
+        [[ endif ]]
+      </section>
+    </section>
   </div>
 </section>

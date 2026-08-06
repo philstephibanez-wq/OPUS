@@ -1,0 +1,29 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "pt",
+  "scope": "source",
+  "messages": {
+    "source.files": "Ficheiros",
+    "source.no_files": "Não existe nenhum ficheiro fonte editável disponível.",
+    "source.truncated": "A lista de ficheiros foi truncada pelo limite de segurança configurado.",
+    "source.choose_file": "Selecione um ficheiro na árvore para abrir o editor.",
+    "source.tabs": "Ficheiros fonte abertos",
+    "source.bytes": "Bytes",
+    "source.clean": "Estado guardado",
+    "source.dirty": "Alterações não guardadas",
+    "source.read_only": "A sua função tem acesso apenas de leitura a esta fonte.",
+    "source.unsaved_confirm": "Este ficheiro contém alterações não guardadas. Abrir outro ficheiro e perdê-las?",
+    "source.preview": "Pré-visualizar",
+    "source.save": "Guardar",
+    "source.reload": "Recarregar do servidor",
+    "source.saved": "O ficheiro fonte foi guardado. O staging e o commit Git continuam a ser operações separadas.",
+    "source.conflict": "O ficheiro mudou no servidor. Nada foi substituído. Copie as alterações, recarregue, combine e pré-visualize novamente.",
+    "source.failed": "A operação sobre a fonte falhou.",
+    "source.preview_title": "Pré-visualização das alterações",
+    "source.changed": "Alterado",
+    "source.no_changes": "Não foi detetada qualquer diferença.",
+    "source.diff_truncated": "O diff apresentado foi truncado pelo limite de segurança."
+  },
+  "plurals": {},
+  "grammatical": {}
+}

@@ -1,0 +1,29 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "lv",
+  "scope": "source",
+  "messages": {
+    "source.files": "Faili",
+    "source.no_files": "Nav pieejams neviens rediģējams avota fails.",
+    "source.truncated": "Failu sarakstu saīsināja konfigurētais drošības ierobežojums.",
+    "source.choose_file": "Atlasiet failu kokā, lai atvērtu redaktoru.",
+    "source.tabs": "Atvērtie avota faili",
+    "source.bytes": "Baiti",
+    "source.clean": "Saglabāts stāvoklis",
+    "source.dirty": "Nesaglabātas izmaiņas",
+    "source.read_only": "Jūsu lomai ir tikai lasīšanas piekļuve šim avotam.",
+    "source.unsaved_confirm": "Failā ir nesaglabātas izmaiņas. Atvērt citu failu un tās zaudēt?",
+    "source.preview": "Priekšskatīt",
+    "source.save": "Saglabāt",
+    "source.reload": "Pārlādēt no servera",
+    "source.saved": "Avota fails ir saglabāts. Git stage un commit paliek atsevišķas darbības.",
+    "source.conflict": "Fails serverī ir mainījies. Nekas netika pārrakstīts. Nokopējiet izmaiņas, pārlādējiet, apvienojiet un priekšskatiet vēlreiz.",
+    "source.failed": "Avota darbība neizdevās.",
+    "source.preview_title": "Izmaiņu priekšskatījums",
+    "source.changed": "Mainīts",
+    "source.no_changes": "Atšķirība netika konstatēta.",
+    "source.diff_truncated": "Parādītais diff ir saīsināts drošības ierobežojuma dēļ."
+  },
+  "plurals": {},
+  "grammatical": {}
+}

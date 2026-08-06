@@ -1,0 +1,29 @@
+{
+  "contract": "OPUS_I18N_CATALOG_V2",
+  "locale": "es",
+  "scope": "source",
+  "messages": {
+    "source.files": "Archivos",
+    "source.no_files": "No hay ningún archivo fuente editable disponible.",
+    "source.truncated": "La lista de archivos está truncada por el límite de seguridad configurado.",
+    "source.choose_file": "Seleccione un archivo del árbol para abrir el editor.",
+    "source.tabs": "Archivos fuente abiertos",
+    "source.bytes": "Bytes",
+    "source.clean": "Estado guardado",
+    "source.dirty": "Cambios sin guardar",
+    "source.read_only": "Su rol solo tiene acceso de lectura a esta fuente.",
+    "source.unsaved_confirm": "Este archivo contiene cambios sin guardar. ¿Abrir otro archivo y perderlos?",
+    "source.preview": "Previsualizar",
+    "source.save": "Guardar",
+    "source.reload": "Recargar desde el servidor",
+    "source.saved": "El archivo fuente se guardó. El staging y el commit de Git siguen siendo operaciones separadas.",
+    "source.conflict": "El archivo cambió en el servidor. No se sobrescribió nada. Copie sus cambios, recargue, combine y vuelva a previsualizar.",
+    "source.failed": "La operación sobre la fuente falló.",
+    "source.preview_title": "Vista previa de cambios",
+    "source.changed": "Modificado",
+    "source.no_changes": "No se detectó ninguna diferencia.",
+    "source.diff_truncated": "El diff mostrado está truncado por el límite de seguridad."
+  },
+  "plurals": {},
+  "grammatical": {}
+}
