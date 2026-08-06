@@ -4,10 +4,11 @@ declare(strict_types=1);
 use Opus\Api\Rest\RestClient;
 use Opus\Api\Rest\RestClientInterface;
 
-/** Secured frontend projection of OPUS source operations through OWASYS REST. */
+/** Secured frontend projection of OPUS source and Git operations through REST. */
 final class OwasysSourceModel
 {
     private const MAX_CONTENT_BYTES = 1048576;
+    private const MAX_COMMIT_MESSAGE_BYTES = 200;
 
     private readonly RestClientInterface $rest;
 
@@ -154,6 +155,217 @@ final class OwasysSourceModel
         return $result;
     }
 
+    /** @param array<string,mixed> $actor @return array<string,mixed> */
+    public function gitStatus(string $siteId, array $actor): array
+    {
+        $siteId = $this->siteId($siteId);
+        $result = $this->rest->request(
+            'GET',
+            $this->gitResource($siteId, 'status'),
+            [],
+            $this->actor($actor)
+        );
+        if (($result['contract'] ?? null) !== 'OPUS_SITE_GIT_STATUS_V1'
+            || !is_bool($result['clean'] ?? null)
+            || !is_array($result['changes'] ?? null)
+            || !is_array($result['counts'] ?? null)) {
+            throw new RuntimeException('OWASYS_GIT_STATUS_RESULT_INVALID');
+        }
+        foreach ($result['changes'] as $change) {
+            if (!is_array($change)) {
+                throw new RuntimeException('OWASYS_GIT_STATUS_RESULT_INVALID');
+            }
+            $this->path((string) ($change['path'] ?? ''));
+            foreach (['staged', 'unstaged', 'untracked', 'conflicted'] as $name) {
+                if (!is_bool($change[$name] ?? null)) {
+                    throw new RuntimeException('OWASYS_GIT_STATUS_RESULT_INVALID');
+                }
+            }
+        }
+        return $result;
+    }
+
+    /** @param array<string,mixed> $actor @return array<string,mixed> */
+    public function gitDiff(
+        string $siteId,
+        string $path,
+        array $actor
+    ): array {
+        $siteId = $this->siteId($siteId);
+        $path = $this->path($path);
+        $result = $this->rest->request(
+            'GET',
+            $this->gitResource(
+                $siteId,
+                'diffs/' . $this->resourcePath($path)
+            ),
+            [],
+            $this->actor($actor)
+        );
+        if (($result['contract'] ?? null) !== 'OPUS_SITE_GIT_DIFF_V1'
+            || $this->resultPath($result) !== $path
+            || !is_string($result['unstaged'] ?? null)
+            || !is_string($result['staged'] ?? null)
+            || !is_bool($result['unstaged_truncated'] ?? null)
+            || !is_bool($result['staged_truncated'] ?? null)) {
+            throw new RuntimeException('OWASYS_GIT_DIFF_RESULT_INVALID');
+        }
+        return $result;
+    }
+
+    /** @param array<string,mixed> $actor @return array<string,mixed> */
+    public function gitHistory(string $siteId, array $actor): array
+    {
+        $siteId = $this->siteId($siteId);
+        $result = $this->rest->request(
+            'GET',
+            $this->gitResource($siteId, 'history'),
+            [],
+            $this->actor($actor)
+        );
+        if (($result['contract'] ?? null) !== 'OPUS_SITE_GIT_HISTORY_V1'
+            || !is_array($result['commits'] ?? null)) {
+            throw new RuntimeException('OWASYS_GIT_HISTORY_RESULT_INVALID');
+        }
+        foreach ($result['commits'] as $commit) {
+            if (!is_array($commit)
+                || preg_match(
+                    '/^[a-f0-9]{40,64}$/D',
+                    (string) ($commit['hash'] ?? '')
+                ) !== 1
+                || !is_string($commit['author'] ?? null)
+                || !is_string($commit['date'] ?? null)
+                || !is_string($commit['subject'] ?? null)) {
+                throw new RuntimeException('OWASYS_GIT_HISTORY_RESULT_INVALID');
+            }
+        }
+        return $result;
+    }
+
+    /** @param array<string,mixed> $actor @return array<string,mixed> */
+    public function gitStage(
+        string $siteId,
+        string $path,
+        array $actor
+    ): array {
+        return $this->gitPathMutation(
+            'PUT',
+            'index',
+            'OPUS_SITE_GIT_STAGE_V1',
+            $siteId,
+            $path,
+            [],
+            $actor
+        );
+    }
+
+    /** @param array<string,mixed> $actor @return array<string,mixed> */
+    public function gitUnstage(
+        string $siteId,
+        string $path,
+        array $actor
+    ): array {
+        return $this->gitPathMutation(
+            'DELETE',
+            'index',
+            'OPUS_SITE_GIT_UNSTAGE_V1',
+            $siteId,
+            $path,
+            [],
+            $actor
+        );
+    }
+
+    /** @param array<string,mixed> $actor @return array<string,mixed> */
+    public function gitCommit(
+        string $siteId,
+        string $message,
+        array $actor
+    ): array {
+        $siteId = $this->siteId($siteId);
+        $message = $this->commitMessage($message);
+        $result = $this->rest->request(
+            'POST',
+            $this->gitResource($siteId, 'commits'),
+            ['message' => $message],
+            $this->actor($actor)
+        );
+        if (($result['contract'] ?? null) !== 'OPUS_SITE_GIT_COMMIT_V1'
+            || preg_match(
+                '/^[a-f0-9]{40,64}$/D',
+                (string) ($result['hash'] ?? '')
+            ) !== 1
+            || !is_array($result['status'] ?? null)) {
+            throw new RuntimeException('OWASYS_GIT_COMMIT_RESULT_INVALID');
+        }
+        return $result;
+    }
+
+    /** @param array<string,mixed> $actor @return array<string,mixed> */
+    public function gitRestore(
+        string $siteId,
+        string $path,
+        string $expectedContentHash,
+        string $confirmation,
+        array $actor
+    ): array {
+        $expectedContentHash = $this->hash($expectedContentHash);
+        $siteId = $this->siteId($siteId);
+        $path = $this->path($path);
+        $expected = 'RESTORE:' . $siteId . ':' . $path . ':'
+            . $expectedContentHash;
+        if (!hash_equals($expected, $confirmation)) {
+            throw new RuntimeException(
+                'OWASYS_GIT_RESTORE_CONFIRMATION_INVALID'
+            );
+        }
+        return $this->gitPathMutation(
+            'POST',
+            'restores',
+            'OPUS_SITE_GIT_RESTORE_V1',
+            $siteId,
+            $path,
+            [
+                'expected_content_hash' => $expectedContentHash,
+                'confirmation' => $confirmation,
+            ],
+            $actor
+        );
+    }
+
+    /**
+     * @param array<string,mixed> $body
+     * @param array<string,mixed> $actor
+     * @return array<string,mixed>
+     */
+    private function gitPathMutation(
+        string $method,
+        string $resource,
+        string $contract,
+        string $siteId,
+        string $path,
+        array $body,
+        array $actor
+    ): array {
+        $siteId = $this->siteId($siteId);
+        $path = $this->path($path);
+        $result = $this->rest->request(
+            $method,
+            $this->gitResource(
+                $siteId,
+                $resource . '/' . $this->resourcePath($path)
+            ),
+            $body,
+            $this->actor($actor)
+        );
+        if (($result['contract'] ?? null) !== $contract
+            || $this->resultPath($result) !== $path
+            || !is_array($result['status'] ?? null)) {
+            throw new RuntimeException('OWASYS_GIT_MUTATION_RESULT_INVALID');
+        }
+        return $result;
+    }
+
     private function sourceResource(string $siteId, string $path): string
     {
         return '/api/v1/applications/' . rawurlencode($siteId)
@@ -164,6 +376,12 @@ final class OwasysSourceModel
     {
         return '/api/v1/applications/' . rawurlencode($siteId)
             . '/source-previews/' . $this->resourcePath($path);
+    }
+
+    private function gitResource(string $siteId, string $resource): string
+    {
+        return '/api/v1/applications/' . rawurlencode($siteId)
+            . '/git/' . ltrim($resource, '/');
     }
 
     private function resourcePath(string $path): string
@@ -208,6 +426,17 @@ final class OwasysSourceModel
             throw new RuntimeException('OWASYS_SOURCE_CONTENT_INVALID');
         }
         return $content;
+    }
+
+    private function commitMessage(string $message): string
+    {
+        $message = trim($message);
+        if ($message === ''
+            || strlen($message) > self::MAX_COMMIT_MESSAGE_BYTES
+            || preg_match('/[\x00-\x1F\x7F]/', $message) === 1) {
+            throw new RuntimeException('OWASYS_GIT_COMMIT_MESSAGE_INVALID');
+        }
+        return $message;
     }
 
     /** @param array<string,mixed> $result */

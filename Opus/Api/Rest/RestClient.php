@@ -10,6 +10,29 @@ use Opus\Profiler\ProfilerInterface;
 /** Secured server-side client for the OPUS resource-oriented REST API. */
 final class RestClient implements RestClientInterface
 {
+    /** @var list<string> */
+    private const PROFILER_SENSITIVE_KEYS = [
+        'authorization',
+        'author',
+        'commit_message',
+        'confirmation',
+        'content',
+        'diff',
+        'email',
+        'hmac',
+        'message',
+        'new_content',
+        'password',
+        'password_hash',
+        'restore_confirmation',
+        'secret',
+        'server_content',
+        'staged',
+        'subject',
+        'unstaged',
+        'token',
+    ];
+
     private function __construct(
         private readonly string $baseUrl,
         private readonly string $tokenEnvironment,
@@ -204,8 +227,7 @@ final class RestClient implements RestClientInterface
         string $resource,
         int $requestBytes,
         array $requestBody
-    ): ?string
-    {
+    ): ?string {
         if ($this->profiler === null || $this->profiler->getActiveTrace() === null) {
             return null;
         }
@@ -219,7 +241,7 @@ final class RestClient implements RestClientInterface
                 'accept' => 'application/json',
                 'content-type' => 'application/json',
             ],
-            'request_body' => $requestBody,
+            'request_body' => self::safeProfilerPayload($requestBody),
         ]);
     }
 
@@ -251,14 +273,57 @@ final class RestClient implements RestClientInterface
         if ($eventType === '') {
             throw new \LogicException('OPUS_REST_PROFILER_EVENT_TYPE_MISSING');
         }
+        $safeContext = self::safeProfilerPayload($context);
         $this->profiler->event(
             'rest',
             $eventType,
-            $context,
+            $safeContext,
             $status,
             $spanId
         );
-        $this->profiler->endSpan($spanId, $status, $context);
+        $this->profiler->endSpan($spanId, $status, $safeContext);
+    }
+
+    /**
+     * Recursively removes sensitive REST payload values from diagnostics while
+     * retaining only their type and byte length for measured profiler panels.
+     */
+    private static function safeProfilerPayload(mixed $value, ?string $key = null): mixed
+    {
+        $normalizedKey = strtolower(trim((string) $key));
+        $sensitive = in_array(
+            $normalizedKey,
+            self::PROFILER_SENSITIVE_KEYS,
+            true
+        );
+        if ($sensitive
+            && !(
+                in_array($normalizedKey, ['staged', 'unstaged'], true)
+                && is_bool($value)
+            )) {
+            $summary = [
+                'redacted' => true,
+                'type' => get_debug_type($value),
+            ];
+            if (is_string($value)) {
+                $summary['bytes'] = strlen($value);
+            } elseif (is_array($value)) {
+                $summary['items'] = count($value);
+            }
+            return $summary;
+        }
+        if (!is_array($value)) {
+            return $value;
+        }
+
+        $safe = [];
+        foreach ($value as $childKey => $childValue) {
+            $safe[$childKey] = self::safeProfilerPayload(
+                $childValue,
+                is_string($childKey) ? $childKey : null
+            );
+        }
+        return $safe;
     }
 
     private function traceId(): ?string

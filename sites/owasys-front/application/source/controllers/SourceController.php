@@ -11,12 +11,13 @@ use Opus\I18n\BrowserLocaleNegotiator;
 use Opus\Security\Csrf\CsrfTokenManager;
 use Opus\Security\Csrf\CsrfTokenManagerInterface;
 
-/** Server-rendered OWASYS source editor backed exclusively by secured REST. */
+/** Server-rendered OWASYS source and Git workspace backed by secured REST. */
 final class OwasysSourceController
 {
     private const FSM_SESSION_KEY = 'opus.fsm.owasys-front';
     private const MAX_CONTENT_BYTES = 1048576;
-    private const CSRF_SCOPE = 'owasys.source.editor';
+    private const SOURCE_CSRF_SCOPE = 'owasys.source.editor';
+    private const GIT_CSRF_SCOPE = 'owasys.source.git';
 
     private readonly OwasysLocaleRegistry $locales;
     private readonly OwasysNavigationBuilder $navigation;
@@ -89,20 +90,31 @@ final class OwasysSourceController
         $listing = $this->emptyListing();
         $selected = null;
         $preview = null;
-        $errorCode = null;
-        $feedback = '';
+        $sourceErrorCode = null;
+        $sourceFeedback = '';
         $submittedContent = null;
         $submittedHash = null;
+        $gitStatus = null;
+        $gitHistory = null;
+        $gitDiff = null;
+        $gitErrorCode = null;
+        $gitFeedback = '';
+        $gitSubmittedMessage = '';
+        $sourceLoaded = false;
         $siteId = (string) ($currentApp['id'] ?? '');
+        $gitPost = $method === 'POST'
+            && array_key_exists('git_action', $_POST);
 
-        try {
-            if ($method === 'GET') {
-                $feedback = $this->sourceStatus();
+        if ($method === 'GET') {
+            try {
+                $sourceFeedback = $this->sourceStatus();
+                $gitFeedback = $this->gitStatusOption();
                 [$listing, $selected] = $this->loadSelection(
                     $siteId,
                     $sourcePath,
                     $identity
                 );
+                $sourceLoaded = true;
                 if ($sourcePath !== '' && $this->expectsJson()) {
                     Response::json([
                         'contract' => 'OWASYS_SOURCE_SELECTION_V2',
@@ -110,158 +122,232 @@ final class OwasysSourceController
                     ])->send();
                     return;
                 }
-            } elseif ($method === 'POST') {
-                if ($sourcePath === '') {
-                    throw new RuntimeException(
-                        'OWASYS_SOURCE_SELECTION_REQUIRED'
-                    );
-                }
-                $this->csrf->assertValid(
-                    self::CSRF_SCOPE,
-                    $this->postedCsrfToken()
-                );
-                $action = $this->postedAction();
-                $submittedContent = $this->postedContent();
-                $submittedHash = $this->postedHash();
-                $context = $this->sourceActionContext(
-                    $identity,
-                    $currentApp,
-                    $locale,
-                    $sourcePath,
-                    $action
-                );
-
-                if ($action === 'preview') {
-                    $this->security->assertAllowed(
+            } catch (Throwable $error) {
+                $sourceErrorCode = $this->safeErrorCode($error);
+                http_response_code($this->statusForError($sourceErrorCode));
+            }
+        } elseif ($method === 'POST') {
+            if ($gitPost) {
+                try {
+                    [$gitAction, $gitResult] = $this->handleGitMutation(
+                        $fsm,
+                        $store,
+                        $siteId,
+                        $sourcePath,
+                        $locale,
                         $identity,
-                        'source',
-                        'preview'
-                    );
-                    $this->sourceTransition(
-                        $fsm,
-                        $store,
-                        'preview_source',
-                        $context
-                    );
-                    [$listing, $selected] = $this->loadSelection(
-                        $siteId,
-                        $sourcePath,
-                        $identity
-                    );
-                    $preview = $this->source->preview(
-                        $siteId,
-                        $sourcePath,
-                        $submittedHash,
-                        $submittedContent,
-                        $identity
-                    );
-                    $this->sourceTransition(
-                        $fsm,
-                        $store,
-                        'source_previewed',
-                        array_replace($context, [
-                            'source_changed' =>
-                                ($preview['changed'] ?? false) === true,
-                        ])
-                    );
-                    $feedback = 'previewed';
-                    if ($this->expectsJson()) {
-                        Response::json([
-                            'contract' => 'OWASYS_SOURCE_PREVIEW_V1',
-                            'preview' => $preview,
-                        ])->send();
-                        return;
-                    }
-                } else {
-                    $this->security->assertAllowed(
-                        $identity,
-                        'source',
-                        'write'
-                    );
-                    $this->sourceTransition(
-                        $fsm,
-                        $store,
-                        'write_source',
-                        $context
-                    );
-                    $written = $this->source->write(
-                        $siteId,
-                        $sourcePath,
-                        $submittedHash,
-                        $submittedContent,
-                        $identity
-                    );
-                    $this->sourceTransition(
-                        $fsm,
-                        $store,
-                        'source_written',
-                        array_replace($context, [
-                            'source_changed' =>
-                                ($written['changed'] ?? false) === true,
-                        ])
+                        $currentApp
                     );
                     if ($this->expectsJson()) {
                         Response::json([
-                            'contract' => 'OWASYS_SOURCE_WRITE_V1',
-                            'written' => $written,
+                            'contract' => 'OWASYS_GIT_ACTION_V1',
+                            'action' => $gitAction,
+                            'result' => $gitResult,
                         ])->send();
                         return;
                     }
-                    $this->redirectSource(
+                    $this->redirectCurrentSource(
                         $locale,
                         $sourcePath,
-                        ['source_status' => 'saved']
+                        ['git_status' => $this->gitSuccessStatus($gitAction)]
                     );
+                } catch (Throwable $error) {
+                    $gitErrorCode = $this->safeErrorCode($error);
+                    $gitFeedback = 'failed';
+                    $gitSubmittedMessage = is_string(
+                        $_POST['commit_message'] ?? null
+                    ) ? (string) $_POST['commit_message'] : '';
+                    http_response_code($this->statusForError($gitErrorCode));
+                    $this->recordGitFailure(
+                        $fsm,
+                        $store,
+                        $identity,
+                        $currentApp,
+                        $locale,
+                        $sourcePath
+                    );
+                    if ($this->expectsJson()) {
+                        Response::json([
+                            'contract' => 'OWASYS_GIT_ERROR_V1',
+                            'error_code' => $gitErrorCode,
+                        ], $this->statusForError($gitErrorCode))->send();
+                        return;
+                    }
                 }
             } else {
-                throw new RuntimeException(
-                    'OWASYS_SOURCE_METHOD_NOT_ALLOWED'
+                try {
+                    if ($sourcePath === '') {
+                        throw new RuntimeException(
+                            'OWASYS_SOURCE_SELECTION_REQUIRED'
+                        );
+                    }
+                    $this->csrf->assertValid(
+                        self::SOURCE_CSRF_SCOPE,
+                        $this->postedCsrfToken()
+                    );
+                    $action = $this->postedSourceAction();
+                    $submittedContent = $this->postedContent();
+                    $submittedHash = $this->postedHash();
+                    $context = $this->sourceActionContext(
+                        $identity,
+                        $currentApp,
+                        $locale,
+                        $sourcePath,
+                        $action
+                    );
+
+                    if ($action === 'preview') {
+                        $this->security->assertAllowed(
+                            $identity,
+                            'source',
+                            'preview'
+                        );
+                        $this->sourceTransition(
+                            $fsm,
+                            $store,
+                            'preview_source',
+                            $context
+                        );
+                        [$listing, $selected] = $this->loadSelection(
+                            $siteId,
+                            $sourcePath,
+                            $identity
+                        );
+                        $sourceLoaded = true;
+                        $preview = $this->source->preview(
+                            $siteId,
+                            $sourcePath,
+                            $submittedHash,
+                            $submittedContent,
+                            $identity
+                        );
+                        $this->sourceTransition(
+                            $fsm,
+                            $store,
+                            'source_previewed',
+                            array_replace($context, [
+                                'source_changed' =>
+                                    ($preview['changed'] ?? false) === true,
+                            ])
+                        );
+                        $sourceFeedback = 'previewed';
+                        if ($this->expectsJson()) {
+                            Response::json([
+                                'contract' => 'OWASYS_SOURCE_PREVIEW_V1',
+                                'preview' => $preview,
+                            ])->send();
+                            return;
+                        }
+                    } else {
+                        $this->security->assertAllowed(
+                            $identity,
+                            'source',
+                            'write'
+                        );
+                        $this->sourceTransition(
+                            $fsm,
+                            $store,
+                            'write_source',
+                            $context
+                        );
+                        $written = $this->source->write(
+                            $siteId,
+                            $sourcePath,
+                            $submittedHash,
+                            $submittedContent,
+                            $identity
+                        );
+                        $this->sourceTransition(
+                            $fsm,
+                            $store,
+                            'source_written',
+                            array_replace($context, [
+                                'source_changed' =>
+                                    ($written['changed'] ?? false) === true,
+                            ])
+                        );
+                        if ($this->expectsJson()) {
+                            Response::json([
+                                'contract' => 'OWASYS_SOURCE_WRITE_V1',
+                                'written' => $written,
+                            ])->send();
+                            return;
+                        }
+                        $this->redirectSource(
+                            $locale,
+                            $sourcePath,
+                            ['source_status' => 'saved']
+                        );
+                    }
+                } catch (Throwable $error) {
+                    $sourceErrorCode = $this->safeErrorCode($error);
+                    http_response_code(
+                        $this->statusForError($sourceErrorCode)
+                    );
+                    $this->recordSourceFailure(
+                        $fsm,
+                        $store,
+                        $identity,
+                        $currentApp,
+                        $locale,
+                        $sourcePath,
+                        $sourceErrorCode
+                    );
+                    $sourceFeedback = $sourceErrorCode
+                        === 'OPUS_SITE_SOURCE_CONFLICT'
+                            ? 'conflict'
+                            : 'failed';
+                    if ($this->expectsJson()) {
+                        Response::json([
+                            'contract' => 'OWASYS_SOURCE_ERROR_V1',
+                            'error_code' => $sourceErrorCode,
+                        ], $this->statusForError($sourceErrorCode))->send();
+                        return;
+                    }
+                }
+            }
+        } else {
+            $sourceErrorCode = 'OWASYS_SOURCE_METHOD_NOT_ALLOWED';
+            http_response_code(405);
+        }
+
+        if (!$sourceLoaded) {
+            try {
+                [$listing, $selected] = $this->loadSelection(
+                    $siteId,
+                    $sourcePath,
+                    $identity
+                );
+            } catch (Throwable $error) {
+                if ($sourceErrorCode === null) {
+                    $sourceErrorCode = $this->safeErrorCode($error);
+                    http_response_code(
+                        $this->statusForError($sourceErrorCode)
+                    );
+                }
+            }
+        }
+
+        try {
+            $this->security->assertAllowed($identity, 'git', 'read');
+            $gitStatus = $this->source->gitStatus($siteId, $identity);
+            $gitHistory = $this->source->gitHistory($siteId, $identity);
+            if ($sourcePath !== '') {
+                $gitDiff = $this->source->gitDiff(
+                    $siteId,
+                    $sourcePath,
+                    $identity
                 );
             }
         } catch (Throwable $error) {
-            $errorCode = $this->safeErrorCode($error);
-            http_response_code($this->statusForError($errorCode));
-            if ($method === 'POST') {
-                $signal = $errorCode === 'OPUS_SITE_SOURCE_CONFLICT'
-                    ? 'source_conflict'
-                    : 'source_action_failed';
-                try {
-                    $this->sourceTransition(
-                        $fsm,
-                        $store,
-                        $signal,
-                        $this->sourceActionContext(
-                            $identity,
-                            $currentApp,
-                            $locale,
-                            $sourcePath,
-                            is_string($_POST['source_action'] ?? null)
-                                ? (string) $_POST['source_action']
-                                : ''
-                        )
+            if ($gitErrorCode === null) {
+                $gitErrorCode = $this->safeErrorCode($error);
+                $gitFeedback = 'failed';
+                if ($sourceErrorCode === null) {
+                    http_response_code(
+                        $this->statusForError($gitErrorCode)
                     );
-                } catch (Throwable) {
                 }
-                try {
-                    [$listing, $selected] = $this->loadSelection(
-                        $siteId,
-                        $sourcePath,
-                        $identity
-                    );
-                } catch (Throwable) {
-                    $listing = $this->emptyListing();
-                    $selected = null;
-                }
-                $feedback = $errorCode === 'OPUS_SITE_SOURCE_CONFLICT'
-                    ? 'conflict'
-                    : 'failed';
-            }
-            if ($this->expectsJson()) {
-                Response::json([
-                    'contract' => 'OWASYS_SOURCE_ERROR_V1',
-                    'error_code' => $errorCode,
-                ], $this->statusForError($errorCode))->send();
-                return;
             }
         }
 
@@ -276,8 +362,14 @@ final class OwasysSourceController
             $preview,
             $submittedContent,
             $submittedHash,
-            $feedback,
-            $errorCode
+            $sourceFeedback,
+            $sourceErrorCode,
+            $gitStatus,
+            $gitHistory,
+            $gitDiff,
+            $gitFeedback,
+            $gitErrorCode,
+            $gitSubmittedMessage
         );
     }
 
@@ -317,6 +409,79 @@ final class OwasysSourceController
         return [$browse['listing'], $browse['selected']];
     }
 
+    /**
+     * @param array<string,mixed> $identity
+     * @param array<string,mixed> $currentApp
+     * @return array{0:string,1:array<string,mixed>}
+     */
+    private function handleGitMutation(
+        FsmProcessor $fsm,
+        FsmSessionStore $store,
+        string $siteId,
+        string $sourcePath,
+        string $locale,
+        array $identity,
+        array $currentApp
+    ): array {
+        $this->csrf->assertValid(
+            self::GIT_CSRF_SCOPE,
+            $this->postedCsrfToken()
+        );
+        $action = $this->postedGitAction();
+        $path = $action === 'commit' ? '' : $this->postedGitPath();
+        $this->security->assertAllowed($identity, 'git', $action);
+        $context = $this->gitActionContext(
+            $identity,
+            $currentApp,
+            $locale,
+            $sourcePath,
+            $action,
+            $path
+        );
+        $this->sourceTransition(
+            $fsm,
+            $store,
+            $this->gitRequestedSignal($action),
+            $context
+        );
+
+        $result = match ($action) {
+            'stage' => $this->source->gitStage(
+                $siteId,
+                $path,
+                $identity
+            ),
+            'unstage' => $this->source->gitUnstage(
+                $siteId,
+                $path,
+                $identity
+            ),
+            'commit' => $this->source->gitCommit(
+                $siteId,
+                $this->postedCommitMessage(),
+                $identity
+            ),
+            'restore' => $this->source->gitRestore(
+                $siteId,
+                $path,
+                $this->postedGitHash(),
+                $this->postedRestoreConfirmation(),
+                $identity
+            ),
+            default => throw new RuntimeException(
+                'OWASYS_GIT_ACTION_INVALID'
+            ),
+        };
+
+        $this->sourceTransition(
+            $fsm,
+            $store,
+            $this->gitCompletedSignal($action),
+            $context
+        );
+        return [$action, $result];
+    }
+
     private function postedCsrfToken(): string
     {
         $value = $_POST['csrf_token'] ?? null;
@@ -326,7 +491,7 @@ final class OwasysSourceController
         return $value;
     }
 
-    private function postedAction(): string
+    private function postedSourceAction(): string
     {
         $value = $_POST['source_action'] ?? null;
         if (!is_string($value)) {
@@ -335,6 +500,23 @@ final class OwasysSourceController
         $value = strtolower(trim($value));
         if (!in_array($value, ['preview', 'write'], true)) {
             throw new RuntimeException('OWASYS_SOURCE_ACTION_INVALID');
+        }
+        return $value;
+    }
+
+    private function postedGitAction(): string
+    {
+        $value = $_POST['git_action'] ?? null;
+        if (!is_string($value)) {
+            throw new RuntimeException('OWASYS_GIT_ACTION_INVALID');
+        }
+        $value = strtolower(trim($value));
+        if (!in_array(
+            $value,
+            ['stage', 'unstage', 'commit', 'restore'],
+            true
+        )) {
+            throw new RuntimeException('OWASYS_GIT_ACTION_INVALID');
         }
         return $value;
     }
@@ -352,13 +534,75 @@ final class OwasysSourceController
 
     private function postedHash(): string
     {
-        $value = $_POST['expected_content_hash'] ?? null;
+        return $this->validatedHash(
+            $_POST['expected_content_hash'] ?? null,
+            'OWASYS_SOURCE_HASH_INVALID'
+        );
+    }
+
+    private function postedGitHash(): string
+    {
+        return $this->validatedHash(
+            $_POST['git_expected_content_hash'] ?? null,
+            'OWASYS_GIT_RESTORE_HASH_INVALID'
+        );
+    }
+
+    private function validatedHash(mixed $value, string $error): string
+    {
         if (!is_string($value)) {
-            throw new RuntimeException('OWASYS_SOURCE_HASH_INVALID');
+            throw new RuntimeException($error);
         }
         $value = strtolower(trim($value));
         if (preg_match('/^[a-f0-9]{64}$/D', $value) !== 1) {
-            throw new RuntimeException('OWASYS_SOURCE_HASH_INVALID');
+            throw new RuntimeException($error);
+        }
+        return $value;
+    }
+
+    private function postedGitPath(): string
+    {
+        $value = $_POST['git_path'] ?? null;
+        if (!is_string($value)) {
+            throw new RuntimeException('OWASYS_GIT_PATH_INVALID');
+        }
+        $value = trim(str_replace('\\', '/', $value), '/');
+        if ($value === ''
+            || str_contains($value, '..')
+            || str_contains($value, "\0")
+            || preg_match('/^[A-Za-z0-9._\/-]{1,512}$/D', $value) !== 1) {
+            throw new RuntimeException('OWASYS_GIT_PATH_INVALID');
+        }
+        return $value;
+    }
+
+    private function postedCommitMessage(): string
+    {
+        $value = $_POST['commit_message'] ?? null;
+        if (!is_string($value)) {
+            throw new RuntimeException(
+                'OWASYS_GIT_COMMIT_MESSAGE_INVALID'
+            );
+        }
+        $value = trim($value);
+        if ($value === '' || strlen($value) > 200
+            || preg_match('/[\x00-\x1F\x7F]/', $value) === 1) {
+            throw new RuntimeException(
+                'OWASYS_GIT_COMMIT_MESSAGE_INVALID'
+            );
+        }
+        return $value;
+    }
+
+    private function postedRestoreConfirmation(): string
+    {
+        $value = $_POST['restore_confirmation'] ?? null;
+        if (!is_string($value)
+            || strlen($value) > 700
+            || str_contains($value, "\0")) {
+            throw new RuntimeException(
+                'OWASYS_GIT_RESTORE_CONFIRMATION_INVALID'
+            );
         }
         return $value;
     }
@@ -374,6 +618,62 @@ final class OwasysSourceController
             throw new RuntimeException('OWASYS_SOURCE_STATUS_INVALID');
         }
         return $value;
+    }
+
+    private function gitStatusOption(): string
+    {
+        $value = $_GET['git_status'] ?? '';
+        if (!is_string($value)) {
+            throw new RuntimeException('OWASYS_GIT_STATUS_OPTION_INVALID');
+        }
+        $value = strtolower(trim($value));
+        if (!in_array(
+            $value,
+            ['', 'staged', 'unstaged', 'committed', 'restored'],
+            true
+        )) {
+            throw new RuntimeException('OWASYS_GIT_STATUS_OPTION_INVALID');
+        }
+        return $value;
+    }
+
+    private function gitSuccessStatus(string $action): string
+    {
+        return match ($action) {
+            'stage' => 'staged',
+            'unstage' => 'unstaged',
+            'commit' => 'committed',
+            'restore' => 'restored',
+            default => throw new RuntimeException(
+                'OWASYS_GIT_ACTION_INVALID'
+            ),
+        };
+    }
+
+    private function gitRequestedSignal(string $action): string
+    {
+        return match ($action) {
+            'stage' => 'stage_source',
+            'unstage' => 'unstage_source',
+            'commit' => 'commit_source',
+            'restore' => 'restore_source',
+            default => throw new RuntimeException(
+                'OWASYS_GIT_ACTION_INVALID'
+            ),
+        };
+    }
+
+    private function gitCompletedSignal(string $action): string
+    {
+        return match ($action) {
+            'stage' => 'source_staged',
+            'unstage' => 'source_unstaged',
+            'commit' => 'source_committed',
+            'restore' => 'source_restored',
+            default => throw new RuntimeException(
+                'OWASYS_GIT_ACTION_INVALID'
+            ),
+        };
     }
 
     /**
@@ -402,6 +702,34 @@ final class OwasysSourceController
         ];
     }
 
+    /**
+     * @param array<string,mixed> $identity
+     * @param array<string,mixed> $currentApp
+     * @return array<string,mixed>
+     */
+    private function gitActionContext(
+        array $identity,
+        array $currentApp,
+        string $locale,
+        string $sourcePath,
+        string $action,
+        string $gitPath
+    ): array {
+        return [
+            'identity' => $identity,
+            'is_authenticated' => true,
+            'roles' => is_array($identity['roles'] ?? null)
+                ? $identity['roles']
+                : [],
+            'current_app' => $currentApp,
+            'has_current_app' => true,
+            'locale' => $locale,
+            'source_path' => $sourcePath,
+            'git_action' => strtolower(trim($action)),
+            'git_path' => trim(str_replace('\\', '/', $gitPath), '/'),
+        ];
+    }
+
     /** @param array<string,mixed> $context */
     private function sourceTransition(
         FsmProcessor $fsm,
@@ -416,6 +744,75 @@ final class OwasysSourceController
             );
         }
         $store->persist($fsm);
+    }
+
+    /**
+     * @param array<string,mixed> $identity
+     * @param array<string,mixed> $currentApp
+     */
+    private function recordGitFailure(
+        FsmProcessor $fsm,
+        FsmSessionStore $store,
+        array $identity,
+        array $currentApp,
+        string $locale,
+        string $sourcePath
+    ): void {
+        try {
+            $this->sourceTransition(
+                $fsm,
+                $store,
+                'git_action_failed',
+                $this->gitActionContext(
+                    $identity,
+                    $currentApp,
+                    $locale,
+                    $sourcePath,
+                    is_string($_POST['git_action'] ?? null)
+                        ? (string) $_POST['git_action']
+                        : '',
+                    is_string($_POST['git_path'] ?? null)
+                        ? (string) $_POST['git_path']
+                        : ''
+                )
+            );
+        } catch (Throwable) {
+        }
+    }
+
+    /**
+     * @param array<string,mixed> $identity
+     * @param array<string,mixed> $currentApp
+     */
+    private function recordSourceFailure(
+        FsmProcessor $fsm,
+        FsmSessionStore $store,
+        array $identity,
+        array $currentApp,
+        string $locale,
+        string $sourcePath,
+        string $errorCode
+    ): void {
+        try {
+            $signal = $errorCode === 'OPUS_SITE_SOURCE_CONFLICT'
+                ? 'source_conflict'
+                : 'source_action_failed';
+            $this->sourceTransition(
+                $fsm,
+                $store,
+                $signal,
+                $this->sourceActionContext(
+                    $identity,
+                    $currentApp,
+                    $locale,
+                    $sourcePath,
+                    is_string($_POST['source_action'] ?? null)
+                        ? (string) $_POST['source_action']
+                        : ''
+                )
+            );
+        } catch (Throwable) {
+        }
     }
 
     /**
@@ -475,6 +872,9 @@ final class OwasysSourceController
      * @param array<string,mixed> $listing
      * @param array<string,mixed>|null $selected
      * @param array<string,mixed>|null $preview
+     * @param array<string,mixed>|null $gitStatus
+     * @param array<string,mixed>|null $gitHistory
+     * @param array<string,mixed>|null $gitDiff
      */
     private function render(
         array $fsmConfig,
@@ -487,8 +887,14 @@ final class OwasysSourceController
         ?array $preview,
         ?string $submittedContent,
         ?string $submittedHash,
-        string $feedback,
-        ?string $errorCode
+        string $sourceFeedback,
+        ?string $sourceErrorCode,
+        ?array $gitStatus,
+        ?array $gitHistory,
+        ?array $gitDiff,
+        string $gitFeedback,
+        ?string $gitErrorCode,
+        string $gitSubmittedMessage
     ): void {
         $basePath = $this->basePath();
         $routeUrl = fn (string $target): string => $this->routeUrl(
@@ -517,10 +923,10 @@ final class OwasysSourceController
             ];
         }
 
-        $conflict = $errorCode === 'OPUS_SITE_SOURCE_CONFLICT';
+        $conflict = $sourceErrorCode === 'OPUS_SITE_SOURCE_CONFLICT';
         $selectedPresent = is_array($selected);
-        $roleCanPreview = $this->isAllowed($identity, 'preview');
-        $roleCanWrite = $this->isAllowed($identity, 'write');
+        $roleCanPreview = $this->isAllowed($identity, 'source', 'preview');
+        $roleCanWrite = $this->isAllowed($identity, 'source', 'write');
         $editable = $selectedPresent && $roleCanWrite;
         $canPreview = $selectedPresent && $roleCanPreview && !$conflict;
         $canWrite = $selectedPresent && $roleCanWrite && !$conflict;
@@ -533,6 +939,83 @@ final class OwasysSourceController
         $content = $submittedContent ?? $serverContent;
         $initialDirty = $selectedPresent && $content !== $serverContent;
 
+        $sourcePaths = array_fill_keys(
+            array_map(
+                static fn (array $file): string => (string) $file['path'],
+                $files
+            ),
+            true
+        );
+        $gitAvailable = is_array($gitStatus) && is_array($gitHistory);
+        $gitCanStage = $this->isAllowed($identity, 'git', 'stage');
+        $gitCanUnstage = $this->isAllowed($identity, 'git', 'unstage');
+        $gitCanCommit = $this->isAllowed($identity, 'git', 'commit');
+        $gitCanRestore = $this->isAllowed($identity, 'git', 'restore');
+        $gitCsrfToken = $this->csrf->issue(self::GIT_CSRF_SCOPE);
+        $gitChanges = [];
+        foreach ((array) ($gitStatus['changes'] ?? []) as $change) {
+            if (!is_array($change)) {
+                continue;
+            }
+            $path = trim((string) ($change['path'] ?? ''));
+            if ($path === '') {
+                continue;
+            }
+            $sha256 = strtolower(trim((string) ($change['sha256'] ?? '')));
+            $exists = ($change['exists'] ?? false) === true;
+            $staged = ($change['staged'] ?? false) === true;
+            $unstaged = ($change['unstaged'] ?? false) === true;
+            $untracked = ($change['untracked'] ?? false) === true;
+            $conflicted = ($change['conflicted'] ?? false) === true;
+            $restoreAllowed = $gitCanRestore
+                && $exists
+                && $unstaged
+                && !$untracked
+                && preg_match('/^[a-f0-9]{64}$/D', $sha256) === 1;
+            $gitChanges[] = [
+                'path' => $path,
+                'name' => basename($path),
+                'source_readable' => isset($sourcePaths[$path]),
+                'url' => isset($sourcePaths[$path])
+                    ? $this->sourceUrl($locale, $path)
+                    : '',
+                'selected' => $path === $selectedPath,
+                'index_status' => (string) ($change['index_status'] ?? ''),
+                'worktree_status' => (string) (
+                    $change['worktree_status'] ?? ''
+                ),
+                'staged' => $staged,
+                'unstaged' => $unstaged,
+                'untracked' => $untracked,
+                'conflicted' => $conflicted,
+                'can_stage' => $gitCanStage && ($unstaged || $untracked),
+                'can_unstage' => $gitCanUnstage && $staged,
+                'can_restore' => $restoreAllowed,
+                'sha256' => $sha256,
+                'restore_confirmation' => $restoreAllowed
+                    ? 'RESTORE:' . (string) ($currentApp['id'] ?? '')
+                        . ':' . $path . ':' . $sha256
+                    : '',
+            ];
+        }
+        $counts = is_array($gitStatus['counts'] ?? null)
+            ? $gitStatus['counts']
+            : [];
+        $stagedCount = (int) ($counts['staged'] ?? 0);
+        $gitCommits = [];
+        foreach ((array) ($gitHistory['commits'] ?? []) as $commit) {
+            if (!is_array($commit)) {
+                continue;
+            }
+            $gitCommits[] = [
+                'hash' => (string) ($commit['hash'] ?? ''),
+                'short_hash' => (string) ($commit['short_hash'] ?? ''),
+                'author' => (string) ($commit['author'] ?? ''),
+                'date' => (string) ($commit['date'] ?? ''),
+                'subject' => (string) ($commit['subject'] ?? ''),
+            ];
+        }
+
         $data = [
             'page' => ['title' => '', 'summary' => ''],
             'fsm' => ['state' => $state, 'module' => 'source'],
@@ -540,7 +1023,7 @@ final class OwasysSourceController
                 'authenticated' => true,
                 'label' => (string) ($identity['label'] ?? ''),
                 'primary_role' => (string) (
-                    $identity['roles'][0] ?? $identity['profile'] ?? ''
+                    $identity['profile'] ?? $identity['roles'][0] ?? ''
                 ),
             ],
             'current_app' => [
@@ -581,7 +1064,7 @@ final class OwasysSourceController
                 'language_css' => $basePath
                     . '/asset/css/language-switcher.css',
                 'source_editor_css' => $basePath
-                    . '/asset/css/source-editor.css?v=p117w-e2b',
+                    . '/asset/css/source-editor.css?v=p117w-e3b',
                 'password_js' => $basePath
                     . '/asset/js/password-visibility.js',
                 'source_codemirror_js' => $basePath
@@ -621,7 +1104,9 @@ final class OwasysSourceController
                 'bytes' => (string) ($selected['bytes'] ?? ''),
                 'sha256' => $serverHash,
                 'expected_sha256' => $expectedHash,
-                'csrf_token' => $this->csrf->issue(self::CSRF_SCOPE),
+                'csrf_token' => $this->csrf->issue(
+                    self::SOURCE_CSRF_SCOPE
+                ),
                 'content' => $content,
                 'server_content' => $serverContent,
                 'editable' => $editable,
@@ -631,12 +1116,12 @@ final class OwasysSourceController
                 'cannot_preview' => !$canPreview,
                 'can_write' => $canWrite,
                 'cannot_write' => !$canWrite,
-                'has_error' => $errorCode !== null,
-                'error_code' => $errorCode ?? '',
-                'saved' => $feedback === 'saved',
-                'previewed' => $feedback === 'previewed',
-                'conflict' => $feedback === 'conflict',
-                'failed' => $feedback === 'failed',
+                'has_error' => $sourceErrorCode !== null,
+                'error_code' => $sourceErrorCode ?? '',
+                'saved' => $sourceFeedback === 'saved',
+                'previewed' => $sourceFeedback === 'previewed',
+                'conflict' => $sourceFeedback === 'conflict',
+                'failed' => $sourceFeedback === 'failed',
                 'clean' => !$initialDirty,
                 'dirty' => $initialDirty,
             ],
@@ -662,6 +1147,67 @@ final class OwasysSourceController
                 'diff_truncated' =>
                     ($preview['diff_truncated'] ?? false) === true,
             ],
+            'git' => [
+                'available' => $gitAvailable,
+                'unavailable' => !$gitAvailable,
+                'failed' => $gitFeedback === 'failed',
+                'error_code' => $gitErrorCode ?? '',
+                'staged_success' => $gitFeedback === 'staged',
+                'unstaged_success' => $gitFeedback === 'unstaged',
+                'committed_success' => $gitFeedback === 'committed',
+                'restored_success' => $gitFeedback === 'restored',
+                'branch' => (string) ($gitStatus['branch'] ?? ''),
+                'head' => (string) ($gitStatus['head'] ?? ''),
+                'short_head' => substr(
+                    (string) ($gitStatus['head'] ?? ''),
+                    0,
+                    12
+                ),
+                'clean' => ($gitStatus['clean'] ?? false) === true,
+                'dirty' => is_array($gitStatus)
+                    && ($gitStatus['clean'] ?? false) !== true,
+                'changes' => $gitChanges,
+                'changes_empty' => $gitChanges === [],
+                'counts' => [
+                    'total' => (string) ($counts['total'] ?? '0'),
+                    'staged' => (string) ($counts['staged'] ?? '0'),
+                    'unstaged' => (string) ($counts['unstaged'] ?? '0'),
+                    'untracked' => (string) ($counts['untracked'] ?? '0'),
+                ],
+                'commits' => $gitCommits,
+                'history_empty' => $gitCommits === [],
+                'csrf_token' => $gitCsrfToken,
+                'form_action' => $selectedUrl,
+                'can_commit' => $gitCanCommit && $stagedCount > 0,
+                'cannot_commit' => !$gitCanCommit || $stagedCount < 1,
+                'read_only' => !(
+                    $gitCanStage
+                    || $gitCanUnstage
+                    || $gitCanCommit
+                    || $gitCanRestore
+                ),
+                'commit_message' => $gitSubmittedMessage,
+            ],
+            'git_diff' => [
+                'present' => is_array($gitDiff),
+                'absent' => !is_array($gitDiff),
+                'path' => (string) ($gitDiff['path'] ?? ''),
+                'unstaged' => (string) ($gitDiff['unstaged'] ?? ''),
+                'staged' => (string) ($gitDiff['staged'] ?? ''),
+                'has_unstaged' => trim((string) (
+                    $gitDiff['unstaged'] ?? ''
+                )) !== '',
+                'has_staged' => trim((string) (
+                    $gitDiff['staged'] ?? ''
+                )) !== '',
+                'empty' => is_array($gitDiff)
+                    && trim((string) ($gitDiff['unstaged'] ?? '')) === ''
+                    && trim((string) ($gitDiff['staged'] ?? '')) === '',
+                'unstaged_truncated' =>
+                    ($gitDiff['unstaged_truncated'] ?? false) === true,
+                'staged_truncated' =>
+                    ($gitDiff['staged_truncated'] ?? false) === true,
+            ],
         ];
 
         header('Content-Type: text/html; charset=UTF-8');
@@ -669,10 +1215,13 @@ final class OwasysSourceController
     }
 
     /** @param array<string,mixed> $identity */
-    private function isAllowed(array $identity, string $action): bool
-    {
+    private function isAllowed(
+        array $identity,
+        string $resource,
+        string $action
+    ): bool {
         try {
-            $this->security->assertAllowed($identity, 'source', $action);
+            $this->security->assertAllowed($identity, $resource, $action);
             return true;
         } catch (Throwable) {
             return false;
@@ -743,10 +1292,12 @@ final class OwasysSourceController
     private function statusForError(string $errorCode): int
     {
         return match (true) {
-            $errorCode === 'OPUS_SITE_SOURCE_CONFLICT' => 409,
+            str_contains($errorCode, 'CONFLICT') => 409,
             str_contains($errorCode, 'ACL') => 403,
             str_contains($errorCode, 'CSRF') => 403,
             str_contains($errorCode, 'METHOD') => 405,
+            str_contains($errorCode, 'NOTHING_STAGED') => 409,
+            str_contains($errorCode, 'FOREIGN_STAGE') => 409,
             default => 422,
         };
     }
@@ -860,6 +1411,20 @@ final class OwasysSourceController
             $this->sourceUrl($locale, $path),
             $query
         );
+        header('Location: ' . $url, true, 303);
+        exit;
+    }
+
+    /** @param array<string,scalar|null> $query */
+    private function redirectCurrentSource(
+        string $locale,
+        string $path,
+        array $query
+    ): never {
+        $target = $path === ''
+            ? $this->routeUrl($locale, 'source')
+            : $this->sourceUrl($locale, $path);
+        $url = (new UrlBuilder())->withQuery($target, $query);
         header('Location: ' . $url, true, 303);
         exit;
     }

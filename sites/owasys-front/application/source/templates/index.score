@@ -7,6 +7,18 @@
 [[ if: source.failed ]]
 <p class="ow-error" data-context="OWASYS_SOURCE_FAILURE">[[ i18n: source.failed ]] <code>{{ source.error_code }}</code></p>
 [[ endif ]]
+[[ if: git.staged_success ]]
+<p class="ow-source-notice ow-source-notice-success" data-context="OWASYS_GIT_STAGED">[[ i18n: git.stage_success ]]</p>
+[[ endif ]]
+[[ if: git.unstaged_success ]]
+<p class="ow-source-notice ow-source-notice-success" data-context="OWASYS_GIT_UNSTAGED">[[ i18n: git.unstage_success ]]</p>
+[[ endif ]]
+[[ if: git.committed_success ]]
+<p class="ow-source-notice ow-source-notice-success" data-context="OWASYS_GIT_COMMITTED">[[ i18n: git.commit_success ]]</p>
+[[ endif ]]
+[[ if: git.restored_success ]]
+<p class="ow-source-notice ow-source-notice-success" data-context="OWASYS_GIT_RESTORED">[[ i18n: git.restore_success ]]</p>
+[[ endif ]]
 <section class="ow-card ow-source-module">
   <div class="ow-section-heading">
     <div>
@@ -114,4 +126,152 @@
       </section>
     </section>
   </div>
+</section>
+
+<section class="ow-card ow-git-module" data-context="OWASYS_GIT_WORKSPACE">
+  <div class="ow-section-heading">
+    <div>
+      <h2>[[ i18n: git.title ]]</h2>
+      <p class="ow-muted">[[ i18n: source.saved ]]</p>
+    </div>
+    [[ if: git.available ]]
+      <div class="ow-tags">
+        <span>[[ i18n: git.branch ]]: {{ git.branch }}</span>
+        <span>HEAD: {{ git.short_head }}</span>
+      </div>
+    [[ endif ]]
+  </div>
+  [[ if: git.failed ]]
+    <p class="ow-error" data-context="OWASYS_GIT_FAILURE">[[ i18n: source.failed ]] <code>{{ git.error_code }}</code></p>
+  [[ endif ]]
+  [[ if: git.read_only ]]
+    <p class="ow-source-notice ow-source-notice-warning">[[ i18n: git.read_only ]]</p>
+  [[ endif ]]
+  [[ if: git.available ]]
+    <div class="ow-git-summary">
+      <h3>[[ i18n: git.status ]]</h3>
+      <div class="ow-tags">
+        <span>{{ git.counts.staged }} [[ i18n: git.staged ]]</span>
+        <span>{{ git.counts.unstaged }} [[ i18n: git.unstaged ]]</span>
+        <span>{{ git.counts.untracked }} [[ i18n: git.untracked ]]</span>
+      </div>
+    </div>
+    [[ if: git.changes_empty ]]
+      <p class="ow-muted">[[ i18n: source.no_changes ]]</p>
+    [[ else ]]
+      <div class="ow-git-change-list">
+        [[ foreach: git.changes as change ]]
+          <article class="ow-git-change [[ if: change.selected ]]is-selected[[ endif ]]">
+            <div class="ow-git-change-heading">
+              [[ if: change.source_readable ]]
+                <a href="{{ change.url }}" data-source-path="{{ change.path }}"><strong>{{ change.path }}</strong></a>
+              [[ else ]]
+                <strong>{{ change.path }}</strong>
+              [[ endif ]]
+              <div class="ow-tags">
+                [[ if: change.staged ]]
+                  <span>[[ i18n: git.staged ]]</span>
+                [[ endif ]]
+                [[ if: change.unstaged ]]
+                  <span>[[ i18n: git.unstaged ]]</span>
+                [[ endif ]]
+                [[ if: change.untracked ]]
+                  <span>[[ i18n: git.untracked ]]</span>
+                [[ endif ]]
+                [[ if: change.conflicted ]]
+                  <span>[[ i18n: git.conflicted ]]</span>
+                [[ endif ]]
+                <span>{{ change.index_status }}{{ change.worktree_status }}</span>
+              </div>
+            </div>
+            <div class="ow-git-actions">
+              [[ if: change.can_stage ]]
+                <form method="post" action="{{ git.form_action }}">
+                  <input type="hidden" name="csrf_token" value="{{ git.csrf_token }}">
+                  <input type="hidden" name="git_path" value="{{ change.path }}">
+                  <button type="submit" name="git_action" value="stage" class="ow-button">[[ i18n: git.stage ]]</button>
+                </form>
+              [[ endif ]]
+              [[ if: change.can_unstage ]]
+                <form method="post" action="{{ git.form_action }}">
+                  <input type="hidden" name="csrf_token" value="{{ git.csrf_token }}">
+                  <input type="hidden" name="git_path" value="{{ change.path }}">
+                  <button type="submit" name="git_action" value="unstage" class="ow-button ow-button-secondary">[[ i18n: git.unstage ]]</button>
+                </form>
+              [[ endif ]]
+            </div>
+            [[ if: change.can_restore ]]
+              <details class="ow-git-restore">
+                <summary>[[ i18n: git.restore ]]</summary>
+                <p class="ow-muted">[[ i18n: git.restore_instruction ]]</p>
+                <code>{{ change.restore_confirmation }}</code>
+                <form method="post" action="{{ git.form_action }}">
+                  <input type="hidden" name="csrf_token" value="{{ git.csrf_token }}">
+                  <input type="hidden" name="git_path" value="{{ change.path }}">
+                  <input type="hidden" name="git_expected_content_hash" value="{{ change.sha256 }}">
+                  <label>[[ i18n: git.confirmation ]]
+                    <input type="text" name="restore_confirmation" required maxlength="700" autocomplete="off">
+                  </label>
+                  <button type="submit" name="git_action" value="restore" class="ow-button ow-button-secondary">[[ i18n: git.restore ]]</button>
+                </form>
+              </details>
+            [[ endif ]]
+          </article>
+        [[ endforeach ]]
+      </div>
+    [[ endif ]]
+
+    <section class="ow-card ow-git-diff" data-context="OWASYS_GIT_DIFF" [[ if: git_diff.absent ]]hidden[[ endif ]]>
+      <h3>[[ i18n: git.diff ]] — {{ git_diff.path }}</h3>
+      [[ if: git_diff.empty ]]
+        <p class="ow-muted">[[ i18n: source.no_changes ]]</p>
+      [[ endif ]]
+      [[ if: git_diff.has_unstaged ]]
+        <h4>[[ i18n: git.unstaged ]]</h4>
+        <pre class="ow-source-diff">{{ git_diff.unstaged }}</pre>
+      [[ endif ]]
+      [[ if: git_diff.unstaged_truncated ]]
+        <p class="ow-source-notice ow-source-notice-warning">[[ i18n: source.diff_truncated ]]</p>
+      [[ endif ]]
+      [[ if: git_diff.has_staged ]]
+        <h4>[[ i18n: git.staged ]]</h4>
+        <pre class="ow-source-diff">{{ git_diff.staged }}</pre>
+      [[ endif ]]
+      [[ if: git_diff.staged_truncated ]]
+        <p class="ow-source-notice ow-source-notice-warning">[[ i18n: source.diff_truncated ]]</p>
+      [[ endif ]]
+    </section>
+
+    <section class="ow-card ow-git-commit">
+      <h3>[[ i18n: git.commit ]]</h3>
+      <form method="post" action="{{ git.form_action }}" class="ow-git-commit-form">
+        <input type="hidden" name="csrf_token" value="{{ git.csrf_token }}">
+        <label>[[ i18n: git.message ]]
+          <input type="text" name="commit_message" value="{{ git.commit_message }}" required maxlength="200" autocomplete="off">
+        </label>
+        [[ if: git.can_commit ]]
+          <button type="submit" name="git_action" value="commit" class="ow-button">[[ i18n: git.commit ]]</button>
+        [[ else ]]
+          <button type="submit" name="git_action" value="commit" class="ow-button" disabled>[[ i18n: git.commit ]]</button>
+        [[ endif ]]
+      </form>
+    </section>
+
+    <section class="ow-card ow-git-history">
+      <h3>[[ i18n: git.history ]]</h3>
+      [[ if: git.history_empty ]]
+        <p class="ow-muted">[[ i18n: git.no_history ]]</p>
+      [[ else ]]
+        <ol>
+          [[ foreach: git.commits as commit ]]
+            <li>
+              <code>{{ commit.short_hash }}</code>
+              <strong>{{ commit.subject }}</strong>
+              <span>{{ commit.author }} · {{ commit.date }}</span>
+            </li>
+          [[ endforeach ]]
+        </ol>
+      [[ endif ]]
+    </section>
+  [[ endif ]]
 </section>

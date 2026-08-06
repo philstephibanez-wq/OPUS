@@ -13,6 +13,7 @@
       "workflows:*",
       "security:open",
       "source:*",
+      "git:*",
       "profiler:view",
       "build:*",
       "account:*"
@@ -24,6 +25,7 @@
       "workflows:open",
       "security:open",
       "source:open",
+      "git:read",
       "build:open",
       "account:open"
     ]

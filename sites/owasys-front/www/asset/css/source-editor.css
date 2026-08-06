@@ -214,3 +214,129 @@
     width: 100%;
   }
 }
+
+.ow-git-module {
+  margin-top: 1rem;
+  padding: 1.25rem;
+}
+
+.ow-git-summary,
+.ow-git-change-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ow-git-summary {
+  margin: 1rem 0;
+}
+
+.ow-git-change-list {
+  display: grid;
+  gap: .75rem;
+}
+
+.ow-git-change {
+  padding: .85rem;
+  border: 1px solid var(--ow-line);
+  border-radius: .75rem;
+  background: rgba(6, 16, 29, .42);
+}
+
+.ow-git-change.is-selected {
+  border-color: var(--ow-accent);
+}
+
+.ow-git-change-heading a {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ow-git-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+  margin-top: .7rem;
+}
+
+.ow-git-actions form,
+.ow-git-restore form {
+  margin: 0;
+}
+
+.ow-git-restore {
+  margin-top: .8rem;
+  padding-top: .8rem;
+  border-top: 1px solid var(--ow-line);
+}
+
+.ow-git-restore code {
+  display: block;
+  margin: .6rem 0;
+  padding: .65rem;
+  overflow-wrap: anywhere;
+  border-radius: .5rem;
+  background: #06101d;
+}
+
+.ow-git-restore form,
+.ow-git-commit-form {
+  display: grid;
+  gap: .65rem;
+}
+
+.ow-git-restore label,
+.ow-git-commit-form label {
+  display: grid;
+  gap: .35rem;
+}
+
+.ow-git-restore input,
+.ow-git-commit-form input {
+  width: 100%;
+}
+
+.ow-git-diff,
+.ow-git-commit,
+.ow-git-history {
+  margin-top: 1rem;
+}
+
+.ow-git-history ol {
+  display: grid;
+  gap: .65rem;
+  margin: .75rem 0 0;
+  padding-left: 1.5rem;
+}
+
+.ow-git-history li {
+  display: grid;
+  grid-template-columns: minmax(6rem, auto) minmax(0, 1fr);
+  gap: .25rem .75rem;
+}
+
+.ow-git-history li span {
+  grid-column: 2;
+  color: var(--ow-muted);
+  font-size: .85rem;
+}
+
+@media (max-width: 640px) {
+  .ow-git-summary,
+  .ow-git-change-heading,
+  .ow-git-history li {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .ow-git-history li span {
+    grid-column: 1;
+  }
+
+  .ow-git-actions,
+  .ow-git-actions form,
+  .ow-git-actions button {
+    width: 100%;
+  }
+}
