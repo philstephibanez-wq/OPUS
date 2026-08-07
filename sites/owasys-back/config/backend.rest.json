@@ -125,7 +125,7 @@
         {
             "method": "PUT",
             "path": "/api/v1/applications/{site_id}/git/index",
-            "operation": "git.stage_all",
+            "operation": "git.stage-all",
             "success_status": 200
         },
         {

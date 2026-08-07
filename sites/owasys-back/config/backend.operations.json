@@ -457,7 +457,7 @@
                 }
             ]
         },
-        "git.stage_all": {
+        "git.stage-all": {
             "composer_script": "owasys:git-stage-all",
             "roles": [
                 "admin",
