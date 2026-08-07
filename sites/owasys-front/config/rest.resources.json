@@ -1,160 +1,166 @@
 {
-  "contract": "OPUS_REST_RESOURCE_CATALOG_V1",
-  "base_path": "/api/v1",
-  "resources": [
-    {
-      "method": "GET",
-      "path": "/api/v1/applications",
-      "operation": "registry.sync",
-      "success_status": 200
-    },
-    {
-      "method": "POST",
-      "path": "/api/v1/applications",
-      "operation": "site.create",
-      "parameters": {
-        "write": true
-      },
-      "success_status": 201,
-      "location": "/api/v1/applications/{site_id}"
-    },
-    {
-      "method": "DELETE",
-      "path": "/api/v1/applications/{site_id}",
-      "operation": "site.delete",
-      "parameters": {
-        "write": true
-      },
-      "success_status": 200
-    },
-    {
-      "method": "GET",
-      "path": "/api/v1/applications/{site_id}/validation",
-      "operation": "site.validate",
-      "success_status": 200
-    },
-    {
-      "method": "GET",
-      "path": "/api/v1/applications/{site_id}/routes",
-      "operation": "site.routes.list",
-      "success_status": 200
-    },
-    {
-      "method": "POST",
-      "path": "/api/v1/applications/{site_id}/languages",
-      "operation": "site.language.add",
-      "parameters": {
-        "write": true
-      },
-      "success_status": 201
-    },
-    {
-      "method": "POST",
-      "path": "/api/v1/applications/{site_id}/pages",
-      "operation": "site.page.create",
-      "parameters": {
-        "write": true
-      },
-      "success_status": 201
-    },
-    {
-      "method": "POST",
-      "path": "/api/v1/applications/{site_id}/rubrics",
-      "operation": "site.rubric.create",
-      "parameters": {
-        "write": true
-      },
-      "success_status": 201
-    },
-    {
-      "method": "POST",
-      "path": "/api/v1/applications/{site_id}/exports",
-      "operation": "site.export",
-      "success_status": 201
-    },
-    {
-      "method": "GET",
-      "path": "/api/v1/applications/{site_id}/sources",
-      "operation": "source.list",
-      "success_status": 200
-    },
-    {
-      "method": "GET",
-      "path": "/api/v1/applications/{site_id}/sources/{*path}",
-      "operation": "source.read",
-      "success_status": 200
-    },
-    {
-      "method": "POST",
-      "path": "/api/v1/applications/{site_id}/source-previews/{*path}",
-      "operation": "source.preview",
-      "success_status": 200
-    },
-    {
-      "method": "PUT",
-      "path": "/api/v1/applications/{site_id}/sources/{*path}",
-      "operation": "source.write",
-      "success_status": 200
-    },
-    {
-      "method": "GET",
-      "path": "/api/v1/applications/{site_id}/git/status",
-      "operation": "git.status",
-      "success_status": 200
-    },
-    {
-      "method": "GET",
-      "path": "/api/v1/applications/{site_id}/git/history",
-      "operation": "git.history",
-      "success_status": 200
-    },
-    {
-      "method": "GET",
-      "path": "/api/v1/applications/{site_id}/git/diffs/{*path}",
-      "operation": "git.diff",
-      "success_status": 200
-    },
-    {
-      "method": "PUT",
-      "path": "/api/v1/applications/{site_id}/git/index/{*path}",
-      "operation": "git.stage",
-      "success_status": 200
-    },
-    {
-      "method": "DELETE",
-      "path": "/api/v1/applications/{site_id}/git/index/{*path}",
-      "operation": "git.unstage",
-      "success_status": 200
-    },
-    {
-      "method": "POST",
-      "path": "/api/v1/applications/{site_id}/git/commits",
-      "operation": "git.commit",
-      "success_status": 201
-    },
-    {
-      "method": "POST",
-      "path": "/api/v1/applications/{site_id}/git/restores/{*path}",
-      "operation": "git.restore",
-      "success_status": 200
-    },
-    {
-      "method": "PUT",
-      "path": "/api/v1/session/application/{application_id}",
-      "operation": "registry.select",
-      "success_status": 200
-    },
-    {
-      "method": "DELETE",
-      "path": "/api/v1/session/application",
-      "operation": "registry.clear",
-      "success_status": 200
-    },
-    {
-      "method": "PATCH",
-      "path": "/api/v1/security/admin-password",
-      "operation": "security.admin-password.change",
-      "success_status": 200
-    }
-  ]
+    "contract": "OPUS_REST_RESOURCE_CATALOG_V1",
+    "base_path": "/api/v1",
+    "resources": [
+        {
+            "method": "GET",
+            "path": "/api/v1/applications",
+            "operation": "registry.sync",
+            "success_status": 200
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/applications",
+            "operation": "site.create",
+            "parameters": {
+                "write": true
+            },
+            "success_status": 201,
+            "location": "/api/v1/applications/{site_id}"
+        },
+        {
+            "method": "DELETE",
+            "path": "/api/v1/applications/{site_id}",
+            "operation": "site.delete",
+            "parameters": {
+                "write": true
+            },
+            "success_status": 200
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/applications/{site_id}/validation",
+            "operation": "site.validate",
+            "success_status": 200
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/applications/{site_id}/routes",
+            "operation": "site.routes.list",
+            "success_status": 200
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/applications/{site_id}/languages",
+            "operation": "site.language.add",
+            "parameters": {
+                "write": true
+            },
+            "success_status": 201
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/applications/{site_id}/pages",
+            "operation": "site.page.create",
+            "parameters": {
+                "write": true
+            },
+            "success_status": 201
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/applications/{site_id}/rubrics",
+            "operation": "site.rubric.create",
+            "parameters": {
+                "write": true
+            },
+            "success_status": 201
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/applications/{site_id}/exports",
+            "operation": "site.export",
+            "success_status": 201
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/applications/{site_id}/sources",
+            "operation": "source.list",
+            "success_status": 200
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/applications/{site_id}/sources/{*path}",
+            "operation": "source.read",
+            "success_status": 200
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/applications/{site_id}/source-previews/{*path}",
+            "operation": "source.preview",
+            "success_status": 200
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/applications/{site_id}/sources/{*path}",
+            "operation": "source.write",
+            "success_status": 200
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/applications/{site_id}/git/status",
+            "operation": "git.status",
+            "success_status": 200
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/applications/{site_id}/git/history",
+            "operation": "git.history",
+            "success_status": 200
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/applications/{site_id}/git/diffs/{*path}",
+            "operation": "git.diff",
+            "success_status": 200
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/applications/{site_id}/git/index",
+            "operation": "git.stage_all",
+            "success_status": 200
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/applications/{site_id}/git/index/{*path}",
+            "operation": "git.stage",
+            "success_status": 200
+        },
+        {
+            "method": "DELETE",
+            "path": "/api/v1/applications/{site_id}/git/index/{*path}",
+            "operation": "git.unstage",
+            "success_status": 200
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/applications/{site_id}/git/commits",
+            "operation": "git.commit",
+            "success_status": 201
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/applications/{site_id}/git/restores/{*path}",
+            "operation": "git.restore",
+            "success_status": 200
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/session/application/{application_id}",
+            "operation": "registry.select",
+            "success_status": 200
+        },
+        {
+            "method": "DELETE",
+            "path": "/api/v1/session/application",
+            "operation": "registry.clear",
+            "success_status": 200
+        },
+        {
+            "method": "PATCH",
+            "path": "/api/v1/security/admin-password",
+            "operation": "security.admin-password.change",
+            "success_status": 200
+        }
+    ]
 }

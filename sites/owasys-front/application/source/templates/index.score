@@ -10,6 +10,9 @@
 [[ if: git.staged_success ]]
 <p class="ow-source-notice ow-source-notice-success" data-context="OWASYS_GIT_STAGED">[[ i18n: git.stage_success ]]</p>
 [[ endif ]]
+[[ if: git.staged_all_success ]]
+<p class="ow-source-notice ow-source-notice-success" data-context="OWASYS_GIT_STAGED_ALL">[[ i18n: git.stage_all_success ]]</p>
+[[ endif ]]
 [[ if: git.unstaged_success ]]
 <p class="ow-source-notice ow-source-notice-success" data-context="OWASYS_GIT_UNSTAGED">[[ i18n: git.unstage_success ]]</p>
 [[ endif ]]
@@ -155,6 +158,12 @@
         <span>{{ git.counts.unstaged }} [[ i18n: git.unstaged ]]</span>
         <span>{{ git.counts.untracked }} [[ i18n: git.untracked ]]</span>
       </div>
+      [[ if: git.can_stage_all ]]
+        <form method="post" action="{{ git.form_action }}" class="ow-git-stage-all-form">
+          <input type="hidden" name="csrf_token" value="{{ git.csrf_token }}">
+          <button type="submit" name="git_action" value="stage_all" class="ow-button">[[ i18n: git.stage_all ]]</button>
+        </form>
+      [[ endif ]]
     </div>
     [[ if: git.changes_empty ]]
       <p class="ow-muted">[[ i18n: source.no_changes ]]</p>

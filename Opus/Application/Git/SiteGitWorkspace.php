@@ -251,6 +251,51 @@ final class SiteGitWorkspace implements SiteGitWorkspaceInterface
         );
     }
 
+    public function stageAll(string $siteId): array
+    {
+        return $this->observed(
+            'stage_all',
+            ['application_id' => $siteId],
+            function () use ($siteId): array {
+                $siteId = $this->siteId($siteId);
+                $before = $this->status($siteId);
+                $changes = is_array($before['changes'] ?? null)
+                    ? $before['changes']
+                    : [];
+                $candidates = [];
+                foreach ($changes as $change) {
+                    if (!is_array($change)) {
+                        continue;
+                    }
+                    if (($change['conflicted'] ?? false) === true) {
+                        throw new \RuntimeException(
+                            'OPUS_SITE_GIT_STAGE_ALL_CONFLICT_FORBIDDEN'
+                        );
+                    }
+                    if (($change['unstaged'] ?? false) === true
+                        || ($change['untracked'] ?? false) === true) {
+                        $candidates[] = (string) ($change['path'] ?? '');
+                    }
+                }
+
+                if ($candidates !== []) {
+                    $this->runGit([
+                        'add',
+                        '-A',
+                        '--',
+                        $this->sitePrefix($siteId),
+                    ]);
+                }
+
+                return [
+                    'contract' => 'OPUS_SITE_GIT_STAGE_ALL_V1',
+                    'application_id' => $siteId,
+                    'affected_path_count' => count($candidates),
+                    'status' => $this->status($siteId),
+                ];
+            }
+        );
+    }
     public function unstage(string $siteId, string $relativePath): array
     {
         return $this->observed(

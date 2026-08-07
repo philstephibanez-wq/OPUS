@@ -1,61 +1,63 @@
 {
-  "contract": "OPUS_APPLICATION_COMMAND_PROVIDER_REGISTRY_V1",
-  "site_id": "owasys-back",
-  "providers": [
-    {
-      "id": "owasys-back",
-      "enabled": true,
-      "bootstrap": "application/default/console.php",
-      "commands": [
-        "owasys:registry:sync",
-        "owasys:registry:select",
-        "owasys:registry:clear",
-        "owasys:security:admin-password:change"
-      ]
-    },
-    {
-      "id": "owasys-back-source",
-      "enabled": true,
-      "bootstrap": "application/source/console.php",
-      "commands": [
-        "owasys:source:list",
-        "owasys:source:read",
-        "owasys:source:browse",
-        "owasys:source:preview",
-        "owasys:source:write"
-      ]
-    },
-    {
-      "id": "owasys-back-git",
-      "enabled": true,
-      "bootstrap": "application/git/console.php",
-      "commands": [
-        "owasys:git:status",
-        "owasys:git:diff",
-        "owasys:git:history",
-        "owasys:git:stage",
-        "owasys:git:unstage",
-        "owasys:git:commit",
-        "owasys:git:restore"
-      ]
+    "contract": "OPUS_APPLICATION_COMMAND_PROVIDER_REGISTRY_V1",
+    "site_id": "owasys-back",
+    "providers": [
+        {
+            "id": "owasys-back",
+            "enabled": true,
+            "bootstrap": "application/default/console.php",
+            "commands": [
+                "owasys:registry:sync",
+                "owasys:registry:select",
+                "owasys:registry:clear",
+                "owasys:security:admin-password:change"
+            ]
+        },
+        {
+            "id": "owasys-back-source",
+            "enabled": true,
+            "bootstrap": "application/source/console.php",
+            "commands": [
+                "owasys:source:list",
+                "owasys:source:read",
+                "owasys:source:browse",
+                "owasys:source:preview",
+                "owasys:source:write"
+            ]
+        },
+        {
+            "id": "owasys-back-git",
+            "enabled": true,
+            "bootstrap": "application/git/console.php",
+            "commands": [
+                "owasys:git:status",
+                "owasys:git:diff",
+                "owasys:git:history",
+                "owasys:git:stage",
+                "owasys:git:stage-all",
+                "owasys:git:unstage",
+                "owasys:git:commit",
+                "owasys:git:restore"
+            ]
+        }
+    ],
+    "aliases": {
+        "owasys:registry-sync": "owasys:registry:sync",
+        "owasys:registry-select": "owasys:registry:select",
+        "owasys:registry-clear": "owasys:registry:clear",
+        "owasys:admin-password-change": "owasys:security:admin-password:change",
+        "owasys:source-list": "owasys:source:list",
+        "owasys:source-read": "owasys:source:read",
+        "owasys:source-browse": "owasys:source:browse",
+        "owasys:source-preview": "owasys:source:preview",
+        "owasys:source-write": "owasys:source:write",
+        "owasys:git-status": "owasys:git:status",
+        "owasys:git-diff": "owasys:git:diff",
+        "owasys:git-history": "owasys:git:history",
+        "owasys:git-stage": "owasys:git:stage",
+        "owasys:git-stage-all": "owasys:git:stage-all",
+        "owasys:git-unstage": "owasys:git:unstage",
+        "owasys:git-commit": "owasys:git:commit",
+        "owasys:git-restore": "owasys:git:restore"
     }
-  ],
-  "aliases": {
-    "owasys:registry-sync": "owasys:registry:sync",
-    "owasys:registry-select": "owasys:registry:select",
-    "owasys:registry-clear": "owasys:registry:clear",
-    "owasys:admin-password-change": "owasys:security:admin-password:change",
-    "owasys:source-list": "owasys:source:list",
-    "owasys:source-read": "owasys:source:read",
-    "owasys:source-browse": "owasys:source:browse",
-    "owasys:source-preview": "owasys:source:preview",
-    "owasys:source-write": "owasys:source:write",
-    "owasys:git-status": "owasys:git:status",
-    "owasys:git-diff": "owasys:git:diff",
-    "owasys:git-history": "owasys:git:history",
-    "owasys:git-stage": "owasys:git:stage",
-    "owasys:git-unstage": "owasys:git:unstage",
-    "owasys:git-commit": "owasys:git:commit",
-    "owasys:git-restore": "owasys:git:restore"
-  }
 }

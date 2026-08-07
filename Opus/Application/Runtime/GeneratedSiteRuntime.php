@@ -216,7 +216,7 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                     'application.runtime',
                     'request.failed',
                     ['duration_ms' => $durationMs, 'error_code' => $code],
-                    'failed'
+                    'error'
                 );
             }
             $httpStatus = match (true) {

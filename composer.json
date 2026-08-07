@@ -42,6 +42,7 @@
         "owasys:git-diff": "Opus\\Composer\\ComposerScripts::run",
         "owasys:git-history": "Opus\\Composer\\ComposerScripts::run",
         "owasys:git-stage": "Opus\\Composer\\ComposerScripts::run",
+        "owasys:git-stage-all": "Opus\\Composer\\ComposerScripts::run",
         "owasys:git-unstage": "Opus\\Composer\\ComposerScripts::run",
         "owasys:git-commit": "Opus\\Composer\\ComposerScripts::run",
         "owasys:git-restore": "Opus\\Composer\\ComposerScripts::run"

@@ -1,258 +1,264 @@
 {
-  "contract": "OPUS_REST_API_SERVER_CONFIG_V1",
-  "application_id": "owasys-back",
-  "base_path": "/api/v1",
-  "resource_catalog": "sites/owasys-back/config/backend.resources.json",
-  "operation_catalog": "sites/owasys-back/config/backend.operations.json",
-  "composer_command": [
-    "@in-process"
-  ],
-  "timeout_seconds": 120,
-  "max_output_bytes": 2097152,
-  "resources": [
-    {
-      "method": "GET",
-      "path": "/api/v1/applications",
-      "operation": "registry.sync",
-      "success_status": 200
+    "contract": "OPUS_REST_API_SERVER_CONFIG_V1",
+    "application_id": "owasys-back",
+    "base_path": "/api/v1",
+    "resource_catalog": "sites/owasys-back/config/backend.resources.json",
+    "operation_catalog": "sites/owasys-back/config/backend.operations.json",
+    "composer_command": [
+        "@in-process"
+    ],
+    "timeout_seconds": 120,
+    "max_output_bytes": 2097152,
+    "resources": [
+        {
+            "method": "GET",
+            "path": "/api/v1/applications",
+            "operation": "registry.sync",
+            "success_status": 200
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/applications",
+            "operation": "site.create",
+            "parameters": {
+                "write": true
+            },
+            "success_status": 201,
+            "location": "/api/v1/applications/{site_id}"
+        },
+        {
+            "method": "DELETE",
+            "path": "/api/v1/applications/{site_id}",
+            "operation": "site.delete",
+            "parameters": {
+                "write": true
+            },
+            "success_status": 200
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/applications/{site_id}/validation",
+            "operation": "site.validate",
+            "success_status": 200
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/applications/{site_id}/routes",
+            "operation": "site.routes.list",
+            "success_status": 200
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/applications/{site_id}/languages",
+            "operation": "site.language.add",
+            "parameters": {
+                "write": true
+            },
+            "success_status": 201
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/applications/{site_id}/pages",
+            "operation": "site.page.create",
+            "parameters": {
+                "write": true
+            },
+            "success_status": 201
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/applications/{site_id}/rubrics",
+            "operation": "site.rubric.create",
+            "parameters": {
+                "write": true
+            },
+            "success_status": 201
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/applications/{site_id}/exports",
+            "operation": "site.export",
+            "success_status": 201
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/applications/{site_id}/sources",
+            "operation": "source.list",
+            "success_status": 200
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/applications/{site_id}/sources/{*path}",
+            "operation": "source.read",
+            "success_status": 200
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/applications/{site_id}/source-previews/{*path}",
+            "operation": "source.preview",
+            "success_status": 200
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/applications/{site_id}/sources/{*path}",
+            "operation": "source.write",
+            "success_status": 200
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/applications/{site_id}/git/status",
+            "operation": "git.status",
+            "success_status": 200
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/applications/{site_id}/git/history",
+            "operation": "git.history",
+            "success_status": 200
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/applications/{site_id}/git/diffs/{*path}",
+            "operation": "git.diff",
+            "success_status": 200
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/applications/{site_id}/git/index",
+            "operation": "git.stage_all",
+            "success_status": 200
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/applications/{site_id}/git/index/{*path}",
+            "operation": "git.stage",
+            "success_status": 200
+        },
+        {
+            "method": "DELETE",
+            "path": "/api/v1/applications/{site_id}/git/index/{*path}",
+            "operation": "git.unstage",
+            "success_status": 200
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/applications/{site_id}/git/commits",
+            "operation": "git.commit",
+            "success_status": 201
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/applications/{site_id}/git/restores/{*path}",
+            "operation": "git.restore",
+            "success_status": 200
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/session/application/{application_id}",
+            "operation": "registry.select",
+            "success_status": 200
+        },
+        {
+            "method": "DELETE",
+            "path": "/api/v1/session/application",
+            "operation": "registry.clear",
+            "success_status": 200
+        },
+        {
+            "method": "PATCH",
+            "path": "/api/v1/security/admin-password",
+            "operation": "security.admin-password.change",
+            "success_status": 200
+        }
+    ],
+    "supported_locales": [
+        "bg-BG",
+        "hr-HR",
+        "cs-CZ",
+        "da-DK",
+        "nl-NL",
+        "nl-BE",
+        "en-IE",
+        "en-MT",
+        "et-EE",
+        "fi-FI",
+        "fr-FR",
+        "fr-BE",
+        "fr-LU",
+        "fr-CH",
+        "de-DE",
+        "de-AT",
+        "de-BE",
+        "de-LU",
+        "de-CH",
+        "el-GR",
+        "el-CY",
+        "hu-HU",
+        "ga-IE",
+        "it-IT",
+        "it-CH",
+        "lv-LV",
+        "lt-LT",
+        "mt-MT",
+        "pl-PL",
+        "pt-PT",
+        "ro-RO",
+        "sk-SK",
+        "sl-SI",
+        "es-ES",
+        "sv-SE",
+        "sv-FI",
+        "uk-UA"
+    ],
+    "default_locale": "fr-FR",
+    "authentication": {
+        "mode": "environment_hmac",
+        "service": "owasys-front",
+        "token_env": "OPUS_OWASYS_BACKEND_TOKEN",
+        "hmac_env": "OPUS_OWASYS_BACKEND_HMAC",
+        "minimum_secret_length": 32,
+        "max_clock_skew_seconds": 60,
+        "delegated_roles": [
+            "viewer",
+            "developer",
+            "admin"
+        ],
+        "delegated_providers": [
+            "local-password",
+            "auth0-proxy"
+        ],
+        "trusted_proxy_addresses": [
+            "127.0.0.1",
+            "::1"
+        ],
+        "proxy_secret_env": "OPUS_OWASYS_AUTH0_PROXY_SECRET"
     },
-    {
-      "method": "POST",
-      "path": "/api/v1/applications",
-      "operation": "site.create",
-      "parameters": {
-        "write": true
-      },
-      "success_status": 201,
-      "location": "/api/v1/applications/{site_id}"
+    "fsm": {
+        "initial_state": "received",
+        "transitions": {
+            "received": [
+                "authenticated",
+                "failed"
+            ],
+            "authenticated": [
+                "authorized",
+                "failed"
+            ],
+            "authorized": [
+                "dispatching",
+                "failed"
+            ],
+            "dispatching": [
+                "succeeded",
+                "failed"
+            ],
+            "succeeded": [],
+            "failed": []
+        }
     },
-    {
-      "method": "DELETE",
-      "path": "/api/v1/applications/{site_id}",
-      "operation": "site.delete",
-      "parameters": {
-        "write": true
-      },
-      "success_status": 200
-    },
-    {
-      "method": "GET",
-      "path": "/api/v1/applications/{site_id}/validation",
-      "operation": "site.validate",
-      "success_status": 200
-    },
-    {
-      "method": "GET",
-      "path": "/api/v1/applications/{site_id}/routes",
-      "operation": "site.routes.list",
-      "success_status": 200
-    },
-    {
-      "method": "POST",
-      "path": "/api/v1/applications/{site_id}/languages",
-      "operation": "site.language.add",
-      "parameters": {
-        "write": true
-      },
-      "success_status": 201
-    },
-    {
-      "method": "POST",
-      "path": "/api/v1/applications/{site_id}/pages",
-      "operation": "site.page.create",
-      "parameters": {
-        "write": true
-      },
-      "success_status": 201
-    },
-    {
-      "method": "POST",
-      "path": "/api/v1/applications/{site_id}/rubrics",
-      "operation": "site.rubric.create",
-      "parameters": {
-        "write": true
-      },
-      "success_status": 201
-    },
-    {
-      "method": "POST",
-      "path": "/api/v1/applications/{site_id}/exports",
-      "operation": "site.export",
-      "success_status": 201
-    },
-    {
-      "method": "GET",
-      "path": "/api/v1/applications/{site_id}/sources",
-      "operation": "source.list",
-      "success_status": 200
-    },
-    {
-      "method": "GET",
-      "path": "/api/v1/applications/{site_id}/sources/{*path}",
-      "operation": "source.read",
-      "success_status": 200
-    },
-    {
-      "method": "POST",
-      "path": "/api/v1/applications/{site_id}/source-previews/{*path}",
-      "operation": "source.preview",
-      "success_status": 200
-    },
-    {
-      "method": "PUT",
-      "path": "/api/v1/applications/{site_id}/sources/{*path}",
-      "operation": "source.write",
-      "success_status": 200
-    },
-    {
-      "method": "GET",
-      "path": "/api/v1/applications/{site_id}/git/status",
-      "operation": "git.status",
-      "success_status": 200
-    },
-    {
-      "method": "GET",
-      "path": "/api/v1/applications/{site_id}/git/history",
-      "operation": "git.history",
-      "success_status": 200
-    },
-    {
-      "method": "GET",
-      "path": "/api/v1/applications/{site_id}/git/diffs/{*path}",
-      "operation": "git.diff",
-      "success_status": 200
-    },
-    {
-      "method": "PUT",
-      "path": "/api/v1/applications/{site_id}/git/index/{*path}",
-      "operation": "git.stage",
-      "success_status": 200
-    },
-    {
-      "method": "DELETE",
-      "path": "/api/v1/applications/{site_id}/git/index/{*path}",
-      "operation": "git.unstage",
-      "success_status": 200
-    },
-    {
-      "method": "POST",
-      "path": "/api/v1/applications/{site_id}/git/commits",
-      "operation": "git.commit",
-      "success_status": 201
-    },
-    {
-      "method": "POST",
-      "path": "/api/v1/applications/{site_id}/git/restores/{*path}",
-      "operation": "git.restore",
-      "success_status": 200
-    },
-    {
-      "method": "PUT",
-      "path": "/api/v1/session/application/{application_id}",
-      "operation": "registry.select",
-      "success_status": 200
-    },
-    {
-      "method": "DELETE",
-      "path": "/api/v1/session/application",
-      "operation": "registry.clear",
-      "success_status": 200
-    },
-    {
-      "method": "PATCH",
-      "path": "/api/v1/security/admin-password",
-      "operation": "security.admin-password.change",
-      "success_status": 200
+    "diagnostics": {
+        "log_directory": "sites/owasys-back/var/logs",
+        "log_file": "owasys-back.log",
+        "profiler_directory": "sites/owasys-back/var/profiler/rest"
     }
-  ],
-  "supported_locales": [
-    "bg-BG",
-    "hr-HR",
-    "cs-CZ",
-    "da-DK",
-    "nl-NL",
-    "nl-BE",
-    "en-IE",
-    "en-MT",
-    "et-EE",
-    "fi-FI",
-    "fr-FR",
-    "fr-BE",
-    "fr-LU",
-    "fr-CH",
-    "de-DE",
-    "de-AT",
-    "de-BE",
-    "de-LU",
-    "de-CH",
-    "el-GR",
-    "el-CY",
-    "hu-HU",
-    "ga-IE",
-    "it-IT",
-    "it-CH",
-    "lv-LV",
-    "lt-LT",
-    "mt-MT",
-    "pl-PL",
-    "pt-PT",
-    "ro-RO",
-    "sk-SK",
-    "sl-SI",
-    "es-ES",
-    "sv-SE",
-    "sv-FI",
-    "uk-UA"
-  ],
-  "default_locale": "fr-FR",
-  "authentication": {
-    "mode": "environment_hmac",
-    "service": "owasys-front",
-    "token_env": "OPUS_OWASYS_BACKEND_TOKEN",
-    "hmac_env": "OPUS_OWASYS_BACKEND_HMAC",
-    "minimum_secret_length": 32,
-    "max_clock_skew_seconds": 60,
-    "delegated_roles": [
-      "viewer",
-      "developer",
-      "admin"
-    ],
-    "delegated_providers": [
-      "local-password",
-      "auth0-proxy"
-    ],
-    "trusted_proxy_addresses": [
-      "127.0.0.1",
-      "::1"
-    ],
-    "proxy_secret_env": "OPUS_OWASYS_AUTH0_PROXY_SECRET"
-  },
-  "fsm": {
-    "initial_state": "received",
-    "transitions": {
-      "received": [
-        "authenticated",
-        "failed"
-      ],
-      "authenticated": [
-        "authorized",
-        "failed"
-      ],
-      "authorized": [
-        "dispatching",
-        "failed"
-      ],
-      "dispatching": [
-        "succeeded",
-        "failed"
-      ],
-      "succeeded": [],
-      "failed": []
-    }
-  },
-  "diagnostics": {
-    "log_directory": "sites/owasys-back/var/logs",
-    "log_file": "owasys-back.log",
-    "profiler_directory": "sites/owasys-back/var/profiler/rest"
-  }
 }

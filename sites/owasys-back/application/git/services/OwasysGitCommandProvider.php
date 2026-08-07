@@ -17,6 +17,7 @@ final class OwasysGitCommandProvider
         'owasys:git:diff' => true,
         'owasys:git:history' => true,
         'owasys:git:stage' => true,
+        'owasys:git:stage-all' => true,
         'owasys:git:unstage' => true,
         'owasys:git:commit' => true,
         'owasys:git:restore' => true,
@@ -87,6 +88,9 @@ final class OwasysGitCommandProvider
                     $siteId,
                     $path
                 ),
+                'owasys:git:stage-all' => $this->workspace->stageAll(
+                    $siteId
+                ),
                 'owasys:git:unstage' => $this->workspace->unstage(
                     $siteId,
                     $path
@@ -122,7 +126,8 @@ final class OwasysGitCommandProvider
             'owasys:git:status',
             'owasys:git:diff',
             'owasys:git:history' => 'read',
-            'owasys:git:stage' => 'stage',
+            'owasys:git:stage',
+            'owasys:git:stage-all' => 'stage',
             'owasys:git:unstage' => 'unstage',
             'owasys:git:commit' => 'commit',
             'owasys:git:restore' => 'restore',

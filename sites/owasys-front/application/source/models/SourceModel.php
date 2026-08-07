@@ -260,6 +260,27 @@ final class OwasysSourceModel
     }
 
     /** @param array<string,mixed> $actor @return array<string,mixed> */
+    public function gitStageAll(string $siteId, array $actor): array
+    {
+        $siteId = $this->siteId($siteId);
+        $result = $this->rest->request(
+            'PUT',
+            $this->gitResource($siteId, 'index'),
+            [],
+            $this->actor($actor)
+        );
+        if (($result['contract'] ?? null) !== 'OPUS_SITE_GIT_STAGE_ALL_V1'
+            || (string) ($result['application_id'] ?? '') !== $siteId
+            || !is_int($result['affected_path_count'] ?? null)
+            || (int) $result['affected_path_count'] < 0
+            || !is_array($result['status'] ?? null)) {
+            throw new RuntimeException(
+                'OWASYS_GIT_STAGE_ALL_RESULT_INVALID'
+            );
+        }
+        return $result;
+    }
+    /** @param array<string,mixed> $actor @return array<string,mixed> */
     public function gitUnstage(
         string $siteId,
         string $path,

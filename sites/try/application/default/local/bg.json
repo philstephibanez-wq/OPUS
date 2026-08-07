@@ -1,0 +1,19 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "bg",
+    "scope": "default",
+    "messages": {
+        "language": "Език",
+        "menu.home": "Начало",
+        "menu.architecture": "Архитектура",
+        "menu.router": "Маршрутизатор",
+        "menu.modules": "Модули",
+        "menu.controllers": "Контролери",
+        "menu.views": "Изгледи",
+        "menu.models": "Модели",
+        "menu.i18n": "Интернационализация",
+        "error.title": "Грешка на OPUS",
+        "error.request_failed": "Заявката е неуспешна.",
+        "menu.login": "Вход"
+    }
+}

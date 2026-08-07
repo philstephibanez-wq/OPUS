@@ -1,0 +1,23 @@
+{
+    "contract": "OPUS_ROUTE_REGISTRY_V1",
+    "dispatch_model": "fsm-module-first",
+    "routes": [
+        {
+            "id": "home.index",
+            "path": "/",
+            "state": "home",
+            "module": "home",
+            "action": "index",
+            "template": "home/templates/index.score",
+            "view": "home/views/index.php",
+            "label": "menu.home",
+            "title_key": "page.title",
+            "subtitle_key": "page.subtitle",
+            "acl": "home",
+            "fsm_state": "home",
+            "dispatch_action": "render_route",
+            "show_in_menu": true,
+            "order": 10
+        }
+    ]
+}

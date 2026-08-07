@@ -428,8 +428,11 @@ final class OwasysSourceController
             $this->postedCsrfToken()
         );
         $action = $this->postedGitAction();
-        $path = $action === 'commit' ? '' : $this->postedGitPath();
-        $this->security->assertAllowed($identity, 'git', $action);
+        $path = in_array($action, ['commit', 'stage_all'], true)
+            ? ''
+            : $this->postedGitPath();
+        $permission = $action === 'stage_all' ? 'stage' : $action;
+        $this->security->assertAllowed($identity, 'git', $permission);
         $context = $this->gitActionContext(
             $identity,
             $currentApp,
@@ -449,6 +452,10 @@ final class OwasysSourceController
             'stage' => $this->source->gitStage(
                 $siteId,
                 $path,
+                $identity
+            ),
+            'stage_all' => $this->source->gitStageAll(
+                $siteId,
                 $identity
             ),
             'unstage' => $this->source->gitUnstage(
@@ -513,7 +520,7 @@ final class OwasysSourceController
         $value = strtolower(trim($value));
         if (!in_array(
             $value,
-            ['stage', 'unstage', 'commit', 'restore'],
+            ['stage', 'stage_all', 'unstage', 'commit', 'restore'],
             true
         )) {
             throw new RuntimeException('OWASYS_GIT_ACTION_INVALID');
@@ -629,7 +636,7 @@ final class OwasysSourceController
         $value = strtolower(trim($value));
         if (!in_array(
             $value,
-            ['', 'staged', 'unstaged', 'committed', 'restored'],
+            ['', 'staged', 'staged_all', 'unstaged', 'committed', 'restored'],
             true
         )) {
             throw new RuntimeException('OWASYS_GIT_STATUS_OPTION_INVALID');
@@ -641,6 +648,7 @@ final class OwasysSourceController
     {
         return match ($action) {
             'stage' => 'staged',
+            'stage_all' => 'staged_all',
             'unstage' => 'unstaged',
             'commit' => 'committed',
             'restore' => 'restored',
@@ -653,7 +661,7 @@ final class OwasysSourceController
     private function gitRequestedSignal(string $action): string
     {
         return match ($action) {
-            'stage' => 'stage_source',
+            'stage', 'stage_all' => 'stage_source',
             'unstage' => 'unstage_source',
             'commit' => 'commit_source',
             'restore' => 'restore_source',
@@ -666,7 +674,7 @@ final class OwasysSourceController
     private function gitCompletedSignal(string $action): string
     {
         return match ($action) {
-            'stage' => 'source_staged',
+            'stage', 'stage_all' => 'source_staged',
             'unstage' => 'source_unstaged',
             'commit' => 'source_committed',
             'restore' => 'source_restored',
@@ -953,6 +961,7 @@ final class OwasysSourceController
         $gitCanRestore = $this->isAllowed($identity, 'git', 'restore');
         $gitCsrfToken = $this->csrf->issue(self::GIT_CSRF_SCOPE);
         $gitChanges = [];
+        $gitHasConflicts = false;
         foreach ((array) ($gitStatus['changes'] ?? []) as $change) {
             if (!is_array($change)) {
                 continue;
@@ -967,6 +976,7 @@ final class OwasysSourceController
             $unstaged = ($change['unstaged'] ?? false) === true;
             $untracked = ($change['untracked'] ?? false) === true;
             $conflicted = ($change['conflicted'] ?? false) === true;
+            $gitHasConflicts = $gitHasConflicts || $conflicted;
             $restoreAllowed = $gitCanRestore
                 && $exists
                 && $unstaged
@@ -1002,6 +1012,8 @@ final class OwasysSourceController
             ? $gitStatus['counts']
             : [];
         $stagedCount = (int) ($counts['staged'] ?? 0);
+        $stageableCount = (int) ($counts['unstaged'] ?? 0)
+            + (int) ($counts['untracked'] ?? 0);
         $gitCommits = [];
         foreach ((array) ($gitHistory['commits'] ?? []) as $commit) {
             if (!is_array($commit)) {
@@ -1153,6 +1165,7 @@ final class OwasysSourceController
                 'failed' => $gitFeedback === 'failed',
                 'error_code' => $gitErrorCode ?? '',
                 'staged_success' => $gitFeedback === 'staged',
+                'staged_all_success' => $gitFeedback === 'staged_all',
                 'unstaged_success' => $gitFeedback === 'unstaged',
                 'committed_success' => $gitFeedback === 'committed',
                 'restored_success' => $gitFeedback === 'restored',
@@ -1178,6 +1191,9 @@ final class OwasysSourceController
                 'history_empty' => $gitCommits === [],
                 'csrf_token' => $gitCsrfToken,
                 'form_action' => $selectedUrl,
+                'can_stage_all' => $gitCanStage
+                    && !$gitHasConflicts
+                    && $stageableCount > 0,
                 'can_commit' => $gitCanCommit && $stagedCount > 0,
                 'cannot_commit' => !$gitCanCommit || $stagedCount < 1,
                 'read_only' => !(

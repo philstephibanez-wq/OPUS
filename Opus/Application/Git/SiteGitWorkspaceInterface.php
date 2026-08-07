@@ -28,6 +28,9 @@ interface SiteGitWorkspaceInterface extends
     public function stage(string $siteId, string $relativePath): array;
 
     /** @return array<string,mixed> */
+    public function stageAll(string $siteId): array;
+
+    /** @return array<string,mixed> */
     public function unstage(string $siteId, string $relativePath): array;
 
     /** @return array<string,mixed> */
