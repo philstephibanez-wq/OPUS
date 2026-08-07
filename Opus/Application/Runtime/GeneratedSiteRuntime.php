@@ -10,31 +10,43 @@ use Opus\Http\Request;
 use Opus\Http\Response;
 use Opus\I18n\ApplicationTranslationRuntime;
 use Opus\I18n\BrowserLocaleNegotiator;
+use Opus\Log\Logger;
+use Opus\Profiler\Profiler;
+use Opus\Profiler\ProfilerConfiguration;
+use Opus\Profiler\ProfilerConfigurationInterface;
 use Opus\Profiler\ProfilerInterface;
+use Opus\Profiler\ProfilerLinkProvider;
+use Opus\Profiler\ProfilerLinkProviderInterface;
 use Opus\Profiler\WebProfilerController;
+use Opus\Profiler\WebProfilerControllerInterface;
 use Opus\Profiler\WebProfilerView;
-use Opus\Template\ScoreTemplateRenderer;
 use Opus\Security\Sso\LocalPasswordSsoProvider;
 use Opus\Security\Sso\SsoManager;
+use Opus\Template\ScoreTemplateRenderer;
 
 /**
  * Generic FSM-module-first runtime used by applications generated through Composer.
  *
- * Configuration crosses File + StructuredFileLoader, navigation crosses FSM,
- * access is deny-by-default, identity crosses session/Auth0 proxy SSO, browser
- * locale is negotiated by OPUS I18n and every visible document is SCORE-rendered.
+ * Environment configuration crosses File + StructuredFileLoader. Profiler
+ * collection, Web Profiler registration and SCORE link injection are separate
+ * bootstrap decisions. Navigation remains FSM-driven, access deny-by-default,
+ * identity crosses session/Auth0 proxy SSO and visible documents use SCORE.
  */
 final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
 {
     private readonly string $siteRoot;
     private readonly StructuredFileLoader $loader;
     private readonly File $file;
+    private readonly ProfilerConfigurationInterface $profilerConfiguration;
+    private readonly ?ProfilerInterface $profiler;
+    private readonly ?WebProfilerControllerInterface $webProfilerController;
+    private readonly ?ProfilerLinkProviderInterface $profilerLinkProvider;
+    private readonly Logger $logger;
 
     public function __construct(
         string $siteRoot,
-        private readonly ?ProfilerInterface $profiler = null
-    )
-    {
+        ?ProfilerInterface $profiler = null
+    ) {
         $root = rtrim(str_replace('\\', '/', $siteRoot), '/');
         if ($root === '' || !is_dir($root)) {
             throw new \RuntimeException('OPUS_GENERATED_SITE_ROOT_INVALID');
@@ -42,49 +54,189 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
         $this->siteRoot = $root;
         $this->loader = StructuredFileLoader::instance();
         $this->file = File::instance();
+        $this->profilerConfiguration = ProfilerConfiguration::fromSiteRoot($root);
+
+        $site = $this->config(
+            'config/site.json',
+            'OPUS_SITE_STANDARD_CONTRACT_CORE'
+        );
+        $diagnostics = is_array($site['diagnostics'] ?? null)
+            ? $site['diagnostics']
+            : [];
+        $profilerDiagnostics = is_array($diagnostics['profiler'] ?? null)
+            ? $diagnostics['profiler']
+            : [];
+        $loggerDiagnostics = is_array($diagnostics['logger'] ?? null)
+            ? $diagnostics['logger']
+            : [];
+
+        $storage = $this->safeRelative((string) (
+            $profilerDiagnostics['storage'] ?? 'var/profiler'
+        ));
+        $this->profiler = $this->profilerConfiguration->collectEnabled()
+            ? ($profiler ?? new Profiler($root . '/' . $storage))
+            : null;
+
+        $logFile = trim((string) (
+            $loggerDiagnostics['file'] ?? 'var/logs/application.log'
+        ));
+        $logRelative = $this->safeRelative($logFile);
+        $this->logger = new Logger(
+            dirname($root . '/' . $logRelative),
+            basename($logRelative)
+        );
+
+        if ($this->profilerConfiguration->webEnabled()) {
+            if (!$this->profiler instanceof ProfilerInterface) {
+                throw new \RuntimeException('OPUS_PROFILER_WEB_REQUIRES_PROFILER');
+            }
+            $this->webProfilerController = new WebProfilerController(
+                $this->profiler,
+                new WebProfilerView()
+            );
+        } else {
+            $this->webProfilerController = null;
+        }
+
+        $this->profilerLinkProvider =
+            $this->profilerConfiguration->linksEnabled()
+                && $this->profiler instanceof ProfilerInterface
+                ? new ProfilerLinkProvider($this->profiler)
+                : null;
     }
 
     public function handle(): Response
     {
+        $ownsTrace = false;
+        $traceId = bin2hex(random_bytes(16));
+        $startedAt = microtime(true);
+        $status = 'failed';
+
+        if ($this->profiler instanceof ProfilerInterface) {
+            $trace = $this->profiler->getActiveTrace();
+            if ($trace === null) {
+                $trace = $this->profiler->start();
+                $ownsTrace = true;
+            }
+            $traceId = $trace->getTraceId();
+        }
+
         try {
-            $site = $this->config('config/site.json', 'OPUS_SITE_STANDARD_CONTRACT_CORE');
-            $routes = $this->config('config/routes.json', 'OPUS_ROUTE_REGISTRY_V1');
-            $acl = $this->config('config/acl.json', 'OPUS_GENERATED_APPLICATION_ACL_V1');
-            $sso = $this->config('config/sso.json', 'OPUS_GENERATED_APPLICATION_SSO_V1');
+            $this->logger->info(
+                'application.runtime',
+                'request.received',
+                ['method' => $this->requestMethod()],
+                $traceId
+            );
+            if ($this->profiler?->getActiveTrace() !== null) {
+                $this->profiler->event(
+                    'application.runtime',
+                    'request.received',
+                    ['method' => $this->requestMethod()]
+                );
+            }
+
+            $site = $this->config(
+                'config/site.json',
+                'OPUS_SITE_STANDARD_CONTRACT_CORE'
+            );
+            $routes = $this->config(
+                'config/routes.json',
+                'OPUS_ROUTE_REGISTRY_V1'
+            );
+            $acl = $this->config(
+                'config/acl.json',
+                'OPUS_GENERATED_APPLICATION_ACL_V1'
+            );
+            $sso = $this->config(
+                'config/sso.json',
+                'OPUS_GENERATED_APPLICATION_SSO_V1'
+            );
             $this->startSession($sso);
 
             [$locale, $routePath] = $this->requestPath($site);
-            $route = $this->matchRoute($routes, $routePath);
-            $loginResponse = $this->handleLogin($sso, $route, $locale);
-            if ($loginResponse instanceof Response) {
-                return $loginResponse;
+            if ($this->isProfilerPath($routePath)) {
+                if (!$this->webProfilerController instanceof WebProfilerControllerInterface) {
+                    throw new \RuntimeException('OPUS_GENERATED_ROUTE_NOT_FOUND');
+                }
+                $response = $this->webProfilerController->handle(
+                    Request::fromGlobals($this->siteRoot)
+                );
+            } else {
+                $route = $this->matchRoute($routes, $routePath);
+                $loginResponse = $this->handleLogin($sso, $route, $locale);
+                if ($loginResponse instanceof Response) {
+                    $response = $loginResponse;
+                } else {
+                    $identity = $this->identity($sso);
+                    $this->assertAllowed(
+                        $acl,
+                        (string) ($route['acl'] ?? 'public'),
+                        $identity
+                    );
+                    $state = $this->transition($site, $route, $identity);
+                    $response = Response::html($this->renderPage(
+                        $site,
+                        $routes,
+                        $route,
+                        $state,
+                        $locale,
+                        $identity
+                    ));
+                }
             }
-            $identity = $this->identity($sso);
-            $this->assertAllowed($acl, (string) ($route['acl'] ?? 'public'), $identity);
-            $state = $this->transition($site, $route, $identity);
 
-            if ((string) ($route['id'] ?? '') === 'profiler.trace') {
-                return $this->renderProfilerTrace();
+            $status = 'completed';
+            $durationMs = round((microtime(true) - $startedAt) * 1000, 3);
+            $this->logger->info(
+                'application.runtime',
+                'request.completed',
+                ['duration_ms' => $durationMs],
+                $traceId
+            );
+            if ($this->profiler?->getActiveTrace() !== null) {
+                $this->profiler->event(
+                    'application.runtime',
+                    'request.completed',
+                    ['duration_ms' => $durationMs]
+                );
             }
-
-            return Response::html($this->renderPage(
-                $site,
-                $routes,
-                $route,
-                $state,
-                $locale,
-                $identity,
-                $this->isAllowed($acl, 'profiler:view', $identity)
-            ));
+            return $response;
         } catch (\Throwable $error) {
             $code = $this->safeErrorCode($error);
-            $status = match (true) {
+            $durationMs = round((microtime(true) - $startedAt) * 1000, 3);
+            $this->logger->error(
+                'application.runtime',
+                'request.failed',
+                ['duration_ms' => $durationMs, 'error_code' => $code],
+                $traceId
+            );
+            if ($this->profiler?->getActiveTrace() !== null) {
+                $this->profiler->event(
+                    'application.runtime',
+                    'request.failed',
+                    ['duration_ms' => $durationMs, 'error_code' => $code],
+                    'failed'
+                );
+            }
+            $httpStatus = match (true) {
                 str_contains($code, 'AUTH_REQUIRED') => 401,
                 str_contains($code, 'ACL_DENIED') => 403,
                 str_contains($code, 'ROUTE_NOT_FOUND') => 404,
                 default => 500,
             };
-            return Response::html($this->renderError($code), $status);
+            return Response::html($this->renderError($code), $httpStatus);
+        } finally {
+            if ($ownsTrace && $this->profiler?->getActiveTrace() !== null) {
+                $this->profiler->stop([
+                    'component' => self::class,
+                    'status' => $status,
+                    'duration_ms' => round(
+                        (microtime(true) - $startedAt) * 1000,
+                        3
+                    ),
+                ]);
+            }
         }
     }
 
@@ -93,7 +245,9 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
     {
         $data = $this->loader->read($this->siteRoot . '/' . $relative);
         if (($data['contract'] ?? null) !== $contract) {
-            throw new \RuntimeException('OPUS_GENERATED_CONFIG_CONTRACT_INVALID:' . $relative);
+            throw new \RuntimeException(
+                'OPUS_GENERATED_CONFIG_CONTRACT_INVALID:' . $relative
+            );
         }
         return $data;
     }
@@ -104,7 +258,9 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
         if (session_status() !== PHP_SESSION_NONE) {
             return;
         }
-        $name = trim((string) ($sso['session_name'] ?? 'OPUS_GENERATED_APPLICATION'));
+        $name = trim((string) (
+            $sso['session_name'] ?? 'OPUS_GENERATED_APPLICATION'
+        ));
         if (preg_match('/^[A-Za-z0-9_-]{3,128}$/', $name) !== 1) {
             throw new \RuntimeException('OPUS_GENERATED_SESSION_NAME_INVALID');
         }
@@ -121,9 +277,14 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
         $default = trim((string) ($site['default_locale'] ?? ''));
         $negotiator = BrowserLocaleNegotiator::forLocales($supported, $default);
 
-        $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
+        $path = parse_url(
+            (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+            PHP_URL_PATH
+        );
         $path = is_string($path) ? rawurldecode($path) : '/';
-        $segments = trim($path, '/') === '' ? [] : explode('/', trim($path, '/'));
+        $segments = trim($path, '/') === ''
+            ? []
+            : explode('/', trim($path, '/'));
         $explicit = $negotiator->match((string) ($segments[0] ?? ''));
         if ($explicit !== null) {
             $locale = $explicit->value;
@@ -139,6 +300,14 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
         return [$locale, $routePath === '/' ? '/' : rtrim($routePath, '/')];
     }
 
+    private function isProfilerPath(string $path): bool
+    {
+        return preg_match(
+            '~^/_opus/profiler/trace/[a-f0-9]{16,64}$~D',
+            $path
+        ) === 1;
+    }
+
     /** @param array<string,mixed> $routes @return array<string,mixed> */
     private function matchRoute(array $routes, string $path): array
     {
@@ -149,12 +318,6 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
             if ((string) ($route['path'] ?? '') === $path) {
                 return $route;
             }
-            if ((string) ($route['id'] ?? '') === 'profiler.trace'
-                && (string) ($route['path'] ?? '') === '/_opus/profiler/trace/{trace_id}'
-                && preg_match('~^/_opus/profiler/trace/[a-f0-9]{16,64}$~D', $path) === 1
-            ) {
-                return $route;
-            }
         }
         throw new \RuntimeException('OPUS_GENERATED_ROUTE_NOT_FOUND');
     }
@@ -162,48 +325,92 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
     /** @param array<string,mixed> $sso @return array{subject:string,roles:list<string>,provider:string} */
     private function identity(array $sso): array
     {
-        $key = trim((string) ($sso['session_identity_key'] ?? 'opus_identity'));
+        $key = trim((string) (
+            $sso['session_identity_key'] ?? 'opus_identity'
+        ));
         $session = $_SESSION[$key] ?? null;
         if (is_array($session)) {
-            $subject = trim((string) ($session['subject'] ?? $session['id'] ?? ''));
+            $subject = trim((string) (
+                $session['subject'] ?? $session['id'] ?? ''
+            ));
             $roles = is_array($session['roles'] ?? null)
                 ? array_values(array_filter($session['roles'], 'is_string'))
                 : [];
             if ($subject !== '' && $roles !== []) {
-                return ['subject' => $subject, 'roles' => $roles, 'provider' => (string) ($session['provider'] ?? 'session')];
+                return [
+                    'subject' => $subject,
+                    'roles' => $roles,
+                    'provider' => (string) (
+                        $session['provider'] ?? 'session'
+                    ),
+                ];
             }
         }
 
-        $providers = is_array($sso['providers'] ?? null) ? $sso['providers'] : [];
-        $proxy = is_array($providers['auth0-proxy'] ?? null) ? $providers['auth0-proxy'] : [];
+        $providers = is_array($sso['providers'] ?? null)
+            ? $sso['providers']
+            : [];
+        $proxy = is_array($providers['auth0-proxy'] ?? null)
+            ? $providers['auth0-proxy']
+            : [];
         if (($proxy['enabled'] ?? false) === true) {
             $remote = trim((string) ($_SERVER['REMOTE_ADDR'] ?? ''));
             $trusted = is_array($proxy['trusted_proxy_addresses'] ?? null)
-                ? array_values(array_filter($proxy['trusted_proxy_addresses'], 'is_string'))
+                ? array_values(array_filter(
+                    $proxy['trusted_proxy_addresses'],
+                    'is_string'
+                ))
                 : [];
-            $subjectHeader = (string) ($proxy['subject_header'] ?? 'HTTP_X_OPUS_AUTH0_SUBJECT');
+            $subjectHeader = (string) (
+                $proxy['subject_header'] ?? 'HTTP_X_OPUS_AUTH0_SUBJECT'
+            );
             $subject = trim((string) ($_SERVER[$subjectHeader] ?? ''));
             if ($subject !== '') {
                 if (!in_array($remote, $trusted, true)) {
-                    throw new \RuntimeException('OPUS_AUTH0_PROXY_ADDRESS_UNTRUSTED');
+                    throw new \RuntimeException(
+                        'OPUS_AUTH0_PROXY_ADDRESS_UNTRUSTED'
+                    );
                 }
-                $secretEnv = trim((string) ($proxy['proxy_secret_env'] ?? ''));
+                $secretEnv = trim((string) (
+                    $proxy['proxy_secret_env'] ?? ''
+                ));
                 $expected = $secretEnv !== '' ? getenv($secretEnv) : false;
-                $secretHeader = (string) ($proxy['secret_header'] ?? 'HTTP_X_OPUS_PROXY_SECRET');
+                $secretHeader = (string) (
+                    $proxy['secret_header'] ?? 'HTTP_X_OPUS_PROXY_SECRET'
+                );
                 $provided = (string) ($_SERVER[$secretHeader] ?? '');
-                if (!is_string($expected) || strlen($expected) < 32 || !hash_equals($expected, $provided)) {
-                    throw new \RuntimeException('OPUS_AUTH0_PROXY_AUTHENTICATION_FAILED');
+                if (!is_string($expected)
+                    || strlen($expected) < 32
+                    || !hash_equals($expected, $provided)) {
+                    throw new \RuntimeException(
+                        'OPUS_AUTH0_PROXY_AUTHENTICATION_FAILED'
+                    );
                 }
-                $rolesHeader = (string) ($proxy['roles_header'] ?? 'HTTP_X_OPUS_AUTH0_ROLES');
-                $roles = array_values(array_filter(array_map('trim', explode(',', (string) ($_SERVER[$rolesHeader] ?? '')))));
+                $rolesHeader = (string) (
+                    $proxy['roles_header'] ?? 'HTTP_X_OPUS_AUTH0_ROLES'
+                );
+                $roles = array_values(array_filter(array_map(
+                    'trim',
+                    explode(',', (string) ($_SERVER[$rolesHeader] ?? ''))
+                )));
                 if ($roles === []) {
-                    throw new \RuntimeException('OPUS_AUTH0_PROXY_ROLES_MISSING');
+                    throw new \RuntimeException(
+                        'OPUS_AUTH0_PROXY_ROLES_MISSING'
+                    );
                 }
-                return ['subject' => $subject, 'roles' => $roles, 'provider' => 'auth0-proxy'];
+                return [
+                    'subject' => $subject,
+                    'roles' => $roles,
+                    'provider' => 'auth0-proxy',
+                ];
             }
         }
 
-        return ['subject' => 'anonymous', 'roles' => ['anonymous'], 'provider' => 'anonymous'];
+        return [
+            'subject' => 'anonymous',
+            'roles' => ['anonymous'],
+            'provider' => 'anonymous',
+        ];
     }
 
     /** @param array<string,mixed> $sso @param array<string,mixed> $route */
@@ -235,9 +442,7 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
             $provider['runtime_store'] ?? ''
         ));
         $manager = new SsoManager([
-            new LocalPasswordSsoProvider(
-                $this->siteRoot . '/' . $store
-            ),
+            new LocalPasswordSsoProvider($this->siteRoot . '/' . $store),
         ]);
         try {
             $identity = $manager->authenticate($providerId, [
@@ -261,8 +466,11 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
     }
 
     /** @param array<string,mixed> $acl @param array{subject:string,roles:list<string>,provider:string} $identity */
-    private function assertAllowed(array $acl, string $policyId, array $identity): void
-    {
+    private function assertAllowed(
+        array $acl,
+        string $policyId,
+        array $identity
+    ): void {
         if ($this->isAllowed($acl, $policyId, $identity)) {
             return;
         }
@@ -274,12 +482,21 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
     }
 
     /** @param array<string,mixed> $acl @param array{subject:string,roles:list<string>,provider:string} $identity */
-    private function isAllowed(array $acl, string $policyId, array $identity): bool
-    {
-        $policies = is_array($acl['policies'] ?? null) ? $acl['policies'] : [];
-        $policy = is_array($policies[$policyId] ?? null) ? $policies[$policyId] : null;
+    private function isAllowed(
+        array $acl,
+        string $policyId,
+        array $identity
+    ): bool {
+        $policies = is_array($acl['policies'] ?? null)
+            ? $acl['policies']
+            : [];
+        $policy = is_array($policies[$policyId] ?? null)
+            ? $policies[$policyId]
+            : null;
         if ($policy === null) {
-            throw new \RuntimeException('OPUS_ACL_POLICY_UNKNOWN:' . $policyId);
+            throw new \RuntimeException(
+                'OPUS_ACL_POLICY_UNKNOWN:' . $policyId
+            );
         }
         $allowed = is_array($policy['roles'] ?? null)
             ? array_values(array_filter($policy['roles'], 'is_string'))
@@ -289,16 +506,23 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
     }
 
     /** @param array<string,mixed> $site @param array<string,mixed> $route @param array{subject:string,roles:list<string>,provider:string} $identity */
-    private function transition(array $site, array $route, array $identity): string
-    {
+    private function transition(
+        array $site,
+        array $route,
+        array $identity
+    ): string {
         $fsm = FsmSiteLoader::processorForSiteRoot(
             $this->siteRoot,
             [],
             $this->profiler
         );
-        $target = trim((string) ($route['fsm_state'] ?? $route['state'] ?? ''));
+        $target = trim((string) (
+            $route['fsm_state'] ?? $route['state'] ?? ''
+        ));
         if (!$fsm->hasState($target)) {
-            throw new \RuntimeException('OPUS_GENERATED_FSM_TARGET_UNKNOWN:' . $target);
+            throw new \RuntimeException(
+                'OPUS_GENERATED_FSM_TARGET_UNKNOWN:' . $target
+            );
         }
         $siteId = trim((string) ($site['site_id'] ?? 'site'));
         $signal = 'open_' . $target;
@@ -308,8 +532,14 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
             'initial_state' => $fsm->initialState(),
             'target_state' => $target,
         ]);
-        $sessionKey = 'opus_fsm_state_' . preg_replace('/[^a-z0-9_]/i', '_', $siteId);
-        $current = trim((string) ($_SESSION[$sessionKey] ?? $fsm->initialState()));
+        $sessionKey = 'opus_fsm_state_' . preg_replace(
+            '/[^a-z0-9_]/i',
+            '_',
+            $siteId
+        );
+        $current = trim((string) (
+            $_SESSION[$sessionKey] ?? $fsm->initialState()
+        ));
         if (!$fsm->hasState($current)) {
             $current = $fsm->initialState();
         }
@@ -320,7 +550,11 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
             'next_state' => $target,
         ]);
         if ($target !== $current) {
-            $result = $fsm->transition($current, $signal, ['identity' => $identity]);
+            $result = $fsm->transition(
+                $current,
+                $signal,
+                ['identity' => $identity]
+            );
             $current = (string) ($result['next_state'] ?? '');
         } else {
             $this->profileFsm('transition.skipped', [
@@ -345,8 +579,14 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
     }
 
     /** @param array<string,mixed> $site @param array<string,mixed> $routes @param array<string,mixed> $route @param array{subject:string,roles:list<string>,provider:string} $identity */
-    private function renderPage(array $site, array $routes, array $route, string $state, string $locale, array $identity, bool $profilerAllowed): string
-    {
+    private function renderPage(
+        array $site,
+        array $routes,
+        array $route,
+        string $state,
+        string $locale,
+        array $identity
+    ): string {
         $view = $this->safeRelative((string) ($route['view'] ?? ''));
         $template = $this->safeRelative((string) ($route['template'] ?? ''));
         $viewFile = $this->siteRoot . '/application/' . $view;
@@ -374,24 +614,32 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                 'title' => (string) ($viewModel['title'] ?? $state),
                 'subtitle' => (string) ($viewModel['subtitle'] ?? ''),
             ];
-        $titleKey = trim((string) ($route['title_key'] ?? 'page.title'));
-        $subtitleKey = trim((string) ($route['subtitle_key'] ?? 'page.subtitle'));
+        $titleKey = trim((string) (
+            $route['title_key'] ?? 'page.title'
+        ));
+        $subtitleKey = trim((string) (
+            $route['subtitle_key'] ?? 'page.subtitle'
+        ));
         $page['title'] = $i18n->translate($titleKey);
         $page['subtitle'] = $i18n->translate($subtitleKey);
 
         $menu = '';
         foreach ((array) ($routes['routes'] ?? []) as $candidate) {
-            if (!is_array($candidate) || ($candidate['show_in_menu'] ?? false) !== true) {
+            if (!is_array($candidate)
+                || ($candidate['show_in_menu'] ?? false) !== true) {
                 continue;
             }
             $labelKey = (string) ($candidate['label'] ?? '');
             $label = $i18n->translate($labelKey);
             $path = (string) ($candidate['path'] ?? '/');
-            $href = '/' . rawurlencode($locale) . ($path === '/' ? '' : $path);
+            $href = '/' . rawurlencode($locale)
+                . ($path === '/' ? '' : $path);
             $menu .= $renderer->render(
                 'default/templates/components/menu-item.score',
                 ['menu_item' => [
-                    'active_class' => ((string) ($candidate['fsm_state'] ?? '') === $state) ? 'is-active' : '',
+                    'active_class' => ((string) (
+                        $candidate['fsm_state'] ?? ''
+                    ) === $state) ? 'is-active' : '',
                     'path' => $href,
                     'label' => $label,
                 ]]
@@ -403,23 +651,13 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
             ['asset' => ['href' => '/asset/css/default.css']]
         ) . $renderer->render(
             'default/templates/components/stylesheet.score',
-            ['asset' => ['href' => '/asset/themes/' . rawurlencode((string) ($site['theme'] ?? 'starter')) . '/css/theme.css']]
+            ['asset' => [
+                'href' => '/asset/themes/'
+                    . rawurlencode((string) ($site['theme'] ?? 'starter'))
+                    . '/css/theme.css',
+            ]]
         );
         $js = '';
-        $profiler = '';
-        $environment = strtolower(trim((string) getenv('OPUS_ENV')));
-        $traceId = $this->profiler?->getActiveTrace()?->getTraceId() ?? '';
-        if ($profilerAllowed
-            && in_array($environment, ['dev', 'local', 'development'], true)
-            && preg_match('/^[a-f0-9]{16,64}$/D', $traceId) === 1
-        ) {
-            $profiler = $renderer->render(
-                'default/templates/components/profiler-link.score',
-                ['profiler' => [
-                    'path' => '/_opus/profiler/trace/' . $traceId,
-                ]]
-            );
-        }
 
         $data = array_replace_recursive($viewModel, [
             'lang' => $locale,
@@ -433,10 +671,19 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
             'auth' => [
                 'error' => ($_SESSION['opus_login_error'] ?? false) === true,
             ],
+            'diagnostics' => [
+                'profiler_available' => false,
+                'profiler_url' => '',
+                'profiler_label' => 'OPUS Profiler',
+            ],
             'menu_item' => [],
-            'common' => ['menu' => $menu, 'profiler' => $profiler],
+            'common' => ['menu' => $menu],
             'assets' => ['css' => $css, 'js' => $js],
         ]);
+        if ($this->profilerLinkProvider instanceof ProfilerLinkProviderInterface) {
+            $data = $this->profilerLinkProvider->enrich($data);
+        }
+
         $content = $renderer->render($template, $data);
         $data['content'] = $content;
         $data['common']['header'] = $renderer->render(
@@ -451,22 +698,13 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
         return $renderer->render('default/layouts/layout.score', $data);
     }
 
-    private function renderProfilerTrace(): Response
-    {
-        if (!$this->profiler instanceof ProfilerInterface) {
-            throw new \RuntimeException('OPUS_PROFILER_REQUIRED');
-        }
-        return (new WebProfilerController(
-            $this->profiler,
-            new WebProfilerView(),
-            true
-        ))->handle(Request::fromGlobals($this->siteRoot));
-    }
-
     private function renderError(string $code): string
     {
         try {
-            $site = $this->config('config/site.json', 'OPUS_SITE_STANDARD_CONTRACT_CORE');
+            $site = $this->config(
+                'config/site.json',
+                'OPUS_SITE_STANDARD_CONTRACT_CORE'
+            );
             $supported = is_array($site['locales'] ?? null)
                 ? array_values(array_filter($site['locales'], 'is_string'))
                 : [];
@@ -490,7 +728,11 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
             $message = $i18n->translate('error.request_failed');
             $content = $renderer->render(
                 'default/templates/error.score',
-                ['error' => ['title' => $title, 'message' => $message, 'code' => $code]]
+                ['error' => [
+                    'title' => $title,
+                    'message' => $message,
+                    'code' => $code,
+                ]]
             );
             return $renderer->render('default/layouts/layout.score', [
                 'lang' => $locale,
@@ -499,20 +741,43 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                     'name' => (string) ($site['site_name'] ?? 'OPUS'),
                     'contract' => (string) ($site['contract'] ?? ''),
                 ],
+                'diagnostics' => [
+                    'profiler_available' => false,
+                    'profiler_url' => '',
+                    'profiler_label' => 'OPUS Profiler',
+                ],
                 'common' => ['header' => '', 'footer' => ''],
                 'assets' => ['css' => '', 'js' => ''],
                 'content' => $content,
             ]);
         } catch (\Throwable $error) {
-            throw new \RuntimeException('OPUS_GENERATED_ERROR_RENDER_FAILED', 0, $error);
+            throw new \RuntimeException(
+                'OPUS_GENERATED_ERROR_RENDER_FAILED',
+                0,
+                $error
+            );
         }
+    }
+
+    private function requestMethod(): string
+    {
+        $method = strtoupper(trim((string) (
+            $_SERVER['REQUEST_METHOD'] ?? 'GET'
+        )));
+        return preg_match('/^[A-Z]{3,16}$/', $method) === 1
+            ? $method
+            : 'UNKNOWN';
     }
 
     private function safeRelative(string $path): string
     {
         $path = trim(str_replace('\\', '/', $path), '/');
-        if ($path === '' || str_contains($path, '..') || str_contains($path, "\0")) {
-            throw new \RuntimeException('OPUS_GENERATED_RELATIVE_PATH_INVALID');
+        if ($path === ''
+            || str_contains($path, '..')
+            || str_contains($path, "\0")) {
+            throw new \RuntimeException(
+                'OPUS_GENERATED_RELATIVE_PATH_INVALID'
+            );
         }
         return $path;
     }
