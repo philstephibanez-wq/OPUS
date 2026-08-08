@@ -78,6 +78,11 @@ final class OwasysRuntimeController
             ? $resolved['error']
             : null;
         $redirectAfterTransition = ($resolved['redirect'] ?? false) === true;
+        $externalRedirect = is_string(
+            $resolved['external_redirect'] ?? null
+        )
+            ? trim((string) $resolved['external_redirect'])
+            : '';
 
         $context = array_replace(
             $this->fsmContext($identity),
@@ -120,6 +125,10 @@ final class OwasysRuntimeController
                 $targetState = (string) $handled['state'];
                 $errorKey = (string) $handled['error'];
             }
+        }
+
+        if ($externalRedirect !== '') {
+            $this->redirectExternal($externalRedirect);
         }
 
         if ($redirectAfterTransition) {
@@ -314,23 +323,17 @@ final class OwasysRuntimeController
                     );
                 }
                 $this->security->assertAllowed($identity, 'build', 'preview');
-                try {
-                    $result = $this->security->startDevelopmentServer(
-                        $identity,
-                        (string) ($currentApp['id'] ?? '')
-                    );
-                    return [
-                        'signal' => 'open_build',
-                        'result' => $result,
-                        'redirect' => false,
-                    ];
-                } catch (Throwable) {
-                    return [
-                        'signal' => 'open_build',
-                        'error' => 'build.preview_failed',
-                        'redirect' => false,
-                    ];
-                }
+                $result = $this->security->startDevelopmentServer(
+                    $identity,
+                    (string) ($currentApp['id'] ?? '')
+                );
+
+                return [
+                    'signal' => 'open_build',
+                    'result' => $result,
+                    'external_redirect' => (string) ($result['url'] ?? ''),
+                    'redirect' => false,
+                ];
             }
 
             $this->fail(400, 'OWASYS_POST_ACTION_INVALID:' . $routeKey . ':' . $action);
@@ -958,6 +961,45 @@ final class OwasysRuntimeController
         if ($query !== []) {
             $url .= '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
         }
+        header('Location: ' . $url, true, 303);
+        exit;
+    }
+
+    private function redirectExternal(string $url): never
+    {
+        if ($url === ''
+            || str_contains($url, "\r")
+            || str_contains($url, "\n")
+            || str_contains($url, "\0")) {
+            throw new RuntimeException(
+                'OWASYS_EXTERNAL_REDIRECT_INVALID'
+            );
+        }
+
+        $parts = parse_url($url);
+        $scheme = is_array($parts)
+            ? strtolower(trim((string) ($parts['scheme'] ?? '')))
+            : '';
+        $host = is_array($parts)
+            ? strtolower(trim((string) ($parts['host'] ?? '')))
+            : '';
+        $port = is_array($parts) && isset($parts['port'])
+            ? (int) $parts['port']
+            : 0;
+
+        if (!is_array($parts)
+            || $scheme !== 'http'
+            || !in_array($host, ['127.0.0.1', 'localhost', '::1'], true)
+            || $port < 1024
+            || $port > 65535
+            || isset($parts['user'])
+            || isset($parts['pass'])
+            || isset($parts['fragment'])) {
+            throw new RuntimeException(
+                'OWASYS_EXTERNAL_REDIRECT_INVALID'
+            );
+        }
+
         header('Location: ' . $url, true, 303);
         exit;
     }

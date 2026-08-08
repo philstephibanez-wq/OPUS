@@ -2,7 +2,7 @@
   <h2>[[ i18n: menu.build ]]</h2>
   <p class="ow-muted">[[ i18n: state.default.summary ]]</p>
   [[ if: build.can_preview ]]
-    <form method="post" action="{{ urls.current }}">
+    <form method="post" action="{{ urls.current }}" target="_blank" rel="noopener">
       <input type="hidden" name="owasys_action" value="start-development-server">
       <button class="ow-button" type="submit">[[ i18n: build.preview_button ]]</button>
     </form>

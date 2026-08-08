@@ -748,7 +748,7 @@ final class SiteCommandService implements SiteCommandServiceInterface
                     'OPUS_DEV_SERVER_BACKGROUND_HOST_NOT_LOCAL'
                 );
             }
-            $this->startBackgroundDevelopmentServer(
+            $pid = $this->startBackgroundDevelopmentServer(
                 $host,
                 $port,
                 $publicRoot,
@@ -761,6 +761,7 @@ final class SiteCommandService implements SiteCommandServiceInterface
                 'host' => $host,
                 'port' => $port,
                 'url' => $this->developmentUrl($host, $port),
+                'pid' => $pid,
                 'background' => true,
                 'started' => true,
             ];
@@ -817,97 +818,90 @@ final class SiteCommandService implements SiteCommandServiceInterface
         return true;
     }
 
-    /** @param array<string,string> $environment */
+    /**
+     * Launch the generic OPUS development server without a shell detour.
+     *
+     * @param array<string,string> $environment
+     */
     private function startBackgroundDevelopmentServer(
         string $host,
         int $port,
         string $publicRoot,
         string $router,
         array $environment
-    ): void {
+    ): int {
+        $siteRoot = dirname($publicRoot);
+        $processLog = $siteRoot . '/var/logs/dev-server.process.log';
+        $this->file->writeAtomic($processLog, '');
+
         $null = PHP_OS_FAMILY === 'Windows' ? 'NUL' : '/dev/null';
         $descriptors = [
             0 => ['file', $null, 'r'],
-            1 => ['file', $null, 'a'],
-            2 => ['file', $null, 'a'],
+            1 => ['file', $processLog, 'a'],
+            2 => ['file', $processLog, 'a'],
         ];
-
+        $options = ['bypass_shell' => true];
         if (PHP_OS_FAMILY === 'Windows') {
-            $comspec = trim((string) getenv('COMSPEC'));
-            $comspec = $comspec === '' ? 'cmd.exe' : $comspec;
-            $command = 'start "" /B '
-                . $this->windowsDevelopmentArgument(PHP_BINARY)
-                . ' -S '
-                . $this->windowsDevelopmentArgument($host . ':' . $port)
-                . ' -t '
-                . $this->windowsDevelopmentArgument($publicRoot)
-                . ' '
-                . $this->windowsDevelopmentArgument($router)
-                . ' >NUL 2>NUL <NUL';
-            $process = proc_open(
-                [$comspec, '/D', '/S', '/C', $command],
-                $descriptors,
-                $pipes,
-                $this->opusRoot,
-                $environment,
-                ['bypass_shell' => true, 'create_new_console' => true]
-            );
-        } else {
-            $process = proc_open(
-                [
-                    '/bin/sh',
-                    '-c',
-                    'nohup "$1" -S "$2" -t "$3" "$4" '
-                        . '>/dev/null 2>&1 </dev/null &',
-                    'opus-dev-server',
-                    PHP_BINARY,
-                    $host . ':' . $port,
-                    $publicRoot,
-                    $router,
-                ],
-                $descriptors,
-                $pipes,
-                $this->opusRoot,
-                $environment,
-                ['bypass_shell' => true]
-            );
+            $options['create_process_group'] = true;
         }
 
+        $process = proc_open(
+            [
+                PHP_BINARY,
+                '-S',
+                $host . ':' . $port,
+                '-t',
+                $publicRoot,
+                $router,
+            ],
+            $descriptors,
+            $pipes,
+            $this->opusRoot,
+            $environment,
+            $options
+        );
         if (!is_resource($process)) {
             throw new OpusConsoleException(
                 'OPUS_DEV_SERVER_BACKGROUND_PROCESS_START_FAILED'
             );
         }
-        $exitCode = proc_close($process);
-        if ($exitCode !== 0) {
+
+        $status = proc_get_status($process);
+        $pid = is_array($status)
+            ? (int) ($status['pid'] ?? 0)
+            : 0;
+        if ($pid < 1) {
+            @proc_terminate($process);
+            unset($process);
             throw new OpusConsoleException(
-                'OPUS_DEV_SERVER_BACKGROUND_LAUNCH_FAILED'
+                'OPUS_DEV_SERVER_BACKGROUND_PID_INVALID'
             );
         }
 
         for ($attempt = 0; $attempt < 50; ++$attempt) {
             if ($this->developmentPortOpen($host, $port)) {
-                return;
+                unset($process);
+                return $pid;
+            }
+
+            $status = proc_get_status($process);
+            if (!is_array($status) || ($status['running'] ?? false) !== true) {
+                $exitCode = is_array($status)
+                    ? (int) ($status['exitcode'] ?? -1)
+                    : -1;
+                unset($process);
+                throw new OpusConsoleException(
+                    'OPUS_DEV_SERVER_BACKGROUND_EXITED:' . $exitCode
+                );
             }
             usleep(100000);
         }
+
+        @proc_terminate($process);
+        unset($process);
         throw new OpusConsoleException(
             'OPUS_DEV_SERVER_BACKGROUND_NOT_READY'
         );
-    }
-
-    private function windowsDevelopmentArgument(string $value): string
-    {
-        if ($value === ''
-            || str_contains($value, '"')
-            || str_contains($value, "\r")
-            || str_contains($value, "\n")
-            || str_contains($value, "\0")) {
-            throw new OpusConsoleException(
-                'OPUS_DEV_SERVER_WINDOWS_ARGUMENT_INVALID'
-            );
-        }
-        return '"' . $value . '"';
     }
 
     /**
