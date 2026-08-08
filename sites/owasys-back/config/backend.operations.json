@@ -239,7 +239,8 @@
             "composer_script": "owasys:registry-select",
             "roles": [
                 "admin",
-                "developer"
+                "developer",
+                "viewer"
             ],
             "arguments": [
                 {
@@ -254,7 +255,8 @@
             "composer_script": "owasys:registry-clear",
             "roles": [
                 "admin",
-                "developer"
+                "developer",
+                "viewer"
             ],
             "arguments": []
         },
@@ -262,7 +264,8 @@
             "composer_script": "owasys:admin-password-change",
             "roles": [
                 "admin",
-                "developer"
+                "developer",
+                "viewer"
             ],
             "arguments": [],
             "secret_input": true

@@ -933,8 +933,8 @@ final class OwasysSourceController
 
         $conflict = $sourceErrorCode === 'OPUS_SITE_SOURCE_CONFLICT';
         $selectedPresent = is_array($selected);
-        $roleCanPreview = $this->isAllowed($identity, 'source', 'preview');
-        $roleCanWrite = $this->isAllowed($identity, 'source', 'write');
+        $roleCanPreview = $this->security->isAllowed($identity, 'source', 'preview');
+        $roleCanWrite = $this->security->isAllowed($identity, 'source', 'write');
         $editable = $selectedPresent && $roleCanWrite;
         $canPreview = $selectedPresent && $roleCanPreview && !$conflict;
         $canWrite = $selectedPresent && $roleCanWrite && !$conflict;
@@ -955,10 +955,10 @@ final class OwasysSourceController
             true
         );
         $gitAvailable = is_array($gitStatus) && is_array($gitHistory);
-        $gitCanStage = $this->isAllowed($identity, 'git', 'stage');
-        $gitCanUnstage = $this->isAllowed($identity, 'git', 'unstage');
-        $gitCanCommit = $this->isAllowed($identity, 'git', 'commit');
-        $gitCanRestore = $this->isAllowed($identity, 'git', 'restore');
+        $gitCanStage = $this->security->isAllowed($identity, 'git', 'stage');
+        $gitCanUnstage = $this->security->isAllowed($identity, 'git', 'unstage');
+        $gitCanCommit = $this->security->isAllowed($identity, 'git', 'commit');
+        $gitCanRestore = $this->security->isAllowed($identity, 'git', 'restore');
         $gitCsrfToken = $this->csrf->issue(self::GIT_CSRF_SCOPE);
         $gitChanges = [];
         $gitHasConflicts = false;
@@ -1230,19 +1230,6 @@ final class OwasysSourceController
         $this->renderer->emit('source/templates/index.score', $data);
     }
 
-    /** @param array<string,mixed> $identity */
-    private function isAllowed(
-        array $identity,
-        string $resource,
-        string $action
-    ): bool {
-        try {
-            $this->security->assertAllowed($identity, $resource, $action);
-            return true;
-        } catch (Throwable) {
-            return false;
-        }
-    }
 
     /** @return array{0:string,1:string} */
     private function resolveRequest(): array

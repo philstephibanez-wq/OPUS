@@ -278,7 +278,7 @@ final class OwasysRuntimeController
                     return ['signal' => 'auth_required', 'redirect' => true];
                 }
 
-                $this->security->assertAllowed($identity, 'registry', 'write');
+                $this->assertRegistryActionAllowed($identity, $action);
                 $result = $this->registryController()->handle($method, $_POST);
 
                 return [
@@ -452,6 +452,22 @@ final class OwasysRuntimeController
         $this->fail(409, $message);
     }
 
+    /** @param array<string,mixed> $identity */
+    private function assertRegistryActionAllowed(
+        array $identity,
+        string $action
+    ): void {
+        [$resource, $permission] = match ($action) {
+            'select-app', 'clear-app-context' => ['registry', 'select'],
+            'create-new-app' => ['creation', 'open'],
+            'delete-app' => ['registry', 'delete'],
+            default => throw new RuntimeException(
+                'OWASYS_REGISTRY_ACTION_INVALID:' . $action
+            ),
+        };
+        $this->security->assertAllowed($identity, $resource, $permission);
+    }
+
     private function passwordErrorKey(string $message): ?string
     {
         return match ($message) {
@@ -504,6 +520,10 @@ final class OwasysRuntimeController
             $locale,
             $targetRoute
         );
+
+        $canChangePassword = is_array($identity)
+            && (string) ($identity['provider'] ?? '') === 'local-password'
+            && $this->security->isAllowed($identity, 'account', 'change');
 
         $data = [
             'page' => [
@@ -564,6 +584,8 @@ final class OwasysRuntimeController
             ),
             'auth' => [
                 'provider' => $this->security->defaultProvider(),
+                'can_change_password' => $canChangePassword,
+                'cannot_change_password' => !$canChangePassword,
                 'error_required_credentials' => $errorKey === 'auth.error.required_credentials',
                 'error_invalid_credentials' => $errorKey === 'auth.error.invalid_credentials',
                 'error_password_mismatch' => $errorKey === 'auth.error.password_mismatch',
@@ -581,7 +603,8 @@ final class OwasysRuntimeController
                 $data,
                 $this->registryViewData(
                     is_array($registryResult) ? $registryResult : [],
-                    $currentApp
+                    $currentApp,
+                    $identity
                 )
             );
         }
@@ -602,7 +625,8 @@ final class OwasysRuntimeController
      */
     private function registryViewData(
         array $result,
-        ?array $currentApp
+        ?array $currentApp,
+        ?array $identity
     ): array {
         $entries = [];
         foreach ((array) ($result['entries'] ?? []) as $entry) {
@@ -686,8 +710,29 @@ final class OwasysRuntimeController
             ];
         }
 
+        $canSelect = $this->security->isAllowed(
+            $identity,
+            'registry',
+            'select'
+        );
+        $canCreate = $this->security->isAllowed(
+            $identity,
+            'creation',
+            'open'
+        );
+        $canDelete = $this->security->isAllowed(
+            $identity,
+            'registry',
+            'delete'
+        );
+
         return [
             'registry' => [
+                'can_select' => $canSelect,
+                'cannot_select' => !$canSelect,
+                'can_clear' => $canSelect,
+                'can_create' => $canCreate,
+                'can_delete' => $canDelete,
                 'empty' => $entries === [],
                 'events_empty' => $events === [],
                 'error_application_required' => ($result['error'] ?? null) === 'registry.error.application_required',

@@ -1,24 +1,26 @@
 {
-  "contract": "OPUS_ACL_POLICY_V1",
-  "default": "deny",
-  "roles": {
-    "admin": [
-      "*:*"
-    ],
-    "developer": [
-      "registry:*",
-      "creation:*",
-      "site:*",
-      "account:change",
-      "source:*",
-      "git:*"
-    ],
-    "viewer": [
-      "registry:open",
-      "site:validate",
-      "site:routes:list",
-      "source:read",
-      "git:read"
-    ]
-  }
+    "contract": "OPUS_ACL_POLICY_V1",
+    "default": "deny",
+    "roles": {
+        "admin": [
+            "*:*"
+        ],
+        "developer": [
+            "registry:*",
+            "creation:*",
+            "site:*",
+            "account:change",
+            "source:*",
+            "git:*"
+        ],
+        "viewer": [
+            "registry:open",
+            "registry:select",
+            "site:validate",
+            "site:routes:list",
+            "source:read",
+            "git:read",
+            "account:change"
+        ]
+    }
 }

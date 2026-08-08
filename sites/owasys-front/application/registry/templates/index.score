@@ -9,10 +9,12 @@
       <h2>[[ i18n: registry.application_context ]]</h2>
       <p class="ow-muted">[[ i18n: registry.select_instruction ]]</p>
     </div>
+    [[ if: registry.can_create ]]
     <form method="post" action="{{ urls.current }}">
       <input type="hidden" name="owasys_action" value="create-new-app">
       <button class="ow-button" type="submit">[[ i18n: registry.create_application ]]</button>
     </form>
+    [[ endif ]]
   </div>
   [[ if: current_app.present ]]
     <div class="ow-tags">
@@ -20,10 +22,12 @@
       <span>[[ i18n: common.kind ]]: {{ current_app.kind }}</span>
       <span>[[ i18n: common.root ]]: {{ current_app.root }}</span>
     </div>
+    [[ if: registry.can_clear ]]
     <form method="post" action="{{ urls.current }}" class="ow-inline-form">
       <input type="hidden" name="owasys_action" value="clear-app-context">
       <button class="ow-button ow-button-secondary" type="submit">[[ i18n: registry.clear_current_context ]]</button>
     </form>
+    [[ endif ]]
   [[ else ]]
     <p>[[ i18n: registry.no_application_selected ]]</p>
   [[ endif ]]
@@ -106,7 +110,7 @@
           <form method="post" action="{{ urls.current }}">
             <input type="hidden" name="owasys_action" value="select-app">
             <input type="hidden" name="owasys_app_id" value="{{ entry.id }}">
-            <button type="submit" [[ if: entry.current ]]disabled aria-current="true"[[ endif ]]>
+            <button type="submit" [[ if: entry.current ]]disabled aria-current="true"[[ endif ]] [[ if: registry.cannot_select ]]disabled[[ endif ]]>
               <span class="ow-app-card-heading"><strong>{{ entry.name }}</strong><span class="ow-badge">{{ entry.status }}</span></span>
               <span class="ow-app-card-meta">{{ entry.kind }} · {{ entry.role }}</span>
               <small class="ow-app-card-root">{{ entry.root }}</small>
@@ -120,6 +124,7 @@
               <em>[[ if: entry.current ]][[ i18n: registry.current_application ]][[ else ]][[ i18n: registry.work_on_this_app ]][[ endif ]]</em>
             </button>
           </form>
+          [[ if: registry.can_delete ]]
           [[ if: entry.deletable ]]
             <form method="post" action="{{ urls.current }}" class="ow-delete-form">
               <input type="hidden" name="owasys_action" value="delete-app">
@@ -129,6 +134,7 @@
               </label>
               <button class="ow-button ow-button-danger" type="submit">[[ i18n: registry.delete.application ]]</button>
             </form>
+          [[ endif ]]
           [[ endif ]]
         </article>
       [[ endforeach ]]

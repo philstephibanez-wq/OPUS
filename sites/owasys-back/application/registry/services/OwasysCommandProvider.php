@@ -151,7 +151,7 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
         array $arguments,
         array $actor
     ): array {
-        $this->assertAllowed($actor, 'registry', 'write');
+        $this->assertAllowed($actor, 'registry', 'select');
         $applicationId = trim((string) ($arguments[0] ?? ''));
         if (preg_match('/^[a-z][a-z0-9-]*$/', $applicationId) !== 1) {
             throw new RuntimeException(
@@ -195,7 +195,7 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
     /** @param array<string,mixed> $actor */
     private function registryClear(array $actor): array
     {
-        $this->assertAllowed($actor, 'registry', 'write');
+        $this->assertAllowed($actor, 'registry', 'select');
         $cleared = $this->repository()->clearCurrentApplication(
             (string) $actor['subject']
         );
