@@ -290,7 +290,7 @@ final class OwasysCreationController
                 'status' => 'succeeded',
                 'workflow' => 'application_creation',
             ]);
-            $this->redirect($locale, 'build');
+            $this->redirect($locale, 'data');
         } catch (Throwable $error) {
             $code = $this->safeErrorCode($error);
             try {
