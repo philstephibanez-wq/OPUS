@@ -1,0 +1,11 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "uk",
+    "scope": "build",
+    "messages": {
+        "build.preview_button": "Переглянути сайт",
+        "build.preview_failed": "Не вдалося запустити сервер розробки."
+    },
+    "plurals": [],
+    "grammatical": []
+}

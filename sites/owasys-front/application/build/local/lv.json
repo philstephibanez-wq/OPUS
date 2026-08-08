@@ -1,0 +1,11 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "lv",
+    "scope": "build",
+    "messages": {
+        "build.preview_button": "Priekšskatīt vietni",
+        "build.preview_failed": "Neizdevās palaist izstrādes serveri."
+    },
+    "plurals": [],
+    "grammatical": []
+}

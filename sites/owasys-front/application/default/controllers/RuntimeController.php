@@ -298,6 +298,41 @@ final class OwasysRuntimeController
                 ];
             }
 
+            if ($routeKey === 'build'
+                && $action === 'start-development-server') {
+                if (!is_array($identity)) {
+                    return ['signal' => 'auth_required', 'redirect' => true];
+                }
+                $currentApp = $this->session->currentApp();
+                if (!is_array($currentApp)) {
+                    throw new RuntimeException('OWASYS_CURRENT_APP_REQUIRED');
+                }
+                if (strtolower((string) ($currentApp['kind'] ?? ''))
+                    === 'backend') {
+                    throw new RuntimeException(
+                        'OWASYS_DEV_PREVIEW_BACKEND_ONLY'
+                    );
+                }
+                $this->security->assertAllowed($identity, 'build', 'preview');
+                try {
+                    $result = $this->security->startDevelopmentServer(
+                        $identity,
+                        (string) ($currentApp['id'] ?? '')
+                    );
+                    return [
+                        'signal' => 'open_build',
+                        'result' => $result,
+                        'redirect' => false,
+                    ];
+                } catch (Throwable) {
+                    return [
+                        'signal' => 'open_build',
+                        'error' => 'build.preview_failed',
+                        'redirect' => false,
+                    ];
+                }
+            }
+
             $this->fail(400, 'OWASYS_POST_ACTION_INVALID:' . $routeKey . ':' . $action);
         }
 
@@ -607,6 +642,30 @@ final class OwasysRuntimeController
                     $identity
                 )
             );
+        }
+
+        if ($module === 'build') {
+            $kind = strtolower((string) ($currentApp['kind'] ?? ''));
+            $previewResult = is_array($requestResult)
+                && ($requestResult['contract'] ?? null)
+                    === 'OPUS_CONSOLE_DEV_SERVER_START_RESULT_V1'
+                ? $requestResult
+                : null;
+            $data['build'] = [
+                'can_preview' => is_array($identity)
+                    && $kind !== 'backend'
+                    && $this->security->isAllowed(
+                        $identity,
+                        'build',
+                        'preview'
+                    ),
+                'preview_started' => is_array($previewResult)
+                    && ($previewResult['started'] ?? false) === true,
+                'preview_url' => is_array($previewResult)
+                    ? (string) ($previewResult['url'] ?? '')
+                    : '',
+                'preview_failed' => $errorKey === 'build.preview_failed',
+            ];
         }
 
         if (!is_file($this->siteRoot . '/application/' . $template)) {

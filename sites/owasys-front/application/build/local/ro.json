@@ -1,0 +1,11 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "ro",
+    "scope": "build",
+    "messages": {
+        "build.preview_button": "Previzualizează site-ul",
+        "build.preview_failed": "Serverul de dezvoltare nu a putut fi pornit."
+    },
+    "plurals": [],
+    "grammatical": []
+}

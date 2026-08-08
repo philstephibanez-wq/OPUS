@@ -1,0 +1,11 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "el",
+    "scope": "build",
+    "messages": {
+        "build.preview_button": "Προβολή ιστότοπου",
+        "build.preview_failed": "Δεν ήταν δυνατή η εκκίνηση του διακομιστή ανάπτυξης."
+    },
+    "plurals": [],
+    "grammatical": []
+}

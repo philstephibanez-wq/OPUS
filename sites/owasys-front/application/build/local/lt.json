@@ -1,0 +1,11 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "lt",
+    "scope": "build",
+    "messages": {
+        "build.preview_button": "Peržiūrėti svetainę",
+        "build.preview_failed": "Nepavyko paleisti kūrimo serverio."
+    },
+    "plurals": [],
+    "grammatical": []
+}

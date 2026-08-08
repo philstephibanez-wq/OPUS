@@ -1,0 +1,11 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "sl",
+    "scope": "build",
+    "messages": {
+        "build.preview_button": "Predogled spletnega mesta",
+        "build.preview_failed": "Razvojnega strežnika ni bilo mogoče zagnati."
+    },
+    "plurals": [],
+    "grammatical": []
+}

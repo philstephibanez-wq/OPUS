@@ -42,6 +42,16 @@
             "success_status": 200
         },
         {
+            "method": "POST",
+            "path": "/api/v1/applications/{site_id}/development-server",
+            "operation": "site.dev-server.start",
+            "parameters": {
+                "background": true,
+                "auto_port": true
+            },
+            "success_status": 200
+        },
+        {
             "method": "GET",
             "path": "/api/v1/applications/{site_id}/routes",
             "operation": "site.routes.list",

@@ -56,11 +56,14 @@ interface SiteCommandServiceInterface extends
         bool $write
     ): array;
 
+    /** @return array<string,mixed>|int */
     public function devServer(
         string $applicationId,
         string $host,
-        int $port
-    ): int;
+        int $port,
+        bool $background = false,
+        bool $autoPort = false
+    ): array|int;
 
     public function serve(
         string $siteId,

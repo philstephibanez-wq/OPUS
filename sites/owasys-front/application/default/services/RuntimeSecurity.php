@@ -188,6 +188,54 @@ final class OwasysRuntimeSecurity
         );
     }
 
+    /** @param array<string,mixed> $identity @return array<string,mixed> */
+    public function startDevelopmentServer(
+        array $identity,
+        string $siteId
+    ): array {
+        $siteId = strtolower(trim($siteId));
+        if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $siteId) !== 1) {
+            throw new RuntimeException('OWASYS_DEV_PREVIEW_SITE_ID_INVALID');
+        }
+
+        $result = $this->rest->request(
+            'POST',
+            '/api/v1/applications/'
+                . rawurlencode($siteId)
+                . '/development-server',
+            [],
+            [
+                'subject' => (string) (
+                    $identity['subject'] ?? $identity['id'] ?? ''
+                ),
+                'roles' => is_array($identity['roles'] ?? null)
+                    ? $identity['roles']
+                    : [],
+                'provider' => (string) (
+                    $identity['provider'] ?? $this->defaultProvider
+                ),
+            ]
+        );
+
+        $url = trim((string) ($result['url'] ?? ''));
+        $parts = parse_url($url);
+        if (($result['contract'] ?? null)
+                !== 'OPUS_CONSOLE_DEV_SERVER_START_RESULT_V1'
+            || ($result['started'] ?? false) !== true
+            || ($result['background'] ?? false) !== true
+            || (string) ($result['application_id'] ?? '') !== $siteId
+            || !is_array($parts)
+            || strtolower((string) ($parts['scheme'] ?? '')) !== 'http'
+            || !in_array(
+                strtolower((string) ($parts['host'] ?? '')),
+                ['127.0.0.1', 'localhost', '::1'],
+                true
+            )) {
+            throw new RuntimeException('OWASYS_DEV_PREVIEW_RESULT_INVALID');
+        }
+        return $result;
+    }
+
     /** @param array<string,mixed>|null $identity */
     public function assertAllowed(
         ?array $identity,

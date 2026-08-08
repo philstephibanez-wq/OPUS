@@ -1,0 +1,11 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "pl",
+    "scope": "build",
+    "messages": {
+        "build.preview_button": "Podgląd witryny",
+        "build.preview_failed": "Nie udało się uruchomić serwera deweloperskiego."
+    },
+    "plurals": [],
+    "grammatical": []
+}

@@ -1,0 +1,14 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "es",
+    "scope": "home",
+    "messages": {
+        "page.title": "Inicio",
+        "page.subtitle": "Módulo OPUS controlado por FSM: home",
+        "auth.username": "Username",
+        "auth.password": "Password",
+        "auth.submit": "Acceso",
+        "auth.error": "Authentication failed."
+    }
+}
+

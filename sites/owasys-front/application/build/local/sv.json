@@ -1,0 +1,11 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "sv",
+    "scope": "build",
+    "messages": {
+        "build.preview_button": "Förhandsvisa webbplatsen",
+        "build.preview_failed": "Utvecklingsservern kunde inte startas."
+    },
+    "plurals": [],
+    "grammatical": []
+}

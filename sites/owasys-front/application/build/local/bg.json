@@ -1,0 +1,11 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "bg",
+    "scope": "build",
+    "messages": {
+        "build.preview_button": "Преглед на сайта",
+        "build.preview_failed": "Сървърът за разработка не можа да бъде стартиран."
+    },
+    "plurals": [],
+    "grammatical": []
+}

@@ -343,8 +343,12 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
         );
     }
 
-    /** @param list<string> $arguments @param array<string,mixed> $request */
-    private function devServer(array $arguments, array $request): int
+    /**
+     * @param list<string> $arguments
+     * @param array<string,mixed> $request
+     * @return array<string,mixed>|int
+     */
+    private function devServer(array $arguments, array $request): array|int
     {
         $this->assertRestActor($request, ['admin', 'developer']);
         $applicationId = (string) (
@@ -364,10 +368,20 @@ final class OpusConsoleApplication implements OpusConsoleApplicationInterface
             );
         }
 
+        $background = $this->flag($arguments, 'background');
+        $autoPort = $this->flag($arguments, 'auto-port');
+        if ($autoPort && !$background) {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_AUTO_PORT_REQUIRES_BACKGROUND'
+            );
+        }
+
         return $this->sites->devServer(
             $applicationId,
             $host,
-            $portRaw === '' ? 0 : (int) $portRaw
+            $portRaw === '' ? 0 : (int) $portRaw,
+            $background,
+            $autoPort
         );
     }
 

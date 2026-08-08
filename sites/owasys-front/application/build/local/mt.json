@@ -1,0 +1,11 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "mt",
+    "scope": "build",
+    "messages": {
+        "build.preview_button": "Ara s-sit",
+        "build.preview_failed": "Is-server tal-iżvilupp ma setax jinbeda."
+    },
+    "plurals": [],
+    "grammatical": []
+}

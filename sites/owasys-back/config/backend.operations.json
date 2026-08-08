@@ -77,6 +77,31 @@
                 }
             ]
         },
+        "site.dev-server.start": {
+            "composer_script": "opus:dev-server",
+            "roles": [
+                "admin",
+                "developer"
+            ],
+            "arguments": [
+                {
+                    "name": "site_id",
+                    "required": true,
+                    "pattern": "^[a-z][a-z0-9-]*$",
+                    "max_length": 64
+                },
+                {
+                    "name": "background",
+                    "flag": "--background",
+                    "type": "boolean"
+                },
+                {
+                    "name": "auto_port",
+                    "flag": "--auto-port",
+                    "type": "boolean"
+                }
+            ]
+        },
         "site.routes.list": {
             "composer_script": "opus:list-routes",
             "roles": [

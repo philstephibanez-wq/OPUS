@@ -658,11 +658,14 @@ final class SiteCommandService implements SiteCommandServiceInterface
         ];
     }
 
+    /** @return array<string,mixed>|int */
     public function devServer(
         string $applicationId,
         string $host,
-        int $port
-    ): int {
+        int $port,
+        bool $background = false,
+        bool $autoPort = false
+    ): array|int {
         $applicationId = $this->siteId($applicationId);
         $siteRoot = $this->siteRoot($applicationId);
         $site = $this->loader->read($siteRoot . '/config/site.json');
@@ -694,12 +697,24 @@ final class SiteCommandService implements SiteCommandServiceInterface
                 $environment
             );
         }
-        [$host, $port] = $this->developmentServerBinding(
-            $host,
-            $port,
-            $development,
-            $environment
-        );
+
+        if ($autoPort) {
+            if (!$background) {
+                throw new OpusConsoleException(
+                    'OPUS_DEV_SERVER_AUTO_PORT_REQUIRES_BACKGROUND'
+                );
+            }
+            $host = '127.0.0.1';
+            $port = $this->availableDevelopmentPort(8000, 8999);
+        } else {
+            [$host, $port] = $this->developmentServerBinding(
+                $host,
+                $port,
+                $development,
+                $environment
+            );
+        }
+
         $this->assertDevelopmentDerivedSecretHost($site, $host);
         $environment = $this->developmentNetworkEnvironment(
             $applicationId,
@@ -709,12 +724,7 @@ final class SiteCommandService implements SiteCommandServiceInterface
             $environment
         );
         $environment['OPUS_ENV'] = 'dev';
-        fwrite(
-            STDOUT,
-            'OPUS_DEV_SERVER_APPLICATION:' . $applicationId . PHP_EOL
-            . 'OPUS_DEV_SERVER_URL:' . $this->developmentUrl($host, $port)
-            . PHP_EOL
-        );
+
         $this->resetDevelopmentDiagnostics(
             $applicationId,
             $siteRoot,
@@ -726,6 +736,41 @@ final class SiteCommandService implements SiteCommandServiceInterface
             $development,
             $host,
             $port
+        );
+
+        if ($background) {
+            if (!in_array(
+                strtolower($host),
+                ['127.0.0.1', 'localhost', '::1'],
+                true
+            )) {
+                throw new OpusConsoleException(
+                    'OPUS_DEV_SERVER_BACKGROUND_HOST_NOT_LOCAL'
+                );
+            }
+            $this->startBackgroundDevelopmentServer(
+                $host,
+                $port,
+                $publicRoot,
+                $router,
+                $environment
+            );
+            return [
+                'contract' => 'OPUS_CONSOLE_DEV_SERVER_START_RESULT_V1',
+                'application_id' => $applicationId,
+                'host' => $host,
+                'port' => $port,
+                'url' => $this->developmentUrl($host, $port),
+                'background' => true,
+                'started' => true,
+            ];
+        }
+
+        fwrite(
+            STDOUT,
+            'OPUS_DEV_SERVER_APPLICATION:' . $applicationId . PHP_EOL
+            . 'OPUS_DEV_SERVER_URL:' . $this->developmentUrl($host, $port)
+            . PHP_EOL
         );
         $process = proc_open(
             [
@@ -748,6 +793,121 @@ final class SiteCommandService implements SiteCommandServiceInterface
             );
         }
         return (int) proc_close($process);
+    }
+
+    private function availableDevelopmentPort(int $first, int $last): int
+    {
+        for ($port = $first; $port <= $last; ++$port) {
+            if (!$this->developmentPortOpen('127.0.0.1', $port)) {
+                return $port;
+            }
+        }
+        throw new OpusConsoleException('OPUS_DEV_SERVER_AUTO_PORT_EXHAUSTED');
+    }
+
+    private function developmentPortOpen(string $host, int $port): bool
+    {
+        $errorCode = 0;
+        $errorMessage = '';
+        $stream = @fsockopen($host, $port, $errorCode, $errorMessage, 0.05);
+        if (!is_resource($stream)) {
+            return false;
+        }
+        fclose($stream);
+        return true;
+    }
+
+    /** @param array<string,string> $environment */
+    private function startBackgroundDevelopmentServer(
+        string $host,
+        int $port,
+        string $publicRoot,
+        string $router,
+        array $environment
+    ): void {
+        $null = PHP_OS_FAMILY === 'Windows' ? 'NUL' : '/dev/null';
+        $descriptors = [
+            0 => ['file', $null, 'r'],
+            1 => ['file', $null, 'a'],
+            2 => ['file', $null, 'a'],
+        ];
+
+        if (PHP_OS_FAMILY === 'Windows') {
+            $comspec = trim((string) getenv('COMSPEC'));
+            $comspec = $comspec === '' ? 'cmd.exe' : $comspec;
+            $command = 'start "" /B '
+                . $this->windowsDevelopmentArgument(PHP_BINARY)
+                . ' -S '
+                . $this->windowsDevelopmentArgument($host . ':' . $port)
+                . ' -t '
+                . $this->windowsDevelopmentArgument($publicRoot)
+                . ' '
+                . $this->windowsDevelopmentArgument($router)
+                . ' >NUL 2>NUL <NUL';
+            $process = proc_open(
+                [$comspec, '/D', '/S', '/C', $command],
+                $descriptors,
+                $pipes,
+                $this->opusRoot,
+                $environment,
+                ['bypass_shell' => true, 'create_new_console' => true]
+            );
+        } else {
+            $process = proc_open(
+                [
+                    '/bin/sh',
+                    '-c',
+                    'nohup "$1" -S "$2" -t "$3" "$4" '
+                        . '>/dev/null 2>&1 </dev/null &',
+                    'opus-dev-server',
+                    PHP_BINARY,
+                    $host . ':' . $port,
+                    $publicRoot,
+                    $router,
+                ],
+                $descriptors,
+                $pipes,
+                $this->opusRoot,
+                $environment,
+                ['bypass_shell' => true]
+            );
+        }
+
+        if (!is_resource($process)) {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_BACKGROUND_PROCESS_START_FAILED'
+            );
+        }
+        $exitCode = proc_close($process);
+        if ($exitCode !== 0) {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_BACKGROUND_LAUNCH_FAILED'
+            );
+        }
+
+        for ($attempt = 0; $attempt < 50; ++$attempt) {
+            if ($this->developmentPortOpen($host, $port)) {
+                return;
+            }
+            usleep(100000);
+        }
+        throw new OpusConsoleException(
+            'OPUS_DEV_SERVER_BACKGROUND_NOT_READY'
+        );
+    }
+
+    private function windowsDevelopmentArgument(string $value): string
+    {
+        if ($value === ''
+            || str_contains($value, '"')
+            || str_contains($value, "\r")
+            || str_contains($value, "\n")
+            || str_contains($value, "\0")) {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_WINDOWS_ARGUMENT_INVALID'
+            );
+        }
+        return '"' . $value . '"';
     }
 
     /**

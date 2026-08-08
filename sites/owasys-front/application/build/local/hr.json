@@ -1,0 +1,11 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "hr",
+    "scope": "build",
+    "messages": {
+        "build.preview_button": "Pregledaj web-mjesto",
+        "build.preview_failed": "Razvojni poslužitelj nije moguće pokrenuti."
+    },
+    "plurals": [],
+    "grammatical": []
+}

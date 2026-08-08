@@ -1,0 +1,16 @@
+<section class="ow-card">
+  <h2>[[ i18n: menu.build ]]</h2>
+  <p class="ow-muted">[[ i18n: state.default.summary ]]</p>
+  [[ if: build.can_preview ]]
+    <form method="post" action="{{ urls.current }}">
+      <input type="hidden" name="owasys_action" value="start-development-server">
+      <button class="ow-button" type="submit">[[ i18n: build.preview_button ]]</button>
+    </form>
+  [[ endif ]]
+  [[ if: build.preview_started ]]
+    <p><a class="ow-button ow-button-secondary" href="{{ build.preview_url }}" target="_blank" rel="noopener noreferrer">[[ i18n: build.preview_button ]]</a></p>
+  [[ endif ]]
+  [[ if: build.preview_failed ]]
+    <p class="ow-error">[[ i18n: build.preview_failed ]]</p>
+  [[ endif ]]
+</section>

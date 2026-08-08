@@ -1,0 +1,11 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "cs",
+    "scope": "build",
+    "messages": {
+        "build.preview_button": "Zobrazit web",
+        "build.preview_failed": "Vývojový server se nepodařilo spustit."
+    },
+    "plurals": [],
+    "grammatical": []
+}
