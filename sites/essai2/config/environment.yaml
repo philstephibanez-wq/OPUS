@@ -1,0 +1,22 @@
+# Configuration d'environnement OPUS.
+# Cette configuration est lue par File + StructuredFileLoader au bootstrap.
+contract: OPUS_PROFILER_ENVIRONMENT_CONFIG_V1
+
+# dev est le seul environnement autorisant le Web Profiler.
+# En production, profiler.web.enabled ou profiler.web.links à true est refusé.
+environment: dev
+
+profiler:
+  # Active la collecte des mesures Profiler.
+  # En production, la valeur recommandée est false.
+  collect: true
+
+  web:
+    # Enregistre la route Web Profiler générique OPUS.
+    # Cette option est autorisée uniquement avec environment: dev.
+    enabled: true
+
+    # Injecte le lien de la trace courante dans le ViewModel SCORE.
+    # false conserve la collecte et l'URL directe sans afficher de lien,
+    # ce qui permet de visualiser la page comme en production.
+    links: false

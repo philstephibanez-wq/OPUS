@@ -1,0 +1,14 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "pl",
+    "scope": "login",
+    "messages": {
+        "page.title": "Logowanie",
+        "page.subtitle": "Moduł OPUS sterowany przez FSM: login",
+        "auth.username": "Username",
+        "auth.password": "Password",
+        "auth.submit": "Logowanie",
+        "auth.error": "Authentication failed."
+    }
+}
+

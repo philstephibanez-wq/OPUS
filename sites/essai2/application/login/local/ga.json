@@ -1,0 +1,14 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "ga",
+    "scope": "login",
+    "messages": {
+        "page.title": "Sínigh isteach",
+        "page.subtitle": "Modúl OPUS arna rialú ag FSM: login",
+        "auth.username": "Username",
+        "auth.password": "Password",
+        "auth.submit": "Sínigh isteach",
+        "auth.error": "Authentication failed."
+    }
+}
+

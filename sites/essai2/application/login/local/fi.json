@@ -1,0 +1,14 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "fi",
+    "scope": "login",
+    "messages": {
+        "page.title": "Kirjaudu",
+        "page.subtitle": "FSM-ohjattu OPUS-moduuli: login",
+        "auth.username": "Username",
+        "auth.password": "Password",
+        "auth.submit": "Kirjaudu",
+        "auth.error": "Authentication failed."
+    }
+}
+

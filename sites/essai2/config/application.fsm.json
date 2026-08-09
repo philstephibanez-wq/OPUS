@@ -1,0 +1,54 @@
+{
+    "contract": "OPUS_APPLICATION_FSM_V1",
+    "name": "essai2.application",
+    "site_id": "essai2",
+    "initial_state": "home",
+    "states": [
+        {
+            "id": "home",
+            "module": "home",
+            "route": "/",
+            "title_key": "menu.home",
+            "summary_key": "page.subtitle",
+            "navigation": {
+                "label": "menu.home"
+            }
+        },
+        {
+            "id": "login",
+            "module": "login",
+            "route": "/login",
+            "title_key": "menu.login",
+            "summary_key": "page.subtitle",
+            "navigation": {
+                "label": "menu.login"
+            }
+        }
+    ],
+    "transitions": [
+        {
+            "id": "open.home",
+            "from": "*",
+            "signal": "open_home",
+            "next_state": "home",
+            "guards": [
+                "route_exists"
+            ],
+            "actions": [
+                "render_route"
+            ]
+        },
+        {
+            "id": "open.login",
+            "from": "*",
+            "signal": "open_login",
+            "next_state": "login",
+            "guards": [
+                "route_exists"
+            ],
+            "actions": [
+                "render_route"
+            ]
+        }
+    ]
+}

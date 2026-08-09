@@ -1,0 +1,14 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "sv",
+    "scope": "login",
+    "messages": {
+        "page.title": "Logga in",
+        "page.subtitle": "FSM-styrd OPUS-modul: login",
+        "auth.username": "Username",
+        "auth.password": "Password",
+        "auth.submit": "Logga in",
+        "auth.error": "Authentication failed."
+    }
+}
+

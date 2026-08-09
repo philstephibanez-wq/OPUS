@@ -1,0 +1,14 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "sl",
+    "scope": "login",
+    "messages": {
+        "page.title": "Prijava",
+        "page.subtitle": "Modul OPUS, ki ga upravlja FSM: login",
+        "auth.username": "Username",
+        "auth.password": "Password",
+        "auth.submit": "Prijava",
+        "auth.error": "Authentication failed."
+    }
+}
+

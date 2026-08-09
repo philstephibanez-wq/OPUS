@@ -1,0 +1,14 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "et",
+    "scope": "home",
+    "messages": {
+        "page.title": "Avaleht",
+        "page.subtitle": "FSM-i juhitud OPUS-moodul: home",
+        "auth.username": "Username",
+        "auth.password": "Password",
+        "auth.submit": "Logi sisse",
+        "auth.error": "Authentication failed."
+    }
+}
+

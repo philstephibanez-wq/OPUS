@@ -1,0 +1,16 @@
+{
+    "contract": "OPUS_SECURITY_ONBOARDING_V1",
+    "provider": "local-password",
+    "identities": [
+        {
+            "subject": "steve",
+            "roles": [
+                "admin"
+            ],
+            "status": "password-setup-required"
+        }
+    ],
+    "secrets_versioned": false,
+    "runtime_store": "var/auth/local-users.json"
+}
+

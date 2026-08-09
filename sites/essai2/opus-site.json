@@ -1,0 +1,7 @@
+{
+    "site_id": "essai2",
+    "contract": "OPUS_SITE_STANDARD_CONTRACT_CORE",
+    "dispatch_model": "fsm-module-first",
+    "application_profile": "fullstack"
+}
+

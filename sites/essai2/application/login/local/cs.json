@@ -1,0 +1,14 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "cs",
+    "scope": "login",
+    "messages": {
+        "page.title": "Přihlášení",
+        "page.subtitle": "Modul OPUS řízený FSM: login",
+        "auth.username": "Username",
+        "auth.password": "Password",
+        "auth.submit": "Přihlášení",
+        "auth.error": "Authentication failed."
+    }
+}
+

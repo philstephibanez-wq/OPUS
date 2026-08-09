@@ -1,0 +1,14 @@
+{
+    "contract": "OPUS_MENU_REGISTRY_V1",
+    "items": [
+        {
+            "route": "home.index",
+            "label": "menu.home"
+        },
+        {
+            "route": "login.index",
+            "label": "menu.login"
+        }
+    ]
+}
+

@@ -1,0 +1,14 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "el",
+    "scope": "login",
+    "messages": {
+        "page.title": "Σύνδεση",
+        "page.subtitle": "Μονάδα OPUS ελεγχόμενη από FSM: login",
+        "auth.username": "Username",
+        "auth.password": "Password",
+        "auth.submit": "Σύνδεση",
+        "auth.error": "Authentication failed."
+    }
+}
+

@@ -1,0 +1,14 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "mt",
+    "scope": "login",
+    "messages": {
+        "page.title": "Idħol",
+        "page.subtitle": "Modulu OPUS immexxi minn FSM: login",
+        "auth.username": "Username",
+        "auth.password": "Password",
+        "auth.submit": "Idħol",
+        "auth.error": "Authentication failed."
+    }
+}
+
