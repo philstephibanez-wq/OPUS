@@ -7,8 +7,9 @@ use Opus\Fsm\FsmSessionStore;
 use Opus\Fsm\FsmSiteLoader;
 use Opus\I18n\BrowserLocaleNegotiator;
 use Opus\Profiler\ProfilerInterface;
+use Opus\Security\Csrf\CsrfTokenManager;
 
-/** Read-only security workspace for the currently selected OPUS application. */
+/** Security workspace for the currently selected OPUS application. */
 final class OwasysSecurityController
 {
     private const FSM_SESSION_KEY = 'opus.fsm.owasys-front';
@@ -22,6 +23,7 @@ final class OwasysSecurityController
 
     private readonly OwasysLocaleRegistry $locales;
     private readonly OwasysNavigationBuilder $navigation;
+    private readonly CsrfTokenManager $csrf;
 
     /** @param array<string,mixed> $siteConfig */
     public function __construct(
@@ -36,6 +38,7 @@ final class OwasysSecurityController
     ) {
         $this->locales = new OwasysLocaleRegistry($siteConfig);
         $this->navigation = new OwasysNavigationBuilder($security);
+        $this->csrf = new CsrfTokenManager();
     }
 
     public function matchesCurrentRequest(): bool
@@ -82,12 +85,79 @@ final class OwasysSecurityController
         if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $siteId) !== 1) {
             throw new RuntimeException('OWASYS_SECURITY_CURRENT_APP_INVALID');
         }
-        $snapshot = $this->security->securitySnapshot($identity, $siteId);
         $view = strtolower(trim((string) ($_GET['view'] ?? 'identities')));
         if (!in_array($view, self::VIEWS, true)) {
             throw new RuntimeException('OWASYS_SECURITY_VIEW_INVALID');
         }
 
+        $mutationResult = null;
+        $mutationError = null;
+        $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
+        if ($method === 'POST') {
+            try {
+                $this->security->assertAllowed(
+                    $identity,
+                    'security',
+                    'manage'
+                );
+                $this->csrf->assertValid(
+                    $this->csrfScope($siteId),
+                    (string) ($_POST['owasys_csrf_token'] ?? '')
+                );
+                $phase = strtolower(trim((string) (
+                    $_POST['owasys_security_phase'] ?? ''
+                )));
+                if (!in_array($phase, ['preview', 'commit'], true)) {
+                    throw new RuntimeException(
+                        'OWASYS_SECURITY_MUTATION_PHASE_INVALID'
+                    );
+                }
+                $mutation = $this->mutationFromPost($view, $_POST);
+                $reason = trim((string) (
+                    $_POST['owasys_security_reason'] ?? ''
+                ));
+                $reauthenticatedAt = $this->security->reauthenticate(
+                    $identity,
+                    (string) ($_POST['owasys_reauth_password'] ?? '')
+                );
+                unset($_POST['owasys_reauth_password']);
+
+                if ($phase === 'preview') {
+                    $mutationResult = $this->security
+                        ->previewSecurityMutation(
+                            $identity,
+                            $siteId,
+                            $mutation,
+                            $reason,
+                            $reauthenticatedAt
+                        );
+                } else {
+                    $mutationResult = $this->security
+                        ->commitSecurityMutation(
+                            $identity,
+                            $siteId,
+                            $mutation,
+                            $reason,
+                            $reauthenticatedAt,
+                            (string) (
+                                $_POST['owasys_expected_state_hash'] ?? ''
+                            ),
+                            (string) (
+                                $_POST['owasys_confirmation_token'] ?? ''
+                            )
+                        );
+                }
+            } catch (RuntimeException $error) {
+                unset($_POST['owasys_reauth_password']);
+                $mutationError = $this->safeMutationError($error);
+            }
+        } elseif ($method !== 'GET') {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_HTTP_METHOD_NOT_ALLOWED'
+            );
+        }
+
+        $snapshot = $this->security->securitySnapshot($identity, $siteId);
         $this->render(
             $fsmConfig,
             $state,
@@ -95,7 +165,9 @@ final class OwasysSecurityController
             $identity,
             $currentApp,
             $snapshot,
-            $view
+            $view,
+            $mutationResult,
+            $mutationError
         );
     }
 
@@ -141,6 +213,7 @@ final class OwasysSecurityController
      * @param array<string,mixed> $identity
      * @param array<string,mixed> $currentApp
      * @param array<string,mixed> $snapshot
+     * @param array<string,mixed>|null $mutationResult
      */
     private function render(
         array $fsmConfig,
@@ -149,7 +222,9 @@ final class OwasysSecurityController
         array $identity,
         array $currentApp,
         array $snapshot,
-        string $view
+        string $view,
+        ?array $mutationResult,
+        ?string $mutationError
     ): void {
         $basePath = $this->basePath();
         $routeUrl = fn (string $target): string => $this->routeUrl(
@@ -162,6 +237,19 @@ final class OwasysSecurityController
         $application = is_array($snapshot['application'] ?? null)
             ? $snapshot['application']
             : [];
+        $capabilities = is_array(
+            $snapshot['mutation_capabilities'] ?? null
+        ) ? $snapshot['mutation_capabilities'] : [];
+        $canManage = $this->security->isAllowed(
+            $identity,
+            'security',
+            'manage'
+        );
+        $targetMutable = ($capabilities['target_mutable'] ?? false) === true;
+        $reauthSupported = (string) ($identity['provider'] ?? '')
+            === 'local-password';
+        $canMutate = $canManage && $targetMutable && $reauthSupported;
+        $mutationView = $this->mutationView($mutationResult);
 
         $data = [
             'page' => ['title' => '', 'summary' => ''],
@@ -244,7 +332,36 @@ final class OwasysSecurityController
                 'error_runtime_user_missing' => false,
             ],
             'security' => [
-                'read_only' => true,
+                'read_only' => !$canMutate,
+                'can_mutate' => $canMutate,
+                'cannot_mutate' => !$canMutate,
+                'target_protected' => !$targetMutable,
+                'reauth_unsupported' => $canManage
+                    && $targetMutable
+                    && !$reauthSupported,
+                'identity_reference_supported' => $canMutate
+                    && ($capabilities['identity_reference'] ?? false) === true,
+                'role_create_supported' => $canMutate
+                    && ($capabilities['role_create'] ?? false) === true,
+                'permission_grant_supported' => $canMutate
+                    && ($capabilities['permission_grant'] ?? false) === true,
+                'assignment_grant_supported' => $canMutate
+                    && ($capabilities['assignment_grant'] ?? false) === true,
+                'assignment_grant_unsupported' => $canMutate
+                    && ($capabilities['assignment_grant'] ?? false) !== true,
+                'resource_allow_supported' => $canMutate
+                    && ($capabilities['resource_allow'] ?? false) === true,
+                'destructive_mutations_supported' =>
+                    ($capabilities['destructive_mutations'] ?? false) === true,
+                'mutation_preview' => is_array($mutationResult)
+                    && ($mutationResult['contract'] ?? null)
+                        === 'OWASYS_SECURITY_MUTATION_PREVIEW_V1',
+                'mutation_committed' => is_array($mutationResult)
+                    && ($mutationResult['contract'] ?? null)
+                        === 'OWASYS_SECURITY_MUTATION_COMMIT_V1',
+                'mutation_error' => is_string($mutationError)
+                    && $mutationError !== '',
+                'mutation_error_code' => (string) ($mutationError ?? ''),
                 'view_identities' => $view === 'identities',
                 'view_roles' => $view === 'roles',
                 'view_permissions' => $view === 'permissions',
@@ -320,6 +437,25 @@ final class OwasysSecurityController
                     'resources'
                 ),
             ],
+            'csrf' => [
+                'token' => $this->csrf->issue($this->csrfScope(
+                    (string) ($application['id'] ?? '')
+                )),
+            ],
+            'mutation' => $mutationView,
+            'mutation_diff' => $this->mutationRows(
+                $mutationResult,
+                'diff'
+            ),
+            'mutation_gained' => $this->mutationStrings(
+                $mutationResult,
+                'access_delta',
+                'gained'
+            ),
+            'mutation_affected' => $this->mutationStrings(
+                $mutationResult,
+                'affected_subjects'
+            ),
             'providers' => $this->normalizeProviders(
                 $this->rows($snapshot, 'providers')
             ),
@@ -459,6 +595,184 @@ final class OwasysSecurityController
             ],
             $rows
         );
+    }
+
+    /** @param array<string,mixed> $post @return array<string,string> */
+    private function mutationFromPost(string $view, array $post): array
+    {
+        $type = strtolower(trim((string) (
+            $post['owasys_security_mutation'] ?? ''
+        )));
+        $allowed = match ($view) {
+            'identities' => ['identity.reference'],
+            'roles' => ['role.create'],
+            'permissions' => ['permission.grant'],
+            'assignments' => ['assignment.grant'],
+            'resources' => ['resource.allow'],
+            default => [],
+        };
+        if (!in_array($type, $allowed, true)) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_MUTATION_VIEW_MISMATCH'
+            );
+        }
+        return match ($type) {
+            'identity.reference' => [
+                'type' => $type,
+                'provider' => trim((string) (
+                    $post['owasys_security_provider'] ?? ''
+                )),
+                'subject' => trim((string) (
+                    $post['owasys_security_subject'] ?? ''
+                )),
+            ],
+            'role.create' => [
+                'type' => $type,
+                'role' => trim((string) (
+                    $post['owasys_security_role'] ?? ''
+                )),
+            ],
+            'permission.grant' => [
+                'type' => $type,
+                'role' => trim((string) (
+                    $post['owasys_security_role'] ?? ''
+                )),
+                'permission' => trim((string) (
+                    $post['owasys_security_permission'] ?? ''
+                )),
+            ],
+            'assignment.grant' => [
+                'type' => $type,
+                'subject' => trim((string) (
+                    $post['owasys_security_subject'] ?? ''
+                )),
+                'role' => trim((string) (
+                    $post['owasys_security_role'] ?? ''
+                )),
+            ],
+            'resource.allow' => [
+                'type' => $type,
+                'resource' => trim((string) (
+                    $post['owasys_security_resource'] ?? ''
+                )),
+                'action' => trim((string) (
+                    $post['owasys_security_action'] ?? ''
+                )),
+                'role' => trim((string) (
+                    $post['owasys_security_role'] ?? ''
+                )),
+            ],
+            default => throw new RuntimeException(
+                'OWASYS_SECURITY_MUTATION_TYPE_INVALID'
+            ),
+        };
+    }
+
+    /**
+     * @param array<string,mixed>|null $result
+     * @return array<string,mixed>
+     */
+    private function mutationView(?array $result): array
+    {
+        $mutation = is_array($result['mutation'] ?? null)
+            ? $result['mutation']
+            : [];
+        return [
+            'type' => (string) ($mutation['type'] ?? ''),
+            'provider' => (string) ($mutation['provider'] ?? ''),
+            'subject' => (string) ($mutation['subject'] ?? ''),
+            'role' => (string) ($mutation['role'] ?? ''),
+            'permission' => (string) ($mutation['permission'] ?? ''),
+            'resource' => (string) ($mutation['resource'] ?? ''),
+            'action' => (string) ($mutation['action'] ?? ''),
+            'reason' => (string) ($result['reason'] ?? ''),
+            'expected_state_hash' => (string) (
+                $result['current_state_hash']
+                ?? $result['before_state_hash']
+                ?? ''
+            ),
+            'proposed_state_hash' => (string) (
+                $result['proposed_state_hash']
+                ?? $result['after_state_hash']
+                ?? ''
+            ),
+            'confirmation_token' => (string) (
+                $result['confirmation_token'] ?? ''
+            ),
+            'files' => implode(', ', array_values(array_filter(
+                is_array($result['files'] ?? null)
+                    ? $result['files']
+                    : (is_array($result['files_written'] ?? null)
+                        ? $result['files_written']
+                        : []),
+                'is_string'
+            ))),
+        ];
+    }
+
+    /**
+     * @param array<string,mixed>|null $result
+     * @return list<array<string,string>>
+     */
+    private function mutationRows(?array $result, string $key): array
+    {
+        if (!is_array($result)) {
+            return [];
+        }
+        $rows = is_array($result[$key] ?? null) ? $result[$key] : [];
+        $normalized = [];
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $normalized[] = [
+                'path' => (string) ($row['path'] ?? ''),
+                'summary' => (string) ($row['summary'] ?? ''),
+            ];
+        }
+        return $normalized;
+    }
+
+    /**
+     * @param array<string,mixed>|null $result
+     * @return list<array{value:string}>
+     */
+    private function mutationStrings(
+        ?array $result,
+        string $key,
+        ?string $nested = null
+    ): array {
+        if (!is_array($result)) {
+            return [];
+        }
+        $values = $result[$key] ?? [];
+        if ($nested !== null) {
+            $values = is_array($values) ? ($values[$nested] ?? []) : [];
+        }
+        if (!is_array($values)) {
+            return [];
+        }
+        return array_map(
+            static fn (string $value): array => ['value' => $value],
+            array_values(array_filter($values, 'is_string'))
+        );
+    }
+
+    private function csrfScope(string $siteId): string
+    {
+        $siteId = strtolower(trim($siteId));
+        if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $siteId) !== 1) {
+            throw new RuntimeException('OWASYS_SECURITY_CURRENT_APP_INVALID');
+        }
+        return 'owasys.security.mutation.' . $siteId;
+    }
+
+    private function safeMutationError(RuntimeException $error): string
+    {
+        $message = trim($error->getMessage());
+        return preg_match('/^[A-Z0-9_:-]{3,240}$/D', $message) === 1
+            ? $message
+            : 'OWASYS_SECURITY_MUTATION_FAILED';
     }
 
     /** @return array{0:string,1:string} */

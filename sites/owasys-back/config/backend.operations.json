@@ -311,6 +311,96 @@
                 }
             ]
         },
+        "security.mutation.preview": {
+            "composer_script": "owasys:security-mutation-preview",
+            "roles": [
+                "admin"
+            ],
+            "arguments": [
+                {
+                    "name": "site_id",
+                    "required": true,
+                    "pattern": "^[a-z][a-z0-9-]*$",
+                    "max_length": 64
+                },
+                {
+                    "name": "mutation_json",
+                    "required": true,
+                    "transport": "request",
+                    "trim": false,
+                    "max_length": 16384
+                },
+                {
+                    "name": "reason",
+                    "required": true,
+                    "transport": "request",
+                    "trim": true,
+                    "pattern": "^[^\\x00-\\x1F\\x7F]{3,200}$",
+                    "max_length": 200
+                },
+                {
+                    "name": "reauthenticated_at",
+                    "required": true,
+                    "transport": "request",
+                    "trim": true,
+                    "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\+00:00|Z)$",
+                    "max_length": 32
+                }
+            ]
+        },
+        "security.mutation.commit": {
+            "composer_script": "owasys:security-mutation-commit",
+            "roles": [
+                "admin"
+            ],
+            "arguments": [
+                {
+                    "name": "site_id",
+                    "required": true,
+                    "pattern": "^[a-z][a-z0-9-]*$",
+                    "max_length": 64
+                },
+                {
+                    "name": "mutation_json",
+                    "required": true,
+                    "transport": "request",
+                    "trim": false,
+                    "max_length": 16384
+                },
+                {
+                    "name": "reason",
+                    "required": true,
+                    "transport": "request",
+                    "trim": true,
+                    "pattern": "^[^\\x00-\\x1F\\x7F]{3,200}$",
+                    "max_length": 200
+                },
+                {
+                    "name": "reauthenticated_at",
+                    "required": true,
+                    "transport": "request",
+                    "trim": true,
+                    "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\+00:00|Z)$",
+                    "max_length": 32
+                },
+                {
+                    "name": "expected_state_hash",
+                    "required": true,
+                    "transport": "request",
+                    "trim": true,
+                    "pattern": "^[a-f0-9]{64}$",
+                    "max_length": 64
+                },
+                {
+                    "name": "confirmation_token",
+                    "required": true,
+                    "transport": "request",
+                    "trim": true,
+                    "pattern": "^[a-f0-9]{64}$",
+                    "max_length": 64
+                }
+            ]
+        },
         "source.list": {
             "composer_script": "owasys:source-list",
             "roles": [

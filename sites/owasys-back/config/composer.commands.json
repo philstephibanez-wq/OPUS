@@ -11,7 +11,9 @@
                 "owasys:registry:select",
                 "owasys:registry:clear",
                 "owasys:security:admin-password:change",
-                "owasys:security:snapshot"
+                "owasys:security:snapshot",
+                "owasys:security:mutation-preview",
+                "owasys:security:mutation-commit"
             ]
         },
         {
@@ -48,6 +50,8 @@
         "owasys:registry-clear": "owasys:registry:clear",
         "owasys:admin-password-change": "owasys:security:admin-password:change",
         "owasys:security-snapshot": "owasys:security:snapshot",
+        "owasys:security-mutation-preview": "owasys:security:mutation-preview",
+        "owasys:security-mutation-commit": "owasys:security:mutation-commit",
         "owasys:source-list": "owasys:source:list",
         "owasys:source-read": "owasys:source:read",
         "owasys:source-browse": "owasys:source:browse",

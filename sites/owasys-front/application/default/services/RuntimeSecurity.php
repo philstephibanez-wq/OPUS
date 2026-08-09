@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use Opus\File\Json;
 use Opus\File\StructuredFileLoader;
 use Opus\Api\Rest\RestClient;
 use Opus\Api\Rest\RestClientInterface;
@@ -232,6 +233,132 @@ final class OwasysRuntimeSecurity
         return $result;
     }
 
+    /** @param array<string,mixed> $identity */
+    public function reauthenticate(
+        array $identity,
+        string $password
+    ): string {
+        $provider = trim((string) (
+            $identity['provider'] ?? $this->defaultProvider
+        ));
+        $subject = trim((string) (
+            $identity['subject'] ?? $identity['id'] ?? ''
+        ));
+        if ($provider !== 'local-password') {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_MUTATION_REAUTH_PROVIDER_UNSUPPORTED'
+            );
+        }
+        if ($subject === '' || $password === '') {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_MUTATION_REAUTH_REQUIRED'
+            );
+        }
+        try {
+            $candidate = $this->sso->authenticate(
+                'local-password',
+                [
+                    'username' => $subject,
+                    'password' => $password,
+                ]
+            );
+        } finally {
+            unset($password);
+        }
+        if ($candidate->subject !== $subject) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_MUTATION_REAUTH_IDENTITY_MISMATCH'
+            );
+        }
+        return gmdate('Y-m-d\\TH:i:s\\Z');
+    }
+
+    /**
+     * @param array<string,mixed> $identity
+     * @param array<string,mixed> $mutation
+     * @return array<string,mixed>
+     */
+    public function previewSecurityMutation(
+        array $identity,
+        string $siteId,
+        array $mutation,
+        string $reason,
+        string $reauthenticatedAt
+    ): array {
+        $siteId = $this->securitySiteId($siteId);
+        $result = $this->rest->request(
+            'POST',
+            '/api/v1/applications/'
+                . rawurlencode($siteId)
+                . '/security/previews',
+            [
+                'mutation_json' => Json::instance()->encode(
+                    $mutation,
+                    false
+                ),
+                'reason' => $reason,
+                'reauthenticated_at' => $reauthenticatedAt,
+            ],
+            $this->restActor($identity)
+        );
+        if (($result['contract'] ?? null)
+            !== 'OWASYS_SECURITY_MUTATION_PREVIEW_V1') {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_MUTATION_PREVIEW_CONTRACT_INVALID'
+            );
+        }
+        if ((string) ($result['application']['id'] ?? '') !== $siteId) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_MUTATION_APPLICATION_MISMATCH'
+            );
+        }
+        return $result;
+    }
+
+    /**
+     * @param array<string,mixed> $identity
+     * @param array<string,mixed> $mutation
+     * @return array<string,mixed>
+     */
+    public function commitSecurityMutation(
+        array $identity,
+        string $siteId,
+        array $mutation,
+        string $reason,
+        string $reauthenticatedAt,
+        string $expectedStateHash,
+        string $confirmationToken
+    ): array {
+        $siteId = $this->securitySiteId($siteId);
+        $result = $this->rest->request(
+            'PATCH',
+            '/api/v1/applications/' . rawurlencode($siteId) . '/security',
+            [
+                'mutation_json' => Json::instance()->encode(
+                    $mutation,
+                    false
+                ),
+                'reason' => $reason,
+                'reauthenticated_at' => $reauthenticatedAt,
+                'expected_state_hash' => $expectedStateHash,
+                'confirmation_token' => $confirmationToken,
+            ],
+            $this->restActor($identity)
+        );
+        if (($result['contract'] ?? null)
+            !== 'OWASYS_SECURITY_MUTATION_COMMIT_V1') {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_MUTATION_COMMIT_CONTRACT_INVALID'
+            );
+        }
+        if ((string) ($result['application']['id'] ?? '') !== $siteId) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_MUTATION_APPLICATION_MISMATCH'
+            );
+        }
+        return $result;
+    }
+
     /** @param array<string,mixed> $identity @return array<string,mixed> */
     public function startDevelopmentServer(
         array $identity,
@@ -314,6 +441,31 @@ final class OwasysRuntimeSecurity
             : [];
 
         return $this->acl->decide($roles, $resource, $action);
+    }
+
+    /** @param array<string,mixed> $identity @return array<string,mixed> */
+    private function restActor(array $identity): array
+    {
+        return [
+            'subject' => (string) (
+                $identity['subject'] ?? $identity['id'] ?? ''
+            ),
+            'roles' => is_array($identity['roles'] ?? null)
+                ? $identity['roles']
+                : [],
+            'provider' => (string) (
+                $identity['provider'] ?? $this->defaultProvider
+            ),
+        ];
+    }
+
+    private function securitySiteId(string $siteId): string
+    {
+        $siteId = strtolower(trim($siteId));
+        if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $siteId) !== 1) {
+            throw new RuntimeException('OWASYS_SECURITY_SITE_ID_INVALID');
+        }
+        return $siteId;
     }
 
     private function safeRelativePath(string $path, string $error): string

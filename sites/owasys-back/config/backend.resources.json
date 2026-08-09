@@ -89,6 +89,18 @@
             "success_status": 200
         },
         {
+            "method": "POST",
+            "path": "/api/v1/applications/{site_id}/security/previews",
+            "operation": "security.mutation.preview",
+            "success_status": 200
+        },
+        {
+            "method": "PATCH",
+            "path": "/api/v1/applications/{site_id}/security",
+            "operation": "security.mutation.commit",
+            "success_status": 200
+        },
+        {
             "method": "GET",
             "path": "/api/v1/applications/{site_id}/sources",
             "operation": "source.list",

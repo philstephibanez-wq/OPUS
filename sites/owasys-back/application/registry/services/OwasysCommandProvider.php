@@ -19,6 +19,8 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
         'owasys:registry:clear' => true,
         'owasys:security:admin-password:change' => true,
         'owasys:security:snapshot' => true,
+        'owasys:security:mutation-preview' => true,
+        'owasys:security:mutation-commit' => true,
     ];
 
     private readonly AclPolicy $acl;
@@ -81,6 +83,18 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
                     $arguments,
                     $actor
                 ),
+                'owasys:security:mutation-preview' =>
+                    $this->securityMutationPreview(
+                        $arguments,
+                        $request,
+                        $actor
+                    ),
+                'owasys:security:mutation-commit' =>
+                    $this->securityMutationCommit(
+                        $arguments,
+                        $request,
+                        $actor
+                    ),
                 default => throw new RuntimeException(
                     'OWASYS_COMMAND_UNKNOWN:' . $command
                 ),
@@ -285,6 +299,68 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
 
     /**
      * @param list<string> $arguments
+     * @param array<string,mixed> $request
+     * @param array<string,mixed> $actor
+     * @return array<string,mixed>
+     */
+    private function securityMutationPreview(
+        array $arguments,
+        array $request,
+        array $actor
+    ): array {
+        $this->assertAllowed($actor, 'security', 'manage');
+        $siteId = $this->securityMutationSiteId($arguments);
+        return $this->securityMutationService()->preview(
+            $siteId,
+            $actor,
+            $request
+        );
+    }
+
+    /**
+     * @param list<string> $arguments
+     * @param array<string,mixed> $request
+     * @param array<string,mixed> $actor
+     * @return array<string,mixed>
+     */
+    private function securityMutationCommit(
+        array $arguments,
+        array $request,
+        array $actor
+    ): array {
+        $this->assertAllowed($actor, 'security', 'manage');
+        $siteId = $this->securityMutationSiteId($arguments);
+        return $this->securityMutationService()->commit(
+            $siteId,
+            $actor,
+            $request
+        );
+    }
+
+    /** @param list<string> $arguments */
+    private function securityMutationSiteId(array $arguments): string
+    {
+        $siteId = strtolower(trim((string) ($arguments[0] ?? '')));
+        if (count($arguments) !== 1
+            || preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $siteId) !== 1) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_MUTATION_SITE_ID_INVALID'
+            );
+        }
+        return $siteId;
+    }
+
+    private function securityMutationService():
+        OwasysSecurityMutationServiceInterface {
+        return new OwasysSecurityMutationService(
+            $this->siteRoot,
+            $this->opusRoot,
+            $this->profiler
+        );
+    }
+
+    /**
+     * @param list<string> $arguments
      * @param array<string,mixed> $actor
      * @return array<string,mixed>
      */
@@ -427,6 +503,13 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
                 ),
                 'onboarding_present' => is_array($onboarding),
             ],
+            'mutation_capabilities' =>
+                $this->securityMutationService()->capabilities(
+                    $siteId,
+                    $site,
+                    $acl,
+                    $sso
+                ),
             'providers' => $this->securityProviders($sso),
             'identities' => $identities,
             'roles' => $this->securityRoles($acl, $aclContract),
