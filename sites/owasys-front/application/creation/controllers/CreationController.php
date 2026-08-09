@@ -559,7 +559,6 @@ final class OwasysCreationController
     private function securityDraft(array $draft): array
     {
         $authentication = isset($_POST['owasys_authentication_required']);
-        $login = isset($_POST['owasys_login_page']);
         $provider = strtolower(trim((string) (
             $_POST['owasys_provider'] ?? 'session'
         )));
@@ -572,47 +571,22 @@ final class OwasysCreationController
                 'OWASYS_CREATION_PROVIDER_INVALID'
             );
         }
-        if ($login && !$authentication) {
-            throw new RuntimeException(
-                'OWASYS_CREATION_LOGIN_WITHOUT_AUTH'
-            );
-        }
-        if ($provider === 'local-password' && !$login) {
-            throw new RuntimeException(
-                'OWASYS_CREATION_LOCAL_LOGIN_REQUIRED'
-            );
-        }
-        if ($login && $provider !== 'local-password') {
-            throw new RuntimeException(
-                'OWASYS_CREATION_LOGIN_PROVIDER_INVALID'
-            );
-        }
-        $roles = $this->identifierList(
-            (string) ($_POST['owasys_roles'] ?? ''),
-            false
-        );
-        $homeRoles = $this->identifierList(
-            (string) ($_POST['owasys_home_roles'] ?? ''),
-            false
-        );
-        if (array_diff($homeRoles, array_merge($roles, ['everyone'])) !== []) {
-            throw new RuntimeException(
-                'OWASYS_CREATION_HOME_ROLE_UNKNOWN'
-            );
-        }
-        $permissions = $this->permissionList(
-            (string) ($_POST['owasys_permissions'] ?? '')
-        );
-        if (!$authentication && ($login || $provider !== 'session')) {
+
+        $login = $authentication && $provider === 'local-password';
+        if (!$authentication && $provider !== 'session') {
             throw new RuntimeException(
                 'OWASYS_CREATION_PUBLIC_PROVIDER_INVALID'
             );
         }
-        if ($authentication && in_array('everyone', $homeRoles, true)) {
-            throw new RuntimeException(
-                'OWASYS_CREATION_AUTH_HOME_ANONYMOUS'
-            );
-        }
+
+        $roles = $this->identifierList(
+            (string) ($_POST['owasys_roles'] ?? ''),
+            false
+        );
+        $homeRoles = $authentication ? $roles : ['everyone'];
+        $permissions = $this->permissionList(
+            (string) ($_POST['owasys_permissions'] ?? '')
+        );
         $users = $this->identifierList(
             (string) ($_POST['owasys_initial_users'] ?? ''),
             true
@@ -641,20 +615,22 @@ final class OwasysCreationController
     /** @param array<string,mixed> $draft @return array<string,mixed> */
     private function securityInputDraft(array $draft): array
     {
+        $authentication = isset($_POST['owasys_authentication_required']);
+        $provider = strtolower(trim((string) (
+            $_POST['owasys_provider'] ?? 'session'
+        )));
+        $roles = $this->submittedList('owasys_roles');
+
         return array_replace($draft, [
-            'authentication_required' =>
-                isset($_POST['owasys_authentication_required']),
-            'login_page' => isset($_POST['owasys_login_page']),
-            'provider' => strtolower(trim((string) (
-                $_POST['owasys_provider'] ?? 'session'
-            ))),
-            'roles' => $this->submittedList('owasys_roles'),
+            'authentication_required' => $authentication,
+            'login_page' =>
+                $authentication && $provider === 'local-password',
+            'provider' => $provider,
+            'roles' => $roles,
             'permissions' => $this->submittedList(
                 'owasys_permissions'
             ),
-            'home_roles' => $this->submittedList(
-                'owasys_home_roles'
-            ),
+            'home_roles' => $authentication ? $roles : ['everyone'],
             'initial_users' => $this->submittedList(
                 'owasys_initial_users'
             ),
