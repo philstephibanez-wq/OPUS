@@ -188,6 +188,50 @@ final class OwasysRuntimeSecurity
         );
     }
 
+    /**
+     * @param array<string,mixed> $identity
+     * @return array<string,mixed>
+     */
+    public function securitySnapshot(array $identity, string $siteId): array
+    {
+        $siteId = strtolower(trim($siteId));
+        if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $siteId) !== 1) {
+            throw new RuntimeException('OWASYS_SECURITY_SITE_ID_INVALID');
+        }
+
+        $result = $this->rest->request(
+            'GET',
+            '/api/v1/applications/'
+                . rawurlencode($siteId)
+                . '/security',
+            [],
+            [
+                'subject' => (string) (
+                    $identity['subject'] ?? $identity['id'] ?? ''
+                ),
+                'roles' => is_array($identity['roles'] ?? null)
+                    ? $identity['roles']
+                    : [],
+                'provider' => (string) (
+                    $identity['provider'] ?? $this->defaultProvider
+                ),
+            ]
+        );
+
+        if (($result['contract'] ?? null) !== 'OWASYS_SECURITY_SNAPSHOT_V1') {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_SNAPSHOT_CONTRACT_INVALID'
+            );
+        }
+        if ((string) ($result['application']['id'] ?? '') !== $siteId) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_SNAPSHOT_APPLICATION_MISMATCH'
+            );
+        }
+
+        return $result;
+    }
+
     /** @param array<string,mixed> $identity @return array<string,mixed> */
     public function startDevelopmentServer(
         array $identity,

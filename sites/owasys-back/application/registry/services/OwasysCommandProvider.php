@@ -10,7 +10,7 @@ use Opus\Security\Acl\AclPolicy;
 use Opus\Security\Sso\LocalPasswordSsoProvider;
 use Opus\Security\Sso\SsoManager;
 
-/** Application-owned Composer command provider for OWASYS business mutations. */
+/** Application-owned Composer command provider for OWASYS business operations. */
 final class OwasysCommandProvider implements OwasysCommandProviderInterface
 {
     private const COMMANDS = [
@@ -18,6 +18,7 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
         'owasys:registry:select' => true,
         'owasys:registry:clear' => true,
         'owasys:security:admin-password:change' => true,
+        'owasys:security:snapshot' => true,
     ];
 
     private readonly AclPolicy $acl;
@@ -76,6 +77,10 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
                 'owasys:registry:clear' => $this->registryClear($actor),
                 'owasys:security:admin-password:change' =>
                     $this->changePassword($request, $actor),
+                'owasys:security:snapshot' => $this->securitySnapshot(
+                    $arguments,
+                    $actor
+                ),
                 default => throw new RuntimeException(
                     'OWASYS_COMMAND_UNKNOWN:' . $command
                 ),
@@ -275,6 +280,487 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
                 'actor' => $identity->subject,
                 'secret_logged' => false,
             ],
+        ];
+    }
+
+    /**
+     * @param list<string> $arguments
+     * @param array<string,mixed> $actor
+     * @return array<string,mixed>
+     */
+    private function securitySnapshot(
+        array $arguments,
+        array $actor
+    ): array {
+        $this->assertAllowed($actor, 'security', 'read');
+        $siteId = strtolower(trim((string) ($arguments[0] ?? '')));
+        if (count($arguments) !== 1
+            || preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $siteId) !== 1) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_SNAPSHOT_SITE_ID_INVALID'
+            );
+        }
+
+        $targetRoot = rtrim(str_replace('\\', '/', $this->opusRoot), '/')
+            . '/sites/'
+            . $siteId;
+        $file = File::instance();
+        $loader = StructuredFileLoader::instance();
+        $required = [
+            'site' => $targetRoot . '/config/site.json',
+            'acl' => $targetRoot . '/config/acl.json',
+            'sso' => $targetRoot . '/config/sso.json',
+        ];
+        foreach ($required as $id => $path) {
+            if (!$file->exists($path)) {
+                throw new RuntimeException(
+                    'OWASYS_SECURITY_CONFIG_MISSING:' . $id
+                );
+            }
+        }
+
+        $site = $loader->read($required['site']);
+        if (($site['contract'] ?? null)
+            !== 'OPUS_SITE_STANDARD_CONTRACT_CORE') {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_SITE_CONTRACT_INVALID'
+            );
+        }
+        if (strtolower(trim((string) ($site['site_id'] ?? '')))
+            !== $siteId) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_SITE_ID_MISMATCH'
+            );
+        }
+
+        $acl = $loader->read($required['acl']);
+        $aclContract = (string) ($acl['contract'] ?? '');
+        if (!in_array(
+            $aclContract,
+            ['OPUS_ACL_POLICY_V1', 'OPUS_GENERATED_APPLICATION_ACL_V1'],
+            true
+        )) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_ACL_CONTRACT_INVALID:' . $aclContract
+            );
+        }
+
+        $sso = $loader->read($required['sso']);
+        $ssoContract = (string) ($sso['contract'] ?? '');
+        if (!in_array(
+            $ssoContract,
+            ['OPUS_SSO_CONFIGURATION_V1', 'OPUS_GENERATED_APPLICATION_SSO_V1'],
+            true
+        )) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_SSO_CONTRACT_INVALID:' . $ssoContract
+            );
+        }
+
+        $onboarding = null;
+        $onboardingFile = $targetRoot
+            . '/config/security.onboarding.json';
+        if ($file->exists($onboardingFile)) {
+            $onboarding = $loader->read($onboardingFile);
+            if (($onboarding['contract'] ?? null)
+                !== 'OPUS_SECURITY_ONBOARDING_V1') {
+                throw new RuntimeException(
+                    'OWASYS_SECURITY_ONBOARDING_CONTRACT_INVALID'
+                );
+            }
+        }
+
+        $permissions = $this->securityPermissions(
+            $acl,
+            $aclContract
+        );
+        $identities = $this->securityIdentities(
+            $targetRoot,
+            $sso,
+            $ssoContract,
+            $onboarding
+        );
+        $assignments = [];
+        foreach ($identities as $identity) {
+            foreach ((array) ($identity['roles'] ?? []) as $role) {
+                if (!is_string($role) || trim($role) === '') {
+                    continue;
+                }
+                $assignments[] = [
+                    'subject' => (string) ($identity['subject'] ?? ''),
+                    'role' => trim($role),
+                    'scope_type' => 'application',
+                    'scope_id' => $siteId,
+                    'source' => (string) ($identity['source'] ?? ''),
+                ];
+            }
+        }
+
+        $authenticationRequired = array_key_exists(
+            'authentication_required',
+            $sso
+        ) && is_bool($sso['authentication_required'])
+            ? $sso['authentication_required']
+            : null;
+
+        return [
+            'contract' => 'OWASYS_SECURITY_SNAPSHOT_V1',
+            'application' => [
+                'id' => $siteId,
+                'name' => (string) (
+                    $site['site_name'] ?? $siteId
+                ),
+                'kind' => (string) (
+                    $site['application_profile']['type']
+                    ?? $site['kind']
+                    ?? ''
+                ),
+                'root' => 'sites/' . $siteId,
+            ],
+            'overview' => [
+                'acl_contract' => $aclContract,
+                'default_policy' => (string) ($acl['default'] ?? 'deny'),
+                'sso_contract' => $ssoContract,
+                'authentication_required' => $authenticationRequired,
+                'default_provider' => (string) (
+                    $sso['default_provider'] ?? ''
+                ),
+                'onboarding_present' => is_array($onboarding),
+            ],
+            'providers' => $this->securityProviders($sso),
+            'identities' => $identities,
+            'roles' => $this->securityRoles($acl, $aclContract),
+            'permissions' => $permissions,
+            'assignments' => $assignments,
+            'resources' => $this->securityResources(
+                $acl,
+                $aclContract,
+                $permissions
+            ),
+        ];
+    }
+
+    /**
+     * @param array<string,mixed> $acl
+     * @return list<array{id:string,resource:string,action:string}>
+     */
+    private function securityPermissions(
+        array $acl,
+        string $contract
+    ): array {
+        $ids = [];
+        if ($contract === 'OPUS_ACL_POLICY_V1') {
+            foreach ((array) ($acl['roles'] ?? []) as $grants) {
+                if (!is_array($grants)) {
+                    continue;
+                }
+                foreach ($grants as $grant) {
+                    if (is_string($grant) && trim($grant) !== '') {
+                        $ids[trim($grant)] = true;
+                    }
+                }
+            }
+        } else {
+            foreach ((array) ($acl['permissions'] ?? []) as $permission) {
+                if (is_string($permission) && trim($permission) !== '') {
+                    $ids[trim($permission)] = true;
+                }
+            }
+        }
+        ksort($ids, SORT_STRING);
+        $result = [];
+        foreach (array_keys($ids) as $id) {
+            [$resource, $action] = $this->permissionParts($id);
+            $result[] = [
+                'id' => $id,
+                'resource' => $resource,
+                'action' => $action,
+            ];
+        }
+        return $result;
+    }
+
+    /**
+     * @param array<string,mixed> $acl
+     * @return list<array<string,mixed>>
+     */
+    private function securityRoles(array $acl, string $contract): array
+    {
+        $result = [];
+        if ($contract === 'OPUS_ACL_POLICY_V1') {
+            foreach ((array) ($acl['roles'] ?? []) as $role => $grants) {
+                if (!is_string($role) || !is_array($grants)) {
+                    continue;
+                }
+                $permissions = array_values(array_unique(array_filter(
+                    $grants,
+                    'is_string'
+                )));
+                sort($permissions, SORT_STRING);
+                $result[] = [
+                    'id' => $role,
+                    'permissions' => $permissions,
+                    'permissions_count' => count($permissions),
+                    'assignment_known' => true,
+                ];
+            }
+        } else {
+            foreach ((array) ($acl['roles'] ?? []) as $role) {
+                if (!is_string($role) || trim($role) === '') {
+                    continue;
+                }
+                $result[] = [
+                    'id' => trim($role),
+                    'permissions' => [],
+                    'permissions_count' => 0,
+                    'assignment_known' => false,
+                ];
+            }
+        }
+        usort(
+            $result,
+            static fn (array $left, array $right): int => strcmp(
+                (string) $left['id'],
+                (string) $right['id']
+            )
+        );
+        return $result;
+    }
+
+    /**
+     * @param array<string,mixed> $acl
+     * @param list<array{id:string,resource:string,action:string}> $permissions
+     * @return list<array<string,mixed>>
+     */
+    private function securityResources(
+        array $acl,
+        string $contract,
+        array $permissions
+    ): array {
+        $map = [];
+        if ($contract === 'OPUS_ACL_POLICY_V1') {
+            foreach ((array) ($acl['roles'] ?? []) as $role => $grants) {
+                if (!is_string($role) || !is_array($grants)) {
+                    continue;
+                }
+                foreach ($grants as $grant) {
+                    if (!is_string($grant) || trim($grant) === '') {
+                        continue;
+                    }
+                    [$resource, $action] = $this->permissionParts($grant);
+                    $key = $resource . ':' . $action;
+                    $map[$key] ??= [
+                        'resource' => $resource,
+                        'action' => $action,
+                        'allowed_roles' => [],
+                        'source' => 'acl.role-grant',
+                    ];
+                    $map[$key]['allowed_roles'][$role] = true;
+                }
+            }
+        } else {
+            foreach ((array) ($acl['policies'] ?? []) as $policyId => $policy) {
+                if (!is_string($policyId) || !is_array($policy)) {
+                    continue;
+                }
+                [$resource, $action] = str_contains($policyId, ':')
+                    ? $this->permissionParts($policyId)
+                    : [$policyId, 'open'];
+                $key = $resource . ':' . $action;
+                $map[$key] = [
+                    'resource' => $resource,
+                    'action' => $action,
+                    'allowed_roles' => array_fill_keys(
+                        array_values(array_filter(
+                            is_array($policy['roles'] ?? null)
+                                ? $policy['roles']
+                                : [],
+                            'is_string'
+                        )),
+                        true
+                    ),
+                    'source' => 'acl.policy',
+                ];
+            }
+            foreach ($permissions as $permission) {
+                $key = $permission['resource']
+                    . ':'
+                    . $permission['action'];
+                $map[$key] ??= [
+                    'resource' => $permission['resource'],
+                    'action' => $permission['action'],
+                    'allowed_roles' => [],
+                    'source' => 'acl.permission-unassigned',
+                ];
+            }
+        }
+
+        ksort($map, SORT_STRING);
+        $result = [];
+        foreach ($map as $row) {
+            $allowed = is_array($row['allowed_roles'] ?? null)
+                ? array_keys($row['allowed_roles'])
+                : [];
+            sort($allowed, SORT_STRING);
+            $row['allowed_roles'] = $allowed;
+            $result[] = $row;
+        }
+        return $result;
+    }
+
+    /** @param array<string,mixed> $sso @return list<array{id:string,enabled:bool}> */
+    private function securityProviders(array $sso): array
+    {
+        $result = [];
+        foreach ((array) ($sso['providers'] ?? []) as $id => $config) {
+            if (!is_string($id) || !is_array($config)) {
+                continue;
+            }
+            $result[] = [
+                'id' => $id,
+                'enabled' => ($config['enabled'] ?? false) === true,
+            ];
+        }
+        usort(
+            $result,
+            static fn (array $left, array $right): int => strcmp(
+                (string) $left['id'],
+                (string) $right['id']
+            )
+        );
+        return $result;
+    }
+
+    /**
+     * @param array<string,mixed> $sso
+     * @param array<string,mixed>|null $onboarding
+     * @return list<array<string,mixed>>
+     */
+    private function securityIdentities(
+        string $targetRoot,
+        array $sso,
+        string $ssoContract,
+        ?array $onboarding
+    ): array {
+        $identities = [];
+        if (is_array($onboarding)) {
+            $provider = trim((string) ($onboarding['provider'] ?? ''));
+            foreach ((array) ($onboarding['identities'] ?? []) as $entry) {
+                if (!is_array($entry)) {
+                    continue;
+                }
+                $subject = trim((string) ($entry['subject'] ?? ''));
+                if ($subject === '') {
+                    continue;
+                }
+                $identities[$provider . ':' . $subject] = [
+                    'provider' => $provider,
+                    'subject' => $subject,
+                    'label' => $subject,
+                    'status' => (string) ($entry['status'] ?? 'active'),
+                    'roles' => array_values(array_filter(
+                        is_array($entry['roles'] ?? null)
+                            ? $entry['roles']
+                            : [],
+                        'is_string'
+                    )),
+                    'must_change_password' =>
+                        (string) ($entry['status'] ?? '')
+                            === 'password-setup-required',
+                    'source' => 'security.onboarding',
+                ];
+            }
+        }
+
+        $providers = is_array($sso['providers'] ?? null)
+            ? $sso['providers']
+            : [];
+        $local = is_array($providers['local-password'] ?? null)
+            ? $providers['local-password']
+            : [];
+        if (($local['enabled'] ?? false) !== true) {
+            ksort($identities, SORT_STRING);
+            return array_values($identities);
+        }
+
+        $onboardingStore = is_array($onboarding)
+            ? (string) ($onboarding['runtime_store'] ?? '')
+            : '';
+        $storeRelative = trim((string) (
+            $local['store']
+            ?? $local['runtime_store']
+            ?? $onboardingStore
+        ));
+        if ($storeRelative === '') {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_LOCAL_STORE_PATH_MISSING'
+            );
+        }
+        $storeRelative = $this->safeRelative($storeRelative);
+        $storeFile = $targetRoot . '/' . $storeRelative;
+        $file = File::instance();
+        if (!$file->exists($storeFile)) {
+            ksort($identities, SORT_STRING);
+            return array_values($identities);
+        }
+
+        $store = StructuredFileLoader::instance()->read($storeFile);
+        $expectedContract = trim((string) (
+            $local['store_contract']
+            ?? ($ssoContract === 'OPUS_GENERATED_APPLICATION_SSO_V1'
+                ? 'OPUS_LOCAL_USER_STORE_V1'
+                : '')
+        ));
+        if ($expectedContract === ''
+            || ($store['contract'] ?? null) !== $expectedContract) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_LOCAL_STORE_CONTRACT_INVALID'
+            );
+        }
+
+        foreach ((array) ($store['users'] ?? []) as $username => $entry) {
+            if (!is_string($username) || !is_array($entry)) {
+                continue;
+            }
+            $subject = trim((string) ($entry['id'] ?? $username));
+            if ($subject === '') {
+                continue;
+            }
+            $roles = is_array($entry['roles'] ?? null)
+                ? array_values(array_filter($entry['roles'], 'is_string'))
+                : [];
+            if ($roles === []) {
+                $profile = trim((string) ($entry['profile'] ?? ''));
+                if ($profile !== '') {
+                    $roles = [$profile];
+                }
+            }
+            $identities['local-password:' . $subject] = [
+                'provider' => 'local-password',
+                'subject' => $subject,
+                'label' => (string) ($entry['label'] ?? $username),
+                'status' => (string) ($entry['status'] ?? 'active'),
+                'roles' => $roles,
+                'must_change_password' =>
+                    ($entry['must_change_password'] ?? false) === true,
+                'source' => 'runtime.local-password',
+            ];
+        }
+        ksort($identities, SORT_STRING);
+        return array_values($identities);
+    }
+
+    /** @return array{0:string,1:string} */
+    private function permissionParts(string $permission): array
+    {
+        $permission = trim($permission);
+        $separator = strpos($permission, ':');
+        if ($separator === false) {
+            return [$permission, 'open'];
+        }
+        return [
+            substr($permission, 0, $separator),
+            substr($permission, $separator + 1),
         ];
     }
 

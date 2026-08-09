@@ -295,6 +295,22 @@
             "arguments": [],
             "secret_input": true
         },
+        "security.snapshot": {
+            "composer_script": "owasys:security-snapshot",
+            "roles": [
+                "admin",
+                "developer",
+                "viewer"
+            ],
+            "arguments": [
+                {
+                    "name": "site_id",
+                    "required": true,
+                    "pattern": "^[a-z][a-z0-9-]*$",
+                    "max_length": 64
+                }
+            ]
+        },
         "source.list": {
             "composer_script": "owasys:source-list",
             "roles": [
@@ -479,9 +495,9 @@
                 },
                 {
                     "name": "limit",
+                    "transport": "request",
                     "pattern": "^(?:[1-9]|[1-4][0-9]|50)$",
-                    "max_length": 2,
-                    "transport": "request"
+                    "max_length": 2
                 }
             ]
         },

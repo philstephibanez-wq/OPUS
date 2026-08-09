@@ -35,7 +35,9 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
         $siteRoot = rtrim(str_replace('\\', '/', $siteRoot), '/');
         if (self::$instance instanceof self) {
             if (self::$instance->siteRoot !== $siteRoot) {
-                throw new RuntimeException('OWASYS_FRONT_SINGLETON_CONTEXT_MISMATCH');
+                throw new RuntimeException(
+                    'OWASYS_FRONT_SINGLETON_CONTEXT_MISMATCH'
+                );
             }
             return self::$instance;
         }
@@ -48,7 +50,9 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
 
     public function __wakeup(): void
     {
-        throw new RuntimeException('OWASYS_FRONT_SINGLETON_UNSERIALIZE_FORBIDDEN');
+        throw new RuntimeException(
+            'OWASYS_FRONT_SINGLETON_UNSERIALIZE_FORBIDDEN'
+        );
     }
 
     public function run(): void
@@ -69,8 +73,13 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 'method' => $method,
                 'path' => $path,
             ], 'success', $httpSpanId);
-            if (preg_match('~(?:^|/)profiler=[^/]*(?:/|$)~', trim($path, '/')) === 1) {
-                throw new RuntimeException('OWASYS_PROFILER_QUERY_SYNTAX_REQUIRED');
+            if (preg_match(
+                '~(?:^|/)profiler=[^/]*(?:/|$)~',
+                trim($path, '/')
+            ) === 1) {
+                throw new RuntimeException(
+                    'OWASYS_PROFILER_QUERY_SYNTAX_REQUIRED'
+                );
             }
             if ($path === '/api' || str_starts_with($path, '/api/')) {
                 throw new RuntimeException('OWASYS_FRONT_API_FORBIDDEN');
@@ -81,7 +90,8 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
             ], $traceId);
             $this->profiler->event('owasys.front', 'request.received', [
                 'path' => $path,
-                'profiler_requested' => (string) ($_GET['profiler'] ?? '') === '1',
+                'profiler_requested' =>
+                    (string) ($_GET['profiler'] ?? '') === '1',
             ]);
             if ($this->isProfilerTracePath($path)) {
                 $this->recordRoutingDecision(
@@ -104,7 +114,8 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 $httpSpanEnded = true;
                 return;
             }
-            [$controller, $creation, $source] = $this->components($httpSpanId);
+            [$controller, $creation, $source, $security] =
+                $this->components($httpSpanId);
             if ($creation->matchesCurrentRequest()) {
                 $this->recordRoutingDecision(
                     $path,
@@ -125,6 +136,16 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                     $httpSpanId
                 );
                 $source->run();
+            } elseif ($security->matchesCurrentRequest()) {
+                $this->recordRoutingDecision(
+                    $path,
+                    'security',
+                    OwasysSecurityController::class,
+                    'run',
+                    'application/security/controllers/SecurityController.php::matchesCurrentRequest',
+                    $httpSpanId
+                );
+                $security->run();
             } else {
                 $this->recordRoutingDecision(
                     $path,
@@ -208,8 +229,14 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
     private function serveProfilerTrace(string $httpSpanId): void
     {
         $environment = strtolower(trim((string) getenv('OPUS_ENV')));
-        if (!in_array($environment, ['dev', 'local', 'development'], true)) {
-            throw new RuntimeException('OPUS_PROFILER_ENVIRONMENT_FORBIDDEN');
+        if (!in_array(
+            $environment,
+            ['dev', 'local', 'development'],
+            true
+        )) {
+            throw new RuntimeException(
+                'OPUS_PROFILER_ENVIRONMENT_FORBIDDEN'
+            );
         }
         $this->sessionRuntime->start();
         $session = new OwasysAuthSession();
@@ -232,7 +259,14 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
         ))->handle(Request::fromGlobals($this->siteRoot))->send();
     }
 
-    /** @return array{0:OwasysRuntimeController,1:OwasysCreationController,2:OwasysSourceController} */
+    /**
+     * @return array{
+     *   0:OwasysRuntimeController,
+     *   1:OwasysCreationController,
+     *   2:OwasysSourceController,
+     *   3:OwasysSecurityController
+     * }
+     */
     private function components(string $httpSpanId): array
     {
         $session = new OwasysAuthSession();
@@ -283,6 +317,16 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 $this->sessionRuntime,
                 new OwasysSourceModel($this->siteRoot)
             ),
+            new OwasysSecurityController(
+                $this->siteRoot,
+                $this->siteConfig,
+                $session,
+                $security,
+                $renderer,
+                $this->sessionRuntime,
+                $this->profiler,
+                $httpSpanId
+            ),
         ];
     }
 
@@ -331,19 +375,29 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
         $supportedLocales = is_array($this->siteConfig['locales'] ?? null)
             ? $this->siteConfig['locales']
             : [];
-        $locale = in_array($segments[0] ?? '', $supportedLocales, true)
+        $locale = in_array(
+            $segments[0] ?? '',
+            $supportedLocales,
+            true
+        )
             ? (string) array_shift($segments)
             : '';
         $route = implode('/', $segments);
         if ($route === '') {
-            $route = $controllerId === 'profiler' ? trim($path, '/') : 'login';
+            $route = $controllerId === 'profiler'
+                ? trim($path, '/')
+                : 'login';
         }
         $parameters = [];
         if ($locale !== '') {
             $parameters['locale'] = $locale;
         }
-        if ($controllerId === 'source' && str_starts_with($route, 'source/')) {
-            $parameters['source_path'] = substr($route, strlen('source/'));
+        if ($controllerId === 'source'
+            && str_starts_with($route, 'source/')) {
+            $parameters['source_path'] = substr(
+                $route,
+                strlen('source/')
+            );
         }
 
         $context = [
@@ -359,11 +413,17 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
             'success',
             $httpSpanId
         );
-        $this->profiler->event('http', 'controller.selected', $context + [
-            'controller_id' => $controllerId,
-            'controller_class' => $controllerClass,
-            'controller_action' => $controllerAction,
-        ], 'success', $httpSpanId);
+        $this->profiler->event(
+            'http',
+            'controller.selected',
+            $context + [
+                'controller_id' => $controllerId,
+                'controller_class' => $controllerClass,
+                'controller_action' => $controllerAction,
+            ],
+            'success',
+            $httpSpanId
+        );
     }
 
     private function safeErrorCode(Throwable $error): string
@@ -371,7 +431,10 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
         $current = $error;
         do {
             $message = trim($current->getMessage());
-            if (preg_match('/^[A-Z0-9_:-]{3,240}$/D', $message) === 1) {
+            if (preg_match(
+                '/^[A-Z0-9_:-]{3,240}$/D',
+                $message
+            ) === 1) {
                 return $message;
             }
             if (preg_match(

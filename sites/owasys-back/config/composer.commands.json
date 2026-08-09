@@ -10,7 +10,8 @@
                 "owasys:registry:sync",
                 "owasys:registry:select",
                 "owasys:registry:clear",
-                "owasys:security:admin-password:change"
+                "owasys:security:admin-password:change",
+                "owasys:security:snapshot"
             ]
         },
         {
@@ -46,6 +47,7 @@
         "owasys:registry-select": "owasys:registry:select",
         "owasys:registry-clear": "owasys:registry:clear",
         "owasys:admin-password-change": "owasys:security:admin-password:change",
+        "owasys:security-snapshot": "owasys:security:snapshot",
         "owasys:source-list": "owasys:source:list",
         "owasys:source-read": "owasys:source:read",
         "owasys:source-browse": "owasys:source:browse",

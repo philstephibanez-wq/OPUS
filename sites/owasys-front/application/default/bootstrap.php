@@ -8,18 +8,27 @@ use Opus\File\StructuredFileLoader;
 $siteRoot = dirname(__DIR__, 2);
 $opusRoot = dirname(dirname($siteRoot));
 if (PHP_SAPI === 'cli-server') {
-    $requestPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
-    $requestPath = is_string($requestPath) ? rawurldecode($requestPath) : '/';
+    $requestPath = parse_url(
+        (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+        PHP_URL_PATH
+    );
+    $requestPath = is_string($requestPath)
+        ? rawurldecode($requestPath)
+        : '/';
     if ($requestPath !== '/' && !str_contains($requestPath, "\0")) {
         $publicRoot = realpath($siteRoot . '/www');
-        $candidate = realpath($siteRoot . '/www/' . ltrim($requestPath, '/'));
+        $candidate = realpath(
+            $siteRoot . '/www/' . ltrim($requestPath, '/')
+        );
         $frontController = realpath($siteRoot . '/www/index.php');
-        if ($publicRoot !== false && $candidate !== false
+        if ($publicRoot !== false
+            && $candidate !== false
             && $candidate !== $frontController
             && str_starts_with(
                 str_replace('\\', '/', $candidate),
                 rtrim(str_replace('\\', '/', $publicRoot), '/') . '/'
-            ) && is_file($candidate)) {
+            )
+            && is_file($candidate)) {
             return false;
         }
     }
@@ -28,7 +37,9 @@ if (PHP_SAPI === 'cli-server') {
 }
 $autoload = $opusRoot . '/vendor/autoload.php';
 if (!is_file($autoload)) {
-    throw new RuntimeException('OWASYS_FRONT_COMPOSER_AUTOLOAD_MISSING');
+    throw new RuntimeException(
+        'OWASYS_FRONT_COMPOSER_AUTOLOAD_MISSING'
+    );
 }
 require_once $autoload;
 if (FrameworkAssetResponder::serveCurrentRequest($opusRoot)) {
@@ -49,6 +60,7 @@ $files = [
     'application/creation/controllers/CreationController.php',
     'application/source/models/SourceModel.php',
     'application/source/controllers/SourceController.php',
+    'application/security/controllers/SecurityController.php',
     'application/default/services/FsmActionHandlers.php',
     'application/default/controllers/RuntimeController.php',
     'application/default/ApplicationInterface.php',
@@ -58,7 +70,9 @@ $fileBoundary = File::instance();
 foreach ($files as $relative) {
     $path = $siteRoot . '/' . $relative;
     if (!$fileBoundary->exists($path)) {
-        throw new RuntimeException('OWASYS_FRONT_COMPONENT_MISSING:' . $relative);
+        throw new RuntimeException(
+            'OWASYS_FRONT_COMPONENT_MISSING:' . $relative
+        );
     }
     require_once $path;
 }
