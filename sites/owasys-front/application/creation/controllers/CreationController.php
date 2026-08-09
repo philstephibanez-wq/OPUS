@@ -218,7 +218,6 @@ final class OwasysCreationController
             $this->render($fsmConfig, $state, $locale, $identity, [], 'creation.error.action');
             return;
         }
-
         $this->security->assertAllowed($identity, 'creation', 'write');
         $draft = $this->draft();
         if (($draft['step'] ?? null) !== 'review') {
