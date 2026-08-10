@@ -164,7 +164,12 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                 );
             } else {
                 $route = $this->matchRoute($routes, $routePath);
-                $loginResponse = $this->handleLogin($sso, $route, $locale);
+                $loginResponse = $this->handleLogin(
+                    $sso,
+                    $route,
+                    $locale,
+                    $traceId
+                );
                 if ($loginResponse instanceof Response) {
                     $response = $loginResponse;
                 } else {
@@ -430,7 +435,8 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
     private function handleLogin(
         array $sso,
         array $route,
-        string $locale
+        string $locale,
+        string $traceId
     ): ?Response {
         if ((string) ($route['module'] ?? '') !== 'login'
             || strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'))
@@ -467,10 +473,59 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
             ));
             $_SESSION[$key] = $identity->toSession();
             unset($_SESSION['opus_login_error']);
+
+            $context = [
+                'provider' => $providerId,
+                'locale' => $locale,
+            ];
+            $this->logger->info(
+                'security.sso',
+                'authentication.succeeded',
+                $context,
+                $traceId
+            );
+            if ($this->profiler?->getActiveTrace() !== null) {
+                $this->profiler->event(
+                    'security.sso',
+                    'authentication.succeeded',
+                    $context
+                );
+            }
+
             return Response::empty(303, [
                 'Location' => '/' . rawurlencode($locale),
             ]);
-        } catch (\Throwable) {
+        } catch (\Throwable $error) {
+            $message = trim($error->getMessage());
+            $separator = strpos($message, ':');
+            $candidate = $separator === false
+                ? $message
+                : substr($message, 0, $separator);
+            $errorCode = preg_match(
+                '/^[A-Z0-9_]{3,120}$/D',
+                $candidate
+            ) === 1
+                ? $candidate
+                : 'OPUS_SSO_AUTHENTICATION_FAILED';
+            $context = [
+                'provider' => $providerId,
+                'locale' => $locale,
+                'error_code' => $errorCode,
+            ];
+            $this->logger->warning(
+                'security.sso',
+                'authentication.failed',
+                $context,
+                $traceId
+            );
+            if ($this->profiler?->getActiveTrace() !== null) {
+                $this->profiler->event(
+                    'security.sso',
+                    'authentication.failed',
+                    $context,
+                    'error'
+                );
+            }
             $_SESSION['opus_login_error'] = true;
             return null;
         } finally {
