@@ -1123,7 +1123,7 @@ final class OwasysSourceController
                 'server_content' => $serverContent,
                 'editable' => $editable,
                 'editable_value' => $roleCanWrite ? '1' : '0',
-                'read_only' => !$editable,
+                'read_only' => !$roleCanWrite,
                 'can_preview' => $canPreview,
                 'cannot_preview' => !$canPreview,
                 'can_write' => $canWrite,
