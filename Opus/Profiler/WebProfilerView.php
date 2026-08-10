@@ -57,7 +57,10 @@ final class WebProfilerView implements WebProfilerViewInterface
                 $rows = $spans !== [] ? $spans : $events;
             } elseif ($id !== 'summary') {
                 foreach (array_merge($spans, $events) as $row) {
-                    if (in_array($row['category'], $categories, true)
+                    if ($this->matchesCategory(
+                        (string) ($row['category'] ?? ''),
+                        $categories
+                    )
                         || ($id === 'routing' && in_array(
                             $row['type'],
                             ['http.route.resolved', 'http.controller.selected'],
@@ -74,6 +77,21 @@ final class WebProfilerView implements WebProfilerViewInterface
             ];
         }
         return $panels;
+    }
+
+    /** @param list<string> $categories */
+    private function matchesCategory(
+        string $category,
+        array $categories
+    ): bool {
+        foreach ($categories as $candidate) {
+            if ($category === $candidate
+                || str_starts_with($category, $candidate . '.')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** @param array<int,mixed> $events @return list<array<string,mixed>> */
