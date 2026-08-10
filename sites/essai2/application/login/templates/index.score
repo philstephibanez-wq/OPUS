@@ -1,2 +1,3 @@
 <section class="opus-card"><h2>{{ page.title }}</h2><p>{{ page.subtitle }}</p>[[ if: auth.error ]]
-  <p role="alert">[[ i18n: auth.error ]]</p>[[ endif ]]<form method="post"><label>[[ i18n: auth.username ]]<input name="username" autocomplete="username" required></label><label>[[ i18n: auth.password ]]<input name="password" type="password" autocomplete="current-password" required></label><button type="submit">[[ i18n: auth.submit ]]</button></form></section>
+  <p role="alert">[[ i18n: auth.error ]]</p>[[ endif ]]<form method="post"><label>[[ i18n: auth.username ]]
+    <input name="username" autocomplete="username" required></label><label>[[ i18n: auth.password ]]<input name="password" type="password" autocomplete="current-password" required></label><button type="submit">[[ i18n: auth.submit ]]</button></form></section>
