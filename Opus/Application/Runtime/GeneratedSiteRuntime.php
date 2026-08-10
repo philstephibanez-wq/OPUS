@@ -20,6 +20,7 @@ use Opus\Profiler\ProfilerLinkProviderInterface;
 use Opus\Profiler\WebProfilerController;
 use Opus\Profiler\WebProfilerControllerInterface;
 use Opus\Profiler\WebProfilerView;
+use Opus\Security\Csrf\CsrfTokenManager;
 use Opus\Security\Sso\LocalPasswordSsoProvider;
 use Opus\Security\Sso\SsoManager;
 use Opus\Template\ScoreTemplateRenderer;
@@ -164,16 +165,25 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                 );
             } else {
                 $route = $this->matchRoute($routes, $routePath);
-                $loginResponse = $this->handleLogin(
+                $logoutResponse = $this->handleLogout(
                     $sso,
                     $route,
                     $locale,
                     $traceId
                 );
-                if ($loginResponse instanceof Response) {
-                    $response = $loginResponse;
+                if ($logoutResponse instanceof Response) {
+                    $response = $logoutResponse;
                 } else {
-                    $identity = $this->identity($sso);
+                    $loginResponse = $this->handleLogin(
+                        $sso,
+                        $route,
+                        $locale,
+                        $traceId
+                    );
+                    if ($loginResponse instanceof Response) {
+                        $response = $loginResponse;
+                    } else {
+                        $identity = $this->identity($sso);
                     $loginRedirect = $this->authenticationRedirect(
                         $sso,
                         $routes,
@@ -200,6 +210,7 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                             $locale,
                             $identity
                         ));
+                    }
                     }
                 }
             }
@@ -431,6 +442,93 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
         ];
     }
 
+    /** @param array<string,mixed> $sso @param array<string,mixed> $route */
+    private function handleLogout(
+        array $sso,
+        array $route,
+        string $locale,
+        string $traceId
+    ): ?Response {
+        if ((string) ($route['module'] ?? '') !== 'logout') {
+            return null;
+        }
+
+        if (strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'))
+            !== 'POST') {
+            return Response::empty(405, ['Allow' => 'POST']);
+        }
+
+        $identity = $this->identity($sso);
+        $redirect = trim((string) (
+            $route['logout_redirect'] ?? '/login'
+        ));
+        if ($redirect === '' || $redirect[0] !== '/') {
+            throw new \RuntimeException(
+                'OPUS_GENERATED_LOGOUT_REDIRECT_INVALID'
+            );
+        }
+
+        if ($identity['subject'] === 'anonymous') {
+            return Response::empty(303, [
+                'Location' => '/' . rawurlencode($locale) . $redirect,
+            ]);
+        }
+
+        if ($identity['provider'] === 'auth0-proxy') {
+            return Response::empty(403);
+        }
+
+        $token = $_POST['csrf_token'] ?? null;
+        if (!is_string($token)) {
+            throw new \RuntimeException('OPUS_CSRF_TOKEN_INVALID');
+        }
+        (new CsrfTokenManager())->assertValid(
+            'opus.generated.logout',
+            $token
+        );
+
+        $context = [
+            'provider' => $identity['provider'],
+            'locale' => $locale,
+        ];
+        $this->logger->info(
+            'security.sso',
+            'logout.succeeded',
+            $context,
+            $traceId
+        );
+        if ($this->profiler?->getActiveTrace() !== null) {
+            $this->profiler->event(
+                'security.sso',
+                'logout.succeeded',
+                $context
+            );
+        }
+
+        $_SESSION = [];
+        if ((bool) ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', [
+                'expires' => time() - 42000,
+                'path' => (string) ($params['path'] ?? '/'),
+                'domain' => (string) ($params['domain'] ?? ''),
+                'secure' => (bool) ($params['secure'] ?? false),
+                'httponly' => (bool) ($params['httponly'] ?? true),
+                'samesite' => (string) ($params['samesite'] ?? 'Lax'),
+            ]);
+        }
+        if (!session_destroy()) {
+            throw new \RuntimeException(
+                'OPUS_GENERATED_LOGOUT_SESSION_DESTROY_FAILED'
+            );
+        }
+
+        unset($_POST['csrf_token']);
+
+        return Response::empty(303, [
+            'Location' => '/' . rawurlencode($locale) . $redirect,
+        ]);
+    }
     /** @param array<string,mixed> $sso @param array<string,mixed> $route */
     private function handleLogin(
         array $sso,
@@ -797,6 +895,25 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                     ) === $state) ? 'is-active' : '',
                     'path' => $href,
                     'label' => $label,
+                ]]
+            );
+        }
+
+        if ($identity['subject'] !== 'anonymous'
+            && $identity['provider'] !== 'auth0-proxy') {
+            $logoutRenderer = new ScoreTemplateRenderer(
+                __DIR__ . '/templates',
+                null,
+                $this->profiler
+            );
+            $menu .= $logoutRenderer->render(
+                'logout-form.score',
+                ['auth' => [
+                    'logout_url' => '/' . rawurlencode($locale) . '/logout',
+                    'logout_csrf_token' => (new CsrfTokenManager())->issue(
+                        'opus.generated.logout'
+                    ),
+                    'logout_label' => $i18n->translate('auth.logout'),
                 ]]
             );
         }

@@ -1,0 +1,1 @@
+<form method="post" action="{{ auth.logout_url }}" class="opus-logout-form"><input type="hidden" name="csrf_token" value="{{ auth.logout_csrf_token }}"><button type="submit" class="opus-logout-button">{{ auth.logout_label }}</button></form>
