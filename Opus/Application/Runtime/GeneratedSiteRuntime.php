@@ -747,7 +747,8 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
         );
         $renderer = new ScoreTemplateRenderer(
             $this->siteRoot . '/application',
-            $i18n
+            $i18n,
+            $this->profiler
         );
         $page = is_array($viewModel['page'] ?? null)
             ? $viewModel['page']
@@ -826,6 +827,7 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
         }
 
         $content = $renderer->render($template, $data);
+        $content = $this->embedProfiler($content, $data);
         $data['content'] = $content;
         $data['common']['header'] = $renderer->render(
             'default/templates/components/header.score',
@@ -837,6 +839,51 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
         );
 
         return $renderer->render('default/layouts/layout.score', $data);
+    }
+
+    /** @param array<string,mixed> $data */
+    private function embedProfiler(string $content, array &$data): string
+    {
+        $diagnostics = is_array($data['diagnostics'] ?? null)
+            ? $data['diagnostics']
+            : [];
+        if (($diagnostics['profiler_available'] ?? false) !== true) {
+            return $content;
+        }
+
+        $url = trim((string) ($diagnostics['profiler_url'] ?? ''));
+        if (preg_match(
+            '~^/_opus/profiler/trace/[a-f0-9]{16,64}$~D',
+            $url
+        ) !== 1) {
+            throw new \RuntimeException(
+                'OPUS_GENERATED_PROFILER_EMBED_URL_INVALID'
+            );
+        }
+        $label = trim((string) (
+            $diagnostics['profiler_label'] ?? 'OPUS Profiler'
+        ));
+        if ($label === '') {
+            $label = 'OPUS Profiler';
+        }
+
+        $renderer = new ScoreTemplateRenderer(
+            __DIR__ . '/templates',
+            null,
+            $this->profiler
+        );
+        $frame = $renderer->render('profiler-iframe.score', [
+            'profiler' => [
+                'url' => $url,
+                'label' => $label,
+            ],
+        ]);
+
+        // Compatibility with generated layouts that still contain the former
+        // direct profiler anchor: the embedded frame is now the sole surface.
+        $data['diagnostics']['profiler_available'] = false;
+
+        return rtrim($content) . "\n" . $frame;
     }
 
     private function renderError(string $code): string
@@ -863,19 +910,12 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
             );
             $renderer = new ScoreTemplateRenderer(
                 $this->siteRoot . '/application',
-                $i18n
+                $i18n,
+                $this->profiler
             );
             $title = $i18n->translate('error.title');
             $message = $i18n->translate('error.request_failed');
-            $content = $renderer->render(
-                'default/templates/error.score',
-                ['error' => [
-                    'title' => $title,
-                    'message' => $message,
-                    'code' => $code,
-                ]]
-            );
-            return $renderer->render('default/layouts/layout.score', [
+            $data = [
                 'lang' => $locale,
                 'page' => ['title' => $title],
                 'site' => [
@@ -889,8 +929,21 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                 ],
                 'common' => ['header' => '', 'footer' => ''],
                 'assets' => ['css' => '', 'js' => ''],
-                'content' => $content,
-            ]);
+            ];
+            if ($this->profilerLinkProvider instanceof ProfilerLinkProviderInterface) {
+                $data = $this->profilerLinkProvider->enrich($data);
+            }
+            $content = $renderer->render(
+                'default/templates/error.score',
+                ['error' => [
+                    'title' => $title,
+                    'message' => $message,
+                    'code' => $code,
+                ]]
+            );
+            $data['content'] = $this->embedProfiler($content, $data);
+
+            return $renderer->render('default/layouts/layout.score', $data);
         } catch (\Throwable $error) {
             throw new \RuntimeException(
                 'OPUS_GENERATED_ERROR_RENDER_FAILED',

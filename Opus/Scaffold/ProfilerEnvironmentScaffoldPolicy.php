@@ -232,9 +232,8 @@ profiler:
     enabled: true
 
     # Injecte le lien de la trace courante dans le ViewModel SCORE.
-    # false conserve la collecte et l'URL directe sans afficher de lien,
-    # ce qui permet de visualiser la page comme en production.
-    links: false
+    # En environnement de développement généré, le lien est visible par défaut.
+    links: true
 YAML;
     }
 }

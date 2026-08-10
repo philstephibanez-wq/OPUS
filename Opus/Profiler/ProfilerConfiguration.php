@@ -73,6 +73,16 @@ final class ProfilerConfiguration implements ProfilerConfigurationInterface
             throw new \RuntimeException('OPUS_PROFILER_WEB_REQUIRES_COLLECTION');
         }
 
+        $runtimeEnvironment = strtolower(trim((string) (
+            getenv('OPUS_ENV') ?: ''
+        )));
+        if ($environment === 'dev'
+            && $runtimeEnvironment === 'dev'
+            && $collect
+            && $webEnabled) {
+            $linksEnabled = true;
+        }
+
         return new self(
             $environment,
             $collect,
