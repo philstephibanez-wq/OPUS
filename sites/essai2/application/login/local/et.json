@@ -8,7 +8,6 @@
         "auth.username": "Username",
         "auth.password": "Password",
         "auth.submit": "Logi sisse",
-        "auth.error": "Authentication failed."
+        "auth.error": "Vale kasutajanimi või parool."
     }
 }
-

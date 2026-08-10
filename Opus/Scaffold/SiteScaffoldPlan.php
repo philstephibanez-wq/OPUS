@@ -414,6 +414,35 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
         'sv' => 'Logga in', 'uk' => 'Вхід',
     ];
 
+    /** @var array<string,string> */
+    private const LOGIN_ERROR_LABELS = [
+        'bg' => 'Невалидно потребителско име или парола.',
+        'hr' => 'Neispravno korisničko ime ili lozinka.',
+        'cs' => 'Nesprávné uživatelské jméno nebo heslo.',
+        'da' => 'Forkert brugernavn eller adgangskode.',
+        'nl' => 'Onjuiste gebruikersnaam of wachtwoord.',
+        'en' => 'Incorrect username or password.',
+        'et' => 'Vale kasutajanimi või parool.',
+        'fi' => 'Virheellinen käyttäjänimi tai salasana.',
+        'fr' => 'Identifiant ou mot de passe incorrect.',
+        'de' => 'Benutzername oder Passwort ist falsch.',
+        'el' => 'Λανθασμένο όνομα χρήστη ή κωδικός πρόσβασης.',
+        'hu' => 'Helytelen felhasználónév vagy jelszó.',
+        'ga' => 'Ainm úsáideora nó pasfhocal mícheart.',
+        'it' => 'Nome utente o password non corretti.',
+        'lv' => 'Nepareizs lietotājvārds vai parole.',
+        'lt' => 'Neteisingas naudotojo vardas arba slaptažodis.',
+        'mt' => 'Isem tal-utent jew password mhux korrett.',
+        'pl' => 'Nieprawidłowa nazwa użytkownika lub hasło.',
+        'pt' => 'Nome de utilizador ou palavra-passe incorretos.',
+        'ro' => 'Nume de utilizator sau parolă incorectă.',
+        'sk' => 'Nesprávne používateľské meno alebo heslo.',
+        'sl' => 'Napačno uporabniško ime ali geslo.',
+        'es' => 'Nombre de usuario o contraseña incorrectos.',
+        'sv' => 'Felaktigt användarnamn eller lösenord.',
+        'uk' => 'Неправильне ім’я користувача або пароль.',
+    ];
+
     /** @var list<string> */
     private const PROFILES = [
         self::PROFILE_FRONTEND,
@@ -879,7 +908,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
                 'auth.username' => 'Username',
                 'auth.password' => 'Password',
                 'auth.submit' => self::LOGIN_LABELS[$locale],
-                'auth.error' => 'Authentication failed.',
+                'auth.error' => self::LOGIN_ERROR_LABELS[$locale],
             ],
         ];
     }

@@ -8,7 +8,6 @@
         "auth.username": "Username",
         "auth.password": "Password",
         "auth.submit": "Sínigh isteach",
-        "auth.error": "Authentication failed."
+        "auth.error": "Ainm úsáideora nó pasfhocal mícheart."
     }
 }
-

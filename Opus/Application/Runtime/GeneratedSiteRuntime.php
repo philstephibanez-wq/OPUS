@@ -527,7 +527,16 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                 );
             }
             $_SESSION['opus_login_error'] = true;
-            return null;
+            $loginPath = trim((string) ($route['path'] ?? '/login'));
+            if ($loginPath === '' || $loginPath[0] !== '/') {
+                throw new \RuntimeException(
+                    'OPUS_GENERATED_LOGIN_ROUTE_INVALID'
+                );
+            }
+            return Response::empty(303, [
+                'Location' => '/' . rawurlencode($locale)
+                    . ($loginPath === '/' ? '' : $loginPath),
+            ]);
         } finally {
             unset($_POST['password']);
         }
@@ -822,6 +831,9 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
             'common' => ['menu' => $menu],
             'assets' => ['css' => $css, 'js' => $js],
         ]);
+        if (($data['auth']['error'] ?? false) === true) {
+            unset($_SESSION['opus_login_error']);
+        }
         if ($this->profilerLinkProvider instanceof ProfilerLinkProviderInterface) {
             $data = $this->profilerLinkProvider->enrich($data);
         }

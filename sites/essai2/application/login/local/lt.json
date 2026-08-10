@@ -8,7 +8,6 @@
         "auth.username": "Username",
         "auth.password": "Password",
         "auth.submit": "Prisijungti",
-        "auth.error": "Authentication failed."
+        "auth.error": "Neteisingas naudotojo vardas arba slaptažodis."
     }
 }
-
