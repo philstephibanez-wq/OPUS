@@ -169,20 +169,33 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                     $response = $loginResponse;
                 } else {
                     $identity = $this->identity($sso);
-                    $this->assertAllowed(
-                        $acl,
-                        (string) ($route['acl'] ?? 'public'),
-                        $identity
-                    );
-                    $state = $this->transition($site, $route, $identity);
-                    $response = Response::html($this->renderPage(
-                        $site,
+                    $loginRedirect = $this->authenticationRedirect(
+                        $sso,
                         $routes,
+                        $acl,
                         $route,
-                        $state,
                         $locale,
-                        $identity
-                    ));
+                        $identity,
+                        $traceId
+                    );
+                    if ($loginRedirect instanceof Response) {
+                        $response = $loginRedirect;
+                    } else {
+                        $this->assertAllowed(
+                            $acl,
+                            (string) ($route['acl'] ?? 'public'),
+                            $identity
+                        );
+                        $state = $this->transition($site, $route, $identity);
+                        $response = Response::html($this->renderPage(
+                            $site,
+                            $routes,
+                            $route,
+                            $state,
+                            $locale,
+                            $identity
+                        ));
+                    }
                 }
             }
 
@@ -463,6 +476,79 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
         } finally {
             unset($_POST['password']);
         }
+    }
+
+    /**
+     * @param array<string,mixed> $sso
+     * @param array<string,mixed> $routes
+     * @param array<string,mixed> $acl
+     * @param array<string,mixed> $route
+     * @param array{subject:string,roles:list<string>,provider:string} $identity
+     */
+    private function authenticationRedirect(
+        array $sso,
+        array $routes,
+        array $acl,
+        array $route,
+        string $locale,
+        array $identity,
+        string $traceId
+    ): ?Response {
+        if ($identity['subject'] !== 'anonymous'
+            || ($sso['authentication_required'] ?? false) !== true
+            || ($sso['login_page'] ?? false) !== true
+            || (string) ($route['module'] ?? '') === 'login'
+            || $this->isAllowed(
+                $acl,
+                (string) ($route['acl'] ?? 'public'),
+                $identity
+            )) {
+            return null;
+        }
+
+        $loginPath = null;
+        foreach ((array) ($routes['routes'] ?? []) as $candidate) {
+            if (!is_array($candidate)
+                || (string) ($candidate['module'] ?? '') !== 'login') {
+                continue;
+            }
+            $path = trim((string) ($candidate['path'] ?? ''));
+            if ($path === '' || $path[0] !== '/') {
+                throw new \RuntimeException(
+                    'OPUS_GENERATED_LOGIN_ROUTE_INVALID'
+                );
+            }
+            $loginPath = $path;
+            break;
+        }
+        if ($loginPath === null) {
+            throw new \RuntimeException(
+                'OPUS_GENERATED_LOGIN_ROUTE_MISSING'
+            );
+        }
+
+        $location = '/' . rawurlencode($locale)
+            . ($loginPath === '/' ? '' : $loginPath);
+        $context = [
+            'from_route' => (string) ($route['id'] ?? ''),
+            'login_path' => $loginPath,
+            'locale' => $locale,
+        ];
+        $this->logger->info(
+            'security.sso',
+            'authentication.redirected',
+            $context,
+            $traceId
+        );
+        if ($this->profiler?->getActiveTrace() !== null) {
+            $this->profiler->event(
+                'security.sso',
+                'authentication.redirected',
+                $context
+            );
+        }
+
+        return Response::empty(303, ['Location' => $location]);
     }
 
     /** @param array<string,mixed> $acl @param array{subject:string,roles:list<string>,provider:string} $identity */

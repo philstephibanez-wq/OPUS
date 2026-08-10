@@ -29,6 +29,7 @@
         "opus:create-page": "Opus\\Composer\\ComposerScripts::run",
         "opus:create-rubric": "Opus\\Composer\\ComposerScripts::run",
         "opus:export-site": "Opus\\Composer\\ComposerScripts::run",
+        "opus:local-password-provision": "Opus\\Composer\\LocalPasswordCredentialProvisionerComposerCommand::run",
         "owasys:registry-sync": "Opus\\Composer\\ComposerScripts::run",
         "owasys:registry-select": "Opus\\Composer\\ComposerScripts::run",
         "owasys:registry-clear": "Opus\\Composer\\ComposerScripts::run",
