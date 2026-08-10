@@ -472,7 +472,10 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                 $sso['session_identity_key'] ?? 'opus_identity'
             ));
             $_SESSION[$key] = $identity->toSession();
-            unset($_SESSION['opus_login_error']);
+            unset(
+                $_SESSION['opus_login_error'],
+                $_SESSION['opus_login_error_trace_id']
+            );
 
             $context = [
                 'provider' => $providerId,
@@ -527,6 +530,7 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                 );
             }
             $_SESSION['opus_login_error'] = true;
+            $_SESSION['opus_login_error_trace_id'] = $traceId;
             $loginPath = trim((string) ($route['path'] ?? '/login'));
             if ($loginPath === '' || $loginPath[0] !== '/') {
                 throw new \RuntimeException(
@@ -831,11 +835,28 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
             'common' => ['menu' => $menu],
             'assets' => ['css' => $css, 'js' => $js],
         ]);
+        $loginErrorTraceId = '';
         if (($data['auth']['error'] ?? false) === true) {
-            unset($_SESSION['opus_login_error']);
+            $loginErrorTraceId = trim((string) (
+                $_SESSION['opus_login_error_trace_id'] ?? ''
+            ));
+            unset(
+                $_SESSION['opus_login_error'],
+                $_SESSION['opus_login_error_trace_id']
+            );
         }
         if ($this->profilerLinkProvider instanceof ProfilerLinkProviderInterface) {
             $data = $this->profilerLinkProvider->enrich($data);
+        }
+        if ($loginErrorTraceId !== '') {
+            if (preg_match('/^[a-f0-9]{16,64}$/D', $loginErrorTraceId) !== 1) {
+                throw new RuntimeException(
+                    'OPUS_GENERATED_LOGIN_ERROR_TRACE_ID_INVALID'
+                );
+            }
+            $data['diagnostics']['profiler_available'] = true;
+            $data['diagnostics']['profiler_url'] =
+                '/_opus/profiler/trace/' . $loginErrorTraceId;
         }
 
         $content = $renderer->render($template, $data);
