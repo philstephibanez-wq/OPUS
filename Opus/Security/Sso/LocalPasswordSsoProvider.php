@@ -42,19 +42,30 @@ final class LocalPasswordSsoProvider implements SsoProviderInterface, PasswordCh
         $password = (string) ($credentials['password'] ?? '');
 
         if ($username === '' || $password === '') {
-            return null;
+            throw new RuntimeException(
+                'OPUS_SSO_LOCAL_CREDENTIALS_REQUIRED'
+            );
         }
 
         $store = $this->readStore();
         $candidate = $store['users'][$username] ?? null;
 
         if (!is_array($candidate)) {
-            return null;
+            throw new RuntimeException(
+                'OPUS_SSO_LOCAL_SUBJECT_UNKNOWN'
+            );
         }
 
         $hash = (string) ($candidate['password_hash'] ?? '');
-        if ($hash === '' || !password_verify($password, $hash)) {
-            return null;
+        if ($hash === '') {
+            throw new RuntimeException(
+                'OPUS_SSO_LOCAL_PASSWORD_HASH_MISSING'
+            );
+        }
+        if (!password_verify($password, $hash)) {
+            throw new RuntimeException(
+                'OPUS_SSO_LOCAL_PASSWORD_INVALID'
+            );
         }
 
         return $this->identityFromUser($username, $candidate);
