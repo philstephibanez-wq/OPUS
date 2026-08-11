@@ -35,6 +35,7 @@
         "owasys:registry-clear": "Opus\\Composer\\ComposerScripts::run",
         "owasys:admin-password-change": "Opus\\Composer\\ComposerScripts::run",
         "owasys:security-snapshot": "Opus\\Composer\\ComposerScripts::run",
+        "owasys:security-fresh-auth-proof": "Opus\\Composer\\ComposerScripts::run",
         "owasys:security-mutation-preview": "Opus\\Composer\\ComposerScripts::run",
         "owasys:security-mutation-commit": "Opus\\Composer\\ComposerScripts::run",
         "owasys:source-list": "Opus\\Composer\\ComposerScripts::run",
