@@ -728,6 +728,14 @@
                     "transport": "request",
                     "trim": false,
                     "max_length": 16384
+                },
+                {
+                    "name": "phase",
+                    "required": true,
+                    "transport": "request",
+                    "trim": true,
+                    "pattern": "^(preview|commit)$",
+                    "max_length": 7
                 }
             ]
         }

@@ -3,6 +3,11 @@
     "provider": "local-password",
     "identities": [
         {
+            "subject": "home",
+            "roles": [],
+            "status": "password-setup-required"
+        },
+        {
             "subject": "steve",
             "roles": [
                 "admin"
@@ -13,4 +18,3 @@
     "secrets_versioned": false,
     "runtime_store": "var/auth/local-users.json"
 }
-

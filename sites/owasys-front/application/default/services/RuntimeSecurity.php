@@ -238,7 +238,8 @@ final class OwasysRuntimeSecurity
         array $identity,
         string $password,
         string $siteId,
-        array $mutation
+        array $mutation,
+        string $phase
     ): string {
         $provider = trim((string) (
             $identity['provider'] ?? $this->defaultProvider
@@ -280,7 +281,10 @@ final class OwasysRuntimeSecurity
             '/api/v1/applications/'
                 . rawurlencode($siteId)
                 . '/security/fresh-auth-proofs',
-            ['mutation_json' => $mutationJson],
+            [
+                'mutation_json' => $mutationJson,
+                'phase' => $phase,
+            ],
             $this->restActor($identity)
         );
         if (($result['contract'] ?? null)

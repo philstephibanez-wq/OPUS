@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use Opus\File\Json;
 use Opus\File\StructuredFileLoader;
 use Opus\Fsm\FsmProcessor;
 use Opus\Fsm\FsmSessionStore;
@@ -13,6 +14,8 @@ use Opus\Security\Csrf\CsrfTokenManager;
 final class OwasysSecurityController
 {
     private const FSM_SESSION_KEY = 'opus.fsm.owasys-front';
+    private const SECURITY_MUTATION_FSM_SESSION_KEY =
+        'opus.fsm.owasys-front.security-mutation';
     private const VIEWS = [
         'identities',
         'roles',
@@ -94,16 +97,11 @@ final class OwasysSecurityController
         $mutationError = null;
         $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
         if ($method === 'POST') {
+            $mutationFsm = $this->securityMutationFsm();
+            $mutationStore = new FsmSessionStore(
+                self::SECURITY_MUTATION_FSM_SESSION_KEY
+            );
             try {
-                $this->security->assertAllowed(
-                    $identity,
-                    'security',
-                    'manage'
-                );
-                $this->csrf->assertValid(
-                    $this->csrfScope($siteId),
-                    (string) ($_POST['owasys_csrf_token'] ?? '')
-                );
                 $phase = strtolower(trim((string) (
                     $_POST['owasys_security_phase'] ?? ''
                 )));
@@ -112,19 +110,75 @@ final class OwasysSecurityController
                         'OWASYS_SECURITY_MUTATION_PHASE_INVALID'
                     );
                 }
+
                 $mutation = $this->mutationFromPost($view, $_POST);
                 $reason = trim((string) (
                     $_POST['owasys_security_reason'] ?? ''
                 ));
+
+                if ($phase === 'preview') {
+                    $mutationStore->clear();
+                    $mutationFsm->reset();
+                    $mutationFsm->transition('idle', 'request');
+                } else {
+                    $mutationStore->restore($mutationFsm);
+                    if ($mutationFsm->currentState() !== 'previewed') {
+                        throw new RuntimeException(
+                            'OWASYS_SECURITY_MUTATION_WORKFLOW_STATE_INVALID'
+                        );
+                    }
+                    $this->assertSecurityMutationWorkflowBinding(
+                        $mutationFsm,
+                        $siteId,
+                        $mutation,
+                        $reason,
+                        $view
+                    );
+                }
+
                 $freshAuthProof = $this->security->reauthenticate(
                     $identity,
                     (string) ($_POST['owasys_reauth_password'] ?? ''),
                     $siteId,
-                    $mutation
+                    $mutation,
+                    $phase
                 );
                 unset($_POST['owasys_reauth_password']);
 
                 if ($phase === 'preview') {
+                    $mutationFsm->transition(
+                        'requested',
+                        'authenticate'
+                    );
+                }
+
+                $this->security->assertAllowed(
+                    $identity,
+                    'security',
+                    'manage'
+                );
+                if ($phase === 'preview') {
+                    $mutationFsm->transition(
+                        'authenticated',
+                        'authorize'
+                    );
+                }
+
+                $this->csrf->assertValid(
+                    $this->csrfScope($siteId),
+                    (string) ($_POST['owasys_csrf_token'] ?? '')
+                );
+
+                if ($phase === 'preview') {
+                    $this->bindSecurityMutationWorkflow(
+                        $mutationFsm,
+                        $siteId,
+                        $mutation,
+                        $reason,
+                        $view
+                    );
+                    $mutationFsm->transition('authorized', 'validate');
+
                     $mutationResult = $this->security
                         ->previewSecurityMutation(
                             $identity,
@@ -133,27 +187,66 @@ final class OwasysSecurityController
                             $reason,
                             $freshAuthProof
                         );
+                    $mutationFsm->transition('validated', 'preview');
+                    $mutationStore->persist($mutationFsm);
                 } else {
-                    $mutationResult = $this->security
-                        ->commitSecurityMutation(
-                            $identity,
-                            $siteId,
-                            $mutation,
-                            $reason,
-                            $freshAuthProof,
-                            (string) (
-                                $_POST['owasys_expected_state_hash'] ?? ''
-                            ),
-                            (string) (
-                                $_POST['owasys_confirmation_token'] ?? ''
-                            )
-                        );
+                    $mutationFsm->transition('previewed', 'confirm');
+                    try {
+                        $mutationResult = $this->security
+                            ->commitSecurityMutation(
+                                $identity,
+                                $siteId,
+                                $mutation,
+                                $reason,
+                                $freshAuthProof,
+                                (string) (
+                                    $_POST['owasys_expected_state_hash'] ?? ''
+                                ),
+                                (string) (
+                                    $_POST['owasys_confirmation_token'] ?? ''
+                                )
+                            );
+                        $mutationFsm->transition('confirmed', 'commit');
+                    } catch (RuntimeException $commitError) {
+                        if (str_contains(
+                            $commitError->getMessage(),
+                            'ROLLED_BACK'
+                        )) {
+                            $mutationFsm->transition(
+                                'confirmed',
+                                'rollback'
+                            );
+                        } else {
+                            $mutationFsm->transition(
+                                $mutationFsm->currentState(),
+                                'reject'
+                            );
+                        }
+                        $mutationStore->clear();
+                        throw $commitError;
+                    }
+                    $mutationStore->clear();
                 }
             } catch (RuntimeException $error) {
                 unset($_POST['owasys_reauth_password']);
+                if (isset($mutationFsm, $mutationStore)
+                    && $mutationFsm instanceof FsmProcessor
+                    && !in_array(
+                        $mutationFsm->currentState(),
+                        ['rejected', 'rolled_back', 'committed'],
+                        true
+                    )) {
+                    try {
+                        $mutationFsm->transition(
+                            $mutationFsm->currentState(),
+                            'reject'
+                        );
+                    } catch (RuntimeException) {
+                    }
+                    $mutationStore->clear();
+                }
                 $mutationError = $this->safeMutationError($error);
-            }
-        } elseif ($method !== 'GET') {
+            }        } elseif ($method !== 'GET') {
             throw new RuntimeException(
                 'OWASYS_SECURITY_HTTP_METHOD_NOT_ALLOWED'
             );
@@ -173,6 +266,70 @@ final class OwasysSecurityController
         );
     }
 
+    private function securityMutationFsm(): FsmProcessor
+    {
+        return FsmProcessor::fromJsonFile(
+            $this->siteRoot . '/config/security.mutation.fsm.json',
+            [],
+            $this->profiler,
+            $this->parentSpanId
+        );
+    }
+
+    /**
+     * @param array<string,mixed> $mutation
+     */
+    private function bindSecurityMutationWorkflow(
+        FsmProcessor $fsm,
+        string $siteId,
+        array $mutation,
+        string $reason,
+        string $view
+    ): void {
+        $fsm->poke('site_id', $siteId);
+        $fsm->poke(
+            'mutation_hash',
+            $this->securityMutationWorkflowHash($mutation, $reason)
+        );
+        $fsm->poke('view', $view);
+    }
+
+    /**
+     * @param array<string,mixed> $mutation
+     */
+    private function assertSecurityMutationWorkflowBinding(
+        FsmProcessor $fsm,
+        string $siteId,
+        array $mutation,
+        string $reason,
+        string $view
+    ): void {
+        if (!hash_equals((string) $fsm->peek('site_id'), $siteId)
+            || !hash_equals(
+                (string) $fsm->peek('mutation_hash'),
+                $this->securityMutationWorkflowHash($mutation, $reason)
+            )
+            || !hash_equals((string) $fsm->peek('view'), $view)) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_MUTATION_WORKFLOW_BINDING_MISMATCH'
+            );
+        }
+    }
+
+    /**
+     * @param array<string,mixed> $mutation
+     */
+    private function securityMutationWorkflowHash(
+        array $mutation,
+        string $reason
+    ): string {
+        return hash(
+            'sha256',
+            Json::instance()->encode($mutation, false)
+                . "\n"
+                . $reason
+        );
+    }
     /**
      * @param array<string,mixed> $identity
      * @param array<string,mixed> $currentApp

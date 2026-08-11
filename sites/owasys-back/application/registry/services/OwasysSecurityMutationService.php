@@ -82,7 +82,12 @@ final class OwasysSecurityMutationService
         array $actor,
         array $request
     ): array {
-        $preview = $this->buildPreview($siteId, $actor, $request);
+        $preview = $this->buildPreview(
+            $siteId,
+            $actor,
+            $request,
+            'preview'
+        );
         $traceId = $this->traceId($request);
         $this->logger->info(
             'security.mutation',
@@ -134,7 +139,12 @@ final class OwasysSecurityMutationService
             );
         }
 
-        $preview = $this->buildPreview($siteId, $actor, $request);
+        $preview = $this->buildPreview(
+            $siteId,
+            $actor,
+            $request,
+            'commit'
+        );
         if (!hash_equals(
             (string) $preview['current_state_hash'],
             $expected
@@ -285,7 +295,8 @@ final class OwasysSecurityMutationService
     private function buildPreview(
         string $siteId,
         array $actor,
-        array $request
+        array $request,
+        string $phase
     ): array {
         $this->assertSiteId($siteId);
         $parameters = $this->parameters($request);
@@ -293,7 +304,8 @@ final class OwasysSecurityMutationService
             (string) ($parameters['fresh_auth_proof'] ?? ''),
             $actor,
             $siteId,
-            (string) ($parameters['mutation_json'] ?? '')
+            (string) ($parameters['mutation_json'] ?? ''),
+            $phase
         );
         $reason = trim((string) ($parameters['reason'] ?? ''));
         if (strlen($reason) < 3
