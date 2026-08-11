@@ -1,0 +1,122 @@
+{
+  "contract": "OWASYS_SECURITY_MUTATION_FSM_V1",
+  "name": "OWASYS security mutation FSM",
+  "initial_state": "idle",
+  "states": [
+    {
+      "id": "idle"
+    },
+    {
+      "id": "requested"
+    },
+    {
+      "id": "authenticated"
+    },
+    {
+      "id": "authorized"
+    },
+    {
+      "id": "validated"
+    },
+    {
+      "id": "previewed"
+    },
+    {
+      "id": "confirmed"
+    },
+    {
+      "id": "committed"
+    },
+    {
+      "id": "rejected"
+    },
+    {
+      "id": "rolled_back"
+    }
+  ],
+  "signals": [
+    {
+      "id": "request"
+    },
+    {
+      "id": "authenticate"
+    },
+    {
+      "id": "authorize"
+    },
+    {
+      "id": "validate"
+    },
+    {
+      "id": "preview"
+    },
+    {
+      "id": "confirm"
+    },
+    {
+      "id": "commit"
+    },
+    {
+      "id": "reject"
+    },
+    {
+      "id": "rollback"
+    }
+  ],
+  "transitions": [
+    {
+      "id": "t_request",
+      "from": "idle",
+      "signal": "request",
+      "next_state": "requested"
+    },
+    {
+      "id": "t_authenticate",
+      "from": "requested",
+      "signal": "authenticate",
+      "next_state": "authenticated"
+    },
+    {
+      "id": "t_authorize",
+      "from": "authenticated",
+      "signal": "authorize",
+      "next_state": "authorized"
+    },
+    {
+      "id": "t_validate",
+      "from": "authorized",
+      "signal": "validate",
+      "next_state": "validated"
+    },
+    {
+      "id": "t_preview",
+      "from": "validated",
+      "signal": "preview",
+      "next_state": "previewed"
+    },
+    {
+      "id": "t_confirm",
+      "from": "previewed",
+      "signal": "confirm",
+      "next_state": "confirmed"
+    },
+    {
+      "id": "t_commit",
+      "from": "confirmed",
+      "signal": "commit",
+      "next_state": "committed"
+    },
+    {
+      "id": "t_rollback",
+      "from": "confirmed",
+      "signal": "rollback",
+      "next_state": "rolled_back"
+    },
+    {
+      "id": "t_reject",
+      "from": "*",
+      "signal": "reject",
+      "next_state": "rejected"
+    }
+  ]
+}
