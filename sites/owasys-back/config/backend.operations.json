@@ -314,7 +314,8 @@
         "security.mutation.preview": {
             "composer_script": "owasys:security-mutation-preview",
             "roles": [
-                "admin"
+                "admin",
+                "developer"
             ],
             "arguments": [
                 {
@@ -351,7 +352,8 @@
         "security.mutation.commit": {
             "composer_script": "owasys:security-mutation-commit",
             "roles": [
-                "admin"
+                "admin",
+                "developer"
             ],
             "arguments": [
                 {
@@ -710,7 +712,8 @@
         "security.fresh-auth-proof.issue": {
             "composer_script": "owasys:security-fresh-auth-proof",
             "roles": [
-                "admin"
+                "admin",
+                "developer"
             ],
             "arguments": [
                 {

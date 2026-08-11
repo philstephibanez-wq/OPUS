@@ -11,12 +11,12 @@
             "structure:*",
             "data:*",
             "workflows:*",
-            "security:open",
             "source:*",
             "git:*",
             "profiler:view",
             "build:*",
-            "account:*"
+            "account:*",
+            "security:*"
         ],
         "viewer": [
             "registry:open",

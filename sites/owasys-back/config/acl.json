@@ -10,9 +10,9 @@
             "creation:*",
             "site:*",
             "account:change",
-            "security:read",
             "source:*",
-            "git:*"
+            "git:*",
+            "security:*"
         ],
         "viewer": [
             "registry:open",
