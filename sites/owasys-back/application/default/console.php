@@ -7,6 +7,8 @@ $files = [
     'application/registry/services/ApplicationSingletonInspector.php',
     'application/registry/repositories/RegistryRepository.php',
     'application/registry/services/OwasysCommandProviderInterface.php',
+    'application/registry/services/OwasysFreshAuthProofServiceInterface.php',
+    'application/registry/services/OwasysFreshAuthProofService.php',
     'application/registry/services/OwasysSecurityMutationServiceInterface.php',
     'application/registry/services/OwasysSecurityMutationService.php',
     'application/registry/services/OwasysCommandProvider.php',

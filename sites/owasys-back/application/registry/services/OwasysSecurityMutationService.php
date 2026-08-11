@@ -288,8 +288,13 @@ final class OwasysSecurityMutationService
         array $request
     ): array {
         $this->assertSiteId($siteId);
-        $this->assertFreshReauthentication($request);
         $parameters = $this->parameters($request);
+        (new OwasysFreshAuthProofService())->assertValid(
+            (string) ($parameters['fresh_auth_proof'] ?? ''),
+            $actor,
+            $siteId,
+            (string) ($parameters['mutation_json'] ?? '')
+        );
         $reason = trim((string) ($parameters['reason'] ?? ''));
         if (strlen($reason) < 3
             || strlen($reason) > 200
@@ -966,30 +971,6 @@ final class OwasysSecurityMutationService
         return is_array($request['parameters'] ?? null)
             ? $request['parameters']
             : [];
-    }
-
-    private function assertFreshReauthentication(array $request): void
-    {
-        $parameters = $this->parameters($request);
-        $value = trim((string) ($parameters['reauthenticated_at'] ?? ''));
-        if ($value === '') {
-            throw new RuntimeException(
-                'OWASYS_SECURITY_MUTATION_REAUTH_REQUIRED'
-            );
-        }
-        $timestamp = strtotime($value);
-        if ($timestamp === false) {
-            throw new RuntimeException(
-                'OWASYS_SECURITY_MUTATION_REAUTH_INVALID'
-            );
-        }
-        $now = time();
-        if ($timestamp > $now + 30
-            || ($now - $timestamp) > self::MAX_REAUTH_AGE_SECONDS) {
-            throw new RuntimeException(
-                'OWASYS_SECURITY_MUTATION_REAUTH_EXPIRED'
-            );
-        }
     }
 
     private function targetMutable(string $siteId, array $site): bool

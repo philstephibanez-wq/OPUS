@@ -19,6 +19,7 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
         'owasys:registry:clear' => true,
         'owasys:security:admin-password:change' => true,
         'owasys:security:snapshot' => true,
+        'owasys:security:fresh-auth-proof' => true,
         'owasys:security:mutation-preview' => true,
         'owasys:security:mutation-commit' => true,
     ];
@@ -83,6 +84,8 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
                     $arguments,
                     $actor
                 ),
+                'owasys:security:fresh-auth-proof' =>
+                    $this->freshAuthProof($arguments, $request, $actor),
                 'owasys:security:mutation-preview' =>
                     $this->securityMutationPreview(
                         $arguments,
@@ -297,6 +300,29 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
         ];
     }
 
+    /**
+     * @param list<string> $arguments
+     * @param array<string,mixed> $request
+     * @param array<string,mixed> $actor
+     * @return array<string,mixed>
+     */
+    private function freshAuthProof(
+        array $arguments,
+        array $request,
+        array $actor
+    ): array {
+        $this->assertAllowed($actor, 'security', 'manage');
+        $siteId = $this->securityMutationSiteId($arguments);
+        $parameters = is_array($request['parameters'] ?? null)
+            ? $request['parameters']
+            : [];
+        $mutationJson = (string) ($parameters['mutation_json'] ?? '');
+        return (new OwasysFreshAuthProofService())->issue(
+            $actor,
+            $siteId,
+            $mutationJson
+        );
+    }
     /**
      * @param list<string> $arguments
      * @param array<string,mixed> $request

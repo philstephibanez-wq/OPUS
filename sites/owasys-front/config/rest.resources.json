@@ -90,6 +90,12 @@
         },
         {
             "method": "POST",
+            "path": "/api/v1/applications/{site_id}/security/fresh-auth-proofs",
+            "operation": "security.fresh-auth-proof.issue",
+            "success_status": 201
+        },
+        {
+            "method": "POST",
             "path": "/api/v1/applications/{site_id}/security/previews",
             "operation": "security.mutation.preview",
             "success_status": 200

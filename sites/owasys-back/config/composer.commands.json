@@ -13,7 +13,8 @@
                 "owasys:security:admin-password:change",
                 "owasys:security:snapshot",
                 "owasys:security:mutation-preview",
-                "owasys:security:mutation-commit"
+                "owasys:security:mutation-commit",
+                "owasys:security:fresh-auth-proof"
             ]
         },
         {
@@ -64,6 +65,7 @@
         "owasys:git-stage-all": "owasys:git:stage-all",
         "owasys:git-unstage": "owasys:git:unstage",
         "owasys:git-commit": "owasys:git:commit",
-        "owasys:git-restore": "owasys:git:restore"
+        "owasys:git-restore": "owasys:git:restore",
+        "owasys:security-fresh-auth-proof": "owasys:security:fresh-auth-proof"
     }
 }

@@ -236,7 +236,9 @@ final class OwasysRuntimeSecurity
     /** @param array<string,mixed> $identity */
     public function reauthenticate(
         array $identity,
-        string $password
+        string $password,
+        string $siteId,
+        array $mutation
     ): string {
         $provider = trim((string) (
             $identity['provider'] ?? $this->defaultProvider
@@ -270,7 +272,27 @@ final class OwasysRuntimeSecurity
                 'OWASYS_SECURITY_MUTATION_REAUTH_IDENTITY_MISMATCH'
             );
         }
-        return gmdate('Y-m-d\\TH:i:s\\Z');
+
+        $siteId = $this->securitySiteId($siteId);
+        $mutationJson = Json::instance()->encode($mutation, false);
+        $result = $this->rest->request(
+            'POST',
+            '/api/v1/applications/'
+                . rawurlencode($siteId)
+                . '/security/fresh-auth-proofs',
+            ['mutation_json' => $mutationJson],
+            $this->restActor($identity)
+        );
+        if (($result['contract'] ?? null)
+                !== 'OWASYS_FRESH_AUTH_PROOF_V1'
+            || !is_string($result['proof'] ?? null)
+            || trim((string) $result['proof']) === '') {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_MUTATION_FRESH_AUTH_PROOF_INVALID'
+            );
+        }
+
+        return (string) $result['proof'];
     }
 
     /**
@@ -283,7 +305,7 @@ final class OwasysRuntimeSecurity
         string $siteId,
         array $mutation,
         string $reason,
-        string $reauthenticatedAt
+        string $freshAuthProof
     ): array {
         $siteId = $this->securitySiteId($siteId);
         $result = $this->rest->request(
@@ -297,7 +319,7 @@ final class OwasysRuntimeSecurity
                     false
                 ),
                 'reason' => $reason,
-                'reauthenticated_at' => $reauthenticatedAt,
+                'fresh_auth_proof' => $freshAuthProof,
             ],
             $this->restActor($identity)
         );
@@ -325,7 +347,7 @@ final class OwasysRuntimeSecurity
         string $siteId,
         array $mutation,
         string $reason,
-        string $reauthenticatedAt,
+        string $freshAuthProof,
         string $expectedStateHash,
         string $confirmationToken
     ): array {
@@ -339,7 +361,7 @@ final class OwasysRuntimeSecurity
                     false
                 ),
                 'reason' => $reason,
-                'reauthenticated_at' => $reauthenticatedAt,
+                'fresh_auth_proof' => $freshAuthProof,
                 'expected_state_hash' => $expectedStateHash,
                 'confirmation_token' => $confirmationToken,
             ],

@@ -116,9 +116,11 @@ final class OwasysSecurityController
                 $reason = trim((string) (
                     $_POST['owasys_security_reason'] ?? ''
                 ));
-                $reauthenticatedAt = $this->security->reauthenticate(
+                $freshAuthProof = $this->security->reauthenticate(
                     $identity,
-                    (string) ($_POST['owasys_reauth_password'] ?? '')
+                    (string) ($_POST['owasys_reauth_password'] ?? ''),
+                    $siteId,
+                    $mutation
                 );
                 unset($_POST['owasys_reauth_password']);
 
@@ -129,7 +131,7 @@ final class OwasysSecurityController
                             $siteId,
                             $mutation,
                             $reason,
-                            $reauthenticatedAt
+                            $freshAuthProof
                         );
                 } else {
                     $mutationResult = $this->security
@@ -138,7 +140,7 @@ final class OwasysSecurityController
                             $siteId,
                             $mutation,
                             $reason,
-                            $reauthenticatedAt,
+                            $freshAuthProof,
                             (string) (
                                 $_POST['owasys_expected_state_hash'] ?? ''
                             ),
