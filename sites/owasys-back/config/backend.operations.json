@@ -285,16 +285,6 @@
             ],
             "arguments": []
         },
-        "security.admin-password.change": {
-            "composer_script": "owasys:admin-password-change",
-            "roles": [
-                "admin",
-                "developer",
-                "viewer"
-            ],
-            "arguments": [],
-            "secret_input": true
-        },
         "security.snapshot": {
             "composer_script": "owasys:security-snapshot",
             "roles": [

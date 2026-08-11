@@ -9,7 +9,6 @@
             "registry:*",
             "creation:*",
             "site:*",
-            "account:change",
             "source:*",
             "git:*",
             "security:*"
@@ -21,8 +20,7 @@
             "site:routes:list",
             "security:read",
             "source:read",
-            "git:read",
-            "account:change"
+            "git:read"
         ]
     }
 }

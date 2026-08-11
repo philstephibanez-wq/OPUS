@@ -7,8 +7,6 @@ use Opus\File\File;
 use Opus\File\StructuredFileLoader;
 use Opus\Profiler\Profiler;
 use Opus\Security\Acl\AclPolicy;
-use Opus\Security\Sso\LocalPasswordSsoProvider;
-use Opus\Security\Sso\SsoManager;
 
 /** Application-owned Composer command provider for OWASYS business operations. */
 final class OwasysCommandProvider implements OwasysCommandProviderInterface
@@ -17,7 +15,6 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
         'owasys:registry:sync' => true,
         'owasys:registry:select' => true,
         'owasys:registry:clear' => true,
-        'owasys:security:admin-password:change' => true,
         'owasys:security:snapshot' => true,
         'owasys:security:fresh-auth-proof' => true,
         'owasys:security:mutation-preview' => true,
@@ -78,8 +75,6 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
                     $actor
                 ),
                 'owasys:registry:clear' => $this->registryClear($actor),
-                'owasys:security:admin-password:change' =>
-                    $this->changePassword($request, $actor),
                 'owasys:security:snapshot' => $this->securitySnapshot(
                     $arguments,
                     $actor
@@ -225,78 +220,6 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
             'contract' => 'OWASYS_REGISTRY_CLEAR_COMMAND_RESULT_V2',
             'cleared' => $cleared,
             'already_empty' => !$cleared,
-        ];
-    }
-
-    /** @param array<string,mixed> $request @param array<string,mixed> $actor */
-    private function changePassword(
-        array $request,
-        array $actor
-    ): array {
-        $this->assertAllowed($actor, 'account', 'change');
-        $parameters = is_array($request['parameters'] ?? null)
-            ? $request['parameters']
-            : [];
-        $currentPassword = (string) (
-            $parameters['current_password'] ?? ''
-        );
-        $newPassword = (string) ($parameters['new_password'] ?? '');
-        if ($currentPassword === '' || $newPassword === '') {
-            throw new RuntimeException('OWASYS_CREDENTIALS_INVALID');
-        }
-
-        $loader = StructuredFileLoader::instance();
-        $site = $loader->read($this->siteRoot . '/config/site.json');
-        $sso = $loader->read($this->siteRoot . '/config/sso.json');
-        $providerId = trim((string) ($actor['provider'] ?? ''));
-        $defaultProvider = trim((string) (
-            $sso['default_provider'] ?? ''
-        ));
-        if ($providerId !== 'local-password'
-            || $defaultProvider !== 'local-password') {
-            throw new RuntimeException(
-                'OWASYS_SECURITY_PROVIDER_UNSUPPORTED'
-            );
-        }
-
-        $providerConfig = $sso['providers'][$providerId] ?? null;
-        if (!is_array($providerConfig)
-            || ($providerConfig['enabled'] ?? false) !== true) {
-            throw new RuntimeException(
-                'OWASYS_SECURITY_PROVIDER_DISABLED'
-            );
-        }
-
-        $store = $this->safeRelative(
-            (string) ($providerConfig['store'] ?? '')
-        );
-        $minimum = max(
-            8,
-            (int) ($site['auth']['minimum_password_length'] ?? 10)
-        );
-        $manager = new SsoManager([
-            new LocalPasswordSsoProvider(
-                $this->siteRoot . '/' . $store,
-                $minimum,
-                (string) ($providerConfig['store_contract'] ?? '')
-            ),
-        ]);
-        $identity = $manager->changePassword(
-            $providerId,
-            (string) $actor['subject'],
-            $currentPassword,
-            $newPassword
-        );
-        unset($currentPassword, $newPassword, $parameters, $request);
-
-        return [
-            'contract' => 'OWASYS_ADMIN_PASSWORD_CHANGE_RESULT_V1',
-            'identity' => $identity->toSession(),
-            'audit' => [
-                'event' => 'security.admin-password.changed',
-                'actor' => $identity->subject,
-                'secret_logged' => false,
-            ],
         ];
     }
 
