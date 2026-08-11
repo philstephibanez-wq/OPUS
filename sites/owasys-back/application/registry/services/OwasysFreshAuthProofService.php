@@ -31,9 +31,18 @@ final class OwasysFreshAuthProofService
         $this->secret = $secret;
     }
 
-    public function issue(array $actor, string $siteId, string $mutationJson): array
-    {
-        $claims = $this->claims($actor, $siteId, $mutationJson);
+    public function issue(
+        array $actor,
+        string $siteId,
+        string $mutationJson,
+        string $phase
+    ): array {
+        $claims = $this->claims(
+            $actor,
+            $siteId,
+            $mutationJson,
+            $phase
+        );
         $now = time();
         $claims['contract'] = self::CONTRACT;
         $claims['issued_at'] = $now;
@@ -59,7 +68,8 @@ final class OwasysFreshAuthProofService
         string $proof,
         array $actor,
         string $siteId,
-        string $mutationJson
+        string $mutationJson,
+        string $phase
     ): void {
         $parts = explode('.', trim($proof));
         if (count($parts) !== 2
@@ -97,7 +107,12 @@ final class OwasysFreshAuthProofService
             throw new RuntimeException('OWASYS_FRESH_AUTH_PROOF_EXPIRED');
         }
 
-        $expected = $this->claims($actor, $siteId, $mutationJson);
+        $expected = $this->claims(
+            $actor,
+            $siteId,
+            $mutationJson,
+            $phase
+        );
         foreach ($expected as $key => $value) {
             if (!is_string($claims[$key] ?? null)
                 || !hash_equals($value, (string) $claims[$key])) {
@@ -121,9 +136,11 @@ final class OwasysFreshAuthProofService
     private function claims(
         array $actor,
         string $siteId,
-        string $mutationJson
+        string $mutationJson,
+        string $phase
     ): array {
         $siteId = strtolower(trim($siteId));
+        $phase = strtolower(trim($phase));
         $subject = trim((string) (
             $actor['subject'] ?? $actor['id'] ?? ''
         ));
@@ -132,6 +149,7 @@ final class OwasysFreshAuthProofService
         if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $siteId) !== 1
             || $subject === ''
             || $provider === ''
+            || !in_array($phase, ['preview', 'commit'], true)
             || $mutationJson === ''
             || strlen($mutationJson) > 16384) {
             throw new RuntimeException(
@@ -143,7 +161,8 @@ final class OwasysFreshAuthProofService
             'site_id' => $siteId,
             'subject' => $subject,
             'provider' => $provider,
-            'operation' => 'security.mutation',
+            'operation' => 'security.mutation.' . $phase,
+            'phase' => $phase,
             'mutation_hash' => hash('sha256', $mutationJson),
         ];
     }

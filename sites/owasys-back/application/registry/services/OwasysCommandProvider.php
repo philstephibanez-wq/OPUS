@@ -317,10 +317,14 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
             ? $request['parameters']
             : [];
         $mutationJson = (string) ($parameters['mutation_json'] ?? '');
+        $phase = strtolower(trim((string) (
+            $parameters['phase'] ?? ''
+        )));
         return (new OwasysFreshAuthProofService())->issue(
             $actor,
             $siteId,
-            $mutationJson
+            $mutationJson,
+            $phase
         );
     }
     /**
