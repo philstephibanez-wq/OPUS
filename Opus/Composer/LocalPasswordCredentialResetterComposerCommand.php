@@ -7,10 +7,10 @@ use Opus\File\Json;
 use Opus\Security\Sso\LocalPasswordCredentialResetter;
 
 /**
- * Composer callback for deployment-time local-password reset.
+ * Composer callback for deployment/operator local-password reset.
  *
- * The password is accepted exclusively from non-interactive STDIN and is never
- * copied into argv, output, logs, profiler data or versioned configuration.
+ * Password input is accepted exclusively from non-interactive STDIN and is
+ * never copied into argv, output, logs, profiler data or versioned config.
  */
 final class LocalPasswordCredentialResetterComposerCommand implements
     LocalPasswordCredentialResetterComposerCommandInterface
@@ -32,10 +32,20 @@ final class LocalPasswordCredentialResetterComposerCommand implements
         }
 
         $arguments = array_values($arguments);
-        if (count($arguments) !== 2) {
+        if (count($arguments) < 2 || count($arguments) > 3) {
             throw new \RuntimeException(
                 'OPUS_LOCAL_PASSWORD_RESET_ARGUMENTS_REQUIRED'
             );
+        }
+
+        $mustChangePassword = false;
+        if (isset($arguments[2])) {
+            if ($arguments[2] !== '--must-change') {
+                throw new \RuntimeException(
+                    'OPUS_LOCAL_PASSWORD_RESET_OPTION_INVALID'
+                );
+            }
+            $mustChangePassword = true;
         }
 
         if (function_exists('stream_isatty') && stream_isatty(STDIN)) {
@@ -51,7 +61,12 @@ final class LocalPasswordCredentialResetterComposerCommand implements
             );
         }
 
-        $password = preg_replace('/(?:\r\n|\n|\r)\z/', '', $raw, 1);
+        $password = preg_replace(
+            '/(?:\r\n|\n|\r)\z/',
+            '',
+            $raw,
+            1
+        );
         if (!is_string($password) || $password === '') {
             throw new \RuntimeException(
                 'OPUS_LOCAL_PASSWORD_RESET_PASSWORD_REQUIRED'
@@ -64,7 +79,8 @@ final class LocalPasswordCredentialResetterComposerCommand implements
             ))->reset(
                 (string) $arguments[0],
                 (string) $arguments[1],
-                $password
+                $password,
+                $mustChangePassword
             );
         } finally {
             $password = '';

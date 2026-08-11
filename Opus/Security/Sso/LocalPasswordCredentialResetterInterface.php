@@ -13,6 +13,7 @@ interface LocalPasswordCredentialResetterInterface extends
     public function reset(
         string $siteId,
         string $subject,
-        string $password
+        string $password,
+        bool $mustChangePassword = false
     ): array;
 }

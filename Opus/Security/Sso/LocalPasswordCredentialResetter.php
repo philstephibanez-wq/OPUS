@@ -11,17 +11,21 @@ use Opus\File\StructuredFileLoader;
 use Opus\File\StructuredFileLoaderInterface;
 
 /**
- * Resets an existing local-password credential for a generated OPUS site.
+ * Resets an existing local-password credential in a non-versioned runtime store.
  *
- * The clear-text credential exists only in caller memory. Only password_hash()
- * output is persisted in the non-versioned runtime authentication store.
+ * Supports generated and standard OPUS applications whose enabled default SSO
+ * provider is local-password. Clear-text credentials remain caller-memory only.
  */
 final class LocalPasswordCredentialResetter implements
     LocalPasswordCredentialResetterInterface
 {
     private const SITE_CONTRACT = 'OPUS_SITE_STANDARD_CONTRACT_CORE';
-    private const SSO_CONTRACT = 'OPUS_GENERATED_APPLICATION_SSO_V1';
-    private const STORE_CONTRACT = 'OPUS_LOCAL_USER_STORE_V1';
+
+    /** @var array<string,true> */
+    private const SSO_CONTRACTS = [
+        'OPUS_GENERATED_APPLICATION_SSO_V1' => true,
+        'OPUS_SSO_CONFIGURATION_V1' => true,
+    ];
 
     private readonly string $opusRoot;
     private readonly FileInterface $file;
@@ -50,24 +54,23 @@ final class LocalPasswordCredentialResetter implements
     public function reset(
         string $siteId,
         string $subject,
-        string $password
+        string $password,
+        bool $mustChangePassword = false
     ): array {
-        $siteId = trim($siteId);
+        $siteId = strtolower(trim($siteId));
         $subject = trim($subject);
 
-        if (preg_match('/^[a-z0-9][a-z0-9_-]{1,63}$/', $siteId) !== 1) {
+        if (preg_match('/^[a-z0-9][a-z0-9_-]{1,63}$/D', $siteId) !== 1) {
             throw new \RuntimeException(
                 'OPUS_LOCAL_PASSWORD_RESET_SITE_ID_INVALID'
             );
         }
-        if (preg_match('/^[A-Za-z0-9][A-Za-z0-9._@-]{0,127}$/', $subject) !== 1) {
+        if (preg_match(
+            '/^[A-Za-z0-9][A-Za-z0-9._@-]{0,127}$/D',
+            $subject
+        ) !== 1) {
             throw new \RuntimeException(
                 'OPUS_LOCAL_PASSWORD_RESET_SUBJECT_INVALID'
-            );
-        }
-        if (strlen($password) < 10) {
-            throw new \RuntimeException(
-                'OPUS_LOCAL_PASSWORD_RESET_PASSWORD_TOO_SHORT'
             );
         }
 
@@ -80,18 +83,38 @@ final class LocalPasswordCredentialResetter implements
 
         $site = $this->config(
             $siteRoot . '/config/site.json',
-            self::SITE_CONTRACT
+            [self::SITE_CONTRACT => true]
         );
-        if (($site['role'] ?? null) !== 'generated-opus-application'
-            || ($site['generated_by'] ?? null) !== 'composer') {
+        $role = trim((string) ($site['role'] ?? ''));
+        if (!in_array(
+            $role,
+            ['generated-opus-application', 'standard-opus-application'],
+            true
+        )) {
+            throw new \RuntimeException(
+                'OPUS_LOCAL_PASSWORD_RESET_SITE_ROLE_INVALID'
+            );
+        }
+        if ($role === 'generated-opus-application'
+            && ($site['generated_by'] ?? null) !== 'composer') {
             throw new \RuntimeException(
                 'OPUS_LOCAL_PASSWORD_RESET_SITE_NOT_GENERATED'
             );
         }
 
+        $minimum = max(
+            8,
+            (int) ($site['auth']['minimum_password_length'] ?? 10)
+        );
+        if (strlen($password) < $minimum) {
+            throw new \RuntimeException(
+                'OPUS_LOCAL_PASSWORD_RESET_PASSWORD_TOO_SHORT'
+            );
+        }
+
         $sso = $this->config(
             $siteRoot . '/config/sso.json',
-            self::SSO_CONTRACT
+            self::SSO_CONTRACTS
         );
         $providers = is_array($sso['providers'] ?? null)
             ? $sso['providers']
@@ -99,6 +122,7 @@ final class LocalPasswordCredentialResetter implements
         $provider = is_array($providers['local-password'] ?? null)
             ? $providers['local-password']
             : [];
+
         if (($sso['default_provider'] ?? null) !== 'local-password'
             || ($provider['enabled'] ?? false) !== true) {
             throw new \RuntimeException(
@@ -106,9 +130,13 @@ final class LocalPasswordCredentialResetter implements
             );
         }
 
-        $storeRelative = $this->runtimeStoreRelative((string) (
-            $provider['runtime_store'] ?? ''
-        ));
+        $storeRelative = $this->runtimeStoreRelative(
+            (string) (
+                $provider['runtime_store']
+                ?? $provider['store']
+                ?? ''
+            )
+        );
         $storePath = $siteRoot . '/' . $storeRelative;
         if (!$this->file->exists($storePath)) {
             throw new \RuntimeException(
@@ -120,7 +148,23 @@ final class LocalPasswordCredentialResetter implements
             $this->file->read($storePath),
             $storePath
         );
-        if (($store['contract'] ?? null) !== self::STORE_CONTRACT) {
+        $actualStoreContract = trim((string) ($store['contract'] ?? ''));
+        $configuredStoreContract = trim((string) (
+            $provider['store_contract'] ?? ''
+        ));
+        if ($configuredStoreContract !== ''
+            && !hash_equals(
+                $configuredStoreContract,
+                $actualStoreContract
+            )) {
+            throw new \RuntimeException(
+                'OPUS_LOCAL_PASSWORD_RESET_STORE_CONTRACT_MISMATCH'
+            );
+        }
+        if (preg_match(
+            '/^[A-Z][A-Z0-9_]{2,127}_V[0-9]+$/D',
+            $actualStoreContract
+        ) !== 1) {
             throw new \RuntimeException(
                 'OPUS_LOCAL_PASSWORD_RESET_STORE_CONTRACT_INVALID'
             );
@@ -129,12 +173,10 @@ final class LocalPasswordCredentialResetter implements
         $users = is_array($store['users'] ?? null)
             ? $store['users']
             : [];
-        $existing = $users[$subject] ?? null;
-        if (!is_array($existing)) {
-            throw new \RuntimeException(
-                'OPUS_LOCAL_PASSWORD_RESET_SUBJECT_UNKNOWN'
-            );
-        }
+        [$username, $existing] = $this->existingUser(
+            $users,
+            $subject
+        );
 
         $hash = password_hash($password, PASSWORD_DEFAULT);
         if (!is_string($hash) || $hash === '') {
@@ -145,10 +187,10 @@ final class LocalPasswordCredentialResetter implements
 
         $now = gmdate('c');
         $existing['password_hash'] = $hash;
-        $existing['must_change_password'] = false;
+        $existing['must_change_password'] = $mustChangePassword;
         $existing['password_changed_at'] = $now;
         $existing['updated_at'] = $now;
-        $users[$subject] = $existing;
+        $users[$username] = $existing;
 
         $store['users'] = $users;
         $store['updated_at'] = $now;
@@ -162,22 +204,49 @@ final class LocalPasswordCredentialResetter implements
             'contract' => 'OPUS_LOCAL_PASSWORD_RESET_RESULT_V1',
             'status' => 'reset',
             'site_id' => $siteId,
-            'subject' => $subject,
+            'subject' => (string) ($existing['id'] ?? $username),
             'runtime_store' => $storeRelative,
+            'store_contract' => $actualStoreContract,
+            'must_change_password' => $mustChangePassword,
         ];
     }
 
-    /** @return array<string,mixed> */
-    private function config(string $path, string $contract): array
+    /**
+     * @param array<string,true> $contracts
+     * @return array<string,mixed>
+     */
+    private function config(string $path, array $contracts): array
     {
         $data = $this->loader->read($path);
-        if (($data['contract'] ?? null) !== $contract) {
+        $contract = (string) ($data['contract'] ?? '');
+        if (!isset($contracts[$contract])) {
             throw new \RuntimeException(
                 'OPUS_LOCAL_PASSWORD_RESET_CONFIG_INVALID'
             );
         }
 
         return $data;
+    }
+
+    /**
+     * @param array<string,mixed> $users
+     * @return array{0:string,1:array<string,mixed>}
+     */
+    private function existingUser(array $users, string $subject): array
+    {
+        foreach ($users as $username => $candidate) {
+            if (!is_string($username) || !is_array($candidate)) {
+                continue;
+            }
+            if ($username === $subject
+                || (string) ($candidate['id'] ?? '') === $subject) {
+                return [$username, $candidate];
+            }
+        }
+
+        throw new \RuntimeException(
+            'OPUS_LOCAL_PASSWORD_RESET_SUBJECT_UNKNOWN'
+        );
     }
 
     private function runtimeStoreRelative(string $path): string
