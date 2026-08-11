@@ -899,17 +899,35 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
             );
         }
 
+        $logoutRoute = null;
+        foreach ((array) ($routes['routes'] ?? []) as $candidate) {
+            if (!is_array($candidate)
+                || (string) ($candidate['module'] ?? '') !== 'logout') {
+                continue;
+            }
+            $path = trim((string) ($candidate['path'] ?? ''));
+            if ($path === '' || $path[0] !== '/') {
+                throw new \RuntimeException(
+                    'OPUS_GENERATED_LOGOUT_ROUTE_INVALID'
+                );
+            }
+            $logoutRoute = $candidate;
+            break;
+        }
+
         if ($identity['subject'] !== 'anonymous'
-            && $identity['provider'] !== 'auth0-proxy') {
+            && $identity['provider'] !== 'auth0-proxy'
+            && is_array($logoutRoute)) {
             $logoutRenderer = new ScoreTemplateRenderer(
                 __DIR__ . '/templates',
                 null,
                 $this->profiler
             );
+            $logoutPath = (string) ($logoutRoute['path'] ?? '/logout');
             $menu .= $logoutRenderer->render(
                 'logout-form.score',
                 ['auth' => [
-                    'logout_url' => '/' . rawurlencode($locale) . '/logout',
+                    'logout_url' => '/' . rawurlencode($locale) . $logoutPath,
                     'logout_csrf_token' => (new CsrfTokenManager())->issue(
                         'opus.generated.logout'
                     ),

@@ -8,6 +8,7 @@
         "auth.username": "Username",
         "auth.password": "Password",
         "auth.submit": "Logga in",
-        "auth.error": "Felaktigt användarnamn eller lösenord."
+        "auth.error": "Felaktigt användarnamn eller lösenord.",
+        "auth.logout": "Logga ut"
     }
 }

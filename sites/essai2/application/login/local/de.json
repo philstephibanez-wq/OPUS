@@ -8,6 +8,7 @@
         "auth.username": "Username",
         "auth.password": "Password",
         "auth.submit": "Anmelden",
-        "auth.error": "Benutzername oder Passwort ist falsch."
+        "auth.error": "Benutzername oder Passwort ist falsch.",
+        "auth.logout": "Abmelden"
     }
 }

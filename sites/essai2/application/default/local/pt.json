@@ -14,6 +14,7 @@
         "menu.i18n": "Internacionalização",
         "error.title": "Erro do OPUS",
         "error.request_failed": "O pedido falhou.",
-        "menu.login": "Iniciar sessão"
+        "menu.login": "Iniciar sessão",
+        "auth.logout": "Terminar sessão"
     }
 }

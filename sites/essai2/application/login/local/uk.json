@@ -8,6 +8,7 @@
         "auth.username": "Username",
         "auth.password": "Password",
         "auth.submit": "Вхід",
-        "auth.error": "Неправильне ім’я користувача або пароль."
+        "auth.error": "Неправильне ім’я користувача або пароль.",
+        "auth.logout": "Вийти"
     }
 }

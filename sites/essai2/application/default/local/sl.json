@@ -14,6 +14,7 @@
         "menu.i18n": "Internacionalizacija",
         "error.title": "Napaka OPUS",
         "error.request_failed": "Zahteva ni uspela.",
-        "menu.login": "Prijava"
+        "menu.login": "Prijava",
+        "auth.logout": "Odjava"
     }
 }

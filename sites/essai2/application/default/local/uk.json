@@ -14,6 +14,7 @@
         "menu.i18n": "Інтернаціоналізація",
         "error.title": "Помилка OPUS",
         "error.request_failed": "Не вдалося виконати запит.",
-        "menu.login": "Вхід"
+        "menu.login": "Вхід",
+        "auth.logout": "Вийти"
     }
 }

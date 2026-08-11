@@ -8,6 +8,7 @@
         "auth.username": "Username",
         "auth.password": "Password",
         "auth.submit": "Logi sisse",
-        "auth.error": "Vale kasutajanimi või parool."
+        "auth.error": "Vale kasutajanimi või parool.",
+        "auth.logout": "Logi välja"
     }
 }

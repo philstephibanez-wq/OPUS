@@ -14,6 +14,7 @@
         "menu.i18n": "Internationalisering",
         "error.title": "OPUS-fel",
         "error.request_failed": "Begäran misslyckades.",
-        "menu.login": "Logga in"
+        "menu.login": "Logga in",
+        "auth.logout": "Logga ut"
     }
 }

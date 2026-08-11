@@ -8,6 +8,7 @@
         "auth.username": "Username",
         "auth.password": "Password",
         "auth.submit": "Idħol",
-        "auth.error": "Isem tal-utent jew password mhux korrett."
+        "auth.error": "Isem tal-utent jew password mhux korrett.",
+        "auth.logout": "Oħroġ"
     }
 }

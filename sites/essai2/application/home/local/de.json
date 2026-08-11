@@ -8,7 +8,7 @@
         "auth.username": "Username",
         "auth.password": "Password",
         "auth.submit": "Anmelden",
-        "auth.error": "Authentication failed."
+        "auth.error": "Authentication failed.",
+        "auth.logout": "Abmelden"
     }
 }
-

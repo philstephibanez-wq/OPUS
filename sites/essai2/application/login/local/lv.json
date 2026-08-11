@@ -8,6 +8,7 @@
         "auth.username": "Username",
         "auth.password": "Password",
         "auth.submit": "Pieteikties",
-        "auth.error": "Nepareizs lietotājvārds vai parole."
+        "auth.error": "Nepareizs lietotājvārds vai parole.",
+        "auth.logout": "Izrakstīties"
     }
 }

@@ -14,6 +14,7 @@
         "menu.i18n": "Idirnáisiúnú",
         "error.title": "Earráid OPUS",
         "error.request_failed": "Theip ar an iarratas.",
-        "menu.login": "Sínigh isteach"
+        "menu.login": "Sínigh isteach",
+        "auth.logout": "Sínigh amach"
     }
 }

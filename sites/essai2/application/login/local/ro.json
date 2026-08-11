@@ -8,6 +8,7 @@
         "auth.username": "Username",
         "auth.password": "Password",
         "auth.submit": "Autentificare",
-        "auth.error": "Nume de utilizator sau parolă incorectă."
+        "auth.error": "Nume de utilizator sau parolă incorectă.",
+        "auth.logout": "Deconectare"
     }
 }

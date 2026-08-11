@@ -8,6 +8,7 @@
         "auth.username": "Username",
         "auth.password": "Password",
         "auth.submit": "Iniciar sessão",
-        "auth.error": "Nome de utilizador ou palavra-passe incorretos."
+        "auth.error": "Nome de utilizador ou palavra-passe incorretos.",
+        "auth.logout": "Terminar sessão"
     }
 }

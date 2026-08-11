@@ -8,6 +8,7 @@
         "auth.username": "Username",
         "auth.password": "Password",
         "auth.submit": "Log ind",
-        "auth.error": "Forkert brugernavn eller adgangskode."
+        "auth.error": "Forkert brugernavn eller adgangskode.",
+        "auth.logout": "Log ud"
     }
 }

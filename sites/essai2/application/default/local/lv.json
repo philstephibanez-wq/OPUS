@@ -14,6 +14,7 @@
         "menu.i18n": "Internacionalizācija",
         "error.title": "OPUS kļūda",
         "error.request_failed": "Pieprasījums neizdevās.",
-        "menu.login": "Pieteikties"
+        "menu.login": "Pieteikties",
+        "auth.logout": "Izrakstīties"
     }
 }

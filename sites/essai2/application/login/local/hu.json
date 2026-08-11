@@ -8,6 +8,7 @@
         "auth.username": "Username",
         "auth.password": "Password",
         "auth.submit": "Bejelentkezés",
-        "auth.error": "Helytelen felhasználónév vagy jelszó."
+        "auth.error": "Helytelen felhasználónév vagy jelszó.",
+        "auth.logout": "Kijelentkezés"
     }
 }

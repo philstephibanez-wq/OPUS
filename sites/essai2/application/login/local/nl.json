@@ -8,6 +8,7 @@
         "auth.username": "Username",
         "auth.password": "Password",
         "auth.submit": "Aanmelden",
-        "auth.error": "Onjuiste gebruikersnaam of wachtwoord."
+        "auth.error": "Onjuiste gebruikersnaam of wachtwoord.",
+        "auth.logout": "Afmelden"
     }
 }

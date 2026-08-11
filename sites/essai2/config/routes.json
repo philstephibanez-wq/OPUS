@@ -35,6 +35,20 @@
             "dispatch_action": "render_route",
             "show_in_menu": false,
             "order": 20
+        },
+        {
+            "id": "logout.action",
+            "path": "/logout",
+            "state": "login",
+            "module": "logout",
+            "action": "logout",
+            "label": "auth.logout",
+            "acl": "login",
+            "fsm_state": "login",
+            "dispatch_action": "logout",
+            "show_in_menu": false,
+            "logout_redirect": "/login",
+            "order": 30
         }
     ]
 }

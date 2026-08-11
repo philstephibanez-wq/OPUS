@@ -8,6 +8,7 @@
         "auth.username": "Username",
         "auth.password": "Password",
         "auth.submit": "Prijava",
-        "auth.error": "Neispravno korisničko ime ili lozinka."
+        "auth.error": "Neispravno korisničko ime ili lozinka.",
+        "auth.logout": "Odjava"
     }
 }

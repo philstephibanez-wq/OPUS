@@ -8,6 +8,7 @@
         "auth.username": "Username",
         "auth.password": "Password",
         "auth.submit": "Přihlášení",
-        "auth.error": "Nesprávné uživatelské jméno nebo heslo."
+        "auth.error": "Nesprávné uživatelské jméno nebo heslo.",
+        "auth.logout": "Odhlásit se"
     }
 }

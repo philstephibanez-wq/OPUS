@@ -8,6 +8,7 @@
         "auth.username": "Username",
         "auth.password": "Password",
         "auth.submit": "Σύνδεση",
-        "auth.error": "Λανθασμένο όνομα χρήστη ή κωδικός πρόσβασης."
+        "auth.error": "Λανθασμένο όνομα χρήστη ή κωδικός πρόσβασης.",
+        "auth.logout": "Αποσύνδεση"
     }
 }
