@@ -139,54 +139,49 @@ final class OwasysRuntimeSecurity
     }
 
     /**
+     * Development-only local-password credential ownership remains on the
+     * frontend bastion that owns the non-versioned runtime credential store.
+     *
      * @param array<string,mixed> $identity
      * @param array<string,mixed> $post
      */
     public function changePassword(array $identity, array $post): SsoIdentity
     {
+        $provider = trim((string) (
+            $identity['provider'] ?? $this->defaultProvider
+        ));
+        $subject = trim((string) (
+            $identity['subject'] ?? $identity['id'] ?? ''
+        ));
+        $currentPassword = (string) (
+            $post['owasys_current_password'] ?? ''
+        );
         $newPassword = (string) ($post['owasys_new_password'] ?? '');
         $confirmation = (string) ($post['owasys_confirm_password'] ?? '');
+
+        if ($provider !== 'local-password') {
+            throw new RuntimeException('OWASYS_PASSWORD_CHANGE_PROVIDER_UNSUPPORTED');
+        }
+        if ($subject === '' || $currentPassword === '' || $newPassword === '') {
+            throw new RuntimeException('OWASYS_PASSWORD_CHANGE_CREDENTIALS_REQUIRED');
+        }
         if ($newPassword !== $confirmation) {
             throw new RuntimeException('OWASYS_PASSWORD_CONFIRMATION_MISMATCH');
         }
 
-        $result = $this->rest->request(
-            'PATCH',
-            '/api/v1/security/admin-password',
-            [
-                'current_password' => (string) (
-                    $post['owasys_current_password'] ?? ''
-                ),
-                'new_password' => $newPassword,
-            ],
-            [
-                'subject' => (string) (
-                    $identity['subject'] ?? $identity['id'] ?? ''
-                ),
-                'roles' => is_array($identity['roles'] ?? null)
-                    ? $identity['roles']
-                    : [],
-                'provider' => (string) (
-                    $identity['provider'] ?? $this->defaultProvider
-                ),
-            ]
-        );
-        unset($newPassword, $post);
-
-        $returned = $result['identity'] ?? null;
-        if (!is_array($returned)) {
-            throw new RuntimeException('OPUS_REST_API_PASSWORD_IDENTITY_MISSING');
+        try {
+            return $this->sso->changePassword(
+                'local-password',
+                $subject,
+                $currentPassword,
+                $newPassword
+            );
+        } finally {
+            $currentPassword = '';
+            $newPassword = '';
+            $confirmation = '';
+            unset($post);
         }
-
-        return new SsoIdentity(
-            (string) ($returned['subject'] ?? $returned['id'] ?? ''),
-            (string) ($returned['label'] ?? ''),
-            is_array($returned['roles'] ?? null)
-                ? array_values(array_filter($returned['roles'], 'is_string'))
-                : [],
-            (string) ($returned['provider'] ?? $this->defaultProvider),
-            ($returned['must_change_password'] ?? false) === true
-        );
     }
 
     /**
