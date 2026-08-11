@@ -725,6 +725,15 @@ final class SiteCommandService implements SiteCommandServiceInterface
         );
         $environment['OPUS_ENV'] = 'dev';
 
+        if ($this->developmentPortOpen($host, $port)) {
+            throw new OpusConsoleException(
+                'OPUS_DEV_SERVER_PORT_ALREADY_IN_USE:'
+                . $host
+                . ':'
+                . $port
+            );
+        }
+
         $this->resetDevelopmentDiagnostics(
             $applicationId,
             $siteRoot,
