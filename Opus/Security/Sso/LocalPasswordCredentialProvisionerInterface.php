@@ -9,10 +9,14 @@ interface LocalPasswordCredentialProvisionerInterface extends
     \Opus\Framework\OpusProfilerAwareInterface,
     \Opus\Framework\OpusSelfDocumentingInterface
 {
-    /** @return array<string,mixed> */
+    /**
+     * @param list<string> $roles
+     * @return array<string,mixed>
+     */
     public function provision(
         string $siteId,
         string $subject,
-        string $password
+        string $password,
+        array $roles = []
     ): array;
 }

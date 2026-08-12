@@ -9,8 +9,8 @@ use Opus\Security\Sso\LocalPasswordCredentialProvisioner;
 /**
  * Composer callback for local deployment-time credential provisioning.
  *
- * The password is accepted exclusively from non-interactive STDIN and is never
- * copied into argv, output, logs, profiler data or a versioned configuration.
+ * Password input is accepted exclusively from non-interactive STDIN and is
+ * never copied into argv, output, logs, profiler data or versioned config.
  */
 final class LocalPasswordCredentialProvisionerComposerCommand implements
     LocalPasswordCredentialProvisionerComposerCommandInterface
@@ -22,6 +22,7 @@ final class LocalPasswordCredentialProvisionerComposerCommand implements
                 'OPUS_LOCAL_PASSWORD_PROVISION_EVENT_INVALID'
             );
         }
+
         $arguments = $event->getArguments();
         if (!is_array($arguments)
             || array_filter($arguments, 'is_string') !== $arguments) {
@@ -29,13 +30,37 @@ final class LocalPasswordCredentialProvisionerComposerCommand implements
                 'OPUS_LOCAL_PASSWORD_PROVISION_ARGUMENTS_INVALID'
             );
         }
+
         $arguments = array_values($arguments);
-        if (count($arguments) !== 2) {
+        if (count($arguments) < 2) {
             throw new \RuntimeException(
                 'OPUS_LOCAL_PASSWORD_PROVISION_ARGUMENTS_REQUIRED'
             );
         }
-        if (function_exists('stream_isatty') && stream_isatty(STDIN)) {
+
+        $siteId = (string) array_shift($arguments);
+        $subject = (string) array_shift($arguments);
+        $roles = [];
+
+        foreach ($arguments as $argument) {
+            if (!str_starts_with($argument, '--role=')) {
+                throw new \RuntimeException(
+                    'OPUS_LOCAL_PASSWORD_PROVISION_OPTION_INVALID'
+                );
+            }
+
+            $role = trim(substr($argument, 7));
+            if ($role === '') {
+                throw new \RuntimeException(
+                    'OPUS_LOCAL_PASSWORD_PROVISION_ROLE_INVALID'
+                );
+            }
+
+            $roles[] = $role;
+        }
+
+        if (function_exists('stream_isatty')
+            && stream_isatty(STDIN)) {
             throw new \RuntimeException(
                 'OPUS_LOCAL_PASSWORD_PROVISION_STDIN_PIPE_REQUIRED'
             );
@@ -47,7 +72,13 @@ final class LocalPasswordCredentialProvisionerComposerCommand implements
                 'OPUS_LOCAL_PASSWORD_PROVISION_STDIN_READ_FAILED'
             );
         }
-        $password = preg_replace('/(?:\r\n|\n|\r)\z/', '', $raw, 1);
+
+        $password = preg_replace(
+            '/(?:\r\n|\n|\r)\z/',
+            '',
+            $raw,
+            1
+        );
         if (!is_string($password) || $password === '') {
             throw new \RuntimeException(
                 'OPUS_LOCAL_PASSWORD_PROVISION_PASSWORD_REQUIRED'
@@ -58,15 +89,19 @@ final class LocalPasswordCredentialProvisionerComposerCommand implements
             $result = (new LocalPasswordCredentialProvisioner(
                 dirname(__DIR__, 2)
             ))->provision(
-                (string) $arguments[0],
-                (string) $arguments[1],
-                $password
+                $siteId,
+                $subject,
+                $password,
+                $roles
             );
         } finally {
             $password = '';
             $raw = '';
         }
 
-        fwrite(STDOUT, Json::instance()->encode($result, true));
+        fwrite(
+            STDOUT,
+            Json::instance()->encode($result, true)
+        );
     }
 }
