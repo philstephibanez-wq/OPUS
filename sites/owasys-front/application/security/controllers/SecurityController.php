@@ -409,6 +409,24 @@ final class OwasysSecurityController
             === 'local-password';
         $canMutate = $canManage && $targetMutable && $reauthSupported;
         $mutationView = $this->mutationView($mutationResult);
+        $securityIdentities = $this->normalizeIdentities(
+            $this->rows($snapshot, 'identities')
+        );
+        $securityUsers = array_values(array_filter(
+            $securityIdentities,
+            static fn (array $row): bool =>
+                ($row['identity_type'] ?? 'unknown') === 'user'
+        ));
+        $securityAgents = array_values(array_filter(
+            $securityIdentities,
+            static fn (array $row): bool =>
+                ($row['identity_type'] ?? 'unknown') === 'agent'
+        ));
+        $securityUnknown = array_values(array_filter(
+            $securityIdentities,
+            static fn (array $row): bool =>
+                ($row['identity_type'] ?? 'unknown') === 'unknown'
+        ));
 
         $data = [
             'page' => ['title' => '', 'summary' => ''],
@@ -521,11 +539,11 @@ final class OwasysSecurityController
                 'mutation_error' => is_string($mutationError)
                     && $mutationError !== '',
                 'mutation_error_code' => (string) ($mutationError ?? ''),
-                'view_identities' => $view === 'identities',
-                'view_roles' => $view === 'roles',
-                'view_permissions' => $view === 'permissions',
-                'view_assignments' => $view === 'assignments',
-                'view_resources' => $view === 'resources',
+                'view_identities' => true,
+                'view_roles' => true,
+                'view_permissions' => true,
+                'view_assignments' => true,
+                'view_resources' => true,
                 'identities_empty' => $this->rows(
                     $snapshot,
                     'identities'
@@ -618,9 +636,10 @@ final class OwasysSecurityController
             'providers' => $this->normalizeProviders(
                 $this->rows($snapshot, 'providers')
             ),
-            'identities' => $this->normalizeIdentities(
-                $this->rows($snapshot, 'identities')
-            ),
+            'identities' => $securityIdentities,
+            'users' => $securityUsers,
+            'agents' => $securityAgents,
+            'unknown_identities' => $securityUnknown,
             'roles' => $this->normalizeRoles(
                 $this->rows($snapshot, 'roles')
             ),
@@ -669,6 +688,17 @@ final class OwasysSecurityController
             static fn (array $row): array => [
                 'provider' => (string) ($row['provider'] ?? ''),
                 'subject' => (string) ($row['subject'] ?? ''),
+                'identity_type' => in_array(
+                    strtolower(trim((string) (
+                        $row['identity_type'] ?? ''
+                    ))),
+                    ['user', 'agent'],
+                    true
+                )
+                    ? strtolower(trim((string) (
+                        $row['identity_type']
+                    )))
+                    : 'unknown',
                 'label' => (string) ($row['label'] ?? ''),
                 'status' => (string) ($row['status'] ?? ''),
                 'roles' => implode(', ', array_values(array_filter(
@@ -784,6 +814,9 @@ final class OwasysSecurityController
                 'subject' => trim((string) (
                     $post['owasys_security_subject'] ?? ''
                 )),
+                'identity_type' => strtolower(trim((string) (
+                    $post['owasys_security_identity_type'] ?? ''
+                ))),
             ],
             'role.create' => [
                 'type' => $type,
@@ -840,6 +873,9 @@ final class OwasysSecurityController
             'type' => (string) ($mutation['type'] ?? ''),
             'provider' => (string) ($mutation['provider'] ?? ''),
             'subject' => (string) ($mutation['subject'] ?? ''),
+            'identity_type' => (string) (
+                $mutation['identity_type'] ?? ''
+            ),
             'role' => (string) ($mutation['role'] ?? ''),
             'permission' => (string) ($mutation['permission'] ?? ''),
             'resource' => (string) ($mutation['resource'] ?? ''),

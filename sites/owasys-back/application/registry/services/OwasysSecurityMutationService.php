@@ -520,7 +520,7 @@ final class OwasysSecurityMutationService
             'identity.reference' => $this->normalizedFields(
                 $mutation,
                 $type,
-                ['provider', 'subject']
+                ['provider', 'subject', 'identity_type']
             ),
             'role.create' => $this->normalizedFields(
                 $mutation,
@@ -598,6 +598,14 @@ final class OwasysSecurityMutationService
             );
         }
         $provider = (string) $mutation['provider'];
+        $identityType = strtolower(trim((string) (
+            $mutation['identity_type'] ?? ''
+        )));
+        if (!in_array($identityType, ['user', 'agent'], true)) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_IDENTITY_TYPE_INVALID'
+            );
+        }
         $subject = (string) $mutation['subject'];
         $providers = is_array($context['sso']['providers'] ?? null)
             ? $context['sso']['providers']
@@ -658,6 +666,7 @@ final class OwasysSecurityMutationService
         }
         $identities[] = [
             'subject' => $subject,
+            'identity_type' => $identityType,
             'roles' => [],
             'status' => $provider === 'local-password'
                 ? 'password-setup-required'

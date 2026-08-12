@@ -703,6 +703,17 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
                     'must_change_password' =>
                         (string) ($entry['status'] ?? '')
                             === 'password-setup-required',
+                    'identity_type' => in_array(
+                        strtolower(trim((string) (
+                            $entry['identity_type'] ?? ''
+                        ))),
+                        ['user', 'agent'],
+                        true
+                    )
+                        ? strtolower(trim((string) (
+                            $entry['identity_type']
+                        )))
+                        : 'unknown',
                     'source' => 'security.onboarding',
                 ];
             }

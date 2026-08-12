@@ -40,17 +40,20 @@
   [[ endif ]]
 </section>
 
-<nav class="ow-card" aria-label="[[ i18n: security.views ]]">
-  <a href="{{ security_urls.identities }}">[[ i18n: security.identities ]]</a>
-  <span> · </span>
-  <a href="{{ security_urls.roles }}">[[ i18n: security.roles ]]</a>
-  <span> · </span>
-  <a href="{{ security_urls.permissions }}">[[ i18n: security.permissions ]]</a>
-  <span> · </span>
-  <a href="{{ security_urls.assignments }}">[[ i18n: security.assignments ]]</a>
-  <span> · </span>
-  <a href="{{ security_urls.resources }}">[[ i18n: security.resources_acl ]]</a>
-</nav>
+<section class="ow-card ow-security-map-card" aria-label="[[ i18n: security.access_model ]]">
+  <h2>[[ i18n: security.access_model ]]</h2>
+  <div class="ow-security-flow">
+    <a class="ow-security-flow-node" href="{{ security_urls.identities }}"><strong>[[ i18n: security.identities ]]</strong><code>provider + subject</code></a>
+    <span class="ow-security-flow-arrow" aria-hidden="true">→</span>
+    <a class="ow-security-flow-node" href="{{ security_urls.assignments }}"><strong>[[ i18n: security.assignments ]]</strong><code>scope</code></a>
+    <span class="ow-security-flow-arrow" aria-hidden="true">→</span>
+    <a class="ow-security-flow-node" href="{{ security_urls.roles }}"><strong>[[ i18n: security.roles ]]</strong><code>role_id</code></a>
+    <span class="ow-security-flow-arrow" aria-hidden="true">→</span>
+    <a class="ow-security-flow-node" href="{{ security_urls.permissions }}"><strong>[[ i18n: security.permissions ]]</strong><code>resource:action</code></a>
+    <span class="ow-security-flow-arrow" aria-hidden="true">→</span>
+    <a class="ow-security-flow-node" href="{{ security_urls.resources }}"><strong>[[ i18n: security.resources_acl ]]</strong><code>ACL</code></a>
+  </div>
+</section>
 
 [[ if: security.mutation_error ]]
 <section class="ow-card">
@@ -85,6 +88,7 @@
     <input type="hidden" name="owasys_security_mutation" value="{{ mutation.type }}">
     <input type="hidden" name="owasys_security_provider" value="{{ mutation.provider }}">
     <input type="hidden" name="owasys_security_subject" value="{{ mutation.subject }}">
+    <input type="hidden" name="owasys_security_identity_type" value="{{ mutation.identity_type }}">
     <input type="hidden" name="owasys_security_role" value="{{ mutation.role }}">
     <input type="hidden" name="owasys_security_permission" value="{{ mutation.permission }}">
     <input type="hidden" name="owasys_security_resource" value="{{ mutation.resource }}">
@@ -117,55 +121,94 @@
 [[ endif ]]
 
 [[ if: security.view_identities ]]
-<section class="ow-card">
-  <h2>[[ i18n: security.identities ]]</h2>
-  [[ if: security.identities_empty ]]
-    <p class="ow-muted">[[ i18n: security.empty ]]</p>
-  [[ else ]]
-    <div class="ow-tree-branches">
-      [[ foreach: identities as identity ]]
-        <article class="ow-tree-app">
-          <strong>{{ identity.subject }}</strong>
-          <div class="ow-tags">
-            <span>[[ i18n: security.provider ]]: {{ identity.provider }}</span>
-            <span>[[ i18n: security.status ]]: {{ identity.status }}</span>
-            <span>[[ i18n: security.roles ]]: {{ identity.roles }}</span>
-            <span>[[ i18n: security.source ]]: {{ identity.source }}</span>
-          </div>
-          [[ if: identity.must_change_password ]]
-            <p class="ow-muted">[[ i18n: security.password_change_required ]]</p>
-          [[ endif ]]
-        </article>
-      [[ endforeach ]]
-    </div>
-  [[ endif ]]
-  [[ if: security.identity_reference_supported ]]
-    <form method="post" action="{{ urls.current }}">
-      <h3>[[ i18n: security.identity_reference ]]</h3>
-      <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
-      <input type="hidden" name="owasys_security_phase" value="preview">
-      <input type="hidden" name="owasys_security_mutation" value="identity.reference">
-      <label>[[ i18n: security.provider ]]
-        <input name="owasys_security_provider" required>
-      </label>
-      <label>[[ i18n: security.subject ]]
-        <input name="owasys_security_subject" required>
-      </label>
-      <label>[[ i18n: security.reason ]]
-        <input name="owasys_security_reason" minlength="3" maxlength="200" required>
-      </label>
-      <label>[[ i18n: security.reauthenticate ]]
-        <input type="password" name="owasys_reauth_password" autocomplete="current-password" required>
-      </label>
-      <button class="ow-button" type="submit">[[ i18n: security.preview ]]</button>
-    </form>
-  [[ endif ]]
-</section>
-[[ endif ]]
+<details class="ow-security-accordion" open>
+  <summary><strong>[[ i18n: security.identities ]]</strong></summary>
+  <div class="ow-security-accordion-body">
+    <div class="ow-security-identity-grid">
+      <details class="ow-security-subaccordion" open>
+        <summary>[[ i18n: security.users ]]</summary>
+        <div class="ow-tree-branches">
+          [[ foreach: users as identity ]]
+            <article class="ow-tree-app ow-security-identity-card">
+              <strong>{{ identity.subject }}</strong>
+              <div class="ow-tags">
+                <span>[[ i18n: security.provider ]]: {{ identity.provider }}</span>
+                <span>[[ i18n: security.status ]]: {{ identity.status }}</span>
+                <span>[[ i18n: security.roles ]]: {{ identity.roles }}</span>
+              </div>
+            </article>
+          [[ endforeach ]]
+        </div>
+      </details>
 
+      <details class="ow-security-subaccordion">
+        <summary>[[ i18n: security.agents ]]</summary>
+        <div class="ow-tree-branches">
+          [[ foreach: agents as identity ]]
+            <article class="ow-tree-app ow-security-identity-card">
+              <strong>{{ identity.subject }}</strong>
+              <div class="ow-tags">
+                <span>[[ i18n: security.provider ]]: {{ identity.provider }}</span>
+                <span>[[ i18n: security.status ]]: {{ identity.status }}</span>
+                <span>[[ i18n: security.roles ]]: {{ identity.roles }}</span>
+              </div>
+            </article>
+          [[ endforeach ]]
+        </div>
+      </details>
+
+      <details class="ow-security-subaccordion">
+        <summary>[[ i18n: security.unclassified ]]</summary>
+        <div class="ow-tree-branches">
+          [[ foreach: unknown_identities as identity ]]
+            <article class="ow-tree-app ow-security-identity-card">
+              <strong>{{ identity.subject }}</strong>
+              <div class="ow-tags">
+                <span>[[ i18n: security.provider ]]: {{ identity.provider }}</span>
+                <span>[[ i18n: security.status ]]: {{ identity.status }}</span>
+                <span>[[ i18n: security.roles ]]: {{ identity.roles }}</span>
+                <span>[[ i18n: security.source ]]: {{ identity.source }}</span>
+              </div>
+            </article>
+          [[ endforeach ]]
+        </div>
+      </details>
+    </div>
+
+    [[ if: security.identity_reference_supported ]]
+      <form class="ow-security-action-form" method="post" action="{{ security_urls.identities }}">
+        <h3>[[ i18n: security.identity_reference ]]</h3>
+        <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
+        <input type="hidden" name="owasys_security_phase" value="preview">
+        <input type="hidden" name="owasys_security_mutation" value="identity.reference">
+        <label>[[ i18n: security.identity_type ]]
+          <select name="owasys_security_identity_type" required>
+            <option value="user">[[ i18n: security.user ]]</option>
+            <option value="agent">[[ i18n: security.agent ]]</option>
+          </select>
+        </label>
+        <label>[[ i18n: security.provider ]]
+          <input name="owasys_security_provider" required>
+        </label>
+        <label>[[ i18n: security.subject ]]
+          <input name="owasys_security_subject" required>
+        </label>
+        <label>[[ i18n: security.reason ]]
+          <input name="owasys_security_reason" minlength="3" maxlength="200" required>
+        </label>
+        <label>[[ i18n: security.reauthenticate ]]
+          <input type="password" name="owasys_reauth_password" autocomplete="current-password" required>
+        </label>
+        <button class="ow-button" type="submit">[[ i18n: security.preview ]]</button>
+      </form>
+    [[ endif ]]
+  </div>
+</details>
+[[ endif ]]
 [[ if: security.view_roles ]]
-<section class="ow-card">
-  <h2>[[ i18n: security.roles ]]</h2>
+<details class="ow-security-accordion">
+  <summary><strong>[[ i18n: security.roles ]]</strong></summary>
+  <div class="ow-security-accordion-body">
   [[ if: security.roles_empty ]]
     <p class="ow-muted">[[ i18n: security.empty ]]</p>
   [[ else ]]
@@ -187,7 +230,7 @@
     </div>
   [[ endif ]]
   [[ if: security.role_create_supported ]]
-    <form method="post" action="{{ urls.current }}">
+    <form method="post" action="{{ security_urls.roles }}">
       <h3>[[ i18n: security.role_create ]]</h3>
       <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
       <input type="hidden" name="owasys_security_phase" value="preview">
@@ -204,12 +247,14 @@
       <button class="ow-button" type="submit">[[ i18n: security.preview ]]</button>
     </form>
   [[ endif ]]
-</section>
+  </div>
+</details>
 [[ endif ]]
 
 [[ if: security.view_permissions ]]
-<section class="ow-card">
-  <h2>[[ i18n: security.permissions ]]</h2>
+<details class="ow-security-accordion">
+  <summary><strong>[[ i18n: security.permissions ]]</strong></summary>
+  <div class="ow-security-accordion-body">
   [[ if: security.permissions_empty ]]
     <p class="ow-muted">[[ i18n: security.empty ]]</p>
   [[ else ]]
@@ -224,7 +269,7 @@
     </ol>
   [[ endif ]]
   [[ if: security.permission_grant_supported ]]
-    <form method="post" action="{{ urls.current }}">
+    <form method="post" action="{{ security_urls.permissions }}">
       <h3>[[ i18n: security.permission_grant ]]</h3>
       <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
       <input type="hidden" name="owasys_security_phase" value="preview">
@@ -244,12 +289,14 @@
       <button class="ow-button" type="submit">[[ i18n: security.preview ]]</button>
     </form>
   [[ endif ]]
-</section>
+  </div>
+</details>
 [[ endif ]]
 
 [[ if: security.view_assignments ]]
-<section class="ow-card">
-  <h2>[[ i18n: security.assignments ]]</h2>
+<details class="ow-security-accordion">
+  <summary><strong>[[ i18n: security.assignments ]]</strong></summary>
+  <div class="ow-security-accordion-body">
   [[ if: security.assignments_empty ]]
     <p class="ow-muted">[[ i18n: security.empty ]]</p>
   [[ else ]]
@@ -265,7 +312,7 @@
     </ol>
   [[ endif ]]
   [[ if: security.assignment_grant_supported ]]
-    <form method="post" action="{{ urls.current }}">
+    <form method="post" action="{{ security_urls.assignments }}">
       <h3>[[ i18n: security.assignment_grant ]]</h3>
       <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
       <input type="hidden" name="owasys_security_phase" value="preview">
@@ -288,12 +335,14 @@
   [[ if: security.assignment_grant_unsupported ]]
     <p class="ow-muted">[[ i18n: security.assignment_runtime_required ]]</p>
   [[ endif ]]
-</section>
+  </div>
+</details>
 [[ endif ]]
 
 [[ if: security.view_resources ]]
-<section class="ow-card">
-  <h2>[[ i18n: security.resources_acl ]]</h2>
+<details class="ow-security-accordion">
+  <summary><strong>[[ i18n: security.resources_acl ]]</strong></summary>
+  <div class="ow-security-accordion-body">
   <p class="ow-muted">[[ i18n: security.resource_right_rule ]]</p>
   [[ if: security.resources_empty ]]
     <p class="ow-muted">[[ i18n: security.empty ]]</p>
@@ -309,7 +358,7 @@
     </ol>
   [[ endif ]]
   [[ if: security.resource_allow_supported ]]
-    <form method="post" action="{{ urls.current }}">
+    <form method="post" action="{{ security_urls.resources }}">
       <h3>[[ i18n: security.resource_allow ]]</h3>
       <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
       <input type="hidden" name="owasys_security_phase" value="preview">
@@ -347,4 +396,5 @@
       [[ endif ]]
     [[ endforeach ]]
   </div>
-</section>
+  </div>
+</details>
