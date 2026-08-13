@@ -349,6 +349,12 @@ final class OwasysRuntimeController
                 : ['signal' => 'change_app', 'redirect' => true];
         }
 
+        if ($routeKey === 'account') {
+            return [
+                'signal' => 'open_account',
+                'redirect' => true,
+            ];
+        }
         if ($routeKey === 'account/password') {
             return ['signal' => 'open_account'];
         }
