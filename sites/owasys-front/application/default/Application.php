@@ -202,7 +202,11 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
             if (!headers_sent()) {
                 header('X-Opus-Trace-Id: ' . $traceId);
             }
-            $this->renderFailure($code, $traceId);
+            $this->renderFailure(
+                $code,
+                $traceId,
+                $this->failureStatus($code)
+            );
         } finally {
             if (!$httpSpanEnded) {
                 $this->profiler->endSpan($httpSpanId, 'error', [
@@ -279,7 +283,9 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
         $renderer = new OwasysScorePageRenderer(
             $this->siteRoot,
             $this->profiler,
-            $httpSpanId
+            $httpSpanId,
+            $session,
+            $security
         );
         $registry = new OwasysRegistryModel($this->siteRoot);
         return [
@@ -330,8 +336,21 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
         ];
     }
 
-    private function renderFailure(string $code, string $traceId): void
+    private function failureStatus(string $code): int
     {
+        if ($code === 'OPUS_ACL_DENIED'
+            || str_starts_with($code, 'OPUS_ACL_DENIED:')) {
+            return 403;
+        }
+
+        return 500;
+    }
+
+    private function renderFailure(
+        string $code,
+        string $traceId,
+        int $statusCode = 500
+    ): void {
         $i18n = new ApplicationTranslationRuntime(
             $this->siteRoot . '/application',
             'default',
@@ -345,7 +364,7 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
         Response::html($renderer->render(
             'default/templates/runtime-error.score',
             ['error' => ['code' => $code, 'trace_id' => $traceId]]
-        ), 500)->send();
+        ), $statusCode)->send();
     }
 
     private function requestPath(): string

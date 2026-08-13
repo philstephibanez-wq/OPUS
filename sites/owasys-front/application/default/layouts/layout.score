@@ -55,19 +55,21 @@
     [[ if: fsm_diagram.visible ]]
       [[ include:default/templates/partials/fsm-mermaid.score ]]
     [[ endif ]]
-    [[ if: profiler.visible ]]
-      <aside class="ow-card" data-context="OPUS_PROFILER_PANEL">
-        <div class="ow-section-heading">
-          <div>
-            <h2>OPUS Profiler</h2>
-            <p class="ow-muted">trace_id: {{ profiler.trace_id }}</p>
+    [[ if: profiler.allowed ]]
+      [[ if: profiler.visible ]]
+        <aside class="ow-card" data-context="OPUS_PROFILER_PANEL">
+          <div class="ow-section-heading">
+            <div>
+              <h2>OPUS Profiler</h2>
+              <p class="ow-muted">trace_id: {{ profiler.trace_id }}</p>
+            </div>
+            <a href="{{ profiler.close_url }}">×</a>
           </div>
-          <a href="{{ profiler.close_url }}">×</a>
-        </div>
-        <iframe class="ow-profiler-frame" src="{{ profiler.iframe_url }}" title="OPUS Profiler"></iframe>
-      </aside>
-    [[ else ]]
-      <p><a href="{{ profiler.open_url }}">OPUS Profiler</a></p>
+          <iframe class="ow-profiler-frame" src="{{ profiler.iframe_url }}" title="OPUS Profiler"></iframe>
+        </aside>
+      [[ else ]]
+        <p><a href="{{ profiler.open_url }}">OPUS Profiler</a></p>
+      [[ endif ]]
     [[ endif ]]
     {{{ body.html }}}
   </main>

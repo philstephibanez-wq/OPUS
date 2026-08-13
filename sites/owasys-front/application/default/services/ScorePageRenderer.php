@@ -15,7 +15,9 @@ final class OwasysScorePageRenderer
     public function __construct(
         private readonly string $siteRoot,
         private readonly ?ProfilerInterface $profiler = null,
-        private readonly ?string $parentSpanId = null
+        private readonly ?string $parentSpanId = null,
+        private readonly ?OwasysAuthSession $session = null,
+        private readonly ?OwasysRuntimeSecurity $security = null
     ) {
         $this->fsmMermaid = new OwasysFsmMermaidBuilder($siteRoot);
     }
@@ -72,10 +74,26 @@ final class OwasysScorePageRenderer
         $path = parse_url($requestUri, PHP_URL_PATH);
         $path = is_string($path) ? $path : '/';
         $profilerRequested = (string) ($_GET['profiler'] ?? '') === '1';
+        $identity = $this->session?->user();
+        $profilerAllowed = $this->security !== null
+            && $this->security->isAllowed(
+                is_array($identity) ? $identity : null,
+                'profiler',
+                'view'
+            );
+
+        if ($profilerRequested && !$profilerAllowed) {
+            throw new RuntimeException(
+                'OPUS_ACL_DENIED:profiler:view'
+            );
+        }
+
         $urlBuilder = new UrlBuilder();
         $data['profiler'] = [
-            'visible' => $profilerRequested,
-            'hidden' => !$profilerRequested,
+            'allowed' => $profilerAllowed,
+            'forbidden' => !$profilerAllowed,
+            'visible' => $profilerAllowed && $profilerRequested,
+            'hidden' => !$profilerAllowed || !$profilerRequested,
             'trace_id' => $traceId,
             'open_url' => $urlBuilder->withQuery($path, ['profiler' => 1]),
             'close_url' => $urlBuilder->withQuery($path, []),
