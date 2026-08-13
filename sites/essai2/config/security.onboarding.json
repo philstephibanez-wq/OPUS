@@ -12,7 +12,8 @@
             "roles": [
                 "admin"
             ],
-            "status": "password-setup-required"
+            "status": "password-setup-required",
+            "identity_type": "user"
         }
     ],
     "secrets_versioned": false,
