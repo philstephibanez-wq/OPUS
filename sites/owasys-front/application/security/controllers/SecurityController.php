@@ -518,14 +518,14 @@ final class OwasysSecurityController
                 'reauth_unsupported' => $canManage
                     && $targetMutable
                     && !$reauthSupported,
-            'identity_reference_supported' => $canMutate
-                && ($capabilities['identity_reference'] ?? false) === true,
-            'identity_update_supported' => $canMutate
-                && ($capabilities['identity_update'] ?? false) === true,
-            'identity_delete_supported' => $canMutate
-                && ($capabilities['identity_delete'] ?? false) === true,
-            'role_create_supported' => $canMutate
-&& ($capabilities['role_create'] ?? false) === true,
+                'identity_reference_supported' => $canMutate
+                    && ($capabilities['identity_reference'] ?? false) === true,
+                'identity_update_supported' => $canMutate
+                    && ($capabilities['identity_update'] ?? false) === true,
+                'identity_delete_supported' => $canMutate
+                    && ($capabilities['identity_delete'] ?? false) === true,
+                'role_create_supported' => $canMutate
+                    && ($capabilities['role_create'] ?? false) === true,
                 'permission_grant_supported' => $canMutate
                     && ($capabilities['permission_grant'] ?? false) === true,
                 'assignment_grant_supported' => $canMutate
@@ -534,9 +534,9 @@ final class OwasysSecurityController
                     && ($capabilities['assignment_grant'] ?? false) !== true,
                 'resource_allow_supported' => $canMutate
                     && ($capabilities['resource_allow'] ?? false) === true,
-            'destructive_mutations_supported' => $canMutate
-                && ($capabilities['destructive_mutations'] ?? false) === true,
-'mutation_preview' => is_array($mutationResult)
+                'destructive_mutations_supported' => $canMutate
+                    && ($capabilities['destructive_mutations'] ?? false) === true,
+                'mutation_preview' => is_array($mutationResult)
                     && ($mutationResult['contract'] ?? null)
                         === 'OWASYS_SECURITY_MUTATION_PREVIEW_V1',
                 'mutation_committed' => is_array($mutationResult)
