@@ -3,11 +3,6 @@
     "provider": "local-password",
     "identities": [
         {
-            "subject": "dev-smoke-20260812",
-            "roles": [],
-            "status": "password-setup-required"
-        },
-        {
             "subject": "home",
             "roles": [],
             "status": "password-setup-required"
