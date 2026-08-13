@@ -351,20 +351,71 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
         string $traceId,
         int $statusCode = 500
     ): void {
+        $locale = $this->failureLocale();
         $i18n = new ApplicationTranslationRuntime(
             $this->siteRoot . '/application',
             'default',
-            'fr-FR'
+            $locale
         );
         $renderer = new ScoreTemplateRenderer(
             $this->siteRoot . '/application',
             $i18n,
             $this->profiler
         );
+        $aclDenied = $code === 'OPUS_ACL_DENIED'
+            || str_starts_with($code, 'OPUS_ACL_DENIED:');
+        $parts = $aclDenied ? explode(':', $code, 3) : [];
+        $assetBase = $this->failureAssetBase();
+
         Response::html($renderer->render(
             'default/templates/runtime-error.score',
-            ['error' => ['code' => $code, 'trace_id' => $traceId]]
+            [
+                'error' => [
+                    'code' => $code,
+                    'trace_id' => $traceId,
+                    'status_code' => $statusCode,
+                    'acl_denied' => $aclDenied,
+                    'generic' => !$aclDenied,
+                    'resource' => (string) ($parts[1] ?? ''),
+                    'action' => (string) ($parts[2] ?? ''),
+                    'return_url' => $this->requestPath(),
+                    'locale' => $locale,
+                    'score_css' => $assetBase . '/asset/css/owasys.css',
+                    'theme_css' => $assetBase
+                        . '/asset/themes/owasys/css/theme.css?v=p117q',
+                ],
+            ]
         ), $statusCode)->send();
+    }
+
+    private function failureLocale(): string
+    {
+        $segments = array_values(array_filter(
+            explode('/', trim($this->requestPath(), '/')),
+            static fn (string $segment): bool => $segment !== ''
+        ));
+        $candidate = (string) ($segments[0] ?? '');
+        $locales = is_array($this->siteConfig['locales'] ?? null)
+            ? $this->siteConfig['locales']
+            : [];
+
+        if ($candidate !== '' && in_array($candidate, $locales, true)) {
+            return $candidate;
+        }
+
+        return (string) ($this->siteConfig['default_locale'] ?? 'fr-FR');
+    }
+
+    private function failureAssetBase(): string
+    {
+        $script = str_replace(
+            '\\',
+            '/',
+            (string) ($_SERVER['SCRIPT_NAME'] ?? '/index.php')
+        );
+        $base = rtrim(str_replace('\\', '/', dirname($script)), '/');
+
+        return $base === '.' || $base === '/' ? '' : $base;
     }
 
     private function requestPath(): string
@@ -450,6 +501,12 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
         $current = $error;
         do {
             $message = trim($current->getMessage());
+            if (preg_match(
+                '/^OPUS_ACL_DENIED:[a-z0-9._-]+:[a-z0-9._-]+$/D',
+                $message
+            ) === 1) {
+                return $message;
+            }
             if (preg_match(
                 '/^[A-Z0-9_:-]{3,240}$/D',
                 $message

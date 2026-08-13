@@ -1,4 +1,52 @@
-<section class="opus-runtime-error" aria-labelledby="runtime-error-title">
-  <h1 id="runtime-error-title">{{ error.code }}</h1>
-  <p>Trace : <code>{{ error.trace_id }}</code></p>
-</section>
+<!doctype html>
+<html lang="{{ error.locale }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>[[ i18n: runtime_error.access_denied_title ]] — OWASYS</title>
+  <link rel="stylesheet" href="{{ error.score_css }}">
+  <link rel="stylesheet" href="{{ error.theme_css }}">
+</head>
+<body class="ow-runtime-error-page">
+  <main class="ow-runtime-error-shell">
+    [[ if: error.acl_denied ]]
+    <section class="ow-runtime-error-card is-denied" aria-labelledby="runtime-error-title">
+      <div class="ow-runtime-error-symbol" aria-hidden="true">!</div>
+      <span class="ow-runtime-error-kicker">[[ i18n: runtime_error.security ]] · {{ error.status_code }}</span>
+      <h1 id="runtime-error-title">[[ i18n: runtime_error.access_denied_title ]]</h1>
+      <p class="ow-runtime-error-message">[[ i18n: runtime_error.access_denied_message ]]</p>
+
+      <div class="ow-runtime-error-context">
+        <div><span>[[ i18n: runtime_error.resource ]]</span><code>{{ error.resource }}</code></div>
+        <div><span>[[ i18n: runtime_error.action ]]</span><code>{{ error.action }}</code></div>
+      </div>
+
+      <a class="ow-button ow-runtime-error-return" href="{{ error.return_url }}">← [[ i18n: runtime_error.return ]]</a>
+
+      <details class="ow-runtime-error-technical">
+        <summary>[[ i18n: runtime_error.technical_details ]]</summary>
+        <dl>
+          <div><dt>Code</dt><dd><code>{{ error.code }}</code></dd></div>
+          <div><dt>[[ i18n: runtime_error.http_status ]]</dt><dd><code>{{ error.status_code }}</code></dd></div>
+          <div><dt>[[ i18n: runtime_error.trace ]]</dt><dd><code>{{ error.trace_id }}</code></dd></div>
+        </dl>
+      </details>
+    </section>
+    [[ else ]]
+    <section class="ow-runtime-error-card" aria-labelledby="runtime-error-title">
+      <div class="ow-runtime-error-symbol" aria-hidden="true">!</div>
+      <h1 id="runtime-error-title">[[ i18n: runtime.error ]]</h1>
+      <a class="ow-button ow-runtime-error-return" href="{{ error.return_url }}">← [[ i18n: runtime_error.return ]]</a>
+      <details class="ow-runtime-error-technical" open>
+        <summary>[[ i18n: runtime_error.technical_details ]]</summary>
+        <dl>
+          <div><dt>Code</dt><dd><code>{{ error.code }}</code></dd></div>
+          <div><dt>[[ i18n: runtime_error.http_status ]]</dt><dd><code>{{ error.status_code }}</code></dd></div>
+          <div><dt>[[ i18n: runtime_error.trace ]]</dt><dd><code>{{ error.trace_id }}</code></dd></div>
+        </dl>
+      </details>
+    </section>
+    [[ endif ]]
+  </main>
+</body>
+</html>
