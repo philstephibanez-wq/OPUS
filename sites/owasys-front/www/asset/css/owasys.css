@@ -1566,3 +1566,26 @@ code {
   margin-top: .55rem;
 }
 /* END OPUS R45D2A25 IDENTITY LIFECYCLE UI */
+/* BEGIN OPUS R45D2A25C UNCLASSIFIED METRIC NAVIGATION */
+.ow-security-metric-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    border-color .12s ease,
+    background .12s ease,
+    transform .12s ease;
+}
+
+.ow-security-metric-link:hover,
+.ow-security-metric-link:focus-visible {
+  border-color: var(--ow-warn);
+  background: rgba(251, 191, 36, .10);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+#ow-security-unclassified {
+  scroll-margin-top: 8rem;
+}
+/* END OPUS R45D2A25C UNCLASSIFIED METRIC NAVIGATION */
