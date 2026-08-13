@@ -8,7 +8,7 @@ use Opus\Log\Logger;
 use Opus\Profiler\ProfilerInterface;
 
 /**
- * Stateless preview/confirm/commit pipeline for additive target-security changes.
+ * Stateless preview/confirm/commit pipeline for target-security changes.
  *
  * The service never mutates OWASYS itself, never transports a secret and never
  * approximates an unsupported authorization model. Every commit is protected by
@@ -23,6 +23,8 @@ final class OwasysSecurityMutationService
     private const MAX_REAUTH_AGE_SECONDS = 120;
     private const MUTATIONS = [
         'identity.reference' => true,
+        'identity.update' => true,
+        'identity.delete' => true,
         'role.create' => true,
         'permission.grant' => true,
         'assignment.grant' => true,
@@ -60,10 +62,14 @@ final class OwasysSecurityMutationService
             $sso,
             false
         );
+        $identityLifecycle = $mutable
+            && $this->identityReferenceRepresentable($sso);
+
         return [
             'target_mutable' => $mutable,
-            'identity_reference' => $mutable
-                && $this->identityReferenceRepresentable($sso),
+            'identity_reference' => $identityLifecycle,
+            'identity_update' => $identityLifecycle,
+            'identity_delete' => $identityLifecycle,
             'role_create' => $mutable
                 && $this->supportedAclContract($acl),
             'permission_grant' => $mutable
@@ -73,7 +79,7 @@ final class OwasysSecurityMutationService
                 && ($local['exists'] ?? false) === true,
             'resource_allow' => $mutable
                 && $this->supportedAclContract($acl),
-            'destructive_mutations' => false,
+            'destructive_mutations' => $identityLifecycle,
         ];
     }
 
@@ -376,7 +382,9 @@ final class OwasysSecurityMutationService
             'affected_subjects' => $plan['affected_subjects'],
             'access_delta' => [
                 'gained' => $plan['gained'],
-                'lost' => [],
+                'lost' => is_array($plan['lost'] ?? null)
+                    ? $plan['lost']
+                    : [],
             ],
             '_writes' => $plan['writes'],
         ];
@@ -488,6 +496,14 @@ final class OwasysSecurityMutationService
                 $context,
                 $mutation
             ),
+            'identity.update' => $this->planIdentityUpdate(
+                $context,
+                $mutation
+            ),
+            'identity.delete' => $this->planIdentityDelete(
+                $context,
+                $mutation
+            ),
             'role.create' => $this->planRoleCreate($context, $mutation),
             'permission.grant' => $this->planPermissionGrant(
                 $context,
@@ -521,6 +537,16 @@ final class OwasysSecurityMutationService
                 $mutation,
                 $type,
                 ['provider', 'subject', 'identity_type']
+            ),
+            'identity.update' => $this->normalizedFields(
+                $mutation,
+                $type,
+                ['provider', 'subject', 'identity_type']
+            ),
+            'identity.delete' => $this->normalizedFields(
+                $mutation,
+                $type,
+                ['provider', 'subject']
             ),
             'role.create' => $this->normalizedFields(
                 $mutation,
@@ -577,6 +603,7 @@ final class OwasysSecurityMutationService
     {
         $pattern = match ($field) {
             'provider', 'role' => '/^[a-z][a-z0-9._-]{0,63}$/D',
+            'identity_type' => '/^(?:user|agent)$/D',
             'subject' => '/^[A-Za-z0-9._|:@+\\-]{1,160}$/D',
             'permission' => '/^(?:\\*|[a-z][a-z0-9._-]{0,63}):(?:\\*|[a-z][a-z0-9._-]{0,63})$/D',
             'resource', 'action' => '/^(?:\\*|[a-z][a-z0-9._-]{0,63})$/D',
@@ -691,6 +718,584 @@ final class OwasysSecurityMutationService
         ];
     }
 
+    /* BEGIN OPUS R45D2A24 IDENTITY LIFECYCLE */
+
+    /** @return array<string,mixed> */
+    private function planIdentityUpdate(
+        array $context,
+        array $mutation
+    ): array {
+        if (!$this->identityReferenceRepresentable($context['sso'])) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_IDENTITY_UPDATE_UNSUPPORTED'
+            );
+        }
+
+        $provider = (string) $mutation['provider'];
+        $subject = (string) $mutation['subject'];
+        $identityType = (string) $mutation['identity_type'];
+
+        $this->assertIdentityProviderEnabled(
+            $context['sso'],
+            $provider
+        );
+
+        $onboarding = $this->editableOnboarding(
+            $context,
+            $provider
+        );
+        $identities = is_array($onboarding['identities'] ?? null)
+            ? array_values(array_filter(
+                $onboarding['identities'],
+                'is_array'
+            ))
+            : [];
+
+        $matched = null;
+        foreach ($identities as $index => $identity) {
+            if ((string) ($identity['subject'] ?? '') === $subject) {
+                $matched = $index;
+                break;
+            }
+        }
+
+        $runtime = $this->runtimeIdentity(
+            $context,
+            $provider,
+            $subject
+        );
+
+        if (!is_int($matched) && !is_array($runtime)) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_IDENTITY_NOT_FOUND'
+            );
+        }
+
+        if (is_int($matched)) {
+            $currentType = strtolower(trim((string) (
+                $identities[$matched]['identity_type'] ?? ''
+            )));
+            if ($currentType === $identityType) {
+                throw new RuntimeException(
+                    'OWASYS_SECURITY_IDENTITY_UPDATE_UNCHANGED'
+                );
+            }
+            $identities[$matched]['identity_type'] = $identityType;
+        } else {
+            $runtimeEntry = is_array($runtime['entry'] ?? null)
+                ? $runtime['entry']
+                : [];
+            $identities[] = [
+                'subject' => $subject,
+                'identity_type' => $identityType,
+                'roles' => is_array($runtime['roles'] ?? null)
+                    ? $runtime['roles']
+                    : [],
+                'status' => ($runtimeEntry['must_change_password'] ?? false)
+                    === true
+                        ? 'password-setup-required'
+                        : 'active',
+            ];
+        }
+
+        usort(
+            $identities,
+            static fn (array $left, array $right): int => strcmp(
+                (string) ($left['subject'] ?? ''),
+                (string) ($right['subject'] ?? '')
+            )
+        );
+
+        $onboarding['identities'] = $identities;
+
+        return [
+            'writes' => [
+                'config/security.onboarding.json' => $onboarding,
+            ],
+            'diff' => [[
+                'path' => 'config/security.onboarding.json',
+                'summary' => 'identity.update:'
+                    . $provider
+                    . ':'
+                    . $subject
+                    . ':'
+                    . $identityType,
+            ]],
+            'affected_subjects' => [$provider . ':' . $subject],
+            'gained' => [],
+            'lost' => [],
+        ];
+    }
+
+    /** @return array<string,mixed> */
+    private function planIdentityDelete(
+        array $context,
+        array $mutation
+    ): array {
+        if (!$this->identityReferenceRepresentable($context['sso'])) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_IDENTITY_DELETE_UNSUPPORTED'
+            );
+        }
+
+        $provider = (string) $mutation['provider'];
+        $subject = (string) $mutation['subject'];
+
+        $this->assertIdentityProviderEnabled(
+            $context['sso'],
+            $provider
+        );
+
+        $onboarding = is_array($context['onboarding'] ?? null)
+            ? $context['onboarding']
+            : null;
+        $onboardingMatched = false;
+        $onboardingRoles = [];
+
+        if (is_array($onboarding)
+            && (string) ($onboarding['provider'] ?? '') === $provider) {
+            $remaining = [];
+            foreach ((array) ($onboarding['identities'] ?? []) as $identity) {
+                if (!is_array($identity)) {
+                    continue;
+                }
+
+                if ((string) ($identity['subject'] ?? '') === $subject) {
+                    $onboardingMatched = true;
+                    $onboardingRoles = array_values(array_filter(
+                        is_array($identity['roles'] ?? null)
+                            ? $identity['roles']
+                            : [],
+                        'is_string'
+                    ));
+                    continue;
+                }
+
+                $remaining[] = $identity;
+            }
+
+            if ($onboardingMatched) {
+                usort(
+                    $remaining,
+                    static fn (array $left, array $right): int => strcmp(
+                        (string) ($left['subject'] ?? ''),
+                        (string) ($right['subject'] ?? '')
+                    )
+                );
+                $onboarding['identities'] = $remaining;
+            }
+        }
+
+        $runtime = $this->runtimeIdentity(
+            $context,
+            $provider,
+            $subject
+        );
+
+        if (!$onboardingMatched && !is_array($runtime)) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_IDENTITY_NOT_FOUND'
+            );
+        }
+
+        $runtimeRoles = is_array($runtime['roles'] ?? null)
+            ? $runtime['roles']
+            : [];
+        $targetRoles = array_values(array_unique(array_merge(
+            $onboardingRoles,
+            $runtimeRoles
+        )));
+        sort($targetRoles, SORT_STRING);
+
+        $this->assertIdentityDeletionSafe(
+            $context,
+            $provider,
+            $subject,
+            $targetRoles
+        );
+
+        $writes = [];
+        $diff = [];
+
+        if ($onboardingMatched && is_array($onboarding)) {
+            $writes['config/security.onboarding.json'] = $onboarding;
+            $diff[] = [
+                'path' => 'config/security.onboarding.json',
+                'summary' => 'identity.delete:'
+                    . $provider
+                    . ':'
+                    . $subject,
+            ];
+        }
+
+        if (is_array($runtime)) {
+            $local = is_array($context['local_store'] ?? null)
+                ? $context['local_store']
+                : null;
+            if (!is_array($local)
+                || ($local['exists'] ?? false) !== true) {
+                throw new RuntimeException(
+                    'OWASYS_SECURITY_LOCAL_STORE_REQUIRED'
+                );
+            }
+
+            $store = $this->loader->read((string) $local['path']);
+            if (($store['contract'] ?? null)
+                !== ($local['contract'] ?? null)) {
+                throw new RuntimeException(
+                    'OWASYS_SECURITY_LOCAL_STORE_CONTRACT_INVALID'
+                );
+            }
+
+            $users = is_array($store['users'] ?? null)
+                ? $store['users']
+                : [];
+            unset($users[(string) $runtime['username']]);
+            $store['users'] = $users;
+
+            $relative = (string) $local['relative'];
+            $writes[$relative] = $store;
+            $diff[] = [
+                'path' => $relative,
+                'summary' => 'identity.delete-credential:'
+                    . $subject,
+            ];
+        }
+
+        $lost = [];
+        foreach ($targetRoles as $role) {
+            $lost[] = $subject . '->' . $role . '@application';
+        }
+        sort($lost, SORT_STRING);
+
+        return [
+            'writes' => $writes,
+            'diff' => $diff,
+            'affected_subjects' => [$provider . ':' . $subject],
+            'gained' => [],
+            'lost' => $lost,
+        ];
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    private function editableOnboarding(
+        array $context,
+        string $provider
+    ): array {
+        $onboarding = is_array($context['onboarding'] ?? null)
+            ? $context['onboarding']
+            : null;
+
+        if (is_array($onboarding)) {
+            if ((string) ($onboarding['provider'] ?? '') !== $provider) {
+                throw new RuntimeException(
+                    'OWASYS_SECURITY_ONBOARDING_PROVIDER_MISMATCH'
+                );
+            }
+
+            return $onboarding;
+        }
+
+        $defaultProvider = trim((string) (
+            $context['sso']['default_provider'] ?? ''
+        ));
+        if ($provider !== $defaultProvider) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_ONBOARDING_PROVIDER_MISMATCH'
+            );
+        }
+
+        $onboarding = [
+            'contract' => 'OPUS_SECURITY_ONBOARDING_V1',
+            'provider' => $provider,
+            'identities' => [],
+            'secrets_versioned' => false,
+        ];
+
+        $local = is_array($context['local_store'] ?? null)
+            ? $context['local_store']
+            : null;
+        if ($provider === 'local-password' && is_array($local)) {
+            $onboarding['runtime_store'] =
+                (string) $local['relative'];
+        }
+
+        return $onboarding;
+    }
+
+    private function assertIdentityProviderEnabled(
+        array $sso,
+        string $provider
+    ): void {
+        $providers = is_array($sso['providers'] ?? null)
+            ? $sso['providers']
+            : [];
+        $providerConfig = is_array($providers[$provider] ?? null)
+            ? $providers[$provider]
+            : null;
+
+        if (!is_array($providerConfig)
+            || ($providerConfig['enabled'] ?? false) !== true) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_IDENTITY_PROVIDER_INVALID'
+            );
+        }
+    }
+
+    /** @return array<string,mixed>|null */
+    private function runtimeIdentity(
+        array $context,
+        string $provider,
+        string $subject
+    ): ?array {
+        if ($provider !== 'local-password') {
+            return null;
+        }
+
+        $local = is_array($context['local_store'] ?? null)
+            ? $context['local_store']
+            : null;
+        if (!is_array($local)
+            || ($local['exists'] ?? false) !== true) {
+            return null;
+        }
+
+        $store = $this->loader->read((string) $local['path']);
+        if (($store['contract'] ?? null)
+            !== ($local['contract'] ?? null)) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_LOCAL_STORE_CONTRACT_INVALID'
+            );
+        }
+
+        foreach ((array) ($store['users'] ?? []) as $username => $entry) {
+            if (!is_string($username) || !is_array($entry)) {
+                continue;
+            }
+
+            $entrySubject = trim((string) ($entry['id'] ?? $username));
+            if ($username !== $subject && $entrySubject !== $subject) {
+                continue;
+            }
+
+            $roles = is_array($entry['roles'] ?? null)
+                ? array_values(array_filter(
+                    $entry['roles'],
+                    'is_string'
+                ))
+                : [];
+            if ($roles === []) {
+                $profile = trim((string) ($entry['profile'] ?? ''));
+                if ($profile !== '') {
+                    $roles = [$profile];
+                }
+            }
+            $roles = array_values(array_unique($roles));
+            sort($roles, SORT_STRING);
+
+            return [
+                'username' => $username,
+                'entry' => $entry,
+                'roles' => $roles,
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * @param list<string> $targetRoles
+     */
+    private function assertIdentityDeletionSafe(
+        array $context,
+        string $provider,
+        string $subject,
+        array $targetRoles
+    ): void {
+        $administrative = $this->administrativeRoles(
+            $context['acl']
+        );
+        if ($administrative === []
+            || array_intersect($targetRoles, $administrative) === []) {
+            return;
+        }
+
+        $identities = $this->effectiveIdentityRoles($context);
+        unset($identities[$provider . ':' . $subject]);
+
+        foreach ($identities as $roles) {
+            if (array_intersect($roles, $administrative) !== []) {
+                return;
+            }
+        }
+
+        throw new RuntimeException(
+            'OWASYS_SECURITY_LAST_ADMINISTRATOR_DELETE_FORBIDDEN'
+        );
+    }
+
+    /** @return list<string> */
+    private function administrativeRoles(array $acl): array
+    {
+        $contract = (string) ($acl['contract'] ?? '');
+        $administrative = [];
+
+        if ($contract === 'OPUS_ACL_POLICY_V1') {
+            foreach ((array) ($acl['roles'] ?? []) as $role => $grants) {
+                if (!is_string($role) || !is_array($grants)) {
+                    continue;
+                }
+
+                foreach ($grants as $grant) {
+                    if (!is_string($grant)) {
+                        continue;
+                    }
+                    $grant = trim($grant);
+                    if ($grant === '*:*'
+                        || $grant === 'security:*'
+                        || $grant === 'security:manage') {
+                        $administrative[$role] = true;
+                        break;
+                    }
+                }
+            }
+        } elseif ($contract === 'OPUS_GENERATED_APPLICATION_ACL_V1') {
+            $intersection = null;
+            $public = [
+                'everyone' => true,
+                'anonymous' => true,
+                'guest' => true,
+            ];
+
+            foreach ((array) ($acl['policies'] ?? []) as $policy) {
+                if (!is_array($policy)) {
+                    continue;
+                }
+
+                $roles = [];
+                foreach ((array) ($policy['roles'] ?? []) as $role) {
+                    if (!is_string($role)) {
+                        continue;
+                    }
+                    $role = trim($role);
+                    if ($role === '' || isset($public[$role])) {
+                        continue;
+                    }
+                    $roles[$role] = true;
+                }
+
+                if ($roles === []) {
+                    continue;
+                }
+
+                $intersection = $intersection === null
+                    ? $roles
+                    : array_intersect_key($intersection, $roles);
+            }
+
+            if (is_array($intersection)) {
+                $administrative = $intersection;
+            }
+        }
+
+        $roles = array_keys($administrative);
+        sort($roles, SORT_STRING);
+
+        return $roles;
+    }
+
+    /** @return array<string,list<string>> */
+    private function effectiveIdentityRoles(array $context): array
+    {
+        $result = [];
+
+        $onboarding = is_array($context['onboarding'] ?? null)
+            ? $context['onboarding']
+            : null;
+        if (is_array($onboarding)) {
+            $provider = (string) ($onboarding['provider'] ?? '');
+            foreach ((array) ($onboarding['identities'] ?? []) as $identity) {
+                if (!is_array($identity)) {
+                    continue;
+                }
+                $subject = trim((string) (
+                    $identity['subject'] ?? ''
+                ));
+                if ($provider === '' || $subject === '') {
+                    continue;
+                }
+                $key = $provider . ':' . $subject;
+                $result[$key] ??= [];
+                $result[$key] = array_values(array_unique(array_merge(
+                    $result[$key],
+                    array_values(array_filter(
+                        is_array($identity['roles'] ?? null)
+                            ? $identity['roles']
+                            : [],
+                        'is_string'
+                    ))
+                )));
+            }
+        }
+
+        $local = is_array($context['local_store'] ?? null)
+            ? $context['local_store']
+            : null;
+        if (is_array($local)
+            && ($local['exists'] ?? false) === true) {
+            $store = $this->loader->read((string) $local['path']);
+            if (($store['contract'] ?? null)
+                !== ($local['contract'] ?? null)) {
+                throw new RuntimeException(
+                    'OWASYS_SECURITY_LOCAL_STORE_CONTRACT_INVALID'
+                );
+            }
+
+            foreach ((array) ($store['users'] ?? []) as $username => $entry) {
+                if (!is_string($username) || !is_array($entry)) {
+                    continue;
+                }
+                $subject = trim((string) (
+                    $entry['id'] ?? $username
+                ));
+                if ($subject === '') {
+                    continue;
+                }
+                $roles = is_array($entry['roles'] ?? null)
+                    ? array_values(array_filter(
+                        $entry['roles'],
+                        'is_string'
+                    ))
+                    : [];
+                if ($roles === []) {
+                    $profile = trim((string) (
+                        $entry['profile'] ?? ''
+                    ));
+                    if ($profile !== '') {
+                        $roles = [$profile];
+                    }
+                }
+                $key = 'local-password:' . $subject;
+                $result[$key] ??= [];
+                $result[$key] = array_values(array_unique(array_merge(
+                    $result[$key],
+                    $roles
+                )));
+            }
+        }
+
+        foreach ($result as &$roles) {
+            sort($roles, SORT_STRING);
+        }
+        unset($roles);
+        ksort($result, SORT_STRING);
+
+        return $result;
+    }
+
+    /* END OPUS R45D2A24 IDENTITY LIFECYCLE */
     /** @return array{writes:array<string,array<string,mixed>>,diff:list<array<string,string>>,affected_subjects:list<string>,gained:list<string>} */
     private function planRoleCreate(array $context, array $mutation): array
     {

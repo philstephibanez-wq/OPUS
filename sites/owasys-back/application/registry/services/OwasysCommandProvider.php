@@ -782,7 +782,22 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
                     $roles = [$profile];
                 }
             }
-            $identities['local-password:' . $subject] = [
+            $identityKey = 'local-password:' . $subject;
+            $existingIdentity = is_array($identities[$identityKey] ?? null)
+                ? $identities[$identityKey]
+                : [];
+            $identityType = strtolower(trim((string) (
+                $existingIdentity['identity_type'] ?? ''
+            )));
+            $identityType = in_array(
+                $identityType,
+                ['user', 'agent'],
+                true
+            )
+                ? $identityType
+                : 'unknown';
+
+            $identities[$identityKey] = [
                 'provider' => 'local-password',
                 'subject' => $subject,
                 'label' => (string) ($entry['label'] ?? $username),
@@ -790,7 +805,10 @@ final class OwasysCommandProvider implements OwasysCommandProviderInterface
                 'roles' => $roles,
                 'must_change_password' =>
                     ($entry['must_change_password'] ?? false) === true,
-                'source' => 'runtime.local-password',
+                'identity_type' => $identityType,
+                'source' => $existingIdentity === []
+                    ? 'runtime.local-password'
+                    : 'security.onboarding+runtime.local-password',
             ];
         }
         ksort($identities, SORT_STRING);
