@@ -62,6 +62,12 @@
         "security.identity_type": "Tapatybės tipas",
         "security.user": "Naudotojas",
         "security.agent": "Agentas",
-        "security.access_model": "Prieigos modelis"
+        "security.access_model": "Prieigos modelis",
+        "security.dashboard": "Saugos apžvalga",
+        "security.add_identity_help": "Pridėkite asmenį arba automatizuotą procesą prie programos saugos modelio.",
+        "security.identifier": "Identifikatorius",
+        "security.technical_details": "Techninė informacija",
+        "security.workflow_state_invalid_help": "Ankstesnė peržiūra nebėra aktyvi. Prieš patvirtindami paleiskite peržiūrą dar kartą.",
+        "security.legacy_identity_help": "Šios tapatybės sukurtos prieš įvedant naudotojo/agento tipą."
     }
 }

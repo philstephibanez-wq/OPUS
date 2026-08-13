@@ -62,6 +62,12 @@
         "security.identity_type": "Identitetstyp",
         "security.user": "Användare",
         "security.agent": "Agent",
-        "security.access_model": "Åtkomstmodell"
+        "security.access_model": "Åtkomstmodell",
+        "security.dashboard": "Säkerhetsöversikt",
+        "security.add_identity_help": "Lägg till en person eller automatiserad process i programmets säkerhetsmodell.",
+        "security.identifier": "Identifierare",
+        "security.technical_details": "Tekniska detaljer",
+        "security.workflow_state_invalid_help": "Den tidigare förhandsgranskningen är inte längre aktiv. Kör Förhandsgranska igen innan du bekräftar.",
+        "security.legacy_identity_help": "Dessa identiteter skapades innan typen användare/agent infördes."
     }
 }

@@ -62,6 +62,12 @@
         "security.identity_type": "Identiteetin tyyppi",
         "security.user": "Käyttäjä",
         "security.agent": "Agentti",
-        "security.access_model": "Käyttöoikeusmalli"
+        "security.access_model": "Käyttöoikeusmalli",
+        "security.dashboard": "Tietoturvan yleiskuva",
+        "security.add_identity_help": "Lisää henkilö tai automatisoitu prosessi sovelluksen suojausmalliin.",
+        "security.identifier": "Tunniste",
+        "security.technical_details": "Tekniset tiedot",
+        "security.workflow_state_invalid_help": "Edellinen esikatselu ei ole enää aktiivinen. Suorita esikatselu uudelleen ennen vahvistamista.",
+        "security.legacy_identity_help": "Nämä identiteetit luotiin ennen käyttäjä/agentti-tyypin käyttöönottoa."
     }
 }

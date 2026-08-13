@@ -62,6 +62,12 @@
         "security.identity_type": "Type d’identité",
         "security.user": "Utilisateur",
         "security.agent": "Agent",
-        "security.access_model": "Modèle d’accès"
+        "security.access_model": "Modèle d’accès",
+        "security.dashboard": "Vue d’ensemble de la sécurité",
+        "security.add_identity_help": "Ajoutez une personne ou un processus automatisé au modèle de sécurité de l’application.",
+        "security.identifier": "Identifiant",
+        "security.technical_details": "Détails techniques",
+        "security.workflow_state_invalid_help": "La prévisualisation précédente n’est plus active. Relancez « Prévisualiser » avant de confirmer.",
+        "security.legacy_identity_help": "Ces identités ont été créées avant l’introduction du type Utilisateur/Agent."
     }
 }

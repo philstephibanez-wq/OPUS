@@ -62,6 +62,12 @@
         "security.identity_type": "Vrsta identitete",
         "security.user": "Uporabnik",
         "security.agent": "Agent",
-        "security.access_model": "Model dostopa"
+        "security.access_model": "Model dostopa",
+        "security.dashboard": "Pregled varnosti",
+        "security.add_identity_help": "Dodajte osebo ali avtomatiziran proces v varnostni model aplikacije.",
+        "security.identifier": "Identifikator",
+        "security.technical_details": "Tehnične podrobnosti",
+        "security.workflow_state_invalid_help": "Prejšnji predogled ni več aktiven. Pred potrditvijo znova zaženite Predogled.",
+        "security.legacy_identity_help": "Te identitete so bile ustvarjene pred uvedbo tipa uporabnik/agent."
     }
 }

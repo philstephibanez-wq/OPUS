@@ -62,6 +62,12 @@
         "security.identity_type": "Cineál aitheantais",
         "security.user": "Úsáideoir",
         "security.agent": "Gníomhaire",
-        "security.access_model": "Samhail rochtana"
+        "security.access_model": "Samhail rochtana",
+        "security.dashboard": "Forbhreathnú slándála",
+        "security.add_identity_help": "Cuir duine nó próiseas uathoibrithe le samhail slándála an fheidhmchláir.",
+        "security.identifier": "Aitheantóir",
+        "security.technical_details": "Sonraí teicniúla",
+        "security.workflow_state_invalid_help": "Níl an réamhamharc roimhe seo gníomhach a thuilleadh. Rith Réamhamharc arís roimh dheimhniú.",
+        "security.legacy_identity_help": "Cruthaíodh na haitheantais seo sular tugadh isteach an cineál úsáideora/gníomhaire."
     }
 }

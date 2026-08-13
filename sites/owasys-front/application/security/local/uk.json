@@ -62,6 +62,12 @@
         "security.identity_type": "Тип ідентичності",
         "security.user": "Користувач",
         "security.agent": "Агент",
-        "security.access_model": "Модель доступу"
+        "security.access_model": "Модель доступу",
+        "security.dashboard": "Огляд безпеки",
+        "security.add_identity_help": "Додайте людину або автоматизований процес до моделі безпеки застосунку.",
+        "security.identifier": "Ідентифікатор",
+        "security.technical_details": "Технічні деталі",
+        "security.workflow_state_invalid_help": "Попередній перегляд більше не активний. Перед підтвердженням знову виконайте «Попередній перегляд».",
+        "security.legacy_identity_help": "Ці ідентичності створено до запровадження типу користувач/агент."
     }
 }

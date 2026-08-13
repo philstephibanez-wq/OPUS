@@ -40,28 +40,79 @@
   [[ endif ]]
 </section>
 
-<section class="ow-card ow-security-map-card" aria-label="[[ i18n: security.access_model ]]">
-  <h2>[[ i18n: security.access_model ]]</h2>
+<section class="ow-security-dashboard" aria-label="[[ i18n: security.dashboard ]]">
+  <div class="ow-security-dashboard-heading">
+    <div>
+      <span class="ow-badge">[[ i18n: security.dashboard ]]</span>
+      <h2>{{ security.application_name }}</h2>
+    </div>
+    <div class="ow-security-policy-badge">
+      <span>ACL</span>
+      <strong>{{ security.default_policy }}</strong>
+    </div>
+  </div>
+
+  <div class="ow-security-metrics">
+    <article class="ow-security-metric">
+      <span class="ow-security-metric-icon is-user">U</span>
+      <div><strong>{{ security.users_count }}</strong><span>[[ i18n: security.users ]]</span></div>
+    </article>
+    <article class="ow-security-metric">
+      <span class="ow-security-metric-icon is-agent">A</span>
+      <div><strong>{{ security.agents_count }}</strong><span>[[ i18n: security.agents ]]</span></div>
+    </article>
+    <article class="ow-security-metric">
+      <span class="ow-security-metric-icon is-role">R</span>
+      <div><strong>{{ security.roles_count }}</strong><span>[[ i18n: security.roles ]]</span></div>
+    </article>
+    <article class="ow-security-metric">
+      <span class="ow-security-metric-icon is-resource">◆</span>
+      <div><strong>{{ security.resources_count }}</strong><span>[[ i18n: security.resources_acl ]]</span></div>
+    </article>
+  </div>
+
   <div class="ow-security-flow">
-    <a class="ow-security-flow-node" href="{{ security_urls.identities }}"><strong>[[ i18n: security.identities ]]</strong><code>provider + subject</code></a>
+    <a class="ow-security-flow-node" href="{{ security_urls.identities }}">
+      <span class="ow-security-node-icon">U/A</span>
+      <strong>[[ i18n: security.identities ]]</strong>
+    </a>
     <span class="ow-security-flow-arrow" aria-hidden="true">→</span>
-    <a class="ow-security-flow-node" href="{{ security_urls.assignments }}"><strong>[[ i18n: security.assignments ]]</strong><code>scope</code></a>
+    <a class="ow-security-flow-node" href="{{ security_urls.assignments }}">
+      <span class="ow-security-node-icon">↳</span>
+      <strong>[[ i18n: security.assignments ]]</strong>
+    </a>
     <span class="ow-security-flow-arrow" aria-hidden="true">→</span>
-    <a class="ow-security-flow-node" href="{{ security_urls.roles }}"><strong>[[ i18n: security.roles ]]</strong><code>role_id</code></a>
+    <a class="ow-security-flow-node" href="{{ security_urls.roles }}">
+      <span class="ow-security-node-icon">R</span>
+      <strong>[[ i18n: security.roles ]]</strong>
+    </a>
     <span class="ow-security-flow-arrow" aria-hidden="true">→</span>
-    <a class="ow-security-flow-node" href="{{ security_urls.permissions }}"><strong>[[ i18n: security.permissions ]]</strong><code>resource:action</code></a>
+    <a class="ow-security-flow-node" href="{{ security_urls.permissions }}">
+      <span class="ow-security-node-icon">✓</span>
+      <strong>[[ i18n: security.permissions ]]</strong>
+    </a>
     <span class="ow-security-flow-arrow" aria-hidden="true">→</span>
-    <a class="ow-security-flow-node" href="{{ security_urls.resources }}"><strong>[[ i18n: security.resources_acl ]]</strong><code>ACL</code></a>
+    <a class="ow-security-flow-node" href="{{ security_urls.resources }}">
+      <span class="ow-security-node-icon">◆</span>
+      <strong>[[ i18n: security.resources_acl ]]</strong>
+    </a>
   </div>
 </section>
-
 [[ if: security.mutation_error ]]
-<section class="ow-card">
-  <h2>[[ i18n: security.mutation_error ]]</h2>
-  <code>{{ security.mutation_error_code }}</code>
-</section>
+<aside class="ow-security-alert" role="alert">
+  <span class="ow-security-alert-icon">!</span>
+  <div class="ow-security-alert-copy">
+    <strong>[[ i18n: security.mutation_error ]]</strong>
+    [[ if: security.mutation_error_workflow_state_invalid ]]
+      <p>[[ i18n: security.workflow_state_invalid_help ]]</p>
+    [[ endif ]]
+    <details class="ow-security-error-details">
+      <summary>[[ i18n: security.technical_details ]]</summary>
+      <code>{{ security.mutation_error_code }}</code>
+    </details>
+  </div>
+</aside>
 [[ endif ]]
-
 [[ if: security.mutation_preview ]]
 <section class="ow-card">
   <h2>[[ i18n: security.preview_title ]]</h2>
@@ -121,93 +172,165 @@
 [[ endif ]]
 
 [[ if: security.view_identities ]]
-<details class="ow-security-accordion" open>
-  <summary><strong>[[ i18n: security.identities ]]</strong></summary>
-  <div class="ow-security-accordion-body">
-    <div class="ow-security-identity-grid">
-      <details class="ow-security-subaccordion" open>
-        <summary>[[ i18n: security.users ]]</summary>
-        <div class="ow-tree-branches">
-          [[ foreach: users as identity ]]
-            <article class="ow-tree-app ow-security-identity-card">
-              <strong>{{ identity.subject }}</strong>
-              <div class="ow-tags">
-                <span>[[ i18n: security.provider ]]: {{ identity.provider }}</span>
-                <span>[[ i18n: security.status ]]: {{ identity.status }}</span>
-                <span>[[ i18n: security.roles ]]: {{ identity.roles }}</span>
-              </div>
-            </article>
-          [[ endforeach ]]
-        </div>
-      </details>
+<section class="ow-security-principals">
+  [[ if: security.identity_reference_supported ]]
+  <details class="ow-security-create-card" open>
+    <summary>
+      <span class="ow-security-create-icon">+</span>
+      <span>
+        <strong>[[ i18n: security.identity_reference ]]</strong>
+        <small>[[ i18n: security.add_identity_help ]]</small>
+      </span>
+    </summary>
+    <form class="ow-security-create-form" method="post" action="{{ security_urls.identities }}">
+      <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
+      <input type="hidden" name="owasys_security_phase" value="preview">
+      <input type="hidden" name="owasys_security_mutation" value="identity.reference">
 
-      <details class="ow-security-subaccordion">
-        <summary>[[ i18n: security.agents ]]</summary>
-        <div class="ow-tree-branches">
-          [[ foreach: agents as identity ]]
-            <article class="ow-tree-app ow-security-identity-card">
-              <strong>{{ identity.subject }}</strong>
-              <div class="ow-tags">
-                <span>[[ i18n: security.provider ]]: {{ identity.provider }}</span>
-                <span>[[ i18n: security.status ]]: {{ identity.status }}</span>
-                <span>[[ i18n: security.roles ]]: {{ identity.roles }}</span>
-              </div>
-            </article>
-          [[ endforeach ]]
-        </div>
-      </details>
+      <fieldset class="ow-security-type-picker">
+        <legend>[[ i18n: security.identity_type ]]</legend>
+        <input class="ow-visually-hidden" id="owasys-identity-user" type="radio" name="owasys_security_identity_type" value="user" checked>
+        <label for="owasys-identity-user">
+          <span class="ow-security-type-icon">U</span>
+          <strong>[[ i18n: security.user ]]</strong>
+        </label>
+        <input class="ow-visually-hidden" id="owasys-identity-agent" type="radio" name="owasys_security_identity_type" value="agent">
+        <label for="owasys-identity-agent">
+          <span class="ow-security-type-icon">A</span>
+          <strong>[[ i18n: security.agent ]]</strong>
+        </label>
+      </fieldset>
 
-      <details class="ow-security-subaccordion">
-        <summary>[[ i18n: security.unclassified ]]</summary>
-        <div class="ow-tree-branches">
-          [[ foreach: unknown_identities as identity ]]
-            <article class="ow-tree-app ow-security-identity-card">
-              <strong>{{ identity.subject }}</strong>
-              <div class="ow-tags">
-                <span>[[ i18n: security.provider ]]: {{ identity.provider }}</span>
-                <span>[[ i18n: security.status ]]: {{ identity.status }}</span>
-                <span>[[ i18n: security.roles ]]: {{ identity.roles }}</span>
-                <span>[[ i18n: security.source ]]: {{ identity.source }}</span>
-              </div>
-            </article>
-          [[ endforeach ]]
-        </div>
-      </details>
-    </div>
-
-    [[ if: security.identity_reference_supported ]]
-      <form class="ow-security-action-form" method="post" action="{{ security_urls.identities }}">
-        <h3>[[ i18n: security.identity_reference ]]</h3>
-        <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
-        <input type="hidden" name="owasys_security_phase" value="preview">
-        <input type="hidden" name="owasys_security_mutation" value="identity.reference">
-        <label>[[ i18n: security.identity_type ]]
-          <select name="owasys_security_identity_type" required>
-            <option value="user">[[ i18n: security.user ]]</option>
-            <option value="agent">[[ i18n: security.agent ]]</option>
-          </select>
+      <div class="ow-security-form-grid">
+        <label>[[ i18n: security.identifier ]]
+          <input name="owasys_security_subject" required>
         </label>
         <label>[[ i18n: security.provider ]]
           <input name="owasys_security_provider" required>
         </label>
-        <label>[[ i18n: security.subject ]]
-          <input name="owasys_security_subject" required>
-        </label>
-        <label>[[ i18n: security.reason ]]
+        <label class="ow-security-form-span">[[ i18n: security.reason ]]
           <input name="owasys_security_reason" minlength="3" maxlength="200" required>
         </label>
-        <label>[[ i18n: security.reauthenticate ]]
+        <label class="ow-security-form-span">[[ i18n: security.reauthenticate ]]
           <input type="password" name="owasys_reauth_password" autocomplete="current-password" required>
         </label>
+      </div>
+
+      <div class="ow-security-form-actions">
         <button class="ow-button" type="submit">[[ i18n: security.preview ]]</button>
-      </form>
-    [[ endif ]]
+      </div>
+    </form>
+  </details>
+  [[ endif ]]
+
+  <div class="ow-security-principal-grid">
+    <details class="ow-security-principal-panel">
+      <summary>
+        <span class="ow-security-principal-icon is-user">U</span>
+        <span class="ow-security-principal-title">
+          <strong>[[ i18n: security.users ]]</strong>
+          <small>{{ security.users_count }}</small>
+        </span>
+      </summary>
+      <div class="ow-security-principal-body">
+        [[ if: security.users_empty ]]
+          <p class="ow-muted">[[ i18n: security.empty ]]</p>
+        [[ endif ]]
+        <div class="ow-security-card-grid">
+          [[ foreach: users as identity ]]
+          <article class="ow-security-identity-card">
+            <header>
+              <span class="ow-security-avatar is-user">U</span>
+              <div>
+                <strong>{{ identity.subject }}</strong>
+                <span class="ow-security-status">{{ identity.status }}</span>
+              </div>
+            </header>
+            <div class="ow-security-role-line">
+              <span>[[ i18n: security.roles ]]</span>
+              <strong>{{ identity.roles }}</strong>
+            </div>
+            <details class="ow-security-identity-tech">
+              <summary>[[ i18n: security.technical_details ]]</summary>
+              <dl>
+                <div><dt>[[ i18n: security.provider ]]</dt><dd>{{ identity.provider }}</dd></div>
+                <div><dt>[[ i18n: security.source ]]</dt><dd>{{ identity.source }}</dd></div>
+              </dl>
+            </details>
+          </article>
+          [[ endforeach ]]
+        </div>
+      </div>
+    </details>
+
+    <details class="ow-security-principal-panel">
+      <summary>
+        <span class="ow-security-principal-icon is-agent">A</span>
+        <span class="ow-security-principal-title">
+          <strong>[[ i18n: security.agents ]]</strong>
+          <small>{{ security.agents_count }}</small>
+        </span>
+      </summary>
+      <div class="ow-security-principal-body">
+        [[ if: security.agents_empty ]]
+          <p class="ow-muted">[[ i18n: security.empty ]]</p>
+        [[ endif ]]
+        <div class="ow-security-card-grid">
+          [[ foreach: agents as identity ]]
+          <article class="ow-security-identity-card">
+            <header>
+              <span class="ow-security-avatar is-agent">A</span>
+              <div>
+                <strong>{{ identity.subject }}</strong>
+                <span class="ow-security-status">{{ identity.status }}</span>
+              </div>
+            </header>
+            <div class="ow-security-role-line">
+              <span>[[ i18n: security.roles ]]</span>
+              <strong>{{ identity.roles }}</strong>
+            </div>
+            <details class="ow-security-identity-tech">
+              <summary>[[ i18n: security.technical_details ]]</summary>
+              <dl>
+                <div><dt>[[ i18n: security.provider ]]</dt><dd>{{ identity.provider }}</dd></div>
+                <div><dt>[[ i18n: security.source ]]</dt><dd>{{ identity.source }}</dd></div>
+              </dl>
+            </details>
+          </article>
+          [[ endforeach ]]
+        </div>
+      </div>
+    </details>
   </div>
-</details>
+
+  [[ if: security.unknown_identities_present ]]
+  <details class="ow-security-legacy-panel">
+    <summary>
+      <span>[[ i18n: security.unclassified ]]</span>
+      <strong>{{ security.unknown_identities_count }}</strong>
+    </summary>
+    <div class="ow-security-legacy-body">
+      <p class="ow-muted">[[ i18n: security.legacy_identity_help ]]</p>
+      <div class="ow-security-legacy-list">
+        [[ foreach: unknown_identities as identity ]]
+        <article>
+          <strong>{{ identity.subject }}</strong>
+          <span>{{ identity.status }}</span>
+          <details>
+            <summary>[[ i18n: security.technical_details ]]</summary>
+            <small>[[ i18n: security.provider ]]: {{ identity.provider }} · [[ i18n: security.source ]]: {{ identity.source }}</small>
+          </details>
+        </article>
+        [[ endforeach ]]
+      </div>
+    </div>
+  </details>
+  [[ endif ]]
+</section>
 [[ endif ]]
 [[ if: security.view_roles ]]
 <details class="ow-security-accordion">
-  <summary><strong>[[ i18n: security.roles ]]</strong></summary>
+  <summary class="ow-security-technical-summary"><strong>[[ i18n: security.roles ]]</strong><span class="ow-security-count">{{ security.roles_count }}</span></summary>
   <div class="ow-security-accordion-body">
   [[ if: security.roles_empty ]]
     <p class="ow-muted">[[ i18n: security.empty ]]</p>
@@ -253,7 +376,7 @@
 
 [[ if: security.view_permissions ]]
 <details class="ow-security-accordion">
-  <summary><strong>[[ i18n: security.permissions ]]</strong></summary>
+  <summary class="ow-security-technical-summary"><strong>[[ i18n: security.permissions ]]</strong><span class="ow-security-count">{{ security.permissions_count }}</span></summary>
   <div class="ow-security-accordion-body">
   [[ if: security.permissions_empty ]]
     <p class="ow-muted">[[ i18n: security.empty ]]</p>
@@ -295,7 +418,7 @@
 
 [[ if: security.view_assignments ]]
 <details class="ow-security-accordion">
-  <summary><strong>[[ i18n: security.assignments ]]</strong></summary>
+  <summary class="ow-security-technical-summary"><strong>[[ i18n: security.assignments ]]</strong><span class="ow-security-count">{{ security.assignments_count }}</span></summary>
   <div class="ow-security-accordion-body">
   [[ if: security.assignments_empty ]]
     <p class="ow-muted">[[ i18n: security.empty ]]</p>
@@ -341,7 +464,7 @@
 
 [[ if: security.view_resources ]]
 <details class="ow-security-accordion">
-  <summary><strong>[[ i18n: security.resources_acl ]]</strong></summary>
+  <summary class="ow-security-technical-summary"><strong>[[ i18n: security.resources_acl ]]</strong><span class="ow-security-count">{{ security.resources_count }}</span></summary>
   <div class="ow-security-accordion-body">
   <p class="ow-muted">[[ i18n: security.resource_right_rule ]]</p>
   [[ if: security.resources_empty ]]

@@ -62,6 +62,12 @@
         "security.identity_type": "Vrsta identiteta",
         "security.user": "Korisnik",
         "security.agent": "Agent",
-        "security.access_model": "Model pristupa"
+        "security.access_model": "Model pristupa",
+        "security.dashboard": "Pregled sigurnosti",
+        "security.add_identity_help": "Dodajte osobu ili automatizirani proces u sigurnost aplikacije.",
+        "security.identifier": "Identifikator",
+        "security.technical_details": "Tehnički detalji",
+        "security.workflow_state_invalid_help": "Prethodni pregled više nije aktivan. Ponovno pokrenite Pregled prije potvrde.",
+        "security.legacy_identity_help": "Ovi identiteti stvoreni su prije uvođenja tipova korisnik/agent."
     }
 }

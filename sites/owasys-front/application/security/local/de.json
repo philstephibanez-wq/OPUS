@@ -62,6 +62,12 @@
         "security.identity_type": "Identitätstyp",
         "security.user": "Benutzer",
         "security.agent": "Agent",
-        "security.access_model": "Zugriffsmodell"
+        "security.access_model": "Zugriffsmodell",
+        "security.dashboard": "Sicherheitsübersicht",
+        "security.add_identity_help": "Fügen Sie eine Person oder einen automatisierten Prozess zum Sicherheitsmodell der Anwendung hinzu.",
+        "security.identifier": "Kennung",
+        "security.technical_details": "Technische Details",
+        "security.workflow_state_invalid_help": "Die vorherige Vorschau ist nicht mehr aktiv. Führen Sie vor der Bestätigung erneut „Vorschau“ aus.",
+        "security.legacy_identity_help": "Diese Identitäten wurden vor Einführung des Benutzer/Agent-Typs erstellt."
     }
 }

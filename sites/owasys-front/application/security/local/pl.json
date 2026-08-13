@@ -62,6 +62,12 @@
         "security.identity_type": "Typ tożsamości",
         "security.user": "Użytkownik",
         "security.agent": "Agent",
-        "security.access_model": "Model dostępu"
+        "security.access_model": "Model dostępu",
+        "security.dashboard": "Przegląd bezpieczeństwa",
+        "security.add_identity_help": "Dodaj osobę lub zautomatyzowany proces do modelu bezpieczeństwa aplikacji.",
+        "security.identifier": "Identyfikator",
+        "security.technical_details": "Szczegóły techniczne",
+        "security.workflow_state_invalid_help": "Poprzedni podgląd nie jest już aktywny. Przed potwierdzeniem uruchom Podgląd ponownie.",
+        "security.legacy_identity_help": "Te tożsamości utworzono przed wprowadzeniem typu użytkownik/agent."
     }
 }

@@ -62,6 +62,12 @@
         "security.identity_type": "Тип идентичност",
         "security.user": "Потребител",
         "security.agent": "Агент",
-        "security.access_model": "Модел на достъп"
+        "security.access_model": "Модел на достъп",
+        "security.dashboard": "Преглед на сигурността",
+        "security.add_identity_help": "Добавете човек или автоматизиран процес към сигурността на приложението.",
+        "security.identifier": "Идентификатор",
+        "security.technical_details": "Технически подробности",
+        "security.workflow_state_invalid_help": "Предишната визуализация вече не е активна. Стартирайте отново „Преглед“, преди да потвърдите.",
+        "security.legacy_identity_help": "Тези идентичности са създадени преди въвеждането на типовете потребител/агент."
     }
 }

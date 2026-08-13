@@ -62,6 +62,12 @@
         "security.identity_type": "Identiteitstype",
         "security.user": "Gebruiker",
         "security.agent": "Agent",
-        "security.access_model": "Toegangsmodel"
+        "security.access_model": "Toegangsmodel",
+        "security.dashboard": "Beveiligingsoverzicht",
+        "security.add_identity_help": "Voeg een persoon of geautomatiseerd proces toe aan de beveiliging van de toepassing.",
+        "security.identifier": "Identificatie",
+        "security.technical_details": "Technische details",
+        "security.workflow_state_invalid_help": "De vorige preview is niet meer actief. Start Preview opnieuw voordat u bevestigt.",
+        "security.legacy_identity_help": "Deze identiteiten zijn gemaakt vóór de invoering van het gebruiker/agent-type."
     }
 }

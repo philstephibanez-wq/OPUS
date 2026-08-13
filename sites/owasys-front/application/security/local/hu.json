@@ -62,6 +62,12 @@
         "security.identity_type": "Identitástípus",
         "security.user": "Felhasználó",
         "security.agent": "Ügynök",
-        "security.access_model": "Hozzáférési modell"
+        "security.access_model": "Hozzáférési modell",
+        "security.dashboard": "Biztonsági áttekintés",
+        "security.add_identity_help": "Adjon hozzá személyt vagy automatizált folyamatot az alkalmazás biztonsági modelljéhez.",
+        "security.identifier": "Azonosító",
+        "security.technical_details": "Technikai részletek",
+        "security.workflow_state_invalid_help": "Az előző előnézet már nem aktív. Megerősítés előtt futtassa újra az Előnézetet.",
+        "security.legacy_identity_help": "Ezek az identitások a felhasználó/ügynök típus bevezetése előtt készültek."
     }
 }

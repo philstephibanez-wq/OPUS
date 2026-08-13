@@ -62,6 +62,12 @@
         "security.identity_type": "Identiteedi tüüp",
         "security.user": "Kasutaja",
         "security.agent": "Agent",
-        "security.access_model": "Juurdepääsumudel"
+        "security.access_model": "Juurdepääsumudel",
+        "security.dashboard": "Turbe ülevaade",
+        "security.add_identity_help": "Lisa inimene või automatiseeritud protsess rakenduse turbemudelisse.",
+        "security.identifier": "Identifikaator",
+        "security.technical_details": "Tehnilised üksikasjad",
+        "security.workflow_state_invalid_help": "Eelmine eelvaade pole enam aktiivne. Käivita enne kinnitamist eelvaade uuesti.",
+        "security.legacy_identity_help": "Need identiteedid loodi enne kasutaja/agendi tüübi kasutuselevõttu."
     }
 }

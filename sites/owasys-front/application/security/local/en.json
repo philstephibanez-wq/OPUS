@@ -62,6 +62,12 @@
         "security.identity_type": "Identity type",
         "security.user": "User",
         "security.agent": "Agent",
-        "security.access_model": "Access model"
+        "security.access_model": "Access model",
+        "security.dashboard": "Security overview",
+        "security.add_identity_help": "Add a person or automated process to the application's security model.",
+        "security.identifier": "Identifier",
+        "security.technical_details": "Technical details",
+        "security.workflow_state_invalid_help": "The previous preview is no longer active. Run Preview again before confirming.",
+        "security.legacy_identity_help": "These identities were created before the user/agent type was introduced."
     }
 }

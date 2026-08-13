@@ -62,6 +62,12 @@
         "security.identity_type": "Identitetstype",
         "security.user": "Bruger",
         "security.agent": "Agent",
-        "security.access_model": "Adgangsmodel"
+        "security.access_model": "Adgangsmodel",
+        "security.dashboard": "Sikkerhedsoversigt",
+        "security.add_identity_help": "Tilføj en person eller automatiseret proces til applikationens sikkerhed.",
+        "security.identifier": "Identifikator",
+        "security.technical_details": "Tekniske detaljer",
+        "security.workflow_state_invalid_help": "Den tidligere forhåndsvisning er ikke længere aktiv. Kør Forhåndsvis igen før bekræftelse.",
+        "security.legacy_identity_help": "Disse identiteter blev oprettet før bruger/agent-typen blev indført."
     }
 }

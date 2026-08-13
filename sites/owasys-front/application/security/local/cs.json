@@ -62,6 +62,12 @@
         "security.identity_type": "Typ identity",
         "security.user": "Uživatel",
         "security.agent": "Agent",
-        "security.access_model": "Model přístupu"
+        "security.access_model": "Model přístupu",
+        "security.dashboard": "Přehled zabezpečení",
+        "security.add_identity_help": "Přidejte osobu nebo automatizovaný proces do zabezpečení aplikace.",
+        "security.identifier": "Identifikátor",
+        "security.technical_details": "Technické podrobnosti",
+        "security.workflow_state_invalid_help": "Předchozí náhled již není aktivní. Před potvrzením spusťte Náhled znovu.",
+        "security.legacy_identity_help": "Tyto identity byly vytvořeny před zavedením typů uživatel/agent."
     }
 }

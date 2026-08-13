@@ -62,6 +62,12 @@
         "security.identity_type": "Identitātes tips",
         "security.user": "Lietotājs",
         "security.agent": "Aģents",
-        "security.access_model": "Piekļuves modelis"
+        "security.access_model": "Piekļuves modelis",
+        "security.dashboard": "Drošības pārskats",
+        "security.add_identity_help": "Pievienojiet personu vai automatizētu procesu lietotnes drošības modelim.",
+        "security.identifier": "Identifikators",
+        "security.technical_details": "Tehniskā informācija",
+        "security.workflow_state_invalid_help": "Iepriekšējais priekšskatījums vairs nav aktīvs. Pirms apstiprināšanas vēlreiz palaidiet priekšskatījumu.",
+        "security.legacy_identity_help": "Šīs identitātes izveidotas pirms lietotāja/aģenta tipa ieviešanas."
     }
 }

@@ -539,6 +539,9 @@ final class OwasysSecurityController
                 'mutation_error' => is_string($mutationError)
                     && $mutationError !== '',
                 'mutation_error_code' => (string) ($mutationError ?? ''),
+                'mutation_error_workflow_state_invalid' =>
+                    (string) ($mutationError ?? '')
+                        === 'OWASYS_SECURITY_MUTATION_WORKFLOW_STATE_INVALID',
                 'view_identities' => true,
                 'view_roles' => true,
                 'view_permissions' => true,
@@ -561,6 +564,22 @@ final class OwasysSecurityController
                     $snapshot,
                     'resources'
                 ) === [],
+                'users_count' => count($securityUsers),
+                'agents_count' => count($securityAgents),
+                'unknown_identities_count' => count($securityUnknown),
+                'users_empty' => $securityUsers === [],
+                'agents_empty' => $securityAgents === [],
+                'unknown_identities_present' => $securityUnknown !== [],
+                'roles_count' => count($this->rows($snapshot, 'roles')),
+                'permissions_count' => count(
+                    $this->rows($snapshot, 'permissions')
+                ),
+                'assignments_count' => count(
+                    $this->rows($snapshot, 'assignments')
+                ),
+                'resources_count' => count(
+                    $this->rows($snapshot, 'resources')
+                ),
                 'application_id' => (string) ($application['id'] ?? ''),
                 'application_name' => (string) (
                     $application['name']

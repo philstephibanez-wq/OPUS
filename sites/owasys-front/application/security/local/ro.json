@@ -62,6 +62,12 @@
         "security.identity_type": "Tip de identitate",
         "security.user": "Utilizator",
         "security.agent": "Agent",
-        "security.access_model": "Model de acces"
+        "security.access_model": "Model de acces",
+        "security.dashboard": "Prezentare generală a securității",
+        "security.add_identity_help": "Adăugați o persoană sau un proces automatizat la modelul de securitate al aplicației.",
+        "security.identifier": "Identificator",
+        "security.technical_details": "Detalii tehnice",
+        "security.workflow_state_invalid_help": "Previzualizarea anterioară nu mai este activă. Rulați din nou Previzualizare înainte de confirmare.",
+        "security.legacy_identity_help": "Aceste identități au fost create înainte de introducerea tipului utilizator/agent."
     }
 }

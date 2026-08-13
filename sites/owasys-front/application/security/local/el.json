@@ -62,6 +62,12 @@
         "security.identity_type": "Τύπος ταυτότητας",
         "security.user": "Χρήστης",
         "security.agent": "Πράκτορας",
-        "security.access_model": "Μοντέλο πρόσβασης"
+        "security.access_model": "Μοντέλο πρόσβασης",
+        "security.dashboard": "Επισκόπηση ασφάλειας",
+        "security.add_identity_help": "Προσθέστε ένα άτομο ή μια αυτοματοποιημένη διεργασία στο μοντέλο ασφάλειας της εφαρμογής.",
+        "security.identifier": "Αναγνωριστικό",
+        "security.technical_details": "Τεχνικές λεπτομέρειες",
+        "security.workflow_state_invalid_help": "Η προηγούμενη προεπισκόπηση δεν είναι πλέον ενεργή. Εκτελέστε ξανά την Προεπισκόπηση πριν από την επιβεβαίωση.",
+        "security.legacy_identity_help": "Αυτές οι ταυτότητες δημιουργήθηκαν πριν από την εισαγωγή του τύπου χρήστη/πράκτορα."
     }
 }
