@@ -40,19 +40,19 @@
   [[ endif ]]
 </section>
 
-<section class="ow-security-dashboard" aria-label="[[ i18n: security.dashboard ]]">
+<section class="ow-security-dashboard ow-security-cockpit" aria-label="[[ i18n: security.dashboard ]]">
   <div class="ow-security-dashboard-heading">
     <div>
       <span class="ow-badge">[[ i18n: security.dashboard ]]</span>
       <h2>{{ security.application_name }}</h2>
     </div>
     <div class="ow-security-policy-badge">
-      <span>ACL</span>
+      <span>[[ i18n: security.default_policy ]]</span>
       <strong>{{ security.default_policy }}</strong>
     </div>
   </div>
 
-  <div class="ow-security-metrics">
+  <div class="ow-security-metrics ow-security-metrics-compact">
     <article class="ow-security-metric">
       <span class="ow-security-metric-icon is-user">U</span>
       <div><strong>{{ security.users_count }}</strong><span>[[ i18n: security.users ]]</span></div>
@@ -61,6 +61,12 @@
       <span class="ow-security-metric-icon is-agent">A</span>
       <div><strong>{{ security.agents_count }}</strong><span>[[ i18n: security.agents ]]</span></div>
     </article>
+    [[ if: security.unknown_identities_present ]]
+    <article class="ow-security-metric is-unclassified">
+      <span class="ow-security-metric-icon">?</span>
+      <div><strong>{{ security.unknown_identities_count }}</strong><span>[[ i18n: security.unclassified ]]</span></div>
+    </article>
+    [[ endif ]]
     <article class="ow-security-metric">
       <span class="ow-security-metric-icon is-role">R</span>
       <div><strong>{{ security.roles_count }}</strong><span>[[ i18n: security.roles ]]</span></div>
@@ -71,7 +77,7 @@
     </article>
   </div>
 
-  <div class="ow-security-flow">
+  <div class="ow-security-flow ow-security-flow-compact">
     <a class="ow-security-flow-node" href="{{ security_urls.identities }}">
       <span class="ow-security-node-icon">U/A</span>
       <strong>[[ i18n: security.identities ]]</strong>
@@ -172,69 +178,91 @@
 [[ endif ]]
 
 [[ if: security.view_identities ]]
-<section class="ow-security-principals">
+<section class="ow-security-principals ow-security-principals-cockpit">
   [[ if: security.identity_reference_supported ]]
-  <details class="ow-security-create-card" open>
-    <summary>
-      <span class="ow-security-create-icon">+</span>
-      <span>
-        <strong>[[ i18n: security.identity_reference ]]</strong>
-        <small>[[ i18n: security.add_identity_help ]]</small>
-      </span>
-    </summary>
-    <form class="ow-security-create-form" method="post" action="{{ security_urls.identities }}">
-      <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
-      <input type="hidden" name="owasys_security_phase" value="preview">
-      <input type="hidden" name="owasys_security_mutation" value="identity.reference">
+  <div class="ow-security-quick-actions">
+    <details class="ow-security-quick-create is-user">
+      <summary>
+        <span class="ow-security-create-icon">+</span>
+        <span class="ow-security-type-icon">U</span>
+        <span><strong>[[ i18n: security.user ]]</strong><small>[[ i18n: security.identity_reference ]]</small></span>
+      </summary>
+      <form class="ow-security-compact-form" method="post" action="{{ security_urls.identities }}">
+        <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
+        <input type="hidden" name="owasys_security_phase" value="preview">
+        <input type="hidden" name="owasys_security_mutation" value="identity.reference">
+        <input type="hidden" name="owasys_security_identity_type" value="user">
 
-      <fieldset class="ow-security-type-picker">
-        <legend>[[ i18n: security.identity_type ]]</legend>
-        <input class="ow-visually-hidden" id="owasys-identity-user" type="radio" name="owasys_security_identity_type" value="user" checked>
-        <label for="owasys-identity-user">
-          <span class="ow-security-type-icon">U</span>
-          <strong>[[ i18n: security.user ]]</strong>
-        </label>
-        <input class="ow-visually-hidden" id="owasys-identity-agent" type="radio" name="owasys_security_identity_type" value="agent">
-        <label for="owasys-identity-agent">
-          <span class="ow-security-type-icon">A</span>
-          <strong>[[ i18n: security.agent ]]</strong>
-        </label>
-      </fieldset>
+        <div class="ow-security-compact-fields">
+          <label>[[ i18n: security.identifier ]]
+            <input name="owasys_security_subject" required>
+          </label>
+          <label>[[ i18n: security.reason ]]
+            <input name="owasys_security_reason" minlength="3" maxlength="200" required>
+          </label>
+          <label>[[ i18n: security.reauthenticate ]]
+            <input type="password" name="owasys_reauth_password" autocomplete="current-password" required>
+          </label>
+          <button class="ow-button" type="submit">[[ i18n: security.preview ]]</button>
+        </div>
 
-      <div class="ow-security-form-grid">
-        <label>[[ i18n: security.identifier ]]
-          <input name="owasys_security_subject" required>
-        </label>
-        <label>[[ i18n: security.provider ]]
-          <input name="owasys_security_provider" required>
-        </label>
-        <label class="ow-security-form-span">[[ i18n: security.reason ]]
-          <input name="owasys_security_reason" minlength="3" maxlength="200" required>
-        </label>
-        <label class="ow-security-form-span">[[ i18n: security.reauthenticate ]]
-          <input type="password" name="owasys_reauth_password" autocomplete="current-password" required>
-        </label>
-      </div>
+        <details class="ow-security-provider-settings">
+          <summary>[[ i18n: security.technical_details ]]</summary>
+          <label>[[ i18n: security.provider ]]
+            <input name="owasys_security_provider" value="{{ security.default_provider }}" required>
+          </label>
+        </details>
+      </form>
+    </details>
 
-      <div class="ow-security-form-actions">
-        <button class="ow-button" type="submit">[[ i18n: security.preview ]]</button>
-      </div>
-    </form>
-  </details>
+    <details class="ow-security-quick-create is-agent">
+      <summary>
+        <span class="ow-security-create-icon">+</span>
+        <span class="ow-security-type-icon">A</span>
+        <span><strong>[[ i18n: security.agent ]]</strong><small>[[ i18n: security.identity_reference ]]</small></span>
+      </summary>
+      <form class="ow-security-compact-form" method="post" action="{{ security_urls.identities }}">
+        <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
+        <input type="hidden" name="owasys_security_phase" value="preview">
+        <input type="hidden" name="owasys_security_mutation" value="identity.reference">
+        <input type="hidden" name="owasys_security_identity_type" value="agent">
+
+        <div class="ow-security-compact-fields">
+          <label>[[ i18n: security.identifier ]]
+            <input name="owasys_security_subject" required>
+          </label>
+          <label>[[ i18n: security.reason ]]
+            <input name="owasys_security_reason" minlength="3" maxlength="200" required>
+          </label>
+          <label>[[ i18n: security.reauthenticate ]]
+            <input type="password" name="owasys_reauth_password" autocomplete="current-password" required>
+          </label>
+          <button class="ow-button" type="submit">[[ i18n: security.preview ]]</button>
+        </div>
+
+        <details class="ow-security-provider-settings">
+          <summary>[[ i18n: security.technical_details ]]</summary>
+          <label>[[ i18n: security.provider ]]
+            <input name="owasys_security_provider" value="{{ security.default_provider }}" required>
+          </label>
+        </details>
+      </form>
+    </details>
+  </div>
   [[ endif ]]
 
-  <div class="ow-security-principal-grid">
-    <details class="ow-security-principal-panel">
-      <summary>
+  <div class="ow-security-principal-grid ow-security-principal-grid-visible">
+    <section class="ow-security-principal-column is-user">
+      <header class="ow-security-principal-header">
         <span class="ow-security-principal-icon is-user">U</span>
-        <span class="ow-security-principal-title">
+        <div>
           <strong>[[ i18n: security.users ]]</strong>
-          <small>{{ security.users_count }}</small>
-        </span>
-      </summary>
+          <span>{{ security.users_count }}</span>
+        </div>
+      </header>
       <div class="ow-security-principal-body">
         [[ if: security.users_empty ]]
-          <p class="ow-muted">[[ i18n: security.empty ]]</p>
+          <div class="ow-security-empty-state"><span>U</span><p>[[ i18n: security.empty ]]</p></div>
         [[ endif ]]
         <div class="ow-security-card-grid">
           [[ foreach: users as identity ]]
@@ -243,7 +271,7 @@
               <span class="ow-security-avatar is-user">U</span>
               <div>
                 <strong>{{ identity.subject }}</strong>
-                <span class="ow-security-status">{{ identity.status }}</span>
+                <span class="ow-security-status status-{{ identity.status }}">{{ identity.status }}</span>
               </div>
             </header>
             <div class="ow-security-role-line">
@@ -261,19 +289,19 @@
           [[ endforeach ]]
         </div>
       </div>
-    </details>
+    </section>
 
-    <details class="ow-security-principal-panel">
-      <summary>
+    <section class="ow-security-principal-column is-agent">
+      <header class="ow-security-principal-header">
         <span class="ow-security-principal-icon is-agent">A</span>
-        <span class="ow-security-principal-title">
+        <div>
           <strong>[[ i18n: security.agents ]]</strong>
-          <small>{{ security.agents_count }}</small>
-        </span>
-      </summary>
+          <span>{{ security.agents_count }}</span>
+        </div>
+      </header>
       <div class="ow-security-principal-body">
         [[ if: security.agents_empty ]]
-          <p class="ow-muted">[[ i18n: security.empty ]]</p>
+          <div class="ow-security-empty-state"><span>A</span><p>[[ i18n: security.empty ]]</p></div>
         [[ endif ]]
         <div class="ow-security-card-grid">
           [[ foreach: agents as identity ]]
@@ -282,7 +310,7 @@
               <span class="ow-security-avatar is-agent">A</span>
               <div>
                 <strong>{{ identity.subject }}</strong>
-                <span class="ow-security-status">{{ identity.status }}</span>
+                <span class="ow-security-status status-{{ identity.status }}">{{ identity.status }}</span>
               </div>
             </header>
             <div class="ow-security-role-line">
@@ -300,17 +328,16 @@
           [[ endforeach ]]
         </div>
       </div>
-    </details>
+    </section>
   </div>
 
   [[ if: security.unknown_identities_present ]]
-  <details class="ow-security-legacy-panel">
+  <details class="ow-security-legacy-panel ow-security-legacy-panel-compact">
     <summary>
-      <span>[[ i18n: security.unclassified ]]</span>
+      <span><strong>[[ i18n: security.unclassified ]]</strong><small>[[ i18n: security.legacy_identity_help ]]</small></span>
       <strong>{{ security.unknown_identities_count }}</strong>
     </summary>
     <div class="ow-security-legacy-body">
-      <p class="ow-muted">[[ i18n: security.legacy_identity_help ]]</p>
       <div class="ow-security-legacy-list">
         [[ foreach: unknown_identities as identity ]]
         <article>

@@ -1143,3 +1143,243 @@ code {
   }
 }
 /* END OPUS R45D2A21B SECURITY VISUAL DASHBOARD */
+/* BEGIN OPUS R45D2A21C SECURITY COMPACT COCKPIT */
+.ow-security-cockpit {
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+.ow-security-cockpit .ow-security-dashboard-heading h2 {
+  font-size: 1.45rem;
+}
+.ow-security-metrics-compact {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: .55rem;
+  margin: .9rem 0;
+}
+.ow-security-metrics-compact .ow-security-metric {
+  padding: .65rem .75rem;
+  border-radius: 13px;
+}
+.ow-security-metric.is-unclassified {
+  border-color: rgba(251, 191, 36, .35);
+  background: rgba(251, 191, 36, .055);
+}
+.ow-security-metric.is-unclassified .ow-security-metric-icon {
+  border-color: rgba(251, 191, 36, .44);
+  background: rgba(251, 191, 36, .10);
+  color: #fde68a;
+}
+.ow-security-flow-compact {
+  margin-top: .35rem;
+}
+.ow-security-flow-compact .ow-security-flow-node {
+  padding: .5rem .6rem;
+}
+.ow-security-flow-compact .ow-security-node-icon {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+.ow-security-principals-cockpit {
+  margin-top: 14px;
+}
+.ow-security-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .7rem;
+  margin-bottom: .8rem;
+}
+.ow-security-quick-create {
+  border: 1px solid var(--ow-line);
+  border-radius: 15px;
+  background: linear-gradient(180deg, rgba(16,28,47,.94), rgba(12,23,40,.98));
+  overflow: clip;
+}
+.ow-security-quick-create > summary {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: .6rem;
+  align-items: center;
+  padding: .75rem .85rem;
+  cursor: pointer;
+  list-style: none;
+}
+.ow-security-quick-create > summary::-webkit-details-marker { display: none; }
+.ow-security-quick-create > summary > span:last-child {
+  display: grid;
+  min-width: 0;
+}
+.ow-security-quick-create > summary small {
+  color: var(--ow-muted);
+  font-size: .7rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ow-security-quick-create:hover,
+.ow-security-quick-create[open] {
+  border-color: rgba(108,227,255,.55);
+}
+.ow-security-quick-create.is-agent:hover,
+.ow-security-quick-create.is-agent[open] {
+  border-color: rgba(167,139,250,.58);
+}
+.ow-security-quick-create .ow-security-create-icon {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 9px;
+  font-size: 1.15rem;
+}
+.ow-security-quick-create .ow-security-type-icon {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 9px;
+}
+.ow-security-compact-form {
+  padding: .8rem;
+  border-top: 1px solid var(--ow-line);
+}
+.ow-security-compact-fields {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) minmax(14rem, 1.2fr) minmax(16rem, 1.3fr) auto;
+  gap: .6rem;
+  align-items: end;
+}
+.ow-security-compact-fields label,
+.ow-security-provider-settings label {
+  display: grid;
+  gap: .25rem;
+  color: var(--ow-muted);
+  font-size: .76rem;
+  font-weight: 750;
+}
+.ow-security-compact-fields input,
+.ow-security-provider-settings input {
+  width: 100%;
+  min-height: 40px;
+  padding: .55rem .65rem;
+  border: 1px solid var(--ow-line);
+  border-radius: 9px;
+  background: rgba(255,255,255,.055);
+  color: var(--ow-text);
+}
+.ow-security-compact-fields .ow-button {
+  min-height: 40px;
+  white-space: nowrap;
+}
+.ow-security-provider-settings {
+  margin-top: .55rem;
+  color: var(--ow-muted);
+  font-size: .72rem;
+}
+.ow-security-provider-settings summary { cursor: pointer; }
+.ow-security-provider-settings label {
+  margin-top: .45rem;
+  max-width: 28rem;
+}
+
+.ow-security-principal-grid-visible {
+  gap: .7rem;
+  margin-top: 0;
+}
+.ow-security-principal-column {
+  min-width: 0;
+  border: 1px solid var(--ow-line);
+  border-radius: 15px;
+  background: linear-gradient(180deg, rgba(16,28,47,.90), rgba(12,23,40,.96));
+  overflow: clip;
+}
+.ow-security-principal-header {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  padding: .7rem .8rem;
+  border-bottom: 1px solid var(--ow-line);
+}
+.ow-security-principal-header > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .8rem;
+  width: 100%;
+}
+.ow-security-principal-header > div > span {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.65rem;
+  height: 1.65rem;
+  padding: 0 .4rem;
+  border-radius: 999px;
+  background: rgba(108,227,255,.10);
+  color: var(--ow-accent);
+  font-size: .72rem;
+  font-weight: 900;
+}
+.ow-security-principal-column .ow-security-principal-body {
+  padding: .7rem;
+  border-top: 0;
+}
+.ow-security-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .55rem;
+  min-height: 68px;
+  border: 1px dashed rgba(148,170,216,.18);
+  border-radius: 11px;
+  color: var(--ow-muted);
+}
+.ow-security-empty-state > span {
+  display: grid;
+  place-items: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 9px;
+  background: rgba(108,227,255,.07);
+  color: var(--ow-accent);
+  font-weight: 900;
+}
+.ow-security-empty-state p { margin: 0; }
+.ow-security-identity-card {
+  padding: .7rem;
+}
+.ow-security-status.status-active { color: #86efac; }
+.ow-security-status.status-password-setup-required { color: #fde68a; }
+
+.ow-security-legacy-panel-compact {
+  margin-top: .7rem;
+  background: rgba(251,191,36,.025);
+  border-color: rgba(251,191,36,.22);
+}
+.ow-security-legacy-panel-compact > summary > span:first-child {
+  display: grid;
+  gap: .1rem;
+}
+.ow-security-legacy-panel-compact > summary small {
+  color: var(--ow-muted);
+  font-size: .68rem;
+  font-weight: 500;
+}
+.ow-security-legacy-panel-compact > summary > strong {
+  color: #fde68a;
+}
+
+@media (max-width: 1180px) {
+  .ow-security-compact-fields {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+  .ow-security-compact-fields .ow-button {
+    justify-self: end;
+  }
+}
+@media (max-width: 760px) {
+  .ow-security-quick-actions,
+  .ow-security-principal-grid-visible,
+  .ow-security-compact-fields {
+    grid-template-columns: 1fr;
+  }
+  .ow-security-compact-fields .ow-button {
+    width: 100%;
+  }
+}
+/* END OPUS R45D2A21C SECURITY COMPACT COCKPIT */
