@@ -115,6 +115,24 @@
     [[ if: security.mutation_error_last_administrator ]]
       <p>[[ i18n: security.last_administrator_protected ]]</p>
     [[ endif ]]
+    [[ if: security.mutation_error_identity_already_referenced ]]
+      <p>[[ i18n: security.identity_already_referenced ]]</p>
+    [[ endif ]]
+    [[ if: security.mutation_error_identity_not_found ]]
+      <p>[[ i18n: security.identity_not_found ]]</p>
+    [[ endif ]]
+    [[ if: security.mutation_error_identity_update_unchanged ]]
+      <p>[[ i18n: security.identity_update_unchanged ]]</p>
+    [[ endif ]]
+    [[ if: security.mutation_error_role_already_exists ]]
+      <p>[[ i18n: security.role_already_exists ]]</p>
+    [[ endif ]]
+    [[ if: security.mutation_error_assignment_already_exists ]]
+      <p>[[ i18n: security.assignment_already_exists ]]</p>
+    [[ endif ]]
+    [[ if: security.mutation_error_permission_already_granted ]]
+      <p>[[ i18n: security.permission_already_granted ]]</p>
+    [[ endif ]]
     <details class="ow-security-error-details">
       <summary>[[ i18n: security.technical_details ]]</summary>
       <code>{{ security.mutation_error_code }}</code>

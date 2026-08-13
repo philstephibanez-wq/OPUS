@@ -551,6 +551,24 @@ final class OwasysSecurityController
                 'mutation_error_last_administrator' =>
                     (string) ($mutationError ?? '')
                         === 'OWASYS_SECURITY_LAST_ADMINISTRATOR_DELETE_FORBIDDEN',
+                'mutation_error_identity_already_referenced' =>
+                    (string) ($mutationError ?? '')
+                        === 'OWASYS_SECURITY_IDENTITY_ALREADY_REFERENCED',
+                'mutation_error_identity_not_found' =>
+                    (string) ($mutationError ?? '')
+                        === 'OWASYS_SECURITY_IDENTITY_NOT_FOUND',
+                'mutation_error_identity_update_unchanged' =>
+                    (string) ($mutationError ?? '')
+                        === 'OWASYS_SECURITY_IDENTITY_UPDATE_UNCHANGED',
+                'mutation_error_role_already_exists' =>
+                    (string) ($mutationError ?? '')
+                        === 'OWASYS_SECURITY_ROLE_ALREADY_EXISTS',
+                'mutation_error_assignment_already_exists' =>
+                    (string) ($mutationError ?? '')
+                        === 'OWASYS_SECURITY_ASSIGNMENT_ALREADY_EXISTS',
+                'mutation_error_permission_already_granted' =>
+                    (string) ($mutationError ?? '')
+                        === 'OWASYS_SECURITY_PERMISSION_ALREADY_GRANTED',
                 'view_identities' => true,
                 'view_roles' => true,
                 'view_permissions' => true,
