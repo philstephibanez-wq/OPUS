@@ -7,6 +7,7 @@ use Opus\Fsm\FsmSessionStore;
 use Opus\Fsm\FsmSiteLoader;
 use Opus\Http\Response;
 use Opus\Http\UrlBuilder;
+use Opus\Http\LocalizedRouteResolverInterface;
 use Opus\I18n\BrowserLocaleNegotiator;
 use Opus\Security\Csrf\CsrfTokenManager;
 use Opus\Security\Csrf\CsrfTokenManagerInterface;
@@ -30,6 +31,7 @@ final class OwasysSourceController
         private readonly OwasysAuthSession $session,
         private readonly OwasysRuntimeSecurity $security,
         private readonly OwasysScorePageRenderer $renderer,
+        private readonly LocalizedRouteResolverInterface $localizedRoutes,
         private readonly OwasysSessionRuntimeInterface $sessionRuntime,
         private readonly OwasysSourceModel $source,
         ?CsrfTokenManagerInterface $csrf = null
@@ -1262,7 +1264,16 @@ final class OwasysSourceController
                     : null
             )->value;
         }
-        return [$locale, implode('/', $segments)];
+        $publicRoute = implode('/', $segments);
+        return [
+            $locale,
+            $publicRoute === ''
+                ? ''
+                : $this->localizedRoutes->resolve(
+                    $locale,
+                    $publicRoute
+                ),
+        ];
     }
 
     /** @return array<string,mixed> */
@@ -1315,12 +1326,11 @@ final class OwasysSourceController
 
     private function routeUrl(string $locale, string $route): string
     {
-        $segments = array_values(array_filter(
-            explode('/', trim($route, '/')),
-            'strlen'
-        ));
-        array_unshift($segments, $locale);
-        return (new UrlBuilder($this->basePath()))->build($segments);
+        return $this->localizedRoutes->url(
+            $this->basePath(),
+            $locale,
+            $route
+        );
     }
 
     private function sourceUrl(string $locale, string $path): string
@@ -1329,8 +1339,10 @@ final class OwasysSourceController
         if ($segments === []) {
             throw new RuntimeException('OWASYS_SOURCE_PATH_INVALID');
         }
-        return (new UrlBuilder($this->basePath()))->build(
-            array_merge([$locale, 'source'], array_values($segments))
+        return $this->localizedRoutes->url(
+            $this->basePath(),
+            $locale,
+            'source/' . implode('/', array_values($segments))
         );
     }
 

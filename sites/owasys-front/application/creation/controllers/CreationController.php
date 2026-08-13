@@ -6,6 +6,7 @@ use Opus\Fsm\FsmSessionStore;
 use Opus\Fsm\FsmSiteLoader;
 use Opus\File\StructuredFileLoader;
 use Opus\I18n\BrowserLocaleNegotiator;
+use Opus\Http\LocalizedRouteResolverInterface;
 use Opus\Log\Logger;
 use Opus\Profiler\Profiler;
 
@@ -29,6 +30,7 @@ final class OwasysCreationController
         private readonly OwasysAuthSession $session,
         private readonly OwasysRuntimeSecurity $security,
         private readonly OwasysScorePageRenderer $renderer,
+        private readonly LocalizedRouteResolverInterface $localizedRoutes,
         private readonly OwasysRegistryModel $registry,
         private readonly OwasysSessionRuntimeInterface $sessionRuntime,
         private readonly OwasysApplicationCreationModel $creation
@@ -786,7 +788,16 @@ final class OwasysCreationController
                     : null
             )->value;
         }
-        return [$locale, implode('/', $segments)];
+        $publicRoute = implode('/', $segments);
+        return [
+            $locale,
+            $publicRoute === ''
+                ? ''
+                : $this->localizedRoutes->resolve(
+                    $locale,
+                    $publicRoute
+                ),
+        ];
     }
 
     /** @return array<string,mixed> */
@@ -838,7 +849,11 @@ final class OwasysCreationController
 
     private function routeUrl(string $locale, string $route): string
     {
-        return $this->basePath() . '/' . rawurlencode($locale) . '/' . ltrim($route, '/');
+        return $this->localizedRoutes->url(
+            $this->basePath(),
+            $locale,
+            $route
+        );
     }
 
     private function basePath(): string

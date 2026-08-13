@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 use Opus\Http\Response;
 use Opus\Http\Request;
+use Opus\Http\LocalizedRouteResolver;
 use Opus\I18n\ApplicationTranslationRuntime;
 use Opus\Log\Logger;
 use Opus\Profiler\Profiler;
@@ -280,6 +281,31 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
             $this->profiler,
             $httpSpanId
         );
+        $routing = is_array($this->siteConfig['routing'] ?? null)
+            ? $this->siteConfig['routing']
+            : [];
+        $localizedRouteFile = trim(str_replace(
+            '\\',
+            '/',
+            (string) ($routing['localized_routes'] ?? '')
+        ), '/');
+        if ($localizedRouteFile === ''
+            || str_contains($localizedRouteFile, '..')) {
+            throw new RuntimeException(
+                'OWASYS_LOCALIZED_ROUTE_CONFIG_PATH_INVALID'
+            );
+        }
+        $localizedRoutes = LocalizedRouteResolver::fromFile(
+            $this->siteRoot . '/' . $localizedRouteFile,
+            array_values(array_filter(
+                is_array($this->siteConfig['locales'] ?? null)
+                    ? $this->siteConfig['locales']
+                    : [],
+                'is_string'
+            )),
+            $this->profiler,
+            $httpSpanId
+        );
         $renderer = new OwasysScorePageRenderer(
             $this->siteRoot,
             $this->profiler,
@@ -295,6 +321,7 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 $session,
                 $security,
                 $renderer,
+                $localizedRoutes,
                 $this->sessionRuntime,
                 $this->profiler,
                 $httpSpanId
@@ -305,6 +332,7 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 $session,
                 $security,
                 $renderer,
+                $localizedRoutes,
                 $registry,
                 $this->sessionRuntime,
                 new OwasysApplicationCreationModel(
@@ -320,6 +348,7 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 $session,
                 $security,
                 $renderer,
+                $localizedRoutes,
                 $this->sessionRuntime,
                 new OwasysSourceModel($this->siteRoot)
             ),
@@ -329,6 +358,7 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 $session,
                 $security,
                 $renderer,
+                $localizedRoutes,
                 $this->sessionRuntime,
                 $this->profiler,
                 $httpSpanId
