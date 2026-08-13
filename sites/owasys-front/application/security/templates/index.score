@@ -112,6 +112,9 @@
     [[ if: security.mutation_error_workflow_state_invalid ]]
       <p>[[ i18n: security.workflow_state_invalid_help ]]</p>
     [[ endif ]]
+    [[ if: security.mutation_error_last_administrator ]]
+      <p>[[ i18n: security.last_administrator_protected ]]</p>
+    [[ endif ]]
     <details class="ow-security-error-details">
       <summary>[[ i18n: security.technical_details ]]</summary>
       <code>{{ security.mutation_error_code }}</code>
@@ -136,6 +139,12 @@
   <h3>[[ i18n: security.access_gained ]]</h3>
   <div class="ow-tags">
     [[ foreach: mutation_gained as row ]]
+      <span>{{ row.value }}</span>
+    [[ endforeach ]]
+  </div>
+  <h3 class="ow-security-access-lost-title">[[ i18n: security.access_lost ]]</h3>
+  <div class="ow-tags ow-security-access-lost">
+    [[ foreach: mutation_lost as row ]]
       <span>{{ row.value }}</span>
     [[ endforeach ]]
   </div>
@@ -278,6 +287,52 @@
               <span>[[ i18n: security.roles ]]</span>
               <strong>{{ identity.roles }}</strong>
             </div>
+
+            <div class="ow-security-card-actions">
+              [[ if: security.identity_update_supported ]]
+              <details class="ow-security-inline-action">
+                <summary>[[ i18n: security.modify_identity ]]</summary>
+                <form method="post" action="{{ security_urls.identities }}">
+                  <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
+                  <input type="hidden" name="owasys_security_phase" value="preview">
+                  <input type="hidden" name="owasys_security_mutation" value="identity.update">
+                  <input type="hidden" name="owasys_security_provider" value="{{ identity.provider }}">
+                  <input type="hidden" name="owasys_security_subject" value="{{ identity.subject }}">
+                  <input type="hidden" name="owasys_security_identity_type" value="agent">
+                  <p class="ow-muted">[[ i18n: security.change_to_agent ]]</p>
+                  <label>[[ i18n: security.reason ]]
+                    <input name="owasys_security_reason" minlength="3" maxlength="200" required>
+                  </label>
+                  <label>[[ i18n: security.reauthenticate ]]
+                    <input type="password" name="owasys_reauth_password" autocomplete="current-password" required>
+                  </label>
+                  <button class="ow-button" type="submit">[[ i18n: security.preview ]]</button>
+                </form>
+              </details>
+              [[ endif ]]
+
+              [[ if: security.identity_delete_supported ]]
+              <details class="ow-security-inline-action is-danger">
+                <summary>[[ i18n: security.delete_identity ]]</summary>
+                <form method="post" action="{{ security_urls.identities }}">
+                  <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
+                  <input type="hidden" name="owasys_security_phase" value="preview">
+                  <input type="hidden" name="owasys_security_mutation" value="identity.delete">
+                  <input type="hidden" name="owasys_security_provider" value="{{ identity.provider }}">
+                  <input type="hidden" name="owasys_security_subject" value="{{ identity.subject }}">
+                  <p class="ow-security-delete-warning">[[ i18n: security.delete_warning ]]</p>
+                  <label>[[ i18n: security.reason ]]
+                    <input name="owasys_security_reason" minlength="3" maxlength="200" required>
+                  </label>
+                  <label>[[ i18n: security.reauthenticate ]]
+                    <input type="password" name="owasys_reauth_password" autocomplete="current-password" required>
+                  </label>
+                  <button class="ow-button ow-button-danger" type="submit">[[ i18n: security.preview ]]</button>
+                </form>
+              </details>
+              [[ endif ]]
+            </div>
+
             <details class="ow-security-identity-tech">
               <summary>[[ i18n: security.technical_details ]]</summary>
               <dl>
@@ -317,6 +372,52 @@
               <span>[[ i18n: security.roles ]]</span>
               <strong>{{ identity.roles }}</strong>
             </div>
+
+            <div class="ow-security-card-actions">
+              [[ if: security.identity_update_supported ]]
+              <details class="ow-security-inline-action">
+                <summary>[[ i18n: security.modify_identity ]]</summary>
+                <form method="post" action="{{ security_urls.identities }}">
+                  <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
+                  <input type="hidden" name="owasys_security_phase" value="preview">
+                  <input type="hidden" name="owasys_security_mutation" value="identity.update">
+                  <input type="hidden" name="owasys_security_provider" value="{{ identity.provider }}">
+                  <input type="hidden" name="owasys_security_subject" value="{{ identity.subject }}">
+                  <input type="hidden" name="owasys_security_identity_type" value="user">
+                  <p class="ow-muted">[[ i18n: security.change_to_user ]]</p>
+                  <label>[[ i18n: security.reason ]]
+                    <input name="owasys_security_reason" minlength="3" maxlength="200" required>
+                  </label>
+                  <label>[[ i18n: security.reauthenticate ]]
+                    <input type="password" name="owasys_reauth_password" autocomplete="current-password" required>
+                  </label>
+                  <button class="ow-button" type="submit">[[ i18n: security.preview ]]</button>
+                </form>
+              </details>
+              [[ endif ]]
+
+              [[ if: security.identity_delete_supported ]]
+              <details class="ow-security-inline-action is-danger">
+                <summary>[[ i18n: security.delete_identity ]]</summary>
+                <form method="post" action="{{ security_urls.identities }}">
+                  <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
+                  <input type="hidden" name="owasys_security_phase" value="preview">
+                  <input type="hidden" name="owasys_security_mutation" value="identity.delete">
+                  <input type="hidden" name="owasys_security_provider" value="{{ identity.provider }}">
+                  <input type="hidden" name="owasys_security_subject" value="{{ identity.subject }}">
+                  <p class="ow-security-delete-warning">[[ i18n: security.delete_warning ]]</p>
+                  <label>[[ i18n: security.reason ]]
+                    <input name="owasys_security_reason" minlength="3" maxlength="200" required>
+                  </label>
+                  <label>[[ i18n: security.reauthenticate ]]
+                    <input type="password" name="owasys_reauth_password" autocomplete="current-password" required>
+                  </label>
+                  <button class="ow-button ow-button-danger" type="submit">[[ i18n: security.preview ]]</button>
+                </form>
+              </details>
+              [[ endif ]]
+            </div>
+
             <details class="ow-security-identity-tech">
               <summary>[[ i18n: security.technical_details ]]</summary>
               <dl>
@@ -343,6 +444,54 @@
         <article>
           <strong>{{ identity.subject }}</strong>
           <span>{{ identity.status }}</span>
+
+          [[ if: security.identity_update_supported ]]
+          <details class="ow-security-inline-action">
+            <summary>[[ i18n: security.classify_identity ]]</summary>
+            <form method="post" action="{{ security_urls.identities }}">
+              <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
+              <input type="hidden" name="owasys_security_phase" value="preview">
+              <input type="hidden" name="owasys_security_mutation" value="identity.update">
+              <input type="hidden" name="owasys_security_provider" value="{{ identity.provider }}">
+              <input type="hidden" name="owasys_security_subject" value="{{ identity.subject }}">
+              <label>[[ i18n: security.identity_type ]]
+                <select name="owasys_security_identity_type" required>
+                  <option value="user">[[ i18n: security.user ]]</option>
+                  <option value="agent">[[ i18n: security.agent ]]</option>
+                </select>
+              </label>
+              <label>[[ i18n: security.reason ]]
+                <input name="owasys_security_reason" minlength="3" maxlength="200" required>
+              </label>
+              <label>[[ i18n: security.reauthenticate ]]
+                <input type="password" name="owasys_reauth_password" autocomplete="current-password" required>
+              </label>
+              <button class="ow-button" type="submit">[[ i18n: security.preview ]]</button>
+            </form>
+          </details>
+          [[ endif ]]
+
+          [[ if: security.identity_delete_supported ]]
+          <details class="ow-security-inline-action is-danger">
+            <summary>[[ i18n: security.delete_identity ]]</summary>
+            <form method="post" action="{{ security_urls.identities }}">
+              <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
+              <input type="hidden" name="owasys_security_phase" value="preview">
+              <input type="hidden" name="owasys_security_mutation" value="identity.delete">
+              <input type="hidden" name="owasys_security_provider" value="{{ identity.provider }}">
+              <input type="hidden" name="owasys_security_subject" value="{{ identity.subject }}">
+              <p class="ow-security-delete-warning">[[ i18n: security.delete_warning ]]</p>
+              <label>[[ i18n: security.reason ]]
+                <input name="owasys_security_reason" minlength="3" maxlength="200" required>
+              </label>
+              <label>[[ i18n: security.reauthenticate ]]
+                <input type="password" name="owasys_reauth_password" autocomplete="current-password" required>
+              </label>
+              <button class="ow-button ow-button-danger" type="submit">[[ i18n: security.preview ]]</button>
+            </form>
+          </details>
+          [[ endif ]]
+
           <details>
             <summary>[[ i18n: security.technical_details ]]</summary>
             <small>[[ i18n: security.provider ]]: {{ identity.provider }} · [[ i18n: security.source ]]: {{ identity.source }}</small>

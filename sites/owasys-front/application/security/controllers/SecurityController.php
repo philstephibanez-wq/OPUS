@@ -518,10 +518,14 @@ final class OwasysSecurityController
                 'reauth_unsupported' => $canManage
                     && $targetMutable
                     && !$reauthSupported,
-                'identity_reference_supported' => $canMutate
-                    && ($capabilities['identity_reference'] ?? false) === true,
-                'role_create_supported' => $canMutate
-                    && ($capabilities['role_create'] ?? false) === true,
+            'identity_reference_supported' => $canMutate
+                && ($capabilities['identity_reference'] ?? false) === true,
+            'identity_update_supported' => $canMutate
+                && ($capabilities['identity_update'] ?? false) === true,
+            'identity_delete_supported' => $canMutate
+                && ($capabilities['identity_delete'] ?? false) === true,
+            'role_create_supported' => $canMutate
+&& ($capabilities['role_create'] ?? false) === true,
                 'permission_grant_supported' => $canMutate
                     && ($capabilities['permission_grant'] ?? false) === true,
                 'assignment_grant_supported' => $canMutate
@@ -530,9 +534,9 @@ final class OwasysSecurityController
                     && ($capabilities['assignment_grant'] ?? false) !== true,
                 'resource_allow_supported' => $canMutate
                     && ($capabilities['resource_allow'] ?? false) === true,
-                'destructive_mutations_supported' =>
-                    ($capabilities['destructive_mutations'] ?? false) === true,
-                'mutation_preview' => is_array($mutationResult)
+            'destructive_mutations_supported' => $canMutate
+                && ($capabilities['destructive_mutations'] ?? false) === true,
+'mutation_preview' => is_array($mutationResult)
                     && ($mutationResult['contract'] ?? null)
                         === 'OWASYS_SECURITY_MUTATION_PREVIEW_V1',
                 'mutation_committed' => is_array($mutationResult)
@@ -544,6 +548,9 @@ final class OwasysSecurityController
                 'mutation_error_workflow_state_invalid' =>
                     (string) ($mutationError ?? '')
                         === 'OWASYS_SECURITY_MUTATION_WORKFLOW_STATE_INVALID',
+                'mutation_error_last_administrator' =>
+                    (string) ($mutationError ?? '')
+                        === 'OWASYS_SECURITY_LAST_ADMINISTRATOR_DELETE_FORBIDDEN',
                 'view_identities' => true,
                 'view_roles' => true,
                 'view_permissions' => true,
@@ -649,6 +656,11 @@ final class OwasysSecurityController
                 $mutationResult,
                 'access_delta',
                 'gained'
+            ),
+            'mutation_lost' => $this->mutationStrings(
+                $mutationResult,
+                'access_delta',
+                'lost'
             ),
             'mutation_affected' => $this->mutationStrings(
                 $mutationResult,
@@ -814,7 +826,11 @@ final class OwasysSecurityController
             $post['owasys_security_mutation'] ?? ''
         )));
         $allowed = match ($view) {
-            'identities' => ['identity.reference'],
+            'identities' => [
+                'identity.reference',
+                'identity.update',
+                'identity.delete',
+            ],
             'roles' => ['role.create'],
             'permissions' => ['permission.grant'],
             'assignments' => ['assignment.grant'],
@@ -838,6 +854,27 @@ final class OwasysSecurityController
                 'identity_type' => strtolower(trim((string) (
                     $post['owasys_security_identity_type'] ?? ''
                 ))),
+            ],
+            'identity.update' => [
+                'type' => $type,
+                'provider' => trim((string) (
+                    $post['owasys_security_provider'] ?? ''
+                )),
+                'subject' => trim((string) (
+                    $post['owasys_security_subject'] ?? ''
+                )),
+                'identity_type' => strtolower(trim((string) (
+                    $post['owasys_security_identity_type'] ?? ''
+                ))),
+            ],
+            'identity.delete' => [
+                'type' => $type,
+                'provider' => trim((string) (
+                    $post['owasys_security_provider'] ?? ''
+                )),
+                'subject' => trim((string) (
+                    $post['owasys_security_subject'] ?? ''
+                )),
             ],
             'role.create' => [
                 'type' => $type,

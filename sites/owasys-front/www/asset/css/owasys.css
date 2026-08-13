@@ -1504,3 +1504,65 @@ code {
   .ow-runtime-error-technical dl > div { grid-template-columns: 1fr; gap: .2rem; }
 }
 /* END OPUS R45D2A22C ACL DENIED VISUAL ERROR */
+/* BEGIN OPUS R45D2A25 IDENTITY LIFECYCLE UI */
+.ow-security-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+  margin-top: .75rem;
+}
+
+.ow-security-inline-action {
+  flex: 1 1 12rem;
+  min-width: 0;
+  border: 1px solid var(--ow-line);
+  border-radius: .75rem;
+  background: rgba(8, 20, 36, .52);
+}
+
+.ow-security-inline-action > summary {
+  padding: .55rem .7rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.ow-security-inline-action[open] > summary {
+  border-bottom: 1px solid var(--ow-line);
+}
+
+.ow-security-inline-action form {
+  display: grid;
+  gap: .65rem;
+  padding: .7rem;
+}
+
+.ow-security-inline-action label {
+  display: grid;
+  gap: .3rem;
+}
+
+.ow-security-inline-action.is-danger {
+  border-color: color-mix(in srgb, var(--ow-danger) 55%, transparent);
+}
+
+.ow-security-inline-action.is-danger > summary,
+.ow-security-delete-warning,
+.ow-security-access-lost-title {
+  color: var(--ow-danger);
+}
+
+.ow-security-delete-warning {
+  margin: 0;
+  font-weight: 600;
+}
+
+.ow-security-access-lost {
+  border-left: 3px solid var(--ow-danger);
+  padding-left: .7rem;
+}
+
+.ow-security-legacy-list article > .ow-security-inline-action {
+  margin-top: .55rem;
+}
+/* END OPUS R45D2A25 IDENTITY LIFECYCLE UI */
