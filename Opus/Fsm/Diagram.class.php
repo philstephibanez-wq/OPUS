@@ -49,6 +49,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
      */
     private array $_stateAnnotations = [];
 
+    /** @var array<string,string> */
+    private array $_stateLinks = [];
+
     /** @var list<string> */
     private array $_fallbackEffects = [];
 
@@ -287,13 +290,16 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     public static function renderDefinition(
         array $fsm,
         string $currentState = '',
-        array $memory = []
+        array $memory = [],
+        array $stateLinks = []
     ): string {
-        return self::fromDefinition(
+        $diagram = self::fromDefinition(
             $fsm,
             $currentState,
             $memory
-        )->renderHtml();
+        );
+        $diagram->setStateLinks($stateLinks);
+        return $diagram->renderHtml();
     }
 
     public static function renderDemoHtml(): string
@@ -359,6 +365,27 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             return;
         }
         $this->_states[$name] = $name;
+    }
+
+    /** @param array<string,string> $stateLinks */
+    public function setStateLinks(array $stateLinks): void
+    {
+        $normalized = [];
+        foreach ($stateLinks as $state => $href) {
+            if (!is_string($state)
+                || !is_string($href)
+                || !isset($this->_states[$state])) {
+                continue;
+            }
+            $href = trim($href);
+            if ($href === ''
+                || $href[0] !== '/'
+                || str_contains($href, "\0")) {
+                continue;
+            }
+            $normalized[$state] = $href;
+        }
+        $this->_stateLinks = $normalized;
     }
 
     /**
@@ -900,7 +927,11 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         }
 
         $labelY = $position['y'] + 32;
-        $svg = '<g class="' . $classes . '" data-state="'
+        $link = $this->_stateLinks[$state] ?? null;
+        $svg = is_string($link)
+            ? '<a class="fsm-node-link" href="' . self::h($link) . '">'
+            : '';
+        $svg .= '<g class="' . $classes . '" data-state="'
             . self::h($state)
             . '">';
         $svg .= '<rect x="' . self::n($position['x'])
@@ -940,6 +971,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         }
 
         $svg .= '</g>';
+        if (is_string($link)) {
+            $svg .= '</a>';
+        }
         return $svg;
     }
 
@@ -1140,7 +1174,32 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     .fsm-subtitle { fill:#9fb4cf; font-size:12px; }
     .fsm-node rect { fill:#101c2f; stroke:#6b829e; stroke-width:1.5; }
     .fsm-node.current rect { fill:#17365d; stroke:#6ce3ff; stroke-width:3; }
+    .fsm-node-link { cursor:pointer; text-decoration:none; }
+    .fsm-node-link:hover .fsm-node rect,
+    .fsm-node-link:focus .fsm-node rect { stroke:#fbbf24; stroke-width:3; }
     .fsm-state-label { fill:#f6f8ff; font-size:13px; font-weight:800; text-anchor:middle; }
+OLD,
+    'diagram.state_link_css'
+);
+
+// -------------------------------------------------------------------------
+// 2) Generated runtime: one canonical FSM drives both menu and SVG schema.
+//    ACL is applied to both views; locale paths are kept identical.
+// -------------------------------------------------------------------------
+$patched['runtime'] = replaceOnce(
+    $patched['runtime'],
+    <<<'OLD'
+                        $response = Response::html($this->renderPage(
+                            $site,
+                            $routes,
+                            $route,
+OLD,
+    <<<'NEW'
+                        $response = Response::html($this->renderPage(
+                            $site,
+                            $routes,
+                            $acl,
+                            $route,
     .fsm-node-tag { fill:#6ce3ff; font-size:10px; font-weight:800; text-anchor:middle; }
     .fsm-state-annotation { fill:#b8c5de; font-size:9px; text-anchor:middle; }
     .fsm-edge { fill:none; stroke:#7da4c8; stroke-width:1.7; }

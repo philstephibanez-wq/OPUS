@@ -830,10 +830,11 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
         $this->profiler->event('fsm', $name, $context);
     }
 
-    /** @param array<string,mixed> $site @param array<string,mixed> $routes @param array<string,mixed> $route @param array{subject:string,roles:list<string>,provider:string} $identity */
+    /** @param array<string,mixed> $site @param array<string,mixed> $routes @param array<string,mixed> $acl @param array<string,mixed> $route @param array{subject:string,roles:list<string>,provider:string} $identity */
     private function renderPage(
         array $site,
         array $routes,
+        array $acl,
         array $route,
         string $state,
         string $locale,
@@ -882,6 +883,11 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                 || ($candidate['show_in_menu'] ?? false) !== true) {
                 continue;
             }
+            $policyId = trim((string) ($candidate['acl'] ?? ''));
+            if ($policyId === ''
+                || !$this->isAllowed($acl, $policyId, $identity)) {
+                continue;
+            }
             $labelKey = (string) ($candidate['label'] ?? '');
             $label = $i18n->translate($labelKey);
             $path = (string) ($candidate['path'] ?? '/');
@@ -898,6 +904,16 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                 ]]
             );
         }
+
+        $fsmDiagram = $this->renderFsmDiagram(
+            $site,
+            $routes,
+            $acl,
+            $state,
+            $locale,
+            $identity,
+            $renderer
+        );
 
         $logoutRoute = null;
         foreach ((array) ($routes['routes'] ?? []) as $candidate) {
@@ -967,7 +983,10 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                 'profiler_label' => 'OPUS Profiler',
             ],
             'menu_item' => [],
-            'common' => ['menu' => $menu],
+            'common' => [
+                'menu' => $menu,
+                'fsm_diagram' => $fsmDiagram,
+            ],
             'assets' => ['css' => $css, 'js' => $js],
         ]);
         $loginErrorTraceId = '';
@@ -1007,6 +1026,120 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
         );
 
         return $renderer->render('default/layouts/layout.score', $data);
+    }
+
+    /**
+     * @param array<string,mixed> $site
+     * @param array<string,mixed> $routes
+     * @param array<string,mixed> $acl
+     * @param array{subject:string,roles:list<string>,provider:string} $identity
+     */
+    private function renderFsmDiagram(
+        array $site,
+        array $routes,
+        array $acl,
+        string $state,
+        string $locale,
+        array $identity,
+        ScoreTemplateRenderer $renderer
+    ): string {
+        $relative = $this->safeRelative((string) (
+            $site['application_fsm'] ?? 'config/application.fsm.json'
+        ));
+        $definition = $this->config(
+            $relative,
+            'OPUS_APPLICATION_FSM_V1'
+        );
+
+        $visibleStates = [];
+        $stateLinks = [];
+        foreach ((array) ($routes['routes'] ?? []) as $candidate) {
+            if (!is_array($candidate)) {
+                continue;
+            }
+            $stateId = trim((string) (
+                $candidate['fsm_state'] ?? $candidate['state'] ?? ''
+            ));
+            $policyId = trim((string) ($candidate['acl'] ?? ''));
+            if ($stateId === ''
+                || $policyId === ''
+                || !$this->isAllowed($acl, $policyId, $identity)) {
+                continue;
+            }
+
+            $visibleStates[$stateId] = true;
+            $path = trim((string) ($candidate['path'] ?? ''));
+            if ($path !== ''
+                && $path[0] === '/'
+                && !str_contains($path, '{')) {
+                $stateLinks[$stateId] = '/' . rawurlencode($locale)
+                    . ($path === '/' ? '' : $path);
+            }
+        }
+
+        $states = [];
+        foreach ((array) ($definition['states'] ?? []) as $candidate) {
+            if (!is_array($candidate)) {
+                continue;
+            }
+            $id = trim((string) ($candidate['id'] ?? ''));
+            if ($id !== '' && isset($visibleStates[$id])) {
+                $states[] = $candidate;
+            }
+        }
+        if ($states === []) {
+            return '';
+        }
+
+        $allowed = [];
+        foreach ($states as $candidate) {
+            $allowed[(string) $candidate['id']] = true;
+        }
+
+        $transitions = [];
+        foreach ((array) ($definition['transitions'] ?? []) as $candidate) {
+            if (!is_array($candidate)) {
+                continue;
+            }
+            $from = trim((string) (
+                $candidate['from'] ?? $candidate['state'] ?? ''
+            ));
+            $to = trim((string) (
+                $candidate['next_state'] ?? $candidate['nextState'] ?? ''
+            ));
+            if (!isset($allowed[$to])) {
+                continue;
+            }
+            if ($from !== '*' && !isset($allowed[$from])) {
+                continue;
+            }
+            $transitions[] = $candidate;
+        }
+
+        $definition['states'] = $states;
+        $definition['transitions'] = $transitions;
+        $initial = trim((string) ($definition['initial_state'] ?? ''));
+        if (!isset($allowed[$initial])) {
+            $definition['initial_state'] = isset($allowed[$state])
+                ? $state
+                : (string) $states[0]['id'];
+        }
+        $final = trim((string) ($definition['final_state'] ?? ''));
+        if ($final !== '' && !isset($allowed[$final])) {
+            unset($definition['final_state']);
+        }
+
+        $diagram = \OPUS_FSM_Diagram::renderDefinition(
+            $definition,
+            isset($allowed[$state]) ? $state : '',
+            [],
+            $stateLinks
+        );
+
+        return $renderer->render(
+            'default/templates/components/fsm-diagram.score',
+            ['fsm' => ['diagram' => $diagram]]
+        );
     }
 
     /** @param array<string,mixed> $data */
@@ -1095,7 +1228,11 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                     'profiler_url' => '',
                     'profiler_label' => 'OPUS Profiler',
                 ],
-                'common' => ['header' => '', 'footer' => ''],
+                'common' => [
+                    'header' => '',
+                    'footer' => '',
+                    'fsm_diagram' => '',
+                ],
                 'assets' => ['css' => '', 'js' => ''],
             ];
             if ($this->profilerLinkProvider instanceof ProfilerLinkProviderInterface) {

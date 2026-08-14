@@ -562,6 +562,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             "sites/{$site}/application/default/layouts/layout.score" => $this->layoutTemplate(),
             "sites/{$site}/application/default/templates/error.score" => '<section class="opus-card opus-error" role="alert"><h2>{{ error.title }}</h2><p>{{ error.message }}</p><code>{{ error.code }}</code></section>' . "\n",
             "sites/{$site}/application/default/templates/components/header.score" => '<header class="opus-header"><h1>{{ site.name }}</h1><nav class="opus-menu">{{{ common.menu }}}</nav></header>' . "\n",
+            "sites/{$site}/application/default/templates/components/fsm-diagram.score" => '<section class="opus-fsm-surface" aria-label="FSM">{{{ fsm.diagram }}}</section>' . "\n",
             "sites/{$site}/application/default/templates/components/footer.score" => '<footer class="opus-footer"><span>{{ site.name }}</span> {{{ common.profiler }}}</footer>' . "\n",
             "sites/{$site}/application/default/templates/components/menu-item.score" => '<a class="{{ menu_item.active_class }}" href="{{ menu_item.path }}">{{ menu_item.label }}</a>' . "\n",
             "sites/{$site}/application/default/templates/components/profiler-link.score" => '<a class="opus-profiler-link" href="{{ profiler.path }}">[[ i18n: profiler.link ]]</a>' . "\n",
@@ -936,12 +937,12 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
 
     private function layoutTemplate(): string
     {
-        return "<!doctype html>\n<html lang=\"{{ lang }}\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>{{ page.title }}</title>\n{{{ assets.css }}}\n</head>\n<body class=\"opus-site\">\n{{{ common.header }}}\n<main id=\"main-content\" class=\"opus-shell\">{{{ content }}}</main>\n{{{ common.footer }}}\n{{{ assets.js }}}\n</body>\n</html>\n";
+        return "<!doctype html>\n<html lang=\"{{ lang }}\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>{{ page.title }}</title>\n{{{ assets.css }}}\n</head>\n<body class=\"opus-site\">\n{{{ common.header }}}\n{{{ common.fsm_diagram }}}\n<main id=\"main-content\" class=\"opus-shell\">{{{ content }}}</main>\n{{{ common.footer }}}\n{{{ assets.js }}}\n</body>\n</html>\n";
     }
 
     private function defaultCss(): string
     {
-        return "body.opus-site{margin:0;font-family:system-ui,Segoe UI,Arial,sans-serif;background:#eef3f8;color:#162336}.opus-header,.opus-footer{background:#24466d;color:#fff;padding:24px}.opus-shell{padding:24px;min-height:60vh}.opus-card{display:block;margin:12px 0;padding:16px;background:#fff;border:1px solid #d7e0eb;border-radius:12px}.opus-error{border-color:#a22}.opus-menu a,.opus-profiler-link{color:#fff;margin-right:12px}.is-active{font-weight:700}\n";
+        return "body.opus-site{margin:0;font-family:system-ui,Segoe UI,Arial,sans-serif;background:#eef3f8;color:#162336}.opus-header,.opus-footer{background:#24466d;color:#fff;padding:24px}.opus-shell{padding:24px;min-height:60vh}.opus-card{display:block;margin:12px 0;padding:16px;background:#fff;border:1px solid #d7e0eb;border-radius:12px}.opus-error{border-color:#a22}.opus-menu a,.opus-profiler-link{color:#fff;margin-right:12px}.is-active{font-weight:700}.opus-fsm-surface{padding:18px 24px 0}.fsm-diagram-card{overflow:auto;background:#07111f;border:1px solid #28415f;border-radius:12px}.fsm-diagram-toolbar{display:flex;gap:16px;align-items:center;justify-content:space-between;padding:12px 16px;color:#e8f5ff;background:#0b1728}.fsm-diagram-toolbar span{color:#9fb4cf;font-size:12px}.fsm-runtime-memory{padding:10px 16px;color:#dbeafe;background:#0b1728;border-top:1px solid #28415f}.fsm-runtime-memory span{margin-left:10px}\n";
     }
 
     private function applicationClass(): string
