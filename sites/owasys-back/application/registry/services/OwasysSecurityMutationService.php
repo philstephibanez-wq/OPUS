@@ -28,6 +28,7 @@ final class OwasysSecurityMutationService
         'role.create' => true,
         'permission.grant' => true,
         'assignment.grant' => true,
+        'assignment.revoke' => true,
         'resource.allow' => true,
     ];
 
@@ -64,6 +65,9 @@ final class OwasysSecurityMutationService
         );
         $identityLifecycle = $mutable
             && $this->identityReferenceRepresentable($sso);
+        $assignmentLifecycle = $mutable
+            && is_array($local)
+            && ($local['exists'] ?? false) === true;
 
         return [
             'target_mutable' => $mutable,
@@ -74,12 +78,12 @@ final class OwasysSecurityMutationService
                 && $this->supportedAclContract($acl),
             'permission_grant' => $mutable
                 && $this->supportedAclContract($acl),
-            'assignment_grant' => $mutable
-                && is_array($local)
-                && ($local['exists'] ?? false) === true,
+            'assignment_grant' => $assignmentLifecycle,
+            'assignment_revoke' => $assignmentLifecycle,
             'resource_allow' => $mutable
                 && $this->supportedAclContract($acl),
-            'destructive_mutations' => $identityLifecycle,
+            'destructive_mutations' => $identityLifecycle
+                || $assignmentLifecycle,
         ];
     }
 
@@ -513,6 +517,10 @@ final class OwasysSecurityMutationService
                 $context,
                 $mutation
             ),
+            'assignment.revoke' => $this->planAssignmentRevoke(
+                $context,
+                $mutation
+            ),
             'resource.allow' => $this->planResourceAllow(
                 $context,
                 $mutation
@@ -559,6 +567,11 @@ final class OwasysSecurityMutationService
                 ['role', 'permission']
             ),
             'assignment.grant' => $this->normalizedFields(
+                $mutation,
+                $type,
+                ['subject', 'role']
+            ),
+            'assignment.revoke' => $this->normalizedFields(
                 $mutation,
                 $type,
                 ['subject', 'role']
@@ -1414,6 +1427,144 @@ final class OwasysSecurityMutationService
         ];
     }
 
+    /* BEGIN OPUS R45D2A26 ASSIGNMENT REVOKE */
+
+    /** @return array<string,mixed> */
+    private function planAssignmentRevoke(
+        array $context,
+        array $mutation
+    ): array {
+        $subject = (string) $mutation['subject'];
+        $role = (string) $mutation['role'];
+
+        $local = is_array($context['local_store'] ?? null)
+            ? $context['local_store']
+            : null;
+        if (!is_array($local)
+            || ($local['exists'] ?? false) !== true) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_ASSIGNMENT_RUNTIME_STORE_REQUIRED'
+            );
+        }
+
+        $store = $this->loader->read((string) $local['path']);
+        if (($store['contract'] ?? null)
+            !== ($local['contract'] ?? null)) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_LOCAL_STORE_CONTRACT_INVALID'
+            );
+        }
+
+        $users = is_array($store['users'] ?? null)
+            ? $store['users']
+            : [];
+        $matched = null;
+
+        foreach ($users as $username => $user) {
+            if (!is_string($username) || !is_array($user)) {
+                continue;
+            }
+
+            if ($username === $subject
+                || (string) ($user['id'] ?? '') === $subject) {
+                $matched = $username;
+                break;
+            }
+        }
+
+        if (!is_string($matched)) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_ASSIGNMENT_IDENTITY_NOT_FOUND'
+            );
+        }
+
+        $user = $users[$matched];
+        $roles = is_array($user['roles'] ?? null)
+            ? array_values(array_filter($user['roles'], 'is_string'))
+            : [];
+
+        if (!in_array($role, $roles, true)) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_ASSIGNMENT_NOT_FOUND'
+            );
+        }
+
+        $proposedRoles = array_values(array_filter(
+            $roles,
+            static fn (string $current): bool => $current !== $role
+        ));
+        $proposedRoles = array_values(array_unique($proposedRoles));
+        sort($proposedRoles, SORT_STRING);
+
+        $this->assertAssignmentRevocationSafe(
+            $context,
+            $subject,
+            $role,
+            $proposedRoles
+        );
+
+        $user['roles'] = $proposedRoles;
+        $users[$matched] = $user;
+        $store['users'] = $users;
+
+        return [
+            'writes' => [
+                (string) $local['relative'] => $store,
+            ],
+            'diff' => [[
+                'path' => (string) $local['relative'],
+                'summary' => 'assignment.revoke:'
+                    . $subject
+                    . ':'
+                    . $role,
+            ]],
+            'affected_subjects' => [$subject],
+            'gained' => [],
+            'lost' => [
+                $subject . '->' . $role . '@application',
+            ],
+        ];
+    }
+
+    /**
+     * @param list<string> $proposedRoles
+     */
+    private function assertAssignmentRevocationSafe(
+        array $context,
+        string $subject,
+        string $role,
+        array $proposedRoles
+    ): void {
+        $administrative = $this->administrativeRoles(
+            $context['acl']
+        );
+
+        if (!in_array($role, $administrative, true)) {
+            return;
+        }
+
+        $identities = $this->effectiveIdentityRoles($context);
+
+        /*
+         * Assignment mutations are authoritative in the runtime local store.
+         * Simulate the post-revoke roles for the target so onboarding metadata
+         * cannot make the continuity check optimistic.
+         */
+        $identities['local-password:' . $subject] = $proposedRoles;
+
+        foreach ($identities as $roles) {
+            if (array_intersect($roles, $administrative) !== []) {
+                return;
+            }
+        }
+
+        throw new RuntimeException(
+            'OWASYS_SECURITY_LAST_ADMINISTRATOR_'
+            . 'ASSIGNMENT_REVOKE_FORBIDDEN'
+        );
+    }
+
+    /* END OPUS R45D2A26 ASSIGNMENT REVOKE */
     /** @return array{writes:array<string,array<string,mixed>>,diff:list<array<string,string>>,affected_subjects:list<string>,gained:list<string>} */
     private function planResourceAllow(array $context, array $mutation): array
     {
