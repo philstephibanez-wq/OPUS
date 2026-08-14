@@ -49,14 +49,16 @@ final class OwasysSecurityController
     public function matchesCurrentRequest(): bool
     {
         [, $route] = $this->resolveRequest();
-        return $route === 'security';
+        return $route === 'security'
+            || str_starts_with($route, 'security/');
     }
 
     public function run(): void
     {
         $this->sessionRuntime->start();
         [$locale, $route] = $this->resolveRequest();
-        if ($route !== 'security') {
+        if ($route !== 'security'
+            && !str_starts_with($route, 'security/')) {
             throw new RuntimeException('OWASYS_SECURITY_ROUTE_MISMATCH');
         }
 
@@ -90,10 +92,7 @@ final class OwasysSecurityController
         if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $siteId) !== 1) {
             throw new RuntimeException('OWASYS_SECURITY_CURRENT_APP_INVALID');
         }
-        $view = strtolower(trim((string) ($_GET['view'] ?? 'identities')));
-        if (!in_array($view, self::VIEWS, true)) {
-            throw new RuntimeException('OWASYS_SECURITY_VIEW_INVALID');
-        }
+        $view = $this->securityView($locale, $route);
 
         $mutationResult = null;
         $mutationError = null;
@@ -1132,16 +1131,68 @@ final class OwasysSecurityController
         );
     }
 
+    private function securityView(string $locale, string $route): string
+    {
+        if ($route === 'security') {
+            $legacyView = strtolower(trim((string) (
+                $_GET['view'] ?? ''
+            )));
+
+            if ($legacyView === '') {
+                return 'identities';
+            }
+
+            if (!in_array($legacyView, self::VIEWS, true)) {
+                throw new RuntimeException(
+                    'OWASYS_SECURITY_VIEW_INVALID'
+                );
+            }
+
+            if (strtoupper((string) (
+                $_SERVER['REQUEST_METHOD'] ?? 'GET'
+            )) === 'GET') {
+                header(
+                    'Location: '
+                        . $this->securityUrl($locale, $legacyView),
+                    true,
+                    303
+                );
+                exit;
+            }
+
+            return $legacyView;
+        }
+
+        if (!str_starts_with($route, 'security/')) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_ROUTE_MISMATCH'
+            );
+        }
+
+        $view = substr($route, strlen('security/'));
+        $view = strtolower(trim($view));
+
+        if (!in_array($view, self::VIEWS, true)) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_VIEW_INVALID'
+            );
+        }
+
+        return $view;
+    }
+
     private function securityUrl(string $locale, string $view): string
     {
-        return $this->routeUrl($locale, 'security')
-            . '?'
-            . http_build_query(
-                ['view' => $view],
-                '',
-                '&',
-                PHP_QUERY_RFC3986
+        if (!in_array($view, self::VIEWS, true)) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_VIEW_INVALID'
             );
+        }
+
+        return $this->routeUrl(
+            $locale,
+            'security/' . $view
+        );
     }
 
     private function routeUrl(string $locale, string $route): string
