@@ -206,78 +206,6 @@
 
 [[ if: security.view_identities ]]
 <section class="ow-security-principals ow-security-principals-cockpit">
-  [[ if: security.identity_reference_supported ]]
-  <div class="ow-security-quick-actions">
-    <details class="ow-security-quick-create is-user">
-      <summary>
-        <span class="ow-security-create-icon">+</span>
-        <span class="ow-security-type-icon">U</span>
-        <span><strong>[[ i18n: security.user ]]</strong><small>[[ i18n: security.identity_reference ]]</small></span>
-      </summary>
-      <form class="ow-security-compact-form" method="post" action="{{ security_urls.identities }}">
-        <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
-        <input type="hidden" name="owasys_security_phase" value="preview">
-        <input type="hidden" name="owasys_security_mutation" value="identity.reference">
-        <input type="hidden" name="owasys_security_identity_type" value="user">
-
-        <div class="ow-security-compact-fields">
-          <label>[[ i18n: security.identifier ]]
-            <input name="owasys_security_subject" required>
-          </label>
-          <label>[[ i18n: security.reason ]]
-            <input name="owasys_security_reason" minlength="3" maxlength="200" required>
-          </label>
-          <label>[[ i18n: security.reauthenticate ]]
-            <input type="password" name="owasys_reauth_password" autocomplete="current-password" required>
-          </label>
-          <button class="ow-button" type="submit">[[ i18n: security.preview ]]</button>
-        </div>
-
-        <details class="ow-security-provider-settings">
-          <summary>[[ i18n: security.technical_details ]]</summary>
-          <label>[[ i18n: security.provider ]]
-            <input name="owasys_security_provider" value="{{ security.default_provider }}" required>
-          </label>
-        </details>
-      </form>
-    </details>
-
-    <details class="ow-security-quick-create is-agent">
-      <summary>
-        <span class="ow-security-create-icon">+</span>
-        <span class="ow-security-type-icon">A</span>
-        <span><strong>[[ i18n: security.agent ]]</strong><small>[[ i18n: security.identity_reference ]]</small></span>
-      </summary>
-      <form class="ow-security-compact-form" method="post" action="{{ security_urls.identities }}">
-        <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
-        <input type="hidden" name="owasys_security_phase" value="preview">
-        <input type="hidden" name="owasys_security_mutation" value="identity.reference">
-        <input type="hidden" name="owasys_security_identity_type" value="agent">
-
-        <div class="ow-security-compact-fields">
-          <label>[[ i18n: security.identifier ]]
-            <input name="owasys_security_subject" required>
-          </label>
-          <label>[[ i18n: security.reason ]]
-            <input name="owasys_security_reason" minlength="3" maxlength="200" required>
-          </label>
-          <label>[[ i18n: security.reauthenticate ]]
-            <input type="password" name="owasys_reauth_password" autocomplete="current-password" required>
-          </label>
-          <button class="ow-button" type="submit">[[ i18n: security.preview ]]</button>
-        </div>
-
-        <details class="ow-security-provider-settings">
-          <summary>[[ i18n: security.technical_details ]]</summary>
-          <label>[[ i18n: security.provider ]]
-            <input name="owasys_security_provider" value="{{ security.default_provider }}" required>
-          </label>
-        </details>
-      </form>
-    </details>
-  </div>
-  [[ endif ]]
-
   <div class="ow-security-principal-grid ow-security-principal-grid-visible">
     <section class="ow-security-principal-column is-user">
       <header class="ow-security-principal-header">
@@ -288,6 +216,41 @@
         </div>
       </header>
       <div class="ow-security-principal-body">
+        [[ if: security.identity_reference_supported ]]
+        <details class="ow-security-quick-create ow-security-principal-create is-user">
+              <summary>
+                <span class="ow-security-create-icon">+</span>
+                <span class="ow-security-type-icon">U</span>
+                <span><strong>[[ i18n: security.user ]]</strong><small>[[ i18n: security.identity_reference ]]</small></span>
+              </summary>
+              <form class="ow-security-compact-form" method="post" action="{{ security_urls.identities }}">
+                <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
+                <input type="hidden" name="owasys_security_phase" value="preview">
+                <input type="hidden" name="owasys_security_mutation" value="identity.reference">
+                <input type="hidden" name="owasys_security_identity_type" value="user">
+        
+                <div class="ow-security-compact-fields">
+                  <label>[[ i18n: security.identifier ]]
+                    <input name="owasys_security_subject" required>
+                  </label>
+                  <label>[[ i18n: security.reason ]]
+                    <input name="owasys_security_reason" minlength="3" maxlength="200" required>
+                  </label>
+                  <label>[[ i18n: security.reauthenticate ]]
+                    <input type="password" name="owasys_reauth_password" autocomplete="current-password" required>
+                  </label>
+                  <button class="ow-button" type="submit">[[ i18n: security.preview ]]</button>
+                </div>
+        
+                <details class="ow-security-provider-settings">
+                  <summary>[[ i18n: security.technical_details ]]</summary>
+                  <label>[[ i18n: security.provider ]]
+                    <input name="owasys_security_provider" value="{{ security.default_provider }}" required>
+                  </label>
+                </details>
+              </form>
+            </details>
+        [[ endif ]]
         [[ if: security.users_empty ]]
           <div class="ow-security-empty-state"><span>U</span><p>[[ i18n: security.empty ]]</p></div>
         [[ endif ]]
@@ -373,6 +336,41 @@
         </div>
       </header>
       <div class="ow-security-principal-body">
+        [[ if: security.identity_reference_supported ]]
+        <details class="ow-security-quick-create ow-security-principal-create is-agent">
+              <summary>
+                <span class="ow-security-create-icon">+</span>
+                <span class="ow-security-type-icon">A</span>
+                <span><strong>[[ i18n: security.agent ]]</strong><small>[[ i18n: security.identity_reference ]]</small></span>
+              </summary>
+              <form class="ow-security-compact-form" method="post" action="{{ security_urls.identities }}">
+                <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
+                <input type="hidden" name="owasys_security_phase" value="preview">
+                <input type="hidden" name="owasys_security_mutation" value="identity.reference">
+                <input type="hidden" name="owasys_security_identity_type" value="agent">
+        
+                <div class="ow-security-compact-fields">
+                  <label>[[ i18n: security.identifier ]]
+                    <input name="owasys_security_subject" required>
+                  </label>
+                  <label>[[ i18n: security.reason ]]
+                    <input name="owasys_security_reason" minlength="3" maxlength="200" required>
+                  </label>
+                  <label>[[ i18n: security.reauthenticate ]]
+                    <input type="password" name="owasys_reauth_password" autocomplete="current-password" required>
+                  </label>
+                  <button class="ow-button" type="submit">[[ i18n: security.preview ]]</button>
+                </div>
+        
+                <details class="ow-security-provider-settings">
+                  <summary>[[ i18n: security.technical_details ]]</summary>
+                  <label>[[ i18n: security.provider ]]
+                    <input name="owasys_security_provider" value="{{ security.default_provider }}" required>
+                  </label>
+                </details>
+              </form>
+            </details>
+        [[ endif ]]
         [[ if: security.agents_empty ]]
           <div class="ow-security-empty-state"><span>A</span><p>[[ i18n: security.empty ]]</p></div>
         [[ endif ]]

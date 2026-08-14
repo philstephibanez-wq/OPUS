@@ -1183,12 +1183,6 @@ code {
 .ow-security-principals-cockpit {
   margin-top: 14px;
 }
-.ow-security-quick-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: .7rem;
-  margin-bottom: .8rem;
-}
 .ow-security-quick-create {
   border: 1px solid var(--ow-line);
   border-radius: 15px;
@@ -1373,7 +1367,6 @@ code {
   }
 }
 @media (max-width: 760px) {
-  .ow-security-quick-actions,
   .ow-security-principal-grid-visible,
   .ow-security-compact-fields {
     grid-template-columns: 1fr;
@@ -1590,3 +1583,8 @@ code {
   scroll-margin-top: 8rem;
 }
 /* END OPUS R45D2A25C UNCLASSIFIED METRIC NAVIGATION */
+/* BEGIN OPUS R45D2A25F PRINCIPAL CREATE */
+.ow-security-principal-body > .ow-security-principal-create {
+  margin-bottom: .7rem;
+}
+/* END OPUS R45D2A25F PRINCIPAL CREATE */
