@@ -62,7 +62,7 @@
       <div><strong>{{ security.agents_count }}</strong><span>[[ i18n: security.agents ]]</span></div>
     </article>
     [[ if: security.unknown_identities_present ]]
-    <a class="ow-security-metric is-unclassified ow-security-metric-link" href="#ow-security-unclassified">
+    <a class="ow-security-metric is-unclassified ow-security-metric-link" href="{{ security_urls.identities }}">
       <span class="ow-security-metric-icon">?</span>
       <div><strong>{{ security.unknown_identities_count }}</strong><span>[[ i18n: security.unclassified ]]</span></div>
     </a>
@@ -458,7 +458,7 @@
   </div>
 
   [[ if: security.unknown_identities_present ]]
-  <details id="ow-security-unclassified" class="ow-security-legacy-panel ow-security-legacy-panel-compact" open>
+  <details class="ow-security-legacy-panel ow-security-legacy-panel-compact" open>
     <summary>
       <span><strong>[[ i18n: security.unclassified ]]</strong><small>[[ i18n: security.legacy_identity_help ]]</small></span>
       <strong>{{ security.unknown_identities_count }}</strong>

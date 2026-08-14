@@ -580,11 +580,11 @@ final class OwasysSecurityController
                 'mutation_error_permission_already_granted' =>
                     (string) ($mutationError ?? '')
                         === 'OWASYS_SECURITY_PERMISSION_ALREADY_GRANTED',
-                'view_identities' => true,
-                'view_roles' => true,
-                'view_permissions' => true,
-                'view_assignments' => true,
-                'view_resources' => true,
+                'view_identities' => $view === 'identities',
+                'view_roles' => $view === 'roles',
+                'view_permissions' => $view === 'permissions',
+                'view_assignments' => $view === 'assignments',
+                'view_resources' => $view === 'resources',
                 'identities_empty' => $this->rows(
                     $snapshot,
                     'identities'
