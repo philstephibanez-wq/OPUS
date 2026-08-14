@@ -530,6 +530,8 @@ final class OwasysSecurityController
                     && ($capabilities['permission_grant'] ?? false) === true,
                 'assignment_grant_supported' => $canMutate
                     && ($capabilities['assignment_grant'] ?? false) === true,
+                'assignment_revoke_supported' => $canMutate
+                    && ($capabilities['assignment_revoke'] ?? false) === true,
                 'assignment_grant_unsupported' => $canMutate
                     && ($capabilities['assignment_grant'] ?? false) !== true,
                 'resource_allow_supported' => $canMutate
@@ -566,6 +568,16 @@ final class OwasysSecurityController
                 'mutation_error_assignment_already_exists' =>
                     (string) ($mutationError ?? '')
                         === 'OWASYS_SECURITY_ASSIGNMENT_ALREADY_EXISTS',
+                'mutation_error_assignment_not_found' =>
+                    (string) ($mutationError ?? '')
+                        === 'OWASYS_SECURITY_ASSIGNMENT_NOT_FOUND',
+                'mutation_error_assignment_identity_not_found' =>
+                    (string) ($mutationError ?? '')
+                        === 'OWASYS_SECURITY_ASSIGNMENT_IDENTITY_NOT_FOUND',
+                'mutation_error_last_administrator_assignment' =>
+                    (string) ($mutationError ?? '')
+                        === 'OWASYS_SECURITY_LAST_ADMINISTRATOR_'
+                            . 'ASSIGNMENT_REVOKE_FORBIDDEN',
                 'mutation_error_permission_already_granted' =>
                     (string) ($mutationError ?? '')
                         === 'OWASYS_SECURITY_PERMISSION_ALREADY_GRANTED',
@@ -813,6 +825,10 @@ final class OwasysSecurityController
                 'scope_type' => (string) ($row['scope_type'] ?? ''),
                 'scope_id' => (string) ($row['scope_id'] ?? ''),
                 'source' => (string) ($row['source'] ?? ''),
+                'revocable' => str_contains(
+                    (string) ($row['source'] ?? ''),
+                    'runtime.local-password'
+                ),
             ],
             $rows
         );
@@ -851,7 +867,10 @@ final class OwasysSecurityController
             ],
             'roles' => ['role.create'],
             'permissions' => ['permission.grant'],
-            'assignments' => ['assignment.grant'],
+            'assignments' => [
+                'assignment.grant',
+                'assignment.revoke',
+            ],
             'resources' => ['resource.allow'],
             default => [],
         };
@@ -909,7 +928,7 @@ final class OwasysSecurityController
                     $post['owasys_security_permission'] ?? ''
                 )),
             ],
-            'assignment.grant' => [
+            'assignment.grant', 'assignment.revoke' => [
                 'type' => $type,
                 'subject' => trim((string) (
                     $post['owasys_security_subject'] ?? ''

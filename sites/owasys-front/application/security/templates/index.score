@@ -130,6 +130,15 @@
     [[ if: security.mutation_error_assignment_already_exists ]]
       <p>[[ i18n: security.assignment_already_exists ]]</p>
     [[ endif ]]
+    [[ if: security.mutation_error_assignment_not_found ]]
+      <p>[[ i18n: security.assignment_not_found ]]</p>
+    [[ endif ]]
+    [[ if: security.mutation_error_assignment_identity_not_found ]]
+      <p>[[ i18n: security.assignment_identity_not_found ]]</p>
+    [[ endif ]]
+    [[ if: security.mutation_error_last_administrator_assignment ]]
+      <p>[[ i18n: security.last_administrator_assignment_protected ]]</p>
+    [[ endif ]]
     [[ if: security.mutation_error_permission_already_granted ]]
       <p>[[ i18n: security.permission_already_granted ]]</p>
     [[ endif ]]
@@ -617,11 +626,33 @@
   [[ else ]]
     <ol class="ow-event-list">
       [[ foreach: assignments as assignment ]]
-        <li>
+        <li class="ow-security-assignment-row">
           <strong>{{ assignment.subject }}</strong>
           <span>{{ assignment.role }}</span>
           <span>{{ assignment.scope_type }}:{{ assignment.scope_id }}</span>
           <span>{{ assignment.source }}</span>
+          [[ if: security.assignment_revoke_supported ]]
+            [[ if: assignment.revocable ]]
+            <details class="ow-security-inline-action is-danger">
+              <summary>[[ i18n: security.assignment_revoke ]]</summary>
+              <form method="post" action="{{ security_urls.assignments }}">
+                <input type="hidden" name="owasys_csrf_token" value="{{ csrf.token }}">
+                <input type="hidden" name="owasys_security_phase" value="preview">
+                <input type="hidden" name="owasys_security_mutation" value="assignment.revoke">
+                <input type="hidden" name="owasys_security_subject" value="{{ assignment.subject }}">
+                <input type="hidden" name="owasys_security_role" value="{{ assignment.role }}">
+                <p class="ow-security-delete-warning">[[ i18n: security.assignment_revoke_warning ]]</p>
+                <label>[[ i18n: security.reason ]]
+                  <input name="owasys_security_reason" minlength="3" maxlength="200" required>
+                </label>
+                <label>[[ i18n: security.reauthenticate ]]
+                  <input type="password" name="owasys_reauth_password" autocomplete="current-password" required>
+                </label>
+                <button class="ow-button ow-button-danger" type="submit">[[ i18n: security.preview ]]</button>
+              </form>
+            </details>
+            [[ endif ]]
+          [[ endif ]]
         </li>
       [[ endforeach ]]
     </ol>
