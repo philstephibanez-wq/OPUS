@@ -18,6 +18,7 @@ final class OwasysSecurityController
     private const SECURITY_MUTATION_FSM_SESSION_KEY =
         'opus.fsm.owasys-front.security-mutation';
     private const VIEWS = [
+        'overview',
         'identities',
         'roles',
         'permissions',
@@ -580,6 +581,7 @@ final class OwasysSecurityController
                 'mutation_error_permission_already_granted' =>
                     (string) ($mutationError ?? '')
                         === 'OWASYS_SECURITY_PERMISSION_ALREADY_GRANTED',
+                'view_overview' => $view === 'overview',
                 'view_identities' => $view === 'identities',
                 'view_roles' => $view === 'roles',
                 'view_permissions' => $view === 'permissions',
@@ -602,6 +604,7 @@ final class OwasysSecurityController
                     $snapshot,
                     'resources'
                 ) === [],
+                'identities_count' => count($securityIdentities),
                 'users_count' => count($securityUsers),
                 'agents_count' => count($securityAgents),
                 'unknown_identities_count' => count($securityUnknown),
@@ -653,6 +656,10 @@ final class OwasysSecurityController
                     ($overview['authentication_required'] ?? null) === false,
             ],
             'security_urls' => [
+                'overview' => $this->securityUrl(
+                    $locale,
+                    'overview'
+                ),
                 'identities' => $this->securityUrl(
                     $locale,
                     'identities'
@@ -1139,7 +1146,7 @@ final class OwasysSecurityController
             )));
 
             if ($legacyView === '') {
-                return 'identities';
+                return 'overview';
             }
 
             if (!in_array($legacyView, self::VIEWS, true)) {
@@ -1187,6 +1194,10 @@ final class OwasysSecurityController
             throw new RuntimeException(
                 'OWASYS_SECURITY_VIEW_INVALID'
             );
+        }
+
+        if ($view === 'overview') {
+            return $this->routeUrl($locale, 'security');
         }
 
         return $this->routeUrl(

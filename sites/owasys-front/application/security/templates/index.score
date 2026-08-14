@@ -46,63 +46,105 @@
       <span class="ow-badge">[[ i18n: security.dashboard ]]</span>
       <h2>{{ security.application_name }}</h2>
     </div>
-    <div class="ow-security-policy-badge">
-      <span>[[ i18n: security.default_policy ]]</span>
-      <strong>{{ security.default_policy }}</strong>
+    <div class="ow-security-dashboard-actions">
+      [[ if: security.view_overview ]]
+      <a class="ow-security-overview-link is-active" aria-current="page" href="{{ security_urls.overview }}">
+        <span class="ow-security-node-icon">⌂</span>
+        <strong>[[ i18n: security.dashboard ]]</strong>
+      </a>
+      [[ else ]]
+      <a class="ow-security-overview-link" href="{{ security_urls.overview }}">
+        <span class="ow-security-node-icon">⌂</span>
+        <strong>[[ i18n: security.dashboard ]]</strong>
+      </a>
+      [[ endif ]]
+      <div class="ow-security-policy-badge">
+        <span>[[ i18n: security.default_policy ]]</span>
+        <strong>{{ security.default_policy }}</strong>
+      </div>
     </div>
   </div>
 
   <div class="ow-security-metrics ow-security-metrics-compact">
-    <article class="ow-security-metric">
+    <a class="ow-security-metric ow-security-metric-link" href="{{ security_urls.identities }}">
       <span class="ow-security-metric-icon is-user">U</span>
       <div><strong>{{ security.users_count }}</strong><span>[[ i18n: security.users ]]</span></div>
-    </article>
-    <article class="ow-security-metric">
+    </a>
+    <a class="ow-security-metric ow-security-metric-link" href="{{ security_urls.identities }}">
       <span class="ow-security-metric-icon is-agent">A</span>
       <div><strong>{{ security.agents_count }}</strong><span>[[ i18n: security.agents ]]</span></div>
-    </article>
+    </a>
     [[ if: security.unknown_identities_present ]]
     <a class="ow-security-metric is-unclassified ow-security-metric-link" href="{{ security_urls.identities }}">
       <span class="ow-security-metric-icon">?</span>
       <div><strong>{{ security.unknown_identities_count }}</strong><span>[[ i18n: security.unclassified ]]</span></div>
     </a>
     [[ endif ]]
-    <article class="ow-security-metric">
+    <a class="ow-security-metric ow-security-metric-link" href="{{ security_urls.roles }}">
       <span class="ow-security-metric-icon is-role">R</span>
       <div><strong>{{ security.roles_count }}</strong><span>[[ i18n: security.roles ]]</span></div>
-    </article>
-    <article class="ow-security-metric">
+    </a>
+    <a class="ow-security-metric ow-security-metric-link" href="{{ security_urls.resources }}">
       <span class="ow-security-metric-icon is-resource">◆</span>
       <div><strong>{{ security.resources_count }}</strong><span>[[ i18n: security.resources_acl ]]</span></div>
-    </article>
+    </a>
   </div>
 
-  <div class="ow-security-flow ow-security-flow-compact">
+  <nav class="ow-security-flow ow-security-flow-primary" aria-label="[[ i18n: security.dashboard ]]">
+    [[ if: security.view_identities ]]
+    <a class="ow-security-flow-node is-active" aria-current="page" href="{{ security_urls.identities }}">
+    [[ else ]]
     <a class="ow-security-flow-node" href="{{ security_urls.identities }}">
+    [[ endif ]]
+      <span class="ow-security-step">1</span>
       <span class="ow-security-node-icon">U/A</span>
-      <strong>[[ i18n: security.identities ]]</strong>
+      <span class="ow-security-flow-copy"><strong>[[ i18n: security.identities ]]</strong><small>{{ security.identities_count }}</small></span>
     </a>
     <span class="ow-security-flow-arrow" aria-hidden="true">→</span>
+
+    [[ if: security.view_assignments ]]
+    <a class="ow-security-flow-node is-active" aria-current="page" href="{{ security_urls.assignments }}">
+    [[ else ]]
     <a class="ow-security-flow-node" href="{{ security_urls.assignments }}">
+    [[ endif ]]
+      <span class="ow-security-step">2</span>
       <span class="ow-security-node-icon">↳</span>
-      <strong>[[ i18n: security.assignments ]]</strong>
+      <span class="ow-security-flow-copy"><strong>[[ i18n: security.assignments ]]</strong><small>{{ security.assignments_count }}</small></span>
     </a>
     <span class="ow-security-flow-arrow" aria-hidden="true">→</span>
+
+    [[ if: security.view_roles ]]
+    <a class="ow-security-flow-node is-active" aria-current="page" href="{{ security_urls.roles }}">
+    [[ else ]]
     <a class="ow-security-flow-node" href="{{ security_urls.roles }}">
+    [[ endif ]]
+      <span class="ow-security-step">3</span>
       <span class="ow-security-node-icon">R</span>
-      <strong>[[ i18n: security.roles ]]</strong>
+      <span class="ow-security-flow-copy"><strong>[[ i18n: security.roles ]]</strong><small>{{ security.roles_count }}</small></span>
     </a>
     <span class="ow-security-flow-arrow" aria-hidden="true">→</span>
+
+    [[ if: security.view_permissions ]]
+    <a class="ow-security-flow-node is-active" aria-current="page" href="{{ security_urls.permissions }}">
+    [[ else ]]
     <a class="ow-security-flow-node" href="{{ security_urls.permissions }}">
+    [[ endif ]]
+      <span class="ow-security-step">4</span>
       <span class="ow-security-node-icon">✓</span>
-      <strong>[[ i18n: security.permissions ]]</strong>
+      <span class="ow-security-flow-copy"><strong>[[ i18n: security.permissions ]]</strong><small>{{ security.permissions_count }}</small></span>
     </a>
     <span class="ow-security-flow-arrow" aria-hidden="true">→</span>
+
+    [[ if: security.view_resources ]]
+    <a class="ow-security-flow-node is-active" aria-current="page" href="{{ security_urls.resources }}">
+    [[ else ]]
     <a class="ow-security-flow-node" href="{{ security_urls.resources }}">
+    [[ endif ]]
+      <span class="ow-security-step">5</span>
       <span class="ow-security-node-icon">◆</span>
-      <strong>[[ i18n: security.resources_acl ]]</strong>
+      <span class="ow-security-flow-copy"><strong>[[ i18n: security.resources_acl ]]</strong><small>{{ security.resources_count }}</small></span>
     </a>
-  </div>
+  </nav>
 </section>
 [[ if: security.mutation_error ]]
 <aside class="ow-security-alert" role="alert">
@@ -530,7 +572,7 @@
 </section>
 [[ endif ]]
 [[ if: security.view_roles ]]
-<details class="ow-security-accordion">
+<details class="ow-security-accordion is-active" open>
   <summary class="ow-security-technical-summary"><strong>[[ i18n: security.roles ]]</strong><span class="ow-security-count">{{ security.roles_count }}</span></summary>
   <div class="ow-security-accordion-body">
   [[ if: security.roles_empty ]]
@@ -576,7 +618,7 @@
 [[ endif ]]
 
 [[ if: security.view_permissions ]]
-<details class="ow-security-accordion">
+<details class="ow-security-accordion is-active" open>
   <summary class="ow-security-technical-summary"><strong>[[ i18n: security.permissions ]]</strong><span class="ow-security-count">{{ security.permissions_count }}</span></summary>
   <div class="ow-security-accordion-body">
   [[ if: security.permissions_empty ]]
@@ -618,7 +660,7 @@
 [[ endif ]]
 
 [[ if: security.view_assignments ]]
-<details class="ow-security-accordion">
+<details class="ow-security-accordion is-active" open>
   <summary class="ow-security-technical-summary"><strong>[[ i18n: security.assignments ]]</strong><span class="ow-security-count">{{ security.assignments_count }}</span></summary>
   <div class="ow-security-accordion-body">
   [[ if: security.assignments_empty ]]
@@ -686,7 +728,7 @@
 [[ endif ]]
 
 [[ if: security.view_resources ]]
-<details class="ow-security-accordion">
+<details class="ow-security-accordion is-active" open>
   <summary class="ow-security-technical-summary"><strong>[[ i18n: security.resources_acl ]]</strong><span class="ow-security-count">{{ security.resources_count }}</span></summary>
   <div class="ow-security-accordion-body">
   <p class="ow-muted">[[ i18n: security.resource_right_rule ]]</p>
@@ -727,10 +769,12 @@
       <button class="ow-button" type="submit">[[ i18n: security.preview ]]</button>
     </form>
   [[ endif ]]
-</section>
+  </div>
+</details>
 [[ endif ]]
 
-<section class="ow-card">
+[[ if: security.view_overview ]]
+<section class="ow-card ow-security-overview-providers">
   <h2>[[ i18n: security.providers ]]</h2>
   <div class="ow-tags">
     [[ foreach: providers as provider ]]
@@ -742,5 +786,5 @@
       [[ endif ]]
     [[ endforeach ]]
   </div>
-  </div>
-</details>
+</section>
+[[ endif ]]

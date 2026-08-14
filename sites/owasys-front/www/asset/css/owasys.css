@@ -1585,3 +1585,141 @@ code {
   margin-bottom: .7rem;
 }
 /* END OPUS R45D2A25F PRINCIPAL CREATE */
+/* BEGIN OPUS R45D2A28B SECURITY GRAPHICAL NAVIGATION */
+.ow-security-dashboard-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .7rem;
+  flex-wrap: wrap;
+}
+.ow-security-overview-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  min-height: 3rem;
+  padding: .55rem .8rem;
+  border: 1px solid var(--ow-line);
+  border-radius: 14px;
+  background: rgba(255,255,255,.035);
+  text-decoration: none;
+}
+.ow-security-overview-link:hover,
+.ow-security-overview-link:focus-visible,
+.ow-security-overview-link.is-active {
+  border-color: var(--ow-accent);
+  background: rgba(108,227,255,.11);
+  outline: none;
+}
+.ow-security-metric-link {
+  text-decoration: none;
+  transition: transform .12s ease, border-color .12s ease, background .12s ease;
+}
+.ow-security-metric-link:hover,
+.ow-security-metric-link:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--ow-accent);
+  background: rgba(108,227,255,.09);
+  outline: none;
+}
+.ow-security-flow-primary {
+  grid-template-columns:
+    minmax(11rem, 1fr) auto
+    minmax(11rem, 1fr) auto
+    minmax(11rem, 1fr) auto
+    minmax(11rem, 1fr) auto
+    minmax(11rem, 1fr);
+  gap: .65rem;
+  margin-top: 1rem;
+  overflow-x: auto;
+  padding: .2rem .1rem .4rem;
+}
+.ow-security-flow-primary .ow-security-flow-node {
+  position: relative;
+  min-height: 4.2rem;
+  padding: .75rem .85rem .75rem 2.1rem;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+  transition: transform .12s ease, border-color .12s ease, background .12s ease;
+}
+.ow-security-flow-primary .ow-security-flow-node:hover,
+.ow-security-flow-primary .ow-security-flow-node:focus-visible {
+  transform: translateY(-2px);
+}
+.ow-security-flow-primary .ow-security-flow-node.is-active,
+.ow-security-flow-primary .ow-security-flow-node[aria-current="page"] {
+  border-color: rgba(108,227,255,.82);
+  background:
+    radial-gradient(circle at 15% 0%, rgba(108,227,255,.16), transparent 55%),
+    rgba(108,227,255,.09);
+  box-shadow:
+    inset 0 0 0 1px rgba(108,227,255,.18),
+    0 10px 28px rgba(0,0,0,.18);
+}
+.ow-security-step {
+  position: absolute;
+  top: .45rem;
+  left: .5rem;
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: rgba(108,227,255,.13);
+  color: var(--ow-accent);
+  font-size: .68rem;
+  font-weight: 900;
+}
+.ow-security-flow-copy {
+  display: grid;
+  gap: .15rem;
+  min-width: 0;
+}
+.ow-security-flow-copy strong {
+  white-space: normal;
+  line-height: 1.2;
+}
+.ow-security-flow-copy small {
+  color: var(--ow-muted);
+  font-weight: 800;
+}
+.ow-security-accordion.is-active {
+  margin: 16px 0;
+  border: 1px solid rgba(108,227,255,.46);
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(15,40,70,.80), rgba(12,23,40,.96));
+  box-shadow: 0 16px 44px rgba(0,0,0,.17);
+  overflow: clip;
+}
+.ow-security-accordion.is-active > summary {
+  padding: 1rem 1.1rem;
+  background: rgba(108,227,255,.055);
+}
+.ow-security-accordion.is-active[open] > summary {
+  border-bottom: 1px solid var(--ow-line);
+}
+.ow-security-accordion.is-active > .ow-security-accordion-body {
+  padding: 1rem 1.1rem 1.15rem;
+}
+@media (max-width: 1100px) {
+  .ow-security-flow-primary {
+    grid-template-columns: 1fr;
+    overflow-x: visible;
+  }
+  .ow-security-flow-primary .ow-security-flow-arrow {
+    transform: rotate(90deg);
+    justify-self: center;
+  }
+}
+@media (max-width: 760px) {
+  .ow-security-dashboard-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .ow-security-dashboard-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+/* END OPUS R45D2A28B SECURITY GRAPHICAL NAVIGATION */
