@@ -13,27 +13,17 @@ final class OwasysFsmDiagramBuilder
     }
 
     /**
-     * Builds the graphical navigation from the exact normalized navigation
-     * projection already consumed by navigation.score.
+     * The diagram is the active-state graph of the exact FSM menu projection.
+     * The menu owns no second state/route registry and neither does this class.
      *
      * @param array<string,mixed> $pageData
      * @return array{
      *   visible:bool,
      *   description:string,
      *   html:string,
-     *   signal_count:int,
-     *   projected_signal_count:int,
-     *   signals:list<array{id:string,projected:bool}>,
      *   current_state:string,
      *   current_label:string,
-     *   has_controls:bool,
-     *   controls:list<array{
-     *     signal:string,
-     *     target:string,
-     *     target_label:string,
-     *     url:string,
-     *     order:int
-     *   }>
+     *   projected_transition_count:int
      * }
      */
     public function build(array $pageData): array
@@ -43,8 +33,7 @@ final class OwasysFsmDiagramBuilder
             : [];
         $currentState = trim((string) ($pageData['fsm']['state'] ?? ''));
 
-        if (($identityView['authenticated'] ?? false) !== true
-            || in_array($currentState, ['login', 'account'], true)) {
+        if (($identityView['authenticated'] ?? false) !== true) {
             return $this->hidden();
         }
 
@@ -56,16 +45,12 @@ final class OwasysFsmDiagramBuilder
         }
 
         $fsm = $this->loadFsm();
-        $signalCoverage = $this->assertSignalRegistryComplete($fsm);
+        $this->assertSignalRegistryComplete($fsm);
         $statesById = $this->statesById($fsm);
-        $states = [];
-        $visible = [];
-        $labels = [];
-        $stateLinks = [];
+
+        $menuByState = [];
+        $menuOrder = [];
         $stateLabels = [];
-        $visibleOrder = [];
-        $transitionLinks = [];
-        $controls = [];
 
         foreach ((array) ($pageData['navigation'] ?? []) as $item) {
             if (!is_array($item)
@@ -79,7 +64,7 @@ final class OwasysFsmDiagramBuilder
 
             if ($id === '' || $label === '' || !is_array($state)) {
                 throw new RuntimeException(
-                    'OWASYS_FSM_NAVIGATION_PROJECTION_INVALID:' . $id
+                    'OWASYS_FSM_MENU_PROJECTION_INVALID:' . $id
                 );
             }
 
@@ -91,103 +76,133 @@ final class OwasysFsmDiagramBuilder
                     'open'
                 )) {
                 throw new RuntimeException(
-                    'OWASYS_FSM_NAVIGATION_ACL_DIVERGENCE:' . $id
+                    'OWASYS_FSM_MENU_ACL_DIVERGENCE:' . $id
                 );
             }
 
-            $states[] = $state;
-            $visible[$id] = true;
-            $visibleOrder[$id] = count($visibleOrder);
-            $labels[$id] = $label;
+            $menuByState[$id] = $item;
+            $menuOrder[$id] = count($menuOrder);
             $stateLabels[$id] = $label;
-
-            $url = trim((string) ($item['url'] ?? ''));
-            if (($item['available'] ?? false) === true
-                && $this->isLocalUrl($url)) {
-                $stateLinks[$id] = $url;
-            }
         }
 
-        if ($states === []) {
+        if (!isset($menuByState[$currentState])) {
             return $this->hidden();
         }
 
-        $routeSignals = $this->routeSignals();
+        $currentMenu = $menuByState[$currentState];
+        $transitionProjection = [];
+        $relevantStates = [$currentState => true];
+
+        foreach ((array) ($currentMenu['signals'] ?? []) as $signalItem) {
+            if (!is_array($signalItem)) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_MENU_SIGNAL_INVALID:' . $currentState
+                );
+            }
+
+            $transitionId = trim((string) (
+                $signalItem['transition_id'] ?? ''
+            ));
+            $target = trim((string) ($signalItem['target'] ?? ''));
+
+            if ($transitionId === '' || $target === '') {
+                throw new RuntimeException(
+                    'OWASYS_FSM_MENU_SIGNAL_FIELDS_INVALID:'
+                    . $currentState
+                );
+            }
+            if (!isset($menuByState[$target])) {
+                // The principal FSM diagram is the same projection as the
+                // principal FSM menu. Signals to non-menu system states are
+                // still canonical in config/profiler, but not invented here.
+                continue;
+            }
+            if (isset($transitionProjection[$transitionId])) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_MENU_TRANSITION_DUPLICATE:'
+                    . $transitionId
+                );
+            }
+
+            $transitionProjection[$transitionId] = $signalItem;
+            $relevantStates[$target] = true;
+        }
+
+        $states = [];
+        foreach ($menuByState as $id => $_item) {
+            if (!isset($relevantStates[$id])) {
+                continue;
+            }
+            $state = $statesById[$id] ?? null;
+            if (!is_array($state)) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_MENU_STATE_UNKNOWN:' . $id
+                );
+            }
+            $states[] = $state;
+        }
+
         $transitions = [];
         $transitionLabels = [];
-        $projectedSignals = [];
+        $transitionLinks = [];
+
         foreach ((array) ($fsm['transitions'] ?? []) as $transition) {
             if (!is_array($transition)) {
                 continue;
             }
 
-            $from = trim((string) (
-                $transition['from']
-                ?? $transition['state']
-                ?? ''
-            ));
+            $transitionId = trim((string) ($transition['id'] ?? ''));
+            if ($transitionId === ''
+                || !isset($transitionProjection[$transitionId])) {
+                continue;
+            }
+
+            $from = trim((string) ($transition['from'] ?? ''));
             $to = trim((string) (
                 $transition['next_state']
                 ?? $transition['nextState']
                 ?? ''
             ));
             $signal = trim((string) ($transition['signal'] ?? ''));
-
-            if ($signal === '') {
-                throw new RuntimeException(
-                    'OWASYS_FSM_NAVIGATION_SIGNAL_MISSING'
-                );
-            }
             $interrupt = trim((string) ($transition['interrupt'] ?? ''));
+
             if ($interrupt === 'nmi') {
-                // NMI is an out-of-band interrupt, never a navigation state
-                // nor a user-selectable principal-navigation signal.
                 continue;
             }
-            if ($from === '*') {
+            if ($interrupt !== '' || $from === '*') {
                 throw new RuntimeException(
-                    'OWASYS_FSM_NAVIGATION_GLOBAL_SOURCE_FORBIDDEN:'
-                    . $signal
+                    'OWASYS_FSM_MENU_TRANSITION_SEMANTICS_INVALID:'
+                    . $transitionId
                 );
             }
-            if ($to === ''
-                || !isset($visible[$to])
-                || !isset($visible[$from])) {
-                continue;
-            }
-
-            // A FSM UI exposes the signals enabled by the current state.
-            // Arrival states remain passive; the signal is the control.
-            if ($from !== $currentState || $from === $to) {
-                continue;
-            }
-            if (!isset($routeSignals[$signal])) {
-                // Non-navigation signals remain canonical and auditable in
-                // the 44/44 inventory and Profiler, but are not GET controls.
-                continue;
-            }
-
-            $transitionId = trim((string) ($transition['id'] ?? ''));
-            if ($transitionId === '') {
+            if ($from !== $currentState || !isset($relevantStates[$to])) {
                 throw new RuntimeException(
-                    'OWASYS_FSM_NAVIGATION_TRANSITION_ID_MISSING'
+                    'OWASYS_FSM_MENU_DIAGRAM_DIVERGENCE:'
+                    . $transitionId
+                );
+            }
+
+            $projected = $transitionProjection[$transitionId];
+            if ((string) ($projected['signal'] ?? '') !== $signal
+                || (string) ($projected['target'] ?? '') !== $to) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_MENU_SIGNAL_DIVERGENCE:'
+                    . $transitionId
                 );
             }
 
             $transitions[] = $transition;
             $transitionLabels[$transitionId] = $signal;
-            $projectedSignals[$signal] = true;
 
-            if (isset($routeSignals[$signal])
-                && isset($stateLinks[$to])) {
-                $transitionLinks[$transitionId] = $stateLinks[$to];
-                $controls[] = [
-                    'signal' => $signal,
-                    'target' => $to,
-                    'target_label' => $labels[$to],
-                    'url' => $stateLinks[$to],
-                    'order' => $visibleOrder[$to] ?? PHP_INT_MAX,
-                ];
+            $url = trim((string) ($projected['url'] ?? ''));
+            if (($projected['actionable'] ?? false) === true) {
+                if (!$this->isLocalUrl($url)) {
+                    throw new RuntimeException(
+                        'OWASYS_FSM_MENU_SIGNAL_URL_INVALID:'
+                        . $transitionId
+                    );
+                }
+                $transitionLinks[$transitionId] = $url;
             }
         }
 
@@ -197,69 +212,43 @@ final class OwasysFsmDiagramBuilder
         $definition['transitions'] = $transitions;
 
         $initial = trim((string) ($definition['initial_state'] ?? ''));
-        if ($initial === '' || !isset($visible[$initial])) {
-            // Never invent an initial state for a partial navigation
-            // projection. Current state highlighting is independent.
+        if (!isset($relevantStates[$initial])) {
             $definition['initial_state'] = '';
         }
 
         $final = trim((string) ($definition['final_state'] ?? ''));
-        if ($final !== '' && !isset($visible[$final])) {
+        if ($final !== '' && !isset($relevantStates[$final])) {
             unset($definition['final_state']);
-        }
-
-        usort(
-            $controls,
-            static fn (array $left, array $right): int =>
-                ($left['order'] ?? PHP_INT_MAX)
-                <=> ($right['order'] ?? PHP_INT_MAX)
-        );
-
-        $signalItems = [];
-        foreach ($signalCoverage['ids'] as $signalId) {
-            $signalItems[] = [
-                'id' => $signalId,
-                'projected' => isset($projectedSignals[$signalId]),
-            ];
         }
 
         $diagram = \OPUS_FSM_Diagram::renderDefinition(
             $definition,
-            isset($visible[$currentState]) ? $currentState : '',
+            $currentState,
             [],
             [],
-            $stateLabels,
+            array_intersect_key($stateLabels, $relevantStates),
             $transitionLabels,
             true,
-            $transitionLinks
+            $transitionLinks,
+            $currentState
         );
 
         return [
             'visible' => true,
-            'description' => 'OPUS_FSM_Diagram · '
-                . (string) ($fsm['contract'] ?? 'FSM')
-                . ' · Σ '
-                . $signalCoverage['declared']
-                . '/'
-                . $signalCoverage['referenced']
-                . ' · SVG '
-                . count($projectedSignals),
+            'description' => 'Menu = FSM · '
+                . $stateLabels[$currentState]
+                . ' · '
+                . count($transitions)
+                . ' signaux sortants',
             'html' => $diagram,
-            'signal_count' => $signalCoverage['declared'],
-            'projected_signal_count' => count($projectedSignals),
-            'signals' => $signalItems,
             'current_state' => $currentState,
-            'current_label' => $labels[$currentState] ?? $currentState,
-            'has_controls' => $controls !== [],
-            'controls' => $controls,
+            'current_label' => $stateLabels[$currentState],
+            'projected_transition_count' => count($transitions),
         ];
     }
 
-    /**
-     * @param array<string,mixed> $fsm
-     * @return array{declared:int,referenced:int,ids:list<string>}
-     */
-    private function assertSignalRegistryComplete(array $fsm): array
+    /** @param array<string,mixed> $fsm */
+    private function assertSignalRegistryComplete(array $fsm): void
     {
         $declared = [];
         foreach ((array) ($fsm['signals'] ?? []) as $signal) {
@@ -300,60 +289,8 @@ final class OwasysFsmDiagramBuilder
                 . implode(',', array_keys($unused))
             );
         }
-
-        return [
-            'declared' => count($declared),
-            'referenced' => count($referenced),
-            'ids' => array_keys($declared),
-        ];
     }
 
-
-    /** @return array<string,true> */
-    private function routeSignals(): array
-    {
-        $loader = StructuredFileLoader::instance();
-
-        try {
-            $routes = $loader->read(
-                $this->siteRoot . '/config/routes.json'
-            );
-        } catch (Throwable $cause) {
-            throw new RuntimeException(
-                'OWASYS_FSM_SIGNAL_ROUTES_INVALID:'
-                . $cause->getMessage(),
-                0,
-                $cause
-            );
-        }
-
-        if (($routes['contract'] ?? null) !== 'OPUS_SIGNAL_ROUTES_V2') {
-            throw new RuntimeException(
-                'OWASYS_FSM_SIGNAL_ROUTES_CONTRACT_INVALID'
-            );
-        }
-
-        $signals = [];
-        foreach (['system_routes', 'routes'] as $section) {
-            foreach ((array) ($routes[$section] ?? []) as $signal) {
-                if (!is_string($signal)) {
-                    throw new RuntimeException(
-                        'OWASYS_FSM_SIGNAL_ROUTE_ENTRY_INVALID'
-                    );
-                }
-
-                $signal = trim($signal);
-                if ($signal === '') {
-                    throw new RuntimeException(
-                        'OWASYS_FSM_SIGNAL_ROUTE_EMPTY'
-                    );
-                }
-                $signals[$signal] = true;
-            }
-        }
-
-        return $signals;
-    }
     /**
      * @param array<string,mixed> $fsm
      * @return array<string,array<string,mixed>>
@@ -388,19 +325,9 @@ final class OwasysFsmDiagramBuilder
      *   visible:bool,
      *   description:string,
      *   html:string,
-     *   signal_count:int,
-     *   projected_signal_count:int,
-     *   signals:list<array{id:string,projected:bool}>,
      *   current_state:string,
      *   current_label:string,
-     *   has_controls:bool,
-     *   controls:list<array{
-     *     signal:string,
-     *     target:string,
-     *     target_label:string,
-     *     url:string,
-     *     order:int
-     *   }>
+     *   projected_transition_count:int
      * }
      */
     private function hidden(): array
@@ -409,13 +336,9 @@ final class OwasysFsmDiagramBuilder
             'visible' => false,
             'description' => '',
             'html' => '',
-            'signal_count' => 0,
-            'projected_signal_count' => 0,
-            'signals' => [],
             'current_state' => '',
             'current_label' => '',
-            'has_controls' => false,
-            'controls' => [],
+            'projected_transition_count' => 0,
         ];
     }
 
@@ -423,6 +346,7 @@ final class OwasysFsmDiagramBuilder
     private function loadFsm(): array
     {
         $loader = StructuredFileLoader::instance();
+
         try {
             $site = $loader->read(
                 $this->siteRoot . '/config/site.json'

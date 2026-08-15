@@ -2,50 +2,15 @@
   class="ow-card ow-fsm-native-panel"
   data-context="OWASYS_NATIVE_FSM_NAVIGATION"
   data-owasys-fsm-diagram
-  data-fsm-ui-contract="OPUS_FSM_SIGNAL_DRIVEN_UI_V1"
-  data-fsm-ui-revision="P117W_R45B2A4K"
+  data-fsm-ui-contract="OWASYS_FSM_MENU_V1"
+  data-fsm-ui-revision="P117W_R45B2A4M"
 >
   <div class="ow-fsm-heading">
     <h2>[[ i18n: navigation.main ]] · FSM</h2>
-    <small class="ow-fsm-ui-revision">signal-driven · A4K</small>
+    <small class="ow-fsm-ui-revision">menu = FSM · A4M</small>
   </div>
   <p class="ow-muted">{{ fsm_diagram.description }}</p>
-  <div
-    class="ow-fsm-current-controls"
-    data-current-state="{{ fsm_diagram.current_state }}"
-  >
-    <strong class="ow-fsm-current-state">
-      {{ fsm_diagram.current_label }}
-    </strong>
-    [[ if: fsm_diagram.has_controls ]]
-      <nav class="ow-fsm-signal-controls" aria-label="{{ fsm_diagram.current_label }}">
-        [[ foreach: fsm_diagram.controls as control ]]
-          <a
-            class="ow-fsm-signal-control"
-            href="{{ control.url }}"
-            data-signal="{{ control.signal }}"
-            data-target-state="{{ control.target }}"
-          >
-            <code>{{ control.signal }}</code>
-            <span>→ {{ control.target_label }}</span>
-          </a>
-        [[ endforeach ]]
-      </nav>
-    [[ else ]]
-      <span class="ow-fsm-no-signal">
-        Aucun signal GET sortant projetable depuis cet état.
-      </span>
-    [[ endif ]]
-  </div>
   <div class="ow-fsm-native-canvas">
     {{{ fsm_diagram.html }}}
   </div>
-  <details class="ow-fsm-signal-inventory">
-    <summary>Σ {{ fsm_diagram.signal_count }}/{{ fsm_diagram.signal_count }}</summary>
-    <div class="ow-fsm-signal-list">
-      [[ foreach: fsm_diagram.signals as signal ]]
-        <code class="ow-fsm-signal[[ if: signal.projected ]] is-projected[[ endif ]]">{{ signal.id }}</code>
-      [[ endforeach ]]
-    </div>
-  </details>
 </section>

@@ -19,85 +19,154 @@
   --opus-fsm-nmi: var(--ow-danger);
 }
 
-.ow-fsm-heading {
+/* Menu = FSM ------------------------------------------------------------ */
+
+.ow-global-nav.ow-fsm-menu {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
+  align-items: flex-start;
+  gap: .35rem;
+  overflow: visible;
+  padding: .45rem .8rem;
 }
 
-.ow-fsm-ui-revision {
+.ow-fsm-menu-state {
+  position: relative;
   flex: 0 0 auto;
-  padding: 0.16rem 0.4rem;
-  border: 1px solid rgba(108, 227, 255, 0.42);
-  border-radius: 999px;
-  color: #9fefff;
-  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-  font-size: 0.68rem;
 }
 
-.ow-fsm-current-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: 0.8rem;
-  padding: 0.65rem 0.75rem;
-  border: 1px solid var(--ow-line);
-  border-radius: 10px;
-  background: rgba(12, 23, 40, .66);
+.ow-fsm-menu-state > summary {
+  list-style: none;
 }
 
-.ow-fsm-current-state {
-  flex: 0 0 auto;
-  padding: 0.35rem 0.55rem;
-  border: 1px solid var(--ow-ok);
-  border-radius: 7px;
-  color: var(--ow-ok);
-  background: rgba(74, 222, 128, .10);
+.ow-fsm-menu-state > summary::-webkit-details-marker {
+  display: none;
 }
 
-.ow-fsm-signal-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
-.ow-fsm-signal-control {
+.ow-fsm-menu-state-label {
   display: inline-flex;
-  align-items: baseline;
-  gap: 0.35rem;
-  padding: 0.35rem 0.5rem;
-  border: 1px solid var(--ow-line);
-  border-radius: 7px;
-  color: var(--ow-text);
-  background: var(--ow-panel);
-  text-decoration: none;
+  align-items: center;
+  min-height: 2.45rem;
+  padding: .55rem .8rem;
+  border: 1px solid transparent;
+  border-radius: .55rem;
+  color: var(--ow-muted);
+  cursor: pointer;
+  font-weight: 800;
+  user-select: none;
 }
 
-.ow-fsm-signal-control:hover,
-.ow-fsm-signal-control:focus {
-  border-color: var(--ow-warn);
+.ow-fsm-menu-state-label::after {
+  content: "▾";
+  margin-left: .4rem;
+  font-size: .7rem;
+  opacity: .55;
+}
+
+.ow-fsm-menu-state.is-active > .ow-fsm-menu-state-label {
+  border-color: var(--ow-ok);
+  color: var(--ow-ok);
+  background: rgba(74, 222, 128, .08);
+}
+
+.ow-fsm-menu-state.is-disabled > .ow-fsm-menu-state-label {
+  opacity: .58;
+}
+
+.ow-fsm-menu-state[open] > .ow-fsm-menu-state-label,
+.ow-fsm-menu-state > .ow-fsm-menu-state-label:hover,
+.ow-fsm-menu-state > .ow-fsm-menu-state-label:focus-visible {
+  border-color: var(--ow-accent);
+  color: var(--ow-text);
   outline: none;
 }
 
-.ow-fsm-signal-control code {
+.ow-fsm-menu-signals {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + .35rem);
+  left: 0;
+  display: grid;
+  gap: .3rem;
+  width: max-content;
+  min-width: 16rem;
+  max-width: min(34rem, 80vw);
+  max-height: 28rem;
+  overflow: auto;
+  padding: .45rem;
+  border: 1px solid var(--ow-line);
+  border-radius: .65rem;
+  background: var(--ow-panel-2);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .38);
+}
+
+.ow-fsm-menu-signal {
+  display: flex;
+  align-items: baseline;
+  gap: .4rem;
+  width: 100%;
+  padding: .4rem .5rem;
+  border: 1px solid transparent;
+  border-radius: .45rem;
+  color: var(--ow-text);
+  text-decoration: none;
+}
+
+.ow-fsm-menu-signal code {
+  padding: .12rem .28rem;
+  border: 0;
+  background: transparent;
   color: var(--ow-accent);
   font-weight: 800;
 }
 
-.ow-fsm-signal-control span {
+.ow-fsm-menu-signal span {
   color: var(--ow-muted);
 }
 
-.ow-fsm-no-signal {
-  color: var(--ow-warn);
-  font-size: 0.78rem;
+.ow-fsm-menu-signal.is-actionable:hover,
+.ow-fsm-menu-signal.is-actionable:focus-visible {
+  border-color: var(--ow-warn);
+  background: rgba(255, 255, 255, .045);
+  outline: none;
+}
+
+.ow-fsm-menu-signal.is-passive {
+  opacity: .55;
+  cursor: default;
+}
+
+.ow-fsm-menu-state:not(.is-active)
+  .ow-fsm-menu-signal.is-passive code {
+  color: var(--ow-muted);
+}
+
+.ow-fsm-menu-empty {
+  padding: .35rem .5rem;
+  color: var(--ow-muted);
+}
+
+/* Diagram = second projection of the same FSM --------------------------- */
+
+.ow-fsm-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .75rem;
+}
+
+.ow-fsm-ui-revision {
+  flex: 0 0 auto;
+  padding: .16rem .4rem;
+  border: 1px solid var(--ow-accent);
+  border-radius: 999px;
+  color: var(--ow-accent);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: .68rem;
 }
 
 .ow-fsm-native-canvas {
   margin-top: 1rem;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: auto;
   border: 1px solid var(--ow-line);
   border-radius: 14px;
   background: var(--ow-panel);
@@ -129,13 +198,14 @@
 .ow-fsm-native-canvas .fsm-runtime-memory {
   padding: 10px 4px 2px;
   color: var(--ow-muted);
-  font-size: 0.78rem;
+  font-size: .78rem;
 }
 
 .ow-fsm-native-canvas .fsm-runtime-memory span {
   margin-left: 10px;
 }
 
+/* States are context, signals are commands. */
 .ow-fsm-native-canvas .fsm-node-link {
   pointer-events: none;
 }
@@ -144,33 +214,19 @@
   fill: var(--ow-accent);
 }
 
-.ow-fsm-signal-inventory {
-  margin-top: 0.75rem;
-  font-size: 0.78rem;
-}
+@media (max-width: 900px) {
+  .ow-global-nav.ow-fsm-menu {
+    overflow-x: auto;
+    overflow-y: visible;
+  }
 
-.ow-fsm-signal-inventory summary {
-  width: max-content;
-  cursor: pointer;
-  color: var(--ow-muted);
-}
-
-.ow-fsm-signal-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-top: 0.55rem;
-}
-
-.ow-fsm-signal {
-  padding: 0.15rem 0.35rem;
-  border: 1px solid var(--ow-line);
-  border-radius: 5px;
-  color: var(--ow-muted);
-  background: rgba(12, 23, 40, .54);
-}
-
-.ow-fsm-signal.is-projected {
-  border-color: var(--ow-accent);
-  color: var(--ow-text);
+  .ow-fsm-menu-signals {
+    position: fixed;
+    top: auto;
+    right: 1rem;
+    bottom: 1rem;
+    left: 1rem;
+    width: auto;
+    max-width: none;
+  }
 }

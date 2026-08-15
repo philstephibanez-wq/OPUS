@@ -62,6 +62,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     private array $_transitionLinks = [];
 
     private bool $_compactLayout = false;
+    private string $_layoutRoot = '';
 
     /** @var list<string> */
     private array $_fallbackEffects = [];
@@ -336,7 +337,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         array $stateLabels = [],
         array $transitionLabels = [],
         bool $compactLayout = false,
-        array $transitionLinks = []
+        array $transitionLinks = [],
+        string $layoutRoot = ''
     ): string {
         $diagram = self::fromDefinition(
             $fsm,
@@ -348,6 +350,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $diagram->setTransitionLabels($transitionLabels);
         $diagram->setCompactLayout($compactLayout);
         $diagram->setTransitionLinks($transitionLinks);
+        $diagram->setLayoutRoot($layoutRoot);
         return $diagram->renderHtml();
     }
 
@@ -483,6 +486,21 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     public function setCompactLayout(bool $compactLayout): void
     {
         $this->_compactLayout = $compactLayout;
+    }
+
+    public function setLayoutRoot(string $layoutRoot): void
+    {
+        $layoutRoot = trim($layoutRoot);
+        if ($layoutRoot === '') {
+            $this->_layoutRoot = '';
+            return;
+        }
+        if (!isset($this->_states[$layoutRoot])) {
+            throw new \InvalidArgumentException(
+                'OPUS_FSM_DIAGRAM_LAYOUT_ROOT_UNKNOWN:' . $layoutRoot
+            );
+        }
+        $this->_layoutRoot = $layoutRoot;
     }
 
     /** @param array<string,string> $transitionLinks */
@@ -716,11 +734,15 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             ? ($this->_compactLayout ? 126.0 : 158.0)
             : ($this->_compactLayout ? 76.0 : 98.0);
 
+        $layoutRoot = $this->_layoutRoot !== ''
+            ? $this->_layoutRoot
+            : $this->_initialState;
+
         $ranks = [];
-        if ($this->_initialState !== ''
-            && isset($this->_states[$this->_initialState])) {
-            $ranks[$this->_initialState] = 0;
-            $queue = [$this->_initialState];
+        if ($layoutRoot !== ''
+            && isset($this->_states[$layoutRoot])) {
+            $ranks[$layoutRoot] = 0;
+            $queue = [$layoutRoot];
 
             while ($queue !== []) {
                 $from = array_shift($queue);

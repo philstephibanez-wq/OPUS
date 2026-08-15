@@ -43,7 +43,7 @@ final class OwasysScorePageRenderer
         );
 
         $assets['fsm_css'] = $assetBase
-            . '/css/fsm-native.css?v=p117w-r45b2a4l';
+            . '/css/fsm-native.css?v=p117w-r45b2a4m';
 
         $source = is_array($data['source'] ?? null)
             ? $data['source']
@@ -217,6 +217,46 @@ final class OwasysScorePageRenderer
                 $data['navigation'][$index]['label'] = $i18n->translate(
                     $labelKey
                 );
+
+                foreach ((array) (
+                    $data['navigation'][$index]['signals'] ?? []
+                ) as $signalIndex => $signal) {
+                    if (!is_array($signal)) {
+                        continue;
+                    }
+
+                    $targetId = trim((string) (
+                        $signal['target'] ?? ''
+                    ));
+                    $targetState = $states[$targetId] ?? null;
+                    if (!is_array($targetState)) {
+                        throw new RuntimeException(
+                            'OWASYS_SCORE_FSM_SIGNAL_TARGET_UNKNOWN:'
+                            . $targetId
+                        );
+                    }
+
+                    $targetNavigation = is_array(
+                        $targetState['navigation'] ?? null
+                    )
+                        ? $targetState['navigation']
+                        : [];
+                    $targetLabelKey = trim((string) (
+                        $targetNavigation['label']
+                        ?? $targetState['title_key']
+                        ?? (
+                            'menu.'
+                            . (string) (
+                                $targetState['module'] ?? $targetId
+                            )
+                        )
+                    ));
+
+                    $data['navigation'][$index]['signals'][$signalIndex]
+                        ['target_label'] = $i18n->translate(
+                            $targetLabelKey
+                        );
+                }
             }
         }
 

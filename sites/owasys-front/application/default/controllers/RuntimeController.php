@@ -32,7 +32,7 @@ final class OwasysRuntimeController
         private readonly ?string $parentSpanId = null
     ) {
         $this->locales = new OwasysLocaleRegistry($siteConfig);
-        $this->navigation = new OwasysNavigationBuilder($security);
+        $this->navigation = new OwasysNavigationBuilder($this->siteRoot, $security);
     }
 
     public function run(): void
