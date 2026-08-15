@@ -7,8 +7,7 @@ final class OwasysFsmDiagramBuilder
 {
     public function __construct(
         private readonly string $siteRoot,
-        private readonly OwasysAuthSession $session,
-        private readonly OwasysRuntimeSecurity $security
+        private readonly OwasysAuthSession $session
     ) {
     }
 
@@ -68,17 +67,6 @@ final class OwasysFsmDiagramBuilder
                 );
             }
 
-            $module = trim((string) ($state['module'] ?? $id));
-            if ($module === ''
-                || !$this->security->isAllowed(
-                    $identity,
-                    $module,
-                    'open'
-                )) {
-                throw new RuntimeException(
-                    'OWASYS_FSM_MENU_ACL_DIVERGENCE:' . $id
-                );
-            }
 
             $menuByState[$id] = $item;
             $menuOrder[$id] = count($menuOrder);

@@ -94,7 +94,6 @@ final class OwasysNavigationBuilder
                 'module' => $module,
                 'label_key' => $labelKey,
                 'label' => '',
-                'url' => $routeUrl($route),
                 'allowed' => $allowed,
                 'available' => $available,
                 'requires_current_app' => $requiresCurrentApp,
@@ -182,18 +181,6 @@ final class OwasysNavigationBuilder
             $mappedRoute = $signalRoutes[$signal] ?? null;
             $hasRoute = is_string($mappedRoute);
 
-            if ($hasRoute) {
-                $targetState = $stateById[$to] ?? null;
-                $targetRoute = is_array($targetState)
-                    ? trim((string) ($targetState['route'] ?? ''))
-                    : '';
-                if ($targetRoute === '' || $mappedRoute !== $targetRoute) {
-                    throw new RuntimeException(
-                        'OWASYS_NAVIGATION_SIGNAL_ROUTE_TARGET_DIVERGENCE:'
-                        . $signal . ':' . $mappedRoute . ':' . $to
-                    );
-                }
-            }
 
             $actionable = $from === $currentState
                 && ($target['allowed'] ?? false) === true
@@ -211,6 +198,9 @@ final class OwasysNavigationBuilder
                     : '',
                 'actionable' => $actionable,
                 'has_route' => $hasRoute,
+                'trigger_route' => $hasRoute
+                    ? (string) $mappedRoute
+                    : '',
                 'active_source' => $from === $currentState,
                 'target_available' =>
                     ($target['allowed'] ?? false) === true
