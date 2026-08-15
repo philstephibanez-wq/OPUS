@@ -52,6 +52,12 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     /** @var array<string,string> */
     private array $_stateLinks = [];
 
+    /** @var array<string,string> */
+    private array $_stateLabels = [];
+
+    /** @var array<string,string> */
+    private array $_transitionLabels = [];
+
     /** @var list<string> */
     private array $_fallbackEffects = [];
 
@@ -275,9 +281,22 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             $transitions
         );
 
-        foreach (array_keys($diagram->_states) as $state) {
-            $built->addState($state);
+        $orderedStates = [];
+        foreach ($states as $state) {
+            if (!is_array($state)) {
+                continue;
+            }
+            $stateId = trim((string) ($state['id'] ?? ''));
+            if ($stateId !== '') {
+                $orderedStates[$stateId] = $stateId;
+            }
         }
+        foreach (array_keys($built->_states) as $state) {
+            if (!isset($orderedStates[$state])) {
+                $orderedStates[$state] = $state;
+            }
+        }
+        $built->_states = $orderedStates;
 
         return $built;
     }
@@ -291,7 +310,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         array $fsm,
         string $currentState = '',
         array $memory = [],
-        array $stateLinks = []
+        array $stateLinks = [],
+        array $stateLabels = [],
+        array $transitionLabels = []
     ): string {
         $diagram = self::fromDefinition(
             $fsm,
@@ -299,6 +320,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             $memory
         );
         $diagram->setStateLinks($stateLinks);
+        $diagram->setStateLabels($stateLabels);
+        $diagram->setTransitionLabels($transitionLabels);
         return $diagram->renderHtml();
     }
 
@@ -386,6 +409,49 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             $normalized[$state] = $href;
         }
         $this->_stateLinks = $normalized;
+    }
+
+    /** @param array<string,string> $stateLabels */
+    public function setStateLabels(array $stateLabels): void
+    {
+        $normalized = [];
+        foreach ($stateLabels as $state => $label) {
+            if (!is_string($state)
+                || !is_string($label)
+                || !isset($this->_states[$state])) {
+                continue;
+            }
+
+            $label = trim($label);
+            if ($label !== '') {
+                $normalized[$state] = $label;
+            }
+        }
+        $this->_stateLabels = $normalized;
+    }
+
+    /** @param array<string,string> $transitionLabels */
+    public function setTransitionLabels(array $transitionLabels): void
+    {
+        $known = [];
+        foreach ($this->_transitions as $transition) {
+            $known[$transition['id']] = true;
+        }
+
+        $normalized = [];
+        foreach ($transitionLabels as $transitionId => $label) {
+            if (!is_string($transitionId)
+                || !is_string($label)
+                || !isset($known[$transitionId])) {
+                continue;
+            }
+
+            $label = trim($label);
+            if ($label !== '') {
+                $normalized[$transitionId] = $label;
+            }
+        }
+        $this->_transitionLabels = $normalized;
     }
 
     /**
@@ -510,11 +576,16 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $width = $layout['width'];
         $height = $layout['height'];
 
-        $svg = '<svg class="fsm-diagram" viewBox="0 0 '
+        $svg = '<svg class="fsm-diagram" width="'
+            . self::n($width)
+            . '" height="'
+            . self::n($height)
+            . '" viewBox="0 0 '
             . self::n($width)
             . ' '
             . self::n($height)
-            . '" role="img" aria-labelledby="fsm-title fsm-desc">';
+            . '" preserveAspectRatio="xMinYMin meet"'
+            . ' role="img" aria-labelledby="fsm-title fsm-desc">';
 
         $svg .= '<title id="fsm-title">'
             . self::h($this->_title)
@@ -582,7 +653,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $rankGap = 150.0;
         $rowGap = 66.0;
         $marginX = 110.0;
-        $marginY = 98.0;
+        $marginY = $this->hasGlobalSource() ? 158.0 : 98.0;
 
         $ranks = [];
         if ($this->_initialState !== ''
@@ -710,25 +781,21 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         }
 
         $id = self::h($transition['id']);
-        $label = self::transitionLabel($transition);
+        $semanticLabel = self::transitionLabel($transition);
+        $label = $this->_transitionLabels[$transition['id']]
+            ?? $semanticLabel;
         $toPos = $positions[$to];
 
         if ($transition['from'] === '*') {
             $fromPoint = $this->globalSourcePoint($positions);
-            $x1 = $fromPoint['x'];
+            $offset = ($ordinal - (($total - 1) / 2)) * 16.0;
+            $x = $toPos['x'] + $toPos['w'] / 2 + $offset;
             $y1 = $fromPoint['y'];
-            $x2 = $toPos['x'];
-            $y2 = $toPos['y'] + $toPos['h'] / 2;
-            $bend = 46 + $ordinal * 18;
-            $path = 'M' . self::n($x1) . ' ' . self::n($y1)
-                . ' C'
-                . self::n($x1 + $bend) . ' ' . self::n($y1)
-                . ', '
-                . self::n($x2 - $bend) . ' ' . self::n($y2)
-                . ', '
-                . self::n($x2) . ' ' . self::n($y2);
-            $labelX = ($x1 + $x2) / 2;
-            $labelY = ($y1 + $y2) / 2 - 12 - $ordinal * 10;
+            $y2 = $toPos['y'];
+            $path = 'M' . self::n($x) . ' ' . self::n($y1)
+                . ' L' . self::n($x) . ' ' . self::n($y2);
+            $labelX = $x;
+            $labelY = ($y1 + $y2) / 2 - 6.0;
 
             return $this->transitionSvg(
                 $class,
@@ -736,7 +803,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $path,
                 $label,
                 $labelX,
-                $labelY
+                $labelY,
+                $semanticLabel
             );
         }
 
@@ -770,7 +838,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $path,
                 $label,
                 $labelX,
-                $labelY
+                $labelY,
+                $semanticLabel
             );
         }
 
@@ -838,7 +907,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             $path,
             $label,
             $labelX,
-            $labelY
+            $labelY,
+            $semanticLabel
         );
     }
 
@@ -848,10 +918,12 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         string $path,
         string $label,
         float $labelX,
-        float $labelY
+        float $labelY,
+        string $semanticLabel
     ): string {
         return '<g class="' . self::h($class)
             . '" data-transition-id="' . $id . '">'
+            . '<title>' . self::h($semanticLabel) . '</title>'
             . '<path class="fsm-edge" d="' . $path
             . '" marker-end="url(#fsm-arrow)" />'
             . '<text class="fsm-edge-label" x="'
@@ -927,6 +999,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         }
 
         $labelY = $position['y'] + 32;
+        $stateLabel = $this->_stateLabels[$state] ?? $state;
         $link = $this->_stateLinks[$state] ?? null;
         $svg = is_string($link)
             ? '<a class="fsm-node-link" href="' . self::h($link) . '">'
@@ -942,7 +1015,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $svg .= '<text class="fsm-state-label" x="'
             . self::n($position['x'] + $position['w'] / 2)
             . '" y="' . self::n($labelY)
-            . '">' . self::h($state) . '</text>';
+            . '">' . self::h($stateLabel) . '</text>';
 
         if ($state === $this->_currentState) {
             $svg .= '<text class="fsm-node-tag" x="'
@@ -1054,7 +1127,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
 
         return [
             'x' => 48.0,
-            'y' => max(84.0, $minY - 30.0),
+            'y' => max(92.0, $minY - 58.0),
         ];
     }
 
@@ -1068,6 +1141,13 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         }
 
         $point = $this->globalSourcePoint($positions);
+        $maxX = $point['x'] + 29.0;
+        foreach ($positions as $position) {
+            $maxX = max(
+                $maxX,
+                $position['x'] + $position['w'] / 2
+            );
+        }
 
         return '<g class="fsm-global-source">'
             . '<rect x="' . self::n($point['x'] - 29)
@@ -1076,6 +1156,10 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             . '<text x="' . self::n($point['x'])
             . '" y="' . self::n($point['y'] + 5)
             . '">*</text>'
+            . '<path class="fsm-global-bus" d="M'
+            . self::n($point['x'] + 29)
+            . ' ' . self::n($point['y'])
+            . ' H' . self::n($maxX) . '" />'
             . '<title>Extension OPUS : transition depuis tout état</title>'
             . '</g>';
     }
@@ -1169,7 +1253,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     <path d="M0,0 L0,6 L9,3 z" class="fsm-arrow-head" />
   </marker>
   <style>
-    .fsm-diagram { width:100%; height:auto; overflow:visible; font-family:"Segoe UI",Arial,sans-serif; }
+    .fsm-diagram { width:auto; max-width:none; height:auto; overflow:visible; font-family:"Segoe UI",Arial,sans-serif; }
     .fsm-title { fill:#e8f5ff; font-size:19px; font-weight:800; }
     .fsm-subtitle { fill:#9fb4cf; font-size:12px; }
     .fsm-node rect { fill:#101c2f; stroke:#6b829e; stroke-width:1.5; }
@@ -1192,6 +1276,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     .fsm-final-marker circle:last-child { fill:#f6f8ff; stroke:none; }
     .fsm-global-source rect { fill:#172033; stroke:#fbbf24; stroke-width:1.5; stroke-dasharray:5 4; }
     .fsm-global-source text { fill:#fbbf24; font-size:16px; font-weight:900; text-anchor:middle; }
+    .fsm-global-bus { fill:none; stroke:#fbbf24; stroke-width:1.2; stroke-dasharray:5 4; }
     .fsm-legend text { fill:#9fb4cf; font-size:10px; }
   </style>
 </defs>

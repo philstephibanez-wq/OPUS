@@ -9,25 +9,29 @@
   border: 1px solid rgba(148, 170, 216, 0.28);
   border-radius: 14px;
   background: #101c2f;
+  scrollbar-gutter: stable;
 }
 
 .ow-fsm-native-canvas .fsm-diagram-card {
-  min-width: 1180px;
-  padding: 16px;
+  width: max-content;
+  min-width: 100%;
+  box-sizing: border-box;
+  padding: 16px 16px 22px;
 }
 
 .ow-fsm-native-canvas .fsm-diagram-toolbar {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-  margin: 0 0 10px;
-  color: #f6f8ff;
+  display: none;
 }
 
-.ow-fsm-native-canvas .fsm-diagram-toolbar span {
-  color: #9fb4cf;
-  font-size: 0.8rem;
+.ow-fsm-native-canvas .fsm-diagram {
+  display: block;
+  max-width: none;
+}
+
+.ow-fsm-native-canvas .fsm-subtitle,
+.ow-fsm-native-canvas .fsm-node-tag,
+.ow-fsm-native-canvas .fsm-legend {
+  display: none;
 }
 
 .ow-fsm-native-canvas .fsm-runtime-memory {

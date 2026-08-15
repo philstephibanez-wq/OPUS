@@ -13,6 +13,9 @@ final class OwasysFsmDiagramBuilder
     }
 
     /**
+     * Builds the graphical navigation from the exact normalized navigation
+     * projection already consumed by navigation.score.
+     *
      * @param array<string,mixed> $pageData
      * @return array{visible:bool,description:string,html:string}
      */
@@ -28,7 +31,6 @@ final class OwasysFsmDiagramBuilder
             return $this->hidden();
         }
 
-        $fsm = $this->loadFsm();
         $identity = $this->session->user();
         if (!is_array($identity)) {
             throw new RuntimeException(
@@ -36,37 +38,52 @@ final class OwasysFsmDiagramBuilder
             );
         }
 
+        $fsm = $this->loadFsm();
+        $statesById = $this->statesById($fsm);
         $states = [];
-        $allowed = [];
+        $visible = [];
+        $labels = [];
+        $stateLinks = [];
+        $stateLabels = [];
 
-        foreach ((array) ($fsm['states'] ?? []) as $state) {
-            if (!is_array($state)) {
+        foreach ((array) ($pageData['navigation'] ?? []) as $item) {
+            if (!is_array($item)
+                || ($item['allowed'] ?? false) !== true) {
                 continue;
             }
 
-            $id = trim((string) ($state['id'] ?? ''));
-            $module = trim((string) ($state['module'] ?? $id));
-            $requiresAuth = ($state['requires_auth'] ?? false) === true;
+            $id = trim((string) ($item['id'] ?? ''));
+            $label = trim((string) ($item['label'] ?? ''));
+            $state = $statesById[$id] ?? null;
 
-            if ($id === '' || $module === '') {
+            if ($id === '' || $label === '' || !is_array($state)) {
                 throw new RuntimeException(
-                    'OWASYS_FSM_NATIVE_STATE_INVALID'
+                    'OWASYS_FSM_NAVIGATION_PROJECTION_INVALID:' . $id
                 );
             }
 
-            $stateAllowed = !$requiresAuth
-                || $this->security->isAllowed(
+            $module = trim((string) ($state['module'] ?? $id));
+            if ($module === ''
+                || !$this->security->isAllowed(
                     $identity,
                     $module,
                     'open'
+                )) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_NAVIGATION_ACL_DIVERGENCE:' . $id
                 );
-
-            if (!$stateAllowed) {
-                continue;
             }
 
             $states[] = $state;
-            $allowed[$id] = true;
+            $visible[$id] = true;
+            $labels[$id] = $label;
+            $stateLabels[$id] = $label;
+
+            $url = trim((string) ($item['url'] ?? ''));
+            if (($item['available'] ?? false) === true
+                && $this->isLocalUrl($url)) {
+                $stateLinks[$id] = $url;
+            }
         }
 
         if ($states === []) {
@@ -74,6 +91,7 @@ final class OwasysFsmDiagramBuilder
         }
 
         $transitions = [];
+        $transitionLabels = [];
         foreach ((array) ($fsm['transitions'] ?? []) as $transition) {
             if (!is_array($transition)) {
                 continue;
@@ -90,42 +108,55 @@ final class OwasysFsmDiagramBuilder
                 ?? ''
             ));
 
-            if ($to === '' || !isset($allowed[$to])) {
+            if ($to === '' || !isset($visible[$to])) {
                 continue;
             }
-            if ($from !== '*' && !isset($allowed[$from])) {
+            if ($from !== '*' && !isset($visible[$from])) {
                 continue;
             }
 
-            // Native OPUS projection deliberately preserves the real
-            // transition. Legacy visual/visual_from metadata is ignored.
-            unset($transition['visual'], $transition['visual_from']);
+            // This card is the navigation projection, not an exhaustive dump
+            // of a state's internal workflow. State-preserving transitions
+            // remain canonical in config/fsm.json and in the Profiler.
+            if ($from === $to) {
+                continue;
+            }
+
+            $transitionId = trim((string) ($transition['id'] ?? ''));
+            if ($transitionId === '') {
+                throw new RuntimeException(
+                    'OWASYS_FSM_NAVIGATION_TRANSITION_ID_MISSING'
+                );
+            }
+
             $transitions[] = $transition;
+            $transitionLabels[$transitionId] = $labels[$to];
         }
 
         $definition = $fsm;
-        unset($definition['diagram']);
+        $definition['name'] = 'OWASYS · FSM';
         $definition['states'] = $states;
         $definition['transitions'] = $transitions;
 
         $initial = trim((string) ($definition['initial_state'] ?? ''));
-        if ($initial === '' || !isset($allowed[$initial])) {
-            $definition['initial_state'] = isset($allowed[$currentState])
-                ? $currentState
-                : (string) ($states[0]['id'] ?? '');
+        if ($initial === '' || !isset($visible[$initial])) {
+            // Never invent an initial state for a partial navigation
+            // projection. Current state highlighting is independent.
+            $definition['initial_state'] = '';
         }
 
         $final = trim((string) ($definition['final_state'] ?? ''));
-        if ($final !== '' && !isset($allowed[$final])) {
+        if ($final !== '' && !isset($visible[$final])) {
             unset($definition['final_state']);
         }
 
-        $stateLinks = $this->stateLinks($pageData, $allowed);
         $diagram = \OPUS_FSM_Diagram::renderDefinition(
             $definition,
-            isset($allowed[$currentState]) ? $currentState : '',
+            isset($visible[$currentState]) ? $currentState : '',
             [],
-            $stateLinks
+            $stateLinks,
+            $stateLabels,
+            $transitionLabels
         );
 
         return [
@@ -137,46 +168,25 @@ final class OwasysFsmDiagramBuilder
     }
 
     /**
-     * @param array<string,mixed> $pageData
-     * @param array<string,bool> $allowed
-     * @return array<string,string>
+     * @param array<string,mixed> $fsm
+     * @return array<string,array<string,mixed>>
      */
-    private function stateLinks(array $pageData, array $allowed): array
+    private function statesById(array $fsm): array
     {
-        $links = [];
+        $states = [];
 
-        foreach ((array) ($pageData['navigation'] ?? []) as $item) {
-            if (!is_array($item)
-                || ($item['allowed'] ?? false) !== true
-                || ($item['available'] ?? false) !== true) {
+        foreach ((array) ($fsm['states'] ?? []) as $state) {
+            if (!is_array($state)) {
                 continue;
             }
 
-            $id = trim((string) ($item['id'] ?? ''));
-            $url = trim((string) ($item['url'] ?? ''));
-
-            if ($id !== ''
-                && isset($allowed[$id])
-                && $this->isLocalUrl($url)) {
-                $links[$id] = $url;
+            $id = trim((string) ($state['id'] ?? ''));
+            if ($id !== '') {
+                $states[$id] = $state;
             }
         }
 
-        $urls = is_array($pageData['urls'] ?? null)
-            ? $pageData['urls']
-            : [];
-        foreach ([
-            'login' => 'login',
-            'account' => 'account',
-            'registry' => 'applications',
-        ] as $state => $urlKey) {
-            $url = trim((string) ($urls[$urlKey] ?? ''));
-            if (isset($allowed[$state]) && $this->isLocalUrl($url)) {
-                $links[$state] = $url;
-            }
-        }
-
-        return $links;
+        return $states;
     }
 
     private function isLocalUrl(string $url): bool
