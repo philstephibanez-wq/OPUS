@@ -43,7 +43,7 @@ final class OwasysSecurityController
         private readonly ?string $parentSpanId = null
     ) {
         $this->locales = new OwasysLocaleRegistry($siteConfig);
-        $this->navigation = new OwasysNavigationBuilder($security);
+        $this->navigation = new OwasysNavigationBuilder($this->siteRoot, $security);
         $this->csrf = new CsrfTokenManager();
     }
 

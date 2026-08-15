@@ -37,7 +37,7 @@ final class OwasysSourceController
         ?CsrfTokenManagerInterface $csrf = null
     ) {
         $this->locales = new OwasysLocaleRegistry($siteConfig);
-        $this->navigation = new OwasysNavigationBuilder($security);
+        $this->navigation = new OwasysNavigationBuilder($this->siteRoot, $security);
         $this->csrf = $csrf ?? new CsrfTokenManager();
     }
 

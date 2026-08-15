@@ -36,7 +36,7 @@ final class OwasysCreationController
         private readonly OwasysApplicationCreationModel $creation
     ) {
         $this->locales = new OwasysLocaleRegistry($siteConfig);
-        $this->navigation = new OwasysNavigationBuilder($security);
+        $this->navigation = new OwasysNavigationBuilder($this->siteRoot, $security);
         $this->logger = new Logger($siteRoot . '/var/logs', 'owasys-front.log');
         $this->profiler = new Profiler($siteRoot . '/var/profiler');
     }
