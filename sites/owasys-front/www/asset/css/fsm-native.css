@@ -1,5 +1,22 @@
 .ow-fsm-native-panel {
   overflow: hidden;
+  --opus-fsm-text: var(--ow-text);
+  --opus-fsm-muted: var(--ow-muted);
+  --opus-fsm-node-bg: var(--ow-panel);
+  --opus-fsm-node-border: rgba(184, 197, 222, .42);
+  --opus-fsm-current-bg: rgba(74, 222, 128, .10);
+  --opus-fsm-current-border: var(--ow-ok);
+  --opus-fsm-focus: var(--ow-warn);
+  --opus-fsm-signal: var(--ow-accent);
+  --opus-fsm-state-text: var(--ow-text);
+  --opus-fsm-edge: rgba(184, 197, 222, .58);
+  --opus-fsm-return: var(--ow-accent);
+  --opus-fsm-loop: var(--ow-warn);
+  --opus-fsm-label: var(--ow-text);
+  --opus-fsm-label-halo: var(--ow-panel);
+  --opus-fsm-marker: var(--ow-text);
+  --opus-fsm-nmi-bg: rgba(251, 113, 133, .10);
+  --opus-fsm-nmi: var(--ow-danger);
 }
 
 .ow-fsm-heading {
@@ -25,18 +42,18 @@
   gap: 0.75rem;
   margin-top: 0.8rem;
   padding: 0.65rem 0.75rem;
-  border: 1px solid rgba(108, 227, 255, 0.32);
+  border: 1px solid var(--ow-line);
   border-radius: 10px;
-  background: rgba(8, 20, 38, 0.62);
+  background: rgba(12, 23, 40, .66);
 }
 
 .ow-fsm-current-state {
   flex: 0 0 auto;
   padding: 0.35rem 0.55rem;
-  border: 1px solid rgba(108, 227, 255, 0.58);
+  border: 1px solid var(--ow-ok);
   border-radius: 7px;
-  color: #e6fbff;
-  background: rgba(23, 54, 93, 0.78);
+  color: var(--ow-ok);
+  background: rgba(74, 222, 128, .10);
 }
 
 .ow-fsm-signal-controls {
@@ -50,30 +67,30 @@
   align-items: baseline;
   gap: 0.35rem;
   padding: 0.35rem 0.5rem;
-  border: 1px solid rgba(148, 170, 216, 0.32);
+  border: 1px solid var(--ow-line);
   border-radius: 7px;
-  color: #dff8ff;
-  background: rgba(16, 28, 47, 0.9);
+  color: var(--ow-text);
+  background: var(--ow-panel);
   text-decoration: none;
 }
 
 .ow-fsm-signal-control:hover,
 .ow-fsm-signal-control:focus {
-  border-color: rgba(251, 191, 36, 0.85);
+  border-color: var(--ow-warn);
   outline: none;
 }
 
 .ow-fsm-signal-control code {
-  color: #6ce3ff;
+  color: var(--ow-accent);
   font-weight: 800;
 }
 
 .ow-fsm-signal-control span {
-  color: #b8c5de;
+  color: var(--ow-muted);
 }
 
 .ow-fsm-no-signal {
-  color: #fbbf24;
+  color: var(--ow-warn);
   font-size: 0.78rem;
 }
 
@@ -81,9 +98,9 @@
   margin-top: 1rem;
   overflow-x: auto;
   overflow-y: hidden;
-  border: 1px solid rgba(148, 170, 216, 0.28);
+  border: 1px solid var(--ow-line);
   border-radius: 14px;
-  background: #101c2f;
+  background: var(--ow-panel);
   scrollbar-gutter: stable;
 }
 
@@ -111,7 +128,7 @@
 
 .ow-fsm-native-canvas .fsm-runtime-memory {
   padding: 10px 4px 2px;
-  color: #b8c5de;
+  color: var(--ow-muted);
   font-size: 0.78rem;
 }
 
@@ -124,7 +141,7 @@
 }
 
 .ow-fsm-native-canvas .fsm-signal-link .fsm-edge-label {
-  fill: #6ce3ff;
+  fill: var(--ow-accent);
 }
 
 .ow-fsm-signal-inventory {
@@ -135,7 +152,7 @@
 .ow-fsm-signal-inventory summary {
   width: max-content;
   cursor: pointer;
-  color: #9fb4cf;
+  color: var(--ow-muted);
 }
 
 .ow-fsm-signal-list {
@@ -147,13 +164,13 @@
 
 .ow-fsm-signal {
   padding: 0.15rem 0.35rem;
-  border: 1px solid rgba(148, 170, 216, 0.24);
+  border: 1px solid var(--ow-line);
   border-radius: 5px;
-  color: #9fb4cf;
-  background: rgba(8, 20, 38, 0.45);
+  color: var(--ow-muted);
+  background: rgba(12, 23, 40, .54);
 }
 
 .ow-fsm-signal.is-projected {
-  border-color: rgba(108, 227, 255, 0.55);
-  color: #dff8ff;
+  border-color: var(--ow-accent);
+  color: var(--ow-text);
 }

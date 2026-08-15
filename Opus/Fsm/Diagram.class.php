@@ -1330,34 +1330,34 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
   </marker>
   <style>
     .fsm-diagram { width:auto; max-width:none; height:auto; overflow:visible; font-family:"Segoe UI",Arial,sans-serif; }
-    .fsm-title { fill:#e8f5ff; font-size:19px; font-weight:800; }
-    .fsm-subtitle { fill:#9fb4cf; font-size:12px; }
-    .fsm-node rect { fill:#101c2f; stroke:#6b829e; stroke-width:1.5; }
-    .fsm-node.current rect { fill:#17365d; stroke:#6ce3ff; stroke-width:3; }
+    .fsm-title { fill:var(--opus-fsm-text,#e8f5ff); font-size:19px; font-weight:800; }
+    .fsm-subtitle { fill:var(--opus-fsm-muted,#9fb4cf); font-size:12px; }
+    .fsm-node rect { fill:var(--opus-fsm-node-bg,#101c2f); stroke:var(--opus-fsm-node-border,#6b829e); stroke-width:1.5; }
+    .fsm-node.current rect { fill:var(--opus-fsm-current-bg,#17365d); stroke:var(--opus-fsm-current-border,#6ce3ff); stroke-width:3; }
     .fsm-node-link { cursor:pointer; text-decoration:none; }
     .fsm-node-link:hover .fsm-node rect,
-    .fsm-node-link:focus .fsm-node rect { stroke:#fbbf24; stroke-width:3; }
+    .fsm-node-link:focus .fsm-node rect { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:3; }
     .fsm-signal-link { cursor:pointer; text-decoration:none; }
-    .fsm-signal-link .fsm-edge-label { fill:#6ce3ff; text-decoration:underline; font-weight:800; }
+    .fsm-signal-link .fsm-edge-label { fill:var(--opus-fsm-signal,#6ce3ff); text-decoration:underline; font-weight:800; }
     .fsm-signal-link:hover .fsm-edge-label,
-    .fsm-signal-link:focus .fsm-edge-label { fill:#fbbf24; }
-    .fsm-state-label { fill:#f6f8ff; font-size:13px; font-weight:800; text-anchor:middle; }
-    .fsm-node-tag { fill:#6ce3ff; font-size:10px; font-weight:800; text-anchor:middle; }
-    .fsm-state-annotation { fill:#b8c5de; font-size:9px; text-anchor:middle; }
-    .fsm-edge { fill:none; stroke:#7da4c8; stroke-width:1.7; }
-    .fsm-arrow-head { fill:#7da4c8; }
+    .fsm-signal-link:focus .fsm-edge-label { fill:var(--opus-fsm-focus,#fbbf24); }
+    .fsm-state-label { fill:var(--opus-fsm-state-text,#f6f8ff); font-size:13px; font-weight:800; text-anchor:middle; }
+    .fsm-node-tag { fill:var(--opus-fsm-signal,#6ce3ff); font-size:10px; font-weight:800; text-anchor:middle; }
+    .fsm-state-annotation { fill:var(--opus-fsm-muted,#b8c5de); font-size:9px; text-anchor:middle; }
+    .fsm-edge { fill:none; stroke:var(--opus-fsm-edge,#7da4c8); stroke-width:1.7; }
+    .fsm-arrow-head { fill:var(--opus-fsm-edge,#7da4c8); }
     .fsm-transition.wildcard .fsm-edge,
     .fsm-transition.fallback .fsm-edge { stroke-dasharray:6 5; }
-    .fsm-transition.return-edge .fsm-edge { stroke:#a78bfa; }
-    .fsm-transition.self-loop .fsm-edge { stroke:#fbbf24; }
-    .fsm-edge-label { fill:#dbeafe; font-size:11px; font-weight:650; text-anchor:middle; paint-order:stroke; stroke:#07111f; stroke-width:4px; stroke-linejoin:round; }
-    .fsm-initial-marker circle { fill:#f6f8ff; stroke:#f6f8ff; }
-    .fsm-final-marker circle:first-child { fill:none; stroke:#f6f8ff; stroke-width:2; }
-    .fsm-final-marker circle:last-child { fill:#f6f8ff; stroke:none; }
-    .fsm-global-source rect { fill:#172033; stroke:#fbbf24; stroke-width:1.5; stroke-dasharray:5 4; }
-    .fsm-global-source text { fill:#fbbf24; font-size:16px; font-weight:900; text-anchor:middle; }
-    .fsm-global-bus { fill:none; stroke:#fbbf24; stroke-width:1.2; stroke-dasharray:5 4; }
-    .fsm-legend text { fill:#9fb4cf; font-size:10px; }
+    .fsm-transition.return-edge .fsm-edge { stroke:var(--opus-fsm-return,#a78bfa); }
+    .fsm-transition.self-loop .fsm-edge { stroke:var(--opus-fsm-loop,#fbbf24); }
+    .fsm-edge-label { fill:var(--opus-fsm-label,#dbeafe); font-size:11px; font-weight:650; text-anchor:middle; paint-order:stroke; stroke:var(--opus-fsm-label-halo,#07111f); stroke-width:4px; stroke-linejoin:round; }
+    .fsm-initial-marker circle { fill:var(--opus-fsm-marker,#f6f8ff); stroke:var(--opus-fsm-marker,#f6f8ff); }
+    .fsm-final-marker circle:first-child { fill:none; stroke:var(--opus-fsm-marker,#f6f8ff); stroke-width:2; }
+    .fsm-final-marker circle:last-child { fill:var(--opus-fsm-marker,#f6f8ff); stroke:none; }
+    .fsm-global-source rect { fill:var(--opus-fsm-nmi-bg,#172033); stroke:var(--opus-fsm-nmi,#fbbf24); stroke-width:1.5; stroke-dasharray:5 4; }
+    .fsm-global-source text { fill:var(--opus-fsm-nmi,#fbbf24); font-size:16px; font-weight:900; text-anchor:middle; }
+    .fsm-global-bus { fill:none; stroke:var(--opus-fsm-nmi,#fbbf24); stroke-width:1.2; stroke-dasharray:5 4; }
+    .fsm-legend text { fill:var(--opus-fsm-muted,#9fb4cf); font-size:10px; }
   </style>
 </defs>
 SVG;
