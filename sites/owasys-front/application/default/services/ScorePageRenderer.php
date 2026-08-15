@@ -10,7 +10,7 @@ use Opus\Profiler\ProfilerInterface;
 
 final class OwasysScorePageRenderer
 {
-    private readonly OwasysFsmMermaidBuilder $fsmMermaid;
+    private readonly OwasysFsmDiagramBuilder $fsmDiagram;
 
     public function __construct(
         private readonly string $siteRoot,
@@ -19,7 +19,17 @@ final class OwasysScorePageRenderer
         private readonly ?OwasysAuthSession $session = null,
         private readonly ?OwasysRuntimeSecurity $security = null
     ) {
-        $this->fsmMermaid = new OwasysFsmMermaidBuilder($siteRoot);
+        if (!$session instanceof OwasysAuthSession
+            || !$security instanceof OwasysRuntimeSecurity) {
+            throw new RuntimeException(
+                'OWASYS_FSM_NATIVE_SECURITY_CONTEXT_MISSING'
+            );
+        }
+        $this->fsmDiagram = new OwasysFsmDiagramBuilder(
+            $siteRoot,
+            $session,
+            $security
+        );
     }
 
     /** @param array<string,mixed> $data */
@@ -33,11 +43,7 @@ final class OwasysScorePageRenderer
         );
 
         $assets['fsm_css'] = $assetBase
-            . '/css/fsm-mermaid.css?v=p117k';
-        $assets['opus_mermaid_js'] = $assetBase
-            . '/opus/mermaid/opus-mermaid.js';
-        $assets['fsm_mermaid_js'] = $assetBase
-            . '/js/fsm-mermaid.js?v=p117k';
+            . '/css/fsm-native.css?v=p117w-r45b2a4c';
 
         $source = is_array($data['source'] ?? null)
             ? $data['source']
@@ -103,7 +109,7 @@ final class OwasysScorePageRenderer
             ),
         ];
         $data = $this->normalizeI18nViewData($data, $i18n);
-        $data['fsm_diagram'] = $this->fsmMermaid->build($data);
+        $data['fsm_diagram'] = $this->fsmDiagram->build($data);
         $bodyHtml = $renderer->render($bodyTemplate, $data);
         $bodyPlaceholder = 'OPUS_BODY_FRAGMENT_'
             . strtoupper(bin2hex(random_bytes(24)));

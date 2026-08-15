@@ -205,6 +205,7 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                         $response = Response::html($this->renderPage(
                             $site,
                             $routes,
+                            $acl,
                             $route,
                             $state,
                             $locale,

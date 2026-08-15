@@ -1178,28 +1178,6 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     .fsm-node-link:hover .fsm-node rect,
     .fsm-node-link:focus .fsm-node rect { stroke:#fbbf24; stroke-width:3; }
     .fsm-state-label { fill:#f6f8ff; font-size:13px; font-weight:800; text-anchor:middle; }
-OLD,
-    'diagram.state_link_css'
-);
-
-// -------------------------------------------------------------------------
-// 2) Generated runtime: one canonical FSM drives both menu and SVG schema.
-//    ACL is applied to both views; locale paths are kept identical.
-// -------------------------------------------------------------------------
-$patched['runtime'] = replaceOnce(
-    $patched['runtime'],
-    <<<'OLD'
-                        $response = Response::html($this->renderPage(
-                            $site,
-                            $routes,
-                            $route,
-OLD,
-    <<<'NEW'
-                        $response = Response::html($this->renderPage(
-                            $site,
-                            $routes,
-                            $acl,
-                            $route,
     .fsm-node-tag { fill:#6ce3ff; font-size:10px; font-weight:800; text-anchor:middle; }
     .fsm-state-annotation { fill:#b8c5de; font-size:9px; text-anchor:middle; }
     .fsm-edge { fill:none; stroke:#7da4c8; stroke-width:1.7; }

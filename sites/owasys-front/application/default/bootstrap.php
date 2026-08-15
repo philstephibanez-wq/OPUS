@@ -52,7 +52,7 @@ $files = [
     'application/default/services/RuntimeSecurity.php',
     'application/default/services/LocaleRegistry.php',
     'application/default/services/NavigationBuilder.php',
-    'application/default/services/FsmMermaidBuilder.php',
+    'application/default/services/FsmDiagramBuilder.php',
     'application/default/services/ScorePageRenderer.php',
     'application/registry/models/RegistryModel.php',
     'application/registry/controllers/RegistryController.php',

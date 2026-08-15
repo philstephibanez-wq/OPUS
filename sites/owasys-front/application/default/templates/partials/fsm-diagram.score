@@ -1,0 +1,11 @@
+<section
+  class="ow-card ow-fsm-native-panel"
+  data-context="OWASYS_NATIVE_FSM_NAVIGATION"
+  data-owasys-fsm-diagram
+>
+  <h2>[[ i18n: navigation.main ]] · FSM</h2>
+  <p class="ow-muted">{{ fsm_diagram.description }}</p>
+  <div class="ow-fsm-native-canvas">
+    {{{ fsm_diagram.html }}}
+  </div>
+</section>
