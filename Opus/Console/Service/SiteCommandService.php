@@ -725,6 +725,20 @@ final class SiteCommandService implements SiteCommandServiceInterface
         );
         $environment['OPUS_ENV'] = 'dev';
 
+        $sourceFingerprint = substr(
+            hash(
+                'sha256',
+                str_replace('\\', '/', $siteRoot)
+                . "\0"
+                . $this->file->read($router)
+            ),
+            0,
+            20
+        );
+        $environment['OPUS_DEV_SERVER_SOURCE_FINGERPRINT'] =
+            $sourceFingerprint;
+        $environment['OPUS_DEV_SERVER_APPLICATION_ID'] = $applicationId;
+
         if ($this->developmentPortOpen($host, $port)) {
             throw new OpusConsoleException(
                 'OPUS_DEV_SERVER_PORT_ALREADY_IN_USE:'
@@ -779,6 +793,12 @@ final class SiteCommandService implements SiteCommandServiceInterface
         fwrite(
             STDOUT,
             'OPUS_DEV_SERVER_APPLICATION:' . $applicationId . PHP_EOL
+            . 'OPUS_DEV_SERVER_ROOT:' . $this->opusRoot . PHP_EOL
+            . 'OPUS_DEV_SERVER_SITE_ROOT:' . $siteRoot . PHP_EOL
+            . 'OPUS_DEV_SERVER_PUBLIC_ROOT:' . $publicRoot . PHP_EOL
+            . 'OPUS_DEV_SERVER_ROUTER:' . $router . PHP_EOL
+            . 'OPUS_DEV_SERVER_SOURCE_FINGERPRINT:'
+            . $sourceFingerprint . PHP_EOL
             . 'OPUS_DEV_SERVER_URL:' . $this->developmentUrl($host, $port)
             . PHP_EOL
         );

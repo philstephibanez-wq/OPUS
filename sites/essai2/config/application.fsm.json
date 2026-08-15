@@ -27,8 +27,8 @@
     ],
     "transitions": [
         {
-            "id": "open.home",
-            "from": "*",
+            "id": "open.home__from__home",
+            "from": "home",
             "signal": "open_home",
             "next_state": "home",
             "guards": [
@@ -39,8 +39,32 @@
             ]
         },
         {
-            "id": "open.login",
-            "from": "*",
+            "id": "open.home__from__login",
+            "from": "login",
+            "signal": "open_home",
+            "next_state": "home",
+            "guards": [
+                "route_exists"
+            ],
+            "actions": [
+                "render_route"
+            ]
+        },
+        {
+            "id": "open.login__from__home",
+            "from": "home",
+            "signal": "open_login",
+            "next_state": "login",
+            "guards": [
+                "route_exists"
+            ],
+            "actions": [
+                "render_route"
+            ]
+        },
+        {
+            "id": "open.login__from__login",
+            "from": "login",
             "signal": "open_login",
             "next_state": "login",
             "guards": [

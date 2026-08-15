@@ -1,81 +1,94 @@
 {
-  "contract": "OWASYS_BACK_FSM_V1",
-  "name": "OWASYS backend execution FSM",
-  "source_of_truth": "config",
-  "initial_state": "api",
-  "states": [
-    {
-      "id": "api",
-      "module": "api",
-      "route": "api/v1"
-    },
-    {
-      "id": "security",
-      "module": "security",
-      "route": "internal/security"
-    },
-    {
-      "id": "composer",
-      "module": "composer",
-      "route": "internal/composer"
-    }
-  ],
-  "signals": [
-    {
-      "id": "receive"
-    },
-    {
-      "id": "authenticate"
-    },
-    {
-      "id": "authorize"
-    },
-    {
-      "id": "dispatch"
-    },
-    {
-      "id": "succeed"
-    },
-    {
-      "id": "fail"
-    }
-  ],
-  "transitions": [
-    {
-      "id": "t_receive",
-      "from": "*",
-      "signal": "receive",
-      "next_state": "api"
-    },
-    {
-      "id": "t_authenticate",
-      "from": "api",
-      "signal": "authenticate",
-      "next_state": "security"
-    },
-    {
-      "id": "t_authorize",
-      "from": "security",
-      "signal": "authorize",
-      "next_state": "composer"
-    },
-    {
-      "id": "t_dispatch",
-      "from": "composer",
-      "signal": "dispatch",
-      "next_state": "composer"
-    },
-    {
-      "id": "t_succeed",
-      "from": "composer",
-      "signal": "succeed",
-      "next_state": "api"
-    },
-    {
-      "id": "t_fail",
-      "from": "*",
-      "signal": "fail",
-      "next_state": "api"
-    }
-  ]
+    "contract": "OWASYS_BACK_FSM_V1",
+    "name": "OWASYS backend execution FSM",
+    "source_of_truth": "config",
+    "initial_state": "api",
+    "states": [
+        {
+            "id": "api",
+            "module": "api",
+            "route": "api/v1"
+        },
+        {
+            "id": "security",
+            "module": "security",
+            "route": "internal/security"
+        },
+        {
+            "id": "composer",
+            "module": "composer",
+            "route": "internal/composer"
+        }
+    ],
+    "signals": [
+        {
+            "id": "receive"
+        },
+        {
+            "id": "authenticate"
+        },
+        {
+            "id": "authorize"
+        },
+        {
+            "id": "dispatch"
+        },
+        {
+            "id": "succeed"
+        },
+        {
+            "id": "fail"
+        }
+    ],
+    "transitions": [
+        {
+            "id": "t_receive__from__api",
+            "from": "api",
+            "signal": "receive",
+            "next_state": "api"
+        },
+        {
+            "id": "t_receive__from__security",
+            "from": "security",
+            "signal": "receive",
+            "next_state": "api"
+        },
+        {
+            "id": "t_receive__from__composer",
+            "from": "composer",
+            "signal": "receive",
+            "next_state": "api"
+        },
+        {
+            "id": "t_authenticate",
+            "from": "api",
+            "signal": "authenticate",
+            "next_state": "security"
+        },
+        {
+            "id": "t_authorize",
+            "from": "security",
+            "signal": "authorize",
+            "next_state": "composer"
+        },
+        {
+            "id": "t_dispatch",
+            "from": "composer",
+            "signal": "dispatch",
+            "next_state": "composer"
+        },
+        {
+            "id": "t_succeed",
+            "from": "composer",
+            "signal": "succeed",
+            "next_state": "api"
+        },
+        {
+            "id": "t_fail",
+            "from": "*",
+            "signal": "fail",
+            "next_state": "api",
+            "interrupt": "nmi"
+        }
+    ]
 }

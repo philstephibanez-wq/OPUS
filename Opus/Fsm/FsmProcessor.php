@@ -443,7 +443,8 @@ final class FsmProcessor implements FsmProcessorInterface
             if (!is_array($state)
                 || !isset($state['id'])
                 || !is_string($state['id'])
-                || $state['id'] === '') {
+                || $state['id'] === ''
+                || $state['id'] === '*') {
                 throw new InvalidArgumentException('OPUS_FSM_STATE_ID_INVALID');
             }
             if (isset($this->statesById[$state['id']])) {
@@ -474,23 +475,60 @@ final class FsmProcessor implements FsmProcessorInterface
             $from = (string) ($transition['from'] ?? '');
             $signal = (string) ($transition['signal'] ?? '');
             $to = (string) ($transition['next_state'] ?? '');
+            $interrupt = trim((string) ($transition['interrupt'] ?? ''));
+
             if ($from === '' || $signal === '' || $to === '') {
                 throw new InvalidArgumentException(
                     'OPUS_FSM_TRANSITION_FIELDS_INVALID'
                 );
             }
-            if ($from !== '*' && !isset($this->statesById[$from])) {
+            if ($interrupt !== '' && $interrupt !== 'nmi') {
                 throw new InvalidArgumentException(
-                    'OPUS_FSM_TRANSITION_SOURCE_UNKNOWN: ' . $from
+                    'OPUS_FSM_INTERRUPT_INVALID: ' . $interrupt
                 );
             }
+
+            if ($interrupt === 'nmi') {
+                if ($from !== '*') {
+                    throw new InvalidArgumentException(
+                        'OPUS_FSM_NMI_SOURCE_INVALID: ' . $from
+                    );
+                }
+                if (in_array(
+                    $signal,
+                    ['__any__', '__default__'],
+                    true
+                )) {
+                    throw new InvalidArgumentException(
+                        'OPUS_FSM_NMI_SIGNAL_MUST_BE_EXPLICIT: ' . $signal
+                    );
+                }
+                if ($this->transitionGuards($transition) !== []) {
+                    throw new InvalidArgumentException(
+                        'OPUS_FSM_NMI_GUARD_FORBIDDEN: ' . $signal
+                    );
+                }
+            } else {
+                if ($from === '*') {
+                    throw new InvalidArgumentException(
+                        'OPUS_FSM_GLOBAL_SOURCE_FORBIDDEN: ' . $signal
+                    );
+                }
+                if (!isset($this->statesById[$from])) {
+                    throw new InvalidArgumentException(
+                        'OPUS_FSM_TRANSITION_SOURCE_UNKNOWN: ' . $from
+                    );
+                }
+            }
+
             if (!isset($this->statesById[$to])) {
                 throw new InvalidArgumentException(
                     'OPUS_FSM_TRANSITION_TARGET_UNKNOWN: ' . $to
                 );
             }
 
-            $signature = $from . ':' . $signal;
+            $signature = ($interrupt === 'nmi' ? 'nmi:*' : $from)
+                . ':' . $signal;
             if (isset($seen[$signature])) {
                 throw new InvalidArgumentException(
                     'OPUS_FSM_DUPLICATE_TRANSITION: ' . $signature
@@ -503,27 +541,41 @@ final class FsmProcessor implements FsmProcessorInterface
     /** @return array<string,mixed>|null */
     private function findTransition(string $currentState, string $signal): ?array
     {
-        $stateAny = null;
-        $globalExact = null;
-        $globalAny = null;
-        $default = null;
+        // NMI is the sole global source and preempts the normal state relation.
         foreach ($this->transitions() as $transition) {
-            $from = (string) ($transition['from'] ?? '');
-            $candidateSignal = (string) ($transition['signal'] ?? '');
-            if ($from === $currentState && $candidateSignal === $signal) {
+            if (($transition['interrupt'] ?? null) !== 'nmi') {
+                continue;
+            }
+            if ((string) ($transition['signal'] ?? '') === $signal) {
                 return $transition;
             }
-            if ($from === $currentState && $candidateSignal === '__any__') {
+        }
+
+        $stateAny = null;
+        $default = null;
+
+        foreach ($this->transitions() as $transition) {
+            if (trim((string) ($transition['interrupt'] ?? '')) !== '') {
+                continue;
+            }
+
+            $from = (string) ($transition['from'] ?? '');
+            $candidateSignal = (string) ($transition['signal'] ?? '');
+
+            if ($from !== $currentState) {
+                continue;
+            }
+            if ($candidateSignal === $signal) {
+                return $transition;
+            }
+            if ($candidateSignal === '__any__') {
                 $stateAny = $transition;
-            } elseif ($from === '*' && $candidateSignal === $signal) {
-                $globalExact = $transition;
-            } elseif ($from === '*' && $candidateSignal === '__any__') {
-                $globalAny = $transition;
             } elseif ($candidateSignal === '__default__') {
                 $default = $transition;
             }
         }
-        return $stateAny ?? $globalExact ?? $globalAny ?? $default;
+
+        return $stateAny ?? $default;
     }
 
     /**

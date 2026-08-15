@@ -759,8 +759,9 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
     private function fsmConfig(): array
     {
         $states = [];
-        $transitions = [];
-        foreach ($this->modules() as $module) {
+        $modules = $this->modules();
+
+        foreach ($modules as $module) {
             $states[] = [
                 'id' => $module,
                 'module' => $module,
@@ -769,15 +770,8 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
                 'summary_key' => 'page.subtitle',
                 'navigation' => ['label' => 'menu.' . $module],
             ];
-            $transitions[] = [
-                'id' => 'open.' . $module,
-                'from' => '*',
-                'signal' => 'open_' . $module,
-                'next_state' => $module,
-                'guards' => ['route_exists'],
-                'actions' => ['render_route'],
-            ];
         }
+
         $states[] = [
             'id' => 'profiler',
             'module' => 'profiler',
@@ -786,14 +780,34 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             'summary_key' => 'profiler.summary',
             'navigation' => ['label' => 'OPUS Profiler'],
         ];
-        $transitions[] = [
-            'id' => 'open.profiler',
-            'from' => '*',
-            'signal' => 'open_profiler',
-            'next_state' => 'profiler',
-            'guards' => ['route_exists'],
-            'actions' => ['render_profiler_trace'],
-        ];
+
+        $stateIds = array_merge($modules, ['profiler']);
+        $transitions = [];
+
+        foreach ($modules as $module) {
+            foreach ($stateIds as $from) {
+                $transitions[] = [
+                    'id' => 'open.' . $module . '.from.' . $from,
+                    'from' => $from,
+                    'signal' => 'open_' . $module,
+                    'next_state' => $module,
+                    'guards' => ['route_exists'],
+                    'actions' => ['render_route'],
+                ];
+            }
+        }
+
+        foreach ($stateIds as $from) {
+            $transitions[] = [
+                'id' => 'open.profiler.from.' . $from,
+                'from' => $from,
+                'signal' => 'open_profiler',
+                'next_state' => 'profiler',
+                'guards' => ['route_exists'],
+                'actions' => ['render_profiler_trace'],
+            ];
+        }
+
         return [
             'contract' => 'OPUS_APPLICATION_FSM_V1',
             'name' => $this->siteId . '.application',
@@ -1209,7 +1223,7 @@ PHP;
                 ]],
                 'transitions' => [[
                     'id' => 'dispatch.api',
-                    'from' => '*',
+                    'from' => 'api',
                     'signal' => 'dispatch_api',
                     'next_state' => 'api',
                     'guards' => ['route_exists'],

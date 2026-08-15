@@ -7,7 +7,18 @@ use Opus\File\StructuredFileLoader;
 
 $siteRoot = dirname(__DIR__, 2);
 $opusRoot = dirname(dirname($siteRoot));
+
 if (PHP_SAPI === 'cli-server') {
+    $sourceFingerprint = trim((string) getenv(
+        'OPUS_DEV_SERVER_SOURCE_FINGERPRINT'
+    ));
+    if (preg_match('/^[a-f0-9]{20}$/D', $sourceFingerprint) === 1) {
+        header(
+            'X-Opus-Source-Fingerprint: ' . $sourceFingerprint
+        );
+    }
+    header('X-Owasys-Fsm-Ui-Contract: signal-driven-a4k');
+
     $requestPath = parse_url(
         (string) ($_SERVER['REQUEST_URI'] ?? '/'),
         PHP_URL_PATH

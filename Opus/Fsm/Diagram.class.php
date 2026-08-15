@@ -58,6 +58,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     /** @var array<string,string> */
     private array $_transitionLabels = [];
 
+    /** @var array<string,string> */
+    private array $_transitionLinks = [];
+
     private bool $_compactLayout = false;
 
     /** @var list<string> */
@@ -176,6 +179,23 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 ?? $transition['nextState']
                 ?? ''
             ));
+            $interrupt = trim((string) ($transition['interrupt'] ?? ''));
+
+            if ($interrupt !== '' && $interrupt !== 'nmi') {
+                throw new \InvalidArgumentException(
+                    'OPUS_FSM_DIAGRAM_INTERRUPT_INVALID:' . $interrupt
+                );
+            }
+            if ($from === '*' && $interrupt !== 'nmi') {
+                throw new \InvalidArgumentException(
+                    'OPUS_FSM_DIAGRAM_GLOBAL_SOURCE_FORBIDDEN:' . $signal
+                );
+            }
+            if ($interrupt === 'nmi' && $from !== '*') {
+                throw new \InvalidArgumentException(
+                    'OPUS_FSM_DIAGRAM_NMI_SOURCE_INVALID:' . $from
+                );
+            }
 
             if ($signal === '__default__' && ($from === '' || $to === '')) {
                 foreach (self::stringList(
@@ -315,7 +335,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         array $stateLinks = [],
         array $stateLabels = [],
         array $transitionLabels = [],
-        bool $compactLayout = false
+        bool $compactLayout = false,
+        array $transitionLinks = []
     ): string {
         $diagram = self::fromDefinition(
             $fsm,
@@ -326,6 +347,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $diagram->setStateLabels($stateLabels);
         $diagram->setTransitionLabels($transitionLabels);
         $diagram->setCompactLayout($compactLayout);
+        $diagram->setTransitionLinks($transitionLinks);
         return $diagram->renderHtml();
     }
 
@@ -461,6 +483,34 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     public function setCompactLayout(bool $compactLayout): void
     {
         $this->_compactLayout = $compactLayout;
+    }
+
+    /** @param array<string,string> $transitionLinks */
+    public function setTransitionLinks(array $transitionLinks): void
+    {
+        $known = [];
+        foreach ($this->_transitions as $transition) {
+            $known[$transition['id']] = true;
+        }
+
+        $normalized = [];
+        foreach ($transitionLinks as $transitionId => $href) {
+            if (!is_string($transitionId)
+                || !is_string($href)
+                || !isset($known[$transitionId])) {
+                continue;
+            }
+
+            $href = trim($href);
+            if ($href === ''
+                || $href[0] !== '/'
+                || str_contains($href, "\0")) {
+                continue;
+            }
+            $normalized[$transitionId] = $href;
+        }
+
+        $this->_transitionLinks = $normalized;
     }
 
     /**
@@ -793,7 +843,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             $class .= ' fallback';
         }
 
-        $id = self::h($transition['id']);
+        $id = $transition['id'];
         $semanticLabel = self::transitionLabel($transition);
         $label = $this->_transitionLabels[$transition['id']]
             ?? $semanticLabel;
@@ -934,18 +984,31 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         float $labelY,
         string $semanticLabel
     ): string {
-        return '<g class="' . self::h($class)
-            . '" data-transition-id="' . $id . '">'
-            . '<title>' . self::h($semanticLabel) . '</title>'
-            . '<path class="fsm-edge" d="' . $path
-            . '" marker-end="url(#fsm-arrow)" />'
-            . '<text class="fsm-edge-label" x="'
+        $labelSvg = '<text class="fsm-edge-label" x="'
             . self::n($labelX)
             . '" y="'
             . self::n($labelY)
             . '">'
             . self::h($label)
-            . '</text>'
+            . '</text>';
+
+        $link = $this->_transitionLinks[$id] ?? null;
+        if (is_string($link)) {
+            $labelSvg = '<a class="fsm-signal-link" href="'
+                . self::h($link)
+                . '" aria-label="'
+                . self::h($label)
+                . '">'
+                . $labelSvg
+                . '</a>';
+        }
+
+        return '<g class="' . self::h($class)
+            . '" data-transition-id="' . self::h($id) . '">'
+            . '<title>' . self::h($semanticLabel) . '</title>'
+            . '<path class="fsm-edge" d="' . $path
+            . '" marker-end="url(#fsm-arrow)" />'
+            . $labelSvg
             . '</g>';
     }
 
@@ -1162,18 +1225,18 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             );
         }
 
-        return '<g class="fsm-global-source">'
+        return '<g class="fsm-global-source fsm-nmi-source">'
             . '<rect x="' . self::n($point['x'] - 29)
             . '" y="' . self::n($point['y'] - 15)
             . '" width="58" height="30" rx="6" />'
             . '<text x="' . self::n($point['x'])
             . '" y="' . self::n($point['y'] + 5)
-            . '">*</text>'
+            . '">NMI</text>'
             . '<path class="fsm-global-bus" d="M'
             . self::n($point['x'] + 29)
             . ' ' . self::n($point['y'])
             . ' H' . self::n($maxX) . '" />'
-            . '<title>Extension OPUS : transition depuis tout état</title>'
+            . '<title>Interruption non masquable hors ensemble des états</title>'
             . '</g>';
     }
 
@@ -1181,7 +1244,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     {
         $items = [];
         if ($this->hasGlobalSource()) {
-            $items[] = '* source = tout état';
+            $items[] = 'NMI = interruption non masquable';
         }
 
         foreach ($this->_transitions as $transition) {
@@ -1274,6 +1337,10 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     .fsm-node-link { cursor:pointer; text-decoration:none; }
     .fsm-node-link:hover .fsm-node rect,
     .fsm-node-link:focus .fsm-node rect { stroke:#fbbf24; stroke-width:3; }
+    .fsm-signal-link { cursor:pointer; text-decoration:none; }
+    .fsm-signal-link .fsm-edge-label { fill:#6ce3ff; text-decoration:underline; font-weight:800; }
+    .fsm-signal-link:hover .fsm-edge-label,
+    .fsm-signal-link:focus .fsm-edge-label { fill:#fbbf24; }
     .fsm-state-label { fill:#f6f8ff; font-size:13px; font-weight:800; text-anchor:middle; }
     .fsm-node-tag { fill:#6ce3ff; font-size:10px; font-weight:800; text-anchor:middle; }
     .fsm-state-annotation { fill:#b8c5de; font-size:9px; text-anchor:middle; }
