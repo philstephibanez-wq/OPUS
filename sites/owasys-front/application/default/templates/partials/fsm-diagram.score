@@ -8,4 +8,12 @@
   <div class="ow-fsm-native-canvas">
     {{{ fsm_diagram.html }}}
   </div>
+  <details class="ow-fsm-signal-inventory">
+    <summary>Σ {{ fsm_diagram.signal_count }}/{{ fsm_diagram.signal_count }}</summary>
+    <div class="ow-fsm-signal-list">
+      [[ foreach: fsm_diagram.signals as signal ]]
+        <code class="ow-fsm-signal[[ if: signal.projected ]] is-projected[[ endif ]]">{{ signal.id }}</code>
+      [[ endforeach ]]
+    </div>
+  </details>
 </section>

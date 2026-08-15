@@ -17,7 +17,14 @@ final class OwasysFsmDiagramBuilder
      * projection already consumed by navigation.score.
      *
      * @param array<string,mixed> $pageData
-     * @return array{visible:bool,description:string,html:string}
+     * @return array{
+     *   visible:bool,
+     *   description:string,
+     *   html:string,
+     *   signal_count:int,
+     *   projected_signal_count:int,
+     *   signals:list<array{id:string,projected:bool}>
+     * }
      */
     public function build(array $pageData): array
     {
@@ -39,6 +46,7 @@ final class OwasysFsmDiagramBuilder
         }
 
         $fsm = $this->loadFsm();
+        $signalCoverage = $this->assertSignalRegistryComplete($fsm);
         $statesById = $this->statesById($fsm);
         $states = [];
         $visible = [];
@@ -92,6 +100,7 @@ final class OwasysFsmDiagramBuilder
 
         $transitions = [];
         $transitionLabels = [];
+        $projectedSignals = [];
         foreach ((array) ($fsm['transitions'] ?? []) as $transition) {
             if (!is_array($transition)) {
                 continue;
@@ -107,7 +116,13 @@ final class OwasysFsmDiagramBuilder
                 ?? $transition['nextState']
                 ?? ''
             ));
+            $signal = trim((string) ($transition['signal'] ?? ''));
 
+            if ($signal === '') {
+                throw new RuntimeException(
+                    'OWASYS_FSM_NAVIGATION_SIGNAL_MISSING'
+                );
+            }
             if ($to === '' || !isset($visible[$to])) {
                 continue;
             }
@@ -130,7 +145,8 @@ final class OwasysFsmDiagramBuilder
             }
 
             $transitions[] = $transition;
-            $transitionLabels[$transitionId] = $labels[$to];
+            $transitionLabels[$transitionId] = $signal;
+            $projectedSignals[$signal] = true;
         }
 
         $definition = $fsm;
@@ -150,20 +166,91 @@ final class OwasysFsmDiagramBuilder
             unset($definition['final_state']);
         }
 
+        $signalItems = [];
+        foreach ($signalCoverage['ids'] as $signalId) {
+            $signalItems[] = [
+                'id' => $signalId,
+                'projected' => isset($projectedSignals[$signalId]),
+            ];
+        }
+
         $diagram = \OPUS_FSM_Diagram::renderDefinition(
             $definition,
             isset($visible[$currentState]) ? $currentState : '',
             [],
             $stateLinks,
             $stateLabels,
-            $transitionLabels
+            $transitionLabels,
+            true
         );
 
         return [
             'visible' => true,
             'description' => 'OPUS_FSM_Diagram · '
-                . (string) ($fsm['contract'] ?? 'FSM'),
+                . (string) ($fsm['contract'] ?? 'FSM')
+                . ' · Σ '
+                . $signalCoverage['declared']
+                . '/'
+                . $signalCoverage['referenced']
+                . ' · SVG '
+                . count($projectedSignals),
             'html' => $diagram,
+            'signal_count' => $signalCoverage['declared'],
+            'projected_signal_count' => count($projectedSignals),
+            'signals' => $signalItems,
+        ];
+    }
+
+    /**
+     * @param array<string,mixed> $fsm
+     * @return array{declared:int,referenced:int,ids:list<string>}
+     */
+    private function assertSignalRegistryComplete(array $fsm): array
+    {
+        $declared = [];
+        foreach ((array) ($fsm['signals'] ?? []) as $signal) {
+            if (!is_array($signal)) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_SIGNAL_REGISTRY_ENTRY_INVALID'
+                );
+            }
+            $id = trim((string) ($signal['id'] ?? ''));
+            if ($id === '' || isset($declared[$id])) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_SIGNAL_REGISTRY_ID_INVALID:' . $id
+                );
+            }
+            $declared[$id] = true;
+        }
+
+        $referenced = [];
+        foreach ((array) ($fsm['transitions'] ?? []) as $transition) {
+            if (!is_array($transition)) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_TRANSITION_ENTRY_INVALID'
+                );
+            }
+            $signal = trim((string) ($transition['signal'] ?? ''));
+            if ($signal === '' || !isset($declared[$signal])) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_SIGNAL_UNDECLARED:' . $signal
+                );
+            }
+            $referenced[$signal] = true;
+        }
+
+        $unused = array_diff_key($declared, $referenced);
+        if ($unused !== []) {
+            throw new RuntimeException(
+                'OWASYS_FSM_SIGNAL_UNUSED:'
+                . implode(',', array_keys($unused))
+            );
+        }
+
+        return [
+            'declared' => count($declared),
+            'referenced' => count($referenced),
+            'ids' => array_keys($declared),
         ];
     }
 
@@ -197,7 +284,14 @@ final class OwasysFsmDiagramBuilder
     }
 
     /**
-     * @return array{visible:bool,description:string,html:string}
+     * @return array{
+     *   visible:bool,
+     *   description:string,
+     *   html:string,
+     *   signal_count:int,
+     *   projected_signal_count:int,
+     *   signals:list<array{id:string,projected:bool}>
+     * }
      */
     private function hidden(): array
     {
@@ -205,6 +299,9 @@ final class OwasysFsmDiagramBuilder
             'visible' => false,
             'description' => '',
             'html' => '',
+            'signal_count' => 0,
+            'projected_signal_count' => 0,
+            'signals' => [],
         ];
     }
 

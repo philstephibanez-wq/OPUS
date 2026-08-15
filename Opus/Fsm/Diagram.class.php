@@ -58,6 +58,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     /** @var array<string,string> */
     private array $_transitionLabels = [];
 
+    private bool $_compactLayout = false;
+
     /** @var list<string> */
     private array $_fallbackEffects = [];
 
@@ -312,7 +314,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         array $memory = [],
         array $stateLinks = [],
         array $stateLabels = [],
-        array $transitionLabels = []
+        array $transitionLabels = [],
+        bool $compactLayout = false
     ): string {
         $diagram = self::fromDefinition(
             $fsm,
@@ -322,6 +325,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $diagram->setStateLinks($stateLinks);
         $diagram->setStateLabels($stateLabels);
         $diagram->setTransitionLabels($transitionLabels);
+        $diagram->setCompactLayout($compactLayout);
         return $diagram->renderHtml();
     }
 
@@ -452,6 +456,11 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             }
         }
         $this->_transitionLabels = $normalized;
+    }
+
+    public function setCompactLayout(bool $compactLayout): void
+    {
+        $this->_compactLayout = $compactLayout;
     }
 
     /**
@@ -648,12 +657,14 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
      */
     private function layout(array $states): array
     {
-        $nodeW = 204.0;
-        $nodeH = 76.0;
-        $rankGap = 150.0;
-        $rowGap = 66.0;
-        $marginX = 110.0;
-        $marginY = $this->hasGlobalSource() ? 158.0 : 98.0;
+        $nodeW = $this->_compactLayout ? 176.0 : 204.0;
+        $nodeH = $this->_compactLayout ? 68.0 : 76.0;
+        $rankGap = $this->_compactLayout ? 38.0 : 150.0;
+        $rowGap = $this->_compactLayout ? 48.0 : 66.0;
+        $marginX = $this->_compactLayout ? 48.0 : 110.0;
+        $marginY = $this->hasGlobalSource()
+            ? ($this->_compactLayout ? 126.0 : 158.0)
+            : ($this->_compactLayout ? 76.0 : 98.0);
 
         $ranks = [];
         if ($this->_initialState !== ''
@@ -726,18 +737,20 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
 
         $rankCount = max(1, count($byRank));
         $width = max(
-            760.0,
+            $this->_compactLayout ? 680.0 : 760.0,
             $marginX * 2
                 + $rankCount * $nodeW
                 + max(0, $rankCount - 1) * $rankGap
-                + ($this->hasGlobalSource() ? 70.0 : 0.0)
+                + ($this->hasGlobalSource()
+                    ? ($this->_compactLayout ? 36.0 : 70.0)
+                    : 0.0)
         );
         $height = max(
-            430.0,
+            $this->_compactLayout ? 310.0 : 430.0,
             $marginY
                 + $maxRows * $nodeH
                 + max(0, $maxRows - 1) * $rowGap
-                + 160.0
+                + ($this->_compactLayout ? 92.0 : 160.0)
         );
 
         return [

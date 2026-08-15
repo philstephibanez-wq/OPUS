@@ -16,7 +16,7 @@
   width: max-content;
   min-width: 100%;
   box-sizing: border-box;
-  padding: 16px 16px 22px;
+  padding: 10px 12px 14px;
 }
 
 .ow-fsm-native-canvas .fsm-diagram-toolbar {
@@ -46,4 +46,35 @@
 
 .ow-fsm-native-canvas .fsm-node-link:focus {
   outline: none;
+}
+
+.ow-fsm-signal-inventory {
+  margin-top: 0.75rem;
+  font-size: 0.78rem;
+}
+
+.ow-fsm-signal-inventory summary {
+  width: max-content;
+  cursor: pointer;
+  color: #9fb4cf;
+}
+
+.ow-fsm-signal-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.55rem;
+}
+
+.ow-fsm-signal {
+  padding: 0.15rem 0.35rem;
+  border: 1px solid rgba(148, 170, 216, 0.24);
+  border-radius: 5px;
+  color: #9fb4cf;
+  background: rgba(8, 20, 38, 0.45);
+}
+
+.ow-fsm-signal.is-projected {
+  border-color: rgba(108, 227, 255, 0.55);
+  color: #dff8ff;
 }

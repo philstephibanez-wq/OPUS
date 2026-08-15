@@ -906,15 +906,17 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
             );
         }
 
-        $fsmDiagram = $this->renderFsmDiagram(
-            $site,
-            $routes,
-            $acl,
-            $state,
-            $locale,
-            $identity,
-            $renderer
-        );
+        $fsmDiagram = $this->supportsFsmDiagramSlot()
+            ? $this->renderFsmDiagram(
+                $site,
+                $routes,
+                $acl,
+                $state,
+                $locale,
+                $identity,
+                $renderer
+            )
+            : '';
 
         $logoutRoute = null;
         foreach ((array) ($routes['routes'] ?? []) as $candidate) {
@@ -1029,6 +1031,22 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
         return $renderer->render('default/layouts/layout.score', $data);
     }
 
+    private function supportsFsmDiagramSlot(): bool
+    {
+        $layout = $this->siteRoot
+            . '/application/default/layouts/layout.score';
+        if (!$this->file->exists($layout)) {
+            throw new \RuntimeException(
+                'OPUS_GENERATED_LAYOUT_MISSING'
+            );
+        }
+
+        return str_contains(
+            $this->file->read($layout),
+            '{{{ common.fsm_diagram }}}'
+        );
+    }
+
     /**
      * @param array<string,mixed> $site
      * @param array<string,mixed> $routes
@@ -1137,8 +1155,14 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
             $stateLinks
         );
 
-        return $renderer->render(
-            'default/templates/components/fsm-diagram.score',
+        $componentRenderer = new ScoreTemplateRenderer(
+            __DIR__ . '/templates',
+            null,
+            $this->profiler
+        );
+
+        return $componentRenderer->render(
+            'fsm-diagram.score',
             ['fsm' => ['diagram' => $diagram]]
         );
     }

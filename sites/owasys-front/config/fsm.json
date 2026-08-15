@@ -203,6 +203,12 @@
             "id": "open_source"
         },
         {
+            "id": "open_source_file"
+        },
+        {
+            "id": "change_locale"
+        },
+        {
             "id": "preview_source"
         },
         {
