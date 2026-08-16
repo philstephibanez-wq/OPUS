@@ -5,7 +5,7 @@ use Opus\File\StructuredFileLoader;
 
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4Z';
+    private const REVISION = 'P117W_R45B2A4AB';
 
     /**
      * Stable presentation order for the fixed OWASYS FSM.
@@ -231,7 +231,11 @@ final class OwasysFsmDiagramBuilder
 
         $transitions = [];
         $transitionLabels = [];
-        $transitionLinks = [];
+        $displayedBySignalTarget = [];
+        $currentActions = $this->currentActionableSignals(
+            $menuByState[$currentState],
+            $currentState
+        );
 
         foreach (self::LOGICAL_EDGES as [$from, $signal, $to]) {
             if (!isset($menuByState[$from], $menuByState[$to])) {
@@ -272,18 +276,19 @@ final class OwasysFsmDiagramBuilder
 
             $transitions[] = $transition;
             $transitionLabels[$transitionId] = $signal;
-
-            if (($projected['actionable'] ?? false) === true) {
-                $url = trim((string) ($projected['url'] ?? ''));
-                if (!$this->isLocalUrl($url)) {
-                    throw new RuntimeException(
-                        'OWASYS_FSM_WORKFLOW_SIGNAL_URL_INVALID:'
-                        . $transitionId
-                    );
-                }
-                $transitionLinks[$transitionId] = $url;
-            }
+            $key = $this->signalTargetKey($signal, $to);
+            $displayedBySignalTarget[$key] ??= [];
+            $displayedBySignalTarget[$key][] = [
+                'transition_id' => $transitionId,
+                'from' => $from,
+            ];
         }
+
+        $transitionLinks = $this->resolveCurrentTransitionLinks(
+            $currentState,
+            $currentActions,
+            $displayedBySignalTarget
+        );
 
         if (count($transitions) < 20) {
             throw new RuntimeException(
@@ -334,6 +339,128 @@ final class OwasysFsmDiagramBuilder
             'current_label' => $stateLabels[$currentState],
             'projected_transition_count' => count($transitions),
         ];
+    }
+
+    /**
+     * Builds the action set strictly from the current Menu = FSM state.
+     *
+     * The fixed diagram may draw a representative transition whose source is
+     * not the runtime current state. Interaction must nevertheless execute the
+     * same signal from the current state when that signal + target is actually
+     * actionable there. This keeps geometry fixed without bypassing FSM/ACL.
+     *
+     * @param array<string,mixed> $currentMenuItem
+     * @return array<string,array{url:string,transition_id:string}>
+     */
+    private function currentActionableSignals(
+        array $currentMenuItem,
+        string $currentState
+    ): array {
+        $actions = [];
+
+        foreach ((array) ($currentMenuItem['signals'] ?? []) as $signalItem) {
+            if (!is_array($signalItem)
+                || ($signalItem['actionable'] ?? false) !== true) {
+                continue;
+            }
+
+            $signal = trim((string) ($signalItem['signal'] ?? ''));
+            $target = trim((string) ($signalItem['target'] ?? ''));
+            $url = trim((string) ($signalItem['url'] ?? ''));
+            $transitionId = trim((string) (
+                $signalItem['transition_id'] ?? ''
+            ));
+
+            if ($signal === ''
+                || $target === ''
+                || $transitionId === ''
+                || ($signalItem['active_source'] ?? false) !== true) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_CURRENT_ACTION_INVALID:'
+                    . $currentState
+                    . ':' . $transitionId
+                );
+            }
+
+            if (!$this->isLocalUrl($url)) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_CURRENT_ACTION_URL_INVALID:'
+                    . $currentState
+                    . ':' . $transitionId
+                );
+            }
+
+            $key = $this->signalTargetKey($signal, $target);
+            $existing = $actions[$key] ?? null;
+            if (is_array($existing)
+                && $existing['url'] !== $url) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_CURRENT_ACTION_AMBIGUOUS:'
+                    . $currentState
+                    . ':' . $signal
+                    . ':' . $target
+                );
+            }
+
+            $actions[$key] = [
+                'url' => $url,
+                'transition_id' => $transitionId,
+            ];
+        }
+
+        return $actions;
+    }
+
+    /**
+     * Maps each currently permitted semantic signal to exactly one displayed
+     * label. Prefer the displayed edge whose source is the current state;
+     * otherwise use the first fixed representative edge for the same
+     * signal + target. This avoids duplicate clickable labels while keeping
+     * global signals such as logout/change_app usable from every allowed state.
+     *
+     * @param array<string,array{url:string,transition_id:string}> $actions
+     * @param array<string,list<array{transition_id:string,from:string}>> $displayed
+     * @return array<string,string>
+     */
+    private function resolveCurrentTransitionLinks(
+        string $currentState,
+        array $actions,
+        array $displayed
+    ): array {
+        $links = [];
+
+        foreach ($actions as $key => $action) {
+            $candidates = $displayed[$key] ?? [];
+            if ($candidates === []) {
+                continue;
+            }
+
+            $selected = $candidates[0];
+            foreach ($candidates as $candidate) {
+                if (($candidate['from'] ?? '') === $currentState) {
+                    $selected = $candidate;
+                    break;
+                }
+            }
+
+            $transitionId = trim((string) (
+                $selected['transition_id'] ?? ''
+            ));
+            if ($transitionId === '') {
+                throw new RuntimeException(
+                    'OWASYS_FSM_DISPLAYED_ACTION_INVALID:' . $key
+                );
+            }
+
+            $links[$transitionId] = $action['url'];
+        }
+
+        return $links;
+    }
+
+    private function signalTargetKey(string $signal, string $target): string
+    {
+        return $signal . "\0" . $target;
     }
 
     /**

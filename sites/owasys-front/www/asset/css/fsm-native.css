@@ -210,8 +210,84 @@
   pointer-events: none;
 }
 
-.ow-fsm-native-canvas .fsm-signal-link .fsm-edge-label {
+/*
+ * P117W_R45B2A4AA
+ * Only renderer-provided transition links are interactive.
+ * OwasysFsmDiagramBuilder creates those links exclusively when the exact
+ * Menu = FSM transition projection is actionable.
+ */
+.ow-fsm-native-canvas .fsm-signal-link {
+  cursor: pointer;
+  outline: none;
+  text-decoration: none;
+}
+
+.ow-fsm-native-canvas
+  .fsm-signal-link
+  .fsm-edge-label-box {
+  pointer-events: bounding-box;
+}
+
+.ow-fsm-native-canvas
+  .fsm-signal-link
+  .fsm-edge-label-bg {
+  fill: var(--ow-panel-2);
+  fill-opacity: .98;
+  stroke: var(--ow-accent);
+  stroke-width: 1.35;
+  pointer-events: all;
+  transition:
+    fill .12s ease,
+    stroke-width .12s ease,
+    filter .12s ease;
+}
+
+.ow-fsm-native-canvas
+  .fsm-signal-link
+  .fsm-edge-label {
   fill: var(--ow-accent);
+  font-weight: 850;
+  pointer-events: all;
+  text-decoration: none;
+  transition:
+    fill .12s ease,
+    stroke .12s ease;
+}
+
+.ow-fsm-native-canvas
+  .fsm-signal-link:hover
+  .fsm-edge-label-bg,
+.ow-fsm-native-canvas
+  .fsm-signal-link:focus
+  .fsm-edge-label-bg,
+.ow-fsm-native-canvas
+  .fsm-signal-link:focus-visible
+  .fsm-edge-label-bg {
+  fill: var(--ow-accent);
+  fill-opacity: .98;
+  stroke: var(--ow-accent);
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 5px var(--ow-accent));
+}
+
+.ow-fsm-native-canvas
+  .fsm-signal-link:hover
+  .fsm-edge-label,
+.ow-fsm-native-canvas
+  .fsm-signal-link:focus
+  .fsm-edge-label,
+.ow-fsm-native-canvas
+  .fsm-signal-link:focus-visible
+  .fsm-edge-label {
+  fill: var(--ow-panel);
+  stroke: transparent;
+}
+
+/* Passive labels never advertise clickability. */
+.ow-fsm-native-canvas
+  .fsm-transition
+  > .fsm-edge-label-box {
+  cursor: default;
 }
 
 @media (max-width: 900px) {
