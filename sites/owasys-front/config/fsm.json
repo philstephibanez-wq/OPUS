@@ -567,61 +567,91 @@
             "id": "t_change_app__from__login",
             "from": "login",
             "signal": "change_app",
-            "next_state": "registry"
+            "next_state": "registry",
+            "actions": [
+                "clear_current_app"
+            ]
         },
         {
             "id": "t_change_app__from__account",
             "from": "account",
             "signal": "change_app",
-            "next_state": "registry"
+            "next_state": "registry",
+            "actions": [
+                "clear_current_app"
+            ]
         },
         {
             "id": "t_change_app__from__registry",
             "from": "registry",
             "signal": "change_app",
-            "next_state": "registry"
+            "next_state": "registry",
+            "actions": [
+                "clear_current_app"
+            ]
         },
         {
             "id": "t_change_app__from__creation",
             "from": "creation",
             "signal": "change_app",
-            "next_state": "registry"
+            "next_state": "registry",
+            "actions": [
+                "clear_current_app"
+            ]
         },
         {
             "id": "t_change_app__from__structure",
             "from": "structure",
             "signal": "change_app",
-            "next_state": "registry"
+            "next_state": "registry",
+            "actions": [
+                "clear_current_app"
+            ]
         },
         {
             "id": "t_change_app__from__data",
             "from": "data",
             "signal": "change_app",
-            "next_state": "registry"
+            "next_state": "registry",
+            "actions": [
+                "clear_current_app"
+            ]
         },
         {
             "id": "t_change_app__from__workflows",
             "from": "workflows",
             "signal": "change_app",
-            "next_state": "registry"
+            "next_state": "registry",
+            "actions": [
+                "clear_current_app"
+            ]
         },
         {
             "id": "t_change_app__from__security",
             "from": "security",
             "signal": "change_app",
-            "next_state": "registry"
+            "next_state": "registry",
+            "actions": [
+                "clear_current_app"
+            ]
         },
         {
             "id": "t_change_app__from__source",
             "from": "source",
             "signal": "change_app",
-            "next_state": "registry"
+            "next_state": "registry",
+            "actions": [
+                "clear_current_app"
+            ]
         },
         {
             "id": "t_change_app__from__build",
             "from": "build",
             "signal": "change_app",
-            "next_state": "registry"
+            "next_state": "registry",
+            "actions": [
+                "clear_current_app"
+            ]
         },
         {
             "id": "t_open_structure__from__login",
