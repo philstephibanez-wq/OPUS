@@ -16,11 +16,32 @@
         {
             "id": "account",
             "module": "account",
+            "route": "account",
+            "template": "index.score",
+            "requires_auth": true,
+            "requires_current_app": false,
+            "title_key": "menu.account",
+            "summary_key": "menu.account",
+            "navigation": {
+                "visible": true,
+                "order": 80,
+                "label": "menu.account"
+            }
+        },
+        {
+            "id": "password",
+            "module": "account",
             "route": "account/password",
+            "template": "password.score",
             "requires_auth": true,
             "requires_current_app": false,
             "title_key": "auth.change_password",
-            "summary_key": "auth.change_password_description"
+            "summary_key": "auth.change_password_description",
+            "navigation": {
+                "visible": true,
+                "order": 90,
+                "label": "auth.change_password"
+            }
         },
         {
             "id": "registry",
@@ -141,6 +162,9 @@
         },
         {
             "id": "open_account"
+        },
+        {
+            "id": "open_password_change"
         },
         {
             "id": "login_success"
@@ -349,7 +373,7 @@
             "id": "t_password_required",
             "from": "login",
             "signal": "password_change_required",
-            "next_state": "account",
+            "next_state": "password",
             "guards": [
                 "must_change_password"
             ],
@@ -419,8 +443,74 @@
             "next_state": "account"
         },
         {
-            "id": "t_password_changed",
+            "id": "t_open_password_change__from__login",
+            "from": "login",
+            "signal": "open_password_change",
+            "next_state": "password"
+        },
+        {
+            "id": "t_open_password_change__from__account",
             "from": "account",
+            "signal": "open_password_change",
+            "next_state": "password"
+        },
+        {
+            "id": "t_open_password_change__from__password",
+            "from": "password",
+            "signal": "open_password_change",
+            "next_state": "password"
+        },
+        {
+            "id": "t_open_password_change__from__registry",
+            "from": "registry",
+            "signal": "open_password_change",
+            "next_state": "password"
+        },
+        {
+            "id": "t_open_password_change__from__creation",
+            "from": "creation",
+            "signal": "open_password_change",
+            "next_state": "password"
+        },
+        {
+            "id": "t_open_password_change__from__structure",
+            "from": "structure",
+            "signal": "open_password_change",
+            "next_state": "password"
+        },
+        {
+            "id": "t_open_password_change__from__data",
+            "from": "data",
+            "signal": "open_password_change",
+            "next_state": "password"
+        },
+        {
+            "id": "t_open_password_change__from__workflows",
+            "from": "workflows",
+            "signal": "open_password_change",
+            "next_state": "password"
+        },
+        {
+            "id": "t_open_password_change__from__security",
+            "from": "security",
+            "signal": "open_password_change",
+            "next_state": "password"
+        },
+        {
+            "id": "t_open_password_change__from__source",
+            "from": "source",
+            "signal": "open_password_change",
+            "next_state": "password"
+        },
+        {
+            "id": "t_open_password_change__from__build",
+            "from": "build",
+            "signal": "open_password_change",
+            "next_state": "password"
+        },
+        {
+            "id": "t_password_changed",
+            "from": "password",
             "signal": "password_changed",
             "next_state": "registry",
             "actions": [
@@ -430,9 +520,9 @@
         },
         {
             "id": "t_password_failed",
-            "from": "account",
+            "from": "password",
             "signal": "password_change_failed",
-            "next_state": "account"
+            "next_state": "password"
         },
         {
             "id": "t_select_app",
@@ -1455,6 +1545,97 @@
             "next_state": "build",
             "guards": [
                 "current_app_required"
+            ]
+        },
+        {
+            "id": "t_open_login__from__password",
+            "from": "password",
+            "signal": "open_login",
+            "next_state": "login"
+        },
+        {
+            "id": "t_open_account__from__password",
+            "from": "password",
+            "signal": "open_account",
+            "next_state": "account"
+        },
+        {
+            "id": "t_open_creation__from__password",
+            "from": "password",
+            "signal": "open_creation",
+            "next_state": "creation"
+        },
+        {
+            "id": "t_change_app__from__password",
+            "from": "password",
+            "signal": "change_app",
+            "next_state": "registry",
+            "actions": [
+                "clear_current_app"
+            ]
+        },
+        {
+            "id": "t_open_structure__from__password",
+            "from": "password",
+            "signal": "open_structure",
+            "next_state": "structure",
+            "guards": [
+                "current_app_required"
+            ]
+        },
+        {
+            "id": "t_open_data__from__password",
+            "from": "password",
+            "signal": "open_data",
+            "next_state": "data",
+            "guards": [
+                "current_app_required"
+            ]
+        },
+        {
+            "id": "t_open_workflows__from__password",
+            "from": "password",
+            "signal": "open_workflows",
+            "next_state": "workflows",
+            "guards": [
+                "current_app_required"
+            ]
+        },
+        {
+            "id": "t_open_security__from__password",
+            "from": "password",
+            "signal": "open_security",
+            "next_state": "security",
+            "guards": [
+                "current_app_required"
+            ]
+        },
+        {
+            "id": "t_open_source__from__password",
+            "from": "password",
+            "signal": "open_source",
+            "next_state": "source",
+            "guards": [
+                "current_app_required"
+            ]
+        },
+        {
+            "id": "t_open_build__from__password",
+            "from": "password",
+            "signal": "open_build",
+            "next_state": "build",
+            "guards": [
+                "current_app_required"
+            ]
+        },
+        {
+            "id": "t_logout__from__password",
+            "from": "password",
+            "signal": "logout",
+            "next_state": "login",
+            "actions": [
+                "clear_current_app",
+                "clear_session"
             ]
         },
         {

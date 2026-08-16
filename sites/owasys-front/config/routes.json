@@ -3,7 +3,8 @@
   "rule": "Every route resolves to a frontend FSM signal.",
   "system_routes": {
     "login": "open_login",
-    "account/password": "open_account"
+    "account": "open_account",
+    "account/password": "open_password_change"
   },
   "routes": {
     "applications": "change_app",

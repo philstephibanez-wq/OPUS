@@ -34,6 +34,36 @@
                 "uk": "вхід"
             }
         },
+        "account": {
+            "tail": false,
+            "paths": {
+                "bg": "акаунт",
+                "hr": "račun",
+                "cs": "účet",
+                "da": "konto",
+                "nl": "account",
+                "en": "account",
+                "et": "konto",
+                "fi": "tili",
+                "fr": "compte",
+                "de": "konto",
+                "el": "λογαριασμός",
+                "hu": "fiók",
+                "ga": "cuntas",
+                "it": "account",
+                "lv": "konts",
+                "lt": "paskyra",
+                "mt": "kont",
+                "pl": "konto",
+                "pt": "conta",
+                "ro": "cont",
+                "sk": "účet",
+                "sl": "račun",
+                "es": "cuenta",
+                "sv": "konto",
+                "uk": "обліковий-запис"
+            }
+        },
         "account/password": {
             "tail": false,
             "paths": {
@@ -485,36 +515,5 @@
             }
         }
     },
-    "aliases": {
-        "account": {
-            "target": "account",
-            "paths": {
-                "bg": "акаунт",
-                "hr": "račun",
-                "cs": "účet",
-                "da": "konto",
-                "nl": "account",
-                "en": "account",
-                "et": "konto",
-                "fi": "tili",
-                "fr": "compte",
-                "de": "konto",
-                "el": "λογαριασμός",
-                "hu": "fiók",
-                "ga": "cuntas",
-                "it": "account",
-                "lv": "konts",
-                "lt": "paskyra",
-                "mt": "kont",
-                "pl": "konto",
-                "pt": "conta",
-                "ro": "cont",
-                "sk": "účet",
-                "sl": "račun",
-                "es": "cuenta",
-                "sv": "konto",
-                "uk": "обліковий-запис"
-            }
-        }
-    }
+    "aliases": {}
 }

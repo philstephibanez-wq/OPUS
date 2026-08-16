@@ -5,7 +5,7 @@ use Opus\File\StructuredFileLoader;
 
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4AC';
+    private const REVISION = 'P117W_R45B2A4AD';
 
     /**
      * Stable presentation order for the fixed OWASYS FSM.
@@ -16,6 +16,7 @@ final class OwasysFsmDiagramBuilder
         'login',
         'registry',
         'account',
+        'password',
         'creation',
         'data',
         'structure',
@@ -40,15 +41,16 @@ final class OwasysFsmDiagramBuilder
         /* Entry and authentication branch. */
         ['login', 'login_success', 'registry'],
         ['login', 'login_failed', 'login'],
-        ['login', 'password_change_required', 'account'],
-        ['account', 'password_change_failed', 'account'],
-        ['account', 'password_changed', 'registry'],
+        ['login', 'password_change_required', 'password'],
+        ['password', 'password_change_failed', 'password'],
+        ['password', 'password_changed', 'registry'],
 
         /* Registry branch. */
         ['registry', 'registry_action_failed', 'registry'],
         ['registry', 'create_new_app', 'creation'],
         ['registry', 'select_app', 'data'],
         ['registry', 'open_account', 'account'],
+        ['account', 'open_password_change', 'password'],
 
         /* Creation flow and returns. */
         ['creation', 'application_creation_failed', 'creation'],

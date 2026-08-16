@@ -109,7 +109,9 @@ final class OwasysRuntimeController
                     $context
                 );
 
-                $this->actionHandlersFor($transition)->dispatcher()->dispatch($transition, $context);
+                $this->actionHandlersFor($transition)
+                    ->dispatcher()
+                    ->dispatch($transition, $context);
                 $fsmStore->persist($fsm);
             } catch (Throwable $error) {
                 $handled = $this->handleTransitionFailure(
@@ -227,7 +229,10 @@ final class OwasysRuntimeController
             && $routeKey !== 'account/password'
             && $routeKey !== 'logout'
         ) {
-            return ['signal' => 'open_account', 'redirect' => true];
+            return [
+                'signal' => 'open_password_change',
+                'redirect' => true,
+            ];
         }
 
         if ($method === 'POST') {
@@ -243,7 +248,8 @@ final class OwasysRuntimeController
                             : 'login_success',
                         'context' => [
                             'pending_identity' => $pending,
-                            'must_change_password' => $pending->mustChangePassword,
+                            'must_change_password' =>
+                                $pending->mustChangePassword,
                         ],
                         'redirect' => true,
                     ];
@@ -256,12 +262,22 @@ final class OwasysRuntimeController
                 }
             }
 
-            if ($routeKey === 'account/password' && $action === 'change-password') {
+            if (
+                $routeKey === 'account/password'
+                && $action === 'change-password'
+            ) {
                 if (!is_array($identity)) {
-                    return ['signal' => 'auth_required', 'redirect' => true];
+                    return [
+                        'signal' => 'auth_required',
+                        'redirect' => true,
+                    ];
                 }
 
-                $this->security->assertAllowed($identity, 'account', 'change');
+                $this->security->assertAllowed(
+                    $identity,
+                    'account',
+                    'change'
+                );
 
                 if (
                     (string) ($_POST['owasys_current_password'] ?? '') === ''
@@ -292,20 +308,33 @@ final class OwasysRuntimeController
 
             if ($routeKey === 'applications') {
                 if (!is_array($identity)) {
-                    return ['signal' => 'auth_required', 'redirect' => true];
+                    return [
+                        'signal' => 'auth_required',
+                        'redirect' => true,
+                    ];
                 }
 
                 $this->assertRegistryActionAllowed($identity, $action);
-                $result = $this->registryController()->handle($method, $_POST);
+                $result = $this->registryController()->handle(
+                    $method,
+                    $_POST
+                );
 
                 return [
-                    'signal' => (string) ($result['signal'] ?? 'registry_action_failed'),
+                    'signal' => (string) (
+                        $result['signal'] ?? 'registry_action_failed'
+                    ),
                     'context' => [
-                        'selected_app' => is_array($result['selected_app'] ?? null)
+                        'selected_app' => is_array(
+                            $result['selected_app'] ?? null
+                        )
                             ? $result['selected_app']
                             : null,
-                        'app_exists' => is_array($result['selected_app'] ?? null),
-                        'registry_entry' => $result['selected_app'] ?? null,
+                        'app_exists' => is_array(
+                            $result['selected_app'] ?? null
+                        ),
+                        'registry_entry' =>
+                            $result['selected_app'] ?? null,
                     ],
                     'result' => $result,
                     'error' => is_string($result['error'] ?? null)
@@ -315,22 +344,35 @@ final class OwasysRuntimeController
                 ];
             }
 
-            if ($routeKey === 'build'
-                && $action === 'start-development-server') {
+            if (
+                $routeKey === 'build'
+                && $action === 'start-development-server'
+            ) {
                 if (!is_array($identity)) {
-                    return ['signal' => 'auth_required', 'redirect' => true];
+                    return [
+                        'signal' => 'auth_required',
+                        'redirect' => true,
+                    ];
                 }
                 $currentApp = $this->session->currentApp();
                 if (!is_array($currentApp)) {
-                    throw new RuntimeException('OWASYS_CURRENT_APP_REQUIRED');
+                    throw new RuntimeException(
+                        'OWASYS_CURRENT_APP_REQUIRED'
+                    );
                 }
-                if (strtolower((string) ($currentApp['kind'] ?? ''))
-                    === 'backend') {
+                if (
+                    strtolower((string) ($currentApp['kind'] ?? ''))
+                    === 'backend'
+                ) {
                     throw new RuntimeException(
                         'OWASYS_DEV_PREVIEW_BACKEND_ONLY'
                     );
                 }
-                $this->security->assertAllowed($identity, 'build', 'preview');
+                $this->security->assertAllowed(
+                    $identity,
+                    'build',
+                    'preview'
+                );
                 $result = $this->security->startDevelopmentServer(
                     $identity,
                     (string) ($currentApp['id'] ?? '')
@@ -339,12 +381,20 @@ final class OwasysRuntimeController
                 return [
                     'signal' => 'open_build',
                     'result' => $result,
-                    'external_redirect' => (string) ($result['url'] ?? ''),
+                    'external_redirect' => (string) (
+                        $result['url'] ?? ''
+                    ),
                     'redirect' => false,
                 ];
             }
 
-            $this->fail(400, 'OWASYS_POST_ACTION_INVALID:' . $routeKey . ':' . $action);
+            $this->fail(
+                400,
+                'OWASYS_POST_ACTION_INVALID:'
+                    . $routeKey
+                    . ':'
+                    . $action
+            );
         }
 
         if ($method !== 'GET') {
@@ -357,19 +407,12 @@ final class OwasysRuntimeController
                 : ['signal' => 'change_app', 'redirect' => true];
         }
 
-        if ($routeKey === 'account') {
-            return [
-                'signal' => 'open_account',
-                'redirect' => true,
-            ];
-        }
-        if ($routeKey === 'account/password') {
-            return ['signal' => 'open_account'];
-        }
-
         $signal = $this->resolveSignal($routeKey);
         if ($signal === '') {
-            $this->fail(404, 'OWASYS_ROUTE_NOT_FOUND:' . $routeKey);
+            $this->fail(
+                404,
+                'OWASYS_ROUTE_NOT_FOUND:' . $routeKey
+            );
         }
 
         return [
@@ -382,7 +425,10 @@ final class OwasysRuntimeController
     {
         $current = $fsm->currentState();
 
-        if (!$this->session->isAuthenticated() && $current !== $fsm->initialState()) {
+        if (
+            !$this->session->isAuthenticated()
+            && $current !== $fsm->initialState()
+        ) {
             $fsm->reset();
             $current = $fsm->currentState();
         }
@@ -390,7 +436,10 @@ final class OwasysRuntimeController
         return $current;
     }
 
-    /** @param array<string,mixed>|null $identity @return array<string,mixed> */
+    /**
+     * @param array<string,mixed>|null $identity
+     * @return array<string,mixed>
+     */
     private function fsmContext(?array $identity): array
     {
         $currentApp = $this->session->currentApp();
@@ -398,7 +447,9 @@ final class OwasysRuntimeController
         return [
             'identity' => $identity,
             'is_authenticated' => is_array($identity),
-            'roles' => is_array($identity['roles'] ?? null) ? $identity['roles'] : [],
+            'roles' => is_array($identity['roles'] ?? null)
+                ? $identity['roles']
+                : [],
             'current_app' => $currentApp,
             'has_current_app' => is_array($currentApp),
         ];
@@ -414,16 +465,28 @@ final class OwasysRuntimeController
         $pending = $context['pending_identity'] ?? null;
         $identity = $pending instanceof SsoIdentity
             ? $pending->toSession()
-            : (is_array($context['identity'] ?? null) ? $context['identity'] : null);
+            : (
+                is_array($context['identity'] ?? null)
+                    ? $context['identity']
+                    : null
+            );
 
-        if (($state['requires_auth'] ?? false) === true && !is_array($identity)) {
+        if (
+            ($state['requires_auth'] ?? false) === true
+            && !is_array($identity)
+        ) {
             throw new RuntimeException('OWASYS_AUTH_REQUIRED');
         }
 
         $hasCurrent = is_array($this->session->currentApp())
             || is_array($context['selected_app'] ?? null);
-        if (($state['requires_current_app'] ?? false) === true && !$hasCurrent) {
-            throw new RuntimeException('OWASYS_CURRENT_APP_REQUIRED');
+        if (
+            ($state['requires_current_app'] ?? false) === true
+            && !$hasCurrent
+        ) {
+            throw new RuntimeException(
+                'OWASYS_CURRENT_APP_REQUIRED'
+            );
         }
 
         if (($state['requires_auth'] ?? false) === true) {
@@ -449,8 +512,14 @@ final class OwasysRuntimeController
         $message = $error->getMessage();
 
         if ($message === 'OWASYS_AUTH_REQUIRED') {
-            $transition = $fsm->transition($currentState, 'auth_required', $context);
-            $this->actionHandlersFor($transition)->dispatcher()->dispatch($transition, $context);
+            $transition = $fsm->transition(
+                $currentState,
+                'auth_required',
+                $context
+            );
+            $this->actionHandlersFor($transition)
+                ->dispatcher()
+                ->dispatch($transition, $context);
             $state = (string) $transition['next_state'];
             (new FsmSessionStore(self::FSM_SESSION_KEY))->persist($fsm);
 
@@ -458,16 +527,29 @@ final class OwasysRuntimeController
                 'state' => $state,
                 'error' => '',
                 'redirect' => true,
-                'route' => (string) ($fsm->state($state)['route'] ?? 'login'),
+                'route' => (string) (
+                    $fsm->state($state)['route'] ?? 'login'
+                ),
             ];
         }
 
         if (
             $message === 'OWASYS_CURRENT_APP_REQUIRED'
-            || str_contains($message, 'OPUS_FSM_GUARD_FAILED: current_app_required')
+            || str_contains(
+                $message,
+                'OPUS_FSM_GUARD_FAILED: current_app_required'
+            )
         ) {
-            $transition = $fsm->transition($currentState, 'change_app', $context);
-            $this->assertTargetStateAccess($fsm, (string) $transition['next_state'], $context);
+            $transition = $fsm->transition(
+                $currentState,
+                'change_app',
+                $context
+            );
+            $this->assertTargetStateAccess(
+                $fsm,
+                (string) $transition['next_state'],
+                $context
+            );
             $state = (string) $transition['next_state'];
             (new FsmSessionStore(self::FSM_SESSION_KEY))->persist($fsm);
 
@@ -475,13 +557,22 @@ final class OwasysRuntimeController
                 'state' => $state,
                 'error' => '',
                 'redirect' => true,
-                'route' => (string) ($fsm->state($state)['route'] ?? 'applications'),
+                'route' => (string) (
+                    $fsm->state($state)['route'] ?? 'applications'
+                ),
             ];
         }
 
         $passwordError = $this->passwordErrorKey($message);
-        if ($passwordError !== null && $currentState === 'account') {
-            $failure = $fsm->transition($currentState, 'password_change_failed', $context);
+        if (
+            $passwordError !== null
+            && $currentState === 'password'
+        ) {
+            $failure = $fsm->transition(
+                $currentState,
+                'password_change_failed',
+                $context
+            );
             $state = (string) $failure['next_state'];
             (new FsmSessionStore(self::FSM_SESSION_KEY))->persist($fsm);
 
@@ -498,7 +589,10 @@ final class OwasysRuntimeController
         }
 
         if (str_starts_with($message, 'OPUS_FSM_')) {
-            $this->fail(409, 'OWASYS_FSM_RUNTIME_REJECTED:' . $message);
+            $this->fail(
+                409,
+                'OWASYS_FSM_RUNTIME_REJECTED:' . $message
+            );
         }
 
         $this->fail(409, $message);
@@ -517,24 +611,31 @@ final class OwasysRuntimeController
                 'OWASYS_REGISTRY_ACTION_INVALID:' . $action
             ),
         };
-        $this->security->assertAllowed($identity, $resource, $permission);
+        $this->security->assertAllowed(
+            $identity,
+            $resource,
+            $permission
+        );
     }
 
     private function passwordErrorKey(string $message): ?string
     {
         return match ($message) {
-            'OWASYS_PASSWORD_CONFIRMATION_MISMATCH' => 'auth.error.password_mismatch',
-            'OPUS_SSO_CURRENT_PASSWORD_INVALID' => 'auth.error.current_password_invalid',
-            'OPUS_SSO_NEW_PASSWORD_TOO_SHORT' => 'auth.error.password_too_short',
-            'OPUS_SSO_PASSWORD_UNCHANGED' => 'auth.error.password_unchanged',
-            'OPUS_SSO_SUBJECT_UNKNOWN' => 'auth.error.runtime_user_missing',
+            'OWASYS_PASSWORD_CONFIRMATION_MISMATCH' =>
+                'auth.error.password_mismatch',
+            'OPUS_SSO_CURRENT_PASSWORD_INVALID' =>
+                'auth.error.current_password_invalid',
+            'OPUS_SSO_NEW_PASSWORD_TOO_SHORT' =>
+                'auth.error.password_too_short',
+            'OPUS_SSO_PASSWORD_UNCHANGED' =>
+                'auth.error.password_unchanged',
+            'OPUS_SSO_SUBJECT_UNKNOWN' =>
+                'auth.error.runtime_user_missing',
             default => null,
         };
     }
 
-    /**
-     * @param array<string,mixed>|null $requestResult
-     */
+    /** @param array<string,mixed>|null $requestResult */
     private function renderState(
         FsmProcessor $fsm,
         array $fsmConfig,
@@ -554,11 +655,13 @@ final class OwasysRuntimeController
         if ($module === 'registry') {
             $registryResult = $requestResult
                 ?? $this->registryController()->handle('GET', []);
-            $canonicalCurrent = $this->registryModel()->canonicalCurrent(
-                $currentApp
-            );
+            $canonicalCurrent = $this->registryModel()
+                ->canonicalCurrent($currentApp);
 
-            if (is_array($currentApp) && !is_array($canonicalCurrent)) {
+            if (
+                is_array($currentApp)
+                && !is_array($canonicalCurrent)
+            ) {
                 $this->session->clearCurrentApp();
                 $currentApp = null;
             } elseif (is_array($canonicalCurrent)) {
@@ -568,14 +671,16 @@ final class OwasysRuntimeController
         }
 
         $basePath = $this->basePath();
-        $routeUrl = fn (string $targetRoute): string => $this->routeUrl(
-            $locale,
-            $targetRoute
-        );
+        $routeUrl = fn (string $targetRoute): string =>
+            $this->routeUrl($locale, $targetRoute);
 
         $canChangePassword = is_array($identity)
             && (string) ($identity['provider'] ?? '') === 'local-password'
-            && $this->security->isAllowed($identity, 'account', 'change');
+            && $this->security->isAllowed(
+                $identity,
+                'account',
+                'change'
+            );
 
         $data = [
             'page' => [
@@ -589,42 +694,78 @@ final class OwasysRuntimeController
             'identity' => [
                 'authenticated' => is_array($identity),
                 'label' => (string) ($identity['label'] ?? ''),
-                'primary_role' => (string) ($identity['roles'][0] ?? $identity['profile'] ?? ''),
+                'primary_role' => (string) (
+                    $identity['roles'][0]
+                    ?? $identity['profile']
+                    ?? ''
+                ),
             ],
             'current_app' => [
                 'present' => is_array($currentApp),
                 'id' => (string) ($currentApp['id'] ?? ''),
-                'name' => (string) ($currentApp['name'] ?? $currentApp['id'] ?? ''),
+                'name' => (string) (
+                    $currentApp['name']
+                    ?? $currentApp['id']
+                    ?? ''
+                ),
                 'kind' => (string) ($currentApp['kind'] ?? ''),
-                'root' => (string) ($currentApp['root_path'] ?? ''),
+                'root' => (string) (
+                    $currentApp['root_path'] ?? ''
+                ),
             ],
             'locale' => [
                 'code' => $locale,
                 'name' => $this->locales->name($locale),
-                'flag' => $basePath . '/asset/flags/' . rawurlencode($this->locales->flagCode($locale)) . '.svg',
+                'flag' => $basePath
+                    . '/asset/flags/'
+                    . rawurlencode(
+                        $this->locales->flagCode($locale)
+                    )
+                    . '.svg',
             ],
             'locales' => array_map(
                 fn (string $code): array => [
                     'code' => $code,
                     'name' => $this->locales->name($code),
-                    'flag' => $basePath . '/asset/flags/' . rawurlencode($this->locales->flagCode($code)) . '.svg',
+                    'flag' => $basePath
+                        . '/asset/flags/'
+                        . rawurlencode(
+                            $this->locales->flagCode($code)
+                        )
+                        . '.svg',
                     'url' => $this->routeUrl($code, $route),
                     'active' => $code === $locale,
                 ],
                 $this->locales->codes()
             ),
             'assets' => [
-                'score_css' => $basePath . '/asset/css/owasys.css',
-                'theme_css' => $basePath . '/asset/themes/owasys/css/theme.css?v=p117q',
-                'language_css' => $basePath . '/asset/css/language-switcher.css',
-                'password_js' => $basePath . '/asset/js/password-visibility.js',
+                'score_css' =>
+                    $basePath . '/asset/css/owasys.css',
+                'theme_css' => $basePath
+                    . '/asset/themes/owasys/css/theme.css?v=p117q',
+                'language_css' => $basePath
+                    . '/asset/css/language-switcher.css',
+                'password_js' => $basePath
+                    . '/asset/js/password-visibility.js',
             ],
             'urls' => [
-                'home' => $this->routeUrl($locale, is_array($identity) ? 'applications' : 'login'),
+                'home' => $this->routeUrl(
+                    $locale,
+                    is_array($identity)
+                        ? 'applications'
+                        : 'login'
+                ),
                 'login' => $this->routeUrl($locale, 'login'),
                 'logout' => $this->routeUrl($locale, 'logout'),
-                'account' => $this->routeUrl($locale, 'account/password'),
-                'applications' => $this->routeUrl($locale, 'applications'),
+                'account' => $this->routeUrl($locale, 'account'),
+                'password' => $this->routeUrl(
+                    $locale,
+                    'account/password'
+                ),
+                'applications' => $this->routeUrl(
+                    $locale,
+                    'applications'
+                ),
                 'current' => $this->routeUrl($locale, $route),
             ],
             'navigation' => $this->navigation->build(
@@ -638,23 +779,52 @@ final class OwasysRuntimeController
                 'provider' => $this->security->defaultProvider(),
                 'can_change_password' => $canChangePassword,
                 'cannot_change_password' => !$canChangePassword,
-                'error_required_credentials' => $errorKey === 'auth.error.required_credentials',
-                'error_invalid_credentials' => $errorKey === 'auth.error.invalid_credentials',
-                'error_password_mismatch' => $errorKey === 'auth.error.password_mismatch',
-                'error_password_too_short' => $errorKey === 'auth.error.password_too_short',
-                'error_current_password_invalid' => $errorKey === 'auth.error.current_password_invalid',
-                'error_password_unchanged' => $errorKey === 'auth.error.password_unchanged',
-                'error_runtime_user_missing' => $errorKey === 'auth.error.runtime_user_missing',
+                'error_required_credentials' =>
+                    $errorKey === 'auth.error.required_credentials',
+                'error_invalid_credentials' =>
+                    $errorKey === 'auth.error.invalid_credentials',
+                'error_password_mismatch' =>
+                    $errorKey === 'auth.error.password_mismatch',
+                'error_password_too_short' =>
+                    $errorKey === 'auth.error.password_too_short',
+                'error_current_password_invalid' =>
+                    $errorKey === 'auth.error.current_password_invalid',
+                'error_password_unchanged' =>
+                    $errorKey === 'auth.error.password_unchanged',
+                'error_runtime_user_missing' =>
+                    $errorKey === 'auth.error.runtime_user_missing',
             ],
         ];
 
-        $template = $module . '/templates/index.score';
+        $templateName = trim((string) (
+            $state['template'] ?? 'index.score'
+        ));
+        if (
+            $templateName === ''
+            || str_contains($templateName, '/')
+            || str_contains($templateName, '\\')
+            || str_contains($templateName, '..')
+            || preg_match(
+                '/^[A-Za-z0-9._-]+\.score$/D',
+                $templateName
+            ) !== 1
+        ) {
+            throw new RuntimeException(
+                'OWASYS_STATE_TEMPLATE_INVALID:'
+                    . $stateId
+                    . ':'
+                    . $templateName
+            );
+        }
+        $template = $module . '/templates/' . $templateName;
 
         if ($module === 'registry') {
             $data = array_replace_recursive(
                 $data,
                 $this->registryViewData(
-                    is_array($registryResult) ? $registryResult : [],
+                    is_array($registryResult)
+                        ? $registryResult
+                        : [],
                     $currentApp,
                     $identity
                 )
@@ -681,7 +851,8 @@ final class OwasysRuntimeController
                 'preview_url' => is_array($previewResult)
                     ? (string) ($previewResult['url'] ?? '')
                     : '',
-                'preview_failed' => $errorKey === 'build.preview_failed',
+                'preview_failed' =>
+                    $errorKey === 'build.preview_failed',
             ];
         }
 
@@ -717,26 +888,43 @@ final class OwasysRuntimeController
             $singleton = is_array($entry['singleton'] ?? null)
                 ? $entry['singleton']
                 : [];
-            $singletonCompliant = ($singleton['compliant'] ?? false) === true;
+            $singletonCompliant =
+                ($singleton['compliant'] ?? false) === true;
 
             $entries[] = [
                 'id' => $entryId,
-                'name' => (string) ($entry['name'] ?? $entryId),
-                'root' => (string) ($entry['root_path'] ?? ''),
+                'name' => (string) (
+                    $entry['name'] ?? $entryId
+                ),
+                'root' => (string) (
+                    $entry['root_path'] ?? ''
+                ),
                 'kind' => (string) ($entry['kind'] ?? ''),
                 'role' => (string) ($entry['role'] ?? ''),
-                'locale' => (string) ($entry['default_locale'] ?? ''),
+                'locale' => (string) (
+                    $entry['default_locale'] ?? ''
+                ),
                 'theme' => (string) ($entry['theme'] ?? ''),
                 'status' => (string) ($entry['status'] ?? ''),
                 'current' => $isCurrent,
                 'singleton_compliant' => $singletonCompliant,
                 'singleton_noncompliant' => !$singletonCompliant,
-                'singleton_contract' => (string) ($singleton['contract'] ?? ''),
-                'singleton_class' => (string) ($singleton['class'] ?? ''),
-                'singleton_entrypoint' => (string) ($singleton['entrypoint'] ?? ''),
-                'singleton_error' => (string) ($singleton['error'] ?? ''),
-                'deletable' => ($entry['generated_by'] ?? null) === 'composer'
-                    && ($entry['role'] ?? null) === 'generated-opus-application'
+                'singleton_contract' => (string) (
+                    $singleton['contract'] ?? ''
+                ),
+                'singleton_class' => (string) (
+                    $singleton['class'] ?? ''
+                ),
+                'singleton_entrypoint' => (string) (
+                    $singleton['entrypoint'] ?? ''
+                ),
+                'singleton_error' => (string) (
+                    $singleton['error'] ?? ''
+                ),
+                'deletable' =>
+                    ($entry['generated_by'] ?? null) === 'composer'
+                    && ($entry['role'] ?? null)
+                        === 'generated-opus-application'
                     && !in_array(
                         $entryId,
                         ['owasys-front', 'owasys-back'],
@@ -751,21 +939,33 @@ final class OwasysRuntimeController
                 continue;
             }
             $events[] = [
-                'type' => (string) ($event['event_type'] ?? ''),
-                'application' => (string) ($event['application_id'] ?? ''),
-                'created_at' => (string) ($event['created_at'] ?? ''),
+                'type' => (string) (
+                    $event['event_type'] ?? ''
+                ),
+                'application' => (string) (
+                    $event['application_id'] ?? ''
+                ),
+                'created_at' => (string) (
+                    $event['created_at'] ?? ''
+                ),
             ];
         }
 
-        $sync = is_array($result['sync'] ?? null) ? $result['sync'] : [];
+        $sync = is_array($result['sync'] ?? null)
+            ? $result['sync']
+            : [];
         $singletonCompliant = count(array_filter(
             $entries,
-            static fn (array $entry): bool => ($entry['singleton_compliant'] ?? false) === true
+            static fn (array $entry): bool =>
+                ($entry['singleton_compliant'] ?? false) === true
         ));
         $singletonNoncompliant = count($entries) - $singletonCompliant;
         $discoveryConflicts = [];
 
-        foreach ((array) ($sync['discovery_conflicts'] ?? []) as $conflict) {
+        foreach (
+            (array) ($sync['discovery_conflicts'] ?? [])
+            as $conflict
+        ) {
             if (!is_array($conflict)) {
                 continue;
             }
@@ -780,8 +980,10 @@ final class OwasysRuntimeController
                     $conflict['canonical_root'] ?? ''
                 ),
                 'rejected_roots' => implode(', ', $rejected),
-                'resolved' => ($conflict['resolved'] ?? false) === true,
-                'unresolved' => ($conflict['resolved'] ?? false) !== true,
+                'resolved' =>
+                    ($conflict['resolved'] ?? false) === true,
+                'unresolved' =>
+                    ($conflict['resolved'] ?? false) !== true,
                 'error' => (string) ($conflict['error'] ?? ''),
             ];
         }
@@ -811,15 +1013,28 @@ final class OwasysRuntimeController
                 'can_delete' => $canDelete,
                 'empty' => $entries === [],
                 'events_empty' => $events === [],
-                'error_application_required' => ($result['error'] ?? null) === 'registry.error.application_required',
-                'error_application_not_found' => ($result['error'] ?? null) === 'registry.error.application_not_found',
-                'error_action_invalid' => ($result['error'] ?? null) === 'registry.error.action_invalid',
-                'error_application_protected' => ($result['error'] ?? null) === 'registry.error.application_protected',
-                'error_delete_confirmation' => ($result['error'] ?? null) === 'registry.error.delete_confirmation',
-                'singleton_all_compliant' => $entries !== [] && $singletonNoncompliant === 0,
-                'singleton_has_noncompliant' => $singletonNoncompliant > 0,
+                'error_application_required' =>
+                    ($result['error'] ?? null)
+                        === 'registry.error.application_required',
+                'error_application_not_found' =>
+                    ($result['error'] ?? null)
+                        === 'registry.error.application_not_found',
+                'error_action_invalid' =>
+                    ($result['error'] ?? null)
+                        === 'registry.error.action_invalid',
+                'error_application_protected' =>
+                    ($result['error'] ?? null)
+                        === 'registry.error.application_protected',
+                'error_delete_confirmation' =>
+                    ($result['error'] ?? null)
+                        === 'registry.error.delete_confirmation',
+                'singleton_all_compliant' =>
+                    $entries !== [] && $singletonNoncompliant === 0,
+                'singleton_has_noncompliant' =>
+                    $singletonNoncompliant > 0,
                 'discovery_clean' => $discoveryConflicts === [],
-                'discovery_has_conflicts' => $discoveryConflicts !== [],
+                'discovery_has_conflicts' =>
+                    $discoveryConflicts !== [],
             ],
             'entries' => $entries,
             'events' => $events,
@@ -827,22 +1042,36 @@ final class OwasysRuntimeController
             'sync' => [
                 'database' => (string) ($sync['database'] ?? ''),
                 'total' => (string) ($sync['total'] ?? 0),
-                'seed_imported' => (string) ($sync['seed_imported'] ?? 0),
-                'discovered_imported' => (string) ($sync['discovered_imported'] ?? 0),
-                'discovered_candidates' => (string) ($sync['discovered_candidates'] ?? 0),
-                'duplicate_ids' => (string) ($sync['duplicate_ids'] ?? 0),
-                'duplicate_roots' => (string) ($sync['duplicate_roots'] ?? 0),
-                'singleton_compliant' => (string) $singletonCompliant,
-                'singleton_noncompliant' => (string) $singletonNoncompliant,
+                'seed_imported' => (string) (
+                    $sync['seed_imported'] ?? 0
+                ),
+                'discovered_imported' => (string) (
+                    $sync['discovered_imported'] ?? 0
+                ),
+                'discovered_candidates' => (string) (
+                    $sync['discovered_candidates'] ?? 0
+                ),
+                'duplicate_ids' => (string) (
+                    $sync['duplicate_ids'] ?? 0
+                ),
+                'duplicate_roots' => (string) (
+                    $sync['duplicate_roots'] ?? 0
+                ),
+                'singleton_compliant' =>
+                    (string) $singletonCompliant,
+                'singleton_noncompliant' =>
+                    (string) $singletonNoncompliant,
             ],
         ];
     }
 
-
     /** @param array<string,mixed> $transition */
-    private function actionHandlersFor(array $transition): OwasysFsmActionHandlers
-    {
-        $actions = is_array($transition['actions'] ?? null) ? $transition['actions'] : [];
+    private function actionHandlersFor(
+        array $transition
+    ): OwasysFsmActionHandlers {
+        $actions = is_array($transition['actions'] ?? null)
+            ? $transition['actions']
+            : [];
         $requiresRegistry = array_intersect(
             $actions,
             ['set_current_app', 'start_creation_flow']
@@ -872,8 +1101,13 @@ final class OwasysRuntimeController
 
     private function registryController(): OwasysRegistryController
     {
-        if (!$this->registryController instanceof OwasysRegistryController) {
-            $this->registryController = new OwasysRegistryController($this->registryModel());
+        if (
+            !$this->registryController
+                instanceof OwasysRegistryController
+        ) {
+            $this->registryController = new OwasysRegistryController(
+                $this->registryModel()
+            );
         }
 
         return $this->registryController;
@@ -918,9 +1152,18 @@ final class OwasysRuntimeController
         $navigation = is_array($this->siteConfig['navigation'] ?? null)
             ? $this->siteConfig['navigation']
             : [];
-        $relative = trim(str_replace('\\', '/', (string) ($navigation['fsm'] ?? '')), '/');
+        $relative = trim(
+            str_replace(
+                '\\',
+                '/',
+                (string) ($navigation['fsm'] ?? '')
+            ),
+            '/'
+        );
         if ($relative === '' || str_contains($relative, '..')) {
-            throw new RuntimeException('OWASYS_FSM_CONFIG_PATH_INVALID');
+            throw new RuntimeException(
+                'OWASYS_FSM_CONFIG_PATH_INVALID'
+            );
         }
 
         return $this->readJson(
@@ -929,8 +1172,6 @@ final class OwasysRuntimeController
         );
     }
 
-    /** @return array<string,string> */
-
     /** @return array<string,mixed> */
     private function readJson(string $path, string $error): array
     {
@@ -938,15 +1179,21 @@ final class OwasysRuntimeController
             return StructuredFileLoader::instance()->read($path);
         } catch (Throwable $cause) {
             throw new RuntimeException(
-                $error . ':' . $path . ':' . $cause->getMessage(),
+                $error
+                    . ':'
+                    . $path
+                    . ':'
+                    . $cause->getMessage(),
                 0,
                 $cause
             );
         }
     }
 
-    private function routeUrl(string $locale, string $route): string
-    {
+    private function routeUrl(
+        string $locale,
+        string $route
+    ): string {
         return $this->localizedRoutes->url(
             $this->basePath(),
             $locale,
@@ -956,7 +1203,11 @@ final class OwasysRuntimeController
 
     private function basePath(): string
     {
-        $script = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+        $script = str_replace(
+            '\\',
+            '/',
+            (string) ($_SERVER['SCRIPT_NAME'] ?? '')
+        );
         $directory = str_replace('\\', '/', dirname($script));
 
         return in_array($directory, ['/', '.', ''], true)
@@ -969,11 +1220,16 @@ final class OwasysRuntimeController
         string $locale,
         string $route,
         array $query = []
-    ): never
-    {
+    ): never {
         $url = $this->routeUrl($locale, $route);
         if ($query !== []) {
-            $url .= '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+            $url .= '?'
+                . http_build_query(
+                    $query,
+                    '',
+                    '&',
+                    PHP_QUERY_RFC3986
+                );
         }
         header('Location: ' . $url, true, 303);
         exit;
@@ -981,10 +1237,12 @@ final class OwasysRuntimeController
 
     private function redirectExternal(string $url): never
     {
-        if ($url === ''
+        if (
+            $url === ''
             || str_contains($url, "\r")
             || str_contains($url, "\n")
-            || str_contains($url, "\0")) {
+            || str_contains($url, "\0")
+        ) {
             throw new RuntimeException(
                 'OWASYS_EXTERNAL_REDIRECT_INVALID'
             );
@@ -1001,14 +1259,20 @@ final class OwasysRuntimeController
             ? (int) $parts['port']
             : 0;
 
-        if (!is_array($parts)
+        if (
+            !is_array($parts)
             || $scheme !== 'http'
-            || !in_array($host, ['127.0.0.1', 'localhost', '::1'], true)
+            || !in_array(
+                $host,
+                ['127.0.0.1', 'localhost', '::1'],
+                true
+            )
             || $port < 1024
             || $port > 65535
             || isset($parts['user'])
             || isset($parts['pass'])
-            || isset($parts['fragment'])) {
+            || isset($parts['fragment'])
+        ) {
             throw new RuntimeException(
                 'OWASYS_EXTERNAL_REDIRECT_INVALID'
             );
