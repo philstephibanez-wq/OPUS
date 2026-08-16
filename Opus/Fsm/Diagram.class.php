@@ -67,6 +67,21 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     /** @var list<string> */
     private array $_fallbackEffects = [];
 
+    /**
+     * Current render geometry, used only to keep transition labels readable.
+     *
+     * @var array<string,array{x:float,y:float,w:float,h:float,rank:int}>
+     */
+    private array $_renderPositions = [];
+
+    /**
+     * Reserved transition-label rectangles for deterministic collision
+     * avoidance inside one SVG render.
+     *
+     * @var list<array{x1:float,y1:float,x2:float,y2:float}>
+     */
+    private array $_renderedLabelBoxes = [];
+
     public function __construct(
         string $title = 'OPUS FSM',
         string $initialState = '',
@@ -653,8 +668,11 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $width = $layout['width'];
         $height = $layout['height'];
 
+        $this->_renderPositions = $positions;
+        $this->_renderedLabelBoxes = [];
+
         $svg = '<svg class="fsm-diagram"'
-            . ' data-opus-fsm-routing="lane-aware-fanout-v2"'
+            . ' data-opus-fsm-routing="lane-aware-v3"'
             . ' width="' . self::n($width)
             . '" height="' . self::n($height)
             . '" viewBox="0 0 '
@@ -776,8 +794,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     {
         $nodeW = $this->_compactLayout ? 176.0 : 204.0;
         $nodeH = $this->_compactLayout ? 68.0 : 76.0;
-        $rankGap = $this->_compactLayout ? 38.0 : 150.0;
-        $rowGap = $this->_compactLayout ? 48.0 : 66.0;
+        $rankGap = $this->_compactLayout ? 38.0 : 178.0;
+        $rowGap = $this->_compactLayout ? 48.0 : 82.0;
         $marginX = $this->_compactLayout ? 48.0 : 110.0;
         $marginY = $this->hasGlobalSource()
             ? ($this->_compactLayout ? 126.0 : 158.0)
@@ -1112,9 +1130,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                     * max(1.0, $toPos['h'] - 20.0);
         }
 
-        $laneRouting = $this->_compactLayout
-            && $this->_layoutRoot !== ''
-            && $forward
+        $laneRouting = $forward
             && $sourceTotal > 1;
 
         if ($laneRouting) {
@@ -1123,7 +1139,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             $x2 = $toPos['x'];
             $y2 = $targetPortY;
 
-            $laneGap = 28.0;
+            $laneGap = $this->_compactLayout ? 28.0 : 32.0;
             $laneY = $fromPos['y']
                 + $fromPos['h'] / 2
                 + (
@@ -1171,9 +1187,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
 
         if ($forward) {
             $x1 = $fromPos['x'] + $fromPos['w'];
-            $y1 = $fromPos['y'] + $fromPos['h'] / 2;
+            $y1 = $sourcePortY;
             $x2 = $toPos['x'];
-            $y2 = $toPos['y'] + $toPos['h'] / 2;
+            $y2 = $targetPortY;
         } elseif ($sameRank) {
             $x1 = $fromPos['x'] + $fromPos['w'] / 2;
             $y1 = $fromPos['y'] + $fromPos['h'];
@@ -1181,16 +1197,39 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             $y2 = $toPos['y'];
         } else {
             $x1 = $fromPos['x'];
-            $y1 = $fromPos['y'] + $fromPos['h'] / 2;
+            $y1 = $sourcePortY;
             $x2 = $toPos['x'] + $toPos['w'];
-            $y2 = $toPos['y'] + $toPos['h'] / 2;
+            $y2 = $targetPortY;
         }
 
         $spread = ($ordinal - (($total - 1) / 2)) * 30.0;
         $distance = max(60.0, abs($x2 - $x1) * 0.44);
 
-        if ($sameRank) {
-            $controlY = min($y1, $y2) - 55.0 - abs($spread);
+        if ($sameRank
+            && abs($fromPos['x'] - $toPos['x']) < 1.0) {
+            /*
+             * States in the same ranked column connect around the column,
+             * not above the upper node. This removes a major source of
+             * collisions between same-rank returns and state self-loops.
+             */
+            $leftX = min($fromPos['x'], $toPos['x']);
+            $sideX = $leftX - 74.0 - abs($spread);
+            $x1 = $fromPos['x'];
+            $y1 = $fromPos['y'] + $fromPos['h'] / 2;
+            $x2 = $toPos['x'];
+            $y2 = $toPos['y'] + $toPos['h'] / 2;
+
+            $path = 'M' . self::n($x1) . ' ' . self::n($y1)
+                . ' C'
+                . self::n($sideX) . ' ' . self::n($y1)
+                . ', '
+                . self::n($sideX) . ' ' . self::n($y2)
+                . ', '
+                . self::n($x2) . ' ' . self::n($y2);
+            $labelX = $sideX;
+            $labelY = ($y1 + $y2) / 2 - 8.0;
+        } elseif ($sameRank) {
+            $controlY = min($y1, $y2) - 62.0 - abs($spread);
             $path = 'M' . self::n($x1) . ' ' . self::n($y1)
                 . ' C'
                 . self::n($x1 + $spread) . ' '
@@ -1206,7 +1245,11 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         } else {
             $curveY = $spread;
             if (!$forward) {
-                $curveY -= 46.0;
+                $targetSpread = (
+                    $targetOrdinal
+                    - (($targetTotal - 1) / 2)
+                ) * 16.0;
+                $curveY += $targetSpread - 34.0;
             }
             $path = 'M' . self::n($x1) . ' ' . self::n($y1)
                 . ' C'
@@ -1261,6 +1304,19 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         );
         $labelHeight = 20.0;
 
+        [$labelX, $labelY] = $this->reserveTransitionLabel(
+            $labelX,
+            $labelY,
+            $labelWidth,
+            $labelHeight
+        );
+
+        $link = $this->_transitionLinks[$id] ?? null;
+        $actionable = is_string($link) && $link !== '';
+        if ($actionable) {
+            $class .= ' actionable';
+        }
+
         $labelSvg = '<g class="fsm-edge-label-box">'
             . '<rect class="fsm-edge-label-bg" x="'
             . self::n($labelX - $labelWidth / 2)
@@ -1284,13 +1340,12 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             . '</text>'
             . '</g>';
 
-        $link = $this->_transitionLinks[$id] ?? null;
-        if (is_string($link)) {
+        if ($actionable) {
             $labelSvg = '<a class="fsm-signal-link" href="'
                 . self::h($link)
                 . '" aria-label="'
                 . self::h($label)
-                . '">'
+                . '" role="link" tabindex="0" focusable="true">'
                 . $labelSvg
                 . '</a>';
         }
@@ -1302,6 +1357,133 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             . '" marker-end="url(#fsm-arrow)" />'
             . $labelSvg
             . '</g>';
+    }
+
+    /**
+     * Reserve a readable transition-label box. Routing remains semantic;
+     * only the visual label position is nudged when it would collide with an
+     * earlier label or a state node.
+     *
+     * @return array{0:float,1:float}
+     */
+    private function reserveTransitionLabel(
+        float $labelX,
+        float $labelY,
+        float $width,
+        float $height
+    ): array {
+        $offsets = [
+            0.0,
+            26.0,
+            -26.0,
+            52.0,
+            -52.0,
+            78.0,
+            -78.0,
+            104.0,
+            -104.0,
+        ];
+
+        $xOffsets = [
+            0.0,
+            34.0,
+            -34.0,
+            68.0,
+            -68.0,
+            102.0,
+            -102.0,
+        ];
+
+        foreach ($offsets as $offsetY) {
+            foreach ($xOffsets as $offsetX) {
+                $candidateX = $labelX + $offsetX;
+                $candidateY = max(78.0, $labelY + $offsetY);
+                $box = $this->transitionLabelBox(
+                    $candidateX,
+                    $candidateY,
+                    $width,
+                    $height
+                );
+
+                if ($this->labelBoxCollides($box)) {
+                    continue;
+                }
+
+                $this->_renderedLabelBoxes[] = $box;
+                return [$candidateX, $candidateY];
+            }
+        }
+
+        $candidateY = max(78.0, $labelY);
+        $box = $this->transitionLabelBox(
+            $labelX,
+            $candidateY,
+            $width,
+            $height
+        );
+        $this->_renderedLabelBoxes[] = $box;
+
+        return [$labelX, $candidateY];
+    }
+
+    /**
+     * @return array{x1:float,y1:float,x2:float,y2:float}
+     */
+    private function transitionLabelBox(
+        float $labelX,
+        float $labelY,
+        float $width,
+        float $height
+    ): array {
+        $padding = 5.0;
+
+        return [
+            'x1' => $labelX - $width / 2 - $padding,
+            'y1' => $labelY - 14.0 - $padding,
+            'x2' => $labelX + $width / 2 + $padding,
+            'y2' => $labelY - 14.0 + $height + $padding,
+        ];
+    }
+
+    /**
+     * @param array{x1:float,y1:float,x2:float,y2:float} $box
+     */
+    private function labelBoxCollides(array $box): bool
+    {
+        foreach ($this->_renderedLabelBoxes as $reserved) {
+            if ($this->boxesIntersect($box, $reserved)) {
+                return true;
+            }
+        }
+
+        foreach ($this->_renderPositions as $position) {
+            $node = [
+                'x1' => $position['x'] - 5.0,
+                'y1' => $position['y'] - 5.0,
+                'x2' => $position['x'] + $position['w'] + 5.0,
+                'y2' => $position['y'] + $position['h'] + 5.0,
+            ];
+
+            if ($this->boxesIntersect($box, $node)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array{x1:float,y1:float,x2:float,y2:float} $left
+     * @param array{x1:float,y1:float,x2:float,y2:float} $right
+     */
+    private function boxesIntersect(array $left, array $right): bool
+    {
+        return !(
+            $left['x2'] <= $right['x1']
+            || $left['x1'] >= $right['x2']
+            || $left['y2'] <= $right['y1']
+            || $left['y1'] >= $right['y2']
+        );
     }
 
     /**
@@ -1629,10 +1811,12 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     .fsm-node-link { cursor:pointer; text-decoration:none; }
     .fsm-node-link:hover .fsm-node rect,
     .fsm-node-link:focus .fsm-node rect { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:3; }
-    .fsm-signal-link { cursor:pointer; text-decoration:none; }
-    .fsm-signal-link .fsm-edge-label { fill:var(--opus-fsm-signal,#6ce3ff); text-decoration:underline; font-weight:800; }
+    .fsm-signal-link { cursor:pointer; text-decoration:none; outline:none; }
+    .fsm-transition.actionable .fsm-edge { stroke:var(--opus-fsm-signal,#6ce3ff); stroke-width:2.05; }
+    .fsm-signal-link .fsm-edge-label { fill:var(--opus-fsm-signal,#6ce3ff); text-decoration:none; font-weight:800; }
     .fsm-signal-link:hover .fsm-edge-label,
-    .fsm-signal-link:focus .fsm-edge-label { fill:var(--opus-fsm-focus,#fbbf24); }
+    .fsm-signal-link:focus .fsm-edge-label,
+    .fsm-signal-link:focus-visible .fsm-edge-label { fill:var(--opus-fsm-signal,#6ce3ff); }
     .fsm-state-label { fill:var(--opus-fsm-state-text,#f6f8ff); font-size:13px; font-weight:800; text-anchor:middle; }
     .fsm-node-tag { fill:var(--opus-fsm-signal,#6ce3ff); font-size:10px; font-weight:800; text-anchor:middle; }
     .fsm-state-annotation { fill:var(--opus-fsm-muted,#b8c5de); font-size:9px; text-anchor:middle; }

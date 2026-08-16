@@ -10,7 +10,7 @@
   --opus-fsm-signal: var(--ow-accent);
   --opus-fsm-state-text: var(--ow-text);
   --opus-fsm-edge: rgba(184, 197, 222, .58);
-  --opus-fsm-return: var(--ow-accent);
+  --opus-fsm-return: var(--ow-muted);
   --opus-fsm-loop: var(--ow-warn);
   --opus-fsm-label: var(--ow-text);
   --opus-fsm-label-halo: var(--ow-panel);
@@ -222,6 +222,12 @@
   text-decoration: none;
 }
 
+/* P117W_R45B2A4AC: cyan is reserved for actionable transitions. */
+.ow-fsm-native-canvas .fsm-transition.actionable .fsm-edge {
+  stroke: var(--ow-accent);
+  stroke-width: 2.1;
+}
+
 .ow-fsm-native-canvas
   .fsm-signal-link
   .fsm-edge-label-box {
@@ -281,6 +287,20 @@
   .fsm-edge-label {
   fill: var(--ow-panel);
   stroke: transparent;
+}
+
+.ow-fsm-native-canvas
+  .fsm-transition.actionable:has(.fsm-signal-link:hover)
+  .fsm-edge,
+.ow-fsm-native-canvas
+  .fsm-transition.actionable:has(.fsm-signal-link:focus)
+  .fsm-edge,
+.ow-fsm-native-canvas
+  .fsm-transition.actionable:has(.fsm-signal-link:focus-visible)
+  .fsm-edge {
+  stroke: var(--ow-accent);
+  stroke-width: 2.8;
+  filter: drop-shadow(0 0 4px var(--ow-accent));
 }
 
 /* Passive labels never advertise clickability. */

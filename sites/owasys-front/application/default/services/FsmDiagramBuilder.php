@@ -5,7 +5,7 @@ use Opus\File\StructuredFileLoader;
 
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4AB';
+    private const REVISION = 'P117W_R45B2A4AC';
 
     /**
      * Stable presentation order for the fixed OWASYS FSM.
