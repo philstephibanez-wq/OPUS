@@ -2,13 +2,14 @@
   class="ow-global-nav ow-fsm-menu"
   aria-label="[[ i18n: navigation.main ]]"
   data-fsm-menu-contract="OWASYS_FSM_MENU_V1"
+  data-fsm-menu-behavior="native-exclusive-autocollapse"
 >
   [[ foreach: navigation as item ]]
     [[ if: item.allowed ]]
       <details
+        name="owasys-fsm-navigation"
         class="ow-fsm-menu-state[[ if: item.active ]] is-active[[ endif ]][[ if: item.available ]][[ else ]] is-disabled[[ endif ]]"
         data-state="{{ item.id }}"
-        [[ if: item.active ]]open[[ endif ]]
       >
         <summary
           class="ow-fsm-menu-state-label"

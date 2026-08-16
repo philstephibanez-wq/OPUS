@@ -3,11 +3,11 @@
   data-context="OWASYS_NATIVE_FSM_NAVIGATION"
   data-owasys-fsm-diagram
   data-fsm-ui-contract="OWASYS_FSM_MENU_V1"
-  data-fsm-ui-revision="P117W_R45B2A4N"
+  data-fsm-ui-revision="P117W_R45B2A4Z"
 >
   <div class="ow-fsm-heading">
     <h2>[[ i18n: navigation.main ]] · FSM</h2>
-    <small class="ow-fsm-ui-revision">menu = FSM · A4N</small>
+    <small class="ow-fsm-ui-revision">menu = FSM · graphe fixe classique · A4Z</small>
   </div>
   <p class="ow-muted">{{ fsm_diagram.description }}</p>
   <div class="ow-fsm-native-canvas">
