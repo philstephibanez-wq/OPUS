@@ -23,7 +23,7 @@
             "title_key": "menu.account",
             "summary_key": "menu.account",
             "navigation": {
-                "visible": true,
+                "visible": false,
                 "order": 80,
                 "label": "menu.account"
             }
@@ -38,7 +38,7 @@
             "title_key": "auth.change_password",
             "summary_key": "auth.change_password_description",
             "navigation": {
-                "visible": true,
+                "visible": false,
                 "order": 90,
                 "label": "auth.change_password"
             }

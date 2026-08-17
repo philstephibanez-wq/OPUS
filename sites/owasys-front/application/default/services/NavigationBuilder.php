@@ -19,19 +19,23 @@ final class OwasysNavigationBuilder
     }
 
     /**
-     * Builds the user-navigation menu directly from the canonical FSM.
+     * Builds both the internal FSM navigation projection and the visible
+     * OWASYS development bar from the canonical FSM.
      *
      * Contract:
-     * - one projected state = one menu entry;
-     * - FSM signals remain complete and authoritative;
-     * - only signal-registry entries with menu=true are projected in menus;
-     * - every menu signal must be type=navigation and have a GET route;
-     * - command/outcome/system signals remain in the FSM/diagram/profiler but
-     *   never pollute the user navigation menu;
-     * - state entries never perform transitions;
-     * - only a signal belonging to the current state may be actionable;
-     * - URLs come from OPUS_SIGNAL_ROUTES_V2, never from a parallel menu
-     *   registry.
+     * - all canonical states stay in the returned projection so the fixed
+     *   FSM diagram can validate labels and transition actionability;
+     * - only states with navigation.visible=true belong to the visible bar;
+     * - the visible bar contains direct state links, never duplicated signal
+     *   dropdowns;
+     * - a direct state URL is never taken directly from state.route: it is
+     *   resolved from the exact menu=true navigation transition whose source
+     *   is the runtime current state and whose target is that state;
+     * - command/outcome/system signals remain FSM/diagram/profiler facts and
+     *   never become visible global navigation entries;
+     * - current-state transition actionability and ACL/availability remain
+     *   authoritative;
+     * - URLs come only from OPUS_SIGNAL_ROUTES_V2.
      *
      * @param array<string,mixed> $fsmConfig
      * @param array<string,mixed>|null $identity
@@ -99,6 +103,7 @@ final class OwasysNavigationBuilder
                 'module' => $module,
                 'label_key' => $labelKey,
                 'label' => '',
+                'visible' => ($navigation['visible'] ?? false) === true,
                 'allowed' => $allowed,
                 'available' => $available,
                 'requires_current_app' => $requiresCurrentApp,
@@ -106,6 +111,10 @@ final class OwasysNavigationBuilder
                 'order' => (int) (
                     $navigation['order'] ?? (1000 + $stateOrdinal)
                 ),
+                'url' => '',
+                'entry_actionable' => false,
+                'entry_transition_id' => '',
+                'entry_signal' => '',
                 'has_signals' => false,
                 'signals' => [],
             ];
@@ -122,9 +131,16 @@ final class OwasysNavigationBuilder
             $itemsById[(string) $item['id']] = $index;
         }
 
+        if (!isset($itemsById[$currentState])) {
+            throw new RuntimeException(
+                'OWASYS_NAVIGATION_CURRENT_STATE_UNKNOWN:' . $currentState
+            );
+        }
+
         $signalRegistry = $this->signalRegistry($fsmConfig);
         $signalRoutes = $this->signalRoutes();
         $transitionIds = [];
+        $directTargets = [];
 
         foreach ((array) ($fsmConfig['transitions'] ?? []) as $transition) {
             if (!is_array($transition)) {
@@ -143,7 +159,10 @@ final class OwasysNavigationBuilder
             $signal = trim((string) ($transition['signal'] ?? ''));
             $interrupt = trim((string) ($transition['interrupt'] ?? ''));
 
-            if ($transitionId === '' || $from === '' || $to === '' || $signal === '') {
+            if ($transitionId === ''
+                || $from === ''
+                || $to === ''
+                || $signal === '') {
                 throw new RuntimeException(
                     'OWASYS_NAVIGATION_TRANSITION_FIELDS_INVALID'
                 );
@@ -193,10 +212,12 @@ final class OwasysNavigationBuilder
             }
 
             $sourceIndex = $itemsById[$from];
-            $target = $items[$itemsById[$to]];
+            $targetIndex = $itemsById[$to];
+            $target = $items[$targetIndex];
             $actionable = $from === $currentState
                 && ($target['allowed'] ?? false) === true
                 && ($target['available'] ?? false) === true;
+            $url = $actionable ? $routeUrl($mappedRoute) : '';
 
             $items[$sourceIndex]['signals'][] = [
                 'transition_id' => $transitionId,
@@ -205,7 +226,7 @@ final class OwasysNavigationBuilder
                 'target' => $to,
                 'target_label_key' => (string) ($target['label_key'] ?? ''),
                 'target_label' => '',
-                'url' => $actionable ? $routeUrl($mappedRoute) : '',
+                'url' => $url,
                 'actionable' => $actionable,
                 'has_route' => true,
                 'trigger_route' => $mappedRoute,
@@ -215,6 +236,22 @@ final class OwasysNavigationBuilder
                     && ($target['available'] ?? false) === true,
                 'order' => (int) ($target['order'] ?? PHP_INT_MAX),
             ];
+
+            if (!$actionable) {
+                continue;
+            }
+
+            if (isset($directTargets[$to])) {
+                throw new RuntimeException(
+                    'OWASYS_NAVIGATION_DIRECT_TARGET_AMBIGUOUS:'
+                    . $currentState . ':' . $to
+                );
+            }
+            $directTargets[$to] = $transitionId;
+            $items[$targetIndex]['url'] = $url;
+            $items[$targetIndex]['entry_actionable'] = true;
+            $items[$targetIndex]['entry_transition_id'] = $transitionId;
+            $items[$targetIndex]['entry_signal'] = $signal;
         }
 
         foreach ($items as $index => $item) {
@@ -222,9 +259,27 @@ final class OwasysNavigationBuilder
                 $items[$index]['signals'],
                 static fn (array $left, array $right): int =>
                     ($left['order'] <=> $right['order'])
-                    ?: strcmp((string) $left['signal'], (string) $right['signal'])
+                    ?: strcmp(
+                        (string) $left['signal'],
+                        (string) $right['signal']
+                    )
             );
-            $items[$index]['has_signals'] = $items[$index]['signals'] !== [];
+            $items[$index]['has_signals'] =
+                $items[$index]['signals'] !== [];
+
+            if (($items[$index]['visible'] ?? false) !== true
+                || ($items[$index]['allowed'] ?? false) !== true
+                || ($items[$index]['available'] ?? false) !== true) {
+                continue;
+            }
+            if (($items[$index]['entry_actionable'] ?? false) !== true) {
+                throw new RuntimeException(
+                    'OWASYS_NAVIGATION_VISIBLE_TARGET_UNREACHABLE:'
+                    . $currentState
+                    . ':'
+                    . (string) ($items[$index]['id'] ?? '')
+                );
+            }
         }
 
         return $items;
