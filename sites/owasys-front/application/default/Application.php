@@ -181,8 +181,10 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
             $httpSpanEnded = true;
         } catch (Throwable $error) {
             $code = $this->safeErrorCode($error);
+            $responseStatus = $this->failureStatus($code);
             $this->logger->error('owasys.front', 'request.failed', [
                 'error_code' => $code,
+                'status_code' => $responseStatus,
                 'exception_class' => $error::class,
                 'exception_file' => $error->getFile(),
                 'exception_line' => $error->getLine(),
@@ -190,26 +192,34 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
             $this->profiler->event(
                 'owasys.front',
                 'request.failed',
-                ['error_code' => $code],
+                [
+                    'error_code' => $code,
+                    'status_code' => $responseStatus,
+                ],
                 'error',
                 $httpSpanId
             );
             $this->profiler->event('http', 'http.exception.caught', [
                 'error_code' => $code,
+                'status_code' => $responseStatus,
                 'exception_class' => $error::class,
             ], 'error', $httpSpanId);
-            $this->profiler->endSpan($httpSpanId, 'error', [
-                'error_code' => $code,
-            ]);
-            $httpSpanEnded = true;
             if (!headers_sent()) {
                 header('X-Opus-Trace-Id: ' . $traceId);
             }
             $this->renderFailure(
                 $code,
                 $traceId,
-                $this->failureStatus($code)
+                $responseStatus
             );
+            $this->profiler->event('http', 'http.response.sent', [
+                'status_code' => $responseStatus,
+            ], 'error', $httpSpanId);
+            $this->profiler->endSpan($httpSpanId, 'error', [
+                'error_code' => $code,
+                'status_code' => $responseStatus,
+            ]);
+            $httpSpanEnded = true;
         } finally {
             if (!$httpSpanEnded) {
                 $this->profiler->endSpan($httpSpanId, 'error', [
@@ -370,6 +380,11 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
 
     private function failureStatus(string $code): int
     {
+        $responseStatus = http_response_code();
+        if ($responseStatus >= 400 && $responseStatus <= 599) {
+            return $responseStatus;
+        }
+
         if ($code === 'OPUS_ACL_DENIED'
             || str_starts_with($code, 'OPUS_ACL_DENIED:')) {
             return 403;

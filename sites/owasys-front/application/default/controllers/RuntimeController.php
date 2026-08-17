@@ -64,6 +64,10 @@ final class OwasysRuntimeController
                 $identity
             );
         } catch (Throwable $error) {
+            $responseStatus = http_response_code();
+            if ($responseStatus >= 400 && $responseStatus <= 599) {
+                throw $error;
+            }
             if (str_starts_with($error->getMessage(), 'OPUS_ACL_DENIED:')) {
                 $this->fail(403, $error->getMessage());
             }
@@ -1286,7 +1290,6 @@ final class OwasysRuntimeController
     private function fail(int $status, string $message): never
     {
         http_response_code($status);
-        header('Content-Type: text/plain; charset=UTF-8');
-        exit($message);
+        throw new RuntimeException($message);
     }
 }
