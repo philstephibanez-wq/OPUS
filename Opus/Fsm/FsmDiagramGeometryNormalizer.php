@@ -50,6 +50,7 @@ final class FsmDiagramGeometryNormalizer implements
         [$svgWidth, $svgHeight] = $this->svgDimensions($html);
         $nodes = $this->nodeRectangles($html);
         [$minNodeY, $maxNodeBottom] = $this->nodeVerticalBounds($nodes);
+        $actionableLinks = $this->actionableSignalLinks($html, $nodes);
         $groups = $this->outerTransitionGroups($html);
 
         if ($groups !== []) {
@@ -64,8 +65,10 @@ final class FsmDiagramGeometryNormalizer implements
                     $geometry['y2'],
                     $nodes
                 );
-                $key = $direction . "\0" . $label . "\0" . $targetState;
+                $semanticKey = $label . "\0" . $targetState;
+                $key = $direction . "\0" . $semanticKey;
                 $groups[$index]['direction'] = $direction;
+                $groups[$index]['semantic_key'] = $semanticKey;
                 $groups[$index]['lane_key'] = $key;
                 $groups[$index]['actionable'] = str_contains(
                     $group['html'],
@@ -114,7 +117,8 @@ final class FsmDiagramGeometryNormalizer implements
                 $replacement = $this->normalizeOuterGroup(
                     $group['html'],
                     $laneYByKey[$key],
-                    ($labelOwnerByKey[$key] ?? $index) === $index
+                    ($labelOwnerByKey[$key] ?? $index) === $index,
+                    $actionableLinks[$group['semantic_key']] ?? null
                 );
                 $html = substr($html, 0, $group['start'])
                     . $replacement
@@ -136,7 +140,7 @@ final class FsmDiagramGeometryNormalizer implements
         );
         return str_replace(
             'data-opus-fsm-routing="lane-aware-v4-signal-types"',
-            'data-opus-fsm-routing="bounded-orthogonal-v6-responsive"',
+            'data-opus-fsm-routing="bounded-orthogonal-v7-shared-action"',
             $html
         );
     }
@@ -228,9 +232,14 @@ final class FsmDiagramGeometryNormalizer implements
         foreach ($nodes as $node) {
             $insideX = $x >= $node['x'] - $epsilon
                 && $x <= $node['x'] + $node['w'] + $epsilon;
+            $insideY = $y >= $node['y'] - $epsilon
+                && $y <= $node['y'] + $node['h'] + $epsilon;
             $onHorizontalBoundary = abs($y - $node['y']) <= $epsilon
                 || abs($y - ($node['y'] + $node['h'])) <= $epsilon;
-            if ($insideX && $onHorizontalBoundary) {
+            $onVerticalBoundary = abs($x - $node['x']) <= $epsilon
+                || abs($x - ($node['x'] + $node['w'])) <= $epsilon;
+            if (($insideX && $onHorizontalBoundary)
+                || ($insideY && $onVerticalBoundary)) {
                 return $node['id'];
             }
         }
@@ -238,7 +247,72 @@ final class FsmDiagramGeometryNormalizer implements
     }
 
     /**
-     * @return list<array{start:int,end:int,html:string,direction:string,lane_key?:string,actionable?:bool}>
+     * Resolve the semantic actionability of signal labels before visual rail
+     * merging. The actionable transition may be a short/local edge while a
+     * different passive clone owns the shared outer rail. In that case the
+     * shared visual label must inherit the exact current transition URL.
+     *
+     * @param list<array{id:string,x:float,y:float,w:float,h:float}> $nodes
+     * @return array<string,string> semantic signal+target key => escaped href
+     */
+    private function actionableSignalLinks(string $html, array $nodes): array
+    {
+        $links = [];
+        if (preg_match_all(
+            '/<g\b[^>]*class="[^"]*\bfsm-transition\b[^"]*\bactionable\b[^"]*"'
+                . '[^>]*data-transition-id="[^"]+"[^>]*>/s',
+            $html,
+            $matches,
+            PREG_OFFSET_CAPTURE
+        ) < 1) {
+            return [];
+        }
+
+        foreach ($matches[0] as [$tag, $start]) {
+            $openEnd = $start + strlen($tag);
+            $end = $this->matchingGroupEnd($html, $openEnd);
+            $group = substr($html, $start, $end - $start);
+            $geometry = $this->pathGeometry($group);
+            $label = $this->transitionLabelText($group);
+            if ($label === '') {
+                continue;
+            }
+            $targetState = $this->targetStateForEndpoint(
+                $geometry['x2'],
+                $geometry['y2'],
+                $nodes
+            );
+            if (preg_match(
+                '/<a\b[^>]*class="[^"]*\bfsm-signal-link\b[^"]*"'
+                    . '[^>]*\bhref="([^"]+)"/s',
+                $group,
+                $hrefMatch
+            ) !== 1) {
+                throw new RuntimeException(
+                    'OPUS_FSM_DIAGRAM_GEOMETRY_ACTIONABLE_HREF_MISSING'
+                );
+            }
+            $href = $hrefMatch[1];
+            if ($href === '' || $href[0] !== '/' || str_contains($href, "\0")) {
+                throw new RuntimeException(
+                    'OPUS_FSM_DIAGRAM_GEOMETRY_ACTIONABLE_HREF_INVALID'
+                );
+            }
+            $key = $label . "\0" . $targetState;
+            if (isset($links[$key]) && $links[$key] !== $href) {
+                throw new RuntimeException(
+                    'OPUS_FSM_DIAGRAM_GEOMETRY_ACTIONABLE_HREF_AMBIGUOUS:'
+                    . $label . ':' . $targetState
+                );
+            }
+            $links[$key] = $href;
+        }
+
+        return $links;
+    }
+
+    /**
+     * @return list<array{start:int,end:int,html:string,direction:string,semantic_key?:string,lane_key?:string,actionable?:bool}>
      */
     private function outerTransitionGroups(string $html): array
     {
@@ -381,7 +455,8 @@ final class FsmDiagramGeometryNormalizer implements
     private function normalizeOuterGroup(
         string $group,
         float $laneY,
-        bool $showLabel
+        bool $showLabel,
+        ?string $sharedHref
     ): string
     {
         $geometry = $this->pathGeometry($group);
@@ -425,6 +500,17 @@ final class FsmDiagramGeometryNormalizer implements
             1
         ) ?? $group;
 
+        if ($showLabel
+            && is_string($sharedHref)
+            && $sharedHref !== ''
+            && !str_contains($group, ' actionable')) {
+            $group = $this->promoteSharedLabelActionability(
+                $group,
+                $sharedHref,
+                $this->transitionLabelText($group)
+            );
+        }
+
         if (!$showLabel) {
             $group = preg_replace(
                 '/<g\b([^>]*)class="fsm-edge-label-box"/',
@@ -435,6 +521,49 @@ final class FsmDiagramGeometryNormalizer implements
         }
 
         return $group;
+    }
+
+    private function promoteSharedLabelActionability(
+        string $group,
+        string $href,
+        string $label
+    ): string {
+        $group = preg_replace_callback(
+            '/^<g\b([^>]*class=")([^"]*)("[^>]*>)/s',
+            static function (array $match): string {
+                $classes = preg_split('/\s+/', trim($match[2])) ?: [];
+                if (!in_array('actionable', $classes, true)) {
+                    $classes[] = 'actionable';
+                }
+                return '<g' . $match[1] . implode(' ', $classes) . $match[3];
+            },
+            $group,
+            1
+        ) ?? $group;
+
+        $labelPattern = '/(<g\b[^>]*class="fsm-edge-label-box"[^>]*>'
+            . '.*?<\/g>)/s';
+        $labelLink = '<a class="fsm-signal-link" href="' . $href
+            . '" aria-label="'
+            . htmlspecialchars(
+                $label,
+                ENT_QUOTES | ENT_SUBSTITUTE,
+                'UTF-8'
+            )
+            . '" role="link" tabindex="0" focusable="true">$1</a>';
+        $result = preg_replace(
+            $labelPattern,
+            $labelLink,
+            $group,
+            1,
+            $count
+        );
+        if (!is_string($result) || $count !== 1) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_GEOMETRY_SHARED_ACTION_LABEL_MISSING'
+            );
+        }
+        return $result;
     }
 
 
