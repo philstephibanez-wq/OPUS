@@ -1,40 +1,10 @@
 <nav
   class="ow-global-nav ow-fsm-menu"
   aria-label="[[ i18n: navigation.main ]]"
-  data-fsm-menu-contract="OWASYS_FSM_MENU_V3"
-  data-fsm-menu-behavior="canonical-state-signals-exclusive-autocollapse"
+  data-fsm-menu-contract="OWASYS_FSM_MENU_V4"
+  data-fsm-menu-behavior="canonical-state-signals-global-host-exclusive-autocollapse"
 >
   [[ foreach: navigation as item ]]
-    [[ if: item.global_host ]]
-      [[ if: item.has_global_signals ]]
-        <div class="ow-fsm-menu-globals" data-fsm-global-rail="true">
-          [[ foreach: item.global_signals as signal ]]
-            [[ if: signal.actionable ]]
-              <a
-                class="ow-fsm-menu-signal is-actionable signal-type-navigation"
-                href="{{ signal.url }}"
-                data-transition-id="{{ signal.transition_id }}"
-                data-signal="{{ signal.signal }}"
-                data-signal-type="navigation"
-                data-target-state="{{ signal.target }}"
-                data-global-transition="true"
-              ><code>{{ signal.signal }}</code></a>
-            [[ else ]]
-              <span
-                class="ow-fsm-menu-signal is-passive signal-type-navigation"
-                aria-disabled="true"
-                data-transition-id="{{ signal.transition_id }}"
-                data-signal="{{ signal.signal }}"
-                data-signal-type="navigation"
-                data-target-state="{{ signal.target }}"
-                data-global-transition="true"
-              ><code>{{ signal.signal }}</code></span>
-            [[ endif ]]
-          [[ endforeach ]]
-        </div>
-      [[ endif ]]
-    [[ endif ]]
-
     [[ if: item.visible ]]
       [[ if: item.allowed ]]
         <details
@@ -48,6 +18,40 @@
             [[ if: item.active ]]aria-current="page"[[ endif ]]
           >{{ item.label }}</summary>
           <div class="ow-fsm-menu-signals" aria-label="{{ item.label }}">
+            [[ if: item.global_host ]]
+              [[ if: item.has_global_signals ]]
+                [[ foreach: item.global_signals as signal ]]
+                  [[ if: signal.actionable ]]
+                    <a
+                      class="ow-fsm-menu-signal is-actionable signal-type-navigation"
+                      href="{{ signal.url }}"
+                      data-transition-id="{{ signal.transition_id }}"
+                      data-signal="{{ signal.signal }}"
+                      data-signal-type="navigation"
+                      data-target-state="{{ signal.target }}"
+                      data-global-transition="true"
+                    >
+                      <code>{{ signal.signal }}</code>
+                      <span>→ {{ signal.target_label }}</span>
+                    </a>
+                  [[ else ]]
+                    <span
+                      class="ow-fsm-menu-signal is-passive signal-type-navigation"
+                      aria-disabled="true"
+                      data-transition-id="{{ signal.transition_id }}"
+                      data-signal="{{ signal.signal }}"
+                      data-signal-type="navigation"
+                      data-target-state="{{ signal.target }}"
+                      data-global-transition="true"
+                    >
+                      <code>{{ signal.signal }}</code>
+                      <span>→ {{ signal.target_label }}</span>
+                    </span>
+                  [[ endif ]]
+                [[ endforeach ]]
+              [[ endif ]]
+            [[ endif ]]
+
             [[ if: item.has_signals ]]
               [[ foreach: item.signals as signal ]]
                 [[ if: signal.actionable ]]
@@ -79,7 +83,10 @@
                 [[ endif ]]
               [[ endforeach ]]
             [[ else ]]
-              <span class="ow-fsm-menu-empty">∅</span>
+              [[ if: item.has_global_signals ]]
+              [[ else ]]
+                <span class="ow-fsm-menu-empty">∅</span>
+              [[ endif ]]
             [[ endif ]]
           </div>
         </details>

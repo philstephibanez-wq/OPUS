@@ -395,3 +395,60 @@
 
 /* A4AF menu projection contains navigation signals only. */
 .ow-fsm-menu-signal.signal-type-navigation code { color: var(--ow-accent); }
+
+/*
+ * P117W_R45B2A4AK — viewport containment.
+ *
+ * The FSM may be intrinsically wider than the browser because its topology is
+ * fixed. Navigation may wrap, while intrinsic diagram width belongs to its own canvas,
+ * never to the page. Preserve fixed FSM geometry while containing horizontal
+ * scrolling inside the diagram component.
+ */
+.ow-global-nav.ow-fsm-menu,
+.ow-fsm-native-panel,
+.ow-fsm-native-canvas {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.ow-global-nav.ow-fsm-menu {
+  flex-wrap: wrap;
+  overflow: visible;
+}
+
+.ow-fsm-native-panel {
+  overflow-x: hidden;
+}
+
+.ow-fsm-native-canvas {
+  overflow-x: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ow-fsm-native-canvas .fsm-diagram-card {
+  max-width: none;
+}
+
+/*
+ * P117W_R45B2A4AN — physical scale is now emitted by the generic OPUS
+ * FsmDiagramGeometryNormalizer. Do not apply CSS zoom on top of it.
+ */
+.ow-fsm-native-canvas .fsm-diagram {
+  zoom: 1;
+}
+
+.ow-fsm-native-canvas .fsm-edge-label {
+  font-size: 21px;
+  font-weight: 900;
+}
+
+.ow-fsm-native-canvas .fsm-edge-label-bg {
+  stroke-width: 1.6;
+}
+
+.ow-fsm-native-canvas .fsm-state-label {
+  font-size: 16px;
+}

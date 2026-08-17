@@ -2,11 +2,12 @@
 declare(strict_types=1);
 
 use Opus\File\StructuredFileLoader;
+use Opus\Fsm\FsmDiagramGeometryNormalizer;
 
 /** Builds a fixed visual projection from the canonical OWASYS FSM. */
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4AI';
+    private const REVISION = 'P117W_R45B2A4AN';
 
     public function __construct(
         private readonly string $siteRoot,
@@ -250,6 +251,10 @@ final class OwasysFsmDiagramBuilder
             $transitionLinks,
             $initialState,
             $layout
+        );
+        $diagram = (new FsmDiagramGeometryNormalizer())->normalize(
+            $diagram,
+            0.60
         );
 
         return [
