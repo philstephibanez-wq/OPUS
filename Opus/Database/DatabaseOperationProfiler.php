@@ -43,15 +43,13 @@ final class DatabaseOperationProfiler implements DatabaseOperationProfilerInterf
             $safeContext,
             $this->parentSpanId
         );
-        $this->profiler->event(
-            'database',
-            'database.operation.started',
-            $safeContext,
-            'success',
-            $spanId,
-            $this->parentSpanId
-        );
 
+        /*
+         * Trace::beginSpan() already emits database.operation.started with the
+         * exact span context. Do not duplicate the same event here: it doubles
+         * every database-start diagnostic and needlessly inflates persisted
+         * profiler records.
+         */
         try {
             $result = $operation();
             $resultContext = $safeContext;

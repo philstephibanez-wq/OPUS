@@ -11,6 +11,12 @@ use Opus\File\StructuredFileLoader;
  *
  * V2 records expose causal spans and typed statuses. The reader intentionally
  * remains compatible with existing V1 JSONL records.
+ *
+ * A4AQ keeps full-history readTrace() semantics for ordinary repository
+ * readers, while a read performed immediately after stop() on the same
+ * profiler instance is scoped to records appended since that start(). This is
+ * the distributed REST hand-off path: nested Composer/REST records are
+ * transferred once without rescanning or reimporting the whole trace journal.
  */
 final class Profiler implements ProfilerInterface
 {
@@ -21,12 +27,16 @@ final class Profiler implements ProfilerInterface
     private const MIN_MAX_BYTES = 65536;
     private const MAX_MAX_BYTES = 1073741824;
     private const MAX_ARCHIVES = 100;
+    private const REVERSE_READ_CHUNK_BYTES = 65536;
 
     private string $storageFile;
     private ?Trace $activeTrace = null;
     private ProfilerContextSanitizerInterface $contextSanitizer;
     private int $maxBytes = self::DEFAULT_MAX_BYTES;
     private int $maxArchives = self::DEFAULT_MAX_ARCHIVES;
+    private ?string $activeTraceReadCursor = null;
+    private ?string $lastStoppedTraceId = null;
+    private ?string $lastStoppedReadCursor = null;
 
     public function __construct(string $storagePath)
     {
@@ -47,6 +57,9 @@ final class Profiler implements ProfilerInterface
         if ($this->activeTrace !== null) {
             throw new \LogicException('OPUS_PROFILER_TRACE_ALREADY_STARTED');
         }
+        $this->activeTraceReadCursor = $this->captureReadCursor();
+        $this->lastStoppedTraceId = null;
+        $this->lastStoppedReadCursor = null;
         $this->activeTrace = new Trace($traceId);
         $this->activeTrace->addEvent('profiler', 'trace.started');
 
@@ -115,6 +128,9 @@ final class Profiler implements ProfilerInterface
             $trace,
             (array) $this->contextSanitizer->sanitize($summary)
         );
+        $this->lastStoppedTraceId = strtolower($trace->getTraceId());
+        $this->lastStoppedReadCursor = $this->activeTraceReadCursor;
+        $this->activeTraceReadCursor = null;
         $this->activeTrace = null;
 
         return $path;
@@ -146,6 +162,19 @@ final class Profiler implements ProfilerInterface
         if (preg_match(self::TRACE_ID_PATTERN, $traceId) !== 1) {
             throw new \InvalidArgumentException('OPUS_PROFILER_TRACE_ID_INVALID');
         }
+
+        if ($this->lastStoppedTraceId !== null
+            && hash_equals($this->lastStoppedTraceId, $traceId)
+        ) {
+            $records = $this->readTraceSinceCursor(
+                $traceId,
+                $this->lastStoppedReadCursor
+            );
+            $this->lastStoppedTraceId = null;
+            $this->lastStoppedReadCursor = null;
+            return $records;
+        }
+
         $storageFiles = $this->retainedStorageFiles();
         if ($storageFiles === []) {
             throw new \RuntimeException('OPUS_PROFILER_STORAGE_FILE_MISSING:' . $this->storageFile);
@@ -183,17 +212,7 @@ final class Profiler implements ProfilerInterface
                                 $cause
                             );
                         }
-                        if (!is_array($record)) {
-                            throw new \RuntimeException(
-                                'OPUS_PROFILER_RECORD_INVALID:' . $storageFile . ':' . $lineNumber
-                            );
-                        }
-                        $schema = $record['schema'] ?? null;
-                        if (!in_array($schema, ['OPUS_PROFILER_TRACE_V1', 'OPUS_PROFILER_TRACE_V2'], true)) {
-                            throw new \RuntimeException(
-                                'OPUS_PROFILER_RECORD_SCHEMA_INVALID:' . $storageFile . ':' . $lineNumber
-                            );
-                        }
+                        $this->assertStoredRecord($record, $storageFile . ':' . $lineNumber);
                         if (($record['trace_id'] ?? null) === $traceId) {
                             $records[] = $record;
                         }
@@ -272,6 +291,163 @@ final class Profiler implements ProfilerInterface
         }
 
         return $files;
+    }
+
+    /**
+     * Returns an opaque digest of the last retained JSONL record.
+     *
+     * The digest survives normal file rotation because it follows record
+     * content, not a path or byte offset. Null means the journal was empty at
+     * trace start.
+     */
+    private function captureReadCursor(): ?string
+    {
+        $storageFiles = array_reverse($this->retainedStorageFiles());
+        if ($storageFiles === []) {
+            return null;
+        }
+        $lockFile = $this->storageFile . '.lock';
+        $lock = fopen($lockFile, 'c+b');
+        if ($lock === false) {
+            throw new \RuntimeException('OPUS_PROFILER_RETENTION_LOCK_OPEN_FAILED:' . $lockFile);
+        }
+        try {
+            if (!flock($lock, LOCK_SH)) {
+                throw new \RuntimeException('OPUS_PROFILER_TRACE_LOCK_FAILED:' . $lockFile);
+            }
+            foreach ($storageFiles as $storageFile) {
+                foreach ($this->reverseLines($storageFile) as $line) {
+                    flock($lock, LOCK_UN);
+                    return hash('sha256', $line);
+                }
+            }
+            flock($lock, LOCK_UN);
+        } finally {
+            fclose($lock);
+        }
+        return null;
+    }
+
+    /**
+     * Reads only records appended after the cursor captured by start().
+     *
+     * @return list<array<string,mixed>>
+     */
+    private function readTraceSinceCursor(
+        string $traceId,
+        ?string $cursor
+    ): array {
+        $storageFiles = array_reverse($this->retainedStorageFiles());
+        if ($storageFiles === []) {
+            throw new \RuntimeException('OPUS_PROFILER_STORAGE_FILE_MISSING:' . $this->storageFile);
+        }
+        $lockFile = $this->storageFile . '.lock';
+        $lock = fopen($lockFile, 'c+b');
+        if ($lock === false) {
+            throw new \RuntimeException('OPUS_PROFILER_RETENTION_LOCK_OPEN_FAILED:' . $lockFile);
+        }
+
+        $records = [];
+        $cursorFound = $cursor === null;
+        try {
+            if (!flock($lock, LOCK_SH)) {
+                throw new \RuntimeException('OPUS_PROFILER_TRACE_LOCK_FAILED:' . $lockFile);
+            }
+            foreach ($storageFiles as $storageFile) {
+                foreach ($this->reverseLines($storageFile) as $line) {
+                    if ($cursor !== null
+                        && hash_equals($cursor, hash('sha256', $line))
+                    ) {
+                        $cursorFound = true;
+                        break 2;
+                    }
+                    try {
+                        $record = json_decode($line, true, 512, JSON_THROW_ON_ERROR);
+                    } catch (\JsonException $cause) {
+                        throw new \RuntimeException(
+                            'OPUS_PROFILER_RECORD_JSON_INVALID:' . $storageFile . ':delta',
+                            0,
+                            $cause
+                        );
+                    }
+                    $this->assertStoredRecord($record, $storageFile . ':delta');
+                    if (($record['trace_id'] ?? null) === $traceId) {
+                        $records[] = $record;
+                    }
+                }
+            }
+            flock($lock, LOCK_UN);
+        } finally {
+            fclose($lock);
+        }
+
+        if (!$cursorFound) {
+            throw new \RuntimeException('OPUS_PROFILER_READ_CURSOR_EXPIRED');
+        }
+        if ($records === []) {
+            throw new \RuntimeException('OPUS_PROFILER_TRACE_DELTA_NOT_FOUND:' . $traceId);
+        }
+
+        return array_reverse($records);
+    }
+
+    /** @return \Generator<int,string> */
+    private function reverseLines(string $storageFile): \Generator
+    {
+        $handle = fopen($storageFile, 'rb');
+        if ($handle === false) {
+            throw new \RuntimeException('OPUS_PROFILER_TRACE_READ_FAILED:' . $storageFile);
+        }
+        try {
+            if (fseek($handle, 0, SEEK_END) !== 0) {
+                throw new \RuntimeException('OPUS_PROFILER_TRACE_SEEK_FAILED:' . $storageFile);
+            }
+            $position = ftell($handle);
+            if (!is_int($position)) {
+                throw new \RuntimeException('OPUS_PROFILER_TRACE_TELL_FAILED:' . $storageFile);
+            }
+            $buffer = '';
+            while ($position > 0) {
+                $bytes = min(self::REVERSE_READ_CHUNK_BYTES, $position);
+                $position -= $bytes;
+                if (fseek($handle, $position, SEEK_SET) !== 0) {
+                    throw new \RuntimeException('OPUS_PROFILER_TRACE_SEEK_FAILED:' . $storageFile);
+                }
+                $chunk = fread($handle, $bytes);
+                if (!is_string($chunk) || strlen($chunk) !== $bytes) {
+                    throw new \RuntimeException('OPUS_PROFILER_TRACE_READ_FAILED:' . $storageFile);
+                }
+                $buffer = $chunk . $buffer;
+                while (($newline = strrpos($buffer, "\n")) !== false) {
+                    $line = rtrim(substr($buffer, $newline + 1), "\r");
+                    $buffer = substr($buffer, 0, $newline);
+                    if ($line !== '') {
+                        yield $line;
+                    }
+                }
+            }
+            $buffer = rtrim($buffer, "\r");
+            if ($buffer !== '') {
+                yield $buffer;
+            }
+        } finally {
+            fclose($handle);
+        }
+    }
+
+    private function assertStoredRecord(mixed $record, string $location): void
+    {
+        if (!is_array($record)) {
+            throw new \RuntimeException('OPUS_PROFILER_RECORD_INVALID:' . $location);
+        }
+        $schema = $record['schema'] ?? null;
+        if (!in_array(
+            $schema,
+            ['OPUS_PROFILER_TRACE_V1', 'OPUS_PROFILER_TRACE_V2'],
+            true
+        )) {
+            throw new \RuntimeException('OPUS_PROFILER_RECORD_SCHEMA_INVALID:' . $location);
+        }
     }
 
     private function rotateStorage(): void
