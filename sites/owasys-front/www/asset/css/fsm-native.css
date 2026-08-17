@@ -452,3 +452,45 @@
 .ow-fsm-native-canvas .fsm-state-label {
   font-size: 16px;
 }
+
+
+/*
+ * P117W_R45B2A4AO — compact responsive FSM surface.
+ *
+ * The SVG keeps its canonical horizontal topology but may shrink to the
+ * available component width. The page owns vertical scrolling: the FSM canvas
+ * is deliberately not a vertical scroll container, so a mouse wheel over the
+ * diagram continues to scroll the OWASYS document.
+ */
+.ow-fsm-native-canvas {
+  overflow: clip;
+  overscroll-behavior: auto;
+  scrollbar-gutter: auto;
+}
+
+.ow-fsm-native-canvas .fsm-diagram-card {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  padding: 6px 8px 8px;
+}
+
+.ow-fsm-native-canvas .fsm-diagram {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+}
+
+.ow-fsm-native-canvas .fsm-title {
+  display: none;
+}
+
+.ow-fsm-native-canvas .fsm-edge-label,
+.ow-fsm-native-canvas .fsm-signal-link .fsm-edge-label {
+  font-size: 23px;
+  font-weight: 400;
+}
+
+.ow-fsm-menu-signal code {
+  font-weight: 400;
+}

@@ -7,7 +7,7 @@ use Opus\Fsm\FsmDiagramGeometryNormalizer;
 /** Builds a fixed visual projection from the canonical OWASYS FSM. */
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4AN';
+    private const REVISION = 'P117W_R45B2A4AO';
 
     public function __construct(
         private readonly string $siteRoot,

@@ -25,11 +25,12 @@ final class FsmDiagramGeometryNormalizer implements
 {
     private const MIN_SCALE = 0.45;
     private const MAX_SCALE = 1.0;
-    private const VIEWBOX_TOP_GUARD = 70.0;
-    private const VIEWBOX_BOTTOM_GUARD = 42.0;
-    private const NODE_LANE_GAP = 30.0;
-    private const MIN_LANE_GAP = 8.0;
-    private const MAX_LANE_GAP = 18.0;
+    private const VIEWBOX_TOP_GUARD = 44.0;
+    private const VIEWBOX_BOTTOM_GUARD = 28.0;
+    private const NODE_LANE_GAP = 18.0;
+    private const MIN_LANE_GAP = 7.0;
+    private const MAX_LANE_GAP = 14.0;
+    private const VIEWPORT_VERTICAL_MARGIN = 22.0;
 
     public function normalize(string $html, float $scale = 0.60): string
     {
@@ -122,10 +123,20 @@ final class FsmDiagramGeometryNormalizer implements
         }
 
         $html = $this->expandSignalLabelBoxes($html, 1.35);
-        $html = $this->scalePhysicalSvg($html, $svgWidth, $svgHeight, $scale);
+        [$html, $viewportHeight] = $this->compactVerticalViewport(
+            $html,
+            $svgWidth,
+            $svgHeight
+        );
+        $html = $this->scalePhysicalSvg(
+            $html,
+            $svgWidth,
+            $viewportHeight,
+            $scale
+        );
         return str_replace(
             'data-opus-fsm-routing="lane-aware-v4-signal-types"',
-            'data-opus-fsm-routing="bounded-orthogonal-v5"',
+            'data-opus-fsm-routing="bounded-orthogonal-v6-responsive"',
             $html
         );
     }
@@ -476,6 +487,105 @@ final class FsmDiagramGeometryNormalizer implements
             },
             $html
         ) ?? $html;
+    }
+
+    /**
+     * Crops unused vertical viewBox space after geometry normalization.
+     *
+     * The semantic x coordinates and width remain untouched. Vertical bounds
+     * are derived from rendered state rectangles, edge paths and signal label
+     * boxes, then padded with one deterministic safety margin. Hidden SVG
+     * title/subtitle/legend elements are intentionally excluded from the
+     * visual envelope.
+     *
+     * @return array{0:string,1:float}
+     */
+    private function compactVerticalViewport(
+        string $html,
+        float $svgWidth,
+        float $svgHeight
+    ): array {
+        $minY = INF;
+        $maxY = -INF;
+
+        foreach ($this->nodeRectangles($html) as $node) {
+            $minY = min($minY, $node['y']);
+            $maxY = max($maxY, $node['y'] + $node['h']);
+        }
+
+        if (preg_match_all(
+            '/<path\\b[^>]*class="fsm-edge"[^>]*\\sd="([^"]+)"/s',
+            $html,
+            $pathMatches,
+            PREG_SET_ORDER
+        ) > 0) {
+            foreach ($pathMatches as $match) {
+                preg_match_all(
+                    '/-?[0-9]+(?:\\.[0-9]+)?/',
+                    $match[1],
+                    $numbers
+                );
+                $values = array_map('floatval', $numbers[0]);
+                for ($index = 1; $index < count($values); $index += 2) {
+                    $minY = min($minY, $values[$index]);
+                    $maxY = max($maxY, $values[$index]);
+                }
+            }
+        }
+
+        if (preg_match_all(
+            '/<rect\\b[^>]*class="fsm-edge-label-bg"[^>]*>/s',
+            $html,
+            $labelMatches
+        ) > 0) {
+            foreach ($labelMatches[0] as $tag) {
+                if (preg_match('/\\sy="(-?[0-9.]+)"/', $tag, $yMatch) !== 1
+                    || preg_match('/\\sheight="([0-9.]+)"/', $tag, $hMatch) !== 1) {
+                    continue;
+                }
+                $y = (float) $yMatch[1];
+                $height = (float) $hMatch[1];
+                $minY = min($minY, $y);
+                $maxY = max($maxY, $y + $height);
+            }
+        }
+
+        if (!is_finite($minY) || !is_finite($maxY) || $maxY <= $minY) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_GEOMETRY_VERTICAL_BOUNDS_INVALID'
+            );
+        }
+
+        $viewY = max(0.0, $minY - self::VIEWPORT_VERTICAL_MARGIN);
+        $viewBottom = min(
+            $svgHeight,
+            $maxY + self::VIEWPORT_VERTICAL_MARGIN
+        );
+        $viewHeight = max(1.0, $viewBottom - $viewY);
+
+        $pattern = '/(<svg\\b[^>]*class="fsm-diagram"[^>]*\\bviewBox=")'
+            . '-?[0-9.]+\\s+-?[0-9.]+\\s+[0-9.]+\\s+[0-9.]+(")/s';
+        $result = preg_replace_callback(
+            $pattern,
+            fn (array $match): string => $match[1]
+                . '0 '
+                . $this->number($viewY)
+                . ' '
+                . $this->number($svgWidth)
+                . ' '
+                . $this->number($viewHeight)
+                . $match[2],
+            $html,
+            1,
+            $count
+        );
+        if (!is_string($result) || $count !== 1) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_GEOMETRY_VIEWBOX_COMPACT_FAILED'
+            );
+        }
+
+        return [$result, $viewHeight];
     }
 
     private function scalePhysicalSvg(
