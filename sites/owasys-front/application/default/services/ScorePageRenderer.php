@@ -46,7 +46,7 @@ final class OwasysScorePageRenderer
         );
 
         $assets['fsm_css'] = $assetBase
-            . '/css/fsm-native.css?v=p117w-r45b2a4ac';
+            . '/css/fsm-native.css?v=p117w-r45b2a4af';
 
         $source = is_array($data['source'] ?? null)
             ? $data['source']

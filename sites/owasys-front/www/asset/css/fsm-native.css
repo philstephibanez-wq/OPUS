@@ -17,6 +17,10 @@
   --opus-fsm-marker: var(--ow-text);
   --opus-fsm-nmi-bg: rgba(251, 113, 133, .10);
   --opus-fsm-nmi: var(--ow-danger);
+  --ow-fsm-signal-navigation: var(--ow-accent);
+  --ow-fsm-signal-command: var(--ow-warn);
+  --ow-fsm-signal-outcome: #a78bfa;
+  --ow-fsm-signal-system: var(--ow-danger);
 }
 
 /* Menu = FSM ------------------------------------------------------------ */
@@ -222,7 +226,47 @@
   text-decoration: none;
 }
 
-/* P117W_R45B2A4AC: cyan is reserved for actionable transitions. */
+/*
+ * P117W_R45B2A4AF: canonical signal types.
+ * navigation = cyan, command = amber, outcome = violet, system = rose.
+ * Actionability is still conveyed independently by full opacity, hitbox,
+ * hover/focus fill and halo.
+ */
+.ow-fsm-native-canvas .fsm-transition.signal-type-navigation .fsm-edge,
+.ow-fsm-native-canvas .fsm-transition.signal-type-navigation .fsm-label-leader {
+  stroke: var(--ow-fsm-signal-navigation);
+}
+.ow-fsm-native-canvas .fsm-transition.signal-type-navigation .fsm-edge-label {
+  fill: var(--ow-fsm-signal-navigation);
+}
+.ow-fsm-native-canvas .fsm-transition.signal-type-command .fsm-edge,
+.ow-fsm-native-canvas .fsm-transition.signal-type-command .fsm-label-leader {
+  stroke: var(--ow-fsm-signal-command);
+}
+.ow-fsm-native-canvas .fsm-transition.signal-type-command .fsm-edge-label {
+  fill: var(--ow-fsm-signal-command);
+}
+.ow-fsm-native-canvas .fsm-transition.signal-type-outcome .fsm-edge,
+.ow-fsm-native-canvas .fsm-transition.signal-type-outcome .fsm-label-leader {
+  stroke: var(--ow-fsm-signal-outcome);
+}
+.ow-fsm-native-canvas .fsm-transition.signal-type-outcome .fsm-edge-label {
+  fill: var(--ow-fsm-signal-outcome);
+}
+.ow-fsm-native-canvas .fsm-transition.signal-type-system .fsm-edge,
+.ow-fsm-native-canvas .fsm-transition.signal-type-system .fsm-label-leader {
+  stroke: var(--ow-fsm-signal-system);
+}
+.ow-fsm-native-canvas .fsm-transition.signal-type-system .fsm-edge-label {
+  fill: var(--ow-fsm-signal-system);
+}
+.ow-fsm-native-canvas .fsm-transition:not(.actionable) .fsm-edge,
+.ow-fsm-native-canvas .fsm-transition:not(.actionable) .fsm-label-leader,
+.ow-fsm-native-canvas .fsm-transition:not(.actionable) .fsm-edge-label {
+  opacity: .68;
+}
+
+/* A4AF: actionable user navigation remains the strong cyan convention. */
 .ow-fsm-native-canvas .fsm-transition.actionable .fsm-edge {
   stroke: var(--ow-accent);
   stroke-width: 2.1;
@@ -303,6 +347,28 @@
   filter: drop-shadow(0 0 4px var(--ow-accent));
 }
 
+
+/*
+ * P117W_R45B2A4AE
+ * Label leaders are emitted only when collision avoidance had to move the
+ * label away from its semantic edge anchor. They make that relationship
+ * explicit instead of leaving a floating signal box.
+ */
+.ow-fsm-native-canvas .fsm-label-leader {
+  stroke: var(--ow-muted);
+  stroke-width: .9;
+  stroke-dasharray: 3 3;
+  opacity: .72;
+  pointer-events: none;
+}
+
+.ow-fsm-native-canvas
+  .fsm-transition.actionable
+  .fsm-label-leader {
+  stroke: var(--ow-accent);
+  opacity: .9;
+}
+
 /* Passive labels never advertise clickability. */
 .ow-fsm-native-canvas
   .fsm-transition
@@ -326,3 +392,6 @@
     max-width: none;
   }
 }
+
+/* A4AF menu projection contains navigation signals only. */
+.ow-fsm-menu-signal.signal-type-navigation code { color: var(--ow-accent); }

@@ -5,7 +5,7 @@ use Opus\File\StructuredFileLoader;
 
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4AD';
+    private const REVISION = 'P117W_R45B2A4AG';
 
     /**
      * Stable presentation order for the fixed OWASYS FSM.
@@ -24,6 +24,29 @@ final class OwasysFsmDiagramBuilder
         'workflows',
         'source',
         'build',
+    ];
+
+    /**
+     * Fixed visual lanes for the classic FSM projection.
+     *
+     * Semantic state/transition ownership remains entirely in fsm.json. These
+     * hints only keep the account/password side branch above the application
+     * workflow and make dense return paths traceable.
+     *
+     * @var array<string,array{rank:int,order:int}>
+     */
+    private const DIAGRAM_LAYOUT = [
+        'login' => ['rank' => 0, 'order' => 50],
+        'registry' => ['rank' => 1, 'order' => 50],
+        'account' => ['rank' => 2, 'order' => 0],
+        'creation' => ['rank' => 2, 'order' => 50],
+        'data' => ['rank' => 2, 'order' => 100],
+        'password' => ['rank' => 3, 'order' => 0],
+        'structure' => ['rank' => 3, 'order' => 20],
+        'security' => ['rank' => 3, 'order' => 40],
+        'workflows' => ['rank' => 3, 'order' => 60],
+        'source' => ['rank' => 3, 'order' => 80],
+        'build' => ['rank' => 3, 'order' => 100],
     ];
 
     /**
@@ -72,12 +95,12 @@ final class OwasysFsmDiagramBuilder
         ['source', 'open_source', 'source'],
         ['build', 'open_build', 'build'],
 
-        /* Long logical returns. */
-        ['structure', 'change_app', 'registry'],
-        ['security', 'change_app', 'registry'],
-        ['workflows', 'change_app', 'registry'],
-        ['source', 'change_app', 'registry'],
-        ['build', 'change_app', 'registry'],
+        /*
+         * One canonical representative for the universal change_app signal.
+         * A4AB runtime mapping keeps this single label actionable from every
+         * state where signal + target is currently permitted.
+         */
+        ['data', 'change_app', 'registry'],
 
         /* Session exit is a real return to the beginning. */
         ['build', 'logout', 'login'],
@@ -131,6 +154,7 @@ final class OwasysFsmDiagramBuilder
 
         $fsm = $this->loadFsm();
         $this->assertSignalRegistryComplete($fsm);
+        $signalRegistry = $this->signalRegistry($fsm);
         $statesById = $this->statesById($fsm);
 
         $menuByState = [];
@@ -266,12 +290,28 @@ final class OwasysFsmDiagramBuilder
                 );
             }
 
-            $projected = $menuSignalByTransition[$transitionId] ?? null;
-            if (!is_array($projected)
-                || (string) ($projected['signal'] ?? '') !== $signal
-                || (string) ($projected['target'] ?? '') !== $to) {
+            $signalDefinition = $signalRegistry[$signal] ?? null;
+            if (!is_array($signalDefinition)) {
                 throw new RuntimeException(
-                    'OWASYS_FSM_WORKFLOW_MENU_DIVERGENCE:'
+                    'OWASYS_FSM_WORKFLOW_SIGNAL_UNREGISTERED:' . $signal
+                );
+            }
+
+            $projected = $menuSignalByTransition[$transitionId] ?? null;
+            $menuExpected = ($signalDefinition['menu'] ?? false) === true;
+
+            if ($menuExpected) {
+                if (!is_array($projected)
+                    || (string) ($projected['signal'] ?? '') !== $signal
+                    || (string) ($projected['target'] ?? '') !== $to) {
+                    throw new RuntimeException(
+                        'OWASYS_FSM_WORKFLOW_MENU_DIVERGENCE:'
+                        . $transitionId
+                    );
+                }
+            } elseif (is_array($projected)) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_WORKFLOW_TECHNICAL_SIGNAL_IN_MENU:'
                     . $transitionId
                 );
             }
@@ -326,7 +366,11 @@ final class OwasysFsmDiagramBuilder
             $transitionLabels,
             false,
             $transitionLinks,
-            $initialState
+            $initialState,
+            array_intersect_key(
+                self::DIAGRAM_LAYOUT,
+                array_fill_keys($stateOrder, true)
+            )
         );
 
         return [
@@ -509,6 +553,28 @@ final class OwasysFsmDiagramBuilder
         }
 
         return $matches[0] ?? null;
+    }
+
+    /**
+     * @param array<string,mixed> $fsm
+     * @return array<string,array<string,mixed>>
+     */
+    private function signalRegistry(array $fsm): array
+    {
+        $registry = [];
+
+        foreach ((array) ($fsm['signals'] ?? []) as $signal) {
+            if (!is_array($signal)) {
+                continue;
+            }
+
+            $id = trim((string) ($signal['id'] ?? ''));
+            if ($id !== '') {
+                $registry[$id] = $signal;
+            }
+        }
+
+        return $registry;
     }
 
     /** @param array<string,mixed> $fsm */

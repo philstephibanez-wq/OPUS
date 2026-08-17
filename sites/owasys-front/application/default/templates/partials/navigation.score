@@ -25,10 +25,11 @@
             [[ foreach: item.signals as signal ]]
               [[ if: signal.actionable ]]
                 <a
-                  class="ow-fsm-menu-signal is-actionable"
+                  class="ow-fsm-menu-signal is-actionable signal-type-{{ signal.signal_type }}"
                   href="{{ signal.url }}"
                   data-transition-id="{{ signal.transition_id }}"
                   data-signal="{{ signal.signal }}"
+                  data-signal-type="{{ signal.signal_type }}"
                   data-source-state="{{ item.id }}"
                   data-target-state="{{ signal.target }}"
                 >
@@ -37,10 +38,11 @@
                 </a>
               [[ else ]]
                 <span
-                  class="ow-fsm-menu-signal is-passive"
+                  class="ow-fsm-menu-signal is-passive signal-type-{{ signal.signal_type }}"
                   aria-disabled="true"
                   data-transition-id="{{ signal.transition_id }}"
                   data-signal="{{ signal.signal }}"
+                  data-signal-type="{{ signal.signal_type }}"
                   data-source-state="{{ item.id }}"
                   data-target-state="{{ signal.target }}"
                 >
