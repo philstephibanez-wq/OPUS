@@ -10,13 +10,27 @@ use Opus\Http\LocalizedRouteResolverInterface;
 use Opus\Log\Logger;
 use Opus\Profiler\Profiler;
 
-/** OWASYS application creation workflow. All writes cross REST then Composer. */
+/**
+ * OWASYS application creation workflow.
+ *
+ * A4AI removes the parallel creation-wizard FSM. The canonical site FSM owns
+ * creation_basics -> creation_security -> creation_review -> application_creating
+ * -> application_created | application_creation_failed.
+ * All writes still cross REST then Composer.
+ */
 final class OwasysCreationController
 {
     private const FSM_SESSION_KEY = 'opus.fsm.owasys-front';
-    private const WIZARD_FSM_SESSION_KEY =
-        'opus.fsm.owasys-front.creation-wizard';
     private const DRAFT_SESSION_KEY = 'owasys.creation.blueprint';
+
+    /** @var array<string,string> */
+    private const STEP_BY_STATE = [
+        'creation_basics' => 'basics',
+        'creation_security' => 'security',
+        'creation_review' => 'review',
+        'application_creating' => 'review',
+        'application_creation_failed' => 'review',
+    ];
 
     private readonly OwasysLocaleRegistry $locales;
     private readonly OwasysNavigationBuilder $navigation;
@@ -36,8 +50,14 @@ final class OwasysCreationController
         private readonly OwasysApplicationCreationModel $creation
     ) {
         $this->locales = new OwasysLocaleRegistry($siteConfig);
-        $this->navigation = new OwasysNavigationBuilder($this->siteRoot, $security);
-        $this->logger = new Logger($siteRoot . '/var/logs', 'owasys-front.log');
+        $this->navigation = new OwasysNavigationBuilder(
+            $this->siteRoot,
+            $security
+        );
+        $this->logger = new Logger(
+            $siteRoot . '/var/logs',
+            'owasys-front.log'
+        );
         $this->profiler = new Profiler($siteRoot . '/var/profiler');
     }
 
@@ -63,26 +83,23 @@ final class OwasysCreationController
 
         $fsmConfig = $this->fsmConfig();
         $fsm = FsmSiteLoader::processorForSiteRoot($this->siteRoot);
-        $fsmStore = new FsmSessionStore(self::FSM_SESSION_KEY);
-        $fsmStore->restore($fsm);
-        $state = $this->enterCreationState($fsm, $fsmStore, $identity);
-        $wizard = FsmProcessor::fromJsonFile(
-            $this->siteRoot . '/config/creation.wizard.fsm.json'
-        );
-        $wizardStore = new FsmSessionStore(
-            self::WIZARD_FSM_SESSION_KEY
-        );
-        $wizardStore->restore($wizard);
+        $store = new FsmSessionStore(self::FSM_SESSION_KEY);
+        $store->restore($fsm);
+        $state = $this->enterCreationState($fsm, $store, $identity);
         $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
 
         if ($method === 'GET') {
             if ((string) ($_GET['owasys_new'] ?? '') === '1') {
                 unset($_SESSION[self::DRAFT_SESSION_KEY]);
-                $wizard->reset();
-                $wizardStore->persist($wizard);
+                $state = $this->restartCreationState(
+                    $fsm,
+                    $store,
+                    $state,
+                    $identity
+                );
             }
             $draft = $this->draft();
-            $draft['step'] = $wizard->currentState();
+            $draft['step'] = $this->stepForState($state);
             $this->render(
                 $fsmConfig,
                 $state,
@@ -93,56 +110,90 @@ final class OwasysCreationController
             );
             return;
         }
+
         if ($method !== 'POST') {
-            $this->render($fsmConfig, $state, $locale, $identity, [], 'creation.error.method');
+            http_response_code(405);
+            $this->render(
+                $fsmConfig,
+                $state,
+                $locale,
+                $identity,
+                array_replace($this->draft(), [
+                    'step' => $this->stepForState($state),
+                ]),
+                'creation.error.method'
+            );
             return;
         }
 
         $action = trim((string) ($_POST['owasys_action'] ?? ''));
+
         if ($action === 'cancel-creation') {
             unset($_SESSION[self::DRAFT_SESSION_KEY]);
-            $wizard->reset();
-            $wizardStore->persist($wizard);
-            $transition = $fsm->transition($state, 'cancel_creation', [
-                'identity' => $identity,
-                'is_authenticated' => true,
-            ]);
-            $fsmStore->persist($fsm);
+            $this->transition($fsm, $store, $state, 'cancel_creation');
             $this->redirect($locale, 'applications');
         }
+
         if ($action === 'previous-basics') {
             $draft = $this->draft();
-            $transition = $wizard->transition(
-                $wizard->currentState(),
+            $transition = $this->transition(
+                $fsm,
+                $store,
+                $state,
                 'return_basics'
             );
-            $draft['step'] = (string) $transition['next_state'];
-            $wizardStore->persist($wizard);
+            $state = (string) $transition['next_state'];
+            $draft['step'] = $this->stepForState($state);
             $this->storeDraft($draft);
-            $this->render($fsmConfig, $state, $locale, $identity, $draft, null);
+            $this->render(
+                $fsmConfig,
+                $state,
+                $locale,
+                $identity,
+                $draft,
+                null
+            );
             return;
         }
+
         if ($action === 'previous-security') {
             $draft = $this->draft();
-            $transition = $wizard->transition(
-                $wizard->currentState(),
+            $transition = $this->transition(
+                $fsm,
+                $store,
+                $state,
                 'return_security'
             );
-            $draft['step'] = (string) $transition['next_state'];
-            $wizardStore->persist($wizard);
+            $state = (string) $transition['next_state'];
+            $draft['step'] = $this->stepForState($state);
             $this->storeDraft($draft);
-            $this->render($fsmConfig, $state, $locale, $identity, $draft, null);
+            $this->render(
+                $fsmConfig,
+                $state,
+                $locale,
+                $identity,
+                $draft,
+                null
+            );
             return;
         }
+
         if ($action === 'next-security') {
             try {
+                if ($state !== 'creation_basics') {
+                    throw new RuntimeException(
+                        'OWASYS_CREATION_STATE_INVALID:' . $state
+                    );
+                }
                 $draft = $this->basicsDraft();
-                $transition = $wizard->transition(
-                    $wizard->currentState(),
+                $transition = $this->transition(
+                    $fsm,
+                    $store,
+                    $state,
                     'continue_security'
                 );
-                $draft['step'] = (string) $transition['next_state'];
-                $wizardStore->persist($wizard);
+                $state = (string) $transition['next_state'];
+                $draft['step'] = $this->stepForState($state);
                 $this->storeDraft($draft);
                 $this->render(
                     $fsmConfig,
@@ -160,7 +211,7 @@ final class OwasysCreationController
                 );
                 $this->render(
                     $fsmConfig,
-                    $state,
+                    'creation_basics',
                     $locale,
                     $identity,
                     array_replace($this->draft(), [
@@ -178,15 +229,23 @@ final class OwasysCreationController
             }
             return;
         }
+
         if ($action === 'review-creation') {
             try {
+                if ($state !== 'creation_security') {
+                    throw new RuntimeException(
+                        'OWASYS_CREATION_STATE_INVALID:' . $state
+                    );
+                }
                 $draft = $this->securityDraft($this->draft());
-                $transition = $wizard->transition(
-                    $wizard->currentState(),
+                $transition = $this->transition(
+                    $fsm,
+                    $store,
+                    $state,
                     'continue_review'
                 );
-                $draft['step'] = (string) $transition['next_state'];
-                $wizardStore->persist($wizard);
+                $state = (string) $transition['next_state'];
+                $draft['step'] = $this->stepForState($state);
                 $this->storeDraft($draft);
                 $this->render(
                     $fsmConfig,
@@ -198,16 +257,15 @@ final class OwasysCreationController
                 );
             } catch (Throwable $error) {
                 http_response_code(422);
-                $draft = $this->draft();
+                $draft = $this->securityInputDraft($this->draft());
                 $draft['step'] = 'security';
-                $draft = $this->securityInputDraft($draft);
                 $diagnostic = $this->recordValidationFailure(
                     'security',
                     $error
                 );
                 $this->render(
                     $fsmConfig,
-                    $state,
+                    'creation_security',
                     $locale,
                     $identity,
                     array_replace($draft, $diagnostic),
@@ -216,22 +274,37 @@ final class OwasysCreationController
             }
             return;
         }
+
         if ($action !== 'confirm-creation') {
-            $this->render($fsmConfig, $state, $locale, $identity, [], 'creation.error.action');
+            http_response_code(400);
+            $this->render(
+                $fsmConfig,
+                $state,
+                $locale,
+                $identity,
+                array_replace($this->draft(), [
+                    'step' => $this->stepForState($state),
+                ]),
+                'creation.error.action'
+            );
             return;
+        }
+
+        if (!in_array(
+            $state,
+            ['creation_review', 'application_creation_failed'],
+            true
+        )) {
+            throw new RuntimeException(
+                'OWASYS_CREATION_REVIEW_REQUIRED:' . $state
+            );
         }
         $this->security->assertAllowed($identity, 'creation', 'write');
         $draft = $this->draft();
         if (($draft['step'] ?? null) !== 'review') {
-            throw new RuntimeException(
-                'OWASYS_CREATION_REVIEW_REQUIRED'
-            );
+            throw new RuntimeException('OWASYS_CREATION_REVIEW_REQUIRED');
         }
-        if ($wizard->currentState() !== 'review') {
-            throw new RuntimeException(
-                'OWASYS_CREATION_WIZARD_STATE_INVALID'
-            );
-        }
+
         $siteId = (string) ($draft['site_id'] ?? '');
         $profile = (string) ($draft['profile'] ?? '');
         $blueprint = $this->blueprint($draft);
@@ -242,15 +315,30 @@ final class OwasysCreationController
                 : null
         );
         $traceId = $trace->getTraceId();
-        $this->profiler->event('owasys.creation', 'creation.requested', [
-            'profile' => $profile,
-        ]);
+        $this->profiler->event(
+            'owasys.creation',
+            'creation.requested',
+            ['profile' => $profile]
+        );
         $this->logger->info(
             'owasys.creation',
             'creation.requested',
             ['profile' => $profile],
             $traceId
         );
+
+        $creating = $this->transition(
+            $fsm,
+            $store,
+            $state,
+            'begin_application_creation'
+        );
+        $creatingState = (string) ($creating['next_state'] ?? '');
+        if ($creatingState !== 'application_creating') {
+            throw new RuntimeException(
+                'OWASYS_CREATION_CREATING_STATE_INVALID:' . $creatingState
+            );
+        }
 
         try {
             $result = $this->creation->create(
@@ -263,24 +351,30 @@ final class OwasysCreationController
             $context = [
                 'identity' => $identity,
                 'is_authenticated' => true,
-                'roles' => is_array($identity['roles'] ?? null) ? $identity['roles'] : [],
+                'roles' => is_array($identity['roles'] ?? null)
+                    ? $identity['roles']
+                    : [],
                 'selected_app' => $application,
                 'app_exists' => true,
             ];
-            $transition = $fsm->transition($state, 'application_created', $context);
+            $transition = $fsm->transition(
+                $creatingState,
+                'application_created',
+                $context
+            );
             (new OwasysFsmActionHandlers(
                 $this->session,
                 $this->security,
                 $this->registry
             ))->dispatcher()->dispatch($transition, $context);
-            $fsmStore->persist($fsm);
+            $store->persist($fsm);
             unset($_SESSION[self::DRAFT_SESSION_KEY]);
-            $wizard->reset();
-            $wizardStore->persist($wizard);
 
-            $this->profiler->event('owasys.creation', 'creation.succeeded', [
-                'profile' => $profile,
-            ]);
+            $this->profiler->event(
+                'owasys.creation',
+                'creation.succeeded',
+                ['profile' => $profile]
+            );
             $this->logger->info(
                 'owasys.creation',
                 'creation.succeeded',
@@ -290,16 +384,21 @@ final class OwasysCreationController
             $this->profiler->stop([
                 'status' => 'succeeded',
                 'workflow' => 'application_creation',
+                'fsm_state' => 'application_created',
             ]);
             $this->redirect($locale, 'data');
         } catch (Throwable $error) {
             $code = $this->safeErrorCode($error);
             try {
-                $transition = $fsm->transition($state, 'application_creation_failed', [
-                    'identity' => $identity,
-                    'is_authenticated' => true,
-                ]);
-                $fsmStore->persist($fsm);
+                $fsm->transition(
+                    $creatingState,
+                    'application_creation_failed',
+                    [
+                        'identity' => $identity,
+                        'is_authenticated' => true,
+                    ]
+                );
+                $store->persist($fsm);
             } catch (Throwable $fsmError) {
                 $this->logger->error(
                     'owasys.creation',
@@ -308,10 +407,12 @@ final class OwasysCreationController
                     $traceId
                 );
             }
-            $this->profiler->event('owasys.creation', 'creation.failed', [
-                'error_code' => $code,
-                'profile' => $profile,
-            ]);
+
+            $this->profiler->event(
+                'owasys.creation',
+                'creation.failed',
+                ['error_code' => $code, 'profile' => $profile]
+            );
             $this->logger->error(
                 'owasys.creation',
                 'creation.failed',
@@ -327,12 +428,13 @@ final class OwasysCreationController
             $this->profiler->stop([
                 'status' => 'failed',
                 'workflow' => 'application_creation',
+                'fsm_state' => 'application_creation_failed',
                 'error_code' => $code,
             ]);
             http_response_code(422);
             $this->render(
                 $fsmConfig,
-                'creation',
+                'application_creation_failed',
                 $locale,
                 $identity,
                 [
@@ -346,30 +448,115 @@ final class OwasysCreationController
         }
     }
 
-    /** @param array<string,mixed> $identity */
+    /**
+     * @param array<string,mixed> $identity
+     */
     private function enterCreationState(
         FsmProcessor $fsm,
         FsmSessionStore $store,
         array $identity
-    ): string
-    {
+    ): string {
         $current = $fsm->currentState();
-        if ($current !== 'creation') {
-            $transition = $fsm->transition($current, 'open_creation', [
-                'identity' => $identity,
-                'is_authenticated' => true,
-                'roles' => is_array($identity['roles'] ?? null) ? $identity['roles'] : [],
-            ]);
-            $current = (string) $transition['next_state'];
-            $store->persist($fsm);
+        if (isset(self::STEP_BY_STATE[$current])) {
+            return $current;
+        }
+
+        $transition = $fsm->transition(
+            $current,
+            'open_creation',
+            $this->fsmContext($identity)
+        );
+        $current = (string) $transition['next_state'];
+        $store->persist($fsm);
+
+        if ($current !== 'creation_basics') {
+            throw new RuntimeException(
+                'OWASYS_CREATION_ENTRY_STATE_INVALID:' . $current
+            );
         }
         return $current;
     }
 
     /**
+     * A fresh creation request must start at the canonical branch root.
+     *
+     * @param array<string,mixed> $identity
+     */
+    private function restartCreationState(
+        FsmProcessor $fsm,
+        FsmSessionStore $store,
+        string $state,
+        array $identity
+    ): string {
+        if ($state === 'creation_basics') {
+            return $state;
+        }
+        $transition = $fsm->transition(
+            $state,
+            'open_creation',
+            $this->fsmContext($identity)
+        );
+        $state = (string) $transition['next_state'];
+        $store->persist($fsm);
+        if ($state !== 'creation_basics') {
+            throw new RuntimeException(
+                'OWASYS_CREATION_RESTART_STATE_INVALID:' . $state
+            );
+        }
+        return $state;
+    }
+
+    /**
+     * @param array<string,mixed> $identity
+     * @return array<string,mixed>
+     */
+    private function fsmContext(array $identity): array
+    {
+        $currentApp = $this->session->currentApp();
+        return [
+            'identity' => $identity,
+            'is_authenticated' => true,
+            'roles' => is_array($identity['roles'] ?? null)
+                ? $identity['roles']
+                : [],
+            'current_app' => $currentApp,
+            'has_current_app' => is_array($currentApp),
+        ];
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    private function transition(
+        FsmProcessor $fsm,
+        FsmSessionStore $store,
+        string $state,
+        string $signal
+    ): array {
+        $transition = $fsm->transition(
+            $state,
+            $signal,
+            $this->fsmContext((array) $this->session->user())
+        );
+        $store->persist($fsm);
+        return $transition;
+    }
+
+    private function stepForState(string $state): string
+    {
+        $step = self::STEP_BY_STATE[$state] ?? null;
+        if (!is_string($step)) {
+            throw new RuntimeException(
+                'OWASYS_CREATION_STEP_STATE_UNKNOWN:' . $state
+            );
+        }
+        return $step;
+    }
+
+    /**
      * @param array<string,mixed> $fsmConfig
      * @param array<string,mixed> $identity
-     * @param array<string,string> $form
+     * @param array<string,mixed> $form
      */
     private function render(
         array $fsmConfig,
@@ -380,34 +567,50 @@ final class OwasysCreationController
         ?string $errorKey
     ): void {
         $basePath = $this->basePath();
-        $routeUrl = fn (string $target): string => $this->routeUrl($locale, $target);
+        $routeUrl = fn (string $target): string =>
+            $this->routeUrl($locale, $target);
         $profile = (string) ($form['profile'] ?? '');
         $currentApp = $this->session->currentApp();
+
         $data = [
             'page' => ['title' => '', 'summary' => ''],
             'fsm' => ['state' => $state, 'module' => 'creation'],
             'identity' => [
                 'authenticated' => true,
                 'label' => (string) ($identity['label'] ?? ''),
-                'primary_role' => (string) ($identity['roles'][0] ?? $identity['profile'] ?? ''),
+                'primary_role' => (string) (
+                    $identity['roles'][0]
+                    ?? $identity['profile']
+                    ?? ''
+                ),
             ],
             'current_app' => [
                 'present' => is_array($currentApp),
                 'id' => (string) ($currentApp['id'] ?? ''),
-                'name' => (string) ($currentApp['name'] ?? $currentApp['id'] ?? ''),
+                'name' => (string) (
+                    $currentApp['name']
+                    ?? $currentApp['id']
+                    ?? ''
+                ),
                 'kind' => (string) ($currentApp['kind'] ?? ''),
                 'root' => (string) ($currentApp['root_path'] ?? ''),
             ],
             'locale' => [
                 'code' => $locale,
                 'name' => $this->locales->name($locale),
-                'flag' => $basePath . '/asset/flags/' . rawurlencode($this->locales->flagCode($locale)) . '.svg',
+                'flag' => $basePath
+                    . '/asset/flags/'
+                    . rawurlencode($this->locales->flagCode($locale))
+                    . '.svg',
             ],
             'locales' => array_map(
                 fn (string $code): array => [
                     'code' => $code,
                     'name' => $this->locales->name($code),
-                    'flag' => $basePath . '/asset/flags/' . rawurlencode($this->locales->flagCode($code)) . '.svg',
+                    'flag' => $basePath
+                        . '/asset/flags/'
+                        . rawurlencode($this->locales->flagCode($code))
+                        . '.svg',
                     'url' => $this->routeUrl($code, 'applications/new'),
                     'active' => $code === $locale,
                 ],
@@ -415,10 +618,14 @@ final class OwasysCreationController
             ),
             'assets' => [
                 'score_css' => $basePath . '/asset/css/owasys.css',
-                'theme_css' => $basePath . '/asset/themes/owasys/css/theme.css?v=p117q',
-                'language_css' => $basePath . '/asset/css/language-switcher.css',
-                'creation_css' => $basePath . '/asset/css/creation.css?v=p117u-hf9',
-                'password_js' => $basePath . '/asset/js/password-visibility.js',
+                'theme_css' => $basePath
+                    . '/asset/themes/owasys/css/theme.css?v=p117q',
+                'language_css' => $basePath
+                    . '/asset/css/language-switcher.css',
+                'creation_css' => $basePath
+                    . '/asset/css/creation.css?v=p117w-r45b2a4ai',
+                'password_js' => $basePath
+                    . '/asset/js/password-visibility.js',
             ],
             'urls' => [
                 'home' => $this->routeUrl($locale, 'applications'),
@@ -477,7 +684,9 @@ final class OwasysCreationController
                 ) ? $form['initial_users'] : []),
                 'initial_user_role' =>
                     (string) ($form['initial_user_role'] ?? 'admin'),
-                'locales_summary' => 'bg, hr, cs, da, nl, en, et, fi, fr, de, el, hu, ga, it, lv, lt, mt, pl, pt, ro, sk, sl, es, sv, uk',
+                'locales_summary' =>
+                    'bg, hr, cs, da, nl, en, et, fi, fr, de, el, hu, ga, '
+                    . 'it, lv, lt, mt, pl, pt, ro, sk, sl, es, sv, uk',
                 'has_error' => $errorKey !== null,
                 'error_site_id' => $errorKey === 'creation.error.site_id',
                 'error_profile' => $errorKey === 'creation.error.profile',
@@ -503,6 +712,7 @@ final class OwasysCreationController
                 'error_code' => (string) ($form['error_code'] ?? ''),
             ],
         ];
+
         header('Content-Type: text/html; charset=UTF-8');
         $this->renderer->emit('creation/templates/index.score', $data);
     }
@@ -518,9 +728,9 @@ final class OwasysCreationController
             'authentication_required' => false,
             'login_page' => false,
             'provider' => 'session',
-                'roles' => ['admin'],
-                'permissions' => ['home:view'],
-                'home_roles' => ['everyone'],
+            'roles' => ['admin'],
+            'permissions' => ['home:view'],
+            'home_roles' => ['everyone'],
             'initial_users' => [],
             'initial_user_role' => 'admin',
         ];
@@ -569,9 +779,7 @@ final class OwasysCreationController
             ['session', 'local-password', 'auth0-proxy'],
             true
         )) {
-            throw new RuntimeException(
-                'OWASYS_CREATION_PROVIDER_INVALID'
-            );
+            throw new RuntimeException('OWASYS_CREATION_PROVIDER_INVALID');
         }
 
         $login = $authentication && $provider === 'local-password';
@@ -596,12 +804,12 @@ final class OwasysCreationController
         $initialUserRole = strtolower(trim((string) (
             $_POST['owasys_initial_user_role'] ?? ''
         )));
-        if ($users !== []
-            && !in_array($initialUserRole, $roles, true)) {
+        if ($users !== [] && !in_array($initialUserRole, $roles, true)) {
             throw new RuntimeException(
                 'OWASYS_CREATION_USER_ROLE_UNKNOWN'
             );
         }
+
         return array_replace($draft, [
             'authentication_required' => $authentication,
             'login_page' => $login,
@@ -629,13 +837,9 @@ final class OwasysCreationController
                 $authentication && $provider === 'local-password',
             'provider' => $provider,
             'roles' => $roles,
-            'permissions' => $this->submittedList(
-                'owasys_permissions'
-            ),
+            'permissions' => $this->submittedList('owasys_permissions'),
             'home_roles' => $authentication ? $roles : ['everyone'],
-            'initial_users' => $this->submittedList(
-                'owasys_initial_users'
-            ),
+            'initial_users' => $this->submittedList('owasys_initial_users'),
             'initial_user_role' => strtolower(trim((string) (
                 $_POST['owasys_initial_user_role'] ?? ''
             ))),
@@ -670,10 +874,7 @@ final class OwasysCreationController
                 : null
         );
         $traceId = $trace->getTraceId();
-        $context = [
-            'stage' => $stage,
-            'error_code' => $code,
-        ];
+        $context = ['stage' => $stage, 'error_code' => $code];
         $this->profiler->event(
             'owasys.creation',
             'creation.validation_failed',
@@ -690,17 +891,17 @@ final class OwasysCreationController
             'workflow' => 'application_creation',
             ...$context,
         ]);
-        return [
-            'trace_id' => $traceId,
-            'error_code' => $code,
-        ];
+        return ['trace_id' => $traceId, 'error_code' => $code];
     }
 
     /** @return list<string> */
     private function identifierList(string $value, bool $allowEmpty): array
     {
         $result = [];
-        foreach (preg_split('/[\s,;]+/', strtolower(trim($value))) ?: [] as $id) {
+        foreach (
+            preg_split('/[\s,;]+/', strtolower(trim($value))) ?: []
+            as $id
+        ) {
             if ($id === '') {
                 continue;
             }
@@ -723,7 +924,10 @@ final class OwasysCreationController
     private function permissionList(string $value): array
     {
         $result = [];
-        foreach (preg_split('/[\s,;]+/', strtolower(trim($value))) ?: [] as $id) {
+        foreach (
+            preg_split('/[\s,;]+/', strtolower(trim($value))) ?: []
+            as $id
+        ) {
             if ($id === '') {
                 continue;
             }
@@ -768,14 +972,25 @@ final class OwasysCreationController
     /** @return array{0:string,1:string} */
     private function resolveRequest(): array
     {
-        $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
+        $path = parse_url(
+            (string) ($_SERVER['REQUEST_URI'] ?? '/'),
+            PHP_URL_PATH
+        );
         $path = is_string($path) ? rawurldecode($path) : '/';
-        $segments = trim($path, '/') === '' ? [] : explode('/', trim($path, '/'));
+        $segments = trim($path, '/') === ''
+            ? []
+            : explode('/', trim($path, '/'));
         if (($segments[0] ?? '') === 'owasys') {
             array_shift($segments);
         }
-        $default = (string) ($this->siteConfig['default_locale'] ?? 'fr-FR');
-        $negotiator = BrowserLocaleNegotiator::forLocales($this->locales->codes(), $default);
+
+        $default = (string) (
+            $this->siteConfig['default_locale'] ?? 'fr-FR'
+        );
+        $negotiator = BrowserLocaleNegotiator::forLocales(
+            $this->locales->codes(),
+            $default
+        );
         $first = (string) ($segments[0] ?? '');
         $explicit = $this->locales->resolveExplicit($first);
         if (is_string($explicit)) {
@@ -788,15 +1003,13 @@ final class OwasysCreationController
                     : null
             )->value;
         }
+
         $publicRoute = implode('/', $segments);
         return [
             $locale,
             $publicRoute === ''
                 ? ''
-                : $this->localizedRoutes->resolve(
-                    $locale,
-                    $publicRoute
-                ),
+                : $this->localizedRoutes->resolve($locale, $publicRoute),
         ];
     }
 
@@ -806,26 +1019,39 @@ final class OwasysCreationController
         $navigation = is_array($this->siteConfig['navigation'] ?? null)
             ? $this->siteConfig['navigation']
             : [];
-        $relative = trim(str_replace('\\', '/', (string) ($navigation['fsm'] ?? '')), '/');
+        $relative = trim(
+            str_replace(
+                '\\',
+                '/',
+                (string) ($navigation['fsm'] ?? '')
+            ),
+            '/'
+        );
         if ($relative === '' || str_contains($relative, '..')) {
             throw new RuntimeException('OWASYS_CREATION_FSM_PATH_INVALID');
         }
-        return StructuredFileLoader::instance()->read($this->siteRoot . '/' . $relative);
+        return StructuredFileLoader::instance()->read(
+            $this->siteRoot . '/' . $relative
+        );
     }
 
     private function creationErrorKey(string $code): string
     {
         return match (true) {
-            str_contains($code, 'SITE_ID') || str_contains($code, 'APPLICATION_ID') => 'creation.error.site_id',
+            str_contains($code, 'SITE_ID')
+                || str_contains($code, 'APPLICATION_ID') =>
+                'creation.error.site_id',
             str_contains($code, 'PROFILE') => 'creation.error.profile',
-            str_contains($code, 'PATH_ALREADY_EXISTS') || str_contains($code, 'ALREADY_EXISTS') => 'creation.error.exists',
-            str_contains($code, 'LOGIN_') ||
-                str_contains($code, 'PUBLIC_PROVIDER') =>
+            str_contains($code, 'PATH_ALREADY_EXISTS')
+                || str_contains($code, 'ALREADY_EXISTS') =>
+                'creation.error.exists',
+            str_contains($code, 'LOGIN_')
+                || str_contains($code, 'PUBLIC_PROVIDER') =>
                 'creation.error.security_login',
             str_contains($code, 'PROVIDER_INVALID') =>
                 'creation.error.security_provider',
-            str_contains($code, 'HOME_ROLE') ||
-                str_contains($code, 'AUTH_HOME_ANONYMOUS') =>
+            str_contains($code, 'HOME_ROLE')
+                || str_contains($code, 'AUTH_HOME_ANONYMOUS') =>
                 'creation.error.security_home_roles',
             str_contains($code, 'PERMISSION') =>
                 'creation.error.security_permissions',
@@ -858,14 +1084,24 @@ final class OwasysCreationController
 
     private function basePath(): string
     {
-        $script = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+        $script = str_replace(
+            '\\',
+            '/',
+            (string) ($_SERVER['SCRIPT_NAME'] ?? '')
+        );
         $directory = str_replace('\\', '/', dirname($script));
-        return in_array($directory, ['/', '.', ''], true) ? '' : rtrim($directory, '/');
+        return in_array($directory, ['/', '.', ''], true)
+            ? ''
+            : rtrim($directory, '/');
     }
 
     private function redirect(string $locale, string $route): never
     {
-        header('Location: ' . $this->routeUrl($locale, $route), true, 303);
+        header(
+            'Location: ' . $this->routeUrl($locale, $route),
+            true,
+            303
+        );
         exit;
     }
 }

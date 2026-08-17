@@ -1,6 +1,6 @@
 {
     "contract": "OWASYS_NAVIGATION_FSM_V1",
-    "name": "OWASYS navigation FSM",
+    "name": "OWASYS canonical workflow FSM",
     "source_of_truth": "config",
     "initial_state": "login",
     "states": [
@@ -11,37 +11,17 @@
             "requires_auth": false,
             "requires_current_app": false,
             "title_key": "auth.sign_in",
-            "summary_key": "auth.sign_in_description"
-        },
-        {
-            "id": "account",
-            "module": "account",
-            "route": "account",
-            "template": "index.score",
-            "requires_auth": true,
-            "requires_current_app": false,
-            "title_key": "menu.account",
-            "summary_key": "menu.account",
+            "summary_key": "auth.sign_in_description",
             "navigation": {
-                "visible": false,
-                "order": 80,
-                "label": "menu.account"
-            }
-        },
-        {
-            "id": "password",
-            "module": "account",
-            "route": "account/password",
-            "template": "password.score",
-            "requires_auth": true,
-            "requires_current_app": false,
-            "title_key": "auth.change_password",
-            "summary_key": "auth.change_password_description",
-            "navigation": {
-                "visible": false,
-                "order": 90,
-                "label": "auth.change_password"
-            }
+                "visible": true,
+                "order": 0,
+                "label": "auth.sign_in"
+            },
+            "diagram": {
+                "rank": 0,
+                "order": 50
+            },
+            "type": "system"
         },
         {
             "id": "registry",
@@ -55,35 +35,128 @@
                 "visible": true,
                 "order": 10,
                 "label": "menu.applications"
-            }
+            },
+            "diagram": {
+                "rank": 1,
+                "order": 50
+            },
+            "type": "screen"
         },
         {
-            "id": "creation",
+            "id": "creation_basics",
             "module": "creation",
             "route": "applications/new",
             "requires_auth": true,
             "requires_current_app": false,
-            "title_key": "creation.title",
-            "summary_key": "creation.description",
-            "navigation": {
-                "visible": false,
-                "order": 15,
-                "label": "creation.title"
-            }
-        },
-        {
-            "id": "structure",
-            "module": "structure",
-            "route": "structure",
-            "requires_auth": true,
-            "requires_current_app": true,
-            "title_key": "menu.structure",
-            "summary_key": "state.default.summary",
+            "title_key": "creation.step.basics",
+            "summary_key": "creation.choose_profile_description",
             "navigation": {
                 "visible": true,
-                "order": 30,
-                "label": "menu.structure"
-            }
+                "order": 11,
+                "label": "creation.step.basics"
+            },
+            "diagram": {
+                "rank": 2,
+                "order": 20
+            },
+            "type": "workflow"
+        },
+        {
+            "id": "creation_security",
+            "module": "creation",
+            "route": "applications/new",
+            "requires_auth": true,
+            "requires_current_app": false,
+            "title_key": "creation.step.security",
+            "summary_key": "creation.security.description",
+            "navigation": {
+                "visible": true,
+                "order": 12,
+                "label": "creation.step.security"
+            },
+            "diagram": {
+                "rank": 3,
+                "order": 20
+            },
+            "type": "workflow"
+        },
+        {
+            "id": "creation_review",
+            "module": "creation",
+            "route": "applications/new",
+            "requires_auth": true,
+            "requires_current_app": false,
+            "title_key": "creation.step.review",
+            "summary_key": "creation.review.description",
+            "navigation": {
+                "visible": true,
+                "order": 13,
+                "label": "creation.step.review"
+            },
+            "diagram": {
+                "rank": 4,
+                "order": 20
+            },
+            "type": "workflow"
+        },
+        {
+            "id": "application_creating",
+            "module": "creation",
+            "route": "applications/new",
+            "template": "index.score",
+            "requires_auth": true,
+            "requires_current_app": false,
+            "title_key": "creation.submit",
+            "summary_key": "creation.review.description",
+            "navigation": {
+                "visible": true,
+                "order": 14,
+                "label": "creation.submit"
+            },
+            "diagram": {
+                "rank": 5,
+                "order": 20
+            },
+            "type": "workflow"
+        },
+        {
+            "id": "application_creation_failed",
+            "module": "creation",
+            "route": "applications/new",
+            "template": "index.score",
+            "requires_auth": true,
+            "requires_current_app": false,
+            "title_key": "creation.error.title",
+            "summary_key": "creation.review.description",
+            "navigation": {
+                "visible": true,
+                "order": 15,
+                "label": "creation.error.title"
+            },
+            "diagram": {
+                "rank": 6,
+                "order": 40
+            },
+            "type": "result"
+        },
+        {
+            "id": "application_created",
+            "module": "creation",
+            "route": "data",
+            "requires_auth": true,
+            "requires_current_app": true,
+            "title_key": "creation.result",
+            "summary_key": "creation.result_minimal",
+            "navigation": {
+                "visible": true,
+                "order": 16,
+                "label": "creation.result"
+            },
+            "diagram": {
+                "rank": 6,
+                "order": 20
+            },
+            "type": "result"
         },
         {
             "id": "data",
@@ -97,21 +170,31 @@
                 "visible": true,
                 "order": 20,
                 "label": "menu.data"
-            }
+            },
+            "diagram": {
+                "rank": 7,
+                "order": 50
+            },
+            "type": "screen"
         },
         {
-            "id": "workflows",
-            "module": "workflows",
-            "route": "workflows",
+            "id": "structure",
+            "module": "structure",
+            "route": "structure",
             "requires_auth": true,
             "requires_current_app": true,
-            "title_key": "menu.workflows",
+            "title_key": "menu.structure",
             "summary_key": "state.default.summary",
             "navigation": {
                 "visible": true,
-                "order": 50,
-                "label": "menu.workflows"
-            }
+                "order": 30,
+                "label": "menu.structure"
+            },
+            "diagram": {
+                "rank": 8,
+                "order": 20
+            },
+            "type": "screen"
         },
         {
             "id": "security",
@@ -125,7 +208,31 @@
                 "visible": true,
                 "order": 40,
                 "label": "menu.security"
-            }
+            },
+            "diagram": {
+                "rank": 8,
+                "order": 40
+            },
+            "type": "screen"
+        },
+        {
+            "id": "workflows",
+            "module": "workflows",
+            "route": "workflows",
+            "requires_auth": true,
+            "requires_current_app": true,
+            "title_key": "menu.workflows",
+            "summary_key": "state.default.summary",
+            "navigation": {
+                "visible": true,
+                "order": 50,
+                "label": "menu.workflows"
+            },
+            "diagram": {
+                "rank": 8,
+                "order": 60
+            },
+            "type": "screen"
         },
         {
             "id": "source",
@@ -139,7 +246,12 @@
                 "visible": true,
                 "order": 60,
                 "label": "menu.source"
-            }
+            },
+            "diagram": {
+                "rank": 8,
+                "order": 80
+            },
+            "type": "screen"
         },
         {
             "id": "build",
@@ -153,7 +265,52 @@
                 "visible": true,
                 "order": 70,
                 "label": "menu.build"
-            }
+            },
+            "diagram": {
+                "rank": 8,
+                "order": 100
+            },
+            "type": "screen"
+        },
+        {
+            "id": "account",
+            "module": "account",
+            "route": "account",
+            "template": "index.score",
+            "requires_auth": true,
+            "requires_current_app": false,
+            "title_key": "menu.account",
+            "summary_key": "menu.account",
+            "navigation": {
+                "visible": true,
+                "order": 80,
+                "label": "menu.account"
+            },
+            "diagram": {
+                "rank": 2,
+                "order": 0
+            },
+            "type": "screen"
+        },
+        {
+            "id": "password",
+            "module": "account",
+            "route": "account/password",
+            "template": "password.score",
+            "requires_auth": true,
+            "requires_current_app": false,
+            "title_key": "auth.change_password",
+            "summary_key": "auth.change_password_description",
+            "navigation": {
+                "visible": true,
+                "order": 90,
+                "label": "auth.change_password"
+            },
+            "diagram": {
+                "rank": 3,
+                "order": 0
+            },
+            "type": "screen"
         }
     ],
     "signals": [
@@ -165,12 +322,14 @@
         {
             "id": "open_account",
             "type": "navigation",
-            "menu": true
+            "menu": true,
+            "menu_order": 80
         },
         {
             "id": "open_password_change",
             "type": "navigation",
-            "menu": true
+            "menu": true,
+            "menu_order": 90
         },
         {
             "id": "login_success",
@@ -205,7 +364,8 @@
         {
             "id": "change_app",
             "type": "navigation",
-            "menu": true
+            "menu": true,
+            "menu_order": 5
         },
         {
             "id": "clear_app_context",
@@ -225,7 +385,33 @@
         {
             "id": "open_creation",
             "type": "navigation",
-            "menu": true
+            "menu": true,
+            "menu_order": 10
+        },
+        {
+            "id": "continue_security",
+            "type": "command",
+            "menu": false
+        },
+        {
+            "id": "return_basics",
+            "type": "command",
+            "menu": false
+        },
+        {
+            "id": "continue_review",
+            "type": "command",
+            "menu": false
+        },
+        {
+            "id": "return_security",
+            "type": "command",
+            "menu": false
+        },
+        {
+            "id": "begin_application_creation",
+            "type": "command",
+            "menu": false
         },
         {
             "id": "application_created",
@@ -250,27 +436,32 @@
         {
             "id": "open_structure",
             "type": "navigation",
-            "menu": true
+            "menu": true,
+            "menu_order": 30
         },
         {
             "id": "open_data",
             "type": "navigation",
-            "menu": true
+            "menu": true,
+            "menu_order": 20
         },
         {
             "id": "open_workflows",
             "type": "navigation",
-            "menu": true
+            "menu": true,
+            "menu_order": 50
         },
         {
             "id": "open_security",
             "type": "navigation",
-            "menu": true
+            "menu": true,
+            "menu_order": 40
         },
         {
             "id": "open_source",
             "type": "navigation",
-            "menu": true
+            "menu": true,
+            "menu_order": 60
         },
         {
             "id": "open_source_file",
@@ -370,7 +561,8 @@
         {
             "id": "open_build",
             "type": "navigation",
-            "menu": true
+            "menu": true,
+            "menu_order": 70
         },
         {
             "id": "auth_required",
@@ -380,67 +572,14 @@
         {
             "id": "logout",
             "type": "navigation",
-            "menu": true
+            "menu": true,
+            "menu_order": 100
         }
     ],
     "transitions": [
         {
-            "id": "t_open_login__from__login",
+            "id": "t_open_login",
             "from": "login",
-            "signal": "open_login",
-            "next_state": "login"
-        },
-        {
-            "id": "t_open_login__from__account",
-            "from": "account",
-            "signal": "open_login",
-            "next_state": "login"
-        },
-        {
-            "id": "t_open_login__from__registry",
-            "from": "registry",
-            "signal": "open_login",
-            "next_state": "login"
-        },
-        {
-            "id": "t_open_login__from__creation",
-            "from": "creation",
-            "signal": "open_login",
-            "next_state": "login"
-        },
-        {
-            "id": "t_open_login__from__structure",
-            "from": "structure",
-            "signal": "open_login",
-            "next_state": "login"
-        },
-        {
-            "id": "t_open_login__from__data",
-            "from": "data",
-            "signal": "open_login",
-            "next_state": "login"
-        },
-        {
-            "id": "t_open_login__from__workflows",
-            "from": "workflows",
-            "signal": "open_login",
-            "next_state": "login"
-        },
-        {
-            "id": "t_open_login__from__security",
-            "from": "security",
-            "signal": "open_login",
-            "next_state": "login"
-        },
-        {
-            "id": "t_open_login__from__source",
-            "from": "source",
-            "signal": "open_login",
-            "next_state": "login"
-        },
-        {
-            "id": "t_open_login__from__build",
-            "from": "build",
             "signal": "open_login",
             "next_state": "login"
         },
@@ -471,132 +610,6 @@
                 "start_session",
                 "redirect_password_change"
             ]
-        },
-        {
-            "id": "t_open_account__from__login",
-            "from": "login",
-            "signal": "open_account",
-            "next_state": "account"
-        },
-        {
-            "id": "t_open_account__from__account",
-            "from": "account",
-            "signal": "open_account",
-            "next_state": "account"
-        },
-        {
-            "id": "t_open_account__from__registry",
-            "from": "registry",
-            "signal": "open_account",
-            "next_state": "account"
-        },
-        {
-            "id": "t_open_account__from__creation",
-            "from": "creation",
-            "signal": "open_account",
-            "next_state": "account"
-        },
-        {
-            "id": "t_open_account__from__structure",
-            "from": "structure",
-            "signal": "open_account",
-            "next_state": "account"
-        },
-        {
-            "id": "t_open_account__from__data",
-            "from": "data",
-            "signal": "open_account",
-            "next_state": "account"
-        },
-        {
-            "id": "t_open_account__from__workflows",
-            "from": "workflows",
-            "signal": "open_account",
-            "next_state": "account"
-        },
-        {
-            "id": "t_open_account__from__security",
-            "from": "security",
-            "signal": "open_account",
-            "next_state": "account"
-        },
-        {
-            "id": "t_open_account__from__source",
-            "from": "source",
-            "signal": "open_account",
-            "next_state": "account"
-        },
-        {
-            "id": "t_open_account__from__build",
-            "from": "build",
-            "signal": "open_account",
-            "next_state": "account"
-        },
-        {
-            "id": "t_open_password_change__from__login",
-            "from": "login",
-            "signal": "open_password_change",
-            "next_state": "password"
-        },
-        {
-            "id": "t_open_password_change__from__account",
-            "from": "account",
-            "signal": "open_password_change",
-            "next_state": "password"
-        },
-        {
-            "id": "t_open_password_change__from__password",
-            "from": "password",
-            "signal": "open_password_change",
-            "next_state": "password"
-        },
-        {
-            "id": "t_open_password_change__from__registry",
-            "from": "registry",
-            "signal": "open_password_change",
-            "next_state": "password"
-        },
-        {
-            "id": "t_open_password_change__from__creation",
-            "from": "creation",
-            "signal": "open_password_change",
-            "next_state": "password"
-        },
-        {
-            "id": "t_open_password_change__from__structure",
-            "from": "structure",
-            "signal": "open_password_change",
-            "next_state": "password"
-        },
-        {
-            "id": "t_open_password_change__from__data",
-            "from": "data",
-            "signal": "open_password_change",
-            "next_state": "password"
-        },
-        {
-            "id": "t_open_password_change__from__workflows",
-            "from": "workflows",
-            "signal": "open_password_change",
-            "next_state": "password"
-        },
-        {
-            "id": "t_open_password_change__from__security",
-            "from": "security",
-            "signal": "open_password_change",
-            "next_state": "password"
-        },
-        {
-            "id": "t_open_password_change__from__source",
-            "from": "source",
-            "signal": "open_password_change",
-            "next_state": "password"
-        },
-        {
-            "id": "t_open_password_change__from__build",
-            "from": "build",
-            "signal": "open_password_change",
-            "next_state": "password"
         },
         {
             "id": "t_password_changed",
@@ -639,7 +652,7 @@
             "id": "t_create_app",
             "from": "registry",
             "signal": "create_new_app",
-            "next_state": "creation",
+            "next_state": "creation_basics",
             "actions": [
                 "clear_current_app"
             ]
@@ -654,70 +667,58 @@
             ]
         },
         {
-            "id": "t_open_creation__from__login",
-            "from": "login",
-            "signal": "open_creation",
-            "next_state": "creation"
-        },
-        {
-            "id": "t_open_creation__from__account",
-            "from": "account",
-            "signal": "open_creation",
-            "next_state": "creation"
-        },
-        {
-            "id": "t_open_creation__from__registry",
+            "id": "t_registry_failed",
             "from": "registry",
-            "signal": "open_creation",
-            "next_state": "creation"
+            "signal": "registry_action_failed",
+            "next_state": "registry"
         },
         {
-            "id": "t_open_creation__from__creation",
-            "from": "creation",
-            "signal": "open_creation",
-            "next_state": "creation"
+            "id": "t_creation_basics_security",
+            "from": "creation_basics",
+            "signal": "continue_security",
+            "next_state": "creation_security"
         },
         {
-            "id": "t_open_creation__from__structure",
-            "from": "structure",
-            "signal": "open_creation",
-            "next_state": "creation"
+            "id": "t_creation_basics_cancel",
+            "from": "creation_basics",
+            "signal": "cancel_creation",
+            "next_state": "registry"
         },
         {
-            "id": "t_open_creation__from__data",
-            "from": "data",
-            "signal": "open_creation",
-            "next_state": "creation"
+            "id": "t_creation_security_basics",
+            "from": "creation_security",
+            "signal": "return_basics",
+            "next_state": "creation_basics"
         },
         {
-            "id": "t_open_creation__from__workflows",
-            "from": "workflows",
-            "signal": "open_creation",
-            "next_state": "creation"
+            "id": "t_creation_security_review",
+            "from": "creation_security",
+            "signal": "continue_review",
+            "next_state": "creation_review"
         },
         {
-            "id": "t_open_creation__from__security",
-            "from": "security",
-            "signal": "open_creation",
-            "next_state": "creation"
+            "id": "t_creation_security_cancel",
+            "from": "creation_security",
+            "signal": "cancel_creation",
+            "next_state": "registry"
         },
         {
-            "id": "t_open_creation__from__source",
-            "from": "source",
-            "signal": "open_creation",
-            "next_state": "creation"
+            "id": "t_creation_review_security",
+            "from": "creation_review",
+            "signal": "return_security",
+            "next_state": "creation_security"
         },
         {
-            "id": "t_open_creation__from__build",
-            "from": "build",
-            "signal": "open_creation",
-            "next_state": "creation"
+            "id": "t_creation_begin",
+            "from": "creation_review",
+            "signal": "begin_application_creation",
+            "next_state": "application_creating"
         },
         {
             "id": "t_creation_created",
-            "from": "creation",
+            "from": "application_creating",
             "signal": "application_created",
-            "next_state": "data",
+            "next_state": "application_created",
             "guards": [
                 "app_exists"
             ],
@@ -727,561 +728,33 @@
         },
         {
             "id": "t_creation_failed",
-            "from": "creation",
+            "from": "application_creating",
             "signal": "application_creation_failed",
-            "next_state": "creation"
+            "next_state": "application_creation_failed"
         },
         {
-            "id": "t_creation_cancel",
-            "from": "creation",
+            "id": "t_creation_failure_security",
+            "from": "application_creation_failed",
+            "signal": "return_security",
+            "next_state": "creation_security"
+        },
+        {
+            "id": "t_creation_failure_retry",
+            "from": "application_creation_failed",
+            "signal": "begin_application_creation",
+            "next_state": "application_creating"
+        },
+        {
+            "id": "t_creation_failure_cancel",
+            "from": "application_creation_failed",
             "signal": "cancel_creation",
             "next_state": "registry"
         },
         {
-            "id": "t_registry_failed",
-            "from": "registry",
-            "signal": "registry_action_failed",
+            "id": "t_creation_review_cancel",
+            "from": "creation_review",
+            "signal": "cancel_creation",
             "next_state": "registry"
-        },
-        {
-            "id": "t_change_app__from__login",
-            "from": "login",
-            "signal": "change_app",
-            "next_state": "registry",
-            "actions": [
-                "clear_current_app"
-            ]
-        },
-        {
-            "id": "t_change_app__from__account",
-            "from": "account",
-            "signal": "change_app",
-            "next_state": "registry",
-            "actions": [
-                "clear_current_app"
-            ]
-        },
-        {
-            "id": "t_change_app__from__registry",
-            "from": "registry",
-            "signal": "change_app",
-            "next_state": "registry",
-            "actions": [
-                "clear_current_app"
-            ]
-        },
-        {
-            "id": "t_change_app__from__creation",
-            "from": "creation",
-            "signal": "change_app",
-            "next_state": "registry",
-            "actions": [
-                "clear_current_app"
-            ]
-        },
-        {
-            "id": "t_change_app__from__structure",
-            "from": "structure",
-            "signal": "change_app",
-            "next_state": "registry",
-            "actions": [
-                "clear_current_app"
-            ]
-        },
-        {
-            "id": "t_change_app__from__data",
-            "from": "data",
-            "signal": "change_app",
-            "next_state": "registry",
-            "actions": [
-                "clear_current_app"
-            ]
-        },
-        {
-            "id": "t_change_app__from__workflows",
-            "from": "workflows",
-            "signal": "change_app",
-            "next_state": "registry",
-            "actions": [
-                "clear_current_app"
-            ]
-        },
-        {
-            "id": "t_change_app__from__security",
-            "from": "security",
-            "signal": "change_app",
-            "next_state": "registry",
-            "actions": [
-                "clear_current_app"
-            ]
-        },
-        {
-            "id": "t_change_app__from__source",
-            "from": "source",
-            "signal": "change_app",
-            "next_state": "registry",
-            "actions": [
-                "clear_current_app"
-            ]
-        },
-        {
-            "id": "t_change_app__from__build",
-            "from": "build",
-            "signal": "change_app",
-            "next_state": "registry",
-            "actions": [
-                "clear_current_app"
-            ]
-        },
-        {
-            "id": "t_open_structure__from__login",
-            "from": "login",
-            "signal": "open_structure",
-            "next_state": "structure",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_structure__from__account",
-            "from": "account",
-            "signal": "open_structure",
-            "next_state": "structure",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_structure__from__registry",
-            "from": "registry",
-            "signal": "open_structure",
-            "next_state": "structure",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_structure__from__creation",
-            "from": "creation",
-            "signal": "open_structure",
-            "next_state": "structure",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_structure__from__structure",
-            "from": "structure",
-            "signal": "open_structure",
-            "next_state": "structure",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_structure__from__data",
-            "from": "data",
-            "signal": "open_structure",
-            "next_state": "structure",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_structure__from__workflows",
-            "from": "workflows",
-            "signal": "open_structure",
-            "next_state": "structure",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_structure__from__security",
-            "from": "security",
-            "signal": "open_structure",
-            "next_state": "structure",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_structure__from__source",
-            "from": "source",
-            "signal": "open_structure",
-            "next_state": "structure",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_structure__from__build",
-            "from": "build",
-            "signal": "open_structure",
-            "next_state": "structure",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_data__from__login",
-            "from": "login",
-            "signal": "open_data",
-            "next_state": "data",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_data__from__account",
-            "from": "account",
-            "signal": "open_data",
-            "next_state": "data",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_data__from__registry",
-            "from": "registry",
-            "signal": "open_data",
-            "next_state": "data",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_data__from__creation",
-            "from": "creation",
-            "signal": "open_data",
-            "next_state": "data",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_data__from__structure",
-            "from": "structure",
-            "signal": "open_data",
-            "next_state": "data",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_data__from__data",
-            "from": "data",
-            "signal": "open_data",
-            "next_state": "data",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_data__from__workflows",
-            "from": "workflows",
-            "signal": "open_data",
-            "next_state": "data",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_data__from__security",
-            "from": "security",
-            "signal": "open_data",
-            "next_state": "data",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_data__from__source",
-            "from": "source",
-            "signal": "open_data",
-            "next_state": "data",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_data__from__build",
-            "from": "build",
-            "signal": "open_data",
-            "next_state": "data",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_workflows__from__login",
-            "from": "login",
-            "signal": "open_workflows",
-            "next_state": "workflows",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_workflows__from__account",
-            "from": "account",
-            "signal": "open_workflows",
-            "next_state": "workflows",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_workflows__from__registry",
-            "from": "registry",
-            "signal": "open_workflows",
-            "next_state": "workflows",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_workflows__from__creation",
-            "from": "creation",
-            "signal": "open_workflows",
-            "next_state": "workflows",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_workflows__from__structure",
-            "from": "structure",
-            "signal": "open_workflows",
-            "next_state": "workflows",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_workflows__from__data",
-            "from": "data",
-            "signal": "open_workflows",
-            "next_state": "workflows",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_workflows__from__workflows",
-            "from": "workflows",
-            "signal": "open_workflows",
-            "next_state": "workflows",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_workflows__from__security",
-            "from": "security",
-            "signal": "open_workflows",
-            "next_state": "workflows",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_workflows__from__source",
-            "from": "source",
-            "signal": "open_workflows",
-            "next_state": "workflows",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_workflows__from__build",
-            "from": "build",
-            "signal": "open_workflows",
-            "next_state": "workflows",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_security__from__login",
-            "from": "login",
-            "signal": "open_security",
-            "next_state": "security",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_security__from__account",
-            "from": "account",
-            "signal": "open_security",
-            "next_state": "security",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_security__from__registry",
-            "from": "registry",
-            "signal": "open_security",
-            "next_state": "security",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_security__from__creation",
-            "from": "creation",
-            "signal": "open_security",
-            "next_state": "security",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_security__from__structure",
-            "from": "structure",
-            "signal": "open_security",
-            "next_state": "security",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_security__from__data",
-            "from": "data",
-            "signal": "open_security",
-            "next_state": "security",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_security__from__workflows",
-            "from": "workflows",
-            "signal": "open_security",
-            "next_state": "security",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_security__from__security",
-            "from": "security",
-            "signal": "open_security",
-            "next_state": "security",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_security__from__source",
-            "from": "source",
-            "signal": "open_security",
-            "next_state": "security",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_security__from__build",
-            "from": "build",
-            "signal": "open_security",
-            "next_state": "security",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_source__from__login",
-            "from": "login",
-            "signal": "open_source",
-            "next_state": "source",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_source__from__account",
-            "from": "account",
-            "signal": "open_source",
-            "next_state": "source",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_source__from__registry",
-            "from": "registry",
-            "signal": "open_source",
-            "next_state": "source",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_source__from__creation",
-            "from": "creation",
-            "signal": "open_source",
-            "next_state": "source",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_source__from__structure",
-            "from": "structure",
-            "signal": "open_source",
-            "next_state": "source",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_source__from__data",
-            "from": "data",
-            "signal": "open_source",
-            "next_state": "source",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_source__from__workflows",
-            "from": "workflows",
-            "signal": "open_source",
-            "next_state": "source",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_source__from__security",
-            "from": "security",
-            "signal": "open_source",
-            "next_state": "source",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_source__from__source",
-            "from": "source",
-            "signal": "open_source",
-            "next_state": "source",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_source__from__build",
-            "from": "build",
-            "signal": "open_source",
-            "next_state": "source",
-            "guards": [
-                "current_app_required"
-            ]
         },
         {
             "id": "t_source_file",
@@ -1548,116 +1021,98 @@
             ]
         },
         {
-            "id": "t_open_build__from__login",
-            "from": "login",
-            "signal": "open_build",
-            "next_state": "build",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_build__from__account",
-            "from": "account",
-            "signal": "open_build",
-            "next_state": "build",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_build__from__registry",
-            "from": "registry",
-            "signal": "open_build",
-            "next_state": "build",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_build__from__creation",
-            "from": "creation",
-            "signal": "open_build",
-            "next_state": "build",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_build__from__structure",
-            "from": "structure",
-            "signal": "open_build",
-            "next_state": "build",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_build__from__data",
-            "from": "data",
-            "signal": "open_build",
-            "next_state": "build",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_build__from__workflows",
-            "from": "workflows",
-            "signal": "open_build",
-            "next_state": "build",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_build__from__security",
-            "from": "security",
-            "signal": "open_build",
-            "next_state": "build",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_build__from__source",
-            "from": "source",
-            "signal": "open_build",
-            "next_state": "build",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_build__from__build",
-            "from": "build",
-            "signal": "open_build",
-            "next_state": "build",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_login__from__password",
-            "from": "password",
-            "signal": "open_login",
-            "next_state": "login"
-        },
-        {
-            "id": "t_open_account__from__password",
-            "from": "password",
+            "id": "g_open_account",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "creation_basics",
+                "creation_security",
+                "creation_review",
+                "application_creating",
+                "application_creation_failed",
+                "application_created",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
             "signal": "open_account",
             "next_state": "account"
         },
         {
-            "id": "t_open_creation__from__password",
-            "from": "password",
-            "signal": "open_creation",
-            "next_state": "creation"
+            "id": "g_open_password_change",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "creation_basics",
+                "creation_security",
+                "creation_review",
+                "application_creating",
+                "application_creation_failed",
+                "application_created",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "open_password_change",
+            "next_state": "password"
         },
         {
-            "id": "t_change_app__from__password",
-            "from": "password",
+            "id": "g_open_creation",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "creation_basics",
+                "creation_security",
+                "creation_review",
+                "application_creating",
+                "application_creation_failed",
+                "application_created",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "open_creation",
+            "next_state": "creation_basics"
+        },
+        {
+            "id": "g_change_app",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "creation_basics",
+                "creation_security",
+                "creation_review",
+                "application_creating",
+                "application_creation_failed",
+                "application_created",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
             "signal": "change_app",
             "next_state": "registry",
             "actions": [
@@ -1665,17 +1120,21 @@
             ]
         },
         {
-            "id": "t_open_structure__from__password",
-            "from": "password",
-            "signal": "open_structure",
-            "next_state": "structure",
-            "guards": [
-                "current_app_required"
-            ]
-        },
-        {
-            "id": "t_open_data__from__password",
-            "from": "password",
+            "id": "g_open_data",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
             "signal": "open_data",
             "next_state": "data",
             "guards": [
@@ -1683,17 +1142,43 @@
             ]
         },
         {
-            "id": "t_open_workflows__from__password",
-            "from": "password",
-            "signal": "open_workflows",
-            "next_state": "workflows",
+            "id": "g_open_structure",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "open_structure",
+            "next_state": "structure",
             "guards": [
                 "current_app_required"
             ]
         },
         {
-            "id": "t_open_security__from__password",
-            "from": "password",
+            "id": "g_open_security",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
             "signal": "open_security",
             "next_state": "security",
             "guards": [
@@ -1701,8 +1186,43 @@
             ]
         },
         {
-            "id": "t_open_source__from__password",
-            "from": "password",
+            "id": "g_open_workflows",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "open_workflows",
+            "next_state": "workflows",
+            "guards": [
+                "current_app_required"
+            ]
+        },
+        {
+            "id": "g_open_source",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
             "signal": "open_source",
             "next_state": "source",
             "guards": [
@@ -1710,8 +1230,21 @@
             ]
         },
         {
-            "id": "t_open_build__from__password",
-            "from": "password",
+            "id": "g_open_build",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
             "signal": "open_build",
             "next_state": "build",
             "guards": [
@@ -1719,8 +1252,26 @@
             ]
         },
         {
-            "id": "t_logout__from__password",
-            "from": "password",
+            "id": "g_logout",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "creation_basics",
+                "creation_security",
+                "creation_review",
+                "application_creating",
+                "application_creation_failed",
+                "application_created",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
             "signal": "logout",
             "next_state": "login",
             "actions": [
@@ -1737,106 +1288,6 @@
                 "clear_session"
             ],
             "interrupt": "nmi"
-        },
-        {
-            "id": "t_logout__from__login",
-            "from": "login",
-            "signal": "logout",
-            "next_state": "login",
-            "actions": [
-                "clear_current_app",
-                "clear_session"
-            ]
-        },
-        {
-            "id": "t_logout__from__account",
-            "from": "account",
-            "signal": "logout",
-            "next_state": "login",
-            "actions": [
-                "clear_current_app",
-                "clear_session"
-            ]
-        },
-        {
-            "id": "t_logout__from__registry",
-            "from": "registry",
-            "signal": "logout",
-            "next_state": "login",
-            "actions": [
-                "clear_current_app",
-                "clear_session"
-            ]
-        },
-        {
-            "id": "t_logout__from__creation",
-            "from": "creation",
-            "signal": "logout",
-            "next_state": "login",
-            "actions": [
-                "clear_current_app",
-                "clear_session"
-            ]
-        },
-        {
-            "id": "t_logout__from__structure",
-            "from": "structure",
-            "signal": "logout",
-            "next_state": "login",
-            "actions": [
-                "clear_current_app",
-                "clear_session"
-            ]
-        },
-        {
-            "id": "t_logout__from__data",
-            "from": "data",
-            "signal": "logout",
-            "next_state": "login",
-            "actions": [
-                "clear_current_app",
-                "clear_session"
-            ]
-        },
-        {
-            "id": "t_logout__from__workflows",
-            "from": "workflows",
-            "signal": "logout",
-            "next_state": "login",
-            "actions": [
-                "clear_current_app",
-                "clear_session"
-            ]
-        },
-        {
-            "id": "t_logout__from__security",
-            "from": "security",
-            "signal": "logout",
-            "next_state": "login",
-            "actions": [
-                "clear_current_app",
-                "clear_session"
-            ]
-        },
-        {
-            "id": "t_logout__from__source",
-            "from": "source",
-            "signal": "logout",
-            "next_state": "login",
-            "actions": [
-                "clear_current_app",
-                "clear_session"
-            ]
-        },
-        {
-            "id": "t_logout__from__build",
-            "from": "build",
-            "signal": "logout",
-            "next_state": "login",
-            "actions": [
-                "clear_current_app",
-                "clear_session"
-            ]
         }
     ],
     "guards": {

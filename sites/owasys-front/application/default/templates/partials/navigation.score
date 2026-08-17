@@ -1,37 +1,88 @@
 <nav
-  class="ow-global-nav"
+  class="ow-global-nav ow-fsm-menu"
   aria-label="[[ i18n: navigation.main ]]"
-  data-fsm-menu-contract="OWASYS_FSM_MENU_V2"
-  data-fsm-menu-behavior="direct-state-transition"
+  data-fsm-menu-contract="OWASYS_FSM_MENU_V3"
+  data-fsm-menu-behavior="canonical-state-signals-exclusive-autocollapse"
 >
   [[ foreach: navigation as item ]]
+    [[ if: item.global_host ]]
+      [[ if: item.has_global_signals ]]
+        <div class="ow-fsm-menu-globals" data-fsm-global-rail="true">
+          [[ foreach: item.global_signals as signal ]]
+            [[ if: signal.actionable ]]
+              <a
+                class="ow-fsm-menu-signal is-actionable signal-type-navigation"
+                href="{{ signal.url }}"
+                data-transition-id="{{ signal.transition_id }}"
+                data-signal="{{ signal.signal }}"
+                data-signal-type="navigation"
+                data-target-state="{{ signal.target }}"
+                data-global-transition="true"
+              ><code>{{ signal.signal }}</code></a>
+            [[ else ]]
+              <span
+                class="ow-fsm-menu-signal is-passive signal-type-navigation"
+                aria-disabled="true"
+                data-transition-id="{{ signal.transition_id }}"
+                data-signal="{{ signal.signal }}"
+                data-signal-type="navigation"
+                data-target-state="{{ signal.target }}"
+                data-global-transition="true"
+              ><code>{{ signal.signal }}</code></span>
+            [[ endif ]]
+          [[ endforeach ]]
+        </div>
+      [[ endif ]]
+    [[ endif ]]
+
     [[ if: item.visible ]]
       [[ if: item.allowed ]]
-        [[ if: item.available ]]
-          [[ if: item.entry_actionable ]]
-            <a
-              class="ow-global-nav-link[[ if: item.active ]] is-active[[ endif ]]"
-              href="{{ item.url }}"
-              data-owasys-navigation-state="{{ item.id }}"
-              data-transition-id="{{ item.entry_transition_id }}"
-              data-signal="{{ item.entry_signal }}"
-              [[ if: item.active ]]aria-current="page"[[ endif ]]
-            >{{ item.label }}</a>
-          [[ else ]]
-            <span
-              class="ow-global-nav-link is-disabled"
-              aria-disabled="true"
-              data-owasys-navigation-state="{{ item.id }}"
-            >{{ item.label }}</span>
-          [[ endif ]]
-        [[ else ]]
-          <span
-            class="ow-global-nav-link is-disabled"
-            aria-disabled="true"
-            data-owasys-navigation-state="{{ item.id }}"
-            data-owasys-current-app-required="true"
-          >{{ item.label }}</span>
-        [[ endif ]]
+        <details
+          name="owasys-fsm-navigation"
+          class="ow-fsm-menu-state[[ if: item.active ]] is-active[[ endif ]][[ if: item.available ]][[ else ]] is-disabled[[ endif ]]"
+          data-state="{{ item.id }}"
+          data-state-type="{{ item.state_type }}"
+        >
+          <summary
+            class="ow-fsm-menu-state-label"
+            [[ if: item.active ]]aria-current="page"[[ endif ]]
+          >{{ item.label }}</summary>
+          <div class="ow-fsm-menu-signals" aria-label="{{ item.label }}">
+            [[ if: item.has_signals ]]
+              [[ foreach: item.signals as signal ]]
+                [[ if: signal.actionable ]]
+                  <a
+                    class="ow-fsm-menu-signal is-actionable signal-type-{{ signal.signal_type }}"
+                    href="{{ signal.url }}"
+                    data-transition-id="{{ signal.transition_id }}"
+                    data-signal="{{ signal.signal }}"
+                    data-signal-type="{{ signal.signal_type }}"
+                    data-source-state="{{ item.id }}"
+                    data-target-state="{{ signal.target }}"
+                  >
+                    <code>{{ signal.signal }}</code>
+                    <span>→ {{ signal.target_label }}</span>
+                  </a>
+                [[ else ]]
+                  <span
+                    class="ow-fsm-menu-signal is-passive signal-type-{{ signal.signal_type }}"
+                    aria-disabled="true"
+                    data-transition-id="{{ signal.transition_id }}"
+                    data-signal="{{ signal.signal }}"
+                    data-signal-type="{{ signal.signal_type }}"
+                    data-source-state="{{ item.id }}"
+                    data-target-state="{{ signal.target }}"
+                  >
+                    <code>{{ signal.signal }}</code>
+                    <span>→ {{ signal.target_label }}</span>
+                  </span>
+                [[ endif ]]
+              [[ endforeach ]]
+            [[ else ]]
+              <span class="ow-fsm-menu-empty">∅</span>
+            [[ endif ]]
+          </div>
+        </details>
       [[ endif ]]
     [[ endif ]]
   [[ endforeach ]]

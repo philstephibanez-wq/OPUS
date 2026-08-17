@@ -3,8 +3,10 @@ declare(strict_types=1);
 
 use Opus\File\StructuredFileLoader;
 
+/** Builds the OWASYS menu as a projection of the canonical FSM. */
 final class OwasysNavigationBuilder
 {
+    /** @var array<string,true> */
     private const SIGNAL_TYPES = [
         'navigation' => true,
         'command' => true,
@@ -19,23 +21,15 @@ final class OwasysNavigationBuilder
     }
 
     /**
-     * Builds both the internal FSM navigation projection and the visible
-     * OWASYS development bar from the canonical FSM.
-     *
-     * Contract:
-     * - all canonical states stay in the returned projection so the fixed
-     *   FSM diagram can validate labels and transition actionability;
-     * - only states with navigation.visible=true belong to the visible bar;
-     * - the visible bar contains direct state links, never duplicated signal
-     *   dropdowns;
-     * - a direct state URL is never taken directly from state.route: it is
-     *   resolved from the exact menu=true navigation transition whose source
-     *   is the runtime current state and whose target is that state;
-     * - command/outcome/system signals remain FSM/diagram/profiler facts and
-     *   never become visible global navigation entries;
-     * - current-state transition actionability and ACL/availability remain
-     *   authoritative;
-     * - URLs come only from OPUS_SIGNAL_ROUTES_V2.
+     * Contract A4AI:
+     * - every canonical visible state is one menu entry;
+     * - every state-local relation is a submenu signal, irrespective of type;
+     * - ordinary global navigation is rendered once, never copied into every
+     *   state submenu;
+     * - cyan/actionable means a real current transition with a real GET route;
+     * - command/outcome/system relations remain visible FSM facts but are not
+     *   forged into GET links;
+     * - ACL and current-application availability remain authoritative.
      *
      * @param array<string,mixed> $fsmConfig
      * @param array<string,mixed>|null $identity
@@ -49,57 +43,64 @@ final class OwasysNavigationBuilder
         bool $hasCurrentApp,
         callable $routeUrl
     ): array {
+        $signalRegistry = $this->signalRegistry($fsmConfig);
+        $signalRoutes = $this->signalRoutes();
         $items = [];
         $itemsById = [];
-        $stateById = [];
-        $stateOrdinal = 0;
+        $statesById = [];
+        $ordinal = 0;
 
         foreach ((array) ($fsmConfig['states'] ?? []) as $state) {
-            ++$stateOrdinal;
+            ++$ordinal;
             if (!is_array($state)) {
-                continue;
+                throw new RuntimeException('OWASYS_NAVIGATION_STATE_INVALID');
             }
 
             $stateId = trim((string) ($state['id'] ?? ''));
-            if ($stateId === '' || $stateId === '*') {
+            if ($stateId === '' || $stateId === '*' || isset($statesById[$stateId])) {
                 throw new RuntimeException(
                     'OWASYS_NAVIGATION_STATE_INVALID:' . $stateId
                 );
             }
-            if (isset($stateById[$stateId])) {
+
+            $stateType = trim((string) ($state['type'] ?? ''));
+            if (!in_array(
+                $stateType,
+                ['screen', 'workflow', 'result', 'system'],
+                true
+            )) {
                 throw new RuntimeException(
-                    'OWASYS_NAVIGATION_STATE_DUPLICATE:' . $stateId
+                    'OWASYS_NAVIGATION_STATE_TYPE_INVALID:' . $stateId
                 );
             }
-            $stateById[$stateId] = $state;
-
+            $module = trim((string) ($state['module'] ?? $stateId));
+            $route = trim((string) ($state['route'] ?? ''));
             $navigation = is_array($state['navigation'] ?? null)
                 ? $state['navigation']
                 : [];
-            $module = trim((string) ($state['module'] ?? $stateId));
-            $route = trim((string) ($state['route'] ?? ''));
             $labelKey = trim((string) (
                 $navigation['label']
                 ?? $state['title_key']
                 ?? ('menu.' . $module)
             ));
-            $requiresAuth = ($state['requires_auth'] ?? false) === true;
-            $requiresCurrentApp =
-                ($state['requires_current_app'] ?? false) === true;
-
             if ($module === '' || $route === '' || $labelKey === '') {
                 throw new RuntimeException(
-                    'OWASYS_NAVIGATION_STATE_INVALID:' . $stateId
+                    'OWASYS_NAVIGATION_STATE_FIELDS_INVALID:' . $stateId
                 );
             }
 
+            $requiresAuth = ($state['requires_auth'] ?? false) === true;
+            $requiresCurrentApp =
+                ($state['requires_current_app'] ?? false) === true;
             $allowed = !$requiresAuth
                 || $this->security->isAllowed($identity, $module, 'open');
             $available = $allowed
                 && (!$requiresCurrentApp || $hasCurrentApp);
 
+            $statesById[$stateId] = $state;
             $items[] = [
                 'id' => $stateId,
+                'state_type' => $stateType,
                 'module' => $module,
                 'label_key' => $labelKey,
                 'label' => '',
@@ -108,15 +109,12 @@ final class OwasysNavigationBuilder
                 'available' => $available,
                 'requires_current_app' => $requiresCurrentApp,
                 'active' => $stateId === $currentState,
-                'order' => (int) (
-                    $navigation['order'] ?? (1000 + $stateOrdinal)
-                ),
-                'url' => '',
-                'entry_actionable' => false,
-                'entry_transition_id' => '',
-                'entry_signal' => '',
-                'has_signals' => false,
+                'order' => (int) ($navigation['order'] ?? (1000 + $ordinal)),
                 'signals' => [],
+                'has_signals' => false,
+                'global_signals' => [],
+                'has_global_signals' => false,
+                'global_host' => false,
             ];
         }
 
@@ -126,7 +124,6 @@ final class OwasysNavigationBuilder
                 ($left['order'] <=> $right['order'])
                 ?: strcmp((string) $left['id'], (string) $right['id'])
         );
-
         foreach ($items as $index => $item) {
             $itemsById[(string) $item['id']] = $index;
         }
@@ -137,32 +134,25 @@ final class OwasysNavigationBuilder
             );
         }
 
-        $signalRegistry = $this->signalRegistry($fsmConfig);
-        $signalRoutes = $this->signalRoutes();
+        $globalSignals = [];
         $transitionIds = [];
-        $directTargets = [];
 
         foreach ((array) ($fsmConfig['transitions'] ?? []) as $transition) {
             if (!is_array($transition)) {
-                throw new RuntimeException(
-                    'OWASYS_NAVIGATION_TRANSITION_INVALID'
-                );
+                throw new RuntimeException('OWASYS_NAVIGATION_TRANSITION_INVALID');
             }
 
             $transitionId = trim((string) ($transition['id'] ?? ''));
-            $from = trim((string) ($transition['from'] ?? ''));
+            $signal = trim((string) ($transition['signal'] ?? ''));
             $to = trim((string) (
                 $transition['next_state']
                 ?? $transition['nextState']
                 ?? ''
             ));
-            $signal = trim((string) ($transition['signal'] ?? ''));
             $interrupt = trim((string) ($transition['interrupt'] ?? ''));
+            $scope = trim((string) ($transition['scope'] ?? ''));
 
-            if ($transitionId === ''
-                || $from === ''
-                || $to === ''
-                || $signal === '') {
+            if ($transitionId === '' || $signal === '' || $to === '') {
                 throw new RuntimeException(
                     'OWASYS_NAVIGATION_TRANSITION_FIELDS_INVALID'
                 );
@@ -174,6 +164,17 @@ final class OwasysNavigationBuilder
             }
             $transitionIds[$transitionId] = true;
 
+            if (!isset($signalRegistry[$signal])) {
+                throw new RuntimeException(
+                    'OWASYS_NAVIGATION_SIGNAL_UNDECLARED:' . $signal
+                );
+            }
+            if (!isset($itemsById[$to])) {
+                throw new RuntimeException(
+                    'OWASYS_NAVIGATION_TARGET_UNKNOWN:' . $to
+                );
+            }
+
             if ($interrupt === 'nmi') {
                 continue;
             }
@@ -182,107 +183,147 @@ final class OwasysNavigationBuilder
                     'OWASYS_NAVIGATION_INTERRUPT_INVALID:' . $interrupt
                 );
             }
-            if ($from === '*') {
-                throw new RuntimeException(
-                    'OWASYS_NAVIGATION_GLOBAL_SOURCE_FORBIDDEN:' . $signal
-                );
-            }
-            if (!isset($signalRegistry[$signal])) {
-                throw new RuntimeException(
-                    'OWASYS_NAVIGATION_SIGNAL_UNDECLARED:' . $signal
-                );
-            }
-            if (($signalRegistry[$signal]['menu'] ?? false) !== true) {
-                continue;
-            }
-            if (($signalRegistry[$signal]['type'] ?? '') !== 'navigation') {
-                throw new RuntimeException(
-                    'OWASYS_NAVIGATION_MENU_SIGNAL_TYPE_INVALID:' . $signal
-                );
-            }
-            if (!isset($itemsById[$from]) || !isset($itemsById[$to])) {
+
+            if ($scope === 'global') {
+                $sources = $this->globalSources($transition, $statesById);
+                if (!in_array($currentState, $sources, true)) {
+                    continue;
+                }
+
+                $definition = $signalRegistry[$signal];
+                if (($definition['menu'] ?? false) !== true) {
+                    continue;
+                }
+                if (($definition['type'] ?? '') !== 'navigation') {
+                    throw new RuntimeException(
+                        'OWASYS_NAVIGATION_GLOBAL_MENU_TYPE_INVALID:' . $signal
+                    );
+                }
+
+                $target = $items[$itemsById[$to]];
+                $mappedRoute = $signalRoutes[$signal] ?? null;
+                $actionable = is_string($mappedRoute)
+                    && $mappedRoute !== ''
+                    && ($target['allowed'] ?? false) === true
+                    && ($target['available'] ?? false) === true;
+                $url = $actionable ? $routeUrl($mappedRoute) : '';
+
+                $globalSignals[] = [
+                    'transition_id' => $transitionId,
+                    'signal' => $signal,
+                    'signal_type' => 'navigation',
+                    'target' => $to,
+                    'target_label_key' => (string) ($target['label_key'] ?? ''),
+                    'target_label' => '',
+                    'url' => $url,
+                    'actionable' => $actionable,
+                    'has_route' => is_string($mappedRoute) && $mappedRoute !== '',
+                    'active_source' => true,
+                    'target_available' =>
+                        ($target['allowed'] ?? false) === true
+                        && ($target['available'] ?? false) === true,
+                    'order' => (int) ($definition['menu_order'] ?? ($target['order'] ?? PHP_INT_MAX)),
+                ];
                 continue;
             }
 
-            $mappedRoute = $signalRoutes[$signal] ?? null;
-            if (!is_string($mappedRoute) || $mappedRoute === '') {
+            if ($scope !== '') {
                 throw new RuntimeException(
-                    'OWASYS_NAVIGATION_MENU_SIGNAL_ROUTE_MISSING:' . $signal
+                    'OWASYS_NAVIGATION_SCOPE_INVALID:' . $scope
+                );
+            }
+
+            $from = trim((string) ($transition['from'] ?? ''));
+            if ($from === '' || $from === '*' || !isset($itemsById[$from])) {
+                throw new RuntimeException(
+                    'OWASYS_NAVIGATION_LOCAL_SOURCE_INVALID:' . $from
                 );
             }
 
             $sourceIndex = $itemsById[$from];
-            $targetIndex = $itemsById[$to];
-            $target = $items[$targetIndex];
+            $target = $items[$itemsById[$to]];
+            $definition = $signalRegistry[$signal];
+            $mappedRoute = $signalRoutes[$signal] ?? null;
+            $isNavigation = ($definition['type'] ?? '') === 'navigation';
             $actionable = $from === $currentState
+                && $isNavigation
+                && is_string($mappedRoute)
+                && $mappedRoute !== ''
                 && ($target['allowed'] ?? false) === true
                 && ($target['available'] ?? false) === true;
-            $url = $actionable ? $routeUrl($mappedRoute) : '';
 
             $items[$sourceIndex]['signals'][] = [
                 'transition_id' => $transitionId,
                 'signal' => $signal,
-                'signal_type' => 'navigation',
+                'signal_type' => (string) ($definition['type'] ?? ''),
                 'target' => $to,
                 'target_label_key' => (string) ($target['label_key'] ?? ''),
                 'target_label' => '',
-                'url' => $url,
+                'url' => $actionable ? $routeUrl($mappedRoute) : '',
                 'actionable' => $actionable,
-                'has_route' => true,
-                'trigger_route' => $mappedRoute,
+                'has_route' => is_string($mappedRoute) && $mappedRoute !== '',
                 'active_source' => $from === $currentState,
                 'target_available' =>
                     ($target['allowed'] ?? false) === true
                     && ($target['available'] ?? false) === true,
                 'order' => (int) ($target['order'] ?? PHP_INT_MAX),
             ];
-
-            if (!$actionable) {
-                continue;
-            }
-
-            if (isset($directTargets[$to])) {
-                throw new RuntimeException(
-                    'OWASYS_NAVIGATION_DIRECT_TARGET_AMBIGUOUS:'
-                    . $currentState . ':' . $to
-                );
-            }
-            $directTargets[$to] = $transitionId;
-            $items[$targetIndex]['url'] = $url;
-            $items[$targetIndex]['entry_actionable'] = true;
-            $items[$targetIndex]['entry_transition_id'] = $transitionId;
-            $items[$targetIndex]['entry_signal'] = $signal;
         }
+
+        usort(
+            $globalSignals,
+            static fn (array $left, array $right): int =>
+                ($left['order'] <=> $right['order'])
+                ?: strcmp((string) $left['signal'], (string) $right['signal'])
+        );
 
         foreach ($items as $index => $item) {
             usort(
                 $items[$index]['signals'],
                 static fn (array $left, array $right): int =>
                     ($left['order'] <=> $right['order'])
-                    ?: strcmp(
-                        (string) $left['signal'],
-                        (string) $right['signal']
-                    )
+                    ?: strcmp((string) $left['signal'], (string) $right['signal'])
             );
-            $items[$index]['has_signals'] =
-                $items[$index]['signals'] !== [];
-
-            if (($items[$index]['visible'] ?? false) !== true
-                || ($items[$index]['allowed'] ?? false) !== true
-                || ($items[$index]['available'] ?? false) !== true) {
-                continue;
-            }
-            if (($items[$index]['entry_actionable'] ?? false) !== true) {
-                throw new RuntimeException(
-                    'OWASYS_NAVIGATION_VISIBLE_TARGET_UNREACHABLE:'
-                    . $currentState
-                    . ':'
-                    . (string) ($items[$index]['id'] ?? '')
-                );
-            }
+            $items[$index]['has_signals'] = $items[$index]['signals'] !== [];
         }
 
+        /* Global rail is emitted exactly once, anchored to Applications. */
+        $hostId = isset($itemsById['registry']) ? 'registry' : $currentState;
+        $hostIndex = $itemsById[$hostId];
+        $items[$hostIndex]['global_host'] = true;
+        $items[$hostIndex]['global_signals'] = $globalSignals;
+        $items[$hostIndex]['has_global_signals'] = $globalSignals !== [];
+
         return $items;
+    }
+
+    /**
+     * @param array<string,mixed> $transition
+     * @param array<string,array<string,mixed>> $statesById
+     * @return list<string>
+     */
+    private function globalSources(array $transition, array $statesById): array
+    {
+        $sources = $transition['from_states'] ?? null;
+        if (!is_array($sources) || $sources === []) {
+            throw new RuntimeException(
+                'OWASYS_NAVIGATION_GLOBAL_SOURCES_MISSING:'
+                . (string) ($transition['signal'] ?? '')
+            );
+        }
+
+        $result = [];
+        foreach ($sources as $source) {
+            $source = is_string($source) ? trim($source) : '';
+            if ($source === '' || !isset($statesById[$source])) {
+                throw new RuntimeException(
+                    'OWASYS_NAVIGATION_GLOBAL_SOURCE_INVALID:' . $source
+                );
+            }
+            $result[$source] = true;
+        }
+
+        return array_keys($result);
     }
 
     /**
@@ -316,7 +357,11 @@ final class OwasysNavigationBuilder
                     'OWASYS_NAVIGATION_SIGNAL_MENU_TYPE_INVALID:' . $id
                 );
             }
-            $registry[$id] = ['type' => $type, 'menu' => $menu];
+            $registry[$id] = [
+                'type' => $type,
+                'menu' => $menu,
+                'menu_order' => (int) ($definition['menu_order'] ?? PHP_INT_MAX),
+            ];
         }
         if ($registry === []) {
             throw new RuntimeException('OWASYS_NAVIGATION_SIGNAL_REGISTRY_EMPTY');
