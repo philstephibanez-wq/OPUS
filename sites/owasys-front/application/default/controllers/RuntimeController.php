@@ -124,6 +124,7 @@ final class OwasysRuntimeController
 
                 if ($handled['redirect'] === true) {
                     $this->redirect($locale, (string) $handled['route']);
+                    return;
                 }
 
                 $targetState = (string) $handled['state'];
@@ -133,6 +134,7 @@ final class OwasysRuntimeController
 
         if ($externalRedirect !== '') {
             $this->redirectExternal($externalRedirect);
+            return;
         }
 
         if ($redirectAfterTransition) {
@@ -144,6 +146,7 @@ final class OwasysRuntimeController
                     ? ['owasys_new' => '1']
                     : []
             );
+            return;
         }
 
         $this->renderState(
@@ -1220,7 +1223,7 @@ final class OwasysRuntimeController
         string $locale,
         string $route,
         array $query = []
-    ): never {
+    ): void {
         $url = $this->routeUrl($locale, $route);
         if ($query !== []) {
             $url .= '?'
@@ -1232,10 +1235,9 @@ final class OwasysRuntimeController
                 );
         }
         header('Location: ' . $url, true, 303);
-        exit;
     }
 
-    private function redirectExternal(string $url): never
+    private function redirectExternal(string $url): void
     {
         if (
             $url === ''
@@ -1279,7 +1281,6 @@ final class OwasysRuntimeController
         }
 
         header('Location: ' . $url, true, 303);
-        exit;
     }
 
     private function fail(int $status, string $message): never

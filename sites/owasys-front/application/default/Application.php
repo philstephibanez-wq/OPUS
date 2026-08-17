@@ -158,18 +158,20 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 );
                 $controller->run();
             }
-            $this->profiler->event(
-                'score',
-                'response.rendered',
-                ['path' => $path],
-                'success',
-                $httpSpanId
-            );
+            $responseStatus = http_response_code();
+            if ($responseStatus < 300 || $responseStatus >= 400) {
+                $this->profiler->event(
+                    'score',
+                    'response.rendered',
+                    ['path' => $path],
+                    'success',
+                    $httpSpanId
+                );
+            }
             $status = 'completed';
             $this->logger->info('owasys.front', 'request.completed', [
                 'path' => $path,
             ], $traceId);
-            $responseStatus = http_response_code();
             $this->profiler->event('http', 'http.response.sent', [
                 'status_code' => $responseStatus,
             ], 'success', $httpSpanId);
