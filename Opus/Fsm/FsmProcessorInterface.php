@@ -12,7 +12,9 @@ namespace Opus\Fsm;
  * - OPUS framework component contract;
  * - explicit exception-awareness contract;
  * - profiler-awareness contract;
- * - complete self-documentation contract for RefBook output.
+ * - complete self-documentation contract for RefBook output;
+ * - guarded-transition inspection is side-effect free for FSM runtime state;
+ * - execution and UI actionability consume the same guard semantics.
  */
 interface FsmProcessorInterface extends
     \Opus\Framework\OpusFrameworkComponentInterface,
@@ -47,4 +49,16 @@ interface FsmProcessorInterface extends
 
     /** @param array<string,mixed> $snapshot */
     public function restore(array $snapshot): void;
+
+    /**
+     * Inspects the transition selected for a state/signal without applying it.
+     *
+     * @param array<string,mixed> $context Runtime facts available to guards.
+     * @return array<string,mixed>
+     */
+    public function inspectTransition(
+        string $currentState,
+        string $signal,
+        array $context = []
+    ): array;
 }

@@ -15,10 +15,18 @@ use RuntimeException;
  * scope="global" + from_states=[...]. They are distinct from NMI, never use
  * the wildcard source, and are considered only after an exact state-local
  * transition. NMI remains the sole preemptive wildcard relation.
+ *
+ * Guarded-transition contract:
+ * - transition selection stays deterministic for one state/signal pair;
+ * - guards are pure predicates over runtime facts and FSM read-only state;
+ * - inspectTransition() evaluates the exact guards used by transition();
+ * - a refused inspection never mutates state, memory or stack;
+ * - transition() remains the sole operation that commits FSM mutation.
  */
 final class FsmProcessor implements FsmProcessorInterface
 {
     private const RESULT_CONTRACT = 'OPUS_FSM_PROCESSOR_RESULT_V2';
+    private const INSPECTION_CONTRACT = 'OPUS_FSM_TRANSITION_INSPECTION_V1';
 
     /** @var array<string,true> */
     private const CANONICAL_CONTRACTS = [
@@ -75,7 +83,11 @@ final class FsmProcessor implements FsmProcessorInterface
         try {
             $decoded = StructuredFileLoader::instance()->read($path);
         } catch (\Throwable $cause) {
-            throw new RuntimeException('OPUS_FSM_JSON_INVALID: ' . $path, 0, $cause);
+            throw new RuntimeException(
+                'OPUS_FSM_JSON_INVALID: ' . $path,
+                0,
+                $cause
+            );
         }
 
         return new self($decoded, $guardHandlers, $profiler, $parentSpanId);
@@ -214,6 +226,96 @@ final class FsmProcessor implements FsmProcessorInterface
     }
 
     /**
+     * Inspects the transition selected for a current state and signal without
+     * applying state, memory or stack mutation.
+     *
+     * The method intentionally does not emit transition profiler events: it is
+     * a query used by UI/actionability projections. Guard handlers are required
+     * to be pure with respect to the FSM runtime; mutation is detected, rolled
+     * back and rejected.
+     *
+     * @param array<string,mixed> $context Runtime facts available to guards.
+     * @return array<string,mixed>
+     */
+    public function inspectTransition(
+        string $currentState,
+        string $signal,
+        array $context = []
+    ): array {
+        $this->assertTransitionInput($currentState, $signal);
+
+        $transition = $this->findTransition($currentState, $signal);
+        if ($transition === null) {
+            return [
+                'contract' => self::INSPECTION_CONTRACT,
+                'table_fsm' => $this->name(),
+                'current_state' => $currentState,
+                'signal' => $signal,
+                'transition_found' => false,
+                'enabled' => false,
+                'reason' => 'transition_not_found',
+                'transition_id' => '',
+                'scope' => '',
+                'next_state' => '',
+                'guards' => [],
+                'guard_results' => [],
+                'failed_guards' => [],
+                'actions' => [],
+                'target_state' => [],
+            ];
+        }
+
+        $target = (string) ($transition['next_state'] ?? '');
+        if ($target === '' || !isset($this->statesById[$target])) {
+            throw new RuntimeException(
+                'OPUS_FSM_TARGET_STATE_UNKNOWN: ' . $target
+            );
+        }
+
+        $guards = $this->transitionGuards($transition);
+        $guardResults = [];
+        $failedGuards = [];
+
+        foreach ($guards as $guard) {
+            $allowed = $this->evaluateGuardPure(
+                $guard,
+                $currentState,
+                $signal,
+                $transition,
+                $context
+            );
+            $guardResults[] = [
+                'guard' => $guard,
+                'allowed' => $allowed,
+                'result' => $allowed ? 'allowed' : 'denied',
+            ];
+            if (!$allowed) {
+                $failedGuards[] = $guard;
+            }
+        }
+
+        $enabled = $failedGuards === [];
+
+        return [
+            'contract' => self::INSPECTION_CONTRACT,
+            'table_fsm' => $this->name(),
+            'current_state' => $currentState,
+            'signal' => $signal,
+            'transition_found' => true,
+            'enabled' => $enabled,
+            'reason' => $enabled ? 'enabled' : 'guard_refused',
+            'transition_id' => (string) ($transition['id'] ?? ''),
+            'scope' => $this->transitionScope($transition),
+            'next_state' => $target,
+            'guards' => $guards,
+            'guard_results' => $guardResults,
+            'failed_guards' => $failedGuards,
+            'actions' => $this->transitionActions($transition),
+            'target_state' => $this->statesById[$target],
+        ];
+    }
+
+    /**
      * Executes a transition for a current state and signal.
      *
      * @param array<string,mixed> $context Runtime facts available to guards.
@@ -224,46 +326,38 @@ final class FsmProcessor implements FsmProcessorInterface
         string $signal,
         array $context = []
     ): array {
-        if ($currentState === '' || !isset($this->statesById[$currentState])) {
-            throw new RuntimeException(
-                'OPUS_FSM_CURRENT_STATE_UNKNOWN: ' . $currentState
-            );
-        }
-        if ($signal === '') {
-            throw new RuntimeException('OPUS_FSM_SIGNAL_REQUIRED');
-        }
+        $this->assertTransitionInput($currentState, $signal);
 
         $startedAt = microtime(true);
         $spanId = $this->beginTransitionSpan($currentState, $signal);
         $nextState = null;
 
         try {
+            /* The caller-provided state remains authoritative for execution. */
             $this->currentState = $currentState;
-            $transition = $this->findTransition($currentState, $signal);
-            if ($transition === null) {
+            $inspection = $this->inspectTransition(
+                $currentState,
+                $signal,
+                $context
+            );
+
+            if (($inspection['transition_found'] ?? false) !== true) {
                 throw new RuntimeException(
                     'OPUS_FSM_TRANSITION_NOT_FOUND: '
                     . $currentState . ':' . $signal
                 );
             }
 
-            $target = (string) ($transition['next_state'] ?? '');
+            $target = (string) ($inspection['next_state'] ?? '');
             $nextState = $target;
-            if ($target === '' || !isset($this->statesById[$target])) {
-                throw new RuntimeException(
-                    'OPUS_FSM_TARGET_STATE_UNKNOWN: ' . $target
-                );
-            }
+            $transitionId = (string) ($inspection['transition_id'] ?? '');
 
-            $transitionId = (string) ($transition['id'] ?? '');
-            foreach ($this->transitionGuards($transition) as $guard) {
-                $allowed = $this->evaluateGuard(
-                    $guard,
-                    $currentState,
-                    $signal,
-                    $transition,
-                    $context
-                );
+            foreach ((array) ($inspection['guard_results'] ?? []) as $result) {
+                if (!is_array($result)) {
+                    continue;
+                }
+                $guard = (string) ($result['guard'] ?? '');
+                $allowed = ($result['allowed'] ?? false) === true;
                 $this->profileEvent('guard.evaluated', [
                     'table_fsm' => $this->name(),
                     'current_state' => $currentState,
@@ -273,12 +367,25 @@ final class FsmProcessor implements FsmProcessorInterface
                     'guard' => $guard,
                     'result' => $allowed ? 'allowed' : 'denied',
                 ], $allowed ? 'success' : 'error', $spanId);
-                if (!$allowed) {
-                    throw new RuntimeException('OPUS_FSM_GUARD_FAILED: ' . $guard);
-                }
             }
 
-            $actions = $this->transitionActions($transition);
+            if (($inspection['enabled'] ?? false) !== true) {
+                $failed = (array) ($inspection['failed_guards'] ?? []);
+                $guard = (string) ($failed[0] ?? '');
+                throw new RuntimeException(
+                    'OPUS_FSM_GUARD_FAILED: ' . $guard
+                );
+            }
+
+            $transition = $this->findTransition($currentState, $signal);
+            if (!is_array($transition)) {
+                throw new RuntimeException(
+                    'OPUS_FSM_TRANSITION_NOT_FOUND: '
+                    . $currentState . ':' . $signal
+                );
+            }
+
+            $actions = (array) ($inspection['actions'] ?? []);
             $this->currentState = $target;
             $this->applyMemoryOperations($transition, $context);
             $completed = [
@@ -287,8 +394,8 @@ final class FsmProcessor implements FsmProcessorInterface
                 'current_state' => $currentState,
                 'signal' => $signal,
                 'next_state' => $target,
-                'scope' => $this->transitionScope($transition),
-                'guards' => $this->transitionGuards($transition),
+                'scope' => (string) ($inspection['scope'] ?? ''),
+                'guards' => (array) ($inspection['guards'] ?? []),
                 'actions' => $actions,
                 'duration_ms' => $this->durationMs($startedAt),
             ];
@@ -307,11 +414,11 @@ final class FsmProcessor implements FsmProcessorInterface
                 'signal' => $signal,
                 'next_state' => $target,
                 'transition_id' => $transitionId,
-                'scope' => $this->transitionScope($transition),
-                'guards' => $this->transitionGuards($transition),
+                'scope' => (string) ($inspection['scope'] ?? ''),
+                'guards' => (array) ($inspection['guards'] ?? []),
                 'actions' => $actions,
                 'action' => $actions[0] ?? '',
-                'target_state' => $this->statesById[$target],
+                'target_state' => (array) ($inspection['target_state'] ?? []),
                 'runtime' => $this->snapshot(),
             ];
         } catch (\Throwable $error) {
@@ -347,6 +454,20 @@ final class FsmProcessor implements FsmProcessorInterface
     public function transitions(): array
     {
         return array_values($this->fsm['transitions']);
+    }
+
+    private function assertTransitionInput(
+        string $currentState,
+        string $signal
+    ): void {
+        if ($currentState === '' || !isset($this->statesById[$currentState])) {
+            throw new RuntimeException(
+                'OPUS_FSM_CURRENT_STATE_UNKNOWN: ' . $currentState
+            );
+        }
+        if ($signal === '') {
+            throw new RuntimeException('OPUS_FSM_SIGNAL_REQUIRED');
+        }
     }
 
     private function beginTransitionSpan(
@@ -783,6 +904,40 @@ final class FsmProcessor implements FsmProcessorInterface
             ),
             static fn (string $action): bool => $action !== ''
         ));
+    }
+
+    /**
+     * Enforces the guard contract used by inspection and execution: a guard may
+     * read FSM runtime state but must not change state, memory or stack.
+     *
+     * @param array<string,mixed> $transition
+     * @param array<string,mixed> $context
+     */
+    private function evaluateGuardPure(
+        string $guard,
+        string $currentState,
+        string $signal,
+        array $transition,
+        array $context
+    ): bool {
+        $before = $this->snapshot();
+        try {
+            return $this->evaluateGuard(
+                $guard,
+                $currentState,
+                $signal,
+                $transition,
+                $context
+            );
+        } finally {
+            $after = $this->snapshot();
+            if ($after !== $before) {
+                $this->restore($before);
+                throw new RuntimeException(
+                    'OPUS_FSM_GUARD_MUTATED_RUNTIME: ' . $guard
+                );
+            }
+        }
     }
 
     /**
