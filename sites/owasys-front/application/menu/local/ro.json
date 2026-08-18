@@ -1,0 +1,15 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "ro",
+    "scope": "menu",
+    "messages": {
+        "menu.operation.create": "Creează",
+        "menu.operation.read": "Consultă",
+        "menu.operation.update": "Modifică",
+        "menu.operation.delete": "Șterge",
+        "menu.operation.list_select": "Consultă / selectează",
+        "menu.operation.validate": "Validează",
+        "menu.operation.run": "Rulează în dezvoltare",
+        "menu.operation.export": "Exportă"
+    }
+}

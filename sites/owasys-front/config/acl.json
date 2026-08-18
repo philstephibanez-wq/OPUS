@@ -7,6 +7,7 @@
         ],
         "developer": [
             "registry:*",
+            "application:*",
             "creation:*",
             "structure:*",
             "data:*",
@@ -20,6 +21,7 @@
         ],
         "viewer": [
             "registry:open",
+            "application:open",
             "registry:select",
             "structure:open",
             "data:open",

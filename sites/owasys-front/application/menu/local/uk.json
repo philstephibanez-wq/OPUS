@@ -1,0 +1,15 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "uk",
+    "scope": "menu",
+    "messages": {
+        "menu.operation.create": "Створити",
+        "menu.operation.read": "Переглянути",
+        "menu.operation.update": "Змінити",
+        "menu.operation.delete": "Видалити",
+        "menu.operation.list_select": "Переглянути / вибрати",
+        "menu.operation.validate": "Перевірити",
+        "menu.operation.run": "Запустити в розробці",
+        "menu.operation.export": "Експортувати"
+    }
+}

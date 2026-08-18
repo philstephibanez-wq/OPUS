@@ -1,0 +1,15 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "lt",
+    "scope": "menu",
+    "messages": {
+        "menu.operation.create": "Sukurti",
+        "menu.operation.read": "Peržiūrėti",
+        "menu.operation.update": "Keisti",
+        "menu.operation.delete": "Šalinti",
+        "menu.operation.list_select": "Peržiūrėti / pasirinkti",
+        "menu.operation.validate": "Patikrinti",
+        "menu.operation.run": "Paleisti kūrimo režimu",
+        "menu.operation.export": "Eksportuoti"
+    }
+}

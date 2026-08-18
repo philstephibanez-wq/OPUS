@@ -7,7 +7,7 @@ use Opus\Fsm\FsmDiagramGeometryNormalizer;
 /** Builds a fixed visual projection from the canonical OWASYS FSM. */
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4AW';
+    private const REVISION = 'P117W_R45B2A4BE';
 
     public function __construct(
         private readonly string $siteRoot,
@@ -56,14 +56,14 @@ final class OwasysFsmDiagramBuilder
                 continue;
             }
             $id = trim((string) ($item['id'] ?? ''));
-            $label = trim((string) ($item['label'] ?? ''));
-            if ($id === '' || $label === '' || !isset($statesById[$id])) {
+            if ($id === '' || !isset($statesById[$id])) {
                 throw new RuntimeException(
                     'OWASYS_FSM_MENU_PROJECTION_INVALID:' . $id
                 );
             }
             $menuByState[$id] = $item;
-            $stateLabels[$id] = $label;
+            /* Diagram is diagnostic: state IDs stay canonical, never I18n. */
+            $stateLabels[$id] = $id;
         }
 
         if (!isset($statesById[$currentState], $menuByState[$currentState])) {
@@ -234,10 +234,15 @@ final class OwasysFsmDiagramBuilder
                         'OWASYS_FSM_CURRENT_POST_ACTION_INVALID:' . $id
                     );
                 }
+                $fields = [$field => $value];
+                $csrf = trim((string) ($action['csrf_token'] ?? ''));
+                if ($csrf !== '') {
+                    $fields['csrf_token'] = $csrf;
+                }
                 $transitionActions[$id] = [
                     'method' => 'POST',
                     'url' => $url,
-                    'fields' => [$field => $value],
+                    'fields' => $fields,
                 ];
             } else {
                 $transitionLinks[$id] = $url;
@@ -345,7 +350,6 @@ final class OwasysFsmDiagramBuilder
             );
         }
         $transitions[] = $transition;
-        $labels[$id] = $signal;
         $key = $this->signalTargetKey($signal, $to);
         $displayed[$key] ??= [];
         $displayed[$key][] = [
@@ -391,7 +395,7 @@ final class OwasysFsmDiagramBuilder
 
     /**
      * @param array<string,array<string,mixed>> $menuByState
-     * @return array<string,array{url:string,transition_id:string,is_post:bool,request_field:string,request_value:string}>
+     * @return array<string,array{url:string,transition_id:string,is_post:bool,request_field:string,request_value:string,csrf_token:string}>
      */
     private function currentActions(
         array $menuByState,
@@ -426,7 +430,7 @@ final class OwasysFsmDiagramBuilder
     }
 
     /**
-     * @param array<string,array{url:string,transition_id:string,is_post:bool,request_field:string,request_value:string}> $actions
+     * @param array<string,array{url:string,transition_id:string,is_post:bool,request_field:string,request_value:string,csrf_token:string}> $actions
      * @param array<string,mixed> $signalItem
      */
     private function registerAction(array &$actions, array $signalItem): void
@@ -453,6 +457,9 @@ final class OwasysFsmDiagramBuilder
             'request_value' => (string) (
                 $signalItem['request_value'] ?? ''
             ),
+            'csrf_token' => trim((string) (
+                $signalItem['csrf_token'] ?? ''
+            )),
         ];
     }
 

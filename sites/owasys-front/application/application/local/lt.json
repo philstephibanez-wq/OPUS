@@ -1,0 +1,9 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "lt",
+    "scope": "application",
+    "messages": {
+        "menu.application": "Programa",
+        "application.description": "Dabartinė programa ir jos darbo kontekstas."
+    }
+}

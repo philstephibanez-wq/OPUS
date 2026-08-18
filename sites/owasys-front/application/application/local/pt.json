@@ -1,0 +1,9 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "pt",
+    "scope": "application",
+    "messages": {
+        "menu.application": "Aplicação",
+        "application.description": "A aplicação atual e o respetivo contexto de trabalho."
+    }
+}

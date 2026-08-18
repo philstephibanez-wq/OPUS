@@ -1,0 +1,15 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "da",
+    "scope": "menu",
+    "messages": {
+        "menu.operation.create": "Opret",
+        "menu.operation.read": "Vis",
+        "menu.operation.update": "Rediger",
+        "menu.operation.delete": "Slet",
+        "menu.operation.list_select": "Vis / vælg",
+        "menu.operation.validate": "Valider",
+        "menu.operation.run": "Kør i udvikling",
+        "menu.operation.export": "Eksportér"
+    }
+}

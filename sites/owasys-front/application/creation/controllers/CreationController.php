@@ -84,7 +84,11 @@ final class OwasysCreationController
         $this->security->assertAllowed($identity, 'creation', 'open');
 
         $fsmConfig = $this->fsmConfig();
-        $fsm = FsmSiteLoader::processorForSiteRoot($this->siteRoot);
+        $fsm = FsmSiteLoader::processorForSiteRoot(
+            $this->siteRoot,
+            (new OwasysFsmGuardHandlers($this->security))
+                ->forConfig($fsmConfig, $identity)
+        );
         $store = new FsmSessionStore(self::FSM_SESSION_KEY);
         $store->restore($fsm);
         $state = $this->enterCreationState($fsm, $store, $identity);
@@ -643,7 +647,7 @@ final class OwasysCreationController
                 $fsmConfig,
                 $identity,
                 $state,
-                is_array($currentApp),
+                $currentApp,
                 $routeUrl
             ),
             'auth' => [

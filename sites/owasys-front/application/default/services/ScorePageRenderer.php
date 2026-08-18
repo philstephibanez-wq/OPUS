@@ -11,7 +11,7 @@ use Opus\Profiler\ProfilerInterface;
 
 final class OwasysScorePageRenderer
 {
-    private const FSM_I18N_REVISION = 'P117W_R45B2A4T';
+    private const FSM_I18N_REVISION = 'P117W_R45B2A4BE';
 
     private readonly OwasysFsmDiagramBuilder $fsmDiagram;
 
@@ -46,7 +46,7 @@ final class OwasysScorePageRenderer
         );
 
         $assets['fsm_css'] = $assetBase
-            . '/css/fsm-native.css?v=p117w-r45b2a4ba';
+            . '/css/fsm-native.css?v=p117w-r45b2a4be';
 
         $source = is_array($data['source'] ?? null)
             ? $data['source']
@@ -268,6 +268,12 @@ final class OwasysScorePageRenderer
             return $data;
         }
 
+        $menuRuntime = $this->translationRuntime(
+            $runtimes,
+            'menu',
+            $locale
+        );
+
         foreach ($data['navigation'] as $index => $item) {
             if (!is_array($item)) {
                 continue;
@@ -307,6 +313,32 @@ final class OwasysScorePageRenderer
                     $labelKey,
                     'menu'
                 );
+
+            foreach ((array) (
+                $data['navigation'][$index]['operations'] ?? []
+            ) as $operationIndex => $operation) {
+                if (!is_array($operation)) {
+                    continue;
+                }
+                $operationKey = trim((string) (
+                    $operation['label_key'] ?? ''
+                ));
+                if ($operationKey === '') {
+                    throw new RuntimeException(
+                        'OWASYS_SCORE_EFSM_MENU_OPERATION_I18N_KEY_MISSING:'
+                        . (string) ($operation['signal'] ?? '')
+                    );
+                }
+                $data['navigation'][$index]['operations'][$operationIndex]
+                    ['label'] = $this->translateStateText(
+                        $menuRuntime,
+                        (string) ($operation['signal'] ?? ''),
+                        'menu',
+                        $locale,
+                        $operationKey,
+                        'operation-menu'
+                    );
+            }
 
             foreach ((array) (
                 $data['navigation'][$index]['signals'] ?? []

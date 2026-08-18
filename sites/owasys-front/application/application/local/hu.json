@@ -1,0 +1,9 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "hu",
+    "scope": "application",
+    "messages": {
+        "menu.application": "Alkalmazás",
+        "application.description": "Az aktuális alkalmazás és annak munkakörnyezete."
+    }
+}

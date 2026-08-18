@@ -1,0 +1,16 @@
+<section class="ow-card" aria-label="[[ i18n: menu.application ]]">
+  <div class="ow-section-heading">
+    <div>
+      <h2>[[ i18n: menu.application ]]</h2>
+      <p class="ow-muted">[[ i18n: application.description ]]</p>
+    </div>
+  </div>
+  <dl class="ow-kv">
+    <dt>[[ i18n: common.id ]]</dt>
+    <dd>{{ current_app.id }}</dd>
+    <dt>[[ i18n: common.kind ]]</dt>
+    <dd>{{ current_app.kind }}</dd>
+    <dt>[[ i18n: common.root ]]</dt>
+    <dd>{{ current_app.root }}</dd>
+  </dl>
+</section>

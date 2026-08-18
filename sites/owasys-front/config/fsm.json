@@ -13,7 +13,7 @@
             "title_key": "auth.sign_in",
             "summary_key": "auth.sign_in_description",
             "navigation": {
-                "visible": true,
+                "visible": false,
                 "order": 0,
                 "label": "auth.sign_in"
             },
@@ -43,6 +43,25 @@
             "type": "screen"
         },
         {
+            "id": "application",
+            "module": "application",
+            "route": "application",
+            "requires_auth": true,
+            "requires_current_app": true,
+            "title_key": "menu.application",
+            "summary_key": "application.description",
+            "navigation": {
+                "visible": true,
+                "order": 20,
+                "label": "menu.application"
+            },
+            "diagram": {
+                "rank": 7,
+                "order": 20
+            },
+            "type": "screen"
+        },
+        {
             "id": "creation_basics",
             "module": "creation",
             "route": "applications/new",
@@ -51,7 +70,7 @@
             "title_key": "creation.step.basics",
             "summary_key": "creation.choose_profile_description",
             "navigation": {
-                "visible": true,
+                "visible": false,
                 "order": 11,
                 "label": "creation.step.basics"
             },
@@ -70,7 +89,7 @@
             "title_key": "creation.step.security",
             "summary_key": "creation.security.description",
             "navigation": {
-                "visible": true,
+                "visible": false,
                 "order": 12,
                 "label": "creation.step.security"
             },
@@ -89,7 +108,7 @@
             "title_key": "creation.step.review",
             "summary_key": "creation.review.description",
             "navigation": {
-                "visible": true,
+                "visible": false,
                 "order": 13,
                 "label": "creation.step.review"
             },
@@ -109,7 +128,7 @@
             "title_key": "creation.submit",
             "summary_key": "creation.review.description",
             "navigation": {
-                "visible": true,
+                "visible": false,
                 "order": 14,
                 "label": "creation.submit"
             },
@@ -129,7 +148,7 @@
             "title_key": "creation.error.title",
             "summary_key": "creation.review.description",
             "navigation": {
-                "visible": true,
+                "visible": false,
                 "order": 15,
                 "label": "creation.error.title"
             },
@@ -148,7 +167,7 @@
             "title_key": "creation.result",
             "summary_key": "creation.result_minimal",
             "navigation": {
-                "visible": true,
+                "visible": false,
                 "order": 16,
                 "label": "creation.result"
             },
@@ -168,7 +187,7 @@
             "summary_key": "state.default.summary",
             "navigation": {
                 "visible": true,
-                "order": 20,
+                "order": 30,
                 "label": "menu.data"
             },
             "diagram": {
@@ -187,7 +206,7 @@
             "summary_key": "state.default.summary",
             "navigation": {
                 "visible": true,
-                "order": 30,
+                "order": 40,
                 "label": "menu.structure"
             },
             "diagram": {
@@ -206,7 +225,7 @@
             "summary_key": "state.default.summary",
             "navigation": {
                 "visible": true,
-                "order": 40,
+                "order": 50,
                 "label": "menu.security"
             },
             "diagram": {
@@ -225,7 +244,7 @@
             "summary_key": "state.default.summary",
             "navigation": {
                 "visible": true,
-                "order": 50,
+                "order": 60,
                 "label": "menu.fsm"
             },
             "diagram": {
@@ -244,7 +263,7 @@
             "summary_key": "state.default.summary",
             "navigation": {
                 "visible": true,
-                "order": 60,
+                "order": 70,
                 "label": "menu.source"
             },
             "diagram": {
@@ -263,7 +282,7 @@
             "summary_key": "state.default.summary",
             "navigation": {
                 "visible": true,
-                "order": 70,
+                "order": 80,
                 "label": "menu.build"
             },
             "diagram": {
@@ -282,7 +301,7 @@
             "title_key": "menu.account",
             "summary_key": "menu.account",
             "navigation": {
-                "visible": true,
+                "visible": false,
                 "order": 80,
                 "label": "menu.account"
             },
@@ -302,7 +321,7 @@
             "title_key": "auth.change_password",
             "summary_key": "auth.change_password_description",
             "navigation": {
-                "visible": true,
+                "visible": false,
                 "order": 90,
                 "label": "auth.change_password"
             },
@@ -323,14 +342,14 @@
         {
             "id": "open_account",
             "type": "navigation",
-            "menu": true,
+            "menu": false,
             "menu_order": 80,
             "origin": "user"
         },
         {
             "id": "open_password_change",
             "type": "navigation",
-            "menu": true,
+            "menu": false,
             "menu_order": 90,
             "origin": "user"
         },
@@ -371,9 +390,25 @@
             "origin": "user"
         },
         {
-            "id": "change_app",
+            "id": "open_applications",
             "type": "navigation",
             "menu": true,
+            "menu_order": 10,
+            "origin": "user",
+            "label_key": "menu.applications"
+        },
+        {
+            "id": "open_application",
+            "type": "navigation",
+            "menu": true,
+            "menu_order": 20,
+            "origin": "user",
+            "label_key": "menu.application"
+        },
+        {
+            "id": "change_app",
+            "type": "navigation",
+            "menu": false,
             "menu_order": 5,
             "origin": "user"
         },
@@ -387,7 +422,8 @@
             "id": "create_new_app",
             "type": "command",
             "menu": false,
-            "origin": "user"
+            "origin": "user",
+            "menu_order": 10
         },
         {
             "id": "application_deleted",
@@ -398,7 +434,7 @@
         {
             "id": "open_creation",
             "type": "navigation",
-            "menu": true,
+            "menu": false,
             "menu_order": 10,
             "origin": "user"
         },
@@ -460,36 +496,41 @@
             "id": "open_structure",
             "type": "navigation",
             "menu": true,
-            "menu_order": 30,
-            "origin": "user"
+            "menu_order": 40,
+            "origin": "user",
+            "label_key": "menu.structure"
         },
         {
             "id": "open_data",
             "type": "navigation",
             "menu": true,
-            "menu_order": 20,
-            "origin": "user"
+            "menu_order": 30,
+            "origin": "user",
+            "label_key": "menu.data"
         },
         {
             "id": "open_fsm",
             "type": "navigation",
             "menu": true,
-            "menu_order": 50,
-            "origin": "user"
+            "menu_order": 60,
+            "origin": "user",
+            "label_key": "menu.fsm"
         },
         {
             "id": "open_security",
             "type": "navigation",
             "menu": true,
-            "menu_order": 40,
-            "origin": "user"
+            "menu_order": 50,
+            "origin": "user",
+            "label_key": "menu.security"
         },
         {
             "id": "open_source",
             "type": "navigation",
             "menu": true,
-            "menu_order": 60,
-            "origin": "user"
+            "menu_order": 70,
+            "origin": "user",
+            "label_key": "menu.source"
         },
         {
             "id": "open_source_file",
@@ -609,8 +650,9 @@
             "id": "open_build",
             "type": "navigation",
             "menu": true,
-            "menu_order": 70,
-            "origin": "user"
+            "menu_order": 80,
+            "origin": "user",
+            "label_key": "menu.build"
         },
         {
             "id": "auth_required",
@@ -621,9 +663,361 @@
         {
             "id": "logout",
             "type": "navigation",
-            "menu": true,
+            "menu": false,
             "menu_order": 100,
             "origin": "user"
+        },
+        {
+            "id": "create_application",
+            "type": "command",
+            "menu": true,
+            "menu_order": 10,
+            "origin": "user",
+            "label_key": "menu.operation.create",
+            "menu_state": "registry",
+            "resource": "registry",
+            "operation": "create"
+        },
+        {
+            "id": "list_applications",
+            "type": "command",
+            "menu": true,
+            "menu_order": 20,
+            "origin": "user",
+            "label_key": "menu.operation.list_select",
+            "menu_state": "registry",
+            "resource": "registry",
+            "operation": "read"
+        },
+        {
+            "id": "update_application",
+            "type": "command",
+            "menu": true,
+            "menu_order": 30,
+            "origin": "user",
+            "label_key": "menu.operation.update",
+            "menu_state": "registry",
+            "resource": "registry",
+            "operation": "update"
+        },
+        {
+            "id": "delete_application",
+            "type": "command",
+            "menu": true,
+            "menu_order": 40,
+            "origin": "user",
+            "label_key": "menu.operation.delete",
+            "menu_state": "registry",
+            "resource": "registry",
+            "operation": "delete"
+        },
+        {
+            "id": "read_current_application",
+            "type": "command",
+            "menu": true,
+            "menu_order": 10,
+            "origin": "user",
+            "label_key": "menu.operation.read",
+            "menu_state": "application",
+            "resource": "application",
+            "operation": "read"
+        },
+        {
+            "id": "update_current_application",
+            "type": "command",
+            "menu": true,
+            "menu_order": 20,
+            "origin": "user",
+            "label_key": "menu.operation.update",
+            "menu_state": "application",
+            "resource": "application",
+            "operation": "update"
+        },
+        {
+            "id": "delete_current_application",
+            "type": "command",
+            "menu": true,
+            "menu_order": 30,
+            "origin": "user",
+            "label_key": "menu.operation.delete",
+            "menu_state": "application",
+            "resource": "application",
+            "operation": "delete"
+        },
+        {
+            "id": "create_data",
+            "type": "command",
+            "menu": true,
+            "menu_order": 10,
+            "origin": "user",
+            "label_key": "menu.operation.create",
+            "menu_state": "data",
+            "resource": "data",
+            "operation": "create"
+        },
+        {
+            "id": "read_data",
+            "type": "command",
+            "menu": true,
+            "menu_order": 20,
+            "origin": "user",
+            "label_key": "menu.operation.read",
+            "menu_state": "data",
+            "resource": "data",
+            "operation": "read"
+        },
+        {
+            "id": "update_data",
+            "type": "command",
+            "menu": true,
+            "menu_order": 30,
+            "origin": "user",
+            "label_key": "menu.operation.update",
+            "menu_state": "data",
+            "resource": "data",
+            "operation": "update"
+        },
+        {
+            "id": "delete_data",
+            "type": "command",
+            "menu": true,
+            "menu_order": 40,
+            "origin": "user",
+            "label_key": "menu.operation.delete",
+            "menu_state": "data",
+            "resource": "data",
+            "operation": "delete"
+        },
+        {
+            "id": "create_structure",
+            "type": "command",
+            "menu": true,
+            "menu_order": 10,
+            "origin": "user",
+            "label_key": "menu.operation.create",
+            "menu_state": "structure",
+            "resource": "structure",
+            "operation": "create"
+        },
+        {
+            "id": "read_structure",
+            "type": "command",
+            "menu": true,
+            "menu_order": 20,
+            "origin": "user",
+            "label_key": "menu.operation.read",
+            "menu_state": "structure",
+            "resource": "structure",
+            "operation": "read"
+        },
+        {
+            "id": "update_structure",
+            "type": "command",
+            "menu": true,
+            "menu_order": 30,
+            "origin": "user",
+            "label_key": "menu.operation.update",
+            "menu_state": "structure",
+            "resource": "structure",
+            "operation": "update"
+        },
+        {
+            "id": "delete_structure",
+            "type": "command",
+            "menu": true,
+            "menu_order": 40,
+            "origin": "user",
+            "label_key": "menu.operation.delete",
+            "menu_state": "structure",
+            "resource": "structure",
+            "operation": "delete"
+        },
+        {
+            "id": "create_security",
+            "type": "command",
+            "menu": true,
+            "menu_order": 10,
+            "origin": "user",
+            "label_key": "menu.operation.create",
+            "menu_state": "security",
+            "resource": "security",
+            "operation": "create"
+        },
+        {
+            "id": "read_security",
+            "type": "command",
+            "menu": true,
+            "menu_order": 20,
+            "origin": "user",
+            "label_key": "menu.operation.read",
+            "menu_state": "security",
+            "resource": "security",
+            "operation": "read"
+        },
+        {
+            "id": "update_security",
+            "type": "command",
+            "menu": true,
+            "menu_order": 30,
+            "origin": "user",
+            "label_key": "menu.operation.update",
+            "menu_state": "security",
+            "resource": "security",
+            "operation": "update"
+        },
+        {
+            "id": "delete_security",
+            "type": "command",
+            "menu": true,
+            "menu_order": 40,
+            "origin": "user",
+            "label_key": "menu.operation.delete",
+            "menu_state": "security",
+            "resource": "security",
+            "operation": "delete"
+        },
+        {
+            "id": "create_fsm",
+            "type": "command",
+            "menu": true,
+            "menu_order": 10,
+            "origin": "user",
+            "label_key": "menu.operation.create",
+            "menu_state": "workflows",
+            "resource": "fsm",
+            "operation": "create"
+        },
+        {
+            "id": "read_fsm",
+            "type": "command",
+            "menu": true,
+            "menu_order": 20,
+            "origin": "user",
+            "label_key": "menu.operation.read",
+            "menu_state": "workflows",
+            "resource": "fsm",
+            "operation": "read"
+        },
+        {
+            "id": "update_fsm",
+            "type": "command",
+            "menu": true,
+            "menu_order": 30,
+            "origin": "user",
+            "label_key": "menu.operation.update",
+            "menu_state": "workflows",
+            "resource": "fsm",
+            "operation": "update"
+        },
+        {
+            "id": "delete_fsm",
+            "type": "command",
+            "menu": true,
+            "menu_order": 40,
+            "origin": "user",
+            "label_key": "menu.operation.delete",
+            "menu_state": "workflows",
+            "resource": "fsm",
+            "operation": "delete"
+        },
+        {
+            "id": "create_source",
+            "type": "command",
+            "menu": true,
+            "menu_order": 10,
+            "origin": "user",
+            "label_key": "menu.operation.create",
+            "menu_state": "source",
+            "resource": "source",
+            "operation": "create"
+        },
+        {
+            "id": "read_source",
+            "type": "command",
+            "menu": true,
+            "menu_order": 20,
+            "origin": "user",
+            "label_key": "menu.operation.read",
+            "menu_state": "source",
+            "resource": "source",
+            "operation": "read"
+        },
+        {
+            "id": "update_source",
+            "type": "command",
+            "menu": true,
+            "menu_order": 30,
+            "origin": "user",
+            "label_key": "menu.operation.update",
+            "menu_state": "source",
+            "resource": "source",
+            "operation": "update"
+        },
+        {
+            "id": "delete_source",
+            "type": "command",
+            "menu": true,
+            "menu_order": 40,
+            "origin": "user",
+            "label_key": "menu.operation.delete",
+            "menu_state": "source",
+            "resource": "source",
+            "operation": "delete"
+        },
+        {
+            "id": "read_build",
+            "type": "command",
+            "menu": true,
+            "menu_order": 10,
+            "origin": "user",
+            "label_key": "menu.operation.read",
+            "menu_state": "build",
+            "resource": "build",
+            "operation": "read"
+        },
+        {
+            "id": "update_build",
+            "type": "command",
+            "menu": true,
+            "menu_order": 20,
+            "origin": "user",
+            "label_key": "menu.operation.update",
+            "menu_state": "build",
+            "resource": "build",
+            "operation": "update"
+        },
+        {
+            "id": "validate_build",
+            "type": "command",
+            "menu": true,
+            "menu_order": 30,
+            "origin": "user",
+            "label_key": "menu.operation.validate",
+            "menu_state": "build",
+            "resource": "build",
+            "operation": "validate"
+        },
+        {
+            "id": "run_build",
+            "type": "command",
+            "menu": true,
+            "menu_order": 40,
+            "origin": "user",
+            "label_key": "menu.operation.run",
+            "menu_state": "build",
+            "resource": "build",
+            "operation": "run"
+        },
+        {
+            "id": "export_build",
+            "type": "command",
+            "menu": true,
+            "menu_order": 50,
+            "origin": "user",
+            "label_key": "menu.operation.export",
+            "menu_state": "build",
+            "resource": "build",
+            "operation": "export"
         }
     ],
     "transitions": [
@@ -681,7 +1075,7 @@
             "id": "t_select_app",
             "from": "registry",
             "signal": "select_app",
-            "next_state": "data",
+            "next_state": "application",
             "guards": [
                 "app_exists"
             ],
@@ -768,7 +1162,7 @@
             "id": "t_creation_created",
             "from": "application_creating",
             "signal": "application_created",
-            "next_state": "application_created",
+            "next_state": "application",
             "guards": [
                 "app_exists"
             ],
@@ -1071,6 +1465,34 @@
             ]
         },
         {
+            "id": "g_open_applications",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application",
+                "creation_basics",
+                "creation_security",
+                "creation_review",
+                "application_creating",
+                "application_creation_failed",
+                "application_created",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "open_applications",
+            "next_state": "registry",
+            "guards": [
+                "acl:registry:open"
+            ]
+        },
+        {
             "id": "g_open_account",
             "scope": "global",
             "from_states": [
@@ -1082,6 +1504,7 @@
                 "application_creating",
                 "application_creation_failed",
                 "application_created",
+                "application",
                 "data",
                 "structure",
                 "security",
@@ -1106,6 +1529,7 @@
                 "application_creating",
                 "application_creation_failed",
                 "application_created",
+                "application",
                 "data",
                 "structure",
                 "security",
@@ -1130,6 +1554,7 @@
                 "application_creating",
                 "application_creation_failed",
                 "application_created",
+                "application",
                 "data",
                 "structure",
                 "security",
@@ -1154,6 +1579,7 @@
                 "application_creating",
                 "application_creation_failed",
                 "application_created",
+                "application",
                 "data",
                 "structure",
                 "security",
@@ -1170,12 +1596,36 @@
             ]
         },
         {
+            "id": "g_open_application",
+            "scope": "global",
+            "from_states": [
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "open_application",
+            "next_state": "application",
+            "guards": [
+                "current_app_required",
+                "acl:application:open"
+            ]
+        },
+        {
             "id": "g_open_data",
             "scope": "global",
             "from_states": [
                 "login",
                 "registry",
                 "application_created",
+                "application",
                 "data",
                 "structure",
                 "security",
@@ -1188,7 +1638,8 @@
             "signal": "open_data",
             "next_state": "data",
             "guards": [
-                "current_app_required"
+                "current_app_required",
+                "acl:data:open"
             ]
         },
         {
@@ -1198,6 +1649,7 @@
                 "login",
                 "registry",
                 "application_created",
+                "application",
                 "data",
                 "structure",
                 "security",
@@ -1210,7 +1662,8 @@
             "signal": "open_structure",
             "next_state": "structure",
             "guards": [
-                "current_app_required"
+                "current_app_required",
+                "acl:structure:open"
             ]
         },
         {
@@ -1220,6 +1673,7 @@
                 "login",
                 "registry",
                 "application_created",
+                "application",
                 "data",
                 "structure",
                 "security",
@@ -1232,7 +1686,8 @@
             "signal": "open_security",
             "next_state": "security",
             "guards": [
-                "current_app_required"
+                "current_app_required",
+                "acl:security:open"
             ]
         },
         {
@@ -1242,6 +1697,7 @@
                 "login",
                 "registry",
                 "application_created",
+                "application",
                 "data",
                 "structure",
                 "security",
@@ -1254,7 +1710,8 @@
             "signal": "open_fsm",
             "next_state": "workflows",
             "guards": [
-                "current_app_required"
+                "current_app_required",
+                "acl:fsm:open"
             ]
         },
         {
@@ -1264,6 +1721,7 @@
                 "login",
                 "registry",
                 "application_created",
+                "application",
                 "data",
                 "structure",
                 "security",
@@ -1276,7 +1734,8 @@
             "signal": "open_source",
             "next_state": "source",
             "guards": [
-                "current_app_required"
+                "current_app_required",
+                "acl:source:open"
             ]
         },
         {
@@ -1286,6 +1745,7 @@
                 "login",
                 "registry",
                 "application_created",
+                "application",
                 "data",
                 "structure",
                 "security",
@@ -1298,7 +1758,8 @@
             "signal": "open_build",
             "next_state": "build",
             "guards": [
-                "current_app_required"
+                "current_app_required",
+                "acl:build:open"
             ]
         },
         {
@@ -1313,6 +1774,7 @@
                 "application_creating",
                 "application_creation_failed",
                 "application_created",
+                "application",
                 "data",
                 "structure",
                 "security",
@@ -1338,12 +1800,1043 @@
                 "clear_session"
             ],
             "interrupt": "nmi"
+        },
+        {
+            "id": "g_create_application",
+            "scope": "global",
+            "from_states": [
+                "registry",
+                "application",
+                "creation_basics",
+                "creation_security",
+                "creation_review",
+                "application_creating",
+                "application_creation_failed",
+                "application_created",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "create_application",
+            "next_state": "creation_basics",
+            "guards": [
+                "acl:creation:open"
+            ],
+            "actions": [
+                "clear_current_app"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_list_applications",
+            "scope": "global",
+            "from_states": [
+                "registry",
+                "application",
+                "creation_basics",
+                "creation_security",
+                "creation_review",
+                "application_creating",
+                "application_creation_failed",
+                "application_created",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "list_applications",
+            "next_state": "registry",
+            "guards": [
+                "acl:registry:open"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_update_application",
+            "scope": "global",
+            "from_states": [
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "update_application",
+            "next_state": "application",
+            "guards": [
+                "current_app_required",
+                "acl:application:update"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_delete_application",
+            "scope": "global",
+            "from_states": [
+                "registry",
+                "application",
+                "creation_basics",
+                "creation_security",
+                "creation_review",
+                "application_creating",
+                "application_creation_failed",
+                "application_created",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "delete_application",
+            "next_state": "registry",
+            "guards": [
+                "acl:registry:delete"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_read_current_application",
+            "scope": "global",
+            "from_states": [
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "read_current_application",
+            "next_state": "application",
+            "guards": [
+                "current_app_required",
+                "acl:application:open"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_update_current_application",
+            "scope": "global",
+            "from_states": [
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "update_current_application",
+            "next_state": "application",
+            "guards": [
+                "current_app_required",
+                "acl:application:update"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_delete_current_application",
+            "scope": "global",
+            "from_states": [
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "delete_current_application",
+            "next_state": "application",
+            "guards": [
+                "current_app_required",
+                "acl:application:delete"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_create_data",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "create_data",
+            "next_state": "data",
+            "guards": [
+                "current_app_required",
+                "acl:data:create"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_read_data",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "read_data",
+            "next_state": "data",
+            "guards": [
+                "current_app_required",
+                "acl:data:open"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_update_data",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "update_data",
+            "next_state": "data",
+            "guards": [
+                "current_app_required",
+                "acl:data:update"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_delete_data",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "delete_data",
+            "next_state": "data",
+            "guards": [
+                "current_app_required",
+                "acl:data:delete"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_create_structure",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "create_structure",
+            "next_state": "structure",
+            "guards": [
+                "current_app_required",
+                "acl:structure:create"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_read_structure",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "read_structure",
+            "next_state": "structure",
+            "guards": [
+                "current_app_required",
+                "acl:structure:open"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_update_structure",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "update_structure",
+            "next_state": "structure",
+            "guards": [
+                "current_app_required",
+                "acl:structure:update"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_delete_structure",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "delete_structure",
+            "next_state": "structure",
+            "guards": [
+                "current_app_required",
+                "acl:structure:delete"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_create_security",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "create_security",
+            "next_state": "security",
+            "guards": [
+                "current_app_required",
+                "acl:security:create"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_read_security",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "read_security",
+            "next_state": "security",
+            "guards": [
+                "current_app_required",
+                "acl:security:open"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_update_security",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "update_security",
+            "next_state": "security",
+            "guards": [
+                "current_app_required",
+                "acl:security:update"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_delete_security",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "delete_security",
+            "next_state": "security",
+            "guards": [
+                "current_app_required",
+                "acl:security:delete"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_create_fsm",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "create_fsm",
+            "next_state": "workflows",
+            "guards": [
+                "current_app_required",
+                "acl:fsm:create"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_read_fsm",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "read_fsm",
+            "next_state": "workflows",
+            "guards": [
+                "current_app_required",
+                "acl:fsm:open"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_update_fsm",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "update_fsm",
+            "next_state": "workflows",
+            "guards": [
+                "current_app_required",
+                "acl:fsm:update"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_delete_fsm",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "delete_fsm",
+            "next_state": "workflows",
+            "guards": [
+                "current_app_required",
+                "acl:fsm:delete"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_create_source",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "create_source",
+            "next_state": "source",
+            "guards": [
+                "current_app_required",
+                "acl:source:create"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_read_source",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "read_source",
+            "next_state": "source",
+            "guards": [
+                "current_app_required",
+                "acl:source:open"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_update_source",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "update_source",
+            "next_state": "source",
+            "guards": [
+                "current_app_required",
+                "acl:source:update"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_delete_source",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "delete_source",
+            "next_state": "source",
+            "guards": [
+                "current_app_required",
+                "acl:source:delete"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_read_build",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "read_build",
+            "next_state": "build",
+            "guards": [
+                "current_app_required",
+                "acl:build:open"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_update_build",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "update_build",
+            "next_state": "build",
+            "guards": [
+                "current_app_required",
+                "acl:build:update"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_validate_build",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "validate_build",
+            "next_state": "build",
+            "guards": [
+                "current_app_required",
+                "acl:build:validate"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_run_build",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "run_build",
+            "next_state": "build",
+            "guards": [
+                "current_app_required",
+                "acl:build:preview"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
+        },
+        {
+            "id": "g_export_build",
+            "scope": "global",
+            "from_states": [
+                "login",
+                "registry",
+                "application_created",
+                "application",
+                "data",
+                "structure",
+                "security",
+                "workflows",
+                "source",
+                "build",
+                "account",
+                "password"
+            ],
+            "signal": "export_build",
+            "next_state": "build",
+            "guards": [
+                "current_app_required",
+                "acl:build:export"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "operation",
+                    "context": "menu_operation"
+                }
+            ]
         }
     ],
     "guards": {
         "app_exists": "The selected or newly created application must be present in the Registry snapshot.",
         "current_app_required": "A current OPUS application must be selected in OWASYS session context.",
-        "must_change_password": "The authenticated identity must complete the required password change."
+        "must_change_password": "The authenticated identity must complete the required password change.",
+        "acl:creation:open": "ACL permission required for this EFSM transition.",
+        "acl:registry:open": "ACL guard acl:registry:open evaluated by OWASYS runtime security.",
+        "acl:application:update": "ACL permission required for this EFSM transition.",
+        "acl:registry:delete": "ACL permission required for this EFSM transition.",
+        "acl:application:open": "ACL guard acl:application:open evaluated by OWASYS runtime security.",
+        "acl:application:delete": "ACL permission required for this EFSM transition.",
+        "acl:data:create": "ACL permission required for this EFSM transition.",
+        "acl:data:open": "ACL guard acl:data:open evaluated by OWASYS runtime security.",
+        "acl:data:update": "ACL permission required for this EFSM transition.",
+        "acl:data:delete": "ACL permission required for this EFSM transition.",
+        "acl:structure:create": "ACL permission required for this EFSM transition.",
+        "acl:structure:open": "ACL guard acl:structure:open evaluated by OWASYS runtime security.",
+        "acl:structure:update": "ACL permission required for this EFSM transition.",
+        "acl:structure:delete": "ACL permission required for this EFSM transition.",
+        "acl:security:create": "ACL permission required for this EFSM transition.",
+        "acl:security:open": "ACL guard acl:security:open evaluated by OWASYS runtime security.",
+        "acl:security:update": "ACL permission required for this EFSM transition.",
+        "acl:security:delete": "ACL permission required for this EFSM transition.",
+        "acl:fsm:create": "ACL permission required for this EFSM transition.",
+        "acl:fsm:open": "ACL guard acl:fsm:open evaluated by OWASYS runtime security.",
+        "acl:fsm:update": "ACL permission required for this EFSM transition.",
+        "acl:fsm:delete": "ACL permission required for this EFSM transition.",
+        "acl:source:create": "ACL permission required for this EFSM transition.",
+        "acl:source:open": "ACL guard acl:source:open evaluated by OWASYS runtime security.",
+        "acl:source:update": "ACL permission required for this EFSM transition.",
+        "acl:source:delete": "ACL permission required for this EFSM transition.",
+        "acl:build:open": "ACL guard acl:build:open evaluated by OWASYS runtime security.",
+        "acl:build:update": "ACL permission required for this EFSM transition.",
+        "acl:build:validate": "ACL permission required for this EFSM transition.",
+        "acl:build:preview": "ACL permission required for this EFSM transition.",
+        "acl:build:export": "ACL permission required for this EFSM transition."
     },
     "actions": {
         "set_current_app": "Persist selection through REST + Composer and store the canonical Registry entry in the OWASYS session.",

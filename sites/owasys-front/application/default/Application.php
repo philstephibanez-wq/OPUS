@@ -115,9 +115,18 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 $httpSpanEnded = true;
                 return;
             }
-            [$controller, $creation, $source, $security] =
+            [$controller, $creation, $source, $security, $fsmMenu] =
                 $this->components($httpSpanId);
-            if ($creation->matchesCurrentRequest()) {
+            if ($fsmMenu->handleIfRequested()) {
+                $this->recordRoutingDecision(
+                    $path,
+                    'fsm-menu',
+                    OwasysFsmMenuSignalGateway::class,
+                    'handleIfRequested',
+                    'application/default/services/FsmMenuSignalGateway.php::handleIfRequested',
+                    $httpSpanId
+                );
+            } elseif ($creation->matchesCurrentRequest()) {
                 $this->recordRoutingDecision(
                     $path,
                     'creation',
@@ -281,7 +290,8 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
      *   0:OwasysRuntimeController,
      *   1:OwasysCreationController,
      *   2:OwasysSourceController,
-     *   3:OwasysSecurityController
+     *   3:OwasysSecurityController,
+     *   4:OwasysFsmMenuSignalGateway
      * }
      */
     private function components(string $httpSpanId): array
@@ -370,6 +380,16 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 $session,
                 $security,
                 $renderer,
+                $localizedRoutes,
+                $this->sessionRuntime,
+                $this->profiler,
+                $httpSpanId
+            ),
+            new OwasysFsmMenuSignalGateway(
+                $this->siteRoot,
+                $this->siteConfig,
+                $session,
+                $security,
                 $localizedRoutes,
                 $this->sessionRuntime,
                 $this->profiler,

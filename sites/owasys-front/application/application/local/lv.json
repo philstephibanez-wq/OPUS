@@ -1,0 +1,9 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "lv",
+    "scope": "application",
+    "messages": {
+        "menu.application": "Lietotne",
+        "application.description": "Pašreizējā lietotne un tās darba konteksts."
+    }
+}

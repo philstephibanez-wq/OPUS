@@ -573,3 +573,98 @@
   filter: none;
 }
 
+
+/* P117W_R45B2A4BE — human resource menu, canonical EFSM source. */
+.ow-fsm-menu-resource {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  flex: 0 0 auto;
+  border: 1px solid transparent;
+  border-radius: .55rem;
+}
+
+.ow-fsm-menu-resource.is-active {
+  border-color: var(--ow-ok);
+  background: rgba(74, 222, 128, .08);
+}
+
+.ow-fsm-menu-resource.is-disabled {
+  opacity: .58;
+}
+
+.ow-fsm-menu-resource-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.45rem;
+  padding: .55rem .8rem;
+  border: 0;
+  border-radius: .55rem;
+  color: var(--ow-muted);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.ow-fsm-menu-resource.is-active > .ow-fsm-menu-resource-link {
+  color: var(--ow-ok);
+}
+
+.ow-fsm-menu-resource > a.ow-fsm-menu-resource-link:hover,
+.ow-fsm-menu-resource > a.ow-fsm-menu-resource-link:focus-visible {
+  color: var(--ow-text);
+  outline: none;
+}
+
+.ow-fsm-menu-operations {
+  position: static;
+  display: flex;
+  align-items: stretch;
+}
+
+.ow-fsm-menu-operations > summary {
+  list-style: none;
+}
+
+.ow-fsm-menu-operations > summary::-webkit-details-marker {
+  display: none;
+}
+
+.ow-fsm-menu-operations-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  min-height: 2.45rem;
+  border-left: 1px solid var(--ow-line);
+  cursor: pointer;
+  color: var(--ow-muted);
+  user-select: none;
+}
+
+.ow-fsm-menu-operations[open] > .ow-fsm-menu-operations-toggle,
+.ow-fsm-menu-operations-toggle:hover,
+.ow-fsm-menu-operations-toggle:focus-visible {
+  color: var(--ow-text);
+  outline: none;
+}
+
+.ow-fsm-menu-resource .ow-fsm-menu-signals {
+  top: calc(100% + .35rem);
+  left: 0;
+}
+
+.ow-fsm-menu-command-form {
+  margin: 0;
+}
+
+.ow-fsm-menu-resource .ow-fsm-menu-signal {
+  appearance: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+}
+
+.ow-fsm-menu-resource .ow-fsm-menu-signal.is-passive {
+  cursor: default;
+}

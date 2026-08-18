@@ -1,0 +1,15 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "et",
+    "scope": "menu",
+    "messages": {
+        "menu.operation.create": "Loo",
+        "menu.operation.read": "Vaata",
+        "menu.operation.update": "Muuda",
+        "menu.operation.delete": "Kustuta",
+        "menu.operation.list_select": "Vaata / vali",
+        "menu.operation.validate": "Valideeri",
+        "menu.operation.run": "Käivita arenduses",
+        "menu.operation.export": "Ekspordi"
+    }
+}

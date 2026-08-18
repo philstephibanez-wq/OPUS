@@ -1,0 +1,15 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "el",
+    "scope": "menu",
+    "messages": {
+        "menu.operation.create": "Δημιουργία",
+        "menu.operation.read": "Προβολή",
+        "menu.operation.update": "Τροποποίηση",
+        "menu.operation.delete": "Διαγραφή",
+        "menu.operation.list_select": "Προβολή / επιλογή",
+        "menu.operation.validate": "Επικύρωση",
+        "menu.operation.run": "Εκτέλεση σε ανάπτυξη",
+        "menu.operation.export": "Εξαγωγή"
+    }
+}

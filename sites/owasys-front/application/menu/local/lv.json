@@ -1,0 +1,15 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "lv",
+    "scope": "menu",
+    "messages": {
+        "menu.operation.create": "Izveidot",
+        "menu.operation.read": "Skatīt",
+        "menu.operation.update": "Mainīt",
+        "menu.operation.delete": "Dzēst",
+        "menu.operation.list_select": "Skatīt / izvēlēties",
+        "menu.operation.validate": "Validēt",
+        "menu.operation.run": "Palaist izstrādē",
+        "menu.operation.export": "Eksportēt"
+    }
+}

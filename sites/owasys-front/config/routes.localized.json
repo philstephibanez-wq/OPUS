@@ -124,6 +124,36 @@
                 "uk": "застосунки"
             }
         },
+        "application": {
+            "tail": false,
+            "paths": {
+                "bg": "application",
+                "hr": "application",
+                "cs": "application",
+                "da": "application",
+                "nl": "application",
+                "en": "application",
+                "et": "application",
+                "fi": "application",
+                "fr": "application",
+                "de": "application",
+                "el": "application",
+                "hu": "application",
+                "ga": "application",
+                "it": "application",
+                "lv": "application",
+                "lt": "application",
+                "mt": "application",
+                "pl": "application",
+                "pt": "application",
+                "ro": "application",
+                "sk": "application",
+                "sl": "application",
+                "es": "application",
+                "sv": "application",
+                "uk": "application"
+            }
+        },
         "applications/new": {
             "tail": false,
             "paths": {

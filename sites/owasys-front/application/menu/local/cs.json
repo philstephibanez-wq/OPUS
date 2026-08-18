@@ -1,0 +1,15 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "cs",
+    "scope": "menu",
+    "messages": {
+        "menu.operation.create": "Vytvořit",
+        "menu.operation.read": "Zobrazit",
+        "menu.operation.update": "Upravit",
+        "menu.operation.delete": "Odstranit",
+        "menu.operation.list_select": "Zobrazit / vybrat",
+        "menu.operation.validate": "Ověřit",
+        "menu.operation.run": "Spustit ve vývoji",
+        "menu.operation.export": "Exportovat"
+    }
+}

@@ -1,0 +1,15 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "fi",
+    "scope": "menu",
+    "messages": {
+        "menu.operation.create": "Luo",
+        "menu.operation.read": "Näytä",
+        "menu.operation.update": "Muokkaa",
+        "menu.operation.delete": "Poista",
+        "menu.operation.list_select": "Näytä / valitse",
+        "menu.operation.validate": "Validoi",
+        "menu.operation.run": "Suorita kehityksessä",
+        "menu.operation.export": "Vie"
+    }
+}

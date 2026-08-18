@@ -1,0 +1,15 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "ga",
+    "scope": "menu",
+    "messages": {
+        "menu.operation.create": "Cruthaigh",
+        "menu.operation.read": "Féach",
+        "menu.operation.update": "Athraigh",
+        "menu.operation.delete": "Scrios",
+        "menu.operation.list_select": "Féach / roghnaigh",
+        "menu.operation.validate": "Bailíochtaigh",
+        "menu.operation.run": "Rith i bhforbairt",
+        "menu.operation.export": "Easpórtáil"
+    }
+}

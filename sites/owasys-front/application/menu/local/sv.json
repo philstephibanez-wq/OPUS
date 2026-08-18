@@ -1,0 +1,15 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "sv",
+    "scope": "menu",
+    "messages": {
+        "menu.operation.create": "Skapa",
+        "menu.operation.read": "Visa",
+        "menu.operation.update": "Ändra",
+        "menu.operation.delete": "Ta bort",
+        "menu.operation.list_select": "Visa / välj",
+        "menu.operation.validate": "Validera",
+        "menu.operation.run": "Kör i utveckling",
+        "menu.operation.export": "Exportera"
+    }
+}

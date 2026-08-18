@@ -1,0 +1,15 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "hr",
+    "scope": "menu",
+    "messages": {
+        "menu.operation.create": "Stvori",
+        "menu.operation.read": "Pregledaj",
+        "menu.operation.update": "Izmijeni",
+        "menu.operation.delete": "Izbriši",
+        "menu.operation.list_select": "Pregledaj / odaberi",
+        "menu.operation.validate": "Provjeri",
+        "menu.operation.run": "Pokreni u razvoju",
+        "menu.operation.export": "Izvezi"
+    }
+}

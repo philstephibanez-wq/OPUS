@@ -1,0 +1,15 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "fr",
+    "scope": "menu",
+    "messages": {
+        "menu.operation.create": "Créer",
+        "menu.operation.read": "Consulter",
+        "menu.operation.update": "Modifier",
+        "menu.operation.delete": "Supprimer",
+        "menu.operation.list_select": "Consulter / sélectionner",
+        "menu.operation.validate": "Valider",
+        "menu.operation.run": "Lancer en développement",
+        "menu.operation.export": "Exporter"
+    }
+}

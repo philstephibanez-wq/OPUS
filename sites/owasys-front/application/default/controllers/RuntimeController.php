@@ -42,9 +42,11 @@ final class OwasysRuntimeController
         [$locale, $routeKey] = $this->resolveRequest();
 
         $fsmConfig = $this->loadFsmConfig();
+        $identity = $this->session->user();
         $fsm = FsmSiteLoader::processorForSiteRoot(
             $this->siteRoot,
-            [],
+            (new OwasysFsmGuardHandlers($this->security))
+                ->forConfig($fsmConfig, $identity),
             $this->profiler,
             $this->parentSpanId
         );
@@ -52,7 +54,6 @@ final class OwasysRuntimeController
         $fsmStore->restore($fsm);
         $currentState = $this->currentState($fsm);
         $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
-        $identity = $this->session->user();
         $requestResult = null;
         $errorKey = null;
 
@@ -411,7 +412,7 @@ final class OwasysRuntimeController
         if ($routeKey === 'login') {
             return $identity === null
                 ? ['signal' => 'open_login']
-                : ['signal' => 'change_app', 'redirect' => true];
+                : ['signal' => 'open_applications', 'redirect' => true];
         }
 
         $signal = $this->resolveSignal($routeKey);
@@ -779,7 +780,7 @@ final class OwasysRuntimeController
                 $fsmConfig,
                 $identity,
                 $stateId,
-                is_array($currentApp),
+                $currentApp,
                 $routeUrl
             ),
             'auth' => [

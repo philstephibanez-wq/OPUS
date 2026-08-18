@@ -1,0 +1,76 @@
+<?php
+declare(strict_types=1);
+
+use Opus\Fsm\FsmProcessor;
+
+/** Builds pure EFSM guard handlers from the canonical OWASYS guard keys. */
+final class OwasysFsmGuardHandlers
+{
+    public function __construct(private readonly OwasysRuntimeSecurity $security)
+    {
+    }
+
+    /**
+     * @param array<string,mixed> $fsmConfig
+     * @param array<string,mixed>|null $identity
+     * @return array<string,callable>
+     */
+    public function forConfig(array $fsmConfig, ?array $identity): array
+    {
+        $handlers = [];
+        foreach ((array) ($fsmConfig['transitions'] ?? []) as $transition) {
+            if (!is_array($transition)) {
+                continue;
+            }
+            $guards = $transition['guards'] ?? ($transition['guard'] ?? []);
+            if (is_string($guards)) {
+                $guards = [$guards];
+            }
+            if (!is_array($guards)) {
+                continue;
+            }
+            foreach ($guards as $guard) {
+                if (!is_string($guard)) {
+                    continue;
+                }
+                $guard = trim($guard);
+                if (!str_starts_with($guard, 'acl:')) {
+                    continue;
+                }
+                if (isset($handlers[$guard])) {
+                    continue;
+                }
+                $parts = explode(':', $guard, 3);
+                if (count($parts) !== 3
+                    || preg_match('/^[a-z][a-z0-9._-]*$/D', $parts[1]) !== 1
+                    || preg_match('/^[a-z][a-z0-9._-]*$/D', $parts[2]) !== 1) {
+                    throw new RuntimeException(
+                        'OWASYS_EFSM_ACL_GUARD_INVALID:' . $guard
+                    );
+                }
+                [, $resource, $action] = $parts;
+                $handlers[$guard] = function (
+                    string $currentState,
+                    string $signal,
+                    array $transition,
+                    array $context,
+                    FsmProcessor $processor
+                ) use ($identity, $resource, $action): bool {
+                    unset(
+                        $currentState,
+                        $signal,
+                        $transition,
+                        $context,
+                        $processor
+                    );
+                    return $this->security->isAllowed(
+                        $identity,
+                        $resource,
+                        $action
+                    );
+                };
+            }
+        }
+        return $handlers;
+    }
+}

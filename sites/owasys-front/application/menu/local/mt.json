@@ -1,0 +1,15 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "mt",
+    "scope": "menu",
+    "messages": {
+        "menu.operation.create": "Oħloq",
+        "menu.operation.read": "Ara",
+        "menu.operation.update": "Ibdel",
+        "menu.operation.delete": "Ħassar",
+        "menu.operation.list_select": "Ara / agħżel",
+        "menu.operation.validate": "Ivvalida",
+        "menu.operation.run": "Ħaddem fl-iżvilupp",
+        "menu.operation.export": "Esporta"
+    }
+}

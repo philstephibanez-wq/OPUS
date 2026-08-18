@@ -7,7 +7,8 @@
     "account/password": "open_password_change"
   },
   "routes": {
-    "applications": "change_app",
+    "applications": "open_applications",
+    "application": "open_application",
     "applications/new": "open_creation",
     "structure": "open_structure",
     "data": "open_data",
@@ -18,6 +19,9 @@
     "logout": "logout"
   },
   "post_actions": {
+    "applications": {
+      "create-new-app": "create_new_app"
+    },
     "applications/new": {
       "cancel-creation": "cancel_creation"
     }

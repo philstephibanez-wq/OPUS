@@ -1,0 +1,15 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "hu",
+    "scope": "menu",
+    "messages": {
+        "menu.operation.create": "Létrehozás",
+        "menu.operation.read": "Megtekintés",
+        "menu.operation.update": "Módosítás",
+        "menu.operation.delete": "Törlés",
+        "menu.operation.list_select": "Megtekintés / kiválasztás",
+        "menu.operation.validate": "Ellenőrzés",
+        "menu.operation.run": "Futtatás fejlesztésben",
+        "menu.operation.export": "Exportálás"
+    }
+}

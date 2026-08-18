@@ -1,0 +1,15 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "bg",
+    "scope": "menu",
+    "messages": {
+        "menu.operation.create": "Създаване",
+        "menu.operation.read": "Преглед",
+        "menu.operation.update": "Промяна",
+        "menu.operation.delete": "Изтриване",
+        "menu.operation.list_select": "Преглед / избор",
+        "menu.operation.validate": "Проверка",
+        "menu.operation.run": "Стартиране в разработка",
+        "menu.operation.export": "Експортиране"
+    }
+}

@@ -70,7 +70,11 @@ final class OwasysSourceController
         }
 
         $fsmConfig = $this->fsmConfig();
-        $fsm = FsmSiteLoader::processorForSiteRoot($this->siteRoot);
+        $fsm = FsmSiteLoader::processorForSiteRoot(
+            $this->siteRoot,
+            (new OwasysFsmGuardHandlers($this->security))
+                ->forConfig($fsmConfig, $identity)
+        );
         $store = new FsmSessionStore(self::FSM_SESSION_KEY);
         $store->restore($fsm);
         $state = $this->enterSourceState(
@@ -1106,7 +1110,7 @@ final class OwasysSourceController
                 $fsmConfig,
                 $identity,
                 $state,
-                true,
+                $currentApp,
                 $routeUrl
             ),
             'source' => [

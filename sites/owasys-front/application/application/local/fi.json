@@ -1,0 +1,9 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "fi",
+    "scope": "application",
+    "messages": {
+        "menu.application": "Sovellus",
+        "application.description": "Nykyinen sovellus ja sen työskentelykonteksti."
+    }
+}

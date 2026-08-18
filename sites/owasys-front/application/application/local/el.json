@@ -1,0 +1,9 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "el",
+    "scope": "application",
+    "messages": {
+        "menu.application": "Εφαρμογή",
+        "application.description": "Η τρέχουσα εφαρμογή και το πλαίσιο εργασίας της."
+    }
+}

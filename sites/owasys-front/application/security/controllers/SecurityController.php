@@ -79,7 +79,8 @@ final class OwasysSecurityController
         $fsmConfig = $this->fsmConfig();
         $fsm = FsmSiteLoader::processorForSiteRoot(
             $this->siteRoot,
-            [],
+            (new OwasysFsmGuardHandlers($this->security))
+                ->forConfig($fsmConfig, $identity),
             $this->profiler,
             $this->parentSpanId
         );
@@ -501,7 +502,7 @@ final class OwasysSecurityController
                 $fsmConfig,
                 $identity,
                 $state,
-                true,
+                $currentApp,
                 $routeUrl
             ),
             'auth' => [
