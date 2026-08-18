@@ -60,11 +60,13 @@ final class OwasysSourceController
         $identity = $this->session->user();
         if (!is_array($identity)) {
             $this->redirect($locale, 'login');
+            return;
         }
         $this->security->assertAllowed($identity, 'source', 'open');
         $currentApp = $this->session->currentApp();
         if (!is_array($currentApp)) {
             $this->redirect($locale, 'applications');
+            return;
         }
 
         $fsmConfig = $this->fsmConfig();
@@ -79,6 +81,9 @@ final class OwasysSourceController
             $identity,
             $currentApp
         );
+        if ($state === null) {
+            return;
+        }
         $this->applyProfilerSignal(
             $fsm,
             $store,
@@ -153,6 +158,7 @@ final class OwasysSourceController
                         $sourcePath,
                         ['git_status' => $this->gitSuccessStatus($gitAction)]
                     );
+                    return;
                 } catch (Throwable $error) {
                     $gitErrorCode = $this->safeErrorCode($error);
                     $gitFeedback = 'failed';
@@ -280,6 +286,7 @@ final class OwasysSourceController
                             $sourcePath,
                             ['source_status' => 'saved']
                         );
+                        return;
                     }
                 } catch (Throwable $error) {
                     $sourceErrorCode = $this->safeErrorCode($error);
@@ -836,7 +843,7 @@ final class OwasysSourceController
         string $sourcePath,
         array $identity,
         array $currentApp
-    ): string {
+    ): ?string {
         $current = $fsm->currentState();
         $context = [
             'identity' => $identity,
@@ -869,6 +876,7 @@ final class OwasysSourceController
             $fsm->transition('source', 'change_locale', $context);
             $store->persist($fsm);
             $this->redirect($locale, $this->sourceRoute($rememberedPath));
+            return null;
         }
         $fsm->transition('source', 'open_source_file', $context);
         $store->persist($fsm);
@@ -1421,13 +1429,12 @@ final class OwasysSourceController
         string $locale,
         string $path,
         array $query
-    ): never {
+    ): void {
         $url = (new UrlBuilder())->withQuery(
             $this->sourceUrl($locale, $path),
             $query
         );
-        header('Location: ' . $url, true, 303);
-        exit;
+        Response::empty(303, ['Location' => $url])->send();
     }
 
     /** @param array<string,scalar|null> $query */
@@ -1435,18 +1442,18 @@ final class OwasysSourceController
         string $locale,
         string $path,
         array $query
-    ): never {
+    ): void {
         $target = $path === ''
             ? $this->routeUrl($locale, 'source')
             : $this->sourceUrl($locale, $path);
         $url = (new UrlBuilder())->withQuery($target, $query);
-        header('Location: ' . $url, true, 303);
-        exit;
+        Response::empty(303, ['Location' => $url])->send();
     }
 
-    private function redirect(string $locale, string $route): never
+    private function redirect(string $locale, string $route): void
     {
-        header('Location: ' . $this->routeUrl($locale, $route), true, 303);
-        exit;
+        Response::empty(303, [
+            'Location' => $this->routeUrl($locale, $route),
+        ])->send();
     }
 }

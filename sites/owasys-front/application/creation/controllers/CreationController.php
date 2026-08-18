@@ -7,6 +7,7 @@ use Opus\Fsm\FsmSiteLoader;
 use Opus\File\StructuredFileLoader;
 use Opus\I18n\BrowserLocaleNegotiator;
 use Opus\Http\LocalizedRouteResolverInterface;
+use Opus\Http\Response;
 use Opus\Log\Logger;
 use Opus\Profiler\Profiler;
 
@@ -78,6 +79,7 @@ final class OwasysCreationController
         $identity = $this->session->user();
         if (!is_array($identity)) {
             $this->redirect($locale, 'login');
+            return;
         }
         $this->security->assertAllowed($identity, 'creation', 'open');
 
@@ -132,6 +134,7 @@ final class OwasysCreationController
             unset($_SESSION[self::DRAFT_SESSION_KEY]);
             $this->transition($fsm, $store, $state, 'cancel_creation');
             $this->redirect($locale, 'applications');
+            return;
         }
 
         if ($action === 'previous-basics') {
@@ -387,6 +390,7 @@ final class OwasysCreationController
                 'fsm_state' => 'application_created',
             ]);
             $this->redirect($locale, 'data');
+            return;
         } catch (Throwable $error) {
             $code = $this->safeErrorCode($error);
             try {
@@ -1095,13 +1099,10 @@ final class OwasysCreationController
             : rtrim($directory, '/');
     }
 
-    private function redirect(string $locale, string $route): never
+    private function redirect(string $locale, string $route): void
     {
-        header(
-            'Location: ' . $this->routeUrl($locale, $route),
-            true,
-            303
-        );
-        exit;
+        Response::empty(303, [
+            'Location' => $this->routeUrl($locale, $route),
+        ])->send();
     }
 }

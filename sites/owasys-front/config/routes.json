@@ -16,5 +16,10 @@
     "source": "open_source",
     "build": "open_build",
     "logout": "logout"
+  },
+  "post_actions": {
+    "applications/new": {
+      "cancel-creation": "cancel_creation"
+    }
   }
 }

@@ -494,3 +494,52 @@
 .ow-fsm-menu-signal code {
   font-weight: 400;
 }
+
+/*
+ * P117W_R45B2A4AV — contract-bound POST commands in Menu = FSM.
+ *
+ * A command is rendered as a compact menu control only when NavigationBuilder
+ * has an explicit POST binding for the exact signal and source-state route.
+ * The reset below prevents generic submit-button styling from changing the
+ * accepted compact FSM menu appearance.
+ */
+.ow-fsm-menu-command-form {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.ow-fsm-menu-command-form .ow-fsm-menu-signal[type="submit"] {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: .4rem;
+  width: 100%;
+  min-height: 0;
+  padding: .4rem .5rem;
+  border: 1px solid transparent;
+  border-radius: .45rem;
+  background: transparent;
+  color: var(--ow-text);
+  font: inherit;
+  font-weight: 400;
+  text-align: left;
+  box-shadow: none;
+  filter: none;
+}
+
+.ow-fsm-menu-command-form
+  .ow-fsm-menu-signal[type="submit"]:hover,
+.ow-fsm-menu-command-form
+  .ow-fsm-menu-signal[type="submit"]:focus-visible {
+  border-color: var(--ow-warn);
+  background: rgba(255, 255, 255, .045);
+  outline: none;
+  box-shadow: none;
+  filter: none;
+}
+
+.ow-fsm-menu-signal.signal-type-command code {
+  color: var(--ow-fsm-signal-command);
+}

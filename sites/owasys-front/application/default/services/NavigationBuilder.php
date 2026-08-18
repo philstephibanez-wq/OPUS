@@ -21,14 +21,15 @@ final class OwasysNavigationBuilder
     }
 
     /**
-     * Contract A4AI:
+     * Contract A4AV:
      * - every canonical visible state is one menu entry;
      * - every state-local relation is a submenu signal, irrespective of type;
      * - ordinary global navigation is rendered once, never copied into every
      *   state submenu;
-     * - cyan/actionable means a real current transition with a real GET route;
-     * - command/outcome/system relations remain visible FSM facts but are not
-     *   forged into GET links;
+     * - GET navigation is actionable only through a canonical signal route;
+     * - a local command is menu-actionable only through an explicit POST
+     *   binding in config/routes.json matching the current source-state route;
+     * - outcome/system and unbound command relations remain visible FSM facts;
      * - ACL and current-application availability remain authoritative.
      *
      * @param array<string,mixed> $fsmConfig
@@ -44,7 +45,21 @@ final class OwasysNavigationBuilder
         callable $routeUrl
     ): array {
         $signalRegistry = $this->signalRegistry($fsmConfig);
-        $signalRoutes = $this->signalRoutes();
+        $bindings = $this->requestBindings();
+        $signalRoutes = $bindings['get'];
+        $signalPostActions = $bindings['post'];
+        foreach ($signalPostActions as $boundSignal => $binding) {
+            if (!isset($signalRegistry[$boundSignal])) {
+                throw new RuntimeException(
+                    'OWASYS_NAVIGATION_POST_SIGNAL_UNDECLARED:' . $boundSignal
+                );
+            }
+            if (($signalRegistry[$boundSignal]['type'] ?? '') !== 'command') {
+                throw new RuntimeException(
+                    'OWASYS_NAVIGATION_POST_SIGNAL_TYPE_INVALID:' . $boundSignal
+                );
+            }
+        }
         $items = [];
         $itemsById = [];
         $statesById = [];
@@ -217,6 +232,11 @@ final class OwasysNavigationBuilder
                     'target_label' => '',
                     'url' => $url,
                     'actionable' => $actionable,
+                    'menu_actionable' => $actionable,
+                    'is_get' => $actionable,
+                    'is_post' => false,
+                    'request_field' => '',
+                    'request_value' => '',
                     'has_route' => is_string($mappedRoute) && $mappedRoute !== '',
                     'active_source' => true,
                     'target_available' =>
@@ -244,13 +264,36 @@ final class OwasysNavigationBuilder
             $target = $items[$itemsById[$to]];
             $definition = $signalRegistry[$signal];
             $mappedRoute = $signalRoutes[$signal] ?? null;
+            $postBinding = $signalPostActions[$signal] ?? null;
             $isNavigation = ($definition['type'] ?? '') === 'navigation';
-            $actionable = $from === $currentState
+            $isCommand = ($definition['type'] ?? '') === 'command';
+            $sourceRoute = trim((string) ($statesById[$from]['route'] ?? ''));
+            $targetAvailable = ($target['allowed'] ?? false) === true
+                && ($target['available'] ?? false) === true;
+
+            $getActionable = $from === $currentState
                 && $isNavigation
                 && is_string($mappedRoute)
                 && $mappedRoute !== ''
-                && ($target['allowed'] ?? false) === true
-                && ($target['available'] ?? false) === true;
+                && $targetAvailable;
+
+            if ($isCommand
+                && is_array($postBinding)
+                && (string) ($postBinding['route'] ?? '') !== $sourceRoute) {
+                throw new RuntimeException(
+                    'OWASYS_NAVIGATION_POST_SOURCE_ROUTE_MISMATCH:' . $signal
+                );
+            }
+
+            $postActionable = $from === $currentState
+                && $isCommand
+                && is_array($postBinding)
+                && $targetAvailable;
+
+            $menuActionable = $getActionable || $postActionable;
+            $url = $getActionable
+                ? $routeUrl((string) $mappedRoute)
+                : ($postActionable ? $routeUrl($sourceRoute) : '');
 
             $items[$sourceIndex]['signals'][] = [
                 'transition_id' => $transitionId,
@@ -259,13 +302,18 @@ final class OwasysNavigationBuilder
                 'target' => $to,
                 'target_label_key' => (string) ($target['label_key'] ?? ''),
                 'target_label' => '',
-                'url' => $actionable ? $routeUrl($mappedRoute) : '',
-                'actionable' => $actionable,
+                'url' => $url,
+                'actionable' => $getActionable,
+                'menu_actionable' => $menuActionable,
+                'is_get' => $getActionable,
+                'is_post' => $postActionable,
+                'request_field' => $postActionable ? 'owasys_action' : '',
+                'request_value' => $postActionable
+                    ? (string) ($postBinding['action'] ?? '')
+                    : '',
                 'has_route' => is_string($mappedRoute) && $mappedRoute !== '',
                 'active_source' => $from === $currentState,
-                'target_available' =>
-                    ($target['allowed'] ?? false) === true
-                    && ($target['available'] ?? false) === true,
+                'target_available' => $targetAvailable,
                 'order' => (int) ($target['order'] ?? PHP_INT_MAX),
             ];
         }
@@ -328,7 +376,7 @@ final class OwasysNavigationBuilder
 
     /**
      * @param array<string,mixed> $fsmConfig
-     * @return array<string,array{type:string,menu:bool}>
+     * @return array<string,array{type:string,menu:bool,menu_order:int}>
      */
     private function signalRegistry(array $fsmConfig): array
     {
@@ -369,8 +417,13 @@ final class OwasysNavigationBuilder
         return $registry;
     }
 
-    /** @return array<string,string> signal => route */
-    private function signalRoutes(): array
+    /**
+     * @return array{
+     *   get:array<string,string>,
+     *   post:array<string,array{route:string,action:string}>
+     * }
+     */
+    private function requestBindings(): array
     {
         try {
             $routes = StructuredFileLoader::instance()->read(
@@ -391,7 +444,7 @@ final class OwasysNavigationBuilder
             );
         }
 
-        $result = [];
+        $get = [];
         foreach (['system_routes', 'routes'] as $section) {
             foreach ((array) ($routes[$section] ?? []) as $route => $signal) {
                 if (!is_string($route) || !is_string($signal)) {
@@ -406,14 +459,64 @@ final class OwasysNavigationBuilder
                         'OWASYS_NAVIGATION_SIGNAL_ROUTE_ENTRY_EMPTY'
                     );
                 }
-                if (isset($result[$signal]) && $result[$signal] !== $route) {
+                if (isset($get[$signal]) && $get[$signal] !== $route) {
                     throw new RuntimeException(
                         'OWASYS_NAVIGATION_SIGNAL_ROUTE_AMBIGUOUS:' . $signal
                     );
                 }
-                $result[$signal] = $route;
+                $get[$signal] = $route;
             }
         }
-        return $result;
+
+        $knownRoutes = array_fill_keys(array_merge(
+            array_keys((array) ($routes['system_routes'] ?? [])),
+            array_keys((array) ($routes['routes'] ?? []))
+        ), true);
+        $post = [];
+        foreach ((array) ($routes['post_actions'] ?? []) as $route => $actions) {
+            if (!is_string($route) || !is_array($actions)) {
+                throw new RuntimeException(
+                    'OWASYS_NAVIGATION_POST_ROUTE_ENTRY_INVALID'
+                );
+            }
+            $route = trim($route);
+            if ($route === '' || !isset($knownRoutes[$route])) {
+                throw new RuntimeException(
+                    'OWASYS_NAVIGATION_POST_ROUTE_UNKNOWN:' . $route
+                );
+            }
+            foreach ($actions as $action => $signal) {
+                if (!is_string($action) || !is_string($signal)) {
+                    throw new RuntimeException(
+                        'OWASYS_NAVIGATION_POST_ACTION_ENTRY_INVALID'
+                    );
+                }
+                $action = trim($action);
+                $signal = trim($signal);
+                if ($action === '' || $signal === '') {
+                    throw new RuntimeException(
+                        'OWASYS_NAVIGATION_POST_ACTION_ENTRY_EMPTY'
+                    );
+                }
+                if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $action) !== 1) {
+                    throw new RuntimeException(
+                        'OWASYS_NAVIGATION_POST_ACTION_INVALID:' . $action
+                    );
+                }
+                if (isset($post[$signal])
+                    && ($post[$signal]['route'] !== $route
+                        || $post[$signal]['action'] !== $action)) {
+                    throw new RuntimeException(
+                        'OWASYS_NAVIGATION_POST_SIGNAL_AMBIGUOUS:' . $signal
+                    );
+                }
+                $post[$signal] = [
+                    'route' => $route,
+                    'action' => $action,
+                ];
+            }
+        }
+
+        return ['get' => $get, 'post' => $post];
     }
 }

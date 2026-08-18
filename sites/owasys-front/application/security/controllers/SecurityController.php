@@ -8,6 +8,7 @@ use Opus\Fsm\FsmSessionStore;
 use Opus\Fsm\FsmSiteLoader;
 use Opus\I18n\BrowserLocaleNegotiator;
 use Opus\Http\LocalizedRouteResolverInterface;
+use Opus\Http\Response;
 use Opus\Profiler\ProfilerInterface;
 use Opus\Security\Csrf\CsrfTokenManager;
 
@@ -66,10 +67,12 @@ final class OwasysSecurityController
         $identity = $this->session->user();
         if (!is_array($identity)) {
             $this->redirect($locale, 'login');
+            return;
         }
         $currentApp = $this->session->currentApp();
         if (!is_array($currentApp)) {
             $this->redirect($locale, 'applications');
+            return;
         }
 
         $this->security->assertAllowed($identity, 'security', 'open');
@@ -94,6 +97,9 @@ final class OwasysSecurityController
             throw new RuntimeException('OWASYS_SECURITY_CURRENT_APP_INVALID');
         }
         $view = $this->securityView($locale, $route);
+        if ($view === null) {
+            return;
+        }
 
         $mutationResult = null;
         $mutationError = null;
@@ -1138,7 +1144,7 @@ final class OwasysSecurityController
         );
     }
 
-    private function securityView(string $locale, string $route): string
+    private function securityView(string $locale, string $route): ?string
     {
         if ($route === 'security') {
             $legacyView = strtolower(trim((string) (
@@ -1158,13 +1164,10 @@ final class OwasysSecurityController
             if (strtoupper((string) (
                 $_SERVER['REQUEST_METHOD'] ?? 'GET'
             )) === 'GET') {
-                header(
-                    'Location: '
-                        . $this->securityUrl($locale, $legacyView),
-                    true,
-                    303
-                );
-                exit;
+                Response::empty(303, [
+                    'Location' => $this->securityUrl($locale, $legacyView),
+                ])->send();
+                return null;
             }
 
             return $legacyView;
@@ -1228,13 +1231,10 @@ final class OwasysSecurityController
             : rtrim($directory, '/');
     }
 
-    private function redirect(string $locale, string $route): never
+    private function redirect(string $locale, string $route): void
     {
-        header(
-            'Location: ' . $this->routeUrl($locale, $route),
-            true,
-            303
-        );
-        exit;
+        Response::empty(303, [
+            'Location' => $this->routeUrl($locale, $route),
+        ])->send();
     }
 }

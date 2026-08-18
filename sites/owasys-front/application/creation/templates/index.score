@@ -54,7 +54,7 @@
       </fieldset>
       <div class="ow-inline-form">
         <button class="ow-button" type="submit" name="owasys_action" value="next-security">[[ i18n: creation.next ]]</button>
-        <button class="ow-button ow-button-secondary" type="submit" name="owasys_action" value="cancel-creation">[[ i18n: creation.cancel ]]</button>
+        <button class="ow-button ow-button-secondary" type="submit" name="owasys_action" value="cancel-creation" formnovalidate>[[ i18n: creation.cancel ]]</button>
       </div>
     </form>
   [[ endif ]]
@@ -101,9 +101,9 @@
         [[ if: creation.error_security_user_role ]]<p class="ow-field-error" role="alert">[[ i18n: creation.error.security_user_role ]]</p>[[ endif ]]
       </div>
       <div class="ow-inline-form">
-        <button class="ow-button ow-button-secondary" type="submit" name="owasys_action" value="previous-basics">[[ i18n: creation.previous ]]</button>
+        <button class="ow-button ow-button-secondary" type="submit" name="owasys_action" value="previous-basics" formnovalidate>[[ i18n: creation.previous ]]</button>
         <button class="ow-button" type="submit" name="owasys_action" value="review-creation">[[ i18n: creation.review ]]</button>
-        <button class="ow-button ow-button-secondary" type="submit" name="owasys_action" value="cancel-creation">[[ i18n: creation.cancel ]]</button>
+        <button class="ow-button ow-button-secondary" type="submit" name="owasys_action" value="cancel-creation" formnovalidate>[[ i18n: creation.cancel ]]</button>
       </div>
     </form>
   [[ endif ]]
@@ -130,9 +130,9 @@
       <dt>[[ i18n: creation.result ]]</dt><dd>[[ i18n: creation.result_minimal ]]</dd>
     </dl>
     <form method="post" action="{{ urls.current }}" class="ow-inline-form">
-      <button class="ow-button ow-button-secondary" type="submit" name="owasys_action" value="previous-security">[[ i18n: creation.previous ]]</button>
+      <button class="ow-button ow-button-secondary" type="submit" name="owasys_action" value="previous-security" formnovalidate>[[ i18n: creation.previous ]]</button>
       <button class="ow-button" type="submit" name="owasys_action" value="confirm-creation">[[ i18n: creation.submit ]]</button>
-      <button class="ow-button ow-button-secondary" type="submit" name="owasys_action" value="cancel-creation">[[ i18n: creation.cancel ]]</button>
+      <button class="ow-button ow-button-secondary" type="submit" name="owasys_action" value="cancel-creation" formnovalidate>[[ i18n: creation.cancel ]]</button>
     </form>
   [[ endif ]]
 </section>
