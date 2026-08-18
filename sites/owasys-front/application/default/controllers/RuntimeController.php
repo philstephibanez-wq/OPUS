@@ -838,6 +838,33 @@ final class OwasysRuntimeController
             );
         }
 
+        if ($module === 'fsm') {
+            if (!is_array($identity) || !is_array($currentApp)) {
+                throw new RuntimeException(
+                    'OWASYS_APPLICATION_FSM_CONTEXT_REQUIRED'
+                );
+            }
+            $snapshot = (new OwasysApplicationFsmModel(
+                new OwasysSourceModel($this->siteRoot)
+            ))->snapshot(
+                (string) ($currentApp['id'] ?? ''),
+                $identity
+            );
+            $data['application_fsm'] = [
+                'source_path' => (string) (
+                    $snapshot['source_path'] ?? ''
+                ),
+                'sha256' => (string) ($snapshot['sha256'] ?? ''),
+                'state_count' => (int) (
+                    $snapshot['state_count'] ?? 0
+                ),
+                'transition_count' => (int) (
+                    $snapshot['transition_count'] ?? 0
+                ),
+                'diagram' => (string) ($snapshot['diagram'] ?? ''),
+            ];
+        }
+
         if ($module === 'build') {
             $kind = strtolower((string) ($currentApp['kind'] ?? ''));
             $previewResult = is_array($requestResult)

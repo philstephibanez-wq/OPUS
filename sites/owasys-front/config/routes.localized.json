@@ -214,34 +214,34 @@
                 "uk": "джерела-даних"
             }
         },
-        "workflows": {
+        "fsm": {
             "tail": false,
             "paths": {
-                "bg": "работни-потоци",
-                "hr": "tijekovi-rada",
-                "cs": "pracovní-postupy",
-                "da": "arbejdsgange",
-                "nl": "werkstromen",
-                "en": "workflows",
-                "et": "töövood",
-                "fi": "työnkulut",
-                "fr": "flux-de-travail",
-                "de": "arbeitsabläufe",
-                "el": "ροές-εργασίας",
-                "hu": "munkafolyamatok",
-                "ga": "sreafaí-oibre",
-                "it": "flussi-di-lavoro",
-                "lv": "darbplūsmas",
-                "lt": "darbo-eigos",
-                "mt": "flussi-tax-xogħol",
-                "pl": "przepływy-pracy",
-                "pt": "fluxos-de-trabalho",
-                "ro": "fluxuri-de-lucru",
-                "sk": "pracovné-postupy",
-                "sl": "delovni-tokovi",
-                "es": "flujos-de-trabajo",
-                "sv": "arbetsflöden",
-                "uk": "робочі-процеси"
+                "bg": "fsm",
+                "hr": "fsm",
+                "cs": "fsm",
+                "da": "fsm",
+                "nl": "fsm",
+                "en": "fsm",
+                "et": "fsm",
+                "fi": "fsm",
+                "fr": "fsm",
+                "de": "fsm",
+                "el": "fsm",
+                "hu": "fsm",
+                "ga": "fsm",
+                "it": "fsm",
+                "lv": "fsm",
+                "lt": "fsm",
+                "mt": "fsm",
+                "pl": "fsm",
+                "pt": "fsm",
+                "ro": "fsm",
+                "sk": "fsm",
+                "sl": "fsm",
+                "es": "fsm",
+                "sv": "fsm",
+                "uk": "fsm"
             }
         },
         "security": {
@@ -515,5 +515,36 @@
             }
         }
     },
-    "aliases": {}
+    "aliases": {
+        "workflows": {
+            "target": "fsm",
+            "paths": {
+                "bg": "работни-потоци",
+                "hr": "tijekovi-rada",
+                "cs": "pracovní-postupy",
+                "da": "arbejdsgange",
+                "nl": "werkstromen",
+                "en": "workflows",
+                "et": "töövood",
+                "fi": "työnkulut",
+                "fr": "flux-de-travail",
+                "de": "arbeitsabläufe",
+                "el": "ροές-εργασίας",
+                "hu": "munkafolyamatok",
+                "ga": "sreafaí-oibre",
+                "it": "flussi-di-lavoro",
+                "lv": "darbplūsmas",
+                "lt": "darbo-eigos",
+                "mt": "flussi-tax-xogħol",
+                "pl": "przepływy-pracy",
+                "pt": "fluxos-de-trabalho",
+                "ro": "fluxuri-de-lucru",
+                "sk": "pracovné-postupy",
+                "sl": "delovni-tokovi",
+                "es": "flujos-de-trabajo",
+                "sv": "arbetsflöden",
+                "uk": "робочі-процеси"
+            }
+        }
+    }
 }

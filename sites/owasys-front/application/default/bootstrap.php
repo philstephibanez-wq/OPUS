@@ -70,6 +70,7 @@ $files = [
     'application/creation/models/ApplicationCreationModel.php',
     'application/creation/controllers/CreationController.php',
     'application/source/models/SourceModel.php',
+    'application/fsm/models/ApplicationFsmModel.php',
     'application/source/controllers/SourceController.php',
     'application/security/controllers/SecurityController.php',
     'application/default/services/FsmActionHandlers.php',

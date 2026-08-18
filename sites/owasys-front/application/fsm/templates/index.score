@@ -1,0 +1,9 @@
+<section class="ow-panel ow-application-fsm" aria-label="FSM">
+  <header class="ow-fsm-heading">
+    <h2>FSM · {{ current_app.name }}</h2>
+    <code>{{ application_fsm.source_path }}</code>
+  </header>
+  <div class="ow-fsm-native-canvas">
+    {{{ application_fsm.diagram }}}
+  </div>
+</section>

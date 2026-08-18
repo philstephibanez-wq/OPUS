@@ -217,16 +217,16 @@
         },
         {
             "id": "workflows",
-            "module": "workflows",
-            "route": "workflows",
+            "module": "fsm",
+            "route": "fsm",
             "requires_auth": true,
             "requires_current_app": true,
-            "title_key": "menu.workflows",
+            "title_key": "menu.fsm",
             "summary_key": "state.default.summary",
             "navigation": {
                 "visible": true,
                 "order": 50,
-                "label": "menu.workflows"
+                "label": "menu.fsm"
             },
             "diagram": {
                 "rank": 8,
@@ -471,7 +471,7 @@
             "origin": "user"
         },
         {
-            "id": "open_workflows",
+            "id": "open_fsm",
             "type": "navigation",
             "menu": true,
             "menu_order": 50,
@@ -1236,7 +1236,7 @@
             ]
         },
         {
-            "id": "g_open_workflows",
+            "id": "g_open_fsm",
             "scope": "global",
             "from_states": [
                 "login",
@@ -1251,7 +1251,7 @@
                 "account",
                 "password"
             ],
-            "signal": "open_workflows",
+            "signal": "open_fsm",
             "next_state": "workflows",
             "guards": [
                 "current_app_required"

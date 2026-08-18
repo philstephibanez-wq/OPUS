@@ -11,7 +11,7 @@
     "applications/new": "open_creation",
     "structure": "open_structure",
     "data": "open_data",
-    "workflows": "open_workflows",
+    "fsm": "open_fsm",
     "security": "open_security",
     "source": "open_source",
     "build": "open_build",
