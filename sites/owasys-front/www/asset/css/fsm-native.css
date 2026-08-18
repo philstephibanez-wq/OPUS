@@ -17,10 +17,10 @@
   --opus-fsm-marker: var(--ow-text);
   --opus-fsm-nmi-bg: rgba(251, 113, 133, .10);
   --opus-fsm-nmi: var(--ow-danger);
-  --ow-fsm-signal-navigation: var(--ow-accent);
-  --ow-fsm-signal-command: var(--ow-warn);
-  --ow-fsm-signal-outcome: #a78bfa;
-  --ow-fsm-signal-system: var(--ow-danger);
+  --opus-fsm-signal-user: var(--ow-accent);
+  --opus-fsm-signal-automatic: var(--ow-warn);
+  --ow-fsm-signal-user: var(--ow-accent);
+  --ow-fsm-signal-automatic: var(--ow-warn);
 }
 
 /* Menu = FSM ------------------------------------------------------------ */
@@ -129,7 +129,7 @@
 
 .ow-fsm-menu-signal.is-actionable:hover,
 .ow-fsm-menu-signal.is-actionable:focus-visible {
-  border-color: var(--ow-warn);
+  border-color: var(--ow-fsm-signal-user);
   background: rgba(255, 255, 255, .045);
   outline: none;
 }
@@ -227,38 +227,31 @@
 }
 
 /*
- * P117W_R45B2A4AF: canonical signal types.
- * navigation = cyan, command = amber, outcome = violet, system = rose.
- * Actionability is still conveyed independently by full opacity, hitbox,
- * hover/focus fill and halo.
+ * P117W_R45B2A4AW — canonical FSM signal origin.
+ *
+ * Color is FSM semantics only: user-originated versus automatic signal.
+ * Functional signal type and HTTP transport are deliberately excluded from
+ * color. Actionability is a separate visual axis (weight, hitbox, hover/focus).
  */
-.ow-fsm-native-canvas .fsm-transition.signal-type-navigation .fsm-edge,
-.ow-fsm-native-canvas .fsm-transition.signal-type-navigation .fsm-label-leader {
-  stroke: var(--ow-fsm-signal-navigation);
+.ow-fsm-native-canvas .fsm-transition.signal-origin-user {
+  --ow-fsm-origin-color: var(--ow-fsm-signal-user);
 }
-.ow-fsm-native-canvas .fsm-transition.signal-type-navigation .fsm-edge-label {
-  fill: var(--ow-fsm-signal-navigation);
+.ow-fsm-native-canvas .fsm-transition.signal-origin-automatic {
+  --ow-fsm-origin-color: var(--ow-fsm-signal-automatic);
 }
-.ow-fsm-native-canvas .fsm-transition.signal-type-command .fsm-edge,
-.ow-fsm-native-canvas .fsm-transition.signal-type-command .fsm-label-leader {
-  stroke: var(--ow-fsm-signal-command);
+.ow-fsm-native-canvas .fsm-transition.signal-origin-user .fsm-edge,
+.ow-fsm-native-canvas .fsm-transition.signal-origin-user .fsm-label-leader {
+  stroke: var(--ow-fsm-signal-user);
 }
-.ow-fsm-native-canvas .fsm-transition.signal-type-command .fsm-edge-label {
-  fill: var(--ow-fsm-signal-command);
+.ow-fsm-native-canvas .fsm-transition.signal-origin-user .fsm-edge-label {
+  fill: var(--ow-fsm-signal-user);
 }
-.ow-fsm-native-canvas .fsm-transition.signal-type-outcome .fsm-edge,
-.ow-fsm-native-canvas .fsm-transition.signal-type-outcome .fsm-label-leader {
-  stroke: var(--ow-fsm-signal-outcome);
+.ow-fsm-native-canvas .fsm-transition.signal-origin-automatic .fsm-edge,
+.ow-fsm-native-canvas .fsm-transition.signal-origin-automatic .fsm-label-leader {
+  stroke: var(--ow-fsm-signal-automatic);
 }
-.ow-fsm-native-canvas .fsm-transition.signal-type-outcome .fsm-edge-label {
-  fill: var(--ow-fsm-signal-outcome);
-}
-.ow-fsm-native-canvas .fsm-transition.signal-type-system .fsm-edge,
-.ow-fsm-native-canvas .fsm-transition.signal-type-system .fsm-label-leader {
-  stroke: var(--ow-fsm-signal-system);
-}
-.ow-fsm-native-canvas .fsm-transition.signal-type-system .fsm-edge-label {
-  fill: var(--ow-fsm-signal-system);
+.ow-fsm-native-canvas .fsm-transition.signal-origin-automatic .fsm-edge-label {
+  fill: var(--ow-fsm-signal-automatic);
 }
 .ow-fsm-native-canvas .fsm-transition:not(.actionable) .fsm-edge,
 .ow-fsm-native-canvas .fsm-transition:not(.actionable) .fsm-label-leader,
@@ -266,36 +259,26 @@
   opacity: .68;
 }
 
-/* A4AF: actionable user navigation remains the strong cyan convention. */
 .ow-fsm-native-canvas .fsm-transition.actionable .fsm-edge {
-  stroke: var(--ow-accent);
   stroke-width: 2.1;
 }
 
-.ow-fsm-native-canvas
-  .fsm-signal-link
-  .fsm-edge-label-box {
+.ow-fsm-native-canvas .fsm-signal-link .fsm-edge-label-box {
   pointer-events: bounding-box;
 }
 
-.ow-fsm-native-canvas
-  .fsm-signal-link
-  .fsm-edge-label-bg {
+.ow-fsm-native-canvas .fsm-transition.actionable .fsm-edge-label-bg {
   fill: var(--ow-panel-2);
   fill-opacity: .98;
-  stroke: var(--ow-accent);
+  stroke: var(--ow-fsm-origin-color, var(--ow-accent));
   stroke-width: 1.35;
-  pointer-events: all;
   transition:
     fill .12s ease,
     stroke-width .12s ease,
     filter .12s ease;
 }
 
-.ow-fsm-native-canvas
-  .fsm-signal-link
-  .fsm-edge-label {
-  fill: var(--ow-accent);
+.ow-fsm-native-canvas .fsm-signal-link .fsm-edge-label {
   font-weight: 850;
   pointer-events: all;
   text-decoration: none;
@@ -304,30 +287,54 @@
     stroke .12s ease;
 }
 
-.ow-fsm-native-canvas
-  .fsm-signal-link:hover
-  .fsm-edge-label-bg,
-.ow-fsm-native-canvas
-  .fsm-signal-link:focus
-  .fsm-edge-label-bg,
-.ow-fsm-native-canvas
-  .fsm-signal-link:focus-visible
-  .fsm-edge-label-bg {
-  fill: var(--ow-accent);
-  fill-opacity: .98;
-  stroke: var(--ow-accent);
-  stroke-width: 2.5;
-  filter: drop-shadow(0 0 5px var(--ow-accent));
+.ow-fsm-native-canvas .fsm-signal-post-object {
+  pointer-events: all;
+}
+.ow-fsm-native-canvas .fsm-signal-post-form,
+.ow-fsm-native-canvas .fsm-signal-post-submit {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+.ow-fsm-native-canvas .fsm-signal-post-submit {
+  display: block;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0;
 }
 
 .ow-fsm-native-canvas
-  .fsm-signal-link:hover
+  .fsm-transition.actionable:has(.fsm-signal-link:hover)
+  .fsm-edge-label-bg,
+.ow-fsm-native-canvas
+  .fsm-transition.actionable:has(.fsm-signal-link:focus-visible)
+  .fsm-edge-label-bg,
+.ow-fsm-native-canvas
+  .fsm-transition.actionable:has(.fsm-signal-post-submit:hover)
+  .fsm-edge-label-bg,
+.ow-fsm-native-canvas
+  .fsm-transition.actionable:has(.fsm-signal-post-submit:focus-visible)
+  .fsm-edge-label-bg {
+  fill: var(--ow-fsm-origin-color, var(--ow-accent));
+  fill-opacity: .98;
+  stroke: var(--ow-fsm-origin-color, var(--ow-accent));
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 5px var(--ow-fsm-origin-color, var(--ow-accent)));
+}
+
+.ow-fsm-native-canvas
+  .fsm-transition.actionable:has(.fsm-signal-link:hover)
   .fsm-edge-label,
 .ow-fsm-native-canvas
-  .fsm-signal-link:focus
+  .fsm-transition.actionable:has(.fsm-signal-link:focus-visible)
   .fsm-edge-label,
 .ow-fsm-native-canvas
-  .fsm-signal-link:focus-visible
+  .fsm-transition.actionable:has(.fsm-signal-post-submit:hover)
+  .fsm-edge-label,
+.ow-fsm-native-canvas
+  .fsm-transition.actionable:has(.fsm-signal-post-submit:focus-visible)
   .fsm-edge-label {
   fill: var(--ow-panel);
   stroke: transparent;
@@ -337,14 +344,21 @@
   .fsm-transition.actionable:has(.fsm-signal-link:hover)
   .fsm-edge,
 .ow-fsm-native-canvas
-  .fsm-transition.actionable:has(.fsm-signal-link:focus)
+  .fsm-transition.actionable:has(.fsm-signal-link:focus-visible)
   .fsm-edge,
 .ow-fsm-native-canvas
-  .fsm-transition.actionable:has(.fsm-signal-link:focus-visible)
+  .fsm-transition.actionable:has(.fsm-signal-post-submit:hover)
+  .fsm-edge,
+.ow-fsm-native-canvas
+  .fsm-transition.actionable:has(.fsm-signal-post-submit:focus-visible)
   .fsm-edge {
-  stroke: var(--ow-accent);
+  stroke: var(--ow-fsm-origin-color, var(--ow-accent));
   stroke-width: 2.8;
-  filter: drop-shadow(0 0 4px var(--ow-accent));
+  filter: drop-shadow(0 0 4px var(--ow-fsm-origin-color, var(--ow-accent)));
+}
+
+.ow-fsm-native-canvas .fsm-transition.actionable .fsm-label-leader {
+  opacity: .9;
 }
 
 
@@ -355,7 +369,7 @@
  * explicit instead of leaving a floating signal box.
  */
 .ow-fsm-native-canvas .fsm-label-leader {
-  stroke: var(--ow-muted);
+  stroke: var(--ow-fsm-origin-color, var(--ow-muted));
   stroke-width: .9;
   stroke-dasharray: 3 3;
   opacity: .72;
@@ -365,7 +379,6 @@
 .ow-fsm-native-canvas
   .fsm-transition.actionable
   .fsm-label-leader {
-  stroke: var(--ow-accent);
   opacity: .9;
 }
 
@@ -393,8 +406,13 @@
   }
 }
 
-/* A4AF menu projection contains navigation signals only. */
-.ow-fsm-menu-signal.signal-type-navigation code { color: var(--ow-accent); }
+/* Menu = FSM uses the same origin semantics as the diagram. */
+.ow-fsm-menu-signal.signal-origin-user code {
+  color: var(--ow-fsm-signal-user);
+}
+.ow-fsm-menu-signal.signal-origin-automatic code {
+  color: var(--ow-fsm-signal-automatic);
+}
 
 /*
  * P117W_R45B2A4AK — viewport containment.
@@ -533,13 +551,10 @@
   .ow-fsm-menu-signal[type="submit"]:hover,
 .ow-fsm-menu-command-form
   .ow-fsm-menu-signal[type="submit"]:focus-visible {
-  border-color: var(--ow-warn);
+  border-color: var(--ow-fsm-signal-user);
   background: rgba(255, 255, 255, .045);
   outline: none;
   box-shadow: none;
   filter: none;
 }
 
-.ow-fsm-menu-signal.signal-type-command code {
-  color: var(--ow-fsm-signal-command);
-}

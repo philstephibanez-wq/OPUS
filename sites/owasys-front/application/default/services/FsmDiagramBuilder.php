@@ -7,7 +7,7 @@ use Opus\Fsm\FsmDiagramGeometryNormalizer;
 /** Builds a fixed visual projection from the canonical OWASYS FSM. */
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4AP';
+    private const REVISION = 'P117W_R45B2A4AW';
 
     public function __construct(
         private readonly string $siteRoot,
@@ -105,6 +105,7 @@ final class OwasysFsmDiagramBuilder
         $transitions = [];
         $transitionLabels = [];
         $transitionLinks = [];
+        $transitionActions = [];
         $displayedBySignalTarget = [];
         $selfLoopTypes = [];
 
@@ -221,8 +222,25 @@ final class OwasysFsmDiagramBuilder
                 }
             }
             $id = (string) ($selected['transition_id'] ?? '');
-            if ($id !== '' && $this->isLocalUrl((string) $action['url'])) {
-                $transitionLinks[$id] = (string) $action['url'];
+            $url = (string) ($action['url'] ?? '');
+            if ($id === '' || !$this->isLocalUrl($url)) {
+                continue;
+            }
+            if (($action['is_post'] ?? false) === true) {
+                $field = trim((string) ($action['request_field'] ?? ''));
+                $value = (string) ($action['request_value'] ?? '');
+                if ($field === '' || $value === '') {
+                    throw new RuntimeException(
+                        'OWASYS_FSM_CURRENT_POST_ACTION_INVALID:' . $id
+                    );
+                }
+                $transitionActions[$id] = [
+                    'method' => 'POST',
+                    'url' => $url,
+                    'fields' => [$field => $value],
+                ];
+            } else {
+                $transitionLinks[$id] = $url;
             }
         }
 
@@ -250,7 +268,8 @@ final class OwasysFsmDiagramBuilder
             false,
             $transitionLinks,
             $initialState,
-            $layout
+            $layout,
+            $transitionActions
         );
         $diagram = (new FsmDiagramGeometryNormalizer())->normalize(
             $diagram,
@@ -372,7 +391,7 @@ final class OwasysFsmDiagramBuilder
 
     /**
      * @param array<string,array<string,mixed>> $menuByState
-     * @return array<string,array{url:string,transition_id:string}>
+     * @return array<string,array{url:string,transition_id:string,is_post:bool,request_field:string,request_value:string}>
      */
     private function currentActions(
         array $menuByState,
@@ -383,7 +402,7 @@ final class OwasysFsmDiagramBuilder
 
         foreach ((array) ($current['signals'] ?? []) as $signalItem) {
             if (!is_array($signalItem)
-                || ($signalItem['actionable'] ?? false) !== true) {
+                || ($signalItem['menu_actionable'] ?? false) !== true) {
                 continue;
             }
             $this->registerAction($actions, $signalItem);
@@ -396,7 +415,7 @@ final class OwasysFsmDiagramBuilder
             }
             foreach ((array) ($item['global_signals'] ?? []) as $signalItem) {
                 if (!is_array($signalItem)
-                    || ($signalItem['actionable'] ?? false) !== true) {
+                    || ($signalItem['menu_actionable'] ?? false) !== true) {
                     continue;
                 }
                 $this->registerAction($actions, $signalItem);
@@ -407,7 +426,7 @@ final class OwasysFsmDiagramBuilder
     }
 
     /**
-     * @param array<string,array{url:string,transition_id:string}> $actions
+     * @param array<string,array{url:string,transition_id:string,is_post:bool,request_field:string,request_value:string}> $actions
      * @param array<string,mixed> $signalItem
      */
     private function registerAction(array &$actions, array $signalItem): void
@@ -427,6 +446,13 @@ final class OwasysFsmDiagramBuilder
         $actions[$key] = [
             'url' => $url,
             'transition_id' => $transitionId,
+            'is_post' => ($signalItem['is_post'] ?? false) === true,
+            'request_field' => trim((string) (
+                $signalItem['request_field'] ?? ''
+            )),
+            'request_value' => (string) (
+                $signalItem['request_value'] ?? ''
+            ),
         ];
     }
 
@@ -471,9 +497,16 @@ final class OwasysFsmDiagramBuilder
                 );
             }
             $id = trim((string) ($signal['id'] ?? ''));
+            $origin = trim((string) ($signal['origin'] ?? ''));
             if ($id === '' || isset($registry[$id])) {
                 throw new RuntimeException(
                     'OWASYS_FSM_SIGNAL_REGISTRY_ID_INVALID:' . $id
+                );
+            }
+            if (!in_array($origin, ['user', 'automatic'], true)) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_SIGNAL_ORIGIN_INVALID:'
+                    . $id . ':' . $origin
                 );
             }
             $registry[$id] = $signal;

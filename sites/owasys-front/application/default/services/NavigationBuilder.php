@@ -14,6 +14,12 @@ final class OwasysNavigationBuilder
         'system' => true,
     ];
 
+    /** @var array<string,true> */
+    private const SIGNAL_ORIGINS = [
+        'user' => true,
+        'automatic' => true,
+    ];
+
     public function __construct(
         private readonly string $siteRoot,
         private readonly OwasysRuntimeSecurity $security
@@ -26,6 +32,8 @@ final class OwasysNavigationBuilder
      * - every state-local relation is a submenu signal, irrespective of type;
      * - ordinary global navigation is rendered once, never copied into every
      *   state submenu;
+     * - signal origin (user|automatic) is canonical FSM metadata and is
+     *   independent from functional type and HTTP transport;
      * - GET navigation is actionable only through a canonical signal route;
      * - a local command is menu-actionable only through an explicit POST
      *   binding in config/routes.json matching the current source-state route;
@@ -226,7 +234,8 @@ final class OwasysNavigationBuilder
                 $globalSignals[] = [
                     'transition_id' => $transitionId,
                     'signal' => $signal,
-                    'signal_type' => 'navigation',
+                    'signal_type' => (string) ($definition['type'] ?? ''),
+                    'signal_origin' => (string) ($definition['origin'] ?? ''),
                     'target' => $to,
                     'target_label_key' => (string) ($target['label_key'] ?? ''),
                     'target_label' => '',
@@ -299,6 +308,7 @@ final class OwasysNavigationBuilder
                 'transition_id' => $transitionId,
                 'signal' => $signal,
                 'signal_type' => (string) ($definition['type'] ?? ''),
+                'signal_origin' => (string) ($definition['origin'] ?? ''),
                 'target' => $to,
                 'target_label_key' => (string) ($target['label_key'] ?? ''),
                 'target_label' => '',
@@ -376,7 +386,7 @@ final class OwasysNavigationBuilder
 
     /**
      * @param array<string,mixed> $fsmConfig
-     * @return array<string,array{type:string,menu:bool,menu_order:int}>
+     * @return array<string,array{type:string,origin:string,menu:bool,menu_order:int}>
      */
     private function signalRegistry(array $fsmConfig): array
     {
@@ -389,6 +399,7 @@ final class OwasysNavigationBuilder
             }
             $id = trim((string) ($definition['id'] ?? ''));
             $type = trim((string) ($definition['type'] ?? ''));
+            $origin = trim((string) ($definition['origin'] ?? ''));
             $menu = ($definition['menu'] ?? false) === true;
             if ($id === '' || isset($registry[$id])) {
                 throw new RuntimeException(
@@ -400,6 +411,12 @@ final class OwasysNavigationBuilder
                     'OWASYS_NAVIGATION_SIGNAL_TYPE_INVALID:' . $id . ':' . $type
                 );
             }
+            if (!isset(self::SIGNAL_ORIGINS[$origin])) {
+                throw new RuntimeException(
+                    'OWASYS_NAVIGATION_SIGNAL_ORIGIN_INVALID:'
+                    . $id . ':' . $origin
+                );
+            }
             if ($menu && $type !== 'navigation') {
                 throw new RuntimeException(
                     'OWASYS_NAVIGATION_SIGNAL_MENU_TYPE_INVALID:' . $id
@@ -407,6 +424,7 @@ final class OwasysNavigationBuilder
             }
             $registry[$id] = [
                 'type' => $type,
+                'origin' => $origin,
                 'menu' => $menu,
                 'menu_order' => (int) ($definition['menu_order'] ?? PHP_INT_MAX),
             ];

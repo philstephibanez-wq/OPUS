@@ -1,8 +1,8 @@
 <nav
   class="ow-global-nav ow-fsm-menu"
   aria-label="[[ i18n: navigation.main ]]"
-  data-fsm-menu-contract="OWASYS_FSM_MENU_V5"
-  data-fsm-menu-behavior="canonical-state-signals-global-host-get-navigation-post-command-autocollapse"
+  data-fsm-menu-contract="OWASYS_FSM_MENU_V6"
+  data-fsm-menu-behavior="canonical-state-signals-origin-aware-transport-independent-autocollapse"
 >
   [[ foreach: navigation as item ]]
     [[ if: item.visible ]]
@@ -23,11 +23,12 @@
                 [[ foreach: item.global_signals as signal ]]
                   [[ if: signal.actionable ]]
                     <a
-                      class="ow-fsm-menu-signal is-actionable signal-type-navigation"
+                      class="ow-fsm-menu-signal is-actionable signal-type-{{ signal.signal_type }} signal-origin-{{ signal.signal_origin }}"
                       href="{{ signal.url }}"
                       data-transition-id="{{ signal.transition_id }}"
                       data-signal="{{ signal.signal }}"
-                      data-signal-type="navigation"
+                      data-signal-type="{{ signal.signal_type }}"
+                      data-signal-origin="{{ signal.signal_origin }}"
                       data-target-state="{{ signal.target }}"
                       data-global-transition="true"
                     >
@@ -36,11 +37,12 @@
                     </a>
                   [[ else ]]
                     <span
-                      class="ow-fsm-menu-signal is-passive signal-type-navigation"
+                      class="ow-fsm-menu-signal is-passive signal-type-{{ signal.signal_type }} signal-origin-{{ signal.signal_origin }}"
                       aria-disabled="true"
                       data-transition-id="{{ signal.transition_id }}"
                       data-signal="{{ signal.signal }}"
-                      data-signal-type="navigation"
+                      data-signal-type="{{ signal.signal_type }}"
+                      data-signal-origin="{{ signal.signal_origin }}"
                       data-target-state="{{ signal.target }}"
                       data-global-transition="true"
                     >
@@ -63,12 +65,13 @@
                     >
                       <button
                         type="submit"
-                        class="ow-fsm-menu-signal is-actionable signal-type-{{ signal.signal_type }}"
+                        class="ow-fsm-menu-signal is-actionable signal-type-{{ signal.signal_type }} signal-origin-{{ signal.signal_origin }}"
                         name="{{ signal.request_field }}"
                         value="{{ signal.request_value }}"
                         data-transition-id="{{ signal.transition_id }}"
                         data-signal="{{ signal.signal }}"
                         data-signal-type="{{ signal.signal_type }}"
+                        data-signal-origin="{{ signal.signal_origin }}"
                         data-source-state="{{ item.id }}"
                         data-target-state="{{ signal.target }}"
                       >
@@ -78,11 +81,12 @@
                     </form>
                   [[ else ]]
                     <a
-                      class="ow-fsm-menu-signal is-actionable signal-type-{{ signal.signal_type }}"
+                      class="ow-fsm-menu-signal is-actionable signal-type-{{ signal.signal_type }} signal-origin-{{ signal.signal_origin }}"
                       href="{{ signal.url }}"
                       data-transition-id="{{ signal.transition_id }}"
                       data-signal="{{ signal.signal }}"
                       data-signal-type="{{ signal.signal_type }}"
+                      data-signal-origin="{{ signal.signal_origin }}"
                       data-source-state="{{ item.id }}"
                       data-target-state="{{ signal.target }}"
                     >
@@ -92,11 +96,12 @@
                   [[ endif ]]
                 [[ else ]]
                   <span
-                    class="ow-fsm-menu-signal is-passive signal-type-{{ signal.signal_type }}"
+                    class="ow-fsm-menu-signal is-passive signal-type-{{ signal.signal_type }} signal-origin-{{ signal.signal_origin }}"
                     aria-disabled="true"
                     data-transition-id="{{ signal.transition_id }}"
                     data-signal="{{ signal.signal }}"
                     data-signal-type="{{ signal.signal_type }}"
+                    data-signal-origin="{{ signal.signal_origin }}"
                     data-source-state="{{ item.id }}"
                     data-target-state="{{ signal.target }}"
                   >

@@ -61,6 +61,11 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     /** @var array<string,string> */
     private array $_transitionLinks = [];
 
+    /**
+     * @var array<string,array{method:string,url:string,fields:array<string,string>}>
+     */
+    private array $_transitionActions = [];
+
     private bool $_compactLayout = false;
     private string $_layoutRoot = '';
 
@@ -202,6 +207,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             $signalType = self::signalType(
                 (string) ($transition['signal_type'] ?? 'system')
             );
+            $signalOrigin = self::signalOrigin(
+                (string) ($transition['signal_origin'] ?? '')
+            );
 
             if ($interrupt !== '' && $interrupt !== 'nmi') {
                 throw new \InvalidArgumentException(
@@ -256,7 +264,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                     ))
                     : []
                 ,
-                $signalType
+                $signalType,
+                $signalOrigin
             );
         }
 
@@ -318,7 +327,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             ? $fsm['transitions']
             : [];
 
-        $signalTypes = [];
+        $signalMetadata = [];
         foreach ((array) ($fsm['signals'] ?? []) as $signalDefinition) {
             if (!is_array($signalDefinition)) {
                 continue;
@@ -327,17 +336,25 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             if ($signalId === '') {
                 continue;
             }
-            $signalTypes[$signalId] = self::signalType(
-                (string) ($signalDefinition['type'] ?? 'system')
-            );
+            $signalMetadata[$signalId] = [
+                'type' => self::signalType(
+                    (string) ($signalDefinition['type'] ?? 'system')
+                ),
+                'origin' => self::signalOrigin(
+                    (string) ($signalDefinition['origin'] ?? '')
+                ),
+            ];
         }
         foreach ($transitions as $index => $transition) {
             if (!is_array($transition)) {
                 continue;
             }
             $signalId = trim((string) ($transition['signal'] ?? ''));
-            if ($signalId !== '' && isset($signalTypes[$signalId])) {
-                $transitions[$index]['signal_type'] = $signalTypes[$signalId];
+            if ($signalId !== '' && isset($signalMetadata[$signalId])) {
+                $transitions[$index]['signal_type'] =
+                    $signalMetadata[$signalId]['type'];
+                $transitions[$index]['signal_origin'] =
+                    $signalMetadata[$signalId]['origin'];
             }
         }
 
@@ -385,7 +402,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         bool $compactLayout = false,
         array $transitionLinks = [],
         string $layoutRoot = '',
-        array $stateLayoutHints = []
+        array $stateLayoutHints = [],
+        array $transitionActions = []
     ): string {
         $diagram = self::fromDefinition(
             $fsm,
@@ -397,6 +415,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $diagram->setTransitionLabels($transitionLabels);
         $diagram->setCompactLayout($compactLayout);
         $diagram->setTransitionLinks($transitionLinks);
+        $diagram->setTransitionActions($transitionActions);
         $diagram->setLayoutRoot($layoutRoot);
         $diagram->setStateLayoutHints($stateLayoutHints);
         return $diagram->renderHtml();
@@ -612,6 +631,89 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     }
 
     /**
+     * Structured non-GET transition actions. HTTP transport is intentionally
+     * orthogonal to FSM signal metadata and never controls signal color.
+     *
+     * @param array<string,array{method:string,url:string,fields?:array<string,string>}> $transitionActions
+     */
+    public function setTransitionActions(array $transitionActions): void
+    {
+        $known = [];
+        foreach ($this->_transitions as $transition) {
+            $known[$transition['id']] = true;
+        }
+
+        $normalized = [];
+        foreach ($transitionActions as $transitionId => $action) {
+            if (!is_string($transitionId)
+                || !isset($known[$transitionId])
+                || !is_array($action)) {
+                throw new \InvalidArgumentException(
+                    'OPUS_FSM_DIAGRAM_TRANSITION_ACTION_INVALID:'
+                    . (string) $transitionId
+                );
+            }
+            if (isset($this->_transitionLinks[$transitionId])) {
+                throw new \InvalidArgumentException(
+                    'OPUS_FSM_DIAGRAM_TRANSITION_ACTION_AMBIGUOUS:'
+                    . $transitionId
+                );
+            }
+
+            $method = strtoupper(trim((string) ($action['method'] ?? '')));
+            $url = trim((string) ($action['url'] ?? ''));
+            if ($method !== 'POST') {
+                throw new \InvalidArgumentException(
+                    'OPUS_FSM_DIAGRAM_TRANSITION_ACTION_METHOD_INVALID:'
+                    . $transitionId . ':' . $method
+                );
+            }
+            if ($url === ''
+                || $url[0] !== '/'
+                || str_contains($url, "\0")
+                || str_contains($url, "\r")
+                || str_contains($url, "\n")) {
+                throw new \InvalidArgumentException(
+                    'OPUS_FSM_DIAGRAM_TRANSITION_ACTION_URL_INVALID:'
+                    . $transitionId
+                );
+            }
+
+            $fields = $action['fields'] ?? [];
+            if (!is_array($fields)) {
+                throw new \InvalidArgumentException(
+                    'OPUS_FSM_DIAGRAM_TRANSITION_ACTION_FIELDS_INVALID:'
+                    . $transitionId
+                );
+            }
+            $normalizedFields = [];
+            foreach ($fields as $name => $value) {
+                if (!is_string($name)
+                    || !is_string($value)
+                    || preg_match(
+                        '/^[A-Za-z_][A-Za-z0-9_.-]{0,127}$/D',
+                        $name
+                    ) !== 1
+                    || str_contains($value, "\0")) {
+                    throw new \InvalidArgumentException(
+                        'OPUS_FSM_DIAGRAM_TRANSITION_ACTION_FIELD_INVALID:'
+                        . $transitionId
+                    );
+                }
+                $normalizedFields[$name] = $value;
+            }
+
+            $normalized[$transitionId] = [
+                'method' => 'POST',
+                'url' => $url,
+                'fields' => $normalizedFields,
+            ];
+        }
+
+        $this->_transitionActions = $normalized;
+    }
+
+    /**
      * Backward-compatible edge API. Each call remains one distinct transition.
      */
     public function addEdge(
@@ -678,12 +780,14 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         array $guards,
         array $actions,
         array $runtimeOperations,
-        string $signalType = 'system'
+        string $signalType = 'system',
+        string $signalOrigin = 'unspecified'
     ): void {
         $from = trim($from);
         $to = trim($to);
         $signal = trim($signal);
         $signalType = self::signalType($signalType);
+        $signalOrigin = self::signalOrigin($signalOrigin);
         if ($from === '' || $to === '' || $signal === '') {
             return;
         }
@@ -701,6 +805,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             'to' => $to,
             'signal' => $signal,
             'signal_type' => $signalType,
+            'signal_origin' => $signalOrigin,
             'guards' => array_values($guards),
             'actions' => array_values($actions),
             'runtime_operations' => array_values($runtimeOperations),
@@ -740,7 +845,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $this->_renderedLabelBoxes = [];
 
         $svg = '<svg class="fsm-diagram"'
-            . ' data-opus-fsm-routing="lane-aware-v4-signal-types"'
+            . ' data-opus-fsm-routing="lane-aware-v5-signal-origin"'
             . ' width="' . self::n($width)
             . '" height="' . self::n($height)
             . '" viewBox="0 0 '
@@ -1180,7 +1285,11 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $signalType = self::signalType(
             (string) ($transition['signal_type'] ?? 'system')
         );
-        $class = 'fsm-transition signal-type-' . $signalType;
+        $signalOrigin = self::signalOrigin(
+            (string) ($transition['signal_origin'] ?? '')
+        );
+        $class = 'fsm-transition signal-type-' . $signalType
+            . ' signal-origin-' . $signalOrigin;
         if ($transition['wildcard']) {
             $class .= ' wildcard';
         }
@@ -1662,7 +1771,10 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         }
 
         $link = $this->_transitionLinks[$id] ?? null;
-        $actionable = is_string($link) && $link !== '';
+        $postAction = $this->_transitionActions[$id] ?? null;
+        $getActionable = is_string($link) && $link !== '';
+        $postActionable = is_array($postAction);
+        $actionable = $getActionable || $postActionable;
         if ($actionable) {
             $class .= ' actionable';
         }
@@ -1690,7 +1802,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             . '</text>'
             . '</g>';
 
-        if ($actionable) {
+        if ($getActionable) {
             $labelSvg = '<a class="fsm-signal-link" href="'
                 . self::h($link)
                 . '" aria-label="'
@@ -1698,16 +1810,73 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 . '" role="link" tabindex="0" focusable="true">'
                 . $labelSvg
                 . '</a>';
+        } elseif ($postActionable) {
+            $labelSvg .= $this->postActionForeignObject(
+                $postAction,
+                $label,
+                $labelX - $labelWidth / 2,
+                $labelY - 14.0,
+                $labelWidth,
+                $labelHeight
+            );
         }
 
+        $origin = str_contains($class, 'signal-origin-user')
+            ? 'user'
+            : (str_contains($class, 'signal-origin-automatic')
+                ? 'automatic'
+                : 'unspecified');
+
         return '<g class="' . self::h($class)
-            . '" data-transition-id="' . self::h($id) . '">'
+            . '" data-transition-id="' . self::h($id)
+            . '" data-signal-origin="' . self::h($origin) . '">'
             . '<title>' . self::h($semanticLabel) . '</title>'
             . '<path class="fsm-edge" d="' . $path
-            . '" marker-end="url(#fsm-arrow)" />'
+            . '" marker-end="url(#fsm-arrow-' . self::h($origin) . ')" />'
             . $labelLeader
             . $labelSvg
             . '</g>';
+    }
+
+    /**
+     * @param array{method:string,url:string,fields:array<string,string>} $action
+     */
+    private function postActionForeignObject(
+        array $action,
+        string $label,
+        float $x,
+        float $y,
+        float $width,
+        float $height
+    ): string {
+        $fields = '';
+        foreach ($action['fields'] as $name => $value) {
+            $fields .= '<input type="hidden" name="'
+                . self::h($name)
+                . '" value="'
+                . self::h($value)
+                . '" />';
+        }
+
+        return '<foreignObject class="fsm-signal-post-object" x="'
+            . self::n($x)
+            . '" y="'
+            . self::n($y)
+            . '" width="'
+            . self::n($width)
+            . '" height="'
+            . self::n($height)
+            . '"><form xmlns="http://www.w3.org/1999/xhtml"'
+            . ' class="fsm-signal-post-form" method="post" action="'
+            . self::h($action['url'])
+            . '">'
+            . $fields
+            . '<button type="submit" class="fsm-signal-post-submit"'
+            . ' formnovalidate aria-label="'
+            . self::h($label)
+            . '" title="'
+            . self::h($label)
+            . '"></button></form></foreignObject>';
     }
 
     /**
@@ -2160,8 +2329,14 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     {
         return <<<'SVG'
 <defs>
-  <marker id="fsm-arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-    <path d="M0,0 L0,6 L9,3 z" class="fsm-arrow-head" />
+  <marker id="fsm-arrow-user" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L0,6 L9,3 z" class="fsm-arrow-head signal-origin-user" />
+  </marker>
+  <marker id="fsm-arrow-automatic" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L0,6 L9,3 z" class="fsm-arrow-head signal-origin-automatic" />
+  </marker>
+  <marker id="fsm-arrow-unspecified" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L0,6 L9,3 z" class="fsm-arrow-head signal-origin-unspecified" />
   </marker>
   <style>
     .fsm-diagram { width:auto; max-width:none; height:auto; overflow:visible; font-family:"Segoe UI",Arial,sans-serif; }
@@ -2173,23 +2348,28 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     .fsm-node-link:hover .fsm-node rect,
     .fsm-node-link:focus .fsm-node rect { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:3; }
     .fsm-signal-link { cursor:pointer; text-decoration:none; outline:none; }
-    .fsm-transition.actionable .fsm-edge { stroke:var(--opus-fsm-signal,#6ce3ff); stroke-width:2.05; }
-    .fsm-signal-link .fsm-edge-label { fill:var(--opus-fsm-signal,#6ce3ff); text-decoration:none; font-weight:800; }
-    .fsm-signal-link:hover .fsm-edge-label,
-    .fsm-signal-link:focus .fsm-edge-label,
-    .fsm-signal-link:focus-visible .fsm-edge-label { fill:var(--opus-fsm-signal,#6ce3ff); }
+    .fsm-transition.signal-origin-user { --opus-fsm-transition-color:var(--opus-fsm-signal-user,#6ce3ff); }
+    .fsm-transition.signal-origin-automatic { --opus-fsm-transition-color:var(--opus-fsm-signal-automatic,#fbbf24); }
+    .fsm-transition.signal-origin-unspecified { --opus-fsm-transition-color:var(--opus-fsm-edge,#7da4c8); }
+    .fsm-transition.actionable .fsm-edge { stroke-width:2.05; }
+    .fsm-signal-link .fsm-edge-label { text-decoration:none; font-weight:800; }
+    .fsm-signal-post-object { overflow:visible; }
+    .fsm-signal-post-form { width:100%; height:100%; margin:0; padding:0; }
+    .fsm-signal-post-submit { display:block; width:100%; height:100%; margin:0; padding:0; border:0; background:transparent; color:transparent; cursor:pointer; opacity:0; }
     .fsm-state-label { fill:var(--opus-fsm-state-text,#f6f8ff); font-size:13px; font-weight:800; text-anchor:middle; }
     .fsm-node-tag { fill:var(--opus-fsm-signal,#6ce3ff); font-size:10px; font-weight:800; text-anchor:middle; }
     .fsm-state-annotation { fill:var(--opus-fsm-muted,#b8c5de); font-size:9px; text-anchor:middle; }
-    .fsm-edge { fill:none; stroke:var(--opus-fsm-edge,#7da4c8); stroke-width:1.7; }
-    .fsm-label-leader { fill:none; stroke:var(--opus-fsm-edge,#7da4c8); stroke-width:.9; stroke-dasharray:3 3; opacity:.78; }
-    .fsm-transition.actionable .fsm-label-leader { stroke:var(--opus-fsm-signal,#6ce3ff); }
-    .fsm-arrow-head { fill:var(--opus-fsm-edge,#7da4c8); }
+    .fsm-edge { fill:none; stroke:var(--opus-fsm-transition-color,var(--opus-fsm-edge,#7da4c8)); stroke-width:1.7; }
+    .fsm-label-leader { fill:none; stroke:var(--opus-fsm-transition-color,var(--opus-fsm-edge,#7da4c8)); stroke-width:.9; stroke-dasharray:3 3; opacity:.78; }
+    .fsm-transition.actionable .fsm-label-leader { opacity:.95; }
+    .fsm-arrow-head.signal-origin-user { fill:var(--opus-fsm-signal-user,#6ce3ff); }
+    .fsm-arrow-head.signal-origin-automatic { fill:var(--opus-fsm-signal-automatic,#fbbf24); }
+    .fsm-arrow-head.signal-origin-unspecified { fill:var(--opus-fsm-edge,#7da4c8); }
     .fsm-transition.wildcard .fsm-edge,
     .fsm-transition.fallback .fsm-edge { stroke-dasharray:6 5; }
-    .fsm-transition.return-edge .fsm-edge { stroke:var(--opus-fsm-return,#a78bfa); }
-    .fsm-transition.self-loop .fsm-edge { stroke:var(--opus-fsm-loop,#fbbf24); }
-    .fsm-edge-label { fill:var(--opus-fsm-label,#dbeafe); font-size:11px; font-weight:650; text-anchor:middle; paint-order:stroke; stroke:var(--opus-fsm-label-halo,#07111f); stroke-width:4px; stroke-linejoin:round; }
+    .fsm-transition.return-edge .fsm-edge { stroke-dasharray:2 2; }
+    .fsm-transition.self-loop .fsm-edge { stroke-width:2; }
+    .fsm-edge-label { fill:var(--opus-fsm-transition-color,var(--opus-fsm-label,#dbeafe)); font-size:11px; font-weight:650; text-anchor:middle; paint-order:stroke; stroke:var(--opus-fsm-label-halo,#07111f); stroke-width:4px; stroke-linejoin:round; }
     .fsm-initial-marker circle { fill:var(--opus-fsm-marker,#f6f8ff); stroke:var(--opus-fsm-marker,#f6f8ff); }
     .fsm-final-marker circle:first-child { fill:none; stroke:var(--opus-fsm-marker,#f6f8ff); stroke-width:2; }
     .fsm-final-marker circle:last-child { fill:var(--opus-fsm-marker,#f6f8ff); stroke:none; }
@@ -2210,6 +2390,20 @@ SVG;
             ['navigation', 'command', 'outcome', 'system'],
             true
         ) ? $type : 'system';
+    }
+
+    private static function signalOrigin(string $origin): string
+    {
+        $origin = strtolower(trim($origin));
+        if ($origin === '') {
+            return 'unspecified';
+        }
+        if (!in_array($origin, ['user', 'automatic'], true)) {
+            throw new \InvalidArgumentException(
+                'OPUS_FSM_DIAGRAM_SIGNAL_ORIGIN_INVALID:' . $origin
+            );
+        }
+        return $origin;
     }
 
     /**

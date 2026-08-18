@@ -50,7 +50,7 @@ final class FsmDiagramGeometryNormalizer implements
         [$svgWidth, $svgHeight] = $this->svgDimensions($html);
         $nodes = $this->nodeRectangles($html);
         [$minNodeY, $maxNodeBottom] = $this->nodeVerticalBounds($nodes);
-        $actionableLinks = $this->actionableSignalLinks($html, $nodes);
+        $actionableActions = $this->actionableSignalActions($html, $nodes);
         $groups = $this->outerTransitionGroups($html);
 
         if ($groups !== []) {
@@ -118,7 +118,7 @@ final class FsmDiagramGeometryNormalizer implements
                     $group['html'],
                     $laneYByKey[$key],
                     ($labelOwnerByKey[$key] ?? $index) === $index,
-                    $actionableLinks[$group['semantic_key']] ?? null
+                    $actionableActions[$group['semantic_key']] ?? null
                 );
                 $html = substr($html, 0, $group['start'])
                     . $replacement
@@ -127,6 +127,7 @@ final class FsmDiagramGeometryNormalizer implements
         }
 
         $html = $this->expandSignalLabelBoxes($html, 1.35);
+        $html = $this->syncPostActionHitboxes($html);
         [$html, $viewportHeight] = $this->compactVerticalViewport(
             $html,
             $svgWidth,
@@ -139,8 +140,8 @@ final class FsmDiagramGeometryNormalizer implements
             $scale
         );
         return str_replace(
-            'data-opus-fsm-routing="lane-aware-v4-signal-types"',
-            'data-opus-fsm-routing="bounded-orthogonal-v7-shared-action"',
+            'data-opus-fsm-routing="lane-aware-v5-signal-origin"',
+            'data-opus-fsm-routing="bounded-orthogonal-v8-signal-origin-action"',
             $html
         );
     }
@@ -247,17 +248,16 @@ final class FsmDiagramGeometryNormalizer implements
     }
 
     /**
-     * Resolve the semantic actionability of signal labels before visual rail
-     * merging. The actionable transition may be a short/local edge while a
-     * different passive clone owns the shared outer rail. In that case the
-     * shared visual label must inherit the exact current transition URL.
+     * Resolve semantic signal actions before visual rail merging. Actionability
+     * may use either a GET href or a structured POST form; HTTP transport never
+     * changes FSM signal origin/color.
      *
      * @param list<array{id:string,x:float,y:float,w:float,h:float}> $nodes
-     * @return array<string,string> semantic signal+target key => escaped href
+     * @return array<string,array{kind:string,href?:string,url?:string,fields?:array<string,string>}>
      */
-    private function actionableSignalLinks(string $html, array $nodes): array
+    private function actionableSignalActions(string $html, array $nodes): array
     {
-        $links = [];
+        $actions = [];
         if (preg_match_all(
             '/<g\b[^>]*class="[^"]*\bfsm-transition\b[^"]*\bactionable\b[^"]*"'
                 . '[^>]*data-transition-id="[^"]+"[^>]*>/s',
@@ -282,33 +282,126 @@ final class FsmDiagramGeometryNormalizer implements
                 $geometry['y2'],
                 $nodes
             );
-            if (preg_match(
-                '/<a\b[^>]*class="[^"]*\bfsm-signal-link\b[^"]*"'
-                    . '[^>]*\bhref="([^"]+)"/s',
-                $group,
-                $hrefMatch
-            ) !== 1) {
-                throw new RuntimeException(
-                    'OPUS_FSM_DIAGRAM_GEOMETRY_ACTIONABLE_HREF_MISSING'
-                );
-            }
-            $href = $hrefMatch[1];
-            if ($href === '' || $href[0] !== '/' || str_contains($href, "\0")) {
-                throw new RuntimeException(
-                    'OPUS_FSM_DIAGRAM_GEOMETRY_ACTIONABLE_HREF_INVALID'
-                );
-            }
+            $action = $this->signalActionFromGroup($group);
             $key = $label . "\0" . $targetState;
-            if (isset($links[$key]) && $links[$key] !== $href) {
+            if (isset($actions[$key]) && $actions[$key] !== $action) {
                 throw new RuntimeException(
-                    'OPUS_FSM_DIAGRAM_GEOMETRY_ACTIONABLE_HREF_AMBIGUOUS:'
+                    'OPUS_FSM_DIAGRAM_GEOMETRY_ACTION_AMBIGUOUS:'
                     . $label . ':' . $targetState
                 );
             }
-            $links[$key] = $href;
+            $actions[$key] = $action;
         }
 
-        return $links;
+        return $actions;
+    }
+
+    /**
+     * @return array{kind:string,href?:string,url?:string,fields?:array<string,string>}
+     */
+    private function signalActionFromGroup(string $group): array
+    {
+        if (preg_match(
+            '/<a\b[^>]*class="[^"]*\bfsm-signal-link\b[^"]*"'
+                . '[^>]*\bhref="([^"]+)"/s',
+            $group,
+            $hrefMatch
+        ) === 1) {
+            $href = html_entity_decode(
+                $hrefMatch[1],
+                ENT_QUOTES | ENT_SUBSTITUTE,
+                'UTF-8'
+            );
+            $this->assertLocalActionUrl($href);
+            return ['kind' => 'get', 'href' => $href];
+        }
+
+        if (preg_match(
+            '/<foreignObject\b[^>]*class="[^"]*\bfsm-signal-post-object\b[^"]*"'
+                . '[^>]*>(.*?)<\/foreignObject>/s',
+            $group,
+            $objectMatch
+        ) !== 1
+            || preg_match('/<form\b([^>]*)>(.*?)<\/form>/s',
+                $objectMatch[1], $formMatch) !== 1) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_GEOMETRY_ACTIONABLE_CONTROL_MISSING'
+            );
+        }
+
+        $formAttributes = $formMatch[1];
+        if (preg_match('/\bmethod="([^"]+)"/i', $formAttributes, $methodMatch) !== 1
+            || strtoupper(html_entity_decode(
+                $methodMatch[1],
+                ENT_QUOTES | ENT_SUBSTITUTE,
+                'UTF-8'
+            )) !== 'POST'
+            || preg_match('/\baction="([^"]+)"/i', $formAttributes, $urlMatch) !== 1) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_GEOMETRY_POST_ACTION_INVALID'
+            );
+        }
+
+        $url = html_entity_decode(
+            $urlMatch[1],
+            ENT_QUOTES | ENT_SUBSTITUTE,
+            'UTF-8'
+        );
+        $this->assertLocalActionUrl($url);
+
+        $fields = [];
+        if (preg_match_all(
+            '/<input\b[^>]*type="hidden"[^>]*>/i',
+            $formMatch[2],
+            $inputMatches
+        ) > 0) {
+            foreach ($inputMatches[0] as $input) {
+                if (preg_match('/\bname="([^"]+)"/i', $input, $nameMatch) !== 1
+                    || preg_match('/\bvalue="([^"]*)"/i', $input, $valueMatch) !== 1) {
+                    throw new RuntimeException(
+                        'OPUS_FSM_DIAGRAM_GEOMETRY_POST_FIELD_INVALID'
+                    );
+                }
+                $name = html_entity_decode(
+                    $nameMatch[1],
+                    ENT_QUOTES | ENT_SUBSTITUTE,
+                    'UTF-8'
+                );
+                $value = html_entity_decode(
+                    $valueMatch[1],
+                    ENT_QUOTES | ENT_SUBSTITUTE,
+                    'UTF-8'
+                );
+                if (preg_match(
+                    '/^[A-Za-z_][A-Za-z0-9_.-]{0,127}$/D',
+                    $name
+                ) !== 1 || str_contains($value, "\0")) {
+                    throw new RuntimeException(
+                        'OPUS_FSM_DIAGRAM_GEOMETRY_POST_FIELD_INVALID'
+                    );
+                }
+                $fields[$name] = $value;
+            }
+        }
+
+        return [
+            'kind' => 'post',
+            'url' => $url,
+            'fields' => $fields,
+        ];
+    }
+
+    private function assertLocalActionUrl(string $url): void
+    {
+        if ($url === ''
+            || $url[0] !== '/'
+            || str_contains($url, "\0")
+            || str_contains($url, "\r")
+            || str_contains($url, "\n")) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_GEOMETRY_ACTION_URL_INVALID'
+            );
+        }
     }
 
     /**
@@ -456,7 +549,7 @@ final class FsmDiagramGeometryNormalizer implements
         string $group,
         float $laneY,
         bool $showLabel,
-        ?string $sharedHref
+        ?array $sharedAction
     ): string
     {
         $geometry = $this->pathGeometry($group);
@@ -501,12 +594,11 @@ final class FsmDiagramGeometryNormalizer implements
         ) ?? $group;
 
         if ($showLabel
-            && is_string($sharedHref)
-            && $sharedHref !== ''
+            && is_array($sharedAction)
             && !str_contains($group, ' actionable')) {
             $group = $this->promoteSharedLabelActionability(
                 $group,
-                $sharedHref,
+                $sharedAction,
                 $this->transitionLabelText($group)
             );
         }
@@ -518,14 +610,23 @@ final class FsmDiagramGeometryNormalizer implements
                 $group,
                 1
             ) ?? $group;
+            $group = preg_replace(
+                '/<foreignObject\b[^>]*class="[^"]*\bfsm-signal-post-object\b[^"]*"'
+                    . '[^>]*>.*?<\/foreignObject>/s',
+                '',
+                $group
+            ) ?? $group;
         }
 
         return $group;
     }
 
+    /**
+     * @param array{kind:string,href?:string,url?:string,fields?:array<string,string>} $action
+     */
     private function promoteSharedLabelActionability(
         string $group,
-        string $href,
+        array $action,
         string $label
     ): string {
         $group = preg_replace_callback(
@@ -541,30 +642,165 @@ final class FsmDiagramGeometryNormalizer implements
             1
         ) ?? $group;
 
+        $kind = (string) ($action['kind'] ?? '');
+        if ($kind === 'get') {
+            $href = (string) ($action['href'] ?? '');
+            $this->assertLocalActionUrl($href);
+            $labelPattern = '/(<g\b[^>]*class="fsm-edge-label-box"[^>]*>'
+                . '.*?<\/g>)/s';
+            $labelLink = '<a class="fsm-signal-link" href="'
+                . htmlspecialchars(
+                    $href,
+                    ENT_QUOTES | ENT_SUBSTITUTE,
+                    'UTF-8'
+                )
+                . '" aria-label="'
+                . htmlspecialchars(
+                    $label,
+                    ENT_QUOTES | ENT_SUBSTITUTE,
+                    'UTF-8'
+                )
+                . '" role="link" tabindex="0" focusable="true">$1</a>';
+            $result = preg_replace(
+                $labelPattern,
+                $labelLink,
+                $group,
+                1,
+                $count
+            );
+            if (!is_string($result) || $count !== 1) {
+                throw new RuntimeException(
+                    'OPUS_FSM_DIAGRAM_GEOMETRY_SHARED_ACTION_LABEL_MISSING'
+                );
+            }
+            return $result;
+        }
+
+        if ($kind !== 'post') {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_GEOMETRY_SHARED_ACTION_KIND_INVALID'
+            );
+        }
+
+        $url = (string) ($action['url'] ?? '');
+        $fields = $action['fields'] ?? [];
+        $this->assertLocalActionUrl($url);
+        if (!is_array($fields)) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_GEOMETRY_SHARED_POST_FIELDS_INVALID'
+            );
+        }
+
+        $foreignObject = $this->postActionForeignObject(
+            $group,
+            $url,
+            $fields,
+            $label
+        );
         $labelPattern = '/(<g\b[^>]*class="fsm-edge-label-box"[^>]*>'
             . '.*?<\/g>)/s';
-        $labelLink = '<a class="fsm-signal-link" href="' . $href
-            . '" aria-label="'
-            . htmlspecialchars(
-                $label,
-                ENT_QUOTES | ENT_SUBSTITUTE,
-                'UTF-8'
-            )
-            . '" role="link" tabindex="0" focusable="true">$1</a>';
         $result = preg_replace(
             $labelPattern,
-            $labelLink,
+            '$1' . $foreignObject,
             $group,
             1,
             $count
         );
         if (!is_string($result) || $count !== 1) {
             throw new RuntimeException(
-                'OPUS_FSM_DIAGRAM_GEOMETRY_SHARED_ACTION_LABEL_MISSING'
+                'OPUS_FSM_DIAGRAM_GEOMETRY_SHARED_POST_LABEL_MISSING'
             );
         }
         return $result;
     }
+
+    /** @param array<string,string> $fields */
+    private function postActionForeignObject(
+        string $group,
+        string $url,
+        array $fields,
+        string $label
+    ): string {
+        if (preg_match(
+            '/<rect\b[^>]*class="fsm-edge-label-bg"[^>]*>/s',
+            $group,
+            $rectMatch
+        ) !== 1) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_GEOMETRY_POST_LABEL_RECT_MISSING'
+            );
+        }
+        $rect = $rectMatch[0];
+        $geometry = [];
+        foreach (['x', 'y', 'width', 'height'] as $attribute) {
+            if (preg_match(
+                '/\b' . $attribute . '="(-?[0-9.]+)"/',
+                $rect,
+                $match
+            ) !== 1) {
+                throw new RuntimeException(
+                    'OPUS_FSM_DIAGRAM_GEOMETRY_POST_LABEL_RECT_INVALID'
+                );
+            }
+            $geometry[$attribute] = $match[1];
+        }
+
+        $fieldHtml = '';
+        foreach ($fields as $name => $value) {
+            if (!is_string($name)
+                || !is_string($value)
+                || preg_match(
+                    '/^[A-Za-z_][A-Za-z0-9_.-]{0,127}$/D',
+                    $name
+                ) !== 1
+                || str_contains($value, "\0")) {
+                throw new RuntimeException(
+                    'OPUS_FSM_DIAGRAM_GEOMETRY_SHARED_POST_FIELD_INVALID'
+                );
+            }
+            $fieldHtml .= '<input type="hidden" name="'
+                . htmlspecialchars(
+                    $name,
+                    ENT_QUOTES | ENT_SUBSTITUTE,
+                    'UTF-8'
+                )
+                . '" value="'
+                . htmlspecialchars(
+                    $value,
+                    ENT_QUOTES | ENT_SUBSTITUTE,
+                    'UTF-8'
+                )
+                . '" />';
+        }
+
+        return '<foreignObject class="fsm-signal-post-object" x="'
+            . $geometry['x'] . '" y="' . $geometry['y']
+            . '" width="' . $geometry['width']
+            . '" height="' . $geometry['height'] . '">'
+            . '<form xmlns="http://www.w3.org/1999/xhtml"'
+            . ' class="fsm-signal-post-form" method="post" action="'
+            . htmlspecialchars(
+                $url,
+                ENT_QUOTES | ENT_SUBSTITUTE,
+                'UTF-8'
+            )
+            . '">' . $fieldHtml
+            . '<button type="submit" class="fsm-signal-post-submit"'
+            . ' formnovalidate aria-label="'
+            . htmlspecialchars(
+                $label,
+                ENT_QUOTES | ENT_SUBSTITUTE,
+                'UTF-8'
+            )
+            . '" title="'
+            . htmlspecialchars(
+                $label,
+                ENT_QUOTES | ENT_SUBSTITUTE,
+                'UTF-8'
+            )
+            . '"></button></form></foreignObject>';
+    }
+
 
 
     private function expandSignalLabelBoxes(string $html, float $factor): string
@@ -616,6 +852,95 @@ final class FsmDiagramGeometryNormalizer implements
             },
             $html
         ) ?? $html;
+    }
+
+    private function syncPostActionHitboxes(string $html): string
+    {
+        if (preg_match_all(
+            '/<g\b[^>]*class="[^"]*\bfsm-transition\b[^"]*"[^>]*>/s',
+            $html,
+            $matches,
+            PREG_OFFSET_CAPTURE
+        ) < 1) {
+            return $html;
+        }
+
+        $groups = [];
+        foreach ($matches[0] as [$tag, $start]) {
+            $openEnd = $start + strlen($tag);
+            $end = $this->matchingGroupEnd($html, $openEnd);
+            $group = substr($html, $start, $end - $start);
+            if (!str_contains($group, 'fsm-signal-post-object')) {
+                continue;
+            }
+            $groups[] = [
+                'start' => $start,
+                'end' => $end,
+                'html' => $group,
+            ];
+        }
+
+        for ($index = count($groups) - 1; $index >= 0; --$index) {
+            $group = $groups[$index]['html'];
+            if (preg_match(
+                '/<rect\b[^>]*class="fsm-edge-label-bg"[^>]*>/s',
+                $group,
+                $rectMatch
+            ) !== 1) {
+                throw new RuntimeException(
+                    'OPUS_FSM_DIAGRAM_GEOMETRY_POST_LABEL_RECT_MISSING'
+                );
+            }
+            $geometry = [];
+            foreach (['x', 'y', 'width', 'height'] as $attribute) {
+                if (preg_match(
+                    '/\b' . $attribute . '="(-?[0-9.]+)"/',
+                    $rectMatch[0],
+                    $attributeMatch
+                ) !== 1) {
+                    throw new RuntimeException(
+                        'OPUS_FSM_DIAGRAM_GEOMETRY_POST_LABEL_RECT_INVALID'
+                    );
+                }
+                $geometry[$attribute] = $attributeMatch[1];
+            }
+
+            $replacement = preg_replace_callback(
+                '/<foreignObject\b([^>]*)class="([^"]*\bfsm-signal-post-object\b[^"]*)"([^>]*)>/s',
+                static function (array $match) use ($geometry): string {
+                    $tag = '<foreignObject' . $match[1]
+                        . 'class="' . $match[2] . '"' . $match[3] . '>';
+                    foreach ($geometry as $attribute => $value) {
+                        $pattern = '/\s' . $attribute . '="-?[0-9.]+"/';
+                        $replacement = ' ' . $attribute . '="' . $value . '"';
+                        if (preg_match($pattern, $tag) === 1) {
+                            $tag = preg_replace(
+                                $pattern,
+                                $replacement,
+                                $tag,
+                                1
+                            ) ?? $tag;
+                        } else {
+                            $tag = str_replace('>', $replacement . '>', $tag);
+                        }
+                    }
+                    return $tag;
+                },
+                $group,
+                1,
+                $count
+            );
+            if (!is_string($replacement) || $count !== 1) {
+                throw new RuntimeException(
+                    'OPUS_FSM_DIAGRAM_GEOMETRY_POST_HITBOX_SYNC_FAILED'
+                );
+            }
+            $html = substr($html, 0, $groups[$index]['start'])
+                . $replacement
+                . substr($html, $groups[$index]['end']);
+        }
+
+        return $html;
     }
 
     /**

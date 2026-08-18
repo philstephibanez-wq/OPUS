@@ -317,263 +317,313 @@
         {
             "id": "open_login",
             "type": "navigation",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "open_account",
             "type": "navigation",
             "menu": true,
-            "menu_order": 80
+            "menu_order": 80,
+            "origin": "user"
         },
         {
             "id": "open_password_change",
             "type": "navigation",
             "menu": true,
-            "menu_order": 90
+            "menu_order": 90,
+            "origin": "user"
         },
         {
             "id": "login_success",
             "type": "outcome",
-            "menu": false
+            "menu": false,
+            "origin": "automatic"
         },
         {
             "id": "login_failed",
             "type": "outcome",
-            "menu": false
+            "menu": false,
+            "origin": "automatic"
         },
         {
             "id": "password_change_required",
             "type": "system",
-            "menu": false
+            "menu": false,
+            "origin": "automatic"
         },
         {
             "id": "password_changed",
             "type": "outcome",
-            "menu": false
+            "menu": false,
+            "origin": "automatic"
         },
         {
             "id": "password_change_failed",
             "type": "outcome",
-            "menu": false
+            "menu": false,
+            "origin": "automatic"
         },
         {
             "id": "select_app",
             "type": "command",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "change_app",
             "type": "navigation",
             "menu": true,
-            "menu_order": 5
+            "menu_order": 5,
+            "origin": "user"
         },
         {
             "id": "clear_app_context",
             "type": "command",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "create_new_app",
             "type": "command",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "application_deleted",
             "type": "outcome",
-            "menu": false
+            "menu": false,
+            "origin": "automatic"
         },
         {
             "id": "open_creation",
             "type": "navigation",
             "menu": true,
-            "menu_order": 10
+            "menu_order": 10,
+            "origin": "user"
         },
         {
             "id": "continue_security",
             "type": "command",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "return_basics",
             "type": "command",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "continue_review",
             "type": "command",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "return_security",
             "type": "command",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "begin_application_creation",
             "type": "command",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "application_created",
             "type": "outcome",
-            "menu": false
+            "menu": false,
+            "origin": "automatic"
         },
         {
             "id": "application_creation_failed",
             "type": "outcome",
-            "menu": false
+            "menu": false,
+            "origin": "automatic"
         },
         {
             "id": "cancel_creation",
             "type": "command",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "registry_action_failed",
             "type": "outcome",
-            "menu": false
+            "menu": false,
+            "origin": "automatic"
         },
         {
             "id": "open_structure",
             "type": "navigation",
             "menu": true,
-            "menu_order": 30
+            "menu_order": 30,
+            "origin": "user"
         },
         {
             "id": "open_data",
             "type": "navigation",
             "menu": true,
-            "menu_order": 20
+            "menu_order": 20,
+            "origin": "user"
         },
         {
             "id": "open_workflows",
             "type": "navigation",
             "menu": true,
-            "menu_order": 50
+            "menu_order": 50,
+            "origin": "user"
         },
         {
             "id": "open_security",
             "type": "navigation",
             "menu": true,
-            "menu_order": 40
+            "menu_order": 40,
+            "origin": "user"
         },
         {
             "id": "open_source",
             "type": "navigation",
             "menu": true,
-            "menu_order": 60
+            "menu_order": 60,
+            "origin": "user"
         },
         {
             "id": "open_source_file",
             "type": "navigation",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "change_locale",
             "type": "navigation",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "preview_source",
             "type": "command",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "source_previewed",
             "type": "outcome",
-            "menu": false
+            "menu": false,
+            "origin": "automatic"
         },
         {
             "id": "write_source",
             "type": "command",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "source_written",
             "type": "outcome",
-            "menu": false
+            "menu": false,
+            "origin": "automatic"
         },
         {
             "id": "source_conflict",
             "type": "outcome",
-            "menu": false
+            "menu": false,
+            "origin": "automatic"
         },
         {
             "id": "source_action_failed",
             "type": "outcome",
-            "menu": false
+            "menu": false,
+            "origin": "automatic"
         },
         {
             "id": "stage_source",
             "type": "command",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "source_staged",
             "type": "outcome",
-            "menu": false
+            "menu": false,
+            "origin": "automatic"
         },
         {
             "id": "unstage_source",
             "type": "command",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "source_unstaged",
             "type": "outcome",
-            "menu": false
+            "menu": false,
+            "origin": "automatic"
         },
         {
             "id": "commit_source",
             "type": "command",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "source_committed",
             "type": "outcome",
-            "menu": false
+            "menu": false,
+            "origin": "automatic"
         },
         {
             "id": "restore_source",
             "type": "command",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "source_restored",
             "type": "outcome",
-            "menu": false
+            "menu": false,
+            "origin": "automatic"
         },
         {
             "id": "git_action_failed",
             "type": "outcome",
-            "menu": false
+            "menu": false,
+            "origin": "automatic"
         },
         {
             "id": "open_profiler",
             "type": "navigation",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "close_profiler",
             "type": "navigation",
-            "menu": false
+            "menu": false,
+            "origin": "user"
         },
         {
             "id": "open_build",
             "type": "navigation",
             "menu": true,
-            "menu_order": 70
+            "menu_order": 70,
+            "origin": "user"
         },
         {
             "id": "auth_required",
             "type": "system",
-            "menu": false
+            "menu": false,
+            "origin": "automatic"
         },
         {
             "id": "logout",
             "type": "navigation",
             "menu": true,
-            "menu_order": 100
+            "menu_order": 100,
+            "origin": "user"
         }
     ],
     "transitions": [
