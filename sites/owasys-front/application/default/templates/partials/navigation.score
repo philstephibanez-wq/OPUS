@@ -1,73 +1,89 @@
 <nav
   class="ow-global-nav ow-fsm-menu"
   aria-label="[[ i18n: navigation.main ]]"
-  data-fsm-menu-contract="OWASYS_FSM_MENU_V6"
-  data-fsm-menu-behavior="canonical-state-signals-origin-aware-transport-independent-autocollapse"
+  data-fsm-menu-contract="OWASYS_FSM_MENU_V7"
+  data-fsm-menu-behavior="current-state-outgoing-signals-only-guarded-origin-aware-transport-independent-autocollapse"
 >
   [[ foreach: navigation as item ]]
     [[ if: item.visible ]]
       [[ if: item.allowed ]]
-        <details
-          name="owasys-fsm-navigation"
-          class="ow-fsm-menu-state[[ if: item.active ]] is-active[[ endif ]][[ if: item.available ]][[ else ]] is-disabled[[ endif ]]"
-          data-state="{{ item.id }}"
-          data-state-type="{{ item.state_type }}"
-        >
-          <summary
-            class="ow-fsm-menu-state-label"
-            [[ if: item.active ]]aria-current="page"[[ endif ]]
-          >{{ item.label }}</summary>
-          <div class="ow-fsm-menu-signals" aria-label="{{ item.label }}">
-            [[ if: item.global_host ]]
-              [[ if: item.has_global_signals ]]
-                [[ foreach: item.global_signals as signal ]]
-                  [[ if: signal.actionable ]]
-                    <a
-                      class="ow-fsm-menu-signal is-actionable signal-type-{{ signal.signal_type }} signal-origin-{{ signal.signal_origin }}"
-                      href="{{ signal.url }}"
-                      data-transition-id="{{ signal.transition_id }}"
-                      data-signal="{{ signal.signal }}"
-                      data-signal-type="{{ signal.signal_type }}"
-                      data-signal-origin="{{ signal.signal_origin }}"
-                      data-target-state="{{ signal.target }}"
-                      data-global-transition="true"
-                    >
-                      <code>{{ signal.signal }}</code>
-                      <span>→ {{ signal.target_label }}</span>
-                    </a>
-                  [[ else ]]
-                    <span
-                      class="ow-fsm-menu-signal is-passive signal-type-{{ signal.signal_type }} signal-origin-{{ signal.signal_origin }}"
-                      aria-disabled="true"
-                      data-transition-id="{{ signal.transition_id }}"
-                      data-signal="{{ signal.signal }}"
-                      data-signal-type="{{ signal.signal_type }}"
-                      data-signal-origin="{{ signal.signal_origin }}"
-                      data-target-state="{{ signal.target }}"
-                      data-global-transition="true"
-                    >
-                      <code>{{ signal.signal }}</code>
-                      <span>→ {{ signal.target_label }}</span>
-                    </span>
-                  [[ endif ]]
-                [[ endforeach ]]
-              [[ endif ]]
-            [[ endif ]]
-
-            [[ if: item.has_signals ]]
-              [[ foreach: item.signals as signal ]]
-                [[ if: signal.menu_actionable ]]
-                  [[ if: signal.is_post ]]
-                    <form
-                      method="post"
-                      action="{{ signal.url }}"
-                      class="ow-fsm-menu-command-form"
-                    >
-                      <button
-                        type="submit"
+        [[ if: item.active ]]
+          <details
+            name="owasys-fsm-navigation"
+            class="ow-fsm-menu-state is-active[[ if: item.available ]][[ else ]] is-disabled[[ endif ]]"
+            data-state="{{ item.id }}"
+            data-state-type="{{ item.state_type }}"
+          >
+            <summary
+              class="ow-fsm-menu-state-label"
+              aria-current="page"
+            >{{ item.label }}</summary>
+            <div class="ow-fsm-menu-signals" aria-label="{{ item.label }}">
+              [[ if: item.global_host ]]
+                [[ if: item.has_global_signals ]]
+                  [[ foreach: item.global_signals as signal ]]
+                    [[ if: signal.actionable ]]
+                      <a
                         class="ow-fsm-menu-signal is-actionable signal-type-{{ signal.signal_type }} signal-origin-{{ signal.signal_origin }}"
-                        name="{{ signal.request_field }}"
-                        value="{{ signal.request_value }}"
+                        href="{{ signal.url }}"
+                        data-transition-id="{{ signal.transition_id }}"
+                        data-signal="{{ signal.signal }}"
+                        data-signal-type="{{ signal.signal_type }}"
+                        data-signal-origin="{{ signal.signal_origin }}"
+                        data-target-state="{{ signal.target }}"
+                        data-global-transition="true"
+                      >
+                        <code>{{ signal.signal }}</code>
+                        <span>→ {{ signal.target_label }}</span>
+                      </a>
+                    [[ else ]]
+                      <span
+                        class="ow-fsm-menu-signal is-passive signal-type-{{ signal.signal_type }} signal-origin-{{ signal.signal_origin }}"
+                        aria-disabled="true"
+                        data-transition-id="{{ signal.transition_id }}"
+                        data-signal="{{ signal.signal }}"
+                        data-signal-type="{{ signal.signal_type }}"
+                        data-signal-origin="{{ signal.signal_origin }}"
+                        data-target-state="{{ signal.target }}"
+                        data-global-transition="true"
+                      >
+                        <code>{{ signal.signal }}</code>
+                        <span>→ {{ signal.target_label }}</span>
+                      </span>
+                    [[ endif ]]
+                  [[ endforeach ]]
+                [[ endif ]]
+              [[ endif ]]
+
+              [[ if: item.has_signals ]]
+                [[ foreach: item.signals as signal ]]
+                  [[ if: signal.menu_actionable ]]
+                    [[ if: signal.is_post ]]
+                      <form
+                        method="post"
+                        action="{{ signal.url }}"
+                        class="ow-fsm-menu-command-form"
+                      >
+                        <button
+                          type="submit"
+                          class="ow-fsm-menu-signal is-actionable signal-type-{{ signal.signal_type }} signal-origin-{{ signal.signal_origin }}"
+                          name="{{ signal.request_field }}"
+                          value="{{ signal.request_value }}"
+                          data-transition-id="{{ signal.transition_id }}"
+                          data-signal="{{ signal.signal }}"
+                          data-signal-type="{{ signal.signal_type }}"
+                          data-signal-origin="{{ signal.signal_origin }}"
+                          data-source-state="{{ item.id }}"
+                          data-target-state="{{ signal.target }}"
+                        >
+                          <code>{{ signal.signal }}</code>
+                          <span>→ {{ signal.target_label }}</span>
+                        </button>
+                      </form>
+                    [[ else ]]
+                      <a
+                        class="ow-fsm-menu-signal is-actionable signal-type-{{ signal.signal_type }} signal-origin-{{ signal.signal_origin }}"
+                        href="{{ signal.url }}"
                         data-transition-id="{{ signal.transition_id }}"
                         data-signal="{{ signal.signal }}"
                         data-signal-type="{{ signal.signal_type }}"
@@ -77,12 +93,12 @@
                       >
                         <code>{{ signal.signal }}</code>
                         <span>→ {{ signal.target_label }}</span>
-                      </button>
-                    </form>
+                      </a>
+                    [[ endif ]]
                   [[ else ]]
-                    <a
-                      class="ow-fsm-menu-signal is-actionable signal-type-{{ signal.signal_type }} signal-origin-{{ signal.signal_origin }}"
-                      href="{{ signal.url }}"
+                    <span
+                      class="ow-fsm-menu-signal is-passive signal-type-{{ signal.signal_type }} signal-origin-{{ signal.signal_origin }}"
+                      aria-disabled="true"
                       data-transition-id="{{ signal.transition_id }}"
                       data-signal="{{ signal.signal }}"
                       data-signal-type="{{ signal.signal_type }}"
@@ -92,32 +108,26 @@
                     >
                       <code>{{ signal.signal }}</code>
                       <span>→ {{ signal.target_label }}</span>
-                    </a>
+                    </span>
                   [[ endif ]]
-                [[ else ]]
-                  <span
-                    class="ow-fsm-menu-signal is-passive signal-type-{{ signal.signal_type }} signal-origin-{{ signal.signal_origin }}"
-                    aria-disabled="true"
-                    data-transition-id="{{ signal.transition_id }}"
-                    data-signal="{{ signal.signal }}"
-                    data-signal-type="{{ signal.signal_type }}"
-                    data-signal-origin="{{ signal.signal_origin }}"
-                    data-source-state="{{ item.id }}"
-                    data-target-state="{{ signal.target }}"
-                  >
-                    <code>{{ signal.signal }}</code>
-                    <span>→ {{ signal.target_label }}</span>
-                  </span>
-                [[ endif ]]
-              [[ endforeach ]]
-            [[ else ]]
-              [[ if: item.has_global_signals ]]
+                [[ endforeach ]]
               [[ else ]]
-                <span class="ow-fsm-menu-empty">∅</span>
+                [[ if: item.has_global_signals ]]
+                [[ else ]]
+                  <span class="ow-fsm-menu-empty">∅</span>
+                [[ endif ]]
               [[ endif ]]
-            [[ endif ]]
-          </div>
-        </details>
+            </div>
+          </details>
+        [[ else ]]
+          <span
+            class="ow-fsm-menu-state is-reference[[ if: item.available ]][[ else ]] is-disabled[[ endif ]]"
+            data-state="{{ item.id }}"
+            data-state-type="{{ item.state_type }}"
+          >
+            <span class="ow-fsm-menu-state-label">{{ item.label }}</span>
+          </span>
+        [[ endif ]]
       [[ endif ]]
     [[ endif ]]
   [[ endforeach ]]

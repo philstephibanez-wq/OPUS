@@ -84,6 +84,21 @@
   outline: none;
 }
 
+/* A4BA: only the current state is an actual FSM signal menu. */
+.ow-fsm-menu-state.is-reference > .ow-fsm-menu-state-label {
+  cursor: default;
+}
+
+.ow-fsm-menu-state.is-reference > .ow-fsm-menu-state-label::after {
+  content: none;
+  margin-left: 0;
+}
+
+.ow-fsm-menu-state.is-reference > .ow-fsm-menu-state-label:hover {
+  border-color: transparent;
+  color: var(--ow-muted);
+}
+
 .ow-fsm-menu-signals {
   position: absolute;
   z-index: 80;
