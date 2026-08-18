@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use Opus\File\StructuredFileLoader;
+use Opus\Fsm\FsmProcessor;
 
 /** Builds the OWASYS menu as a projection of the canonical FSM. */
 final class OwasysNavigationBuilder
@@ -27,18 +28,17 @@ final class OwasysNavigationBuilder
     }
 
     /**
-     * Contract A4AV:
-     * - every canonical visible state is one menu entry;
-     * - every state-local relation is a submenu signal, irrespective of type;
-     * - ordinary global navigation is rendered once, never copied into every
-     *   state submenu;
-     * - signal origin (user|automatic) is canonical FSM metadata and is
-     *   independent from functional type and HTTP transport;
-     * - GET navigation is actionable only through a canonical signal route;
-     * - a local command is menu-actionable only through an explicit POST
-     *   binding in config/routes.json matching the current source-state route;
-     * - outcome/system and unbound command relations remain visible FSM facts;
-     * - ACL and current-application availability remain authoritative.
+     * Contract A4AZ:
+     * - Menu = FSM remains a projection of the canonical FSM;
+     * - actionability consumes FsmProcessor::inspectTransition(), therefore
+     *   the same declared guards govern runtime execution and UI availability;
+     * - ACL and target-state availability remain mandatory additional access
+     *   constraints until they are migrated to canonical FSM guards;
+     * - global transitions applicable to the current state are hosted under
+     *   that current state instead of under Applications;
+     * - a pure navigation self-loop remains a visible FSM fact but is not
+     *   offered as a useful menu action;
+     * - HTTP transport is independent from FSM origin/type/actionability.
      *
      * @param array<string,mixed> $fsmConfig
      * @param array<string,mixed>|null $identity
@@ -56,6 +56,9 @@ final class OwasysNavigationBuilder
         $bindings = $this->requestBindings();
         $signalRoutes = $bindings['get'];
         $signalPostActions = $bindings['post'];
+        $processor = new FsmProcessor($fsmConfig);
+        $fsmContext = $this->fsmContext($identity, $hasCurrentApp);
+
         foreach ($signalPostActions as $boundSignal => $binding) {
             if (!isset($signalRegistry[$boundSignal])) {
                 throw new RuntimeException(
@@ -68,6 +71,7 @@ final class OwasysNavigationBuilder
                 );
             }
         }
+
         $items = [];
         $itemsById = [];
         $statesById = [];
@@ -96,6 +100,7 @@ final class OwasysNavigationBuilder
                     'OWASYS_NAVIGATION_STATE_TYPE_INVALID:' . $stateId
                 );
             }
+
             $module = trim((string) ($state['module'] ?? $stateId));
             $route = trim((string) ($state['route'] ?? ''));
             $navigation = is_array($state['navigation'] ?? null)
@@ -225,34 +230,50 @@ final class OwasysNavigationBuilder
 
                 $target = $items[$itemsById[$to]];
                 $mappedRoute = $signalRoutes[$signal] ?? null;
+                $targetAvailable = ($target['allowed'] ?? false) === true
+                    && ($target['available'] ?? false) === true;
+                $inspection = $processor->inspectTransition(
+                    $currentState,
+                    $signal,
+                    $fsmContext
+                );
+                $fsmEnabled = $this->inspectionEnables(
+                    $inspection,
+                    $transitionId
+                );
+                $pureSelfLoop = $this->isPureNavigationSelfLoop(
+                    $transition,
+                    $definition,
+                    $currentState,
+                    $to
+                );
                 $actionable = is_string($mappedRoute)
                     && $mappedRoute !== ''
-                    && ($target['allowed'] ?? false) === true
-                    && ($target['available'] ?? false) === true;
+                    && $targetAvailable
+                    && $fsmEnabled
+                    && !$pureSelfLoop;
                 $url = $actionable ? $routeUrl($mappedRoute) : '';
 
-                $globalSignals[] = [
-                    'transition_id' => $transitionId,
-                    'signal' => $signal,
-                    'signal_type' => (string) ($definition['type'] ?? ''),
-                    'signal_origin' => (string) ($definition['origin'] ?? ''),
-                    'target' => $to,
-                    'target_label_key' => (string) ($target['label_key'] ?? ''),
-                    'target_label' => '',
-                    'url' => $url,
-                    'actionable' => $actionable,
-                    'menu_actionable' => $actionable,
-                    'is_get' => $actionable,
-                    'is_post' => false,
-                    'request_field' => '',
-                    'request_value' => '',
-                    'has_route' => is_string($mappedRoute) && $mappedRoute !== '',
-                    'active_source' => true,
-                    'target_available' =>
-                        ($target['allowed'] ?? false) === true
-                        && ($target['available'] ?? false) === true,
-                    'order' => (int) ($definition['menu_order'] ?? ($target['order'] ?? PHP_INT_MAX)),
-                ];
+                $globalSignals[] = $this->signalView(
+                    $transitionId,
+                    $signal,
+                    $definition,
+                    $to,
+                    $target,
+                    $url,
+                    $actionable,
+                    $actionable,
+                    false,
+                    '',
+                    '',
+                    is_string($mappedRoute) && $mappedRoute !== '',
+                    true,
+                    $targetAvailable,
+                    (int) ($definition['menu_order']
+                        ?? ($target['order'] ?? PHP_INT_MAX)),
+                    $inspection,
+                    $pureSelfLoop ? 'current_state' : ''
+                );
                 continue;
             }
 
@@ -280,11 +301,26 @@ final class OwasysNavigationBuilder
             $targetAvailable = ($target['allowed'] ?? false) === true
                 && ($target['available'] ?? false) === true;
 
+            $inspection = null;
+            $fsmEnabled = false;
+            if ($from === $currentState) {
+                $inspection = $processor->inspectTransition(
+                    $currentState,
+                    $signal,
+                    $fsmContext
+                );
+                $fsmEnabled = $this->inspectionEnables(
+                    $inspection,
+                    $transitionId
+                );
+            }
+
             $getActionable = $from === $currentState
                 && $isNavigation
                 && is_string($mappedRoute)
                 && $mappedRoute !== ''
-                && $targetAvailable;
+                && $targetAvailable
+                && $fsmEnabled;
 
             if ($isCommand
                 && is_array($postBinding)
@@ -297,35 +333,33 @@ final class OwasysNavigationBuilder
             $postActionable = $from === $currentState
                 && $isCommand
                 && is_array($postBinding)
-                && $targetAvailable;
+                && $targetAvailable
+                && $fsmEnabled;
 
             $menuActionable = $getActionable || $postActionable;
             $url = $getActionable
                 ? $routeUrl((string) $mappedRoute)
                 : ($postActionable ? $routeUrl($sourceRoute) : '');
 
-            $items[$sourceIndex]['signals'][] = [
-                'transition_id' => $transitionId,
-                'signal' => $signal,
-                'signal_type' => (string) ($definition['type'] ?? ''),
-                'signal_origin' => (string) ($definition['origin'] ?? ''),
-                'target' => $to,
-                'target_label_key' => (string) ($target['label_key'] ?? ''),
-                'target_label' => '',
-                'url' => $url,
-                'actionable' => $getActionable,
-                'menu_actionable' => $menuActionable,
-                'is_get' => $getActionable,
-                'is_post' => $postActionable,
-                'request_field' => $postActionable ? 'owasys_action' : '',
-                'request_value' => $postActionable
-                    ? (string) ($postBinding['action'] ?? '')
-                    : '',
-                'has_route' => is_string($mappedRoute) && $mappedRoute !== '',
-                'active_source' => $from === $currentState,
-                'target_available' => $targetAvailable,
-                'order' => (int) ($target['order'] ?? PHP_INT_MAX),
-            ];
+            $items[$sourceIndex]['signals'][] = $this->signalView(
+                $transitionId,
+                $signal,
+                $definition,
+                $to,
+                $target,
+                $url,
+                $getActionable,
+                $menuActionable,
+                $postActionable,
+                $postActionable ? 'owasys_action' : '',
+                $postActionable ? (string) ($postBinding['action'] ?? '') : '',
+                is_string($mappedRoute) && $mappedRoute !== '',
+                $from === $currentState,
+                $targetAvailable,
+                (int) ($target['order'] ?? PHP_INT_MAX),
+                $inspection,
+                ''
+            );
         }
 
         usort(
@@ -345,14 +379,132 @@ final class OwasysNavigationBuilder
             $items[$index]['has_signals'] = $items[$index]['signals'] !== [];
         }
 
-        /* Global rail is emitted exactly once, anchored to Applications. */
-        $hostId = isset($itemsById['registry']) ? 'registry' : $currentState;
-        $hostIndex = $itemsById[$hostId];
+        /* Global rails are current-state transitions and belong to that state. */
+        $hostIndex = $itemsById[$currentState];
         $items[$hostIndex]['global_host'] = true;
         $items[$hostIndex]['global_signals'] = $globalSignals;
         $items[$hostIndex]['has_global_signals'] = $globalSignals !== [];
 
         return $items;
+    }
+
+    /**
+     * @param array<string,mixed>|null $identity
+     * @return array<string,mixed>
+     */
+    private function fsmContext(?array $identity, bool $hasCurrentApp): array
+    {
+        return [
+            'identity' => $identity,
+            'is_authenticated' => is_array($identity),
+            'roles' => is_array($identity['roles'] ?? null)
+                ? array_values(array_filter($identity['roles'], 'is_string'))
+                : [],
+            'has_current_app' => $hasCurrentApp,
+            'current_app' => $hasCurrentApp ? ['present' => true] : null,
+        ];
+    }
+
+    /** @param array<string,mixed> $inspection */
+    private function inspectionEnables(
+        array $inspection,
+        string $transitionId
+    ): bool {
+        return ($inspection['transition_found'] ?? false) === true
+            && ($inspection['enabled'] ?? false) === true
+            && (string) ($inspection['transition_id'] ?? '') === $transitionId;
+    }
+
+    /**
+     * @param array<string,mixed> $transition
+     * @param array<string,mixed> $definition
+     */
+    private function isPureNavigationSelfLoop(
+        array $transition,
+        array $definition,
+        string $currentState,
+        string $targetState
+    ): bool {
+        if (($definition['type'] ?? '') !== 'navigation'
+            || $currentState !== $targetState) {
+            return false;
+        }
+
+        $actions = $transition['actions'] ?? ($transition['action'] ?? []);
+        $operations = $transition['runtime_operations'] ?? [];
+        $hasActions = is_string($actions)
+            ? trim($actions) !== ''
+            : (is_array($actions) && $actions !== []);
+        $hasOperations = is_array($operations) && $operations !== [];
+
+        return !$hasActions && !$hasOperations;
+    }
+
+    /**
+     * @param array<string,mixed> $definition
+     * @param array<string,mixed> $target
+     * @param array<string,mixed>|null $inspection
+     * @return array<string,mixed>
+     */
+    private function signalView(
+        string $transitionId,
+        string $signal,
+        array $definition,
+        string $targetId,
+        array $target,
+        string $url,
+        bool $getActionable,
+        bool $menuActionable,
+        bool $postActionable,
+        string $requestField,
+        string $requestValue,
+        bool $hasRoute,
+        bool $activeSource,
+        bool $targetAvailable,
+        int $order,
+        ?array $inspection,
+        string $projectionReason
+    ): array {
+        $reason = $projectionReason;
+        $failedGuards = [];
+        $fsmEnabled = false;
+
+        if (is_array($inspection)) {
+            $fsmEnabled = ($inspection['enabled'] ?? false) === true;
+            $failedGuards = array_values(array_filter(
+                is_array($inspection['failed_guards'] ?? null)
+                    ? $inspection['failed_guards']
+                    : [],
+                'is_string'
+            ));
+            if ($reason === '') {
+                $reason = trim((string) ($inspection['reason'] ?? ''));
+            }
+        }
+
+        return [
+            'transition_id' => $transitionId,
+            'signal' => $signal,
+            'signal_type' => (string) ($definition['type'] ?? ''),
+            'signal_origin' => (string) ($definition['origin'] ?? ''),
+            'target' => $targetId,
+            'target_label_key' => (string) ($target['label_key'] ?? ''),
+            'target_label' => '',
+            'url' => $url,
+            'actionable' => $getActionable,
+            'menu_actionable' => $menuActionable,
+            'is_get' => $getActionable,
+            'is_post' => $postActionable,
+            'request_field' => $requestField,
+            'request_value' => $requestValue,
+            'has_route' => $hasRoute,
+            'active_source' => $activeSource,
+            'target_available' => $targetAvailable,
+            'fsm_enabled' => $fsmEnabled,
+            'fsm_reason' => $reason,
+            'failed_guards' => $failedGuards,
+            'order' => $order,
+        ];
     }
 
     /**
