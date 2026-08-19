@@ -7,7 +7,8 @@ declare(strict_types=1);
  * The renderer is intentionally dependency-free:
  * - no GraphViz;
  * - no external process execution;
- * - no JavaScript;
+ * - no external JavaScript dependency; development-only layout dragging is
+ *   emitted inline only when portable layout persistence is writable;
  * - one visual edge per real transition.
  *
  * Transition labels follow the state-machine convention:
@@ -94,6 +95,12 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     private array $_renderedLabelBoxes = [];
     private float $_renderWidth = 0.0;
     private float $_renderHeight = 0.0;
+
+    /** @var array<string,array{x:float,y:float}> */
+    private array $_persistedStatePositions = [];
+
+    /** @var array<string,mixed> */
+    private array $_layoutPersistence = [];
 
     public function __construct(
         string $title = 'OPUS FSM',
@@ -439,6 +446,29 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $diagram->setTransitionActions($transitionActions);
         $diagram->setLayoutRoot($layoutRoot);
         $diagram->setStateLayoutHints($stateLayoutHints);
+
+        if (class_exists(\Opus\Fsm\FsmDiagramLayoutStore::class)) {
+            $layoutStore = \Opus\Fsm\FsmDiagramLayoutStore::discover(
+                $fsm,
+                $layoutDirection
+            );
+            if ($layoutStore instanceof \Opus\Fsm\FsmDiagramLayoutStoreInterface) {
+                $automaticLayout = $diagram->layoutSnapshot();
+                $persistedLayout = $layoutStore->resolve(
+                    $fsm,
+                    $automaticLayout
+                );
+                $diagram->setPersistedStatePositions(
+                    is_array($persistedLayout['states'] ?? null)
+                        ? $persistedLayout['states']
+                        : []
+                );
+                $diagram->setLayoutPersistence(
+                    $layoutStore->clientConfig()
+                );
+            }
+        }
+
         return $diagram->renderHtml();
     }
 
@@ -586,6 +616,65 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             );
         }
         $this->_layoutDirection = $layoutDirection;
+    }
+
+
+    /**
+     * Persisted coordinates are presentation-only and never alter FSM
+     * semantics or state ordering metadata.
+     *
+     * @param array<string,array{x:mixed,y:mixed}> $positions
+     */
+    public function setPersistedStatePositions(array $positions): void
+    {
+        $normalized = [];
+        foreach ($positions as $state => $position) {
+            if (!is_string($state)
+                || !isset($this->_states[$state])
+                || !is_array($position)
+                || !is_numeric($position['x'] ?? null)
+                || !is_numeric($position['y'] ?? null)) {
+                continue;
+            }
+            $x = (float) $position['x'];
+            $y = (float) $position['y'];
+            if (!is_finite($x) || !is_finite($y) || $x < 0.0 || $y < 0.0) {
+                continue;
+            }
+            $normalized[$state] = ['x' => $x, 'y' => $y];
+        }
+        $this->_persistedStatePositions = $normalized;
+    }
+
+    /** @param array<string,mixed> $config */
+    public function setLayoutPersistence(array $config): void
+    {
+        $this->_layoutPersistence = $config;
+    }
+
+    /**
+     * Return deterministic geometry before persisted coordinates are applied.
+     * This is used to bootstrap a new portable *.fsm.layout.json file.
+     *
+     * @return array{
+     *   positions:array<string,array{x:float,y:float,w:float,h:float,rank:int}>,
+     *   width:float,
+     *   height:float
+     * }
+     */
+    public function layoutSnapshot(): array
+    {
+        $persisted = $this->_persistedStatePositions;
+        $this->_persistedStatePositions = [];
+        try {
+            $states = array_values($this->_states);
+            if ($states === []) {
+                $states = ['EMPTY'];
+            }
+            return $this->layout($states);
+        } finally {
+            $this->_persistedStatePositions = $persisted;
+        }
     }
 
     public function setLayoutRoot(string $layoutRoot): void
@@ -861,8 +950,26 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     public function renderHtml(): string
     {
         $runtime = $this->renderRuntimeFacts();
+        $writable = ($this->_layoutPersistence['writable'] ?? false) === true;
+        $attributes = '';
+        if ($this->_layoutPersistence !== []) {
+            $attributes .= ' data-opus-fsm-layout-key="'
+                . self::h((string) (
+                    $this->_layoutPersistence['layout_key'] ?? ''
+                )) . '"';
+            $attributes .= ' data-opus-fsm-layout-csrf="'
+                . self::h((string) (
+                    $this->_layoutPersistence['csrf_token'] ?? ''
+                )) . '"';
+            $attributes .= ' data-opus-fsm-layout-path="'
+                . self::h((string) (
+                    $this->_layoutPersistence['layout_path'] ?? ''
+                )) . '"';
+            $attributes .= ' data-opus-fsm-layout-writable="'
+                . ($writable ? '1' : '0') . '"';
+        }
 
-        return '<div class="fsm-diagram-card">'
+        $html = '<div class="fsm-diagram-card"' . $attributes . '>'
             . '<div class="fsm-diagram-toolbar">'
             . '<strong>' . self::h($this->_title) . '</strong>'
             . '<span>FSM · SVG natif · transitions sémantiques</span>'
@@ -870,6 +977,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             . $this->renderSvg()
             . $runtime
             . '</div>';
+
+        return $html . ($writable ? self::layoutInteractionScript() : '');
     }
 
     public function renderSvg(): string
@@ -1076,7 +1185,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     private function layout(array $states): array
     {
         if ($this->_layoutDirection === 'vertical') {
-            return $this->layoutVertical($states);
+            return $this->applyPersistedStatePositions(
+                $this->layoutVertical($states)
+            );
         }
 
         $nodeW = $this->_compactLayout ? 176.0 : 204.0;
@@ -1308,11 +1419,11 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 + ($this->_compactLayout ? 92.0 : 260.0)
         );
 
-        return [
+        return $this->applyPersistedStatePositions([
             'positions' => $positions,
             'width' => $width,
             'height' => $height,
-        ];
+        ]);
     }
 
     /**
@@ -1327,6 +1438,48 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
      *   height:float
      * }
      */
+    /**
+     * Apply portable persisted x/y coordinates after deterministic layout has
+     * computed semantic rank/order and node dimensions. Persisted geometry wins
+     * for known states; missing states retain automatic coordinates.
+     *
+     * @param array{
+     *   positions:array<string,array{x:float,y:float,w:float,h:float,rank:int}>,
+     *   width:float,
+     *   height:float
+     * } $layout
+     * @return array{
+     *   positions:array<string,array{x:float,y:float,w:float,h:float,rank:int}>,
+     *   width:float,
+     *   height:float
+     * }
+     */
+    private function applyPersistedStatePositions(array $layout): array
+    {
+        if ($this->_persistedStatePositions === []) {
+            return $layout;
+        }
+
+        $positions = $layout['positions'];
+        $maxRight = 0.0;
+        $maxBottom = 0.0;
+        foreach ($positions as $state => &$position) {
+            $persisted = $this->_persistedStatePositions[$state] ?? null;
+            if (is_array($persisted)) {
+                $position['x'] = (float) $persisted['x'];
+                $position['y'] = (float) $persisted['y'];
+            }
+            $maxRight = max($maxRight, $position['x'] + $position['w']);
+            $maxBottom = max($maxBottom, $position['y'] + $position['h']);
+        }
+        unset($position);
+
+        $layout['positions'] = $positions;
+        $layout['width'] = max((float) $layout['width'], $maxRight + 48.0);
+        $layout['height'] = max((float) $layout['height'], $maxBottom + 72.0);
+        return $layout;
+    }
+
     private function layoutVertical(array $states): array
     {
         $nodeW = $this->_compactLayout ? 160.0 : 180.0;
@@ -2414,7 +2567,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $label,
                 $labelX,
                 $labelY,
-                $semanticLabel
+                $semanticLabel,
+                $transition
             );
         }
 
@@ -2546,7 +2700,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
 
         return '<g class="' . self::h($class)
             . '" data-transition-id="' . self::h($id)
-            . '" data-signal-origin="' . self::h($origin) . '">'
+            . '" data-signal-origin="' . self::h($origin)
+            . '"' . $this->transitionLayoutAttributes($transition) . '>'
             . '<title>' . self::h($semanticLabel) . '</title>'
             . $edgeSvg
             . $labelLeader
@@ -2554,6 +2709,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             . '</g>';
     }
 
+    /** @param array<string,mixed> $transition */
     private function transitionSvgHorizontal(
         string $class,
         string $id,
@@ -2561,7 +2717,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         string $label,
         float $labelX,
         float $labelY,
-        string $semanticLabel
+        string $semanticLabel,
+        array $transition
     ): string {
         $length = function_exists('mb_strlen')
             ? mb_strlen($label, 'UTF-8')
@@ -2649,13 +2806,30 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
 
         return '<g class="' . self::h($class)
             . '" data-transition-id="' . self::h($id)
-            . '" data-signal-origin="' . self::h($origin) . '">'
+            . '" data-signal-origin="' . self::h($origin)
+            . '"' . $this->transitionLayoutAttributes($transition) . '>'
             . '<title>' . self::h($semanticLabel) . '</title>'
             . '<path class="fsm-edge" d="' . $path
             . '" marker-end="url(#fsm-arrow-' . self::h($origin) . ')" />'
             . $labelLeader
             . $labelSvg
             . '</g>';
+    }
+
+    /** @param array<string,mixed> $transition */
+    private function transitionLayoutAttributes(array $transition): string
+    {
+        $from = trim((string) ($transition['from'] ?? ''));
+        $to = trim((string) ($transition['to'] ?? ''));
+        $scope = trim((string) ($transition['scope'] ?? ''));
+        $anchor = ($scope === 'global' || ($from !== '' && $from === $to))
+            ? $to
+            : '';
+
+        return ' data-from-state="' . self::h($from) . '"'
+            . ' data-to-state="' . self::h($to) . '"'
+            . ' data-transition-scope="' . self::h($scope) . '"'
+            . ' data-anchor-state="' . self::h($anchor) . '"';
     }
 
     /**
@@ -3115,6 +3289,14 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             : '';
         $svg .= '<g class="' . $classes . '" data-state="'
             . self::h($state)
+            . '" data-x="' . self::n($position['x'])
+            . '" data-y="' . self::n($position['y'])
+            . '" data-w="' . self::n($position['w'])
+            . '" data-h="' . self::n($position['h'])
+            . '" data-layout-draggable="'
+            . ((($this->_layoutPersistence['writable'] ?? false) === true)
+                ? '1'
+                : '0')
             . '">';
         $svg .= '<rect x="' . self::n($position['x'])
             . '" y="' . self::n($position['y'])
@@ -3173,7 +3355,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         if ($this->_layoutDirection === 'vertical') {
             $cx = $target['x'] + $target['w'] / 2;
             $cy = max(28.0, $target['y'] - 54.0);
-            return '<g class="fsm-initial-marker" aria-label="initial">'
+            return '<g class="fsm-initial-marker" aria-label="initial"'
+            . ' data-anchor-state="' . self::h($this->_initialState) . '">'
                 . '<circle cx="' . self::n($cx)
                 . '" cy="' . self::n($cy)
                 . '" r="9" />'
@@ -3217,7 +3400,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $cx = $state['x'] + $state['w'] - 17.0;
         $cy = $state['y'] + 17.0;
 
-        return '<g class="fsm-final-marker" aria-label="final">'
+        return '<g class="fsm-final-marker" aria-label="final"'
+            . ' data-anchor-state="' . self::h($this->_finalState) . '">'
             . '<circle cx="' . self::n($cx)
             . '" cy="' . self::n($cy)
             . '" r="9" />'
@@ -3368,6 +3552,209 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             . '</div>';
     }
 
+    /**
+     * Development-only right-button drag interaction.
+     *
+     * State geometry and incident arrows are updated immediately. On release,
+     * only the moved state's x/y coordinates are posted. The server persists
+     * them in the portable companion layout file and the page reloads so the
+     * canonical router recomputes exact transition and label geometry.
+     */
+    private static function layoutInteractionScript(): string
+    {
+        return <<<'HTML'
+<script>
+(() => {
+  const script = document.currentScript;
+  const card = script && script.previousElementSibling;
+  if (!(card instanceof HTMLElement)
+      || card.dataset.opusFsmLayoutWritable !== '1') {
+    return;
+  }
+  const svg = card.querySelector('svg.fsm-diagram');
+  if (!(svg instanceof SVGSVGElement)) return;
+
+  const states = new Map();
+  svg.querySelectorAll('.fsm-node[data-state]').forEach((node) => {
+    const id = node.dataset.state || '';
+    if (id === '') return;
+    states.set(id, {
+      node,
+      x: Number(node.dataset.x || 0),
+      y: Number(node.dataset.y || 0),
+      w: Number(node.dataset.w || 0),
+      h: Number(node.dataset.h || 0),
+      dx: 0,
+      dy: 0,
+    });
+  });
+
+  const pointFor = (event) => {
+    const point = svg.createSVGPoint();
+    point.x = event.clientX;
+    point.y = event.clientY;
+    const matrix = svg.getScreenCTM();
+    return matrix ? point.matrixTransform(matrix.inverse()) : point;
+  };
+
+  const boxFor = (id) => {
+    const item = states.get(id);
+    if (!item) return null;
+    return {x:item.x + item.dx, y:item.y + item.dy, w:item.w, h:item.h};
+  };
+
+  const pathFor = (fromId, toId) => {
+    const from = boxFor(fromId);
+    const to = boxFor(toId);
+    if (!from || !to) return '';
+    const fromCx = from.x + from.w / 2;
+    const fromCy = from.y + from.h / 2;
+    const toCx = to.x + to.w / 2;
+    const toCy = to.y + to.h / 2;
+    const dx = toCx - fromCx;
+    const dy = toCy - fromCy;
+    if (Math.abs(dy) >= Math.abs(dx)) {
+      const down = dy >= 0;
+      const x1 = fromCx;
+      const y1 = down ? from.y + from.h : from.y;
+      const x2 = toCx;
+      const y2 = down ? to.y : to.y + to.h;
+      const midY = (y1 + y2) / 2;
+      return `M${x1} ${y1} C${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`;
+    }
+    const right = dx >= 0;
+    const x1 = right ? from.x + from.w : from.x;
+    const y1 = fromCy;
+    const x2 = right ? to.x : to.x + to.w;
+    const y2 = toCy;
+    const midX = (x1 + x2) / 2;
+    return `M${x1} ${y1} C${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
+  };
+
+  const updateGeometry = (state) => {
+    const item = states.get(state);
+    if (!item) return;
+    svg.querySelectorAll('.fsm-transition[data-from-state][data-to-state]')
+      .forEach((group) => {
+        const from = group.dataset.fromState || '';
+        const to = group.dataset.toState || '';
+        const anchor = group.dataset.anchorState || '';
+        if (anchor === state) {
+          group.setAttribute('transform', `translate(${item.dx} ${item.dy})`);
+          return;
+        }
+        if ((from !== state && to !== state)
+            || !states.has(from)
+            || !states.has(to)) {
+          return;
+        }
+        const edge = group.querySelector('path.fsm-edge');
+        if (edge instanceof SVGPathElement) {
+          const d = pathFor(from, to);
+          if (d !== '') edge.setAttribute('d', d);
+        }
+      });
+    svg.querySelectorAll(`[data-anchor-state="${CSS.escape(state)}"]`)
+      .forEach((element) => {
+        if (element.classList.contains('fsm-transition')) return;
+        element.setAttribute('transform', `translate(${item.dx} ${item.dy})`);
+      });
+  };
+
+  let drag = null;
+
+  svg.addEventListener('contextmenu', (event) => {
+    const node = event.target instanceof Element
+      ? event.target.closest('.fsm-node[data-layout-draggable="1"]')
+      : null;
+    if (node) event.preventDefault();
+  });
+
+  svg.addEventListener('pointerdown', (event) => {
+    if (event.button !== 2 || !(event.target instanceof Element)) return;
+    const node = event.target.closest('.fsm-node[data-layout-draggable="1"]');
+    if (!(node instanceof SVGGElement)) return;
+    const state = node.dataset.state || '';
+    const item = states.get(state);
+    if (!item) return;
+    event.preventDefault();
+    const start = pointFor(event);
+    drag = {
+      state,
+      pointerId:event.pointerId,
+      startX:start.x,
+      startY:start.y,
+      baseDx:item.dx,
+      baseDy:item.dy,
+    };
+    svg.setPointerCapture(event.pointerId);
+    card.classList.add('is-layout-dragging');
+    node.classList.add('is-layout-dragging');
+  });
+
+  svg.addEventListener('pointermove', (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    event.preventDefault();
+    const item = states.get(drag.state);
+    if (!item) return;
+    const point = pointFor(event);
+    const viewBox = svg.viewBox.baseVal;
+    let x = item.x + drag.baseDx + (point.x - drag.startX);
+    let y = item.y + drag.baseDy + (point.y - drag.startY);
+    x = Math.max(8, Math.min(x, Math.max(8, viewBox.width - item.w - 8)));
+    y = Math.max(70, Math.min(y, Math.max(70, viewBox.height - item.h - 8)));
+    item.dx = x - item.x;
+    item.dy = y - item.y;
+    item.node.setAttribute('transform', `translate(${item.dx} ${item.dy})`);
+    updateGeometry(drag.state);
+  });
+
+  const persist = async (state) => {
+    const item = states.get(state);
+    if (!item) return;
+    const body = new URLSearchParams();
+    body.set('owasys_action', 'persist-fsm-layout');
+    body.set('opus_fsm_layout_action', 'save-state');
+    body.set('opus_fsm_layout_key', card.dataset.opusFsmLayoutKey || '');
+    body.set('opus_fsm_layout_state', state);
+    body.set('opus_fsm_layout_x', String(item.x + item.dx));
+    body.set('opus_fsm_layout_y', String(item.y + item.dy));
+    body.set('csrf_token', card.dataset.opusFsmLayoutCsrf || '');
+    const response = await fetch(window.location.href, {
+      method:'POST',
+      credentials:'same-origin',
+      headers:{
+        'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',
+        'X-Requested-With':'OPUS-FSM-Layout',
+      },
+      body:body.toString(),
+    });
+    if (!response.ok) {
+      throw new Error(`OPUS_FSM_DIAGRAM_LAYOUT_SAVE_FAILED:${response.status}`);
+    }
+  };
+
+  const finish = async (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    const state = drag.state;
+    const item = states.get(state);
+    drag = null;
+    card.classList.remove('is-layout-dragging');
+    if (item) item.node.classList.remove('is-layout-dragging');
+    try {
+      await persist(state);
+    } finally {
+      window.location.reload();
+    }
+  };
+
+  svg.addEventListener('pointerup', finish);
+  svg.addEventListener('pointercancel', finish);
+})();
+</script>
+HTML;
+    }
+
     private static function svgDefinitions(): string
     {
         return <<<'SVG'
@@ -3388,6 +3775,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     .fsm-subtitle { fill:var(--opus-fsm-muted,#9fb4cf); font-size:12px; }
     .fsm-node rect { fill:var(--opus-fsm-node-bg,#101c2f); stroke:var(--opus-fsm-node-border,#6b829e); stroke-width:1.5; }
     .fsm-node.current rect { fill:var(--opus-fsm-current-bg,#17365d); stroke:var(--opus-fsm-current-border,#6ce3ff); stroke-width:3; }
+    .fsm-node[data-layout-draggable="1"] { cursor:move; touch-action:none; }
+    .fsm-node[data-layout-draggable="1"].is-layout-dragging rect { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:3; }
     .fsm-node-link { cursor:pointer; text-decoration:none; }
     .fsm-node-link:hover .fsm-node rect,
     .fsm-node-link:focus .fsm-node rect { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:3; }

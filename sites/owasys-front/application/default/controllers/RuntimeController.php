@@ -246,6 +246,23 @@ final class OwasysRuntimeController
         if ($method === 'POST') {
             $action = trim((string) ($_POST['owasys_action'] ?? ''));
 
+            if (
+                $action === 'persist-fsm-layout'
+                && (string) ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '')
+                    === 'OPUS-FSM-Layout'
+            ) {
+                /*
+                 * Diagnostic presentation persistence only. The generic OPUS
+                 * diagram store validates its own layout key + CSRF token while
+                 * rendering the current page. No EFSM semantic transition is
+                 * emitted for geometry-only changes.
+                 */
+                return [
+                    'signal' => '',
+                    'redirect' => false,
+                ];
+            }
+
             if ($routeKey === 'login' && $action === 'sso-authenticate') {
                 try {
                     $pending = $this->security->authenticate($_POST);
