@@ -193,8 +193,8 @@
 }
 
 .ow-fsm-native-canvas .fsm-diagram-card {
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
+  min-width: 0;
   box-sizing: border-box;
   padding: 10px 12px 14px;
 }
@@ -205,7 +205,10 @@
 
 .ow-fsm-native-canvas .fsm-diagram {
   display: block;
-  max-width: none;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  margin-inline: auto;
 }
 
 .ow-fsm-native-canvas .fsm-subtitle,
@@ -689,6 +692,20 @@
   max-width: 100%;
   height: auto;
   overflow: visible;
+}
+
+
+.ow-fsm-native-canvas .fsm-transition.global-scope .fsm-edge {
+  stroke-dasharray: 4 3;
+  opacity: .86;
+}
+
+.ow-fsm-native-canvas .fsm-edge-scope {
+  fill: var(--ow-muted);
+  font-size: 8px;
+  font-weight: 800;
+  text-anchor: end;
+  text-transform: uppercase;
 }
 
 .ow-fsm-native-canvas .fsm-edge-signal {

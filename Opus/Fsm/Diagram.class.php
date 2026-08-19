@@ -35,6 +35,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
      *   guards:list<string>,
      *   actions:list<string>,
      *   runtime_operations:list<array<string,mixed>>,
+     *   scope:string,
+     *   from_states:list<string>,
      *   wildcard:bool,
      *   fallback:bool
      * }>
@@ -213,7 +215,14 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             $signalOrigin = self::signalOrigin(
                 (string) ($transition['signal_origin'] ?? '')
             );
+            $scope = trim((string) ($transition['scope'] ?? ''));
+            $fromStates = self::stringList($transition['from_states'] ?? []);
 
+            if ($scope !== '' && $scope !== 'global') {
+                throw new \InvalidArgumentException(
+                    'OPUS_FSM_DIAGRAM_SCOPE_INVALID:' . $scope
+                );
+            }
             if ($interrupt !== '' && $interrupt !== 'nmi') {
                 throw new \InvalidArgumentException(
                     'OPUS_FSM_DIAGRAM_INTERRUPT_INVALID:' . $interrupt
@@ -241,7 +250,12 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 continue;
             }
 
-            if ($from === '' || $to === '' || $signal === '') {
+            if ($scope === 'global') {
+                if ($to === '' || $signal === '' || $fromStates === []) {
+                    continue;
+                }
+                $from = '@global';
+            } elseif ($from === '' || $to === '' || $signal === '') {
                 continue;
             }
 
@@ -268,7 +282,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                     : []
                 ,
                 $signalType,
-                $signalOrigin
+                $signalOrigin,
+                $scope,
+                $fromStates
             );
         }
 
@@ -798,18 +814,26 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         array $actions,
         array $runtimeOperations,
         string $signalType = 'system',
-        string $signalOrigin = 'unspecified'
+        string $signalOrigin = 'unspecified',
+        string $scope = '',
+        array $fromStates = []
     ): void {
         $from = trim($from);
         $to = trim($to);
         $signal = trim($signal);
         $signalType = self::signalType($signalType);
         $signalOrigin = self::signalOrigin($signalOrigin);
+        $scope = trim($scope);
+        if ($scope !== '' && $scope !== 'global') {
+            throw new \InvalidArgumentException(
+                'OPUS_FSM_DIAGRAM_SCOPE_INVALID:' . $scope
+            );
+        }
         if ($from === '' || $to === '' || $signal === '') {
             return;
         }
 
-        if ($from !== '*') {
+        if ($from !== '*' && $from !== '@global') {
             $this->addState($from);
         }
         $this->addState($to);
@@ -826,6 +850,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             'guards' => array_values($guards),
             'actions' => array_values($actions),
             'runtime_operations' => array_values($runtimeOperations),
+            'scope' => $scope,
+            'from_states' => array_values($fromStates),
             'wildcard' => $from === '*'
                 || $signal === '__any__',
             'fallback' => $signal === '__default__',
@@ -1300,14 +1326,15 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
      */
     private function layoutVertical(array $states): array
     {
-        $nodeW = $this->_compactLayout ? 176.0 : 210.0;
-        $nodeH = $this->_compactLayout ? 68.0 : 78.0;
-        $columnGap = $this->_compactLayout ? 42.0 : 70.0;
-        $rankGap = $this->_compactLayout ? 260.0 : 520.0;
-        $marginX = $this->_compactLayout ? 110.0 : 300.0;
+        $nodeW = $this->_compactLayout ? 164.0 : 184.0;
+        $nodeH = $this->_compactLayout ? 64.0 : 70.0;
+        $columnGap = $this->_compactLayout ? 28.0 : 34.0;
+        $cardGap = $this->_compactLayout ? 10.0 : 12.0;
+        $rankGap = $this->_compactLayout ? 105.0 : 135.0;
+        $marginX = $this->_compactLayout ? 34.0 : 48.0;
         $marginY = $this->hasGlobalSource()
-            ? ($this->_compactLayout ? 150.0 : 210.0)
-            : ($this->_compactLayout ? 105.0 : 145.0);
+            ? ($this->_compactLayout ? 112.0 : 132.0)
+            : ($this->_compactLayout ? 78.0 : 92.0);
 
         $layoutRoot = $this->_layoutRoot !== ''
             ? $this->_layoutRoot
@@ -1321,7 +1348,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $from = array_shift($queue);
                 $fromRank = $ranks[$from];
                 foreach ($this->_transitions as $transition) {
-                    if ($transition['from'] !== $from
+                    if (($transition['scope'] ?? '') === 'global'
+                        || $transition['from'] === '@global'
+                        || $transition['from'] !== $from
                         || $transition['to'] === $from
                         || !isset($this->_states[$transition['to']])) {
                         continue;
@@ -1367,45 +1396,60 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         }
         unset($rankStates);
 
-        $maxColumns = 1;
-        foreach ($byRank as $rankStates) {
-            $maxColumns = max($maxColumns, count($rankStates));
+        $globalMetrics = $this->verticalGlobalMetricsByTarget();
+        $rowWidths = [];
+        $rowHeights = [];
+        foreach ($byRank as $rank => $rankStates) {
+            $width = 0.0;
+            $height = $nodeH;
+            foreach (array_values($rankStates) as $index => $state) {
+                $targetMetrics = $globalMetrics[$state] ?? null;
+                $cellW = $nodeW;
+                if (is_array($targetMetrics)) {
+                    $cellW += $cardGap + $targetMetrics['max_width'];
+                    $height = max($height, $targetMetrics['stack_height']);
+                }
+                $width += $cellW;
+                if ($index > 0) {
+                    $width += $columnGap;
+                }
+            }
+            $rowWidths[$rank] = $width;
+            $rowHeights[$rank] = $height;
         }
 
-        $contentWidth = $maxColumns * $nodeW
-            + max(0, $maxColumns - 1) * $columnGap;
+        $contentWidth = $rowWidths === [] ? $nodeW : max($rowWidths);
         $width = max(
-            $this->_compactLayout ? 920.0 : 1180.0,
+            $this->_compactLayout ? 560.0 : 640.0,
             $marginX * 2 + $contentWidth
         );
 
         $positions = [];
-        $rankIndex = 0;
+        $y = $marginY;
         foreach ($byRank as $rank => $rankStates) {
-            $rowWidth = count($rankStates) * $nodeW
-                + max(0, count($rankStates) - 1) * $columnGap;
-            $offsetX = ($width - $rowWidth) / 2;
-            $y = $marginY + $rankIndex * ($nodeH + $rankGap);
-
-            foreach (array_values($rankStates) as $column => $state) {
+            $rowWidth = $rowWidths[$rank] ?? $nodeW;
+            $x = ($width - $rowWidth) / 2;
+            foreach (array_values($rankStates) as $index => $state) {
                 $positions[$state] = [
-                    'x' => $offsetX + $column * ($nodeW + $columnGap),
+                    'x' => $x,
                     'y' => $y,
                     'w' => $nodeW,
                     'h' => $nodeH,
                     'rank' => (int) $rank,
                 ];
+                $targetMetrics = $globalMetrics[$state] ?? null;
+                $cellW = $nodeW;
+                if (is_array($targetMetrics)) {
+                    $cellW += $cardGap + $targetMetrics['max_width'];
+                }
+                $x += $cellW + $columnGap;
             }
-            ++$rankIndex;
+            $y += ($rowHeights[$rank] ?? $nodeH) + $rankGap;
         }
 
-        $rankCount = max(1, count($byRank));
         $height = max(
-            $this->_compactLayout ? 520.0 : 680.0,
-            $marginY
-                + $rankCount * $nodeH
-                + max(0, $rankCount - 1) * $rankGap
-                + ($this->_compactLayout ? 120.0 : 220.0)
+            $this->_compactLayout ? 420.0 : 480.0,
+            $y - $rankGap + ($this->_compactLayout ? 72.0 : 86.0)
         );
 
         return [
@@ -1413,6 +1457,91 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             'width' => $width,
             'height' => $height,
         ];
+    }
+
+    /**
+     * @return array<string,array{max_width:float,stack_height:float}>
+     */
+    private function verticalGlobalMetricsByTarget(): array
+    {
+        $result = [];
+        foreach ($this->_transitions as $transition) {
+            if (($transition['scope'] ?? '') !== 'global') {
+                continue;
+            }
+            $target = (string) ($transition['to'] ?? '');
+            if ($target === '' || !isset($this->_states[$target])) {
+                continue;
+            }
+            $metrics = $this->verticalTransitionMetrics($transition);
+            $result[$target] ??= [
+                'max_width' => 0.0,
+                'stack_height' => 0.0,
+            ];
+            $result[$target]['max_width'] = max(
+                $result[$target]['max_width'],
+                $metrics['width']
+            );
+            if ($result[$target]['stack_height'] > 0.0) {
+                $result[$target]['stack_height'] += 7.0;
+            }
+            $result[$target]['stack_height'] += $metrics['height'];
+        }
+        return $result;
+    }
+
+    /**
+     * @param array<string,mixed> $transition
+     * @return array{width:float,height:float}
+     */
+    private function verticalTransitionMetrics(array $transition): array
+    {
+        $label = $this->_transitionLabels[(string) ($transition['id'] ?? '')]
+            ?? self::transitionLabel($transition);
+        $parts = $this->transitionVisualParts($transition, $label);
+        $lines = [$parts['signal']];
+        foreach ($parts['guards'] as $guard) {
+            $lines[] = '[' . $guard . ']';
+        }
+        if ($parts['effect'] !== '') {
+            $lines[] = '/ ' . $parts['effect'];
+        }
+        $maxLength = 1;
+        foreach ($lines as $line) {
+            $maxLength = max(
+                $maxLength,
+                function_exists('mb_strlen')
+                    ? mb_strlen($line, 'UTF-8')
+                    : strlen($line)
+            );
+        }
+        return [
+            'width' => min(236.0, max(126.0, 22.0 + $maxLength * 6.15)),
+            'height' => 10.0 + count($lines) * 15.0,
+        ];
+    }
+
+    private function verticalGlobalStackOffset(string $transitionId, string $target): float
+    {
+        $offset = 0.0;
+        foreach ($this->_transitions as $transition) {
+            if (($transition['scope'] ?? '') !== 'global'
+                || (string) ($transition['to'] ?? '') !== $target) {
+                continue;
+            }
+            $id = (string) ($transition['id'] ?? '');
+            if ($id === $transitionId) {
+                break;
+            }
+            if ($offset > 0.0) {
+                $offset += 7.0;
+            }
+            $offset += $this->verticalTransitionMetrics($transition)['height'];
+        }
+        if ($offset > 0.0) {
+            $offset += 7.0;
+        }
+        return $offset;
     }
 
     /**
@@ -1929,6 +2058,40 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $to = $transition['to'];
         $toPos = $positions[$to];
 
+        if (($transition['scope'] ?? '') === 'global') {
+            $metrics = $this->verticalTransitionMetrics($transition);
+            $stackOffset = $this->verticalGlobalStackOffset($id, $to);
+            $cardGap = $this->_compactLayout ? 10.0 : 12.0;
+            $labelX = $toPos['x'] + $toPos['w'] + $cardGap
+                + $metrics['width'] / 2;
+            $labelY = $toPos['y'] + $stackOffset + $metrics['height'] / 2;
+            $x1 = $labelX - $metrics['width'] / 2;
+            $y1 = $labelY;
+            $x2 = $toPos['x'] + $toPos['w'];
+            $y2 = $toPos['y'] + $toPos['h'] / 2;
+            $bendX = ($x1 + $x2) / 2;
+            $path = 'M' . self::n($x1) . ' ' . self::n($y1)
+                . ' C' . self::n($bendX) . ' ' . self::n($y1)
+                . ', ' . self::n($bendX) . ' ' . self::n($y2)
+                . ', ' . self::n($x2) . ' ' . self::n($y2);
+            $fromStates = array_values(array_filter(
+                (array) ($transition['from_states'] ?? []),
+                'is_string'
+            ));
+            $scopeTitle = $semanticLabel . ' {global from '
+                . implode(', ', $fromStates) . '}';
+            return $this->transitionSvg(
+                $class . ' global-scope',
+                $id,
+                $path,
+                $label,
+                $labelX,
+                $labelY,
+                $scopeTitle,
+                $transition
+            );
+        }
+
         if ($transition['from'] === '*') {
             $fromPoint = $this->globalSourcePoint($positions);
             $x2 = $toPos['x'] + $toPos['w'] / 2;
@@ -1959,19 +2122,19 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $fromPos = $positions[$from];
 
         if ($from === $to) {
-            $loop = 54.0 + $ordinal * 20.0;
-            $x = $fromPos['x'] + $fromPos['w'];
+            $loop = 42.0 + min(3, $ordinal) * 16.0;
+            $x = $fromPos['x'];
             $y = $fromPos['y'] + $fromPos['h'] / 2;
-            $path = 'M' . self::n($x) . ' ' . self::n($y - 9.0)
-                . ' C' . self::n($x + $loop) . ' ' . self::n($y - $loop)
-                . ', ' . self::n($x + $loop) . ' ' . self::n($y + $loop)
-                . ', ' . self::n($x) . ' ' . self::n($y + 9.0);
+            $path = 'M' . self::n($x) . ' ' . self::n($y - 8.0)
+                . ' C' . self::n($x - $loop) . ' ' . self::n($y - $loop)
+                . ', ' . self::n($x - $loop) . ' ' . self::n($y + $loop)
+                . ', ' . self::n($x) . ' ' . self::n($y + 8.0);
             return $this->transitionSvg(
                 $class . ' self-loop',
                 $id,
                 $path,
                 $label,
-                $x + $loop + 10.0,
+                $x - $loop - 8.0,
                 $y,
                 $semanticLabel,
                 $transition
@@ -2059,18 +2222,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $position['x'] + $position['w'],
             $positions
         ));
-        $fromCenterX = $fromPos['x'] + $fromPos['w'] / 2;
-        $toCenterX = $toPos['x'] + $toPos['w'] / 2;
-        $useLeft = ($fromCenterX + $toCenterX) / 2
-            <= ($minX + $maxX) / 2;
-        if (!$forward) {
-            $useLeft = (($ordinal + $targetOrdinal) % 2) === 0;
-        }
         $laneOrdinal = max($ordinal, $sourceOrdinal, $targetOrdinal);
-        $laneOffset = min(260.0, 58.0 + $laneOrdinal * 20.0);
-        $corridorX = $useLeft
-            ? max(48.0, $minX - $laneOffset)
-            : $maxX + $laneOffset;
+        $laneOffset = 34.0 + min(8, $laneOrdinal) * 12.0;
+        $corridorX = max(18.0, $minX - $laneOffset);
 
         $x1 = $sourcePortX;
         $y1 = $forward
@@ -2162,12 +2316,12 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                     : strlen($line)
             );
         }
-        $lineHeight = 17.0;
+        $lineHeight = 15.0;
         $labelWidth = min(
-            420.0,
-            max(86.0, 24.0 + $maxLength * 7.0)
+            236.0,
+            max(126.0, 22.0 + $maxLength * 6.15)
         );
-        $labelHeight = 12.0 + count($lines) * $lineHeight;
+        $labelHeight = 10.0 + count($lines) * $lineHeight;
 
         $anchorX = $labelX;
         $anchorY = $labelY;
@@ -2224,6 +2378,11 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             $labelSvg .= '<text class="fsm-edge-label fsm-edge-effect" x="'
                 . self::n($labelX) . '" y="' . self::n($cursorY) . '">/ '
                 . self::h($parts['effect']) . '</text>';
+        }
+        if (($transition['scope'] ?? '') === 'global') {
+            $labelSvg .= '<text class="fsm-edge-scope" x="'
+                . self::n($labelX + $labelWidth / 2 - 7.0)
+                . '" y="' . self::n($boxTop + 10.0) . '">global</text>';
         }
         $labelSvg .= '</g>';
 
@@ -2966,7 +3125,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
   </marker>
   <style>
     .fsm-diagram { width:auto; max-width:none; height:auto; overflow:visible; font-family:"Segoe UI",Arial,sans-serif; }
-    .fsm-diagram[data-opus-fsm-layout="vertical"] { width:100%; max-width:100%; height:auto; }
+    .fsm-diagram[data-opus-fsm-layout="vertical"] { width:auto; max-width:100%; height:auto; }
     .fsm-title { fill:var(--opus-fsm-text,#e8f5ff); font-size:19px; font-weight:800; }
     .fsm-subtitle { fill:var(--opus-fsm-muted,#9fb4cf); font-size:12px; }
     .fsm-node rect { fill:var(--opus-fsm-node-bg,#101c2f); stroke:var(--opus-fsm-node-border,#6b829e); stroke-width:1.5; }
@@ -3000,6 +3159,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     .fsm-edge-signal { font-weight:850; }
     .fsm-edge-guard { fill:var(--opus-fsm-guard,#c4b5fd); font-size:10px; font-weight:700; }
     .fsm-edge-effect { fill:var(--opus-fsm-effect,#86efac); font-size:10px; font-weight:650; }
+    .fsm-edge-scope { fill:var(--opus-fsm-muted,#9fb4cf); font-size:8px; font-weight:800; text-anchor:end; text-transform:uppercase; }
+    .fsm-transition.global-scope .fsm-edge { stroke-dasharray:4 3; opacity:.86; }
     .fsm-initial-marker circle { fill:var(--opus-fsm-marker,#f6f8ff); stroke:var(--opus-fsm-marker,#f6f8ff); }
     .fsm-final-marker circle:first-child { fill:none; stroke:var(--opus-fsm-marker,#f6f8ff); stroke-width:2; }
     .fsm-final-marker circle:last-child { fill:var(--opus-fsm-marker,#f6f8ff); stroke:none; }

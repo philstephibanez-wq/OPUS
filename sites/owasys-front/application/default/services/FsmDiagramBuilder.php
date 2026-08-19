@@ -6,7 +6,7 @@ use Opus\File\StructuredFileLoader;
 /** Builds a fixed visual projection from the canonical OWASYS FSM. */
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4BG';
+    private const REVISION = 'P117W_R45B2A4BH';
 
     public function __construct(
         private readonly string $siteRoot,
@@ -20,9 +20,9 @@ final class OwasysFsmDiagramBuilder
      *
      * Dense same-state technical workflows are reduced to one representative
      * self-loop per signal type, while every non-self workflow relation is
-     * kept. Finite global navigation is represented once, except logout which
-     * is expanded from every applicable authenticated state so its universal
-     * return to login remains explicit.
+     * kept. Finite global transitions are rendered once as compact target-attached
+     * global-scope cards; their canonical from_states set remains in the
+     * transition metadata instead of exploding into duplicate long rails.
      *
      * @param array<string,mixed> $pageData
      * @return array<string,mixed>
@@ -135,40 +135,13 @@ final class OwasysFsmDiagramBuilder
                     continue;
                 }
 
-                if ($signal === 'logout') {
-                    foreach ($sources as $source) {
-                        $clone = $transition;
-                        $clone['id'] = (string) $transition['id']
-                            . '__from__' . $source;
-                        $clone['from'] = $source;
-                        unset($clone['scope'], $clone['from_states']);
-                        $this->appendTransition(
-                            $clone,
-                            $signal,
-                            $source,
-                            $to,
-                            $transitions,
-                            $transitionLabels,
-                            $displayedBySignalTarget
-                        );
-                    }
-                    continue;
-                }
-
-                $source = $this->representativeGlobalSource(
-                    $sources,
-                    $to,
-                    $layout
-                );
                 $clone = $transition;
-                $clone['id'] = (string) $transition['id']
-                    . '__representative__' . $source;
-                $clone['from'] = $source;
-                unset($clone['scope'], $clone['from_states']);
+                $clone['from'] = '@global';
+                $clone['from_states'] = $sources;
                 $this->appendTransition(
                     $clone,
                     $signal,
-                    $source,
+                    '@global',
                     $to,
                     $transitions,
                     $transitionLabels,
@@ -354,40 +327,6 @@ final class OwasysFsmDiagramBuilder
         ];
     }
 
-    /**
-     * @param list<string> $sources
-     * @param array<string,array{rank:int,order:int}> $layout
-     */
-    private function representativeGlobalSource(
-        array $sources,
-        string $target,
-        array $layout
-    ): string {
-        $targetRank = (int) ($layout[$target]['rank'] ?? 0);
-        usort(
-            $sources,
-            static function (string $left, string $right) use (
-                $target,
-                $targetRank,
-                $layout
-            ): int {
-                $leftSelf = $left === $target ? 1 : 0;
-                $rightSelf = $right === $target ? 1 : 0;
-                if ($leftSelf !== $rightSelf) {
-                    return $leftSelf <=> $rightSelf;
-                }
-                $leftDistance = abs(
-                    (int) ($layout[$left]['rank'] ?? 0) - $targetRank
-                );
-                $rightDistance = abs(
-                    (int) ($layout[$right]['rank'] ?? 0) - $targetRank
-                );
-                return ($leftDistance <=> $rightDistance)
-                    ?: strcmp($left, $right);
-            }
-        );
-        return $sources[0];
-    }
 
     /**
      * @param array<string,array<string,mixed>> $menuByState
