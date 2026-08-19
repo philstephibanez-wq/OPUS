@@ -2,12 +2,11 @@
 declare(strict_types=1);
 
 use Opus\File\StructuredFileLoader;
-use Opus\Fsm\FsmDiagramGeometryNormalizer;
 
 /** Builds a fixed visual projection from the canonical OWASYS FSM. */
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4BE';
+    private const REVISION = 'P117W_R45B2A4BG';
 
     public function __construct(
         private readonly string $siteRoot,
@@ -274,16 +273,13 @@ final class OwasysFsmDiagramBuilder
             $transitionLinks,
             $initialState,
             $layout,
-            $transitionActions
-        );
-        $diagram = (new FsmDiagramGeometryNormalizer())->normalize(
-            $diagram,
-            0.60
+            $transitionActions,
+            'vertical'
         );
 
         return [
             'visible' => true,
-            'description' => 'FSM fixe · départ '
+            'description' => 'EFSM verticale · départ '
                 . $stateLabels[$initialState]
                 . ' · état courant '
                 . $stateLabels[$currentState]
