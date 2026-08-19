@@ -6,7 +6,7 @@ use Opus\File\StructuredFileLoader;
 /** Builds a fixed visual projection from the canonical OWASYS FSM. */
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4BH';
+    private const REVISION = 'P117W_R45B2A4BI';
 
     public function __construct(
         private readonly string $siteRoot,
@@ -20,8 +20,8 @@ final class OwasysFsmDiagramBuilder
      *
      * Dense same-state technical workflows are reduced to one representative
      * self-loop per signal type, while every non-self workflow relation is
-     * kept. Finite global transitions are rendered once as compact target-attached
-     * global-scope cards; their canonical from_states set remains in the
+     * kept. Finite global transitions are rendered once as compact target-ingress
+     * global-scope stacks above their target; their canonical from_states set remains in the
      * transition metadata instead of exploding into duplicate long rails.
      *
      * @param array<string,mixed> $pageData

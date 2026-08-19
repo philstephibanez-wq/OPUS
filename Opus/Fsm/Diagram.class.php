@@ -886,6 +886,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
 
         $this->_renderPositions = $positions;
         $this->_renderedLabelBoxes = [];
+        if ($this->_layoutDirection === 'vertical') {
+            $this->reserveVerticalFixedTransitionBoxes($positions);
+        }
         $this->_renderWidth = $width;
         $this->_renderHeight = $height;
 
@@ -1326,15 +1329,15 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
      */
     private function layoutVertical(array $states): array
     {
-        $nodeW = $this->_compactLayout ? 164.0 : 184.0;
-        $nodeH = $this->_compactLayout ? 64.0 : 70.0;
-        $columnGap = $this->_compactLayout ? 28.0 : 34.0;
-        $cardGap = $this->_compactLayout ? 10.0 : 12.0;
-        $rankGap = $this->_compactLayout ? 105.0 : 135.0;
-        $marginX = $this->_compactLayout ? 34.0 : 48.0;
+        $nodeW = $this->_compactLayout ? 160.0 : 180.0;
+        $nodeH = $this->_compactLayout ? 60.0 : 66.0;
+        $columnGap = $this->_compactLayout ? 24.0 : 30.0;
+        $globalNodeGap = $this->_compactLayout ? 12.0 : 14.0;
+        $rankGap = $this->_compactLayout ? 82.0 : 96.0;
+        $marginX = $this->_compactLayout ? 28.0 : 38.0;
         $marginY = $this->hasGlobalSource()
-            ? ($this->_compactLayout ? 112.0 : 132.0)
-            : ($this->_compactLayout ? 78.0 : 92.0);
+            ? ($this->_compactLayout ? 104.0 : 118.0)
+            : ($this->_compactLayout ? 68.0 : 78.0);
 
         $layoutRoot = $this->_layoutRoot !== ''
             ? $this->_layoutRoot
@@ -1396,31 +1399,61 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         }
         unset($rankStates);
 
+        /*
+         * Global transitions are ingress semantics, not side-car columns.
+         * Their cards are stacked immediately above their target. This keeps
+         * one target cell narrow and uses vertical space only where needed.
+         */
         $globalMetrics = $this->verticalGlobalMetricsByTarget();
+        $selfLoopMetrics = $this->verticalSelfLoopMetricsByState();
         $rowWidths = [];
-        $rowHeights = [];
+        $rowIngressHeights = [];
+        $rowSelfLoopHeights = [];
+        $cellWidthsByRank = [];
         foreach ($byRank as $rank => $rankStates) {
-            $width = 0.0;
-            $height = $nodeH;
+            $rowWidth = 0.0;
+            $rowIngressHeight = 0.0;
+            $rowSelfLoopHeight = 0.0;
+            $cellWidths = [];
             foreach (array_values($rankStates) as $index => $state) {
                 $targetMetrics = $globalMetrics[$state] ?? null;
-                $cellW = $nodeW;
-                if (is_array($targetMetrics)) {
-                    $cellW += $cardGap + $targetMetrics['max_width'];
-                    $height = max($height, $targetMetrics['stack_height']);
-                }
-                $width += $cellW;
+                $selfMetrics = $selfLoopMetrics[$state] ?? null;
+                $cellW = max(
+                    $nodeW,
+                    is_array($targetMetrics)
+                        ? (float) $targetMetrics['max_width']
+                        : 0.0,
+                    is_array($selfMetrics)
+                        ? (float) $selfMetrics['max_width']
+                        : 0.0
+                );
+                $cellWidths[$state] = $cellW;
+                $rowIngressHeight = max(
+                    $rowIngressHeight,
+                    is_array($targetMetrics)
+                        ? (float) $targetMetrics['stack_height']
+                        : 0.0
+                );
+                $rowSelfLoopHeight = max(
+                    $rowSelfLoopHeight,
+                    is_array($selfMetrics)
+                        ? (float) $selfMetrics['stack_height']
+                        : 0.0
+                );
+                $rowWidth += $cellW;
                 if ($index > 0) {
-                    $width += $columnGap;
+                    $rowWidth += $columnGap;
                 }
             }
-            $rowWidths[$rank] = $width;
-            $rowHeights[$rank] = $height;
+            $rowWidths[$rank] = $rowWidth;
+            $rowIngressHeights[$rank] = $rowIngressHeight;
+            $rowSelfLoopHeights[$rank] = $rowSelfLoopHeight;
+            $cellWidthsByRank[$rank] = $cellWidths;
         }
 
         $contentWidth = $rowWidths === [] ? $nodeW : max($rowWidths);
         $width = max(
-            $this->_compactLayout ? 560.0 : 640.0,
+            $this->_compactLayout ? 360.0 : 420.0,
             $marginX * 2 + $contentWidth
         );
 
@@ -1428,28 +1461,35 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $y = $marginY;
         foreach ($byRank as $rank => $rankStates) {
             $rowWidth = $rowWidths[$rank] ?? $nodeW;
+            $rowIngressHeight = $rowIngressHeights[$rank] ?? 0.0;
+            $rowSelfLoopHeight = $rowSelfLoopHeights[$rank] ?? 0.0;
             $x = ($width - $rowWidth) / 2;
-            foreach (array_values($rankStates) as $index => $state) {
+            $stateY = $y
+                + $rowIngressHeight
+                + ($rowIngressHeight > 0.0 ? $globalNodeGap : 0.0);
+
+            foreach (array_values($rankStates) as $state) {
+                $cellW = $cellWidthsByRank[$rank][$state] ?? $nodeW;
                 $positions[$state] = [
-                    'x' => $x,
-                    'y' => $y,
+                    'x' => $x + ($cellW - $nodeW) / 2,
+                    'y' => $stateY,
                     'w' => $nodeW,
                     'h' => $nodeH,
                     'rank' => (int) $rank,
                 ];
-                $targetMetrics = $globalMetrics[$state] ?? null;
-                $cellW = $nodeW;
-                if (is_array($targetMetrics)) {
-                    $cellW += $cardGap + $targetMetrics['max_width'];
-                }
                 $x += $cellW + $columnGap;
             }
-            $y += ($rowHeights[$rank] ?? $nodeH) + $rankGap;
+
+            $y = $stateY
+                + $nodeH
+                + ($rowSelfLoopHeight > 0.0 ? $globalNodeGap : 0.0)
+                + $rowSelfLoopHeight
+                + $rankGap;
         }
 
         $height = max(
-            $this->_compactLayout ? 420.0 : 480.0,
-            $y - $rankGap + ($this->_compactLayout ? 72.0 : 86.0)
+            $this->_compactLayout ? 360.0 : 420.0,
+            $y - $rankGap + ($this->_compactLayout ? 58.0 : 68.0)
         );
 
         return [
@@ -1491,6 +1531,38 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     }
 
     /**
+     * @return array<string,array{max_width:float,stack_height:float}>
+     */
+    private function verticalSelfLoopMetricsByState(): array
+    {
+        $result = [];
+        foreach ($this->_transitions as $transition) {
+            if (($transition['scope'] ?? '') === 'global'
+                || ($transition['from'] ?? '') !== ($transition['to'] ?? '')) {
+                continue;
+            }
+            $state = (string) ($transition['to'] ?? '');
+            if ($state === '' || !isset($this->_states[$state])) {
+                continue;
+            }
+            $metrics = $this->verticalTransitionMetrics($transition);
+            $result[$state] ??= [
+                'max_width' => 0.0,
+                'stack_height' => 0.0,
+            ];
+            $result[$state]['max_width'] = max(
+                $result[$state]['max_width'],
+                $metrics['width']
+            );
+            if ($result[$state]['stack_height'] > 0.0) {
+                $result[$state]['stack_height'] += 7.0;
+            }
+            $result[$state]['stack_height'] += $metrics['height'];
+        }
+        return $result;
+    }
+
+    /**
      * @param array<string,mixed> $transition
      * @return array{width:float,height:float}
      */
@@ -1527,6 +1599,32 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         foreach ($this->_transitions as $transition) {
             if (($transition['scope'] ?? '') !== 'global'
                 || (string) ($transition['to'] ?? '') !== $target) {
+                continue;
+            }
+            $id = (string) ($transition['id'] ?? '');
+            if ($id === $transitionId) {
+                break;
+            }
+            if ($offset > 0.0) {
+                $offset += 7.0;
+            }
+            $offset += $this->verticalTransitionMetrics($transition)['height'];
+        }
+        if ($offset > 0.0) {
+            $offset += 7.0;
+        }
+        return $offset;
+    }
+
+    private function verticalSelfLoopStackOffset(
+        string $transitionId,
+        string $state
+    ): float {
+        $offset = 0.0;
+        foreach ($this->_transitions as $transition) {
+            if (($transition['scope'] ?? '') === 'global'
+                || (string) ($transition['from'] ?? '') !== $state
+                || (string) ($transition['to'] ?? '') !== $state) {
                 continue;
             }
             $id = (string) ($transition['id'] ?? '');
@@ -2060,20 +2158,40 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
 
         if (($transition['scope'] ?? '') === 'global') {
             $metrics = $this->verticalTransitionMetrics($transition);
+            $targetMetrics = $this->verticalGlobalMetricsByTarget()[$to] ?? [
+                'max_width' => $metrics['width'],
+                'stack_height' => $metrics['height'],
+            ];
             $stackOffset = $this->verticalGlobalStackOffset($id, $to);
-            $cardGap = $this->_compactLayout ? 10.0 : 12.0;
-            $labelX = $toPos['x'] + $toPos['w'] + $cardGap
-                + $metrics['width'] / 2;
-            $labelY = $toPos['y'] + $stackOffset + $metrics['height'] / 2;
-            $x1 = $labelX - $metrics['width'] / 2;
-            $y1 = $labelY;
-            $x2 = $toPos['x'] + $toPos['w'];
-            $y2 = $toPos['y'] + $toPos['h'] / 2;
-            $bendX = ($x1 + $x2) / 2;
-            $path = 'M' . self::n($x1) . ' ' . self::n($y1)
-                . ' C' . self::n($bendX) . ' ' . self::n($y1)
-                . ', ' . self::n($bendX) . ' ' . self::n($y2)
-                . ', ' . self::n($x2) . ' ' . self::n($y2);
+            $cardGap = $this->_compactLayout ? 12.0 : 14.0;
+            $labelX = $toPos['x'] + $toPos['w'] / 2;
+            $stackTop = $toPos['y']
+                - $cardGap
+                - (float) $targetMetrics['stack_height'];
+            $labelY = $stackTop
+                + $stackOffset
+                + $metrics['height'] / 2;
+
+            /*
+             * A finite global transition has no single local source. Cards are
+             * therefore stacked as a compact ingress set above their target.
+             * Only the lowest card draws the shared short arrow into the state;
+             * no fake page-wide rail is introduced.
+             */
+            $isLowest = $stackOffset + $metrics['height']
+                >= (float) $targetMetrics['stack_height'] - 0.1;
+            $path = '';
+            if ($isLowest) {
+                $x = $toPos['x'] + $toPos['w'] / 2;
+                $y1 = $labelY + $metrics['height'] / 2;
+                $y2 = $toPos['y'];
+                $midY = ($y1 + $y2) / 2;
+                $path = 'M' . self::n($x) . ' ' . self::n($y1)
+                    . ' C' . self::n($x) . ' ' . self::n($midY)
+                    . ', ' . self::n($x) . ' ' . self::n($midY)
+                    . ', ' . self::n($x) . ' ' . self::n($y2);
+            }
+
             $fromStates = array_values(array_filter(
                 (array) ($transition['from_states'] ?? []),
                 'is_string'
@@ -2122,21 +2240,23 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $fromPos = $positions[$from];
 
         if ($from === $to) {
-            $loop = 42.0 + min(3, $ordinal) * 16.0;
-            $x = $fromPos['x'];
-            $y = $fromPos['y'] + $fromPos['h'] / 2;
-            $path = 'M' . self::n($x) . ' ' . self::n($y - 8.0)
-                . ' C' . self::n($x - $loop) . ' ' . self::n($y - $loop)
-                . ', ' . self::n($x - $loop) . ' ' . self::n($y + $loop)
-                . ', ' . self::n($x) . ' ' . self::n($y + 8.0);
+            $metrics = $this->verticalTransitionMetrics($transition);
+            $offset = $this->verticalSelfLoopStackOffset($id, $to);
+            $gap = $this->_compactLayout ? 12.0 : 14.0;
+            $labelX = $fromPos['x'] + $fromPos['w'] / 2;
+            $labelY = $fromPos['y']
+                + $fromPos['h']
+                + $gap
+                + $offset
+                + $metrics['height'] / 2;
             return $this->transitionSvg(
-                $class . ' self-loop',
+                $class . ' self-loop compact-self-scope',
                 $id,
-                $path,
+                '',
                 $label,
-                $x - $loop - 8.0,
-                $y,
-                $semanticLabel,
+                $labelX,
+                $labelY,
+                $semanticLabel . ' {self}',
                 $transition
             );
         }
@@ -2325,12 +2445,16 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
 
         $anchorX = $labelX;
         $anchorY = $labelY;
-        [$labelX, $labelY] = $this->reserveTransitionLabel(
-            $labelX,
-            $labelY,
-            $labelWidth,
-            $labelHeight
-        );
+        $fixedCard = (($transition['scope'] ?? '') === 'global')
+            || (($transition['from'] ?? '') === ($transition['to'] ?? ''));
+        if (!$fixedCard) {
+            [$labelX, $labelY] = $this->reserveVerticalTransitionLabel(
+                $labelX,
+                $labelY,
+                $labelWidth,
+                $labelHeight
+            );
+        }
 
         $labelLeader = '';
         $leaderDistance = hypot($labelX - $anchorX, $labelY - $anchorY);
@@ -2379,10 +2503,16 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 . self::n($labelX) . '" y="' . self::n($cursorY) . '">/ '
                 . self::h($parts['effect']) . '</text>';
         }
-        if (($transition['scope'] ?? '') === 'global') {
+        $scopeBadge = (($transition['scope'] ?? '') === 'global')
+            ? 'global'
+            : ((($transition['from'] ?? '') === ($transition['to'] ?? ''))
+                ? 'self'
+                : '');
+        if ($scopeBadge !== '') {
             $labelSvg .= '<text class="fsm-edge-scope" x="'
                 . self::n($labelX + $labelWidth / 2 - 7.0)
-                . '" y="' . self::n($boxTop + 10.0) . '">global</text>';
+                . '" y="' . self::n($boxTop + 10.0) . '">'
+                . self::h($scopeBadge) . '</text>';
         }
         $labelSvg .= '</g>';
 
@@ -2409,12 +2539,16 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 ? 'automatic'
                 : 'unspecified');
 
+        $edgeSvg = $path === ''
+            ? ''
+            : '<path class="fsm-edge" d="' . $path
+                . '" marker-end="url(#fsm-arrow-' . self::h($origin) . ')" />';
+
         return '<g class="' . self::h($class)
             . '" data-transition-id="' . self::h($id)
             . '" data-signal-origin="' . self::h($origin) . '">'
             . '<title>' . self::h($semanticLabel) . '</title>'
-            . '<path class="fsm-edge" d="' . $path
-            . '" marker-end="url(#fsm-arrow-' . self::h($origin) . ')" />'
+            . $edgeSvg
             . $labelLeader
             . $labelSvg
             . '</g>';
@@ -2615,6 +2749,130 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             . '" title="'
             . self::h($label)
             . '"></button></form></foreignObject>';
+    }
+
+    /**
+     * Reserve every deterministic global ingress card before local transition
+     * labels are placed. Local labels can then route around those cards.
+     *
+     * @param array<string,array{x:float,y:float,w:float,h:float,rank:int}> $positions
+     */
+    private function reserveVerticalFixedTransitionBoxes(array $positions): void
+    {
+        $globalMetrics = $this->verticalGlobalMetricsByTarget();
+        foreach ($this->_transitions as $transition) {
+            $to = (string) ($transition['to'] ?? '');
+            if ($to === '' || !isset($positions[$to])) {
+                continue;
+            }
+            $id = (string) ($transition['id'] ?? '');
+            $metrics = $this->verticalTransitionMetrics($transition);
+            $position = $positions[$to];
+            $gap = $this->_compactLayout ? 12.0 : 14.0;
+
+            if (($transition['scope'] ?? '') === 'global') {
+                $targetMetrics = $globalMetrics[$to] ?? [
+                    'max_width' => $metrics['width'],
+                    'stack_height' => $metrics['height'],
+                ];
+                $offset = $this->verticalGlobalStackOffset($id, $to);
+                $x = $position['x'] + $position['w'] / 2;
+                $y = $position['y']
+                    - $gap
+                    - (float) $targetMetrics['stack_height']
+                    + $offset
+                    + $metrics['height'] / 2;
+            } elseif ((string) ($transition['from'] ?? '') === $to) {
+                $offset = $this->verticalSelfLoopStackOffset($id, $to);
+                $x = $position['x'] + $position['w'] / 2;
+                $y = $position['y']
+                    + $position['h']
+                    + $gap
+                    + $offset
+                    + $metrics['height'] / 2;
+            } else {
+                continue;
+            }
+
+            $this->_renderedLabelBoxes[] = $this->verticalTransitionLabelBox(
+                $x,
+                $y,
+                $metrics['width'],
+                $metrics['height']
+            );
+        }
+    }
+
+    /**
+     * Vertical multi-line cartouches use their real center/height. The legacy
+     * horizontal collision box is intentionally not reused here.
+     *
+     * @return array{0:float,1:float}
+     */
+    private function reserveVerticalTransitionLabel(
+        float $labelX,
+        float $labelY,
+        float $width,
+        float $height
+    ): array {
+        $yOffsets = [0.0, 28.0, -28.0, 56.0, -56.0, 84.0, -84.0];
+        $xOffsets = [0.0, 42.0, -42.0, 84.0, -84.0, 126.0, -126.0];
+        $candidates = [];
+        foreach ($yOffsets as $offsetY) {
+            foreach ($xOffsets as $offsetX) {
+                $candidates[] = [$offsetX, $offsetY];
+            }
+        }
+        usort(
+            $candidates,
+            static fn (array $left, array $right): int =>
+                hypot($left[0], $left[1]) <=> hypot($right[0], $right[1])
+                ?: abs($left[1]) <=> abs($right[1])
+                ?: abs($left[0]) <=> abs($right[0])
+        );
+
+        foreach ($candidates as [$offsetX, $offsetY]) {
+            $candidateX = $labelX + $offsetX;
+            $candidateY = max(54.0 + $height / 2, $labelY + $offsetY);
+            $box = $this->verticalTransitionLabelBox(
+                $candidateX,
+                $candidateY,
+                $width,
+                $height
+            );
+            if ($this->labelBoxCollides($box)) {
+                continue;
+            }
+            $this->_renderedLabelBoxes[] = $box;
+            return [$candidateX, $candidateY];
+        }
+
+        $box = $this->verticalTransitionLabelBox(
+            $labelX,
+            $labelY,
+            $width,
+            $height
+        );
+        $this->_renderedLabelBoxes[] = $box;
+        return [$labelX, $labelY];
+    }
+
+    /**
+     * @return array{x1:float,y1:float,x2:float,y2:float}
+     */
+    private function verticalTransitionLabelBox(
+        float $labelX,
+        float $labelY,
+        float $width,
+        float $height
+    ): array {
+        $padding = 5.0;
+        return [
+            'x1' => $labelX - $width / 2 - $padding,
+            'y1' => $labelY - $height / 2 - $padding,
+            'x2' => $labelX + $width / 2 + $padding,
+            'y2' => $labelY + $height / 2 + $padding,
+        ];
     }
 
     /**
