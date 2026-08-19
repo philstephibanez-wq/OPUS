@@ -26,6 +26,15 @@ interface FsmDiagramLayoutStoreInterface extends
      */
     public function resolve(array $definition, array $automaticLayout): array;
 
+    /**
+     * @param array<string,mixed> $definition
+     * @param array<string,mixed> $renderedGeometry
+     */
+    public function persistRenderedGeometry(
+        array $definition,
+        array $renderedGeometry
+    ): void;
+
     /** @return array<string,mixed> */
     public function clientConfig(): array;
 }

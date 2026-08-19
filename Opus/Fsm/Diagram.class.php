@@ -99,6 +99,21 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     /** @var array<string,array{x:float,y:float}> */
     private array $_persistedStatePositions = [];
 
+    /**
+     * Persisted presentation geometry for local state-to-state transitions.
+     * EFSM semantics remain authoritative and are never stored here.
+     *
+     * @var array<string,array{path:string,label_x:float,label_y:float,leader_path:string}>
+     */
+    private array $_persistedTransitionGeometry = [];
+
+    /**
+     * Geometry actually emitted by the latest SVG render.
+     *
+     * @var array<string,array{path:string,label_x:float,label_y:float,leader_path:string}>
+     */
+    private array $_renderedTransitionGeometry = [];
+
     /** @var array<string,mixed> */
     private array $_layoutPersistence = [];
 
@@ -447,12 +462,14 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $diagram->setLayoutRoot($layoutRoot);
         $diagram->setStateLayoutHints($stateLayoutHints);
 
+        $layoutStore = null;
         if (class_exists(\Opus\Fsm\FsmDiagramLayoutStore::class)) {
-            $layoutStore = \Opus\Fsm\FsmDiagramLayoutStore::discover(
+            $candidateStore = \Opus\Fsm\FsmDiagramLayoutStore::discover(
                 $fsm,
                 $layoutDirection
             );
-            if ($layoutStore instanceof \Opus\Fsm\FsmDiagramLayoutStoreInterface) {
+            if ($candidateStore instanceof \Opus\Fsm\FsmDiagramLayoutStoreInterface) {
+                $layoutStore = $candidateStore;
                 $automaticLayout = $diagram->layoutSnapshot();
                 $persistedLayout = $layoutStore->resolve(
                     $fsm,
@@ -463,13 +480,25 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                         ? $persistedLayout['states']
                         : []
                 );
+                $diagram->setPersistedTransitionGeometry(
+                    is_array($persistedLayout['transitions'] ?? null)
+                        ? $persistedLayout['transitions']
+                        : []
+                );
                 $diagram->setLayoutPersistence(
                     $layoutStore->clientConfig()
                 );
             }
         }
 
-        return $diagram->renderHtml();
+        $html = $diagram->renderHtml();
+        if ($layoutStore instanceof \Opus\Fsm\FsmDiagramLayoutStoreInterface) {
+            $layoutStore->persistRenderedGeometry(
+                $fsm,
+                $diagram->renderedLayoutSnapshot()
+            );
+        }
+        return $html;
     }
 
     public static function renderDemoHtml(): string
@@ -644,6 +673,72 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             $normalized[$state] = ['x' => $x, 'y' => $y];
         }
         $this->_persistedStatePositions = $normalized;
+    }
+
+    /**
+     * @param array<string,array{path:mixed,label_x:mixed,label_y:mixed,leader_path:mixed}> $geometry
+     */
+    public function setPersistedTransitionGeometry(array $geometry): void
+    {
+        $known = [];
+        foreach ($this->_transitions as $transition) {
+            $known[(string) $transition['id']] = $transition;
+        }
+
+        $normalized = [];
+        foreach ($geometry as $id => $item) {
+            if (!is_string($id)
+                || !isset($known[$id])
+                || !is_array($item)) {
+                continue;
+            }
+            $transition = $known[$id];
+            if (($transition['scope'] ?? '') === 'global'
+                || ($transition['from'] ?? '') === ($transition['to'] ?? '')) {
+                continue;
+            }
+            if (!is_numeric($item['label_x'] ?? null)
+                || !is_numeric($item['label_y'] ?? null)) {
+                continue;
+            }
+            $normalized[$id] = [
+                'path' => is_string($item['path'] ?? null)
+                    ? $item['path']
+                    : '',
+                'label_x' => (float) $item['label_x'],
+                'label_y' => (float) $item['label_y'],
+                'leader_path' => is_string($item['leader_path'] ?? null)
+                    ? $item['leader_path']
+                    : '',
+            ];
+        }
+        $this->_persistedTransitionGeometry = $normalized;
+    }
+
+    /**
+     * Geometry emitted by the last render. The store persists presentation
+     * only; FSM semantics are never duplicated in the layout companion file.
+     *
+     * @return array<string,mixed>
+     */
+    public function renderedLayoutSnapshot(): array
+    {
+        $states = [];
+        foreach ($this->_renderPositions as $state => $position) {
+            $states[$state] = [
+                'x' => (float) $position['x'],
+                'y' => (float) $position['y'],
+            ];
+        }
+
+        return [
+            'canvas' => [
+                'width' => max(1.0, $this->_renderWidth),
+                'height' => max(1.0, $this->_renderHeight),
+            ],
+            'states' => $states,
+            'transitions' => $this->_renderedTransitionGeometry,
+        ];
     }
 
     /** @param array<string,mixed> $config */
@@ -995,6 +1090,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
 
         $this->_renderPositions = $positions;
         $this->_renderedLabelBoxes = [];
+        $this->_renderedTransitionGeometry = [];
         if ($this->_layoutDirection === 'vertical') {
             $this->reserveVerticalFixedTransitionBoxes($positions);
         }
@@ -2601,7 +2697,14 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $anchorY = $labelY;
         $fixedCard = (($transition['scope'] ?? '') === 'global')
             || (($transition['from'] ?? '') === ($transition['to'] ?? ''));
-        if (!$fixedCard) {
+        $persistedGeometry = !$fixedCard
+            ? ($this->_persistedTransitionGeometry[$id] ?? null)
+            : null;
+        if (is_array($persistedGeometry)) {
+            $path = (string) ($persistedGeometry['path'] ?? $path);
+            $labelX = (float) ($persistedGeometry['label_x'] ?? $labelX);
+            $labelY = (float) ($persistedGeometry['label_y'] ?? $labelY);
+        } elseif (!$fixedCard) {
             [$labelX, $labelY] = $this->reserveVerticalTransitionLabel(
                 $labelX,
                 $labelY,
@@ -2610,13 +2713,21 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             );
         }
 
+        $labelLeaderPath = is_array($persistedGeometry)
+            ? (string) ($persistedGeometry['leader_path'] ?? '')
+            : '';
         $labelLeader = '';
-        $leaderDistance = hypot($labelX - $anchorX, $labelY - $anchorY);
-        if ($leaderDistance >= 18.0) {
-            $labelLeader = '<path class="fsm-label-leader" d="M'
-                . self::n($anchorX) . ' ' . self::n($anchorY)
-                . ' L' . self::n($labelX) . ' ' . self::n($labelY)
-                . '" />';
+        if ($labelLeaderPath !== '') {
+            $labelLeader = '<path class="fsm-label-leader" d="'
+                . self::h($labelLeaderPath) . '" />';
+        } else {
+            $leaderDistance = hypot($labelX - $anchorX, $labelY - $anchorY);
+            if ($leaderDistance >= 18.0) {
+                $labelLeaderPath = 'M' . self::n($anchorX) . ' ' . self::n($anchorY)
+                    . ' L' . self::n($labelX) . ' ' . self::n($labelY);
+                $labelLeader = '<path class="fsm-label-leader" d="'
+                    . self::h($labelLeaderPath) . '" />';
+            }
         }
 
         $link = $this->_transitionLinks[$id] ?? null;
@@ -2695,8 +2806,17 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
 
         $edgeSvg = $path === ''
             ? ''
-            : '<path class="fsm-edge" d="' . $path
+            : '<path class="fsm-edge" d="' . self::h($path)
                 . '" marker-end="url(#fsm-arrow-' . self::h($origin) . ')" />';
+
+        if (!$fixedCard) {
+            $this->_renderedTransitionGeometry[$id] = [
+                'path' => $path,
+                'label_x' => $labelX,
+                'label_y' => $labelY,
+                'leader_path' => $labelLeaderPath,
+            ];
+        }
 
         return '<g class="' . self::h($class)
             . '" data-transition-id="' . self::h($id)
@@ -2731,20 +2851,39 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
 
         $anchorX = $labelX;
         $anchorY = $labelY;
-        [$labelX, $labelY] = $this->reserveTransitionLabel(
-            $labelX,
-            $labelY,
-            $labelWidth,
-            $labelHeight
-        );
+        $fixedCard = (($transition['scope'] ?? '') === 'global')
+            || (($transition['from'] ?? '') === ($transition['to'] ?? ''));
+        $persistedGeometry = !$fixedCard
+            ? ($this->_persistedTransitionGeometry[$id] ?? null)
+            : null;
+        if (is_array($persistedGeometry)) {
+            $path = (string) ($persistedGeometry['path'] ?? $path);
+            $labelX = (float) ($persistedGeometry['label_x'] ?? $labelX);
+            $labelY = (float) ($persistedGeometry['label_y'] ?? $labelY);
+        } else {
+            [$labelX, $labelY] = $this->reserveTransitionLabel(
+                $labelX,
+                $labelY,
+                $labelWidth,
+                $labelHeight
+            );
+        }
 
+        $labelLeaderPath = is_array($persistedGeometry)
+            ? (string) ($persistedGeometry['leader_path'] ?? '')
+            : '';
         $labelLeader = '';
-        $leaderDistance = hypot($labelX - $anchorX, $labelY - $anchorY);
-        if ($leaderDistance >= 18.0) {
-            $labelLeader = '<path class="fsm-label-leader" d="M'
-                . self::n($anchorX) . ' ' . self::n($anchorY - 5.0)
-                . ' L' . self::n($labelX) . ' ' . self::n($labelY - 5.0)
-                . '" />';
+        if ($labelLeaderPath !== '') {
+            $labelLeader = '<path class="fsm-label-leader" d="'
+                . self::h($labelLeaderPath) . '" />';
+        } else {
+            $leaderDistance = hypot($labelX - $anchorX, $labelY - $anchorY);
+            if ($leaderDistance >= 18.0) {
+                $labelLeaderPath = 'M' . self::n($anchorX) . ' ' . self::n($anchorY - 5.0)
+                    . ' L' . self::n($labelX) . ' ' . self::n($labelY - 5.0);
+                $labelLeader = '<path class="fsm-label-leader" d="'
+                    . self::h($labelLeaderPath) . '" />';
+            }
         }
 
         $link = $this->_transitionLinks[$id] ?? null;
@@ -2804,12 +2943,21 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 ? 'automatic'
                 : 'unspecified');
 
+        if (!$fixedCard) {
+            $this->_renderedTransitionGeometry[$id] = [
+                'path' => $path,
+                'label_x' => $labelX,
+                'label_y' => $labelY,
+                'leader_path' => $labelLeaderPath,
+            ];
+        }
+
         return '<g class="' . self::h($class)
             . '" data-transition-id="' . self::h($id)
             . '" data-signal-origin="' . self::h($origin)
             . '"' . $this->transitionLayoutAttributes($transition) . '>'
             . '<title>' . self::h($semanticLabel) . '</title>'
-            . '<path class="fsm-edge" d="' . $path
+            . '<path class="fsm-edge" d="' . self::h($path)
             . '" marker-end="url(#fsm-arrow-' . self::h($origin) . ')" />'
             . $labelLeader
             . $labelSvg
@@ -3555,10 +3703,10 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     /**
      * Development-only right-button drag interaction.
      *
-     * State geometry and incident arrows are updated immediately. On release,
-     * only the moved state's x/y coordinates are posted. The server persists
-     * them in the portable companion layout file and the page reloads so the
-     * canonical router recomputes exact transition and label geometry.
+     * The browser keeps the live page intact. On release, the moved state and
+     * the exact local transition geometry currently visible in the SVG are
+     * persisted asynchronously. No page reload is performed, so surrounding UI
+     * state (including native menu collapse) is untouched.
      */
     private static function layoutInteractionScript(): string
     {
@@ -3661,6 +3809,57 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
       });
   };
 
+  const geometrySnapshot = () => {
+    const viewBox = svg.viewBox.baseVal;
+    const transitions = {};
+    svg.querySelectorAll('.fsm-transition[data-transition-id]')
+      .forEach((group) => {
+        const id = group.dataset.transitionId || '';
+        const from = group.dataset.fromState || '';
+        const to = group.dataset.toState || '';
+        const scope = group.dataset.transitionScope || '';
+        if (id === '' || scope === 'global' || from === '' || from === to) {
+          return;
+        }
+        const edge = group.querySelector('path.fsm-edge');
+        const background = group.querySelector('.fsm-edge-label-bg');
+        if (!(background instanceof SVGRectElement)) return;
+        const x = Number(background.getAttribute('x') || 0);
+        const y = Number(background.getAttribute('y') || 0);
+        const width = Number(background.getAttribute('width') || 0);
+        const height = Number(background.getAttribute('height') || 0);
+        const leader = group.querySelector('path.fsm-label-leader');
+        transitions[id] = {
+          path:edge instanceof SVGPathElement ? (edge.getAttribute('d') || '') : '',
+          label_x:x + width / 2,
+          label_y:y + height / 2,
+          leader_path:leader instanceof SVGPathElement
+            ? (leader.getAttribute('d') || '')
+            : '',
+        };
+      });
+    return {
+      canvas:{width:viewBox.width, height:viewBox.height},
+      transitions,
+    };
+  };
+
+  const rotateCsrfFromResponse = (html) => {
+    const documentCopy = new DOMParser().parseFromString(html, 'text/html');
+    const key = card.dataset.opusFsmLayoutKey || '';
+    let nextCard = null;
+    documentCopy.querySelectorAll('.fsm-diagram-card[data-opus-fsm-layout-key]')
+      .forEach((candidate) => {
+        if (!nextCard && candidate.dataset.opusFsmLayoutKey === key) {
+          nextCard = candidate;
+        }
+      });
+    if (nextCard instanceof HTMLElement) {
+      const token = nextCard.dataset.opusFsmLayoutCsrf || '';
+      if (token !== '') card.dataset.opusFsmLayoutCsrf = token;
+    }
+  };
+
   let drag = null;
 
   svg.addEventListener('contextmenu', (event) => {
@@ -3719,6 +3918,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     body.set('opus_fsm_layout_state', state);
     body.set('opus_fsm_layout_x', String(item.x + item.dx));
     body.set('opus_fsm_layout_y', String(item.y + item.dy));
+    body.set('opus_fsm_layout_geometry', JSON.stringify(geometrySnapshot()));
     body.set('csrf_token', card.dataset.opusFsmLayoutCsrf || '');
     const response = await fetch(window.location.href, {
       method:'POST',
@@ -3729,9 +3929,11 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
       },
       body:body.toString(),
     });
+    const responseHtml = await response.text();
     if (!response.ok) {
       throw new Error(`OPUS_FSM_DIAGRAM_LAYOUT_SAVE_FAILED:${response.status}`);
     }
+    rotateCsrfFromResponse(responseHtml);
   };
 
   const finish = async (event) => {
@@ -3743,8 +3945,10 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     if (item) item.node.classList.remove('is-layout-dragging');
     try {
       await persist(state);
-    } finally {
-      window.location.reload();
+      card.dataset.opusFsmLayoutSaveState = 'saved';
+    } catch (error) {
+      card.dataset.opusFsmLayoutSaveState = 'error';
+      console.error(error);
     }
   };
 
