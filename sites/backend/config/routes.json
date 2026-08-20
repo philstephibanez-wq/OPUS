@@ -1,0 +1,18 @@
+{
+    "contract": "OPUS_ROUTE_REGISTRY_V1",
+    "dispatch_model": "fsm-module-first",
+    "routes": [
+        {
+            "id": "api.dispatch",
+            "path": "/api/v1/{*resource}",
+            "state": "api",
+            "module": "api",
+            "action": "dispatch",
+            "acl": "api",
+            "fsm_state": "api",
+            "dispatch_action": "dispatch_rest",
+            "show_in_menu": false,
+            "order": 10
+        }
+    ]
+}
