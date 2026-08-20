@@ -4,57 +4,57 @@
     "definition_sha256": "3700b39ae764487c5e3d524e1793a51095dfd4a93f7e7146af73ef6971f9b4bb",
     "layout_direction": "vertical",
     "canvas": {
-        "width": 1162,
+        "width": 1176,
         "height": 3132
     },
     "states": {
         "login": {
-            "x": 212,
-            "y": 207
+            "x": 8,
+            "y": 84
         },
         "registry": {
-            "x": 784,
-            "y": 251
+            "x": 702,
+            "y": 262
         },
         "account": {
             "x": 77,
             "y": 508
         },
         "creation_basics": {
-            "x": 819,
-            "y": 614
+            "x": 988,
+            "y": 357
         },
         "password": {
-            "x": 352,
-            "y": 622
+            "x": 399,
+            "y": 70
         },
         "creation_security": {
-            "x": 619,
-            "y": 738
+            "x": 988,
+            "y": 479
         },
         "creation_review": {
-            "x": 464,
-            "y": 918
+            "x": 470,
+            "y": 552
         },
         "application_creating": {
-            "x": 195,
-            "y": 932
+            "x": 473,
+            "y": 718
         },
         "application_created": {
             "x": 136,
             "y": 1477
         },
         "application_creation_failed": {
-            "x": 710,
-            "y": 1157
+            "x": 743,
+            "y": 750
         },
         "application": {
-            "x": 948,
-            "y": 1334
+            "x": 988,
+            "y": 977
         },
         "data": {
-            "x": 591.95,
-            "y": 2219
+            "x": 613.95,
+            "y": 1287
         },
         "structure": {
             "x": 38,
@@ -79,109 +79,109 @@
     },
     "transitions": {
         "t_login_success": {
-            "path": "M392 240 C588 240, 588 284, 784 284",
-            "label_x": 609.54,
+            "path": "M188 117 C445 117, 445 295, 702 295",
+            "label_x": 609.55,
             "label_y": 366,
             "leader_path": "M557 372 L609.51 366"
         },
         "t_password_required": {
-            "path": "M302 273 C302 447.5, 442 447.5, 442 622",
+            "path": "M188 117 C293.5 117, 293.5 103, 399 103",
             "label_x": 18,
             "label_y": 708,
             "leader_path": "M18 447.5 L18 708"
         },
         "t_password_changed": {
-            "path": "M532 655 C658 655, 658 284, 784 284",
+            "path": "M579 103 C640.5 103, 640.5 295, 702 295",
             "label_x": 18,
             "label_y": 846,
             "leader_path": "M18 736 L18 846"
         },
         "t_select_app": {
-            "path": "M874 317 C874 825.5, 1038 825.5, 1038 1334",
+            "path": "M792 328 C792 652.5, 1078 652.5, 1078 977",
             "label_x": 17.99,
             "label_y": 1378,
             "leader_path": "M18 1268 L17.99 1378"
         },
         "t_create_app": {
-            "path": "M874 317 C874 465.5, 909 465.5, 909 614",
+            "path": "M882 295 C935 295, 935 390, 988 390",
             "label_x": 18,
             "label_y": 777.5,
             "leader_path": "M18 749.5 L18 777.5"
         },
         "t_creation_basics_security": {
-            "path": "M819 647 C809 647, 809 771, 799 771",
+            "path": "M1078 423 C1078 451, 1078 451, 1078 479",
             "label_x": 17.99,
             "label_y": 1091.5,
             "leader_path": "M18 709 L17.99 1091.5"
         },
         "t_creation_basics_cancel": {
-            "path": "M909 614 C909 465.5, 874 465.5, 874 317",
+            "path": "M988 390 C935 390, 935 295, 882 295",
             "label_x": 18,
             "label_y": 749.5,
             "leader_path": "M18 639.5 L18 749.5"
         },
         "t_creation_security_basics": {
-            "path": "M799 771 C809 771, 809 647, 819 647",
+            "path": "M1078 479 C1078 451, 1078 451, 1078 423",
             "label_x": 18,
             "label_y": 1147.5,
             "leader_path": "M18 1091.5 L18 1147.5"
         },
         "t_creation_security_review": {
-            "path": "M709 804 C709 861, 554 861, 554 918",
+            "path": "M988 512 C819 512, 819 585, 650 585",
             "label_x": 18,
             "label_y": 1288.5,
             "leader_path": "M18 861 L18 1288.5"
         },
         "t_creation_security_cancel": {
-            "path": "M709 738 C709 527.5, 874 527.5, 874 317",
+            "path": "M988 512 C935 512, 935 295, 882 295",
             "label_x": 18,
             "label_y": 902,
             "leader_path": "M18 846 L18 902"
         },
         "t_creation_review_security": {
-            "path": "M554 918 C554 861, 709 861, 709 804",
+            "path": "M650 585 C819 585, 819 512, 988 512",
             "label_x": 18,
             "label_y": 1232.5,
             "leader_path": "M18 1288.5 L18 1232.5"
         },
         "t_creation_begin": {
-            "path": "M464 951 C419.5 951, 419.5 965, 375 965",
+            "path": "M560 618 C560 668, 563 668, 563 718",
             "label_x": 498,
             "label_y": 1470,
             "leader_path": "M404 1068 L498 1470"
         },
         "t_creation_created": {
-            "path": "M375 965 C661.5 965, 661.5 1367, 948 1367",
+            "path": "M653 751 C820.5 751, 820.5 1010, 988 1010",
             "label_x": 17.99,
             "label_y": 1901.5,
             "leader_path": "M18 1718.5 L17.99 1901.5"
         },
         "t_creation_failed": {
-            "path": "M375 965 C542.5 965, 542.5 1190, 710 1190",
+            "path": "M653 751 C698 751, 698 783, 743 783",
             "label_x": 18,
             "label_y": 1632,
             "leader_path": "M18 1449 L18 1632"
         },
         "t_creation_failure_security": {
-            "path": "M800 1157 C800 980.5, 709 980.5, 709 804",
+            "path": "M833 750 C833 647.5, 1078 647.5, 1078 545",
             "label_x": 18,
             "label_y": 1450.5,
             "leader_path": "M18 1242 L18 1450.5"
         },
         "t_creation_failure_retry": {
-            "path": "M710 1190 C542.5 1190, 542.5 965, 375 965",
+            "path": "M743 783 C698 783, 698 751, 653 751",
             "label_x": 18,
             "label_y": 1688,
             "leader_path": "M18 1632 L18 1688"
         },
         "t_creation_failure_cancel": {
-            "path": "M800 1157 C800 737, 874 737, 874 317",
+            "path": "M833 750 C833 539, 792 539, 792 328",
             "label_x": 18,
             "label_y": 1052.5,
             "leader_path": "M18 1108.5 L18 1052.5"
         },
         "t_creation_review_cancel": {
-            "path": "M554 918 C554 617.5, 874 617.5, 874 317",
+            "path": "M560 552 C560 440, 792 440, 792 328",
             "label_x": 18,
             "label_y": 946.5,
             "leader_path": "M18 836.5 L18 946.5"

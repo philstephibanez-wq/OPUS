@@ -1977,7 +1977,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $labelX,
                 $labelY,
                 $semanticLabel,
-                $transition
+                $transition,
+                $positions
             );
         }
 
@@ -2013,7 +2014,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $labelX,
                 $labelY,
                 $semanticLabel,
-                $transition
+                $transition,
+                $positions
             );
         }
 
@@ -2094,7 +2096,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $labelX,
                 $labelY,
                 $semanticLabel,
-                $transition
+                $transition,
+                $positions
             );
         }
 
@@ -2158,7 +2161,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $labelX,
                 $labelY,
                 $semanticLabel,
-                $transition
+                $transition,
+                $positions
             );
         }
 
@@ -2220,7 +2224,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $labelX,
                 $labelY,
                 $semanticLabel,
-                $transition
+                $transition,
+                $positions
             );
         }
 
@@ -2294,7 +2299,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $labelX,
                 $labelY,
                 $semanticLabel,
-                $transition
+                $transition,
+                $positions
             );
         }
 
@@ -2376,7 +2382,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             $labelX,
             $labelY,
             $semanticLabel,
-            $transition
+            $transition,
+            $positions
         );
     }
 
@@ -2455,7 +2462,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $labelX,
                 $labelY,
                 $scopeTitle,
-                $transition
+                $transition,
+                $positions
             );
         }
 
@@ -2478,7 +2486,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 ($fromPoint['x'] + $x2) / 2,
                 ($fromPoint['y'] + $y2) / 2,
                 $semanticLabel,
-                $transition
+                $transition,
+                $positions
             );
         }
 
@@ -2506,7 +2515,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $labelX,
                 $labelY,
                 $semanticLabel . ' {self}',
-                $transition
+                $transition,
+                $positions
             );
         }
 
@@ -2555,7 +2565,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 ($x1 + $x2) / 2,
                 $laneY - 8.0,
                 $semanticLabel,
-                $transition
+                $transition,
+                $positions
             );
         }
 
@@ -2578,7 +2589,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 ($x1 + $x2) / 2,
                 $midY,
                 $semanticLabel,
-                $transition
+                $transition,
+                $positions
             );
         }
 
@@ -2622,7 +2634,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             $corridorX,
             ($sourceTurnY + $targetTurnY) / 2,
             $semanticLabel,
-            $transition
+            $transition,
+            $positions
         );
     }
 
@@ -2642,6 +2655,126 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         return false;
     }
 
+
+    /**
+     * Persisted local transition geometry is presentation-only, but it must
+     * still satisfy the current node topology. A path is reusable only while
+     * its first point touches the source state box and its last point touches
+     * the target state box. Stale/orphan paths therefore fall back to the
+     * deterministic router and are later replaced in the persisted snapshot.
+     *
+     * @param array<string,mixed> $geometry
+     * @param array<string,mixed> $transition
+     * @param array<string,array{x:float,y:float,w:float,h:float,rank:int}> $positions
+     */
+    private function persistedTransitionGeometryAnchored(
+        array $geometry,
+        array $transition,
+        array $positions
+    ): bool {
+        if (($transition['scope'] ?? '') === 'global') {
+            return false;
+        }
+
+        $from = trim((string) ($transition['from'] ?? ''));
+        $to = trim((string) ($transition['to'] ?? ''));
+        if ($from === ''
+            || $to === ''
+            || $from === $to
+            || !isset($positions[$from], $positions[$to])) {
+            return false;
+        }
+
+        $path = trim((string) ($geometry['path'] ?? ''));
+        $endpoints = self::svgPathEndpoints($path);
+        if ($endpoints === null) {
+            return false;
+        }
+
+        return self::pointOnStateBoundary(
+            $endpoints['start_x'],
+            $endpoints['start_y'],
+            $positions[$from]
+        ) && self::pointOnStateBoundary(
+            $endpoints['end_x'],
+            $endpoints['end_y'],
+            $positions[$to]
+        );
+    }
+
+    /**
+     * OPUS-generated persisted edge paths use absolute M/L/C commands. Keep
+     * parsing deliberately strict so malformed or unsupported geometry cannot
+     * be mistaken for a valid anchored path.
+     *
+     * @return array{start_x:float,start_y:float,end_x:float,end_y:float}|null
+     */
+    private static function svgPathEndpoints(string $path): ?array
+    {
+        $path = trim($path);
+        if ($path === '' || preg_match('/\\A\\s*M\\s*/D', $path) !== 1) {
+            return null;
+        }
+
+        $number = '[-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][-+]?\\d+)?';
+        $commandsOnly = preg_replace('/' . $number . '/', '', $path);
+        if (!is_string($commandsOnly)
+            || preg_match('/\\A[\\s,MLC]+\\z/D', $commandsOnly) !== 1) {
+            return null;
+        }
+
+        if (preg_match_all('/' . $number . '/', $path, $matches) !== 1
+            && count($matches[0] ?? []) < 4) {
+            return null;
+        }
+        $values = $matches[0] ?? [];
+        if (count($values) < 4) {
+            return null;
+        }
+
+        $startX = (float) $values[0];
+        $startY = (float) $values[1];
+        $endX = (float) $values[count($values) - 2];
+        $endY = (float) $values[count($values) - 1];
+        foreach ([$startX, $startY, $endX, $endY] as $value) {
+            if (!is_finite($value)) {
+                return null;
+            }
+        }
+
+        return [
+            'start_x' => $startX,
+            'start_y' => $startY,
+            'end_x' => $endX,
+            'end_y' => $endY,
+        ];
+    }
+
+    /**
+     * @param array{x:float,y:float,w:float,h:float,rank:int} $box
+     */
+    private static function pointOnStateBoundary(
+        float $x,
+        float $y,
+        array $box
+    ): bool {
+        $tolerance = 3.0;
+        $left = (float) $box['x'];
+        $top = (float) $box['y'];
+        $right = $left + (float) $box['w'];
+        $bottom = $top + (float) $box['h'];
+        $insideX = $x >= $left - $tolerance && $x <= $right + $tolerance;
+        $insideY = $y >= $top - $tolerance && $y <= $bottom + $tolerance;
+        if (!$insideX || !$insideY) {
+            return false;
+        }
+
+        return abs($x - $left) <= $tolerance
+            || abs($x - $right) <= $tolerance
+            || abs($y - $top) <= $tolerance
+            || abs($y - $bottom) <= $tolerance;
+    }
+
     /**
      * @param array<string,mixed> $transition
      */
@@ -2653,7 +2786,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         float $labelX,
         float $labelY,
         string $semanticLabel,
-        array $transition
+        array $transition,
+        array $positions
     ): string {
         if ($this->_layoutDirection !== 'vertical') {
             return $this->transitionSvgHorizontal(
@@ -2664,7 +2798,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $labelX,
                 $labelY,
                 $semanticLabel,
-                $transition
+                $transition,
+                $positions
             );
         }
 
@@ -2700,6 +2835,14 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $persistedGeometry = !$fixedCard
             ? ($this->_persistedTransitionGeometry[$id] ?? null)
             : null;
+        if (is_array($persistedGeometry)
+            && !$this->persistedTransitionGeometryAnchored(
+                $persistedGeometry,
+                $transition,
+                $positions
+            )) {
+            $persistedGeometry = null;
+        }
         if (is_array($persistedGeometry)) {
             $path = (string) ($persistedGeometry['path'] ?? $path);
             $labelX = (float) ($persistedGeometry['label_x'] ?? $labelX);
@@ -2838,7 +2981,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         float $labelX,
         float $labelY,
         string $semanticLabel,
-        array $transition
+        array $transition,
+        array $positions
     ): string {
         $length = function_exists('mb_strlen')
             ? mb_strlen($label, 'UTF-8')
@@ -2856,6 +3000,14 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $persistedGeometry = !$fixedCard
             ? ($this->_persistedTransitionGeometry[$id] ?? null)
             : null;
+        if (is_array($persistedGeometry)
+            && !$this->persistedTransitionGeometryAnchored(
+                $persistedGeometry,
+                $transition,
+                $positions
+            )) {
+            $persistedGeometry = null;
+        }
         if (is_array($persistedGeometry)) {
             $path = (string) ($persistedGeometry['path'] ?? $path);
             $labelX = (float) ($persistedGeometry['label_x'] ?? $labelX);
@@ -3779,6 +3931,99 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     return `M${x1} ${y1} C${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
   };
 
+  const pointOnBoundary = (point, box) => {
+    if (!point || !box) return false;
+    const tolerance = 3;
+    const left = box.x;
+    const top = box.y;
+    const right = box.x + box.w;
+    const bottom = box.y + box.h;
+    const insideX = point.x >= left - tolerance && point.x <= right + tolerance;
+    const insideY = point.y >= top - tolerance && point.y <= bottom + tolerance;
+    if (!insideX || !insideY) return false;
+    return Math.abs(point.x - left) <= tolerance
+      || Math.abs(point.x - right) <= tolerance
+      || Math.abs(point.y - top) <= tolerance
+      || Math.abs(point.y - bottom) <= tolerance;
+  };
+
+  const edgeAnchored = (edge, fromId, toId) => {
+    const from = boxFor(fromId);
+    const to = boxFor(toId);
+    if (!(edge instanceof SVGPathElement) || !from || !to) return false;
+    try {
+      const length = edge.getTotalLength();
+      if (!Number.isFinite(length) || length <= 0) return false;
+      return pointOnBoundary(edge.getPointAtLength(0), from)
+        && pointOnBoundary(edge.getPointAtLength(length), to);
+    } catch (_) {
+      return false;
+    }
+  };
+
+  const updateLabelLeader = (group, edge) => {
+    const background = group.querySelector('.fsm-edge-label-bg');
+    if (!(background instanceof SVGRectElement)
+        || !(edge instanceof SVGPathElement)) {
+      return;
+    }
+    let leader = group.querySelector('path.fsm-label-leader');
+    try {
+      const length = edge.getTotalLength();
+      if (!Number.isFinite(length) || length <= 0) {
+        if (leader instanceof SVGPathElement) leader.remove();
+        return;
+      }
+      const anchor = edge.getPointAtLength(length / 2);
+      const labelX = Number(background.getAttribute('x') || 0)
+        + Number(background.getAttribute('width') || 0) / 2;
+      const labelY = Number(background.getAttribute('y') || 0)
+        + Number(background.getAttribute('height') || 0) / 2;
+      const distance = Math.hypot(labelX - anchor.x, labelY - anchor.y);
+      if (distance < 18) {
+        if (leader instanceof SVGPathElement) leader.remove();
+        return;
+      }
+      if (!(leader instanceof SVGPathElement)) {
+        leader = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        leader.setAttribute('class', 'fsm-label-leader');
+        const labelBox = background.closest('.fsm-edge-label-box');
+        const link = background.closest('a.fsm-signal-link');
+        const before = link instanceof SVGElement
+          ? link
+          : (labelBox instanceof SVGGElement ? labelBox : null);
+        if (before && before.parentNode === group) {
+          group.insertBefore(leader, before);
+        } else {
+          group.appendChild(leader);
+        }
+      }
+      leader.setAttribute(
+        'd',
+        `M${anchor.x} ${anchor.y} L${labelX} ${labelY}`
+      );
+    } catch (_) {
+      if (leader instanceof SVGPathElement) leader.remove();
+    }
+  };
+
+  const repairLocalTransition = (group) => {
+    const from = group.dataset.fromState || '';
+    const to = group.dataset.toState || '';
+    const scope = group.dataset.transitionScope || '';
+    if (scope === 'global' || from === '' || to === '' || from === to
+        || !states.has(from) || !states.has(to)) {
+      return;
+    }
+    const edge = group.querySelector('path.fsm-edge');
+    if (!(edge instanceof SVGPathElement)) return;
+    if (!edgeAnchored(edge, from, to)) {
+      const d = pathFor(from, to);
+      if (d !== '') edge.setAttribute('d', d);
+    }
+    updateLabelLeader(group, edge);
+  };
+
   const updateGeometry = (state) => {
     const item = states.get(state);
     if (!item) return;
@@ -3800,6 +4045,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         if (edge instanceof SVGPathElement) {
           const d = pathFor(from, to);
           if (d !== '') edge.setAttribute('d', d);
+          updateLabelLeader(group, edge);
         }
       });
     svg.querySelectorAll(`[data-anchor-state="${CSS.escape(state)}"]`)
@@ -3821,6 +4067,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         if (id === '' || scope === 'global' || from === '' || from === to) {
           return;
         }
+        repairLocalTransition(group);
         const edge = group.querySelector('path.fsm-edge');
         const background = group.querySelector('.fsm-edge-label-bg');
         if (!(background instanceof SVGRectElement)) return;
@@ -3843,6 +4090,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
       transitions,
     };
   };
+
+  svg.querySelectorAll('.fsm-transition[data-from-state][data-to-state]')
+    .forEach((group) => repairLocalTransition(group));
 
   const rotateCsrfFromResponse = (html) => {
     const documentCopy = new DOMParser().parseFromString(html, 'text/html');

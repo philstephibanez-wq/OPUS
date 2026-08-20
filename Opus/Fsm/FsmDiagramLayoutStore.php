@@ -215,9 +215,15 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
         $changed = false;
 
         foreach ($normalized['transitions'] as $id => $geometry) {
-            if (isset($transitions[$id])) {
+            if (isset($transitions[$id])
+                && $transitions[$id] === $geometry) {
                 continue;
             }
+            /*
+             * The renderer validates current source/target anchors before it
+             * exposes its snapshot. Replacing a stale stored entry here is
+             * therefore the self-healing path for orphan transition geometry.
+             */
             $transitions[$id] = $geometry;
             $changed = true;
         }
