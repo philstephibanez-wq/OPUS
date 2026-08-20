@@ -15,8 +15,9 @@ use RuntimeException;
  * Contract:
  * - the canonical FSM definition remains the sole semantic source of truth;
  * - persisted layout stores only presentation geometry and canvas metadata;
- * - V3 persists both state coordinates and independently movable signal-card
- *   coordinates while retaining canonical FSM semantics exclusively in the FSM;
+ * - V4 persists state coordinates, independently movable signal-card
+ *   coordinates and the initial pseudo-state marker position while retaining
+ *   canonical FSM semantics exclusively in the FSM;
  * - when no layout exists, OPUS persists the computed automatic layout in DEV;
  * - when a layout exists, persisted state and transition geometry wins;
  * - new FSM states are auto-positioned and merged without discarding existing
@@ -26,13 +27,15 @@ use RuntimeException;
  */
 final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
 {
-    public const CONTRACT = 'OPUS_FSM_DIAGRAM_LAYOUT_V3';
+    public const CONTRACT = 'OPUS_FSM_DIAGRAM_LAYOUT_V4';
     private const LEGACY_CONTRACTS = [
+        'OPUS_FSM_DIAGRAM_LAYOUT_V3',
         'OPUS_FSM_DIAGRAM_LAYOUT_V2',
         'OPUS_FSM_DIAGRAM_LAYOUT_V1',
     ];
     private const SAVE_STATE_ACTION = 'save-state';
     private const SAVE_SIGNAL_ACTION = 'save-signal';
+    private const SAVE_MARKER_ACTION = 'save-marker';
     private const MAX_COORDINATE = 100000.0;
     private const MAX_GEOMETRY_BYTES = 262144;
     private const MAX_SVG_PATH_BYTES = 8192;
@@ -197,7 +200,7 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
     /**
      * Persist the exact server-rendered presentation geometry after a render.
      * Renderer output replaces stale transition presentation geometry so local
-     * paths self-heal and V3 signal-card coordinates remain current.
+     * paths self-heal and V4 movable presentation geometry remains current.
      *
      * @param array<string,mixed> $definition
      * @param array<string,mixed> $renderedGeometry
@@ -218,6 +221,9 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
         $transitions = is_array($layout['transitions'] ?? null)
             ? $layout['transitions']
             : [];
+        $markers = is_array($layout['markers'] ?? null)
+            ? $layout['markers']
+            : [];
         $changed = false;
 
         foreach ($normalized['transitions'] as $id => $geometry) {
@@ -234,11 +240,20 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
             $changed = true;
         }
 
+        foreach ($normalized['markers'] as $id => $geometry) {
+            if (isset($markers[$id]) && $markers[$id] === $geometry) {
+                continue;
+            }
+            $markers[$id] = $geometry;
+            $changed = true;
+        }
+
         if (!is_array($layout['canvas'] ?? null)) {
             $layout['canvas'] = $normalized['canvas'];
             $changed = true;
         }
         $layout['transitions'] = $transitions;
+        $layout['markers'] = $markers;
 
         if (!$changed) {
             return;
@@ -350,6 +365,7 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
             ],
             'states' => $states,
             'transitions' => [],
+            'markers' => [],
         ];
     }
 
@@ -440,6 +456,12 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
                 ? $layout['transitions']
                 : []
         );
+        $layout['markers'] = $this->normalizeMarkerGeometryMap(
+            $definition,
+            is_array($layout['markers'] ?? null)
+                ? $layout['markers']
+                : []
+        );
         return $layout;
     }
 
@@ -486,6 +508,12 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
                 ? $layout['transitions']
                 : []
         );
+        $layout['markers'] = $this->normalizeMarkerGeometryMap(
+            $definition,
+            is_array($layout['markers'] ?? null)
+                ? $layout['markers']
+                : []
+        );
         return $layout;
     }
 
@@ -496,7 +524,11 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
         }
         if (!in_array(
             (string) ($_POST['opus_fsm_layout_action'] ?? ''),
-            [self::SAVE_STATE_ACTION, self::SAVE_SIGNAL_ACTION],
+            [
+                self::SAVE_STATE_ACTION,
+                self::SAVE_SIGNAL_ACTION,
+                self::SAVE_MARKER_ACTION,
+            ],
             true
         )) {
             return false;
@@ -527,6 +559,14 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
             $x = $this->coordinate($_POST['opus_fsm_layout_x'] ?? null, 'x');
             $y = $this->coordinate($_POST['opus_fsm_layout_y'] ?? null, 'y');
             $layout['states'][$stateId] = ['x' => $x, 'y' => $y];
+        } elseif ($action === self::SAVE_MARKER_ACTION) {
+            $markerId = trim((string) ($_POST['opus_fsm_layout_marker'] ?? ''));
+            $knownMarkers = $this->definitionMarkerSet($definition);
+            if ($markerId === '' || !isset($knownMarkers[$markerId])) {
+                throw new RuntimeException(
+                    'OPUS_FSM_DIAGRAM_LAYOUT_MARKER_UNKNOWN:' . $markerId
+                );
+            }
         } elseif ($action !== self::SAVE_SIGNAL_ACTION) {
             throw new RuntimeException(
                 'OPUS_FSM_DIAGRAM_LAYOUT_ACTION_INVALID:' . $action
@@ -565,6 +605,7 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
             );
             $layout['canvas'] = $normalized['canvas'];
             $layout['transitions'] = $normalized['transitions'];
+            $layout['markers'] = $normalized['markers'];
         }
 
         return $layout;
@@ -590,12 +631,19 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
         $transitions = is_array($payload['transitions'] ?? null)
             ? $payload['transitions']
             : [];
+        $markers = is_array($payload['markers'] ?? null)
+            ? $payload['markers']
+            : [];
 
         return [
             'canvas' => ['width' => $width, 'height' => $height],
             'transitions' => $this->normalizeTransitionGeometryMap(
                 $definition,
                 $transitions
+            ),
+            'markers' => $this->normalizeMarkerGeometryMap(
+                $definition,
+                $markers
             ),
         ];
     }
@@ -637,6 +685,42 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
             ];
         }
         return $normalized;
+    }
+
+    /**
+     * @param array<string,mixed> $definition
+     * @param array<string,mixed> $geometryMap
+     * @return array<string,array{x:float,y:float}>
+     */
+    private function normalizeMarkerGeometryMap(
+        array $definition,
+        array $geometryMap
+    ): array {
+        $known = $this->definitionMarkerSet($definition);
+        $normalized = [];
+        foreach ($geometryMap as $id => $geometry) {
+            if (!is_string($id)
+                || !isset($known[$id])
+                || !is_array($geometry)) {
+                continue;
+            }
+            $normalized[$id] = [
+                'x' => $this->coordinate($geometry['x'] ?? null, 'marker_x'),
+                'y' => $this->coordinate($geometry['y'] ?? null, 'marker_y'),
+            ];
+        }
+        return $normalized;
+    }
+
+    /** @param array<string,mixed> $definition @return array<string,true> */
+    private function definitionMarkerSet(array $definition): array
+    {
+        $initial = trim((string) ($definition['initial_state'] ?? ''));
+        if ($initial === '') {
+            return [];
+        }
+        $states = $this->definitionStateSet($definition);
+        return isset($states[$initial]) ? ['initial' => true] : [];
     }
 
     /** @param array<string,mixed> $definition @return array<string,true> */
