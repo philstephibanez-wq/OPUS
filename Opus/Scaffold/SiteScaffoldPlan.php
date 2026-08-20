@@ -761,6 +761,16 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
         $states = [];
         $modules = $this->modules();
 
+        $states[] = [
+            'id' => 'begin',
+            'type' => 'entry',
+            'module' => 'home',
+            'route' => '/',
+            'title_key' => 'menu.home',
+            'summary_key' => 'page.subtitle',
+            'navigation' => ['label' => 'menu.home'],
+        ];
+
         foreach ($modules as $module) {
             $states[] = [
                 'id' => $module,
@@ -781,7 +791,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             'navigation' => ['label' => 'OPUS Profiler'],
         ];
 
-        $stateIds = array_merge($modules, ['profiler']);
+        $stateIds = array_merge(['begin'], $modules, ['profiler']);
         $transitions = [];
 
         foreach ($modules as $module) {
@@ -812,7 +822,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             'contract' => 'OPUS_APPLICATION_FSM_V1',
             'name' => $this->siteId . '.application',
             'site_id' => $this->siteId,
-            'initial_state' => 'home',
+            'initial_state' => 'begin',
             'states' => $states,
             'transitions' => $transitions,
         ];
@@ -1215,20 +1225,38 @@ PHP;
                 'contract' => 'OPUS_APPLICATION_FSM_V1',
                 'name' => $site . '.application',
                 'site_id' => $site,
-                'initial_state' => 'api',
-                'states' => [[
-                    'id' => 'api',
-                    'module' => 'api',
-                    'route' => '/api/v1/{*resource}',
-                ]],
-                'transitions' => [[
-                    'id' => 'dispatch.api',
-                    'from' => 'api',
-                    'signal' => 'dispatch_api',
-                    'next_state' => 'api',
-                    'guards' => ['route_exists'],
-                    'actions' => ['dispatch_rest'],
-                ]],
+                'initial_state' => 'begin',
+                'states' => [
+                    [
+                        'id' => 'begin',
+                        'type' => 'entry',
+                        'module' => 'api',
+                        'route' => '/api/v1/{*resource}',
+                    ],
+                    [
+                        'id' => 'api',
+                        'module' => 'api',
+                        'route' => '/api/v1/{*resource}',
+                    ],
+                ],
+                'transitions' => [
+                    [
+                        'id' => 'dispatch.api.from.begin',
+                        'from' => 'begin',
+                        'signal' => 'dispatch_api',
+                        'next_state' => 'api',
+                        'guards' => ['route_exists'],
+                        'actions' => ['dispatch_rest'],
+                    ],
+                    [
+                        'id' => 'dispatch.api',
+                        'from' => 'api',
+                        'signal' => 'dispatch_api',
+                        'next_state' => 'api',
+                        'guards' => ['route_exists'],
+                        'actions' => ['dispatch_rest'],
+                    ],
+                ],
             ]),
             "sites/{$site}/config/acl.json" => $this->json($this->aclConfig()),
             "sites/{$site}/config/sso.json" => $this->json($this->ssoConfig()),
