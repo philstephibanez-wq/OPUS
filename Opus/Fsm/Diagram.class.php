@@ -100,8 +100,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     private array $_persistedStatePositions = [];
 
     /**
-     * Persisted presentation geometry for local state-to-state transitions.
-     * EFSM semantics remain authoritative and are never stored here.
+     * Persisted presentation geometry for transitions. Local edge paths are
+     * topology-validated; signal-card coordinates may be persisted for local,
+     * global and self transitions. EFSM semantics are never stored here.
      *
      * @var array<string,array{path:string,label_x:float,label_y:float,leader_path:string}>
      */
@@ -690,11 +691,6 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             if (!is_string($id)
                 || !isset($known[$id])
                 || !is_array($item)) {
-                continue;
-            }
-            $transition = $known[$id];
-            if (($transition['scope'] ?? '') === 'global'
-                || ($transition['from'] ?? '') === ($transition['to'] ?? '')) {
                 continue;
             }
             if (!is_numeric($item['label_x'] ?? null)
@@ -2832,19 +2828,18 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $anchorY = $labelY;
         $fixedCard = (($transition['scope'] ?? '') === 'global')
             || (($transition['from'] ?? '') === ($transition['to'] ?? ''));
-        $persistedGeometry = !$fixedCard
-            ? ($this->_persistedTransitionGeometry[$id] ?? null)
-            : null;
-        if (is_array($persistedGeometry)
-            && !$this->persistedTransitionGeometryAnchored(
+        $persistedGeometry = $this->_persistedTransitionGeometry[$id] ?? null;
+        $persistedPathAnchored = !$fixedCard
+            && is_array($persistedGeometry)
+            && $this->persistedTransitionGeometryAnchored(
                 $persistedGeometry,
                 $transition,
                 $positions
-            )) {
-            $persistedGeometry = null;
+            );
+        if ($persistedPathAnchored) {
+            $path = (string) ($persistedGeometry['path'] ?? $path);
         }
         if (is_array($persistedGeometry)) {
-            $path = (string) ($persistedGeometry['path'] ?? $path);
             $labelX = (float) ($persistedGeometry['label_x'] ?? $labelX);
             $labelY = (float) ($persistedGeometry['label_y'] ?? $labelY);
         } elseif (!$fixedCard) {
@@ -2856,14 +2851,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             );
         }
 
-        $labelLeaderPath = is_array($persistedGeometry)
-            ? (string) ($persistedGeometry['leader_path'] ?? '')
-            : '';
+        $labelLeaderPath = '';
         $labelLeader = '';
-        if ($labelLeaderPath !== '') {
-            $labelLeader = '<path class="fsm-label-leader" d="'
-                . self::h($labelLeaderPath) . '" />';
-        } else {
+        {
             $leaderDistance = hypot($labelX - $anchorX, $labelY - $anchorY);
             if ($leaderDistance >= 18.0) {
                 $labelLeaderPath = 'M' . self::n($anchorX) . ' ' . self::n($anchorY)
@@ -2940,6 +2930,13 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $labelHeight
             );
         }
+        $labelSvg = $this->signalCardSvg(
+            $labelSvg,
+            $labelX,
+            $labelY,
+            $labelWidth,
+            $labelHeight
+        );
 
         $origin = str_contains($class, 'signal-origin-user')
             ? 'user'
@@ -2952,14 +2949,12 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             : '<path class="fsm-edge" d="' . self::h($path)
                 . '" marker-end="url(#fsm-arrow-' . self::h($origin) . ')" />';
 
-        if (!$fixedCard) {
-            $this->_renderedTransitionGeometry[$id] = [
-                'path' => $path,
-                'label_x' => $labelX,
-                'label_y' => $labelY,
-                'leader_path' => $labelLeaderPath,
-            ];
-        }
+        $this->_renderedTransitionGeometry[$id] = [
+            'path' => $path,
+            'label_x' => $labelX,
+            'label_y' => $labelY,
+            'leader_path' => $labelLeaderPath,
+        ];
 
         return '<g class="' . self::h($class)
             . '" data-transition-id="' . self::h($id)
@@ -2997,19 +2992,18 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $anchorY = $labelY;
         $fixedCard = (($transition['scope'] ?? '') === 'global')
             || (($transition['from'] ?? '') === ($transition['to'] ?? ''));
-        $persistedGeometry = !$fixedCard
-            ? ($this->_persistedTransitionGeometry[$id] ?? null)
-            : null;
-        if (is_array($persistedGeometry)
-            && !$this->persistedTransitionGeometryAnchored(
+        $persistedGeometry = $this->_persistedTransitionGeometry[$id] ?? null;
+        $persistedPathAnchored = !$fixedCard
+            && is_array($persistedGeometry)
+            && $this->persistedTransitionGeometryAnchored(
                 $persistedGeometry,
                 $transition,
                 $positions
-            )) {
-            $persistedGeometry = null;
+            );
+        if ($persistedPathAnchored) {
+            $path = (string) ($persistedGeometry['path'] ?? $path);
         }
         if (is_array($persistedGeometry)) {
-            $path = (string) ($persistedGeometry['path'] ?? $path);
             $labelX = (float) ($persistedGeometry['label_x'] ?? $labelX);
             $labelY = (float) ($persistedGeometry['label_y'] ?? $labelY);
         } else {
@@ -3021,14 +3015,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             );
         }
 
-        $labelLeaderPath = is_array($persistedGeometry)
-            ? (string) ($persistedGeometry['leader_path'] ?? '')
-            : '';
+        $labelLeaderPath = '';
         $labelLeader = '';
-        if ($labelLeaderPath !== '') {
-            $labelLeader = '<path class="fsm-label-leader" d="'
-                . self::h($labelLeaderPath) . '" />';
-        } else {
+        {
             $leaderDistance = hypot($labelX - $anchorX, $labelY - $anchorY);
             if ($leaderDistance >= 18.0) {
                 $labelLeaderPath = 'M' . self::n($anchorX) . ' ' . self::n($anchorY - 5.0)
@@ -3088,6 +3077,13 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $labelHeight
             );
         }
+        $labelSvg = $this->signalCardSvg(
+            $labelSvg,
+            $labelX,
+            $labelY,
+            $labelWidth,
+            $labelHeight
+        );
 
         $origin = str_contains($class, 'signal-origin-user')
             ? 'user'
@@ -3095,14 +3091,12 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 ? 'automatic'
                 : 'unspecified');
 
-        if (!$fixedCard) {
-            $this->_renderedTransitionGeometry[$id] = [
-                'path' => $path,
-                'label_x' => $labelX,
-                'label_y' => $labelY,
-                'leader_path' => $labelLeaderPath,
-            ];
-        }
+        $this->_renderedTransitionGeometry[$id] = [
+            'path' => $path,
+            'label_x' => $labelX,
+            'label_y' => $labelY,
+            'leader_path' => $labelLeaderPath,
+        ];
 
         return '<g class="' . self::h($class)
             . '" data-transition-id="' . self::h($id)
@@ -3182,6 +3176,31 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             'guards' => $guards,
             'effect' => implode('; ', $effects),
         ];
+    }
+
+    /**
+     * One signal card contains the signal plus its guards/effects. In writable
+     * DEV mode the whole presentation object can be moved with the right mouse
+     * button; FSM semantics and transition endpoints remain untouched.
+     */
+    private function signalCardSvg(
+        string $content,
+        float $labelX,
+        float $labelY,
+        float $width,
+        float $height
+    ): string {
+        $draggable = (($this->_layoutPersistence['writable'] ?? false) === true)
+            ? '1'
+            : '0';
+
+        return '<g class="fsm-signal-card" data-layout-signal-draggable="'
+            . $draggable
+            . '" data-signal-x="' . self::n($labelX)
+            . '" data-signal-y="' . self::n($labelY)
+            . '" data-signal-w="' . self::n($width)
+            . '" data-signal-h="' . self::n($height)
+            . '">' . $content . '</g>';
     }
 
     /**
@@ -3266,6 +3285,14 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                     + $metrics['height'] / 2;
             } else {
                 continue;
+            }
+
+            $persisted = $this->_persistedTransitionGeometry[$id] ?? null;
+            if (is_array($persisted)
+                && is_numeric($persisted['label_x'] ?? null)
+                && is_numeric($persisted['label_y'] ?? null)) {
+                $x = (float) $persisted['label_x'];
+                $y = (float) $persisted['label_y'];
             }
 
             $this->_renderedLabelBoxes[] = $this->verticalTransitionLabelBox(
@@ -3855,10 +3882,11 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     /**
      * Development-only right-button drag interaction.
      *
-     * The browser keeps the live page intact. On release, the moved state and
-     * the exact local transition geometry currently visible in the SVG are
-     * persisted asynchronously. No page reload is performed, so surrounding UI
-     * state (including native menu collapse) is untouched.
+     * The browser keeps the live page intact. Right-button drag can move either
+     * a state or a signal card. On release, state coordinates and the exact
+     * transition presentation geometry currently visible in the SVG are saved
+     * asynchronously. No page reload is performed, so surrounding UI state
+     * (including native menu collapse) is untouched.
      */
     private static function layoutInteractionScript(): string
     {
@@ -3880,12 +3908,31 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     if (id === '') return;
     states.set(id, {
       node,
-      x: Number(node.dataset.x || 0),
-      y: Number(node.dataset.y || 0),
-      w: Number(node.dataset.w || 0),
-      h: Number(node.dataset.h || 0),
-      dx: 0,
-      dy: 0,
+      x:Number(node.dataset.x || 0),
+      y:Number(node.dataset.y || 0),
+      w:Number(node.dataset.w || 0),
+      h:Number(node.dataset.h || 0),
+      dx:0,
+      dy:0,
+    });
+  });
+
+  const signals = new Map();
+  svg.querySelectorAll('.fsm-transition[data-transition-id]').forEach((group) => {
+    const id = group.dataset.transitionId || '';
+    const node = group.querySelector(
+      '.fsm-signal-card[data-layout-signal-draggable="1"]'
+    );
+    if (id === '' || !(node instanceof SVGGElement)) return;
+    signals.set(id, {
+      node,
+      group,
+      x:Number(node.dataset.signalX || 0),
+      y:Number(node.dataset.signalY || 0),
+      w:Number(node.dataset.signalW || 0),
+      h:Number(node.dataset.signalH || 0),
+      dx:0,
+      dy:0,
     });
   });
 
@@ -3901,6 +3948,26 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     const item = states.get(id);
     if (!item) return null;
     return {x:item.x + item.dx, y:item.y + item.dy, w:item.w, h:item.h};
+  };
+
+  const anchorOffset = (group) => {
+    const id = group.dataset.anchorState || '';
+    const item = states.get(id);
+    return item ? {x:item.dx, y:item.dy} : {x:0, y:0};
+  };
+
+  const signalLocalCenter = (group) => {
+    const id = group.dataset.transitionId || '';
+    const item = signals.get(id);
+    if (!item) return null;
+    return {x:item.x + item.dx, y:item.y + item.dy};
+  };
+
+  const signalAbsoluteCenter = (group) => {
+    const center = signalLocalCenter(group);
+    if (!center) return null;
+    const offset = anchorOffset(group);
+    return {x:center.x + offset.x, y:center.y + offset.y};
   };
 
   const pathFor = (fromId, toId) => {
@@ -3961,50 +4028,61 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     }
   };
 
+  const fallbackLeaderAnchor = (group) => {
+    const anchorId = group.dataset.anchorState || group.dataset.toState || '';
+    const item = states.get(anchorId);
+    if (!item) return null;
+    const scope = group.dataset.transitionScope || '';
+    const from = group.dataset.fromState || '';
+    const to = group.dataset.toState || '';
+    if (scope === 'global') {
+      return {x:item.x + item.w / 2, y:item.y};
+    }
+    if (from !== '' && from === to) {
+      return {x:item.x + item.w / 2, y:item.y + item.h};
+    }
+    return {x:item.x + item.w / 2, y:item.y + item.h / 2};
+  };
+
   const updateLabelLeader = (group, edge) => {
-    const background = group.querySelector('.fsm-edge-label-bg');
-    if (!(background instanceof SVGRectElement)
-        || !(edge instanceof SVGPathElement)) {
+    const center = signalLocalCenter(group);
+    if (!center) return;
+    let leader = group.querySelector('path.fsm-label-leader');
+    let anchor = null;
+    if (edge instanceof SVGPathElement) {
+      try {
+        const length = edge.getTotalLength();
+        if (Number.isFinite(length) && length > 0) {
+          anchor = edge.getPointAtLength(length / 2);
+        }
+      } catch (_) {
+        anchor = null;
+      }
+    }
+    if (!anchor) anchor = fallbackLeaderAnchor(group);
+    if (!anchor) {
+      if (leader instanceof SVGPathElement) leader.remove();
       return;
     }
-    let leader = group.querySelector('path.fsm-label-leader');
-    try {
-      const length = edge.getTotalLength();
-      if (!Number.isFinite(length) || length <= 0) {
-        if (leader instanceof SVGPathElement) leader.remove();
-        return;
-      }
-      const anchor = edge.getPointAtLength(length / 2);
-      const labelX = Number(background.getAttribute('x') || 0)
-        + Number(background.getAttribute('width') || 0) / 2;
-      const labelY = Number(background.getAttribute('y') || 0)
-        + Number(background.getAttribute('height') || 0) / 2;
-      const distance = Math.hypot(labelX - anchor.x, labelY - anchor.y);
-      if (distance < 18) {
-        if (leader instanceof SVGPathElement) leader.remove();
-        return;
-      }
-      if (!(leader instanceof SVGPathElement)) {
-        leader = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        leader.setAttribute('class', 'fsm-label-leader');
-        const labelBox = background.closest('.fsm-edge-label-box');
-        const link = background.closest('a.fsm-signal-link');
-        const before = link instanceof SVGElement
-          ? link
-          : (labelBox instanceof SVGGElement ? labelBox : null);
-        if (before && before.parentNode === group) {
-          group.insertBefore(leader, before);
-        } else {
-          group.appendChild(leader);
-        }
-      }
-      leader.setAttribute(
-        'd',
-        `M${anchor.x} ${anchor.y} L${labelX} ${labelY}`
-      );
-    } catch (_) {
+    const distance = Math.hypot(center.x - anchor.x, center.y - anchor.y);
+    if (distance < 18) {
       if (leader instanceof SVGPathElement) leader.remove();
+      return;
     }
+    if (!(leader instanceof SVGPathElement)) {
+      leader = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      leader.setAttribute('class', 'fsm-label-leader');
+      const signal = group.querySelector('.fsm-signal-card');
+      if (signal && signal.parentNode === group) {
+        group.insertBefore(leader, signal);
+      } else {
+        group.appendChild(leader);
+      }
+    }
+    leader.setAttribute(
+      'd',
+      `M${anchor.x} ${anchor.y} L${center.x} ${center.y}`
+    );
   };
 
   const repairLocalTransition = (group) => {
@@ -4013,6 +4091,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     const scope = group.dataset.transitionScope || '';
     if (scope === 'global' || from === '' || to === '' || from === to
         || !states.has(from) || !states.has(to)) {
+      updateLabelLeader(group, group.querySelector('path.fsm-edge'));
       return;
     }
     const edge = group.querySelector('path.fsm-edge');
@@ -4034,6 +4113,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         const anchor = group.dataset.anchorState || '';
         if (anchor === state) {
           group.setAttribute('transform', `translate(${item.dx} ${item.dy})`);
+          updateLabelLeader(group, group.querySelector('path.fsm-edge'));
           return;
         }
         if ((from !== state && to !== state)
@@ -4061,25 +4141,18 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     svg.querySelectorAll('.fsm-transition[data-transition-id]')
       .forEach((group) => {
         const id = group.dataset.transitionId || '';
-        const from = group.dataset.fromState || '';
-        const to = group.dataset.toState || '';
-        const scope = group.dataset.transitionScope || '';
-        if (id === '' || scope === 'global' || from === '' || from === to) {
-          return;
-        }
+        if (id === '') return;
         repairLocalTransition(group);
+        const signal = signals.get(id);
+        if (!signal) return;
+        const center = signalAbsoluteCenter(group);
+        if (!center) return;
         const edge = group.querySelector('path.fsm-edge');
-        const background = group.querySelector('.fsm-edge-label-bg');
-        if (!(background instanceof SVGRectElement)) return;
-        const x = Number(background.getAttribute('x') || 0);
-        const y = Number(background.getAttribute('y') || 0);
-        const width = Number(background.getAttribute('width') || 0);
-        const height = Number(background.getAttribute('height') || 0);
         const leader = group.querySelector('path.fsm-label-leader');
         transitions[id] = {
           path:edge instanceof SVGPathElement ? (edge.getAttribute('d') || '') : '',
-          label_x:x + width / 2,
-          label_y:y + height / 2,
+          label_x:center.x,
+          label_y:center.y,
           leader_path:leader instanceof SVGPathElement
             ? (leader.getAttribute('d') || '')
             : '',
@@ -4091,7 +4164,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     };
   };
 
-  svg.querySelectorAll('.fsm-transition[data-from-state][data-to-state]')
+  svg.querySelectorAll('.fsm-transition[data-transition-id]')
     .forEach((group) => repairLocalTransition(group));
 
   const rotateCsrfFromResponse = (html) => {
@@ -4110,64 +4183,21 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     }
   };
 
-  let drag = null;
-
-  svg.addEventListener('contextmenu', (event) => {
-    const node = event.target instanceof Element
-      ? event.target.closest('.fsm-node[data-layout-draggable="1"]')
-      : null;
-    if (node) event.preventDefault();
-  });
-
-  svg.addEventListener('pointerdown', (event) => {
-    if (event.button !== 2 || !(event.target instanceof Element)) return;
-    const node = event.target.closest('.fsm-node[data-layout-draggable="1"]');
-    if (!(node instanceof SVGGElement)) return;
-    const state = node.dataset.state || '';
-    const item = states.get(state);
-    if (!item) return;
-    event.preventDefault();
-    const start = pointFor(event);
-    drag = {
-      state,
-      pointerId:event.pointerId,
-      startX:start.x,
-      startY:start.y,
-      baseDx:item.dx,
-      baseDy:item.dy,
-    };
-    svg.setPointerCapture(event.pointerId);
-    card.classList.add('is-layout-dragging');
-    node.classList.add('is-layout-dragging');
-  });
-
-  svg.addEventListener('pointermove', (event) => {
-    if (!drag || event.pointerId !== drag.pointerId) return;
-    event.preventDefault();
-    const item = states.get(drag.state);
-    if (!item) return;
-    const point = pointFor(event);
-    const viewBox = svg.viewBox.baseVal;
-    let x = item.x + drag.baseDx + (point.x - drag.startX);
-    let y = item.y + drag.baseDy + (point.y - drag.startY);
-    x = Math.max(8, Math.min(x, Math.max(8, viewBox.width - item.w - 8)));
-    y = Math.max(70, Math.min(y, Math.max(70, viewBox.height - item.h - 8)));
-    item.dx = x - item.x;
-    item.dy = y - item.y;
-    item.node.setAttribute('transform', `translate(${item.dx} ${item.dy})`);
-    updateGeometry(drag.state);
-  });
-
-  const persist = async (state) => {
-    const item = states.get(state);
-    if (!item) return;
+  const persist = async (kind, id) => {
     const body = new URLSearchParams();
     body.set('owasys_action', 'persist-fsm-layout');
-    body.set('opus_fsm_layout_action', 'save-state');
+    body.set(
+      'opus_fsm_layout_action',
+      kind === 'state' ? 'save-state' : 'save-signal'
+    );
     body.set('opus_fsm_layout_key', card.dataset.opusFsmLayoutKey || '');
-    body.set('opus_fsm_layout_state', state);
-    body.set('opus_fsm_layout_x', String(item.x + item.dx));
-    body.set('opus_fsm_layout_y', String(item.y + item.dy));
+    if (kind === 'state') {
+      const item = states.get(id);
+      if (!item) return;
+      body.set('opus_fsm_layout_state', id);
+      body.set('opus_fsm_layout_x', String(item.x + item.dx));
+      body.set('opus_fsm_layout_y', String(item.y + item.dy));
+    }
     body.set('opus_fsm_layout_geometry', JSON.stringify(geometrySnapshot()));
     body.set('csrf_token', card.dataset.opusFsmLayoutCsrf || '');
     const response = await fetch(window.location.href, {
@@ -4186,15 +4216,118 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     rotateCsrfFromResponse(responseHtml);
   };
 
+  let drag = null;
+
+  const draggableTarget = (target) => {
+    if (!(target instanceof Element)) return null;
+    const signal = target.closest(
+      '.fsm-signal-card[data-layout-signal-draggable="1"]'
+    );
+    if (signal instanceof SVGGElement) return {kind:'signal', node:signal};
+    const state = target.closest('.fsm-node[data-layout-draggable="1"]');
+    if (state instanceof SVGGElement) return {kind:'state', node:state};
+    return null;
+  };
+
+  svg.addEventListener('contextmenu', (event) => {
+    if (draggableTarget(event.target)) event.preventDefault();
+  });
+
+  svg.addEventListener('auxclick', (event) => {
+    if (event.button === 2 && draggableTarget(event.target)) {
+      event.preventDefault();
+    }
+  });
+
+  svg.addEventListener('pointerdown', (event) => {
+    if (event.button !== 2) return;
+    const target = draggableTarget(event.target);
+    if (!target) return;
+    event.preventDefault();
+    const start = pointFor(event);
+    if (target.kind === 'state') {
+      const state = target.node.dataset.state || '';
+      const item = states.get(state);
+      if (!item) return;
+      drag = {
+        kind:'state',
+        id:state,
+        node:target.node,
+        pointerId:event.pointerId,
+        startX:start.x,
+        startY:start.y,
+        baseDx:item.dx,
+        baseDy:item.dy,
+      };
+    } else {
+      const group = target.node.closest('.fsm-transition[data-transition-id]');
+      const id = group instanceof SVGGElement
+        ? (group.dataset.transitionId || '')
+        : '';
+      const item = signals.get(id);
+      if (!item) return;
+      drag = {
+        kind:'signal',
+        id,
+        node:target.node,
+        pointerId:event.pointerId,
+        startX:start.x,
+        startY:start.y,
+        baseDx:item.dx,
+        baseDy:item.dy,
+      };
+    }
+    svg.setPointerCapture(event.pointerId);
+    card.classList.add('is-layout-dragging');
+    target.node.classList.add('is-layout-dragging');
+  });
+
+  svg.addEventListener('pointermove', (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    event.preventDefault();
+    const point = pointFor(event);
+    const viewBox = svg.viewBox.baseVal;
+    if (drag.kind === 'state') {
+      const item = states.get(drag.id);
+      if (!item) return;
+      let x = item.x + drag.baseDx + (point.x - drag.startX);
+      let y = item.y + drag.baseDy + (point.y - drag.startY);
+      x = Math.max(8, Math.min(x, Math.max(8, viewBox.width - item.w - 8)));
+      y = Math.max(70, Math.min(y, Math.max(70, viewBox.height - item.h - 8)));
+      item.dx = x - item.x;
+      item.dy = y - item.y;
+      item.node.setAttribute('transform', `translate(${item.dx} ${item.dy})`);
+      updateGeometry(drag.id);
+      return;
+    }
+
+    const item = signals.get(drag.id);
+    if (!item) return;
+    const offset = anchorOffset(item.group);
+    let x = item.x + drag.baseDx + (point.x - drag.startX) + offset.x;
+    let y = item.y + drag.baseDy + (point.y - drag.startY) + offset.y;
+    x = Math.max(
+      item.w / 2 + 8,
+      Math.min(x, Math.max(item.w / 2 + 8, viewBox.width - item.w / 2 - 8))
+    );
+    y = Math.max(
+      item.h / 2 + 70,
+      Math.min(y, Math.max(item.h / 2 + 70, viewBox.height - item.h / 2 - 8))
+    );
+    item.dx = x - offset.x - item.x;
+    item.dy = y - offset.y - item.y;
+    item.node.setAttribute('transform', `translate(${item.dx} ${item.dy})`);
+    updateLabelLeader(item.group, item.group.querySelector('path.fsm-edge'));
+  });
+
   const finish = async (event) => {
     if (!drag || event.pointerId !== drag.pointerId) return;
-    const state = drag.state;
-    const item = states.get(state);
+    const completed = drag;
     drag = null;
     card.classList.remove('is-layout-dragging');
-    if (item) item.node.classList.remove('is-layout-dragging');
+    completed.node.classList.remove('is-layout-dragging');
     try {
-      await persist(state);
+      await persist(completed.kind, completed.id);
       card.dataset.opusFsmLayoutSaveState = 'saved';
     } catch (error) {
       card.dataset.opusFsmLayoutSaveState = 'error';
@@ -4231,6 +4364,8 @@ HTML;
     .fsm-node.current rect { fill:var(--opus-fsm-current-bg,#17365d); stroke:var(--opus-fsm-current-border,#6ce3ff); stroke-width:3; }
     .fsm-node[data-layout-draggable="1"] { cursor:move; touch-action:none; }
     .fsm-node[data-layout-draggable="1"].is-layout-dragging rect { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:3; }
+    .fsm-signal-card[data-layout-signal-draggable="1"] { cursor:move; touch-action:none; }
+    .fsm-signal-card[data-layout-signal-draggable="1"].is-layout-dragging .fsm-edge-label-bg { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:2.4; }
     .fsm-node-link { cursor:pointer; text-decoration:none; }
     .fsm-node-link:hover .fsm-node rect,
     .fsm-node-link:focus .fsm-node rect { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:3; }

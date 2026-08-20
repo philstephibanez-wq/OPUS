@@ -15,6 +15,8 @@ use RuntimeException;
  * Contract:
  * - the canonical FSM definition remains the sole semantic source of truth;
  * - persisted layout stores only presentation geometry and canvas metadata;
+ * - V3 persists both state coordinates and independently movable signal-card
+ *   coordinates while retaining canonical FSM semantics exclusively in the FSM;
  * - when no layout exists, OPUS persists the computed automatic layout in DEV;
  * - when a layout exists, persisted state and transition geometry wins;
  * - new FSM states are auto-positioned and merged without discarding existing
@@ -24,9 +26,13 @@ use RuntimeException;
  */
 final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
 {
-    public const CONTRACT = 'OPUS_FSM_DIAGRAM_LAYOUT_V2';
-    private const LEGACY_CONTRACT = 'OPUS_FSM_DIAGRAM_LAYOUT_V1';
-    private const SAVE_ACTION = 'save-state';
+    public const CONTRACT = 'OPUS_FSM_DIAGRAM_LAYOUT_V3';
+    private const LEGACY_CONTRACTS = [
+        'OPUS_FSM_DIAGRAM_LAYOUT_V2',
+        'OPUS_FSM_DIAGRAM_LAYOUT_V1',
+    ];
+    private const SAVE_STATE_ACTION = 'save-state';
+    private const SAVE_SIGNAL_ACTION = 'save-signal';
     private const MAX_COORDINATE = 100000.0;
     private const MAX_GEOMETRY_BYTES = 262144;
     private const MAX_SVG_PATH_BYTES = 8192;
@@ -190,8 +196,8 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
 
     /**
      * Persist the exact server-rendered presentation geometry after a render.
-     * Existing persisted transition geometry wins; this method only completes
-     * missing geometry (initial bootstrap or newly introduced transitions).
+     * Renderer output replaces stale transition presentation geometry so local
+     * paths self-heal and V3 signal-card coordinates remain current.
      *
      * @param array<string,mixed> $definition
      * @param array<string,mixed> $renderedGeometry
@@ -362,7 +368,8 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
         }
         $layout = $this->readLayout();
         $contract = (string) ($layout['contract'] ?? '');
-        if (!in_array($contract, [self::CONTRACT, self::LEGACY_CONTRACT], true)) {
+        if ($contract !== self::CONTRACT
+            && !in_array($contract, self::LEGACY_CONTRACTS, true)) {
             throw new RuntimeException(
                 'OPUS_FSM_DIAGRAM_LAYOUT_CONTRACT_INVALID:'
                 . $this->layoutRelative
@@ -487,7 +494,11 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
         if (strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'POST') {
             return false;
         }
-        if ((string) ($_POST['opus_fsm_layout_action'] ?? '') !== self::SAVE_ACTION) {
+        if (!in_array(
+            (string) ($_POST['opus_fsm_layout_action'] ?? ''),
+            [self::SAVE_STATE_ACTION, self::SAVE_SIGNAL_ACTION],
+            true
+        )) {
             return false;
         }
         $key = trim((string) ($_POST['opus_fsm_layout_key'] ?? ''));
@@ -504,17 +515,23 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
         $token = trim((string) ($_POST['csrf_token'] ?? ''));
         (new CsrfTokenManager())->assertValid($this->csrfScope(), $token);
 
-        $stateId = trim((string) ($_POST['opus_fsm_layout_state'] ?? ''));
-        $known = $this->definitionStateSet($definition);
-        if ($stateId === '' || !isset($known[$stateId])) {
+        $action = (string) ($_POST['opus_fsm_layout_action'] ?? '');
+        if ($action === self::SAVE_STATE_ACTION) {
+            $stateId = trim((string) ($_POST['opus_fsm_layout_state'] ?? ''));
+            $known = $this->definitionStateSet($definition);
+            if ($stateId === '' || !isset($known[$stateId])) {
+                throw new RuntimeException(
+                    'OPUS_FSM_DIAGRAM_LAYOUT_STATE_UNKNOWN:' . $stateId
+                );
+            }
+            $x = $this->coordinate($_POST['opus_fsm_layout_x'] ?? null, 'x');
+            $y = $this->coordinate($_POST['opus_fsm_layout_y'] ?? null, 'y');
+            $layout['states'][$stateId] = ['x' => $x, 'y' => $y];
+        } elseif ($action !== self::SAVE_SIGNAL_ACTION) {
             throw new RuntimeException(
-                'OPUS_FSM_DIAGRAM_LAYOUT_STATE_UNKNOWN:' . $stateId
+                'OPUS_FSM_DIAGRAM_LAYOUT_ACTION_INVALID:' . $action
             );
         }
-        $x = $this->coordinate($_POST['opus_fsm_layout_x'] ?? null, 'x');
-        $y = $this->coordinate($_POST['opus_fsm_layout_y'] ?? null, 'y');
-
-        $layout['states'][$stateId] = ['x' => $x, 'y' => $y];
 
         $geometryRaw = (string) ($_POST['opus_fsm_layout_geometry'] ?? '');
         if ($geometryRaw !== '') {
