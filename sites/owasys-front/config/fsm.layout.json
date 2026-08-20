@@ -1,11 +1,11 @@
 {
     "contract": "OPUS_FSM_DIAGRAM_LAYOUT_V4",
     "fsm_path": "config/fsm.json",
-    "definition_sha256": "5051d8fd1c8dddcde0dca020d3981e384519ab71f9bd6974092cb68dbeedef0a",
+    "definition_sha256": "3bc7a36f71330bffb24b7cc8defee5590b16ffe5cec6b0f34f1ce817e1270122",
     "layout_direction": "vertical",
     "canvas": {
         "width": 1372,
-        "height": 3132
+        "height": 2970
     },
     "states": {
         "login": {
@@ -18,7 +18,7 @@
         },
         "account": {
             "x": 8,
-            "y": 474
+            "y": 499
         },
         "creation_basics": {
             "x": 462,
@@ -37,20 +37,12 @@
             "y": 658
         },
         "application_creating": {
-            "x": 329,
-            "y": 795
-        },
-        "application_created": {
-            "x": 279,
-            "y": 958
-        },
-        "application_creation_failed": {
-            "x": 722,
-            "y": 728
+            "x": 379,
+            "y": 831
         },
         "application": {
-            "x": 1144,
-            "y": 1157
+            "x": 1184,
+            "y": 1002
         },
         "data": {
             "x": 697.95,
@@ -125,16 +117,16 @@
             "leader_path": "M677 198.5 L679 221.5"
         },
         "t_select_app": {
-            "path": "M1159 503 C1159 830, 1234 830, 1234 1157",
+            "path": "M1159 503 C1159 752.5, 1274 752.5, 1274 1002",
             "label_x": 1036.99,
             "label_y": 779,
-            "leader_path": "M18 830 L1036.99 779"
+            "leader_path": "M18 752.5 L1036.99 779"
         },
         "t_clear_context": {
             "path": "",
-            "label_x": 1162,
-            "label_y": 600,
-            "leader_path": "M1159 537 L1162 600"
+            "label_x": 1043,
+            "label_y": 557,
+            "leader_path": "M1159 537 L1043 557"
         },
         "t_create_app": {
             "path": "M1069 470 C855.5 470, 855.5 522, 642 522",
@@ -144,9 +136,9 @@
         },
         "t_delete_app": {
             "path": "",
-            "label_x": 1252.43,
-            "label_y": 545,
-            "leader_path": "M1159 584 L1252.43 545"
+            "label_x": 1288.43,
+            "label_y": 558,
+            "leader_path": "M1159 584 L1288.43 558"
         },
         "t_creation_basics_security": {
             "path": "M552 555 C552 618, 552 618, 552 681",
@@ -185,40 +177,22 @@
             "leader_path": "M18 702.5 L391 755.5"
         },
         "t_creation_begin": {
-            "path": "M188 691 C258.5 691, 258.5 828, 329 828",
+            "path": "M188 691 C283.5 691, 283.5 864, 379 864",
             "label_x": 110,
             "label_y": 870,
-            "leader_path": "M180.5 759.5 L110 870"
+            "leader_path": "M18 777.5 L110 870"
         },
         "t_creation_created": {
-            "path": "M509 828 C826.5 828, 826.5 1190, 1144 1190",
-            "label_x": 642.99,
-            "label_y": 964.5,
-            "leader_path": "M18 1009 L642.99 964.5"
+            "path": "M559 864 C871.5 864, 871.5 1035, 1184 1035",
+            "label_x": 558.99,
+            "label_y": 1040.5,
+            "leader_path": "M18 949.5 L558.99 1040.5"
         },
         "t_creation_failed": {
-            "path": "M509 828 C615.5 828, 615.5 761, 722 761",
-            "label_x": 859,
-            "label_y": 865,
-            "leader_path": "M18 794.5 L859 865"
-        },
-        "t_creation_failure_security": {
-            "path": "M722 761 C682 761, 682 714, 642 714",
-            "label_x": 743,
-            "label_y": 620.5,
-            "leader_path": "M18 737.5 L743 620.5"
-        },
-        "t_creation_failure_retry": {
-            "path": "M722 761 C615.5 761, 615.5 828, 509 828",
-            "label_x": 862,
-            "label_y": 925,
-            "leader_path": "M18 794.5 L862 925"
-        },
-        "t_creation_failure_cancel": {
-            "path": "M902 761 C985.5 761, 985.5 470, 1069 470",
-            "label_x": 913,
-            "label_y": 678.5,
-            "leader_path": "M18 615.5 L913 678.5"
+            "path": "M379 864 C283.5 864, 283.5 691, 188 691",
+            "label_x": 18,
+            "label_y": 759.5,
+            "leader_path": "M18 777.5 L18 759.5"
         },
         "t_creation_review_cancel": {
             "path": "M188 691 C628.5 691, 628.5 470, 1069 470",
@@ -251,9 +225,9 @@
             "leader_path": ""
         },
         "g_open_account": {
-            "path": "M98 460 C98 467, 98 467, 98 474",
+            "path": "M98 485 C98 492, 98 492, 98 499",
             "label_x": 98,
-            "label_y": 447.5,
+            "label_y": 472.5,
             "leader_path": ""
         },
         "g_open_password_change": {
@@ -276,9 +250,9 @@
         },
         "g_open_application": {
             "path": "",
-            "label_x": 1220.35,
-            "label_y": 744.5,
-            "leader_path": "M1234 807.5 L1220.35 744.5"
+            "label_x": 1259.35,
+            "label_y": 618.5,
+            "leader_path": "M1274 652.5 L1259.35 618.5"
         },
         "g_open_data": {
             "path": "",
@@ -336,9 +310,9 @@
         },
         "g_update_application": {
             "path": "",
-            "label_x": 1224.2,
-            "label_y": 829,
-            "leader_path": "M1234 877 L1224.2 829"
+            "label_x": 1267.2,
+            "label_y": 698,
+            "leader_path": "M1274 722 L1267.2 698"
         },
         "g_delete_application": {
             "path": "M1159 423 C1159 430, 1159 430, 1159 437",
@@ -348,21 +322,21 @@
         },
         "g_read_current_application": {
             "path": "",
-            "label_x": 1232,
-            "label_y": 915,
-            "leader_path": "M1234 954 L1232 915"
+            "label_x": 1270,
+            "label_y": 782,
+            "leader_path": ""
         },
         "g_update_current_application": {
             "path": "",
-            "label_x": 1232.05,
-            "label_y": 996,
-            "leader_path": "M1234 1031 L1232.05 996"
+            "label_x": 1268.05,
+            "label_y": 859,
+            "leader_path": "M1274 876 L1268.05 859"
         },
         "g_delete_current_application": {
-            "path": "M1234 1143 C1234 1150, 1234 1150, 1234 1157",
-            "label_x": 1233.05,
-            "label_y": 1080,
-            "leader_path": "M1234 1108 L1233.05 1080"
+            "path": "M1274 988 C1274 995, 1274 995, 1274 1002",
+            "label_x": 1273.05,
+            "label_y": 939,
+            "leader_path": ""
         },
         "g_create_data": {
             "path": "",

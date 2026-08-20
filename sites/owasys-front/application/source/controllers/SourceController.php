@@ -115,6 +115,7 @@ final class OwasysSourceController
         $siteId = (string) ($currentApp['id'] ?? '');
         $gitPost = $method === 'POST'
             && array_key_exists('git_action', $_POST);
+        $gitRequested = $this->gitWorkspaceRequested();
 
         if ($method === 'GET') {
             try {
@@ -160,7 +161,10 @@ final class OwasysSourceController
                     $this->redirectCurrentSource(
                         $locale,
                         $sourcePath,
-                        ['git_status' => $this->gitSuccessStatus($gitAction)]
+                        [
+                            'git' => '1',
+                            'git_status' => $this->gitSuccessStatus($gitAction),
+                        ]
                     );
                     return;
                 } catch (Throwable $error) {
@@ -341,25 +345,27 @@ final class OwasysSourceController
             }
         }
 
-        try {
-            $this->security->assertAllowed($identity, 'git', 'read');
-            $gitStatus = $this->source->gitStatus($siteId, $identity);
-            $gitHistory = $this->source->gitHistory($siteId, $identity);
-            if ($sourcePath !== '') {
-                $gitDiff = $this->source->gitDiff(
-                    $siteId,
-                    $sourcePath,
-                    $identity
-                );
-            }
-        } catch (Throwable $error) {
-            if ($gitErrorCode === null) {
-                $gitErrorCode = $this->safeErrorCode($error);
-                $gitFeedback = 'failed';
-                if ($sourceErrorCode === null) {
-                    http_response_code(
-                        $this->statusForError($gitErrorCode)
+        if ($gitRequested) {
+            try {
+                $this->security->assertAllowed($identity, 'git', 'read');
+                $gitStatus = $this->source->gitStatus($siteId, $identity);
+                $gitHistory = $this->source->gitHistory($siteId, $identity);
+                if ($sourcePath !== '') {
+                    $gitDiff = $this->source->gitDiff(
+                        $siteId,
+                        $sourcePath,
+                        $identity
                     );
+                }
+            } catch (Throwable $error) {
+                if ($gitErrorCode === null) {
+                    $gitErrorCode = $this->safeErrorCode($error);
+                    $gitFeedback = 'failed';
+                    if ($sourceErrorCode === null) {
+                        http_response_code(
+                            $this->statusForError($gitErrorCode)
+                        );
+                    }
                 }
             }
         }
@@ -655,6 +661,21 @@ final class OwasysSourceController
             throw new RuntimeException('OWASYS_GIT_STATUS_OPTION_INVALID');
         }
         return $value;
+    }
+
+    private function gitWorkspaceRequested(): bool
+    {
+        $value = $_GET['git'] ?? null;
+        if ($value === null) {
+            return false;
+        }
+        if (!is_string($value) || trim($value) !== '1') {
+            http_response_code(400);
+            throw new RuntimeException(
+                'OWASYS_GIT_WORKSPACE_OPTION_INVALID'
+            );
+        }
+        return true;
     }
 
     private function gitSuccessStatus(string $action): string
@@ -969,6 +990,11 @@ final class OwasysSourceController
             true
         );
         $gitAvailable = is_array($gitStatus) && is_array($gitHistory);
+        $gitLoadable = !$gitAvailable && $gitErrorCode === null;
+        $gitLoadUrl = (new UrlBuilder())->withQuery(
+            $selectedUrl,
+            ['git' => '1']
+        );
         $gitCanStage = $this->security->isAllowed($identity, 'git', 'stage');
         $gitCanUnstage = $this->security->isAllowed($identity, 'git', 'unstage');
         $gitCanCommit = $this->security->isAllowed($identity, 'git', 'commit');
@@ -1176,6 +1202,8 @@ final class OwasysSourceController
             'git' => [
                 'available' => $gitAvailable,
                 'unavailable' => !$gitAvailable,
+                'loadable' => $gitLoadable,
+                'load_url' => $gitLoadUrl,
                 'failed' => $gitFeedback === 'failed',
                 'error_code' => $gitErrorCode ?? '',
                 'staged_success' => $gitFeedback === 'staged',

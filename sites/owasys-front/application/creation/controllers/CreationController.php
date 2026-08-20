@@ -15,8 +15,9 @@ use Opus\Profiler\Profiler;
  * OWASYS application creation workflow.
  *
  * A4AI removes the parallel creation-wizard FSM. The canonical site FSM owns
- * creation_basics -> creation_security -> creation_review -> application_creating
- * -> application_created | application_creation_failed.
+ * creation_basics -> creation_security -> creation_review -> application_creating.
+ * Creation outcomes are signals: success selects the application; failure
+ * returns to creation_review with the existing SCORE error alert.
  * All writes still cross REST then Composer.
  */
 final class OwasysCreationController
@@ -30,7 +31,6 @@ final class OwasysCreationController
         'creation_security' => 'security',
         'creation_review' => 'review',
         'application_creating' => 'review',
-        'application_creation_failed' => 'review',
     ];
 
     private readonly OwasysLocaleRegistry $locales;
@@ -297,11 +297,7 @@ final class OwasysCreationController
             return;
         }
 
-        if (!in_array(
-            $state,
-            ['creation_review', 'application_creation_failed'],
-            true
-        )) {
+        if ($state !== 'creation_review') {
             throw new RuntimeException(
                 'OWASYS_CREATION_REVIEW_REQUIRED:' . $state
             );
@@ -369,6 +365,13 @@ final class OwasysCreationController
                 'application_created',
                 $context
             );
+            $createdState = (string) ($transition['next_state'] ?? '');
+            if ($createdState !== 'application') {
+                throw new RuntimeException(
+                    'OWASYS_CREATION_SUCCESS_STATE_INVALID:'
+                        . $createdState
+                );
+            }
             (new OwasysFsmActionHandlers(
                 $this->session,
                 $this->security,
@@ -391,14 +394,14 @@ final class OwasysCreationController
             $this->profiler->stop([
                 'status' => 'succeeded',
                 'workflow' => 'application_creation',
-                'fsm_state' => 'application_created',
+                'fsm_state' => 'application',
             ]);
             $this->redirect($locale, 'data');
             return;
         } catch (Throwable $error) {
             $code = $this->safeErrorCode($error);
             try {
-                $fsm->transition(
+                $failure = $fsm->transition(
                     $creatingState,
                     'application_creation_failed',
                     [
@@ -406,6 +409,15 @@ final class OwasysCreationController
                         'is_authenticated' => true,
                     ]
                 );
+                $failureState = (string) (
+                    $failure['next_state'] ?? ''
+                );
+                if ($failureState !== 'creation_review') {
+                    throw new RuntimeException(
+                        'OWASYS_CREATION_FAILURE_STATE_INVALID:'
+                            . $failureState
+                    );
+                }
                 $store->persist($fsm);
             } catch (Throwable $fsmError) {
                 $this->logger->error(
@@ -436,13 +448,13 @@ final class OwasysCreationController
             $this->profiler->stop([
                 'status' => 'failed',
                 'workflow' => 'application_creation',
-                'fsm_state' => 'application_creation_failed',
+                'fsm_state' => 'creation_review',
                 'error_code' => $code,
             ]);
             http_response_code(422);
             $this->render(
                 $fsmConfig,
-                'application_creation_failed',
+                'creation_review',
                 $locale,
                 $identity,
                 [

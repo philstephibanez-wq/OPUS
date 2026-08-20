@@ -440,6 +440,13 @@ final class OwasysRuntimeController
             );
         }
 
+        if (!is_array($identity)) {
+            return [
+                'signal' => 'auth_required',
+                'redirect' => true,
+            ];
+        }
+
         return [
             'signal' => $signal,
             'redirect' => $signal === 'logout',

@@ -147,6 +147,12 @@
   [[ if: git.failed ]]
     <p class="ow-error" data-context="OWASYS_GIT_FAILURE">[[ i18n: source.failed ]] <code>{{ git.error_code }}</code></p>
   [[ endif ]]
+  [[ if: git.loadable ]]
+    <div class="ow-git-summary" data-context="OWASYS_GIT_LAZY_LOAD">
+      <p class="ow-muted">[[ i18n: git.status ]] · [[ i18n: git.history ]]</p>
+      <a class="ow-button ow-button-secondary" href="{{ git.load_url }}">[[ i18n: git.title ]]</a>
+    </div>
+  [[ endif ]]
   [[ if: git.read_only ]]
     <p class="ow-source-notice ow-source-notice-warning">[[ i18n: git.read_only ]]</p>
   [[ endif ]]

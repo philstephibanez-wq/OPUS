@@ -1,0 +1,15 @@
+{
+  "contract": "MAESTRO_OPUS_DIFFERENTIAL_DELIVERY_V1",
+  "milestone": "P117W_R45B2A4BS",
+  "baseline_opus_master": "7038d0264e90b4bb83f124fa752f834ae5ee792d",
+  "files": [
+    {
+      "path": "sites/owasys-front/application/source/controllers/SourceController.php",
+      "sha256": "40f7a1348ac6e9e32afdfcf1318d9f457addec9c07a6a28e82cff4eafbc06f12"
+    },
+    {
+      "path": "sites/owasys-front/application/source/templates/index.score",
+      "sha256": "9cf9478740a6d520228b0c95a351d2dbcf162f8ad5336966b2c69030b9f0f527"
+    }
+  ]
+}
