@@ -11,7 +11,7 @@ use Opus\Profiler\ProfilerInterface;
 
 final class OwasysScorePageRenderer
 {
-    private const FSM_I18N_REVISION = 'P117W_R45B2A4BE';
+    private const FSM_I18N_REVISION = 'P117W_R45B2A4BQ';
 
     private readonly OwasysFsmDiagramBuilder $fsmDiagram;
 
@@ -292,27 +292,37 @@ final class OwasysScorePageRenderer
                 ? $state['navigation']
                 : [];
             $stateModule = $this->stateModule($state, $id);
-            $labelKey = trim((string) (
-                $navigation['label']
-                ?? $state['title_key']
-                ?? ('menu.' . $stateModule)
-            ));
+            $entryState = trim((string) ($state['type'] ?? '')) === 'entry';
 
-            $stateRuntime = $this->translationRuntime(
-                $runtimes,
-                $stateModule,
-                $locale
-            );
-
-            $data['navigation'][$index]['label'] =
-                $this->translateStateText(
-                    $stateRuntime,
-                    $id,
+            if ($entryState) {
+                /*
+                 * Entry states are technical FSM control states, not human
+                 * navigation resources. Their canonical ID is deliberately
+                 * not an I18n message key. Keep it available to diagnostic
+                 * consumers without forcing a translation that cannot exist.
+                 */
+                $data['navigation'][$index]['label'] = $id;
+            } else {
+                $labelKey = trim((string) (
+                    $navigation['label']
+                    ?? $state['title_key']
+                    ?? ('menu.' . $stateModule)
+                ));
+                $stateRuntime = $this->translationRuntime(
+                    $runtimes,
                     $stateModule,
-                    $locale,
-                    $labelKey,
-                    'menu'
+                    $locale
                 );
+                $data['navigation'][$index]['label'] =
+                    $this->translateStateText(
+                        $stateRuntime,
+                        $id,
+                        $stateModule,
+                        $locale,
+                        $labelKey,
+                        'menu'
+                    );
+            }
 
             foreach ((array) (
                 $data['navigation'][$index]['operations'] ?? []

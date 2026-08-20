@@ -98,7 +98,7 @@ final class OwasysNavigationBuilder
             $stateType = trim((string) ($state['type'] ?? ''));
             if (!in_array(
                 $stateType,
-                ['screen', 'workflow', 'result', 'system'],
+                ['entry', 'screen', 'workflow', 'result', 'system'],
                 true
             )) {
                 throw new RuntimeException(

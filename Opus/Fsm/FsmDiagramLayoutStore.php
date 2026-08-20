@@ -15,9 +15,11 @@ use RuntimeException;
  * Contract:
  * - the canonical FSM definition remains the sole semantic source of truth;
  * - persisted layout stores only presentation geometry and canvas metadata;
- * - V4 persists state coordinates, independently movable signal-card
- *   coordinates and the initial pseudo-state marker position while retaining
- *   canonical FSM semantics exclusively in the FSM;
+ * - V4 persists state coordinates and independently movable signal-card
+ *   coordinates; the initial pseudo-state marker remains supported only for
+ *   legacy FSM definitions without a canonical entry state;
+ * - canonical entry-state FSMs persist `begin` through ordinary state geometry
+ *   and never duplicate it as presentation-marker semantics;
  * - when no layout exists, OPUS persists the computed automatic layout in DEV;
  * - when a layout exists, persisted state and transition geometry wins;
  * - new FSM states are auto-positioned and merged without discarding existing
@@ -719,6 +721,18 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
         if ($initial === '') {
             return [];
         }
+
+        foreach ((array) ($definition['states'] ?? []) as $state) {
+            if (!is_array($state)
+                || trim((string) ($state['id'] ?? '')) !== $initial) {
+                continue;
+            }
+            if (trim((string) ($state['type'] ?? '')) === 'entry') {
+                return [];
+            }
+            break;
+        }
+
         $states = $this->definitionStateSet($definition);
         return isset($states[$initial]) ? ['initial' => true] : [];
     }

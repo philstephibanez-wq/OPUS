@@ -2,8 +2,14 @@
     "contract": "OWASYS_BACK_FSM_V1",
     "name": "OWASYS backend execution FSM",
     "source_of_truth": "config",
-    "initial_state": "api",
+    "initial_state": "begin",
     "states": [
+        {
+            "id": "begin",
+            "module": "api",
+            "route": "api/v1",
+            "type": "entry"
+        },
         {
             "id": "api",
             "module": "api",
@@ -41,6 +47,12 @@
         }
     ],
     "transitions": [
+        {
+            "id": "t_receive__from__begin",
+            "from": "begin",
+            "signal": "receive",
+            "next_state": "api"
+        },
         {
             "id": "t_receive__from__api",
             "from": "api",

@@ -1,16 +1,16 @@
 {
     "contract": "OPUS_FSM_DIAGRAM_LAYOUT_V4",
     "fsm_path": "config/fsm.json",
-    "definition_sha256": "3700b39ae764487c5e3d524e1793a51095dfd4a93f7e7146af73ef6971f9b4bb",
+    "definition_sha256": "5051d8fd1c8dddcde0dca020d3981e384519ab71f9bd6974092cb68dbeedef0a",
     "layout_direction": "vertical",
     "canvas": {
-        "width": 1252,
+        "width": 1292,
         "height": 3132
     },
     "states": {
         "login": {
             "x": 8,
-            "y": 146
+            "y": 270
         },
         "registry": {
             "x": 1064,
@@ -18,15 +18,15 @@
         },
         "account": {
             "x": 8,
-            "y": 327
+            "y": 455
         },
         "creation_basics": {
             "x": 400,
             "y": 461
         },
         "password": {
-            "x": 479,
-            "y": 105
+            "x": 587,
+            "y": 106
         },
         "creation_security": {
             "x": 461,
@@ -75,44 +75,54 @@
         "build": {
             "x": 789,
             "y": 1961
+        },
+        "begin": {
+            "x": 8,
+            "y": 70
         }
     },
     "transitions": {
+        "t_begin_open_login": {
+            "path": "M98 136 C98 203, 98 203, 98 270",
+            "label_x": 325.5,
+            "label_y": 82.5,
+            "leader_path": "M98 8 L325.5 82.5"
+        },
         "t_open_login": {
             "path": "",
             "label_x": 98,
-            "label_y": 238.5,
+            "label_y": 362.5,
             "leader_path": ""
         },
         "t_login_success": {
-            "path": "M188 179 C626 179, 626 467, 1064 467",
+            "path": "M188 303 C626 303, 626 467, 1064 467",
             "label_x": 766.56,
             "label_y": 331,
-            "leader_path": "M626 323 L766.56 331"
+            "leader_path": "M626 385 L766.56 331"
         },
         "t_login_failed": {
             "path": "",
             "label_x": 98,
-            "label_y": 270.5,
+            "label_y": 394.5,
             "leader_path": ""
         },
         "t_password_required": {
-            "path": "M188 179 C333.5 179, 333.5 138, 479 138",
-            "label_x": 328,
-            "label_y": 278,
-            "leader_path": "M18 158.5 L328 278"
+            "path": "M188 303 C387.5 303, 387.5 139, 587 139",
+            "label_x": 534,
+            "label_y": 274,
+            "leader_path": "M18 221 L534 274"
         },
         "t_password_changed": {
-            "path": "M659 138 C861.5 138, 861.5 467, 1064 467",
+            "path": "M767 139 C915.5 139, 915.5 467, 1064 467",
             "label_x": 904,
             "label_y": 113,
-            "leader_path": "M18 302.5 L904 113"
+            "leader_path": "M18 303 L904 113"
         },
         "t_password_failed": {
             "path": "",
-            "label_x": 571,
-            "label_y": 220.5,
-            "leader_path": "M569 197.5 L571 220.5"
+            "label_x": 679,
+            "label_y": 221.5,
+            "leader_path": "M677 198.5 L679 221.5"
         },
         "t_select_app": {
             "path": "M1154 500 C1154 738.5, 1078 738.5, 1078 977",
@@ -241,16 +251,16 @@
             "leader_path": "M1154 229 L1158 192"
         },
         "g_open_account": {
-            "path": "M98 313 C98 320, 98 320, 98 327",
+            "path": "M98 441 C98 448, 98 448, 98 455",
             "label_x": 98,
-            "label_y": 300.5,
+            "label_y": 428.5,
             "leader_path": ""
         },
         "g_open_password_change": {
-            "path": "M569 91 C569 98, 569 98, 569 105",
-            "label_x": 567,
-            "label_y": 52.5,
-            "leader_path": "M569 78.5 L567 52.5"
+            "path": "M677 92 C677 99, 677 99, 677 106",
+            "label_x": 675,
+            "label_y": 53.5,
+            "leader_path": "M677 79.5 L675 53.5"
         },
         "g_open_creation": {
             "path": "",
@@ -307,10 +317,10 @@
             "leader_path": ""
         },
         "g_logout": {
-            "path": "M98 132 C98 139, 98 139, 98 146",
-            "label_x": 98,
-            "label_y": 112,
-            "leader_path": ""
+            "path": "M98 256 C98 263, 98 263, 98 270",
+            "label_x": 348,
+            "label_y": 146,
+            "leader_path": "M98 236 L348 146"
         },
         "g_create_application": {
             "path": "M490 447 C490 454, 490 454, 490 461",
@@ -505,10 +515,5 @@
             "leader_path": ""
         }
     },
-    "markers": {
-        "initial": {
-            "x": 98,
-            "y": 30
-        }
-    }
+    "markers": []
 }

@@ -27,6 +27,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     /** @var array<string,string> */
     private array $_states = [];
 
+    /** @var array<string,string> */
+    private array $_stateTypes = [];
+
     /**
      * @var list<array{
      *   id:string,
@@ -424,6 +427,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         );
 
         $orderedStates = [];
+        $stateTypes = [];
         foreach ($states as $state) {
             if (!is_array($state)) {
                 continue;
@@ -431,6 +435,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             $stateId = trim((string) ($state['id'] ?? ''));
             if ($stateId !== '') {
                 $orderedStates[$stateId] = $stateId;
+                $stateTypes[$stateId] = trim((string) ($state['type'] ?? ''));
             }
         }
         foreach (array_keys($built->_states) as $state) {
@@ -439,6 +444,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             }
         }
         $built->_states = $orderedStates;
+        $built->_stateTypes = $stateTypes;
 
         return $built;
     }
@@ -3644,6 +3650,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         array $position
     ): string {
         $classes = 'fsm-node';
+        if (($this->_stateTypes[$state] ?? '') === 'entry') {
+            $classes .= ' entry';
+        }
         if ($state === $this->_currentState) {
             $classes .= ' current';
         }
@@ -3714,7 +3723,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     private function renderInitialMarker(array $positions): string
     {
         if ($this->_initialState === ''
-            || !isset($positions[$this->_initialState])) {
+            || !isset($positions[$this->_initialState])
+            || ($this->_stateTypes[$this->_initialState] ?? '') === 'entry') {
             return '';
         }
 
@@ -3754,9 +3764,10 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     }
 
     /**
-     * Keep the initial pseudo-state presentation point independent from the
-     * canonical initial_state while always routing its arrow to the current
-     * initial-state rectangle boundary.
+     * Keep the legacy initial pseudo-state presentation point independent from
+     * the canonical initial_state while always routing its arrow to the current
+     * initial-state rectangle boundary. Canonical entry-state FSMs render their
+     * real `begin` state instead and never use this pseudo marker.
      *
      * @param array{x:float,y:float,w:float,h:float,rank:int} $target
      */

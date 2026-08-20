@@ -450,12 +450,12 @@ final class OwasysRuntimeController
     {
         $current = $fsm->currentState();
 
-        if (
-            !$this->session->isAuthenticated()
-            && $current !== $fsm->initialState()
-        ) {
-            $fsm->reset();
-            $current = $fsm->currentState();
+        if (!$this->session->isAuthenticated()) {
+            $state = $fsm->state($current);
+            if (($state['requires_auth'] ?? false) === true) {
+                $fsm->reset();
+                $current = $fsm->currentState();
+            }
         }
 
         return $current;

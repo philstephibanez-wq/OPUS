@@ -582,6 +582,41 @@ final class FsmProcessor implements FsmProcessorInterface
             );
         }
 
+        $entryStates = [];
+        foreach ($this->statesById as $stateId => $state) {
+            $type = trim((string) ($state['type'] ?? ''));
+            if ($type === 'entry') {
+                $entryStates[$stateId] = true;
+            }
+        }
+        if (count($entryStates) > 1) {
+            throw new InvalidArgumentException(
+                'OPUS_FSM_ENTRY_STATE_AMBIGUOUS'
+            );
+        }
+        if ($entryStates !== [] && !isset($entryStates[$initial])) {
+            throw new InvalidArgumentException(
+                'OPUS_FSM_ENTRY_STATE_MUST_BE_INITIAL: ' . $initial
+            );
+        }
+        if (isset($this->statesById['begin'])) {
+            if (($this->statesById['begin']['type'] ?? null) !== 'entry') {
+                throw new InvalidArgumentException(
+                    'OPUS_FSM_BEGIN_STATE_TYPE_INVALID'
+                );
+            }
+            if ($initial !== 'begin') {
+                throw new InvalidArgumentException(
+                    'OPUS_FSM_BEGIN_STATE_MUST_BE_INITIAL: ' . $initial
+                );
+            }
+        }
+        if ($entryStates !== [] && !isset($entryStates['begin'])) {
+            throw new InvalidArgumentException(
+                'OPUS_FSM_ENTRY_STATE_ID_INVALID'
+            );
+        }
+
         $transitions = $this->fsm['transitions'] ?? null;
         if (!is_array($transitions)) {
             throw new InvalidArgumentException('OPUS_FSM_TRANSITIONS_MISSING');

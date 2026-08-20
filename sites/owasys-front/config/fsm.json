@@ -2,8 +2,27 @@
     "contract": "OWASYS_NAVIGATION_FSM_V1",
     "name": "OWASYS canonical workflow FSM",
     "source_of_truth": "config",
-    "initial_state": "login",
+    "initial_state": "begin",
     "states": [
+        {
+            "id": "begin",
+            "module": "login",
+            "route": "login",
+            "requires_auth": false,
+            "requires_current_app": false,
+            "title_key": "auth.sign_in",
+            "summary_key": "auth.sign_in_description",
+            "navigation": {
+                "visible": false,
+                "order": -10,
+                "label": "begin"
+            },
+            "diagram": {
+                "rank": 0,
+                "order": 50
+            },
+            "type": "entry"
+        },
         {
             "id": "login",
             "module": "login",
@@ -1022,6 +1041,12 @@
     ],
     "transitions": [
         {
+            "id": "t_begin_open_login",
+            "from": "begin",
+            "signal": "open_login",
+            "next_state": "login"
+        },
+        {
             "id": "t_open_login",
             "from": "login",
             "signal": "open_login",
@@ -1468,6 +1493,7 @@
             "id": "g_open_applications",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application",
@@ -1496,6 +1522,7 @@
             "id": "g_open_account",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "creation_basics",
@@ -1521,6 +1548,7 @@
             "id": "g_open_password_change",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "creation_basics",
@@ -1546,6 +1574,7 @@
             "id": "g_open_creation",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "creation_basics",
@@ -1571,6 +1600,7 @@
             "id": "g_change_app",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "creation_basics",
@@ -1622,6 +1652,7 @@
             "id": "g_open_data",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -1646,6 +1677,7 @@
             "id": "g_open_structure",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -1670,6 +1702,7 @@
             "id": "g_open_security",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -1694,6 +1727,7 @@
             "id": "g_open_fsm",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -1718,6 +1752,7 @@
             "id": "g_open_source",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -1742,6 +1777,7 @@
             "id": "g_open_build",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -1766,6 +1802,7 @@
             "id": "g_logout",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "creation_basics",
@@ -2030,6 +2067,7 @@
             "id": "g_create_data",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2061,6 +2099,7 @@
             "id": "g_read_data",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2092,6 +2131,7 @@
             "id": "g_update_data",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2123,6 +2163,7 @@
             "id": "g_delete_data",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2154,6 +2195,7 @@
             "id": "g_create_structure",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2185,6 +2227,7 @@
             "id": "g_read_structure",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2216,6 +2259,7 @@
             "id": "g_update_structure",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2247,6 +2291,7 @@
             "id": "g_delete_structure",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2278,6 +2323,7 @@
             "id": "g_create_security",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2309,6 +2355,7 @@
             "id": "g_read_security",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2340,6 +2387,7 @@
             "id": "g_update_security",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2371,6 +2419,7 @@
             "id": "g_delete_security",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2402,6 +2451,7 @@
             "id": "g_create_fsm",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2433,6 +2483,7 @@
             "id": "g_read_fsm",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2464,6 +2515,7 @@
             "id": "g_update_fsm",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2495,6 +2547,7 @@
             "id": "g_delete_fsm",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2526,6 +2579,7 @@
             "id": "g_create_source",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2557,6 +2611,7 @@
             "id": "g_read_source",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2588,6 +2643,7 @@
             "id": "g_update_source",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2619,6 +2675,7 @@
             "id": "g_delete_source",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2650,6 +2707,7 @@
             "id": "g_read_build",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2681,6 +2739,7 @@
             "id": "g_update_build",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2712,6 +2771,7 @@
             "id": "g_validate_build",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2743,6 +2803,7 @@
             "id": "g_run_build",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
@@ -2774,6 +2835,7 @@
             "id": "g_export_build",
             "scope": "global",
             "from_states": [
+                "begin",
                 "login",
                 "registry",
                 "application_created",
