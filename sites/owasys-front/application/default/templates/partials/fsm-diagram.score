@@ -3,14 +3,73 @@
   data-context="OWASYS_NATIVE_FSM_NAVIGATION"
   data-owasys-fsm-diagram
   data-fsm-ui-contract="OWASYS_FSM_MENU_V1"
-  data-fsm-ui-revision="P117W_R45B2A4Z"
+  data-fsm-ui-revision="P117W_R45B2A4BZ1"
+  data-fsm-designer-mode="{{ fsm_designer.mode }}"
+  data-fsm-designer-payload="{{ fsm_diagram.designer_payload }}"
 >
   <div class="ow-fsm-heading">
     <h2>[[ i18n: navigation.main ]] · FSM</h2>
-    <small class="ow-fsm-ui-revision">menu = FSM · graphe fixe classique · A4Z</small>
+    <small class="ow-fsm-ui-revision">menu = FSM · EFSM designer · A4BZ1</small>
   </div>
   <p class="ow-muted">{{ fsm_diagram.description }}</p>
-  <div class="ow-fsm-native-canvas">
-    {{{ fsm_diagram.html }}}
-  </div>
+
+  [[ if: fsm_designer.allowed ]]
+    <div class="ow-fsm-designer-toolbar" role="toolbar" aria-label="{{ fsm_designer.labels.designer }}">
+      [[ if: fsm_designer.active ]]
+        <a class="ow-fsm-designer-mode" href="{{ fsm_designer.close_url }}">{{ fsm_designer.labels.view }}</a>
+        <button type="button" class="is-active" data-fsm-designer-tool="select">{{ fsm_designer.labels.select }}</button>
+        <span class="ow-fsm-designer-toolgroup">
+          <strong>{{ fsm_designer.labels.state }}</strong>
+          <button type="button" disabled>{{ fsm_designer.labels.create }}</button>
+          <button type="button" disabled>{{ fsm_designer.labels.edit }}</button>
+          <button type="button" disabled>{{ fsm_designer.labels.rename }}</button>
+          <button type="button" disabled>{{ fsm_designer.labels.delete }}</button>
+        </span>
+        <span class="ow-fsm-designer-toolgroup">
+          <strong>{{ fsm_designer.labels.transition }}</strong>
+          <button type="button" disabled>{{ fsm_designer.labels.create }}</button>
+          <button type="button" disabled>{{ fsm_designer.labels.edit }}</button>
+          <button type="button" disabled>{{ fsm_designer.labels.rename }}</button>
+          <button type="button" disabled>{{ fsm_designer.labels.delete }}</button>
+        </span>
+        <span class="ow-fsm-designer-toolgroup">
+          <strong>{{ fsm_designer.labels.condition }}</strong>
+          <button type="button" disabled>{{ fsm_designer.labels.create }}</button>
+          <button type="button" disabled>{{ fsm_designer.labels.edit }}</button>
+          <button type="button" disabled>{{ fsm_designer.labels.rename }}</button>
+          <button type="button" disabled>{{ fsm_designer.labels.delete }}</button>
+        </span>
+        <button type="button" disabled>{{ fsm_designer.labels.validate }}</button>
+        <button type="button" disabled>{{ fsm_designer.labels.publish }}</button>
+      [[ else ]]
+        <a class="ow-fsm-designer-mode" href="{{ fsm_designer.open_url }}">{{ fsm_designer.labels.design }}</a>
+      [[ endif ]]
+    </div>
+  [[ endif ]]
+
+  [[ if: fsm_designer.active ]]
+    <div class="ow-fsm-designer-workspace">
+      <div class="ow-fsm-native-canvas">
+        {{{ fsm_diagram.html }}}
+      </div>
+      <aside class="ow-fsm-designer-inspector" data-fsm-designer-inspector>
+        <div class="ow-fsm-designer-inspector-heading">
+          <strong>{{ fsm_designer.labels.inspector }}</strong>
+          <small>{{ fsm_designer.labels.readonly }}</small>
+        </div>
+        <p class="ow-muted" data-fsm-designer-empty>{{ fsm_designer.labels.no_selection }}</p>
+        <div data-fsm-designer-selection hidden>
+          <div class="ow-fsm-designer-selection-header">
+            <span data-fsm-designer-kind></span>
+            <code data-fsm-designer-id></code>
+          </div>
+          <dl class="ow-fsm-designer-fields" data-fsm-designer-fields></dl>
+        </div>
+      </aside>
+    </div>
+  [[ else ]]
+    <div class="ow-fsm-native-canvas">
+      {{{ fsm_diagram.html }}}
+    </div>
+  [[ endif ]]
 </section>

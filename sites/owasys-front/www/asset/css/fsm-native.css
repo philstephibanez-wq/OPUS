@@ -738,3 +738,203 @@
   opacity: .82;
 }
 
+
+/* P117W_R45B2A4BZ1 — read-only EFSM graphical designer shell. */
+.ow-fsm-designer-toolbar {
+  position: sticky;
+  z-index: 45;
+  top: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .45rem;
+  margin-top: .7rem;
+  padding: .45rem;
+  border: 1px solid var(--ow-line);
+  border-radius: .65rem;
+  background: color-mix(in srgb, var(--ow-panel-2) 96%, transparent);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .18);
+}
+
+.ow-fsm-designer-mode,
+.ow-fsm-designer-toolbar button {
+  min-height: 2rem;
+  padding: .3rem .55rem;
+  border: 1px solid var(--ow-line);
+  border-radius: .45rem;
+  background: var(--ow-panel);
+  color: var(--ow-text);
+  font: inherit;
+  font-size: .76rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.ow-fsm-designer-mode {
+  border-color: var(--ow-accent);
+  color: var(--ow-accent);
+}
+
+.ow-fsm-designer-toolgroup {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  padding-left: .45rem;
+  border-left: 1px solid var(--ow-line);
+}
+
+.ow-fsm-designer-toolgroup > strong {
+  color: var(--ow-muted);
+  font-size: .7rem;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
+
+.ow-fsm-designer-toolbar button:disabled {
+  opacity: .42;
+  cursor: not-allowed;
+}
+
+.ow-fsm-designer-toolbar button.is-active {
+  border-color: var(--ow-ok);
+  color: var(--ow-ok);
+}
+
+.ow-fsm-designer-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+  gap: .7rem;
+  align-items: start;
+  margin-top: 1rem;
+}
+
+.ow-fsm-designer-workspace > .ow-fsm-native-canvas {
+  margin-top: 0;
+}
+
+.ow-fsm-designer-inspector {
+  position: sticky;
+  top: 3.2rem;
+  min-width: 0;
+  max-height: calc(100vh - 5rem);
+  overflow: auto;
+  padding: .75rem;
+  border: 1px solid var(--ow-line);
+  border-radius: .7rem;
+  background: var(--ow-panel-2);
+}
+
+.ow-fsm-designer-inspector-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: .65rem;
+}
+
+.ow-fsm-designer-inspector-heading small {
+  color: var(--ow-muted);
+}
+
+.ow-fsm-designer-selection-header {
+  display: flex;
+  align-items: baseline;
+  gap: .5rem;
+  margin-bottom: .65rem;
+}
+
+.ow-fsm-designer-selection-header span {
+  color: var(--ow-accent);
+  font-size: .72rem;
+  font-weight: 850;
+}
+
+.ow-fsm-designer-selection-header code {
+  overflow-wrap: anywhere;
+  color: var(--ow-text);
+}
+
+.ow-fsm-designer-fields {
+  display: grid;
+  grid-template-columns: minmax(8rem, auto) minmax(0, 1fr);
+  gap: .18rem .55rem;
+  margin: 0;
+  font-size: .76rem;
+}
+
+.ow-fsm-designer-fields dt {
+  color: var(--ow-muted);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.ow-fsm-designer-fields dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--ow-text);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+[data-fsm-designer-mode="design"] .fsm-node[data-state],
+[data-fsm-designer-mode="design"] .fsm-transition[data-transition-id] {
+  cursor: crosshair;
+}
+
+[data-fsm-designer-mode="design"] .fsm-signal-link,
+[data-fsm-designer-mode="design"] .fsm-signal-post-object {
+  pointer-events: none;
+}
+
+[data-fsm-designer-mode="design"]
+  .fsm-node.is-fsm-designer-selected
+  > rect {
+  stroke: var(--ow-accent);
+  stroke-width: 3;
+  filter: drop-shadow(0 0 5px var(--ow-accent));
+}
+
+[data-fsm-designer-mode="design"]
+  .fsm-transition.is-fsm-designer-selected
+  .fsm-edge {
+  stroke-width: 3.2;
+  filter: drop-shadow(0 0 5px var(--ow-fsm-origin-color, var(--ow-accent)));
+}
+
+[data-fsm-designer-mode="design"]
+  .fsm-transition.is-fsm-designer-selected
+  .fsm-edge-label-bg {
+  stroke-width: 2.4;
+}
+
+.fsm-designer-bezier-preview {
+  pointer-events: none;
+}
+
+.fsm-designer-bezier-preview line {
+  stroke: var(--ow-accent);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  opacity: .82;
+}
+
+.fsm-designer-bezier-preview circle {
+  fill: var(--ow-panel-2);
+  stroke: var(--ow-accent);
+  stroke-width: 1.6;
+}
+
+.fsm-designer-bezier-preview circle[data-bezier-role="C1"],
+.fsm-designer-bezier-preview circle[data-bezier-role="C2"] {
+  fill: var(--ow-accent);
+}
+
+@media (max-width: 1180px) {
+  .ow-fsm-designer-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .ow-fsm-designer-inspector {
+    position: static;
+    max-height: none;
+  }
+}

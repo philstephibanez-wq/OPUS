@@ -69,16 +69,16 @@
             "y": 1104
         },
         "begin": {
-            "x": 8,
+            "x": 9.06,
             "y": 70
         }
     },
     "transitions": {
         "t_begin_open_login": {
-            "path": "M98 136 C98 160.0000228881836, 98 160.0000228881836, 98 184.0000457763672",
+            "path": "M99.06001281738281 136 C99.06001281738281 160, 98 160, 98 184",
             "label_x": 290.5,
             "label_y": 55,
-            "leader_path": "M98 8 L290.5 55"
+            "leader_path": "M98.53 8 L290.5 55"
         },
         "t_open_login": {
             "path": "",
@@ -202,8 +202,8 @@
         },
         "t_source_file": {
             "path": "",
-            "label_x": 1022,
-            "label_y": 1206.33,
+            "label_x": 1019,
+            "label_y": 1211.33,
             "leader_path": ""
         },
         "t_source_preview_requested": {
@@ -214,9 +214,9 @@
         },
         "t_source_previewed": {
             "path": "",
-            "label_x": 1019,
-            "label_y": 1273,
-            "leader_path": "M1018 1309.67 L1019 1273"
+            "label_x": 722,
+            "label_y": 1208.67,
+            "leader_path": "M1018 1309.67 L722 1208.67"
         },
         "g_open_applications": {
             "path": "",

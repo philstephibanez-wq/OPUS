@@ -6,7 +6,7 @@ use Opus\File\StructuredFileLoader;
 /** Builds a fixed visual projection from the canonical OWASYS FSM. */
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4BI';
+    private const REVISION = 'P117W_R45B2A4BZ1';
 
     public function __construct(
         private readonly string $siteRoot,
@@ -250,6 +250,54 @@ final class OwasysFsmDiagramBuilder
             'vertical'
         );
 
+        $designerPayload = '';
+        if (($pageData['fsm_designer']['active'] ?? false) === true) {
+            $designerStates = [];
+            foreach ($stateOrder as $stateId) {
+                $designerStates[$stateId] = $statesById[$stateId];
+            }
+
+            $designerTransitions = [];
+            $designerSignals = [];
+            foreach ($transitions as $transition) {
+                $transitionId = trim((string) ($transition['id'] ?? ''));
+                $signalId = trim((string) ($transition['signal'] ?? ''));
+                if ($transitionId === ''
+                    || $signalId === ''
+                    || !isset($signalRegistry[$signalId])) {
+                    throw new RuntimeException(
+                        'OWASYS_FSM_DESIGNER_SNAPSHOT_INVALID'
+                    );
+                }
+                $designerTransitions[$transitionId] = $transition;
+                $designerSignals[$signalId] = $signalRegistry[$signalId];
+            }
+
+            try {
+                $encoded = json_encode(
+                    [
+                        'contract' => 'OWASYS_EFSM_DESIGNER_SNAPSHOT_V1',
+                        'revision' => self::REVISION,
+                        'current_state' => $currentState,
+                        'initial_state' => $initialState,
+                        'states' => $designerStates,
+                        'signals' => $designerSignals,
+                        'transitions' => $designerTransitions,
+                    ],
+                    JSON_THROW_ON_ERROR
+                    | JSON_UNESCAPED_SLASHES
+                    | JSON_UNESCAPED_UNICODE
+                );
+            } catch (JsonException $cause) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_DESIGNER_SNAPSHOT_ENCODING_FAILED',
+                    0,
+                    $cause
+                );
+            }
+            $designerPayload = base64_encode($encoded);
+        }
+
         return [
             'visible' => true,
             'description' => 'EFSM verticale · départ '
@@ -261,6 +309,7 @@ final class OwasysFsmDiagramBuilder
             'current_state' => $currentState,
             'current_label' => $stateLabels[$currentState],
             'projected_transition_count' => count($transitions),
+            'designer_payload' => $designerPayload,
             'revision' => self::REVISION,
         ];
     }
@@ -524,6 +573,7 @@ final class OwasysFsmDiagramBuilder
             'current_state' => '',
             'current_label' => '',
             'projected_transition_count' => 0,
+            'designer_payload' => '',
             'revision' => self::REVISION,
         ];
     }

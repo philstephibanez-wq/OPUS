@@ -46,7 +46,9 @@ final class OwasysScorePageRenderer
         );
 
         $assets['fsm_css'] = $assetBase
-            . '/css/fsm-native.css?v=p117w-r45b2a4be';
+            . '/css/fsm-native.css?v=p117w-r45b2a4bz1';
+        $assets['fsm_designer_js'] = $assetBase
+            . '/js/fsm-designer.js?v=p117w-r45b2a4bz1';
 
         $source = is_array($data['source'] ?? null)
             ? $data['source']
@@ -117,6 +119,63 @@ final class OwasysScorePageRenderer
                 []
             ),
         ];
+
+        $designerRequested =
+            (string) ($_GET['fsm_design'] ?? '') === '1';
+        $designerAllowed = $this->security !== null
+            && $this->security->isAllowed(
+                is_array($identity) ? $identity : null,
+                'fsm',
+                'update'
+            );
+
+        if ($designerRequested && !$designerAllowed) {
+            throw new RuntimeException(
+                'OPUS_ACL_DENIED:fsm:update'
+            );
+        }
+
+        $designerOpenQuery = ['fsm_design' => 1];
+        $designerCloseQuery = [];
+        if ($profilerRequested && $profilerAllowed) {
+            $designerOpenQuery['profiler'] = 1;
+            $designerCloseQuery['profiler'] = 1;
+        }
+
+        $data['fsm_designer'] = [
+            'allowed' => $designerAllowed,
+            'active' => $designerAllowed && $designerRequested,
+            'mode' => $designerAllowed && $designerRequested
+                ? 'design'
+                : 'view',
+            'open_url' => $urlBuilder->withQuery(
+                $path,
+                $designerOpenQuery
+            ),
+            'close_url' => $urlBuilder->withQuery(
+                $path,
+                $designerCloseQuery
+            ),
+            'revision' => 'P117W_R45B2A4BZ1',
+            'labels' => $designerAllowed
+                ? $this->designerLabels($locale)
+                : [],
+        ];
+
+        if (($data['fsm_designer']['active'] ?? false) === true) {
+            $this->profiler?->event(
+                'fsm',
+                'designer.opened',
+                [
+                    'path' => $path,
+                    'state' => (string) ($data['fsm']['state'] ?? ''),
+                    'mode' => 'design',
+                ],
+                'success',
+                null,
+                $this->parentSpanId
+            );
+        }
 
         /*
          * State-owned text is resolved from the module that owns the state.
@@ -478,6 +537,48 @@ final class OwasysScorePageRenderer
         }
     }
 
+    /** @return array<string,string> */
+    private function designerLabels(string $locale): array
+    {
+        $runtime = new ApplicationTranslationRuntime(
+            $this->siteRoot . '/application',
+            'default',
+            $locale
+        );
+        $keys = [
+            'designer',
+            'design',
+            'view',
+            'select',
+            'state',
+            'transition',
+            'condition',
+            'create',
+            'edit',
+            'rename',
+            'delete',
+            'validate',
+            'publish',
+            'inspector',
+            'no_selection',
+            'readonly',
+        ];
+        $labels = [];
+        foreach ($keys as $key) {
+            $messageKey = 'fsm_designer.' . $key;
+            try {
+                $labels[$key] = $runtime->translate($messageKey);
+            } catch (TranslationException $cause) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_DESIGNER_I18N_MESSAGE_MISSING:'
+                    . $locale . ':' . $messageKey,
+                    0,
+                    $cause
+                );
+            }
+        }
+        return $labels;
+    }
     /** @return array<string,mixed> */
     private function loadFsm(): array
     {
