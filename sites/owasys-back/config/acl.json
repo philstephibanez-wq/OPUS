@@ -11,7 +11,8 @@
             "site:*",
             "source:*",
             "git:*",
-            "security:*"
+            "security:*",
+            "fsm:*"
         ],
         "viewer": [
             "registry:open",

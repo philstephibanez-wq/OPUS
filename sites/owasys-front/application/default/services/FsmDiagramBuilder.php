@@ -1,12 +1,15 @@
 <?php
 declare(strict_types=1);
 
+use Opus\File\File;
 use Opus\File\StructuredFileLoader;
 
 /** Builds a fixed visual projection from the canonical OWASYS FSM. */
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4BZ1';
+    private const REVISION = 'P117W_R45B2A4BZ2';
+
+    private string $sourceHash = '';
 
     public function __construct(
         private readonly string $siteRoot,
@@ -276,10 +279,12 @@ final class OwasysFsmDiagramBuilder
             try {
                 $encoded = json_encode(
                     [
-                        'contract' => 'OWASYS_EFSM_DESIGNER_SNAPSHOT_V1',
+                        'contract' => 'OWASYS_EFSM_DESIGNER_SNAPSHOT_V2',
                         'revision' => self::REVISION,
+                        'base_sha256' => $this->sourceHash,
                         'current_state' => $currentState,
                         'initial_state' => $initialState,
+                        'definition' => $fsm,
                         'states' => $designerStates,
                         'signals' => $designerSignals,
                         'transitions' => $designerTransitions,
@@ -610,8 +615,11 @@ final class OwasysFsmDiagramBuilder
             );
         }
 
+        $fsmPath = $this->siteRoot . '/' . $relative;
         try {
-            $fsm = $loader->read($this->siteRoot . '/' . $relative);
+            $raw = File::instance()->read($fsmPath, 2097152);
+            $this->sourceHash = hash('sha256', $raw);
+            $fsm = $loader->read($fsmPath);
         } catch (Throwable $cause) {
             throw new RuntimeException(
                 'OWASYS_FSM_NATIVE_CONFIG_INVALID:'

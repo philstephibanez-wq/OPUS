@@ -42,6 +42,14 @@
                 "owasys:git:commit",
                 "owasys:git:restore"
             ]
+        },
+        {
+            "id": "owasys-back-fsm",
+            "enabled": true,
+            "bootstrap": "application/fsm/console.php",
+            "commands": [
+                "owasys:fsm:draft-edit"
+            ]
         }
     ],
     "aliases": {
@@ -64,6 +72,7 @@
         "owasys:git-unstage": "owasys:git:unstage",
         "owasys:git-commit": "owasys:git:commit",
         "owasys:git-restore": "owasys:git:restore",
-        "owasys:security-fresh-auth-proof": "owasys:security:fresh-auth-proof"
+        "owasys:security-fresh-auth-proof": "owasys:security:fresh-auth-proof",
+        "owasys:fsm-draft-edit": "owasys:fsm:draft-edit"
     }
 }

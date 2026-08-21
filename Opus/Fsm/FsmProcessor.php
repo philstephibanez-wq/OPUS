@@ -976,6 +976,12 @@ final class FsmProcessor implements FsmProcessorInterface
     }
 
     /**
+     * Evaluates one developer-programmed guard handler.
+     *
+     * The generic EFSM engine owns no application guard vocabulary. Every
+     * named guard referenced by a transition must be supplied explicitly by
+     * the caller/application runtime.
+     *
      * @param array<string,mixed> $transition
      * @param array<string,mixed> $context
      */
@@ -986,54 +992,18 @@ final class FsmProcessor implements FsmProcessorInterface
         array $transition,
         array $context
     ): bool {
-        if ($guard === 'always') {
-            return true;
-        }
-
-        if (isset($this->guardHandlers[$guard])) {
-            return (bool) ($this->guardHandlers[$guard])(
-                $currentState,
-                $signal,
-                $transition,
-                $context,
-                $this
+        if (!isset($this->guardHandlers[$guard])) {
+            throw new RuntimeException(
+                'OPUS_FSM_GUARD_HANDLER_MISSING: ' . $guard
             );
         }
 
-        if ($guard === 'route_exists') {
-            $target = (string) ($transition['next_state'] ?? '');
-            return isset($this->statesById[$target])
-                && (string) ($this->statesById[$target]['route'] ?? '') !== '';
-        }
-
-        if ($guard === 'app_exists') {
-            return ($context['app_exists'] ?? null) === true
-                || is_array($context['registry_entry'] ?? null)
-                || is_array($context['selected_app'] ?? null)
-                || (string) ($context['selected_app'] ?? '') !== '';
-        }
-
-        if ($guard === 'current_app_required') {
-            $currentApp = $context['current_app'] ?? null;
-            return ($context['has_current_app'] ?? null) === true
-                || (is_array($currentApp) && $currentApp !== [])
-                || (is_string($currentApp) && $currentApp !== '');
-        }
-
-        if ($guard === 'current_app_or_creation_request') {
-            $currentApp = $context['current_app'] ?? null;
-            $hasCurrentApp = ($context['has_current_app'] ?? null) === true
-                || (is_array($currentApp) && $currentApp !== [])
-                || (is_string($currentApp) && $currentApp !== '');
-            return $hasCurrentApp
-                || is_array($context['creation_request'] ?? null)
-                || ($context['creation_request_started'] ?? null) === true;
-        }
-
-        if ($guard === 'must_change_password') {
-            return ($context['must_change_password'] ?? null) === true;
-        }
-
-        throw new RuntimeException('OPUS_FSM_GUARD_UNSUPPORTED: ' . $guard);
+        return (bool) ($this->guardHandlers[$guard])(
+            $currentState,
+            $signal,
+            $transition,
+            $context,
+            $this
+        );
     }
 }

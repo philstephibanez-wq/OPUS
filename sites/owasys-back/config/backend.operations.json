@@ -728,6 +728,42 @@
                     "max_length": 7
                 }
             ]
+        },
+        "fsm.draft.edit": {
+            "composer_script": "owasys:fsm-draft-edit",
+            "roles": [
+                "admin",
+                "developer"
+            ],
+            "arguments": [
+                {
+                    "name": "site_id",
+                    "required": true,
+                    "pattern": "^[a-z][a-z0-9-]*$",
+                    "max_length": 64
+                },
+                {
+                    "name": "base_sha256",
+                    "required": true,
+                    "transport": "request",
+                    "pattern": "^[a-f0-9]{64}$",
+                    "max_length": 64
+                },
+                {
+                    "name": "draft_json",
+                    "required": true,
+                    "transport": "request",
+                    "trim": false,
+                    "max_length": 2097152
+                },
+                {
+                    "name": "command_json",
+                    "required": true,
+                    "transport": "request",
+                    "trim": false,
+                    "max_length": 65536
+                }
+            ]
         }
     }
 }

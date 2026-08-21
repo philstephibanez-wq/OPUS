@@ -938,3 +938,180 @@
     max-height: none;
   }
 }
+
+/* P117W_R45B2A4BZ2 — graphical EFSM toolbar + state draft CRUD. */
+.ow-fsm-designer-toolbar {
+  gap: .35rem;
+  padding: .5rem .6rem;
+}
+
+.ow-fsm-designer-toolbar .ow-fsm-tool {
+  display: inline-grid;
+  grid-template-rows: 1.15rem auto;
+  place-items: center;
+  min-width: 3.15rem;
+  min-height: 3.05rem;
+  padding: .25rem .42rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ow-fsm-tool-icon {
+  display: block;
+  font-size: 1.08rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.ow-fsm-tool-label {
+  display: block;
+  max-width: 5.5rem;
+  overflow: hidden;
+  color: inherit;
+  font-size: .62rem;
+  font-weight: 800;
+  line-height: 1.05;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ow-fsm-designer-toolgroup {
+  gap: .18rem;
+  padding: .12rem .3rem .12rem .48rem;
+}
+
+.ow-fsm-designer-toolgroup > strong {
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  min-width: 1.15rem;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: .56rem;
+}
+
+.ow-fsm-designer-toolgroup.is-pending {
+  opacity: .52;
+}
+
+.ow-fsm-designer-toolbar button:not(:disabled):hover,
+.ow-fsm-designer-toolbar button:not(:disabled):focus-visible,
+.ow-fsm-designer-mode:hover,
+.ow-fsm-designer-mode:focus-visible {
+  border-color: var(--ow-accent);
+  color: var(--ow-accent);
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ow-accent) 22%, transparent);
+}
+
+.ow-fsm-designer-toolbar .ow-fsm-tool.is-primary {
+  border-color: var(--ow-ok);
+  color: var(--ow-ok);
+}
+
+.ow-fsm-designer-toolbar .ow-fsm-tool.is-danger:not(:disabled) {
+  border-color: color-mix(in srgb, var(--ow-danger) 65%, var(--ow-line));
+  color: var(--ow-danger);
+}
+
+.ow-fsm-designer-capability {
+  margin-left: auto;
+  padding: .28rem .45rem;
+  border: 1px solid var(--ow-ok);
+  border-radius: 999px;
+  color: var(--ow-ok);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: .64rem;
+  white-space: nowrap;
+}
+
+.ow-fsm-state-editor {
+  display: grid;
+  gap: .48rem;
+}
+
+.ow-fsm-state-editor[hidden] {
+  display: none;
+}
+
+.ow-fsm-state-field {
+  display: grid;
+  grid-template-columns: minmax(8.5rem, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: .45rem;
+}
+
+.ow-fsm-state-field > span,
+.ow-fsm-state-check > span {
+  color: var(--ow-muted);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: .72rem;
+}
+
+.ow-fsm-state-field input,
+.ow-fsm-state-field select {
+  min-width: 0;
+  width: 100%;
+  padding: .38rem .45rem;
+  border: 1px solid var(--ow-line);
+  border-radius: .42rem;
+  background: var(--ow-panel);
+  color: var(--ow-text);
+}
+
+.ow-fsm-state-check {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+}
+
+.ow-fsm-state-field.is-danger input {
+  border-color: var(--ow-danger);
+}
+
+.ow-fsm-state-editor-actions {
+  display: flex;
+  gap: .4rem;
+  justify-content: flex-end;
+  padding-top: .35rem;
+  border-top: 1px solid var(--ow-line);
+}
+
+.ow-fsm-designer-status {
+  display: block;
+  min-height: 1.3rem;
+  margin-top: .55rem;
+  color: var(--ow-muted);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: .66rem;
+  overflow-wrap: anywhere;
+}
+
+.ow-fsm-native-canvas .fsm-designer-draft-node > rect {
+  fill: var(--ow-panel-2);
+  stroke: var(--ow-ok);
+  stroke-width: 2;
+  stroke-dasharray: 5 3;
+}
+
+.ow-fsm-native-canvas .fsm-designer-draft-node > text {
+  fill: var(--ow-text);
+  font-weight: 850;
+}
+
+[data-fsm-designer-mode="design"][data-fsm-designer-dirty="1"]
+  .ow-fsm-designer-capability::after {
+  content: " · draft";
+}
+
+@media (max-width: 1360px) {
+  .ow-fsm-tool-label {
+    display: none;
+  }
+
+  .ow-fsm-designer-toolbar .ow-fsm-tool {
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+    grid-template-rows: 1fr;
+  }
+}

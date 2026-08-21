@@ -8,6 +8,7 @@ use Opus\File\StructuredFileLoader;
 use Opus\Template\ScoreTemplateRenderer;
 use Opus\Http\UrlBuilder;
 use Opus\Profiler\ProfilerInterface;
+use Opus\Security\Csrf\CsrfTokenManager;
 
 final class OwasysScorePageRenderer
 {
@@ -46,9 +47,9 @@ final class OwasysScorePageRenderer
         );
 
         $assets['fsm_css'] = $assetBase
-            . '/css/fsm-native.css?v=p117w-r45b2a4bz1';
+            . '/css/fsm-native.css?v=p117w-r45b2a4bz2';
         $assets['fsm_designer_js'] = $assetBase
-            . '/js/fsm-designer.js?v=p117w-r45b2a4bz1';
+            . '/js/fsm-designer.js?v=p117w-r45b2a4bz2';
 
         $source = is_array($data['source'] ?? null)
             ? $data['source']
@@ -156,7 +157,16 @@ final class OwasysScorePageRenderer
                 $path,
                 $designerCloseQuery
             ),
-            'revision' => 'P117W_R45B2A4BZ1',
+            'action_url' => $urlBuilder->withQuery(
+                $path,
+                $designerOpenQuery
+            ),
+            'csrf_token' => $designerAllowed && $designerRequested
+                ? (new CsrfTokenManager())->issue(
+                    'owasys.fsm.designer'
+                )
+                : '',
+            'revision' => 'P117W_R45B2A4BZ2',
             'labels' => $designerAllowed
                 ? $this->designerLabels($locale)
                 : [],

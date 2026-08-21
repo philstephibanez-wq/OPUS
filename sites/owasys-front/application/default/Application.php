@@ -69,6 +69,7 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
             'path' => $path,
         ]);
         $httpSpanEnded = false;
+        $dataResponse = false;
         try {
             $this->profiler->event('http', 'http.request.received', [
                 'method' => $method,
@@ -115,9 +116,19 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 $httpSpanEnded = true;
                 return;
             }
-            [$controller, $creation, $source, $security, $fsmMenu] =
+            [$controller, $creation, $source, $security, $fsmDesigner, $fsmMenu] =
                 $this->components($httpSpanId);
-            if ($fsmMenu->handleIfRequested()) {
+            if ($fsmDesigner->handleIfRequested()) {
+                $dataResponse = true;
+                $this->recordRoutingDecision(
+                    $path,
+                    'fsm-designer',
+                    OwasysFsmDesignerGateway::class,
+                    'handleIfRequested',
+                    'application/default/services/FsmDesignerGateway.php::handleIfRequested',
+                    $httpSpanId
+                );
+            } elseif ($fsmMenu->handleIfRequested()) {
                 $this->recordRoutingDecision(
                     $path,
                     'fsm-menu',
@@ -168,7 +179,8 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 $controller->run();
             }
             $responseStatus = http_response_code();
-            if ($responseStatus < 300 || $responseStatus >= 400) {
+            if (!$dataResponse
+                && ($responseStatus < 300 || $responseStatus >= 400)) {
                 $this->profiler->event(
                     'score',
                     'response.rendered',
@@ -291,7 +303,8 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
      *   1:OwasysCreationController,
      *   2:OwasysSourceController,
      *   3:OwasysSecurityController,
-     *   4:OwasysFsmMenuSignalGateway
+     *   4:OwasysFsmDesignerGateway,
+     *   5:OwasysFsmMenuSignalGateway
      * }
      */
     private function components(string $httpSpanId): array
@@ -381,6 +394,14 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 $security,
                 $renderer,
                 $localizedRoutes,
+                $this->sessionRuntime,
+                $this->profiler,
+                $httpSpanId
+            ),
+            new OwasysFsmDesignerGateway(
+                $this->siteRoot,
+                $session,
+                $security,
                 $this->sessionRuntime,
                 $this->profiler,
                 $httpSpanId

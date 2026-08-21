@@ -65,6 +65,7 @@ $files = [
     'application/default/services/FsmGuardHandlers.php',
     'application/default/services/NavigationBuilder.php',
     'application/default/services/FsmDiagramBuilder.php',
+    'application/default/services/FsmDesignerGateway.php',
     'application/default/services/ScorePageRenderer.php',
     'application/registry/models/RegistryModel.php',
     'application/registry/controllers/RegistryController.php',

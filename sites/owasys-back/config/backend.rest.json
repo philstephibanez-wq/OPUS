@@ -197,6 +197,12 @@
             "path": "/api/v1/session/application",
             "operation": "registry.clear",
             "success_status": 200
+        },
+        {
+            "method": "POST",
+            "path": "/api/v1/applications/{site_id}/fsm/drafts/commands",
+            "operation": "fsm.draft.edit",
+            "success_status": 200
         }
     ],
     "supported_locales": [

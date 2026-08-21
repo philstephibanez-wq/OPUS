@@ -3,73 +3,124 @@
   data-context="OWASYS_NATIVE_FSM_NAVIGATION"
   data-owasys-fsm-diagram
   data-fsm-ui-contract="OWASYS_FSM_MENU_V1"
-  data-fsm-ui-revision="P117W_R45B2A4BZ1"
+  data-fsm-ui-revision="P117W_R45B2A4BZ2"
   data-fsm-designer-mode="{{ fsm_designer.mode }}"
   data-fsm-designer-payload="{{ fsm_diagram.designer_payload }}"
+  data-fsm-designer-action-url="{{ fsm_designer.action_url }}"
+  data-fsm-designer-csrf="{{ fsm_designer.csrf_token }}"
 >
   <div class="ow-fsm-heading">
     <h2>[[ i18n: navigation.main ]] · FSM</h2>
-    <small class="ow-fsm-ui-revision">menu = FSM · EFSM designer · A4BZ1</small>
+    <small class="ow-fsm-ui-revision">menu = FSM · EFSM designer · A4BZ2</small>
   </div>
   <p class="ow-muted">{{ fsm_diagram.description }}</p>
 
   [[ if: fsm_designer.allowed ]]
     <div class="ow-fsm-designer-toolbar" role="toolbar" aria-label="{{ fsm_designer.labels.designer }}">
       [[ if: fsm_designer.active ]]
-        <a class="ow-fsm-designer-mode" href="{{ fsm_designer.close_url }}">{{ fsm_designer.labels.view }}</a>
-        <button type="button" class="is-active" data-fsm-designer-tool="select">{{ fsm_designer.labels.select }}</button>
+        <a class="ow-fsm-tool ow-fsm-designer-mode" href="{{ fsm_designer.close_url }}" title="{{ fsm_designer.labels.view }}">
+          <span class="ow-fsm-tool-icon" aria-hidden="true">◉</span>
+          <span class="ow-fsm-tool-label">{{ fsm_designer.labels.view }}</span>
+        </a>
+        <button type="button" class="ow-fsm-tool is-active" data-fsm-designer-tool="select" title="{{ fsm_designer.labels.select }}">
+          <span class="ow-fsm-tool-icon" aria-hidden="true">⌖</span>
+          <span class="ow-fsm-tool-label">{{ fsm_designer.labels.select }}</span>
+        </button>
+
         <span class="ow-fsm-designer-toolgroup">
           <strong>{{ fsm_designer.labels.state }}</strong>
-          <button type="button" disabled>{{ fsm_designer.labels.create }}</button>
-          <button type="button" disabled>{{ fsm_designer.labels.edit }}</button>
-          <button type="button" disabled>{{ fsm_designer.labels.rename }}</button>
-          <button type="button" disabled>{{ fsm_designer.labels.delete }}</button>
+          <button type="button" class="ow-fsm-tool" data-fsm-state-action="create" title="{{ fsm_designer.labels.create }} {{ fsm_designer.labels.state }}">
+            <span class="ow-fsm-tool-icon" aria-hidden="true">＋</span>
+            <span class="ow-fsm-tool-label">{{ fsm_designer.labels.create }}</span>
+          </button>
+          <button type="button" class="ow-fsm-tool" data-fsm-state-action="edit" title="{{ fsm_designer.labels.edit }} {{ fsm_designer.labels.state }}" disabled>
+            <span class="ow-fsm-tool-icon" aria-hidden="true">✎</span>
+            <span class="ow-fsm-tool-label">{{ fsm_designer.labels.edit }}</span>
+          </button>
+          <button type="button" class="ow-fsm-tool" data-fsm-state-action="rename" title="{{ fsm_designer.labels.rename }} {{ fsm_designer.labels.state }}" disabled>
+            <span class="ow-fsm-tool-icon" aria-hidden="true">↔</span>
+            <span class="ow-fsm-tool-label">{{ fsm_designer.labels.rename }}</span>
+          </button>
+          <button type="button" class="ow-fsm-tool is-danger" data-fsm-state-action="delete" title="{{ fsm_designer.labels.delete }} {{ fsm_designer.labels.state }}" disabled>
+            <span class="ow-fsm-tool-icon" aria-hidden="true">×</span>
+            <span class="ow-fsm-tool-label">{{ fsm_designer.labels.delete }}</span>
+          </button>
         </span>
-        <span class="ow-fsm-designer-toolgroup">
+
+        <span class="ow-fsm-designer-toolgroup is-pending">
           <strong>{{ fsm_designer.labels.transition }}</strong>
-          <button type="button" disabled>{{ fsm_designer.labels.create }}</button>
-          <button type="button" disabled>{{ fsm_designer.labels.edit }}</button>
-          <button type="button" disabled>{{ fsm_designer.labels.rename }}</button>
-          <button type="button" disabled>{{ fsm_designer.labels.delete }}</button>
+          <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.create }} {{ fsm_designer.labels.transition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">↗＋</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.create }}</span></button>
+          <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.edit }} {{ fsm_designer.labels.transition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">↗✎</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.edit }}</span></button>
+          <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.rename }} {{ fsm_designer.labels.transition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">↗↔</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.rename }}</span></button>
+          <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.delete }} {{ fsm_designer.labels.transition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">↗×</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.delete }}</span></button>
         </span>
-        <span class="ow-fsm-designer-toolgroup">
+
+        <span class="ow-fsm-designer-toolgroup is-pending">
           <strong>{{ fsm_designer.labels.condition }}</strong>
-          <button type="button" disabled>{{ fsm_designer.labels.create }}</button>
-          <button type="button" disabled>{{ fsm_designer.labels.edit }}</button>
-          <button type="button" disabled>{{ fsm_designer.labels.rename }}</button>
-          <button type="button" disabled>{{ fsm_designer.labels.delete }}</button>
+          <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.create }} {{ fsm_designer.labels.condition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">◇＋</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.create }}</span></button>
+          <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.edit }} {{ fsm_designer.labels.condition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">◇✎</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.edit }}</span></button>
+          <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.rename }} {{ fsm_designer.labels.condition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">◇↔</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.rename }}</span></button>
+          <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.delete }} {{ fsm_designer.labels.condition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">◇×</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.delete }}</span></button>
         </span>
-        <button type="button" disabled>{{ fsm_designer.labels.validate }}</button>
-        <button type="button" disabled>{{ fsm_designer.labels.publish }}</button>
+
+        <span class="ow-fsm-designer-toolgroup is-pending">
+          <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.validate }}"><span class="ow-fsm-tool-icon" aria-hidden="true">✓</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.validate }}</span></button>
+          <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.publish }}"><span class="ow-fsm-tool-icon" aria-hidden="true">⇧</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.publish }}</span></button>
+        </span>
+        <span class="ow-fsm-designer-capability" title="fsm:update">🔓 fsm:update</span>
       [[ else ]]
-        <a class="ow-fsm-designer-mode" href="{{ fsm_designer.open_url }}">{{ fsm_designer.labels.design }}</a>
+        <a class="ow-fsm-tool ow-fsm-designer-mode" href="{{ fsm_designer.open_url }}" title="{{ fsm_designer.labels.design }}">
+          <span class="ow-fsm-tool-icon" aria-hidden="true">✦</span>
+          <span class="ow-fsm-tool-label">{{ fsm_designer.labels.design }}</span>
+        </a>
       [[ endif ]]
     </div>
   [[ endif ]]
 
   [[ if: fsm_designer.active ]]
     <div class="ow-fsm-designer-workspace">
-      <div class="ow-fsm-native-canvas">
-        {{{ fsm_diagram.html }}}
-      </div>
+      <div class="ow-fsm-native-canvas">{{{ fsm_diagram.html }}}</div>
       <aside class="ow-fsm-designer-inspector" data-fsm-designer-inspector>
         <div class="ow-fsm-designer-inspector-heading">
           <strong>{{ fsm_designer.labels.inspector }}</strong>
-          <small>{{ fsm_designer.labels.readonly }}</small>
+          <small>🔓 fsm:update</small>
         </div>
         <p class="ow-muted" data-fsm-designer-empty>{{ fsm_designer.labels.no_selection }}</p>
         <div data-fsm-designer-selection hidden>
-          <div class="ow-fsm-designer-selection-header">
-            <span data-fsm-designer-kind></span>
-            <code data-fsm-designer-id></code>
-          </div>
+          <div class="ow-fsm-designer-selection-header"><span data-fsm-designer-kind></span><code data-fsm-designer-id></code></div>
           <dl class="ow-fsm-designer-fields" data-fsm-designer-fields></dl>
         </div>
+
+        <form class="ow-fsm-state-editor" data-fsm-state-editor hidden>
+          <label class="ow-fsm-state-field ow-fsm-state-identity">
+            <span>id</span><input type="text" name="state_id" required pattern="[a-z][a-z0-9_]{0,95}" autocomplete="off">
+          </label>
+          <label class="ow-fsm-state-field" data-fsm-state-detail>
+            <span>type</span>
+            <select name="type">
+              <option value="entry">entry</option><option value="screen">screen</option><option value="workflow">workflow</option><option value="result">result</option><option value="system">system</option>
+            </select>
+          </label>
+          <label class="ow-fsm-state-field" data-fsm-state-detail><span>module</span><input type="text" name="module" required autocomplete="off"></label>
+          <label class="ow-fsm-state-field" data-fsm-state-detail><span>route</span><input type="text" name="route" required autocomplete="off"></label>
+          <label class="ow-fsm-state-field" data-fsm-state-detail><span>template</span><input type="text" name="template" autocomplete="off"></label>
+          <label class="ow-fsm-state-check" data-fsm-state-detail><input type="checkbox" name="requires_auth"><span>requires_auth</span></label>
+          <label class="ow-fsm-state-check" data-fsm-state-detail><input type="checkbox" name="requires_current_app"><span>requires_current_app</span></label>
+          <label class="ow-fsm-state-check" data-fsm-state-detail><input type="checkbox" name="navigation_visible"><span>navigation.visible</span></label>
+          <label class="ow-fsm-state-field" data-fsm-state-detail><span>navigation.order</span><input type="number" name="navigation_order" step="1"></label>
+          <label class="ow-fsm-state-field" data-fsm-state-detail><span>navigation.label</span><input type="text" name="navigation_label" autocomplete="off"></label>
+          <label class="ow-fsm-state-field" data-fsm-state-detail><span>diagram.rank</span><input type="number" name="diagram_rank" min="0" step="1"></label>
+          <label class="ow-fsm-state-field" data-fsm-state-detail><span>diagram.order</span><input type="number" name="diagram_order" step="1"></label>
+          <label class="ow-fsm-state-field is-danger" data-fsm-delete-confirmation-row hidden><span>confirmation</span><input type="text" name="delete_confirmation" autocomplete="off"></label>
+          <div class="ow-fsm-state-editor-actions">
+            <button type="submit" class="ow-fsm-tool is-primary" data-fsm-state-submit title="{{ fsm_designer.labels.validate }}"><span class="ow-fsm-tool-icon" aria-hidden="true">✓</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.validate }}</span></button>
+            <button type="button" class="ow-fsm-tool" data-fsm-state-cancel title="{{ fsm_designer.labels.select }}"><span class="ow-fsm-tool-icon" aria-hidden="true">×</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.select }}</span></button>
+          </div>
+        </form>
+        <output class="ow-fsm-designer-status" data-fsm-designer-status></output>
       </aside>
     </div>
   [[ else ]]
-    <div class="ow-fsm-native-canvas">
-      {{{ fsm_diagram.html }}}
-    </div>
+    <div class="ow-fsm-native-canvas">{{{ fsm_diagram.html }}}</div>
   [[ endif ]]
 </section>

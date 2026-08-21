@@ -50,7 +50,8 @@
         "owasys:git-unstage": "Opus\\Composer\\ComposerScripts::run",
         "owasys:git-commit": "Opus\\Composer\\ComposerScripts::run",
         "owasys:git-restore": "Opus\\Composer\\ComposerScripts::run",
-        "opus:local-password-reset": "Opus\\Composer\\LocalPasswordCredentialResetterComposerCommand::run"
+        "opus:local-password-reset": "Opus\\Composer\\LocalPasswordCredentialResetterComposerCommand::run",
+        "owasys:fsm-draft-edit": "Opus\\Composer\\ComposerScripts::run"
     },
     "repositories": [
         {
