@@ -11,8 +11,23 @@ use Opus\Fsm\FsmProcessor;
  */
 final class OwasysFsmGuardHandlers
 {
-    public function __construct(private readonly OwasysRuntimeSecurity $security)
-    {
+    public function __construct(
+        private readonly OwasysRuntimeSecurity $security
+    ) {
+    }
+
+    /**
+     * @param array<string,mixed> $fsmConfig
+     * @param array<string,mixed>|null $identity
+     * @return list<string>
+     */
+    public function handlerNamesForConfig(
+        array $fsmConfig,
+        ?array $identity
+    ): array {
+        return array_keys(
+            $this->forConfig($fsmConfig, $identity)
+        );
     }
 
     /**
@@ -20,15 +35,18 @@ final class OwasysFsmGuardHandlers
      * @param array<string,mixed>|null $identity
      * @return array<string,callable>
      */
-    public function forConfig(array $fsmConfig, ?array $identity): array
-    {
+    public function forConfig(
+        array $fsmConfig,
+        ?array $identity
+    ): array {
         $handlers = $this->applicationHandlers();
 
         foreach ((array) ($fsmConfig['transitions'] ?? []) as $transition) {
             if (!is_array($transition)) {
                 continue;
             }
-            $guards = $transition['guards'] ?? ($transition['guard'] ?? []);
+            $guards = $transition['guards']
+                ?? ($transition['guard'] ?? []);
             if (is_string($guards)) {
                 $guards = [$guards];
             }
@@ -48,10 +66,17 @@ final class OwasysFsmGuardHandlers
                 }
                 $parts = explode(':', $guard, 3);
                 if (count($parts) !== 3
-                    || preg_match('/^[a-z][a-z0-9._-]*$/D', $parts[1]) !== 1
-                    || preg_match('/^[a-z][a-z0-9._-]*$/D', $parts[2]) !== 1) {
+                    || preg_match(
+                        '/^[a-z][a-z0-9._-]*$/D',
+                        $parts[1]
+                    ) !== 1
+                    || preg_match(
+                        '/^[a-z][a-z0-9._-]*$/D',
+                        $parts[2]
+                    ) !== 1) {
                     throw new RuntimeException(
-                        'OWASYS_EFSM_ACL_GUARD_INVALID:' . $guard
+                        'OWASYS_EFSM_ACL_GUARD_INVALID:'
+                        . $guard
                     );
                 }
                 [, $resource, $action] = $parts;
@@ -61,7 +86,11 @@ final class OwasysFsmGuardHandlers
                     array $transition,
                     array $context,
                     FsmProcessor $processor
-                ) use ($identity, $resource, $action): bool {
+                ) use (
+                    $identity,
+                    $resource,
+                    $action
+                ): bool {
                     unset(
                         $currentState,
                         $signal,
@@ -92,7 +121,13 @@ final class OwasysFsmGuardHandlers
                 array $context,
                 FsmProcessor $processor
             ): bool {
-                unset($currentState, $signal, $transition, $context, $processor);
+                unset(
+                    $currentState,
+                    $signal,
+                    $transition,
+                    $context,
+                    $processor
+                );
                 return true;
             },
             'route_exists' => static function (
@@ -102,12 +137,21 @@ final class OwasysFsmGuardHandlers
                 array $context,
                 FsmProcessor $processor
             ): bool {
-                unset($currentState, $signal, $context);
-                $target = (string) ($transition['next_state'] ?? '');
-                if ($target === '' || !$processor->hasState($target)) {
+                unset(
+                    $currentState,
+                    $signal,
+                    $context
+                );
+                $target = (string) (
+                    $transition['next_state'] ?? ''
+                );
+                if ($target === ''
+                    || !$processor->hasState($target)) {
                     return false;
                 }
-                return (string) ($processor->state($target)['route'] ?? '') !== '';
+                return (string) (
+                    $processor->state($target)['route'] ?? ''
+                ) !== '';
             },
             'app_exists' => static function (
                 string $currentState,
@@ -116,11 +160,22 @@ final class OwasysFsmGuardHandlers
                 array $context,
                 FsmProcessor $processor
             ): bool {
-                unset($currentState, $signal, $transition, $processor);
+                unset(
+                    $currentState,
+                    $signal,
+                    $transition,
+                    $processor
+                );
                 return ($context['app_exists'] ?? null) === true
-                    || is_array($context['registry_entry'] ?? null)
-                    || is_array($context['selected_app'] ?? null)
-                    || (string) ($context['selected_app'] ?? '') !== '';
+                    || is_array(
+                        $context['registry_entry'] ?? null
+                    )
+                    || is_array(
+                        $context['selected_app'] ?? null
+                    )
+                    || (string) (
+                        $context['selected_app'] ?? ''
+                    ) !== '';
             },
             'current_app_required' => static function (
                 string $currentState,
@@ -129,11 +184,23 @@ final class OwasysFsmGuardHandlers
                 array $context,
                 FsmProcessor $processor
             ): bool {
-                unset($currentState, $signal, $transition, $processor);
+                unset(
+                    $currentState,
+                    $signal,
+                    $transition,
+                    $processor
+                );
                 $currentApp = $context['current_app'] ?? null;
-                return ($context['has_current_app'] ?? null) === true
-                    || (is_array($currentApp) && $currentApp !== [])
-                    || (is_string($currentApp) && $currentApp !== '');
+                return ($context['has_current_app'] ?? null)
+                    === true
+                    || (
+                        is_array($currentApp)
+                        && $currentApp !== []
+                    )
+                    || (
+                        is_string($currentApp)
+                        && $currentApp !== ''
+                    );
             },
             'current_app_or_creation_request' => static function (
                 string $currentState,
@@ -142,14 +209,31 @@ final class OwasysFsmGuardHandlers
                 array $context,
                 FsmProcessor $processor
             ): bool {
-                unset($currentState, $signal, $transition, $processor);
+                unset(
+                    $currentState,
+                    $signal,
+                    $transition,
+                    $processor
+                );
                 $currentApp = $context['current_app'] ?? null;
-                $hasCurrentApp = ($context['has_current_app'] ?? null) === true
-                    || (is_array($currentApp) && $currentApp !== [])
-                    || (is_string($currentApp) && $currentApp !== '');
+                $hasCurrentApp =
+                    ($context['has_current_app'] ?? null) === true
+                    || (
+                        is_array($currentApp)
+                        && $currentApp !== []
+                    )
+                    || (
+                        is_string($currentApp)
+                        && $currentApp !== ''
+                    );
                 return $hasCurrentApp
-                    || is_array($context['creation_request'] ?? null)
-                    || ($context['creation_request_started'] ?? null) === true;
+                    || is_array(
+                        $context['creation_request'] ?? null
+                    )
+                    || (
+                        $context['creation_request_started']
+                            ?? null
+                    ) === true;
             },
             'must_change_password' => static function (
                 string $currentState,
@@ -158,8 +242,15 @@ final class OwasysFsmGuardHandlers
                 array $context,
                 FsmProcessor $processor
             ): bool {
-                unset($currentState, $signal, $transition, $processor);
-                return ($context['must_change_password'] ?? null) === true;
+                unset(
+                    $currentState,
+                    $signal,
+                    $transition,
+                    $processor
+                );
+                return (
+                    $context['must_change_password'] ?? null
+                ) === true;
             },
         ];
     }

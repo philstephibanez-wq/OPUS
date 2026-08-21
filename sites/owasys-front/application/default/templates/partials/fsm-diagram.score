@@ -3,7 +3,7 @@
   data-context="OWASYS_NATIVE_FSM_NAVIGATION"
   data-owasys-fsm-diagram
   data-fsm-ui-contract="OWASYS_FSM_MENU_V1"
-  data-fsm-ui-revision="P117W_R45B2A4BZ2R6"
+  data-fsm-ui-revision="P117W_R45B2A4BZ2R7"
   data-fsm-designer-mode="{{ fsm_designer.mode }}"
   data-fsm-designer-payload="{{ fsm_diagram.designer_payload }}"
   data-fsm-designer-action-url="{{ fsm_designer.action_url }}"
@@ -11,7 +11,7 @@
 >
   <div class="ow-fsm-heading">
     <h2>[[ i18n: navigation.main ]] · FSM</h2>
-    <small class="ow-fsm-ui-revision">menu = FSM · EFSM designer · A4BZ2R6</small>
+    <small class="ow-fsm-ui-revision">menu = FSM · EFSM designer · A4BZ2R7</small>
   </div>
   <p class="ow-muted">{{ fsm_diagram.description }}</p>
 
@@ -43,20 +43,24 @@
           </button>
         </span>
 
-        <span class="ow-fsm-designer-toolgroup is-pending">
+        <span class="ow-fsm-designer-toolgroup">
           <strong>{{ fsm_designer.labels.transition }}</strong>
           <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.create }} {{ fsm_designer.labels.transition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">↗＋</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.create }}</span></button>
-          <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.edit }} {{ fsm_designer.labels.transition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">↗✎</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.edit }}</span></button>
+          <button type="button" class="ow-fsm-tool" data-fsm-transition-action="handlers" title="{{ fsm_designer.labels.edit }} {{ fsm_designer.labels.transition }}" disabled><span class="ow-fsm-tool-icon" aria-hidden="true">↗✎</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.edit }}</span></button>
           <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.rename }} {{ fsm_designer.labels.transition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">↗↔</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.rename }}</span></button>
           <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.delete }} {{ fsm_designer.labels.transition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">↗×</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.delete }}</span></button>
         </span>
 
         <span class="ow-fsm-designer-toolgroup is-pending">
-          <strong>{{ fsm_designer.labels.condition }}</strong>
-          <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.create }} {{ fsm_designer.labels.condition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">◇＋</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.create }}</span></button>
-          <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.edit }} {{ fsm_designer.labels.condition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">◇✎</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.edit }}</span></button>
-          <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.rename }} {{ fsm_designer.labels.condition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">◇↔</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.rename }}</span></button>
-          <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.delete }} {{ fsm_designer.labels.condition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">◇×</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.delete }}</span></button>
+          <strong>GUARD</strong>
+          <button type="button" class="ow-fsm-tool" disabled title="GUARD {{ fsm_designer.labels.create }}"><span class="ow-fsm-tool-icon" aria-hidden="true">◇＋</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.create }}</span></button>
+          <button type="button" class="ow-fsm-tool" disabled title="GUARD {{ fsm_designer.labels.edit }}"><span class="ow-fsm-tool-icon" aria-hidden="true">◇✎</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.edit }}</span></button>
+        </span>
+
+        <span class="ow-fsm-designer-toolgroup is-pending">
+          <strong>ACTION</strong>
+          <button type="button" class="ow-fsm-tool" disabled title="ACTION {{ fsm_designer.labels.create }}"><span class="ow-fsm-tool-icon" aria-hidden="true">⚙＋</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.create }}</span></button>
+          <button type="button" class="ow-fsm-tool" disabled title="ACTION {{ fsm_designer.labels.edit }}"><span class="ow-fsm-tool-icon" aria-hidden="true">⚙✎</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.edit }}</span></button>
         </span>
 
         <span class="ow-fsm-designer-toolgroup is-pending">
@@ -99,6 +103,26 @@
             <button type="button" class="ow-fsm-tool" data-fsm-state-cancel title="{{ fsm_designer.labels.select }}"><span class="ow-fsm-tool-icon" aria-hidden="true">×</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.select }}</span></button>
           </div>
         </form>
+
+        <form class="ow-fsm-state-editor" data-fsm-transition-handler-editor hidden>
+          <label class="ow-fsm-state-field"><span>transition</span><input type="text" name="transition_id" readonly></label>
+          <label class="ow-fsm-state-field"><span>signal</span><input type="text" name="transition_signal" readonly></label>
+          <label class="ow-fsm-state-field"><span>GUARD · ordre</span><textarea name="transition_guards" rows="6" spellcheck="false"></textarea></label>
+          <div class="ow-fsm-state-editor-actions">
+            <select data-fsm-guard-catalog aria-label="GUARD"></select>
+            <button type="button" class="ow-fsm-tool" data-fsm-handler-add="guard" title="GUARD +"><span class="ow-fsm-tool-icon" aria-hidden="true">◇＋</span><span class="ow-fsm-tool-label">GUARD</span></button>
+          </div>
+          <label class="ow-fsm-state-field"><span>ACTION · ordre</span><textarea name="transition_actions" rows="6" spellcheck="false"></textarea></label>
+          <div class="ow-fsm-state-editor-actions">
+            <select data-fsm-action-catalog aria-label="ACTION"></select>
+            <button type="button" class="ow-fsm-tool" data-fsm-handler-add="action" title="ACTION +"><span class="ow-fsm-tool-icon" aria-hidden="true">⚙＋</span><span class="ow-fsm-tool-label">ACTION</span></button>
+          </div>
+          <div class="ow-fsm-state-editor-actions">
+            <button type="submit" class="ow-fsm-tool is-primary" data-fsm-transition-handler-submit title="{{ fsm_designer.labels.validate }}"><span class="ow-fsm-tool-icon" aria-hidden="true">✓</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.validate }}</span></button>
+            <button type="button" class="ow-fsm-tool" data-fsm-transition-handler-cancel title="{{ fsm_designer.labels.select }}"><span class="ow-fsm-tool-icon" aria-hidden="true">×</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.select }}</span></button>
+          </div>
+        </form>
+
         <output class="ow-fsm-designer-status" data-fsm-designer-status></output>
       </aside>
     </div>

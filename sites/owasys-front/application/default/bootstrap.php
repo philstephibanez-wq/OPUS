@@ -76,6 +76,7 @@ $files = [
     'application/source/controllers/SourceController.php',
     'application/security/controllers/SecurityController.php',
     'application/default/services/FsmActionHandlers.php',
+    'application/default/services/FsmHandlerCatalog.php',
     'application/default/services/FsmMenuSignalGateway.php',
     'application/default/controllers/RuntimeController.php',
     'application/default/ApplicationInterface.php',
