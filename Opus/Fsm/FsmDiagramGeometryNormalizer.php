@@ -32,6 +32,71 @@ final class FsmDiagramGeometryNormalizer implements
     private const MAX_LANE_GAP = 14.0;
     private const VIEWPORT_VERTICAL_MARGIN = 22.0;
 
+    /**
+     * Fit only the vertical viewport/physical height to the rendered semantic
+     * FSM envelope. State, transition and signal geometry stays untouched.
+     *
+     * @return array{html:string,height:float}
+     */
+    public function fitVerticalViewport(
+        string $html,
+        float $bottomMargin = self::VIEWPORT_VERTICAL_MARGIN
+    ): array {
+        if ($html === '') {
+            throw new InvalidArgumentException(
+                'OPUS_FSM_DIAGRAM_GEOMETRY_HTML_EMPTY'
+            );
+        }
+        if (!is_finite($bottomMargin)
+            || $bottomMargin < 0.0
+            || $bottomMargin > 512.0) {
+            throw new InvalidArgumentException(
+                'OPUS_FSM_DIAGRAM_GEOMETRY_BOTTOM_MARGIN_INVALID'
+            );
+        }
+
+        [$svgWidth, $svgHeight] = $this->svgDimensions($html);
+        [, $maxY] = $this->verticalContentBounds($html);
+
+        /*
+         * Keep the canonical top origin. Only the lower edge is dynamic:
+         * last rendered semantic object + deterministic bottom margin.
+         */
+        $fittedHeight = max(1.0, $maxY + $bottomMargin);
+
+        $pattern = '/(<svg\b[^>]*class="fsm-diagram"[^>]*\bviewBox=")'
+            . '-?[0-9.]+\s+-?[0-9.]+\s+[0-9.]+\s+[0-9.]+(")/s';
+        $result = preg_replace_callback(
+            $pattern,
+            fn (array $match): string => $match[1]
+                . '0 0 '
+                . $this->number($svgWidth)
+                . ' '
+                . $this->number($fittedHeight)
+                . $match[2],
+            $html,
+            1,
+            $count
+        );
+        if (!is_string($result) || $count !== 1) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_GEOMETRY_VIEWBOX_FIT_FAILED'
+            );
+        }
+
+        $result = $this->scalePhysicalSvg(
+            $result,
+            $svgWidth,
+            $fittedHeight,
+            1.0
+        );
+
+        return [
+            'html' => $result,
+            'height' => $fittedHeight,
+        ];
+    }
+
     public function normalize(string $html, float $scale = 0.60): string
     {
         if ($html === '') {
@@ -944,21 +1009,10 @@ final class FsmDiagramGeometryNormalizer implements
     }
 
     /**
-     * Crops unused vertical viewBox space after geometry normalization.
-     *
-     * The semantic x coordinates and width remain untouched. Vertical bounds
-     * are derived from rendered state rectangles, edge paths and signal label
-     * boxes, then padded with one deterministic safety margin. Hidden SVG
-     * title/subtitle/legend elements are intentionally excluded from the
-     * visual envelope.
-     *
-     * @return array{0:string,1:float}
+     * @return array{0:float,1:float}
      */
-    private function compactVerticalViewport(
-        string $html,
-        float $svgWidth,
-        float $svgHeight
-    ): array {
+    private function verticalContentBounds(string $html): array
+    {
         $minY = INF;
         $maxY = -INF;
 
@@ -967,34 +1021,39 @@ final class FsmDiagramGeometryNormalizer implements
             $maxY = max($maxY, $node['y'] + $node['h']);
         }
 
-        if (preg_match_all(
-            '/<path\\b[^>]*class="fsm-edge"[^>]*\\sd="([^"]+)"/s',
-            $html,
-            $pathMatches,
-            PREG_SET_ORDER
-        ) > 0) {
-            foreach ($pathMatches as $match) {
-                preg_match_all(
-                    '/-?[0-9]+(?:\\.[0-9]+)?/',
-                    $match[1],
-                    $numbers
-                );
-                $values = array_map('floatval', $numbers[0]);
-                for ($index = 1; $index < count($values); $index += 2) {
-                    $minY = min($minY, $values[$index]);
-                    $maxY = max($maxY, $values[$index]);
+        foreach (['fsm-edge', 'fsm-label-leader'] as $pathClass) {
+            $pattern = '/<path\b[^>]*class="[^"]*\b'
+                . preg_quote($pathClass, '/')
+                . '\b[^"]*"[^>]*\sd="([^"]+)"/s';
+            if (preg_match_all(
+                $pattern,
+                $html,
+                $pathMatches,
+                PREG_SET_ORDER
+            ) > 0) {
+                foreach ($pathMatches as $match) {
+                    preg_match_all(
+                        '/-?[0-9]+(?:\.[0-9]+)?/',
+                        $match[1],
+                        $numbers
+                    );
+                    $values = array_map('floatval', $numbers[0]);
+                    for ($index = 1; $index < count($values); $index += 2) {
+                        $minY = min($minY, $values[$index]);
+                        $maxY = max($maxY, $values[$index]);
+                    }
                 }
             }
         }
 
         if (preg_match_all(
-            '/<rect\\b[^>]*class="fsm-edge-label-bg"[^>]*>/s',
+            '/<rect\b[^>]*class="[^"]*\bfsm-edge-label-bg\b[^"]*"[^>]*>/s',
             $html,
             $labelMatches
         ) > 0) {
             foreach ($labelMatches[0] as $tag) {
-                if (preg_match('/\\sy="(-?[0-9.]+)"/', $tag, $yMatch) !== 1
-                    || preg_match('/\\sheight="([0-9.]+)"/', $tag, $hMatch) !== 1) {
+                if (preg_match('/\sy="(-?[0-9.]+)"/', $tag, $yMatch) !== 1
+                    || preg_match('/\sheight="([0-9.]+)"/', $tag, $hMatch) !== 1) {
                     continue;
                 }
                 $y = (float) $yMatch[1];
@@ -1010,6 +1069,27 @@ final class FsmDiagramGeometryNormalizer implements
             );
         }
 
+        return [$minY, $maxY];
+    }
+
+    /**
+     * Crops unused vertical viewBox space after geometry normalization.
+     *
+     * The semantic x coordinates and width remain untouched. Vertical bounds
+     * are derived from rendered state rectangles, edge/leader paths and signal
+     * label boxes, then padded with one deterministic safety margin. Hidden SVG
+     * title/subtitle/legend elements are intentionally excluded from the
+     * visual envelope.
+     *
+     * @return array{0:string,1:float}
+     */
+    private function compactVerticalViewport(
+        string $html,
+        float $svgWidth,
+        float $svgHeight
+    ): array {
+        [$minY, $maxY] = $this->verticalContentBounds($html);
+
         $viewY = max(0.0, $minY - self::VIEWPORT_VERTICAL_MARGIN);
         $viewBottom = min(
             $svgHeight,
@@ -1017,8 +1097,8 @@ final class FsmDiagramGeometryNormalizer implements
         );
         $viewHeight = max(1.0, $viewBottom - $viewY);
 
-        $pattern = '/(<svg\\b[^>]*class="fsm-diagram"[^>]*\\bviewBox=")'
-            . '-?[0-9.]+\\s+-?[0-9.]+\\s+[0-9.]+\\s+[0-9.]+(")/s';
+        $pattern = '/(<svg\b[^>]*class="fsm-diagram"[^>]*\bviewBox=")'
+            . '-?[0-9.]+\s+-?[0-9.]+\s+[0-9.]+\s+[0-9.]+(")/s';
         $result = preg_replace_callback(
             $pattern,
             fn (array $match): string => $match[1]
@@ -1041,7 +1121,6 @@ final class FsmDiagramGeometryNormalizer implements
 
         return [$result, $viewHeight];
     }
-
     private function scalePhysicalSvg(
         string $html,
         float $width,

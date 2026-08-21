@@ -1316,6 +1316,26 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $svg .= $this->renderLegend($width, $height);
         $svg .= '</svg>';
 
+        if ($this->_layoutDirection === 'vertical') {
+            $normalizer = new \Opus\Fsm\FsmDiagramGeometryNormalizer();
+            $fitted = $normalizer->fitVerticalViewport($svg);
+            $fittedHtml = $fitted['html'] ?? null;
+            $fittedHeight = $fitted['height'] ?? null;
+
+            if (!is_string($fittedHtml)
+                || $fittedHtml === ''
+                || !is_numeric($fittedHeight)
+                || !is_finite((float) $fittedHeight)
+                || (float) $fittedHeight <= 0.0) {
+                throw new \RuntimeException(
+                    'OPUS_FSM_DIAGRAM_VERTICAL_VIEWPORT_FIT_INVALID'
+                );
+            }
+
+            $svg = $fittedHtml;
+            $this->_renderHeight = (float) $fittedHeight;
+        }
+
         return $svg;
     }
 

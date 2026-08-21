@@ -15,5 +15,15 @@ interface FsmDiagramGeometryNormalizerInterface extends
     \Opus\Framework\OpusProfilerAwareInterface,
     \Opus\Framework\OpusSelfDocumentingInterface
 {
+    /**
+     * Fit the vertical SVG extent to rendered semantic FSM content only.
+     *
+     * @return array{html:string,height:float}
+     */
+    public function fitVerticalViewport(
+        string $html,
+        float $bottomMargin = 22.0
+    ): array;
+
     public function normalize(string $html, float $scale = 0.60): string;
 }

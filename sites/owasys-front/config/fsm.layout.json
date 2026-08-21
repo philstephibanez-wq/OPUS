@@ -4,21 +4,21 @@
     "definition_sha256": "d59b99cb4519212b0940cefd94d137f2391067de8be269692e29ed2b08f61655",
     "layout_direction": "vertical",
     "canvas": {
-        "width": 1412,
-        "height": 2031.33
+        "width": 1452,
+        "height": 1331.67
     },
     "states": {
         "login": {
             "x": 8,
-            "y": 180
+            "y": 184
         },
         "registry": {
-            "x": 1069,
-            "y": 291.33
+            "x": 1015,
+            "y": 361.33
         },
         "account": {
             "x": 8,
-            "y": 332.67
+            "y": 357.67
         },
         "creation_basics": {
             "x": 462,
@@ -29,8 +29,8 @@
             "y": 70.67
         },
         "creation_security": {
-            "x": 462,
-            "y": 454
+            "x": 537,
+            "y": 469
         },
         "creation_review": {
             "x": 8,
@@ -41,16 +41,16 @@
             "y": 554
         },
         "application": {
-            "x": 1184,
-            "y": 668
+            "x": 1224,
+            "y": 661
         },
         "data": {
             "x": 721.95,
             "y": 1091.33
         },
         "structure": {
-            "x": 81,
-            "y": 1069.33
+            "x": 79,
+            "y": 1112.33
         },
         "security": {
             "x": 311,
@@ -70,164 +70,164 @@
         },
         "begin": {
             "x": 8,
-            "y": 46.67
+            "y": 70
         }
     },
     "transitions": {
         "t_begin_open_login": {
-            "path": "M8 79.67 C8 -7.33, 188 -7.33, 188 213",
+            "path": "M98 136 C98 160.0000228881836, 98 160.0000228881836, 98 184.0000457763672",
             "label_x": 290.5,
             "label_y": 55,
-            "leader_path": "M98 -15.33 L290.5 55"
+            "leader_path": "M98 8 L290.5 55"
         },
         "t_open_login": {
             "path": "",
-            "label_x": 98,
-            "label_y": 241.67,
-            "leader_path": "M98 272.5 L98 241.67"
+            "label_x": 71,
+            "label_y": 277.67,
+            "leader_path": "M98 276.5 L71 277.67"
         },
         "t_login_success": {
-            "path": "M188 202 C628.5 202, 628.5 313.33, 1069 313.33",
-            "label_x": 725.56,
-            "label_y": 219.33,
-            "leader_path": "M628.5 268.66 L725.56 219.33"
+            "path": "M188 217.0000457763672 C601.4996948242188 217.0000457763672, 601.4996948242188 394.3307629394531, 1014.9993896484375 394.3307629394531",
+            "label_x": 706.56,
+            "label_y": 268.33,
+            "leader_path": "M601.5 305.66 L706.56 268.33"
         },
         "t_login_failed": {
             "path": "",
-            "label_x": 98,
-            "label_y": 263,
-            "leader_path": "M98 304.5 L98 263"
+            "label_x": 126,
+            "label_y": 308,
+            "leader_path": "M98 308.5 L126 308"
         },
         "t_password_required": {
-            "path": "M188 202 C387.5 202, 387.5 92.67, 587 92.67",
-            "label_x": 534,
-            "label_y": 182.67,
-            "leader_path": "M18 158.34 L534 182.67"
+            "path": "M188 217.0000457763672 C387.5 217.0000457763672, 387.5 103.67, 587 103.67",
+            "label_x": 500,
+            "label_y": 195.67,
+            "leader_path": "M18 160.34 L500 195.67"
         },
         "t_password_changed": {
-            "path": "M767 92.67 C918 92.67, 918 313.33, 1069 313.33",
-            "label_x": 974,
-            "label_y": 62.67,
-            "leader_path": "M18 214 L974 62.67"
+            "path": "M767 103.67 C890.9996948242188 103.67, 890.9996948242188 394.3307629394531, 1014.9993896484375 394.3307629394531",
+            "label_x": 922,
+            "label_y": 90,
+            "leader_path": "M18 249 L922 90"
         },
         "t_password_failed": {
             "path": "",
-            "label_x": 679,
-            "label_y": 147.67,
-            "leader_path": ""
+            "label_x": 747,
+            "label_y": 172.67,
+            "leader_path": "M677 163.17 L747 172.67"
         },
         "t_select_app": {
-            "path": "M1237 357.33 C1237 411.33, 18 411.33, 18 411.33 L18 614 C18 614, 1352 614, 1352 668",
+            "path": "M1104.9993896484375 427.3307629394531 C1104.9993896484375 544.1653814697265, 1314 544.1653814697265, 1314 661",
             "label_x": 1036.99,
             "label_y": 519.33,
-            "leader_path": "M18 512.67 L1036.99 519.33"
+            "leader_path": "M18 544.17 L1036.99 519.33"
         },
         "t_clear_context": {
             "path": "",
-            "label_x": 1043,
-            "label_y": 371.33,
-            "leader_path": "M1159 391.33 L1043 371.33"
+            "label_x": 1340,
+            "label_y": 335.33,
+            "leader_path": "M1105 461.33 L1340 335.33"
         },
         "t_create_app": {
-            "path": "M1069 313.33 C855.5 313.33, 855.5 348, 642 348",
-            "label_x": 858,
-            "label_y": 255.67,
-            "leader_path": "M18 341.66 L858 255.67"
+            "path": "M1014.9993896484375 394.3307629394531 C828.4996948242188 394.3307629394531, 828.4996948242188 359, 642 359",
+            "label_x": 833,
+            "label_y": 325.67,
+            "leader_path": "M18 376.66 L833 325.67"
         },
         "t_delete_app": {
             "path": "",
-            "label_x": 1288.43,
-            "label_y": 372,
-            "leader_path": "M1159 438.33 L1288.43 372"
+            "label_x": 883.43,
+            "label_y": 526,
+            "leader_path": "M1105 508.33 L883.43 526"
         },
         "t_creation_basics_security": {
-            "path": "M474 392 C474 446, 18 446, 18 446 L18 400 C18 400, 630 400, 630 454",
+            "path": "M552 392 C552 430.50006103515625, 627.0008544921875 430.50006103515625, 627.0008544921875 469.0001220703125",
             "label_x": 418.99,
             "label_y": 381.67,
-            "leader_path": "M18 423 L418.99 381.67"
+            "leader_path": "M18 430.5 L418.99 381.67"
         },
         "t_creation_basics_cancel": {
-            "path": "M642 348 C855.5 348, 855.5 313.33, 1069 313.33",
-            "label_x": 813,
-            "label_y": 372.33,
-            "leader_path": "M18 341.66 L813 372.33"
+            "path": "M642 359 C828.4996948242188 359, 828.4996948242188 394.3307629394531, 1014.9993896484375 394.3307629394531",
+            "label_x": 919,
+            "label_y": 362.33,
+            "leader_path": "M18 376.66 L919 362.33"
         },
         "t_creation_security_basics": {
-            "path": "M552 454 C552 400, 18 400, 18 400 L18 446 C18 446, 474 446, 474 392",
-            "label_x": 280,
-            "label_y": 409,
-            "leader_path": "M18 423 L280 409"
+            "path": "M627.0008544921875 469.0001220703125 C627.0008544921875 430.50006103515625, 552 430.50006103515625, 552 392",
+            "label_x": 272,
+            "label_y": 428,
+            "leader_path": "M18 430.5 L272 428"
         },
         "t_creation_security_review": {
-            "path": "M462 476 C325 476, 325 460.67, 188 460.67",
+            "path": "M537.0008544921875 502.0001220703125 C362.50042724609375 502.0001220703125, 362.50042724609375 471.67, 188 471.67",
             "label_x": 88,
             "label_y": 535.67,
-            "leader_path": "M18 479.34 L88 535.67"
+            "leader_path": "M18 486.84 L88 535.67"
         },
         "t_creation_security_cancel": {
-            "path": "M642 476 C855.5 476, 855.5 313.33, 1069 313.33",
+            "path": "M717.0008544921875 502.0001220703125 C866.0001220703125 502.0001220703125, 866.0001220703125 394.3307629394531, 1014.9993896484375 394.3307629394531",
             "label_x": 902,
             "label_y": 408,
-            "leader_path": "M18 405.66 L902 408"
+            "leader_path": "M18 448.16 L902 408"
         },
         "t_creation_review_security": {
-            "path": "M188 460.67 C325 460.67, 325 476, 462 476",
-            "label_x": 391,
-            "label_y": 503.67,
-            "leader_path": "M18 479.34 L391 503.67"
+            "path": "M188 471.67 C362.50042724609375 471.67, 362.50042724609375 502.0001220703125, 537.0008544921875 502.0001220703125",
+            "label_x": 392,
+            "label_y": 515.67,
+            "leader_path": "M18 486.84 L392 515.67"
         },
         "t_creation_begin": {
             "path": "M188 460.67 C283.5 460.67, 283.5 576, 379 576",
-            "label_x": 110,
-            "label_y": 580,
-            "leader_path": "M18 529.34 L110 580"
+            "label_x": 277,
+            "label_y": 594,
+            "leader_path": "M18 529.34 L277 594"
         },
         "t_creation_created": {
-            "path": "M559 576 C871.5 576, 871.5 690, 1184 690",
-            "label_x": 558.99,
-            "label_y": 693.67,
-            "leader_path": "M18 644 L558.99 693.67"
+            "path": "M559 587 C891.5 587, 891.5 693.9998779296875, 1224 693.9998779296875",
+            "label_x": 781.99,
+            "label_y": 675.67,
+            "leader_path": "M18 640.5 L781.99 675.67"
         },
         "t_creation_failed": {
             "path": "M379 576 C283.5 576, 283.5 460.67, 188 460.67",
-            "label_x": 18,
-            "label_y": 506.33,
-            "leader_path": "M18 529.34 L18 506.33"
+            "label_x": 102.03,
+            "label_y": 642.33,
+            "leader_path": "M18 529.34 L102.03 642.33"
         },
         "t_creation_review_cancel": {
-            "path": "M188 460.67 C628.5 460.67, 628.5 313.33, 1069 313.33",
-            "label_x": 682,
-            "label_y": 306.33,
-            "leader_path": "M18 398 L682 306.33"
+            "path": "M188 471.67 C601.4996948242188 471.67, 601.4996948242188 394.3307629394531, 1014.9993896484375 394.3307629394531",
+            "label_x": 763,
+            "label_y": 448.33,
+            "leader_path": "M18 433 L763 448.33"
         },
         "t_source_file": {
             "path": "",
-            "label_x": 1018,
-            "label_y": 1172.33,
-            "leader_path": "M1018 1208.17 L1018 1172.33"
+            "label_x": 1022,
+            "label_y": 1206.33,
+            "leader_path": ""
         },
         "t_source_preview_requested": {
             "path": "",
-            "label_x": 1018,
-            "label_y": 1208.67,
-            "leader_path": "M1018 1262.67 L1018 1208.67"
+            "label_x": 1014,
+            "label_y": 737.66,
+            "leader_path": "M1018 1262.67 L1014 737.66"
         },
         "t_source_previewed": {
             "path": "",
-            "label_x": 1018,
-            "label_y": 1240,
-            "leader_path": "M1018 1309.67 L1018 1240"
+            "label_x": 1019,
+            "label_y": 1273,
+            "leader_path": "M1018 1309.67 L1019 1273"
         },
         "g_open_applications": {
             "path": "",
-            "label_x": 1156,
-            "label_y": 150.67,
-            "leader_path": "M1159 9.33 L1156 150.67"
+            "label_x": 1176,
+            "label_y": 151,
+            "leader_path": "M1105 79.33 L1176 151"
         },
         "g_open_account": {
-            "path": "M98 318.67 C98 325.67, 98 325.67, 98 332.67",
+            "path": "M98 343.67 C98 350.67, 98 350.67, 98 357.67",
             "label_x": 98,
-            "label_y": 315,
+            "label_y": 340,
             "leader_path": ""
         },
         "g_open_password_change": {
@@ -244,57 +244,57 @@
         },
         "g_change_app": {
             "path": "",
-            "label_x": 1159,
-            "label_y": 186,
-            "leader_path": "M1159 56.33 L1159 186"
+            "label_x": 1178,
+            "label_y": 198,
+            "leader_path": "M1105 126.33 L1178 198"
         },
         "g_open_application": {
             "path": "",
-            "label_x": 1259.35,
-            "label_y": 412.33,
-            "leader_path": "M1274 395.5 L1259.35 412.33"
+            "label_x": 1299.35,
+            "label_y": 405.33,
+            "leader_path": "M1314 388.5 L1299.35 405.33"
         },
         "g_open_data": {
             "path": "",
-            "label_x": 811.95,
-            "label_y": 838.33,
-            "leader_path": "M811.95 741.83 L811.95 838.33"
+            "label_x": 806.95,
+            "label_y": 750.33,
+            "leader_path": ""
         },
         "g_open_structure": {
             "path": "",
-            "label_x": 171,
-            "label_y": 836.33,
-            "leader_path": "M171 719.83 L171 836.33"
+            "label_x": 167,
+            "label_y": 755.33,
+            "leader_path": ""
         },
         "g_open_security": {
             "path": "",
-            "label_x": 401,
-            "label_y": 849,
-            "leader_path": "M401 732.5 L401 849"
+            "label_x": 397,
+            "label_y": 754,
+            "leader_path": "M401 732.5 L397 754"
         },
         "g_open_fsm": {
             "path": "",
-            "label_x": 606,
-            "label_y": 845.67,
-            "leader_path": "M603 732.5 L606 845.67"
+            "label_x": 600,
+            "label_y": 751.67,
+            "leader_path": "M603 732.5 L600 751.67"
         },
         "g_open_source": {
             "path": "",
-            "label_x": 1018,
-            "label_y": 867.67,
-            "leader_path": "M1018 751.17 L1018 867.67"
+            "label_x": 1016,
+            "label_y": 793.67,
+            "leader_path": "M1018 751.17 L1016 793.67"
         },
         "g_open_build": {
             "path": "",
-            "label_x": 1240,
-            "label_y": 819.67,
-            "leader_path": "M1240 677.5 L1240 819.67"
+            "label_x": 1238,
+            "label_y": 774.67,
+            "leader_path": "M1240 677.5 L1238 774.67"
         },
         "g_logout": {
-            "path": "M98 166 C98 173, 98 173, 98 180",
-            "label_x": 265,
-            "label_y": 130,
-            "leader_path": "M98 146 L265 130"
+            "path": "M98 170 C98 177, 98 177, 98 184",
+            "label_x": 355,
+            "label_y": 115,
+            "leader_path": "M98 150 L355 115"
         },
         "g_create_application": {
             "path": "M552 312 C552 319, 552 319, 552 326",
@@ -304,51 +304,51 @@
         },
         "g_list_applications": {
             "path": "",
-            "label_x": 1159,
-            "label_y": 222.33,
-            "leader_path": "M1159 110.83 L1159 222.33"
+            "label_x": 1117,
+            "label_y": 257.33,
+            "leader_path": "M1105 180.83 L1117 257.33"
         },
         "g_update_application": {
             "path": "",
-            "label_x": 1267.2,
-            "label_y": 465.33,
+            "label_x": 1307.2,
+            "label_y": 458.33,
             "leader_path": ""
         },
         "g_delete_application": {
             "path": "",
-            "label_x": 1159,
-            "label_y": 263.67,
-            "leader_path": "M1159 172.83 L1159 263.67"
+            "label_x": 1120,
+            "label_y": 321.67,
+            "leader_path": "M1105 242.83 L1120 321.67"
         },
         "g_read_current_application": {
             "path": "",
-            "label_x": 1270,
-            "label_y": 521.33,
-            "leader_path": "M1274 542 L1270 521.33"
+            "label_x": 1309,
+            "label_y": 514.33,
+            "leader_path": "M1314 535 L1309 514.33"
         },
         "g_update_current_application": {
-            "path": "M1274 654 C1274 661, 1274 661, 1274 668",
-            "label_x": 1268.05,
-            "label_y": 572.67,
-            "leader_path": "M1274 619 L1268.05 572.67"
+            "path": "M1314 647 C1314 654, 1314 654, 1314 661",
+            "label_x": 1308.05,
+            "label_y": 565.67,
+            "leader_path": "M1314 612 L1308.05 565.67"
         },
         "g_delete_current_application": {
-            "path": "M1159 277.33 C1159 284.33, 1159 284.33, 1159 291.33",
-            "label_x": 1159,
-            "label_y": 258.67,
-            "leader_path": ""
+            "path": "M1105 347.33 C1105 354.33, 1105 354.33, 1105 361.33",
+            "label_x": 1182,
+            "label_y": 91.67,
+            "leader_path": "M1105 312.33 L1182 91.67"
         },
         "g_create_data": {
             "path": "",
-            "label_x": 811.95,
-            "label_y": 930.67,
-            "leader_path": "M811.95 811.33 L811.95 930.67"
+            "label_x": 809.95,
+            "label_y": 898.67,
+            "leader_path": "M811.95 811.33 L809.95 898.67"
         },
         "g_read_data": {
             "path": "",
-            "label_x": 811.95,
-            "label_y": 880.67,
-            "leader_path": ""
+            "label_x": 807.95,
+            "label_y": 820.67,
+            "leader_path": "M811.95 888.33 L807.95 820.67"
         },
         "g_update_data": {
             "path": "",
@@ -359,74 +359,74 @@
         "g_delete_data": {
             "path": "M811.95 1077.33 C811.95 1084.33, 811.95 1084.33, 811.95 1091.33",
             "label_x": 811.95,
-            "label_y": 990.67,
-            "leader_path": "M811.95 1042.33 L811.95 990.67"
+            "label_y": 977.67,
+            "leader_path": "M811.95 1042.33 L811.95 977.67"
         },
         "g_create_structure": {
             "path": "",
-            "label_x": 171,
-            "label_y": 882.67,
-            "leader_path": "M171 789.33 L171 882.67"
+            "label_x": 167,
+            "label_y": 830.67,
+            "leader_path": ""
         },
         "g_read_structure": {
             "path": "",
-            "label_x": 171,
-            "label_y": 934,
-            "leader_path": "M171 866.33 L171 934"
+            "label_x": 166,
+            "label_y": 912,
+            "leader_path": ""
         },
         "g_update_structure": {
             "path": "",
-            "label_x": 171,
-            "label_y": 985.33,
-            "leader_path": "M171 943.33 L171 985.33"
+            "label_x": 170,
+            "label_y": 991.33,
+            "leader_path": ""
         },
         "g_delete_structure": {
-            "path": "M171 1055.33 C171 1062.33, 171 1062.33, 171 1069.33",
-            "label_x": 171,
-            "label_y": 1036.67,
+            "path": "M169 1098.33 C169 1105.33, 169 1105.33, 169 1112.33",
+            "label_x": 169,
+            "label_y": 1068.67,
             "leader_path": ""
         },
         "g_create_security": {
             "path": "",
-            "label_x": 401,
-            "label_y": 895.33,
-            "leader_path": "M401 802 L401 895.33"
+            "label_x": 399,
+            "label_y": 823.33,
+            "leader_path": "M401 802 L399 823.33"
         },
         "g_read_security": {
             "path": "",
-            "label_x": 401,
-            "label_y": 946.67,
-            "leader_path": "M401 879 L401 946.67"
+            "label_x": 400,
+            "label_y": 898.67,
+            "leader_path": "M401 879 L400 898.67"
         },
         "g_update_security": {
             "path": "",
-            "label_x": 401,
-            "label_y": 998,
-            "leader_path": "M401 956 L401 998"
+            "label_x": 402,
+            "label_y": 973,
+            "leader_path": ""
         },
         "g_delete_security": {
             "path": "M401 1068 C401 1075, 401 1075, 401 1082",
-            "label_x": 401,
-            "label_y": 1049.33,
+            "label_x": 400,
+            "label_y": 1046.33,
             "leader_path": ""
         },
         "g_create_fsm": {
             "path": "",
             "label_x": 602,
-            "label_y": 896,
-            "leader_path": "M603 802 L602 896"
+            "label_y": 823,
+            "leader_path": "M603 802 L602 823"
         },
         "g_read_fsm": {
             "path": "",
-            "label_x": 603,
-            "label_y": 946.67,
-            "leader_path": "M603 879 L603 946.67"
+            "label_x": 604,
+            "label_y": 901.67,
+            "leader_path": "M603 879 L604 901.67"
         },
         "g_update_fsm": {
             "path": "",
-            "label_x": 603,
-            "label_y": 998,
-            "leader_path": "M603 956 L603 998"
+            "label_x": 605,
+            "label_y": 974,
+            "leader_path": "M603 956 L605 974"
         },
         "g_delete_fsm": {
             "path": "M603 1068 C603 1075, 603 1075, 603 1082",
@@ -436,15 +436,15 @@
         },
         "g_create_source": {
             "path": "",
-            "label_x": 1018,
-            "label_y": 914,
-            "leader_path": "M1018 820.67 L1018 914"
+            "label_x": 1017,
+            "label_y": 867,
+            "leader_path": "M1018 820.67 L1017 867"
         },
         "g_read_source": {
             "path": "",
-            "label_x": 1018,
-            "label_y": 965.33,
-            "leader_path": "M1018 897.67 L1018 965.33"
+            "label_x": 1019,
+            "label_y": 943.33,
+            "leader_path": "M1018 897.67 L1019 943.33"
         },
         "g_update_source": {
             "path": "",
@@ -460,9 +460,9 @@
         },
         "g_read_build": {
             "path": "",
-            "label_x": 1240,
-            "label_y": 866,
-            "leader_path": "M1240 747 L1240 866"
+            "label_x": 1238,
+            "label_y": 842,
+            "leader_path": "M1240 747 L1238 842"
         },
         "g_update_build": {
             "path": "",
