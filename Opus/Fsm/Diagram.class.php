@@ -102,6 +102,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     /** @var array<string,array{x:float,y:float}> */
     private array $_persistedStatePositions = [];
 
+    /** @var array{width:float,height:float}|array{} */
+    private array $_persistedCanvas = [];
+
     /**
      * Persisted presentation geometry for transitions. Local edge paths are
      * topology-validated; signal-card coordinates may be persisted for local,
@@ -501,6 +504,11 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                         ? $persistedLayout['states']
                         : []
                 );
+                $diagram->setPersistedCanvas(
+                    is_array($persistedLayout['canvas'] ?? null)
+                        ? $persistedLayout['canvas']
+                        : []
+                );
                 $diagram->setPersistedTransitionGeometry(
                     is_array($persistedLayout['transitions'] ?? null)
                         ? $persistedLayout['transitions']
@@ -673,6 +681,43 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $this->_layoutDirection = $layoutDirection;
     }
 
+
+    /**
+     * Persisted canvas dimensions are presentation-only. In vertical mode the
+     * stored height is authoritative once persisted state coordinates exist;
+     * otherwise the automatic layout height would silently re-expand the
+     * diagram and defeat the portable layout contract.
+     *
+     * @param array<string,mixed> $canvas
+     */
+    public function setPersistedCanvas(array $canvas): void
+    {
+        if ($canvas === []) {
+            $this->_persistedCanvas = [];
+            return;
+        }
+
+        $width = $canvas['width'] ?? null;
+        $height = $canvas['height'] ?? null;
+        if (!is_numeric($width) || !is_numeric($height)) {
+            throw new \InvalidArgumentException(
+                'OPUS_FSM_DIAGRAM_PERSISTED_CANVAS_INVALID'
+            );
+        }
+        $width = (float) $width;
+        $height = (float) $height;
+        if (!is_finite($width) || !is_finite($height)
+            || $width <= 0.0 || $height <= 0.0) {
+            throw new \InvalidArgumentException(
+                'OPUS_FSM_DIAGRAM_PERSISTED_CANVAS_INVALID'
+            );
+        }
+
+        $this->_persistedCanvas = [
+            'width' => $width,
+            'height' => $height,
+        ];
+    }
 
     /**
      * Persisted coordinates are presentation-only and never alter FSM
@@ -1614,7 +1659,19 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
 
         $layout['positions'] = $positions;
         $layout['width'] = max((float) $layout['width'], $maxRight + 48.0);
-        $layout['height'] = max((float) $layout['height'], $maxBottom + 72.0);
+        $persistedHeight = is_numeric(
+            $this->_persistedCanvas['height'] ?? null
+        )
+            ? (float) $this->_persistedCanvas['height']
+            : 0.0;
+        if ($this->_layoutDirection === 'vertical' && $persistedHeight > 0.0) {
+            $layout['height'] = max($persistedHeight, $maxBottom + 72.0);
+        } else {
+            $layout['height'] = max(
+                (float) $layout['height'],
+                $maxBottom + 72.0
+            );
+        }
         return $layout;
     }
 
