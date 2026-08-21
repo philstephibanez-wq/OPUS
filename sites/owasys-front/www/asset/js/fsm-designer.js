@@ -1,6 +1,7 @@
 (() => {
   'use strict';
 
+  const DESIGNER_REVISION = 'P117W_R45B2A4BZ2R6';
   const section = document.querySelector('[data-owasys-fsm-diagram]');
   if (!(section instanceof HTMLElement)
       || section.dataset.fsmDesignerMode !== 'design') return;
@@ -53,7 +54,6 @@
     section.querySelectorAll('[data-fsm-state-action]')
   ).filter((node) => node instanceof HTMLButtonElement);
   const createButton = section.querySelector('[data-fsm-state-action="create"]');
-  const editButton = section.querySelector('[data-fsm-state-action="edit"]');
   const renameButton = section.querySelector('[data-fsm-state-action="rename"]');
   const deleteButton = section.querySelector('[data-fsm-state-action="delete"]');
   const cancelButton = editor.querySelector('[data-fsm-state-cancel]');
@@ -157,35 +157,59 @@
     return 'cubic_bezier';
   };
 
-  const menuEligibility = (signal) => {
-    const origin = String(signal.origin || '');
-    const type = String(signal.type || '');
-    if (origin !== 'user') return ['false','origin != user'];
-    if (!['navigation','command'].includes(type)) return ['false','type not menu-projectable'];
-    return ['true','eligible'];
+  const transitionSources = (transition) => {
+    if (!transition || typeof transition !== 'object') return [];
+    if (transition.scope === 'global' && Array.isArray(transition.from_states)) {
+      return transition.from_states.filter((source) => typeof source === 'string');
+    }
+    return typeof transition.from === 'string' && transition.from !== '*'
+      ? [transition.from]
+      : [];
+  };
+
+  const stateConnectivity = (id) => {
+    let incoming = 0;
+    let outgoing = 0;
+    let self = 0;
+    const outgoingSignals = new Set();
+
+    Object.values(transitions).forEach((transition) => {
+      if (!transition || typeof transition !== 'object') return;
+      const target = String(transition.next_state || transition.nextState || '');
+      const sources = transitionSources(transition);
+      if (target === id) incoming += 1;
+      if (sources.includes(id)) {
+        outgoing += 1;
+        if (target === id) self += 1;
+        const signal = String(transition.signal || '');
+        if (signal !== '') outgoingSignals.add(signal);
+      }
+    });
+
+    return {
+      incoming,
+      outgoing,
+      self,
+      outgoingSignals:Array.from(outgoingSignals).sort(),
+    };
   };
 
   const inspectState = (id) => {
     const state = states[id];
     if (!state) return false;
+    const connectivity = stateConnectivity(id);
     kindNode.textContent = 'STATE';
     idNode.textContent = id;
     fieldsNode.replaceChildren();
-    const navigation = state.navigation && typeof state.navigation === 'object' ? state.navigation : {};
-    const diagram = state.diagram && typeof state.diagram === 'object' ? state.diagram : {};
     appendField('id', state.id);
-    appendField('type', state.type);
-    appendField('module', state.module);
-    appendField('route', state.route);
-    appendField('template', state.template);
-    appendField('requires_auth', state.requires_auth);
-    appendField('requires_current_app', state.requires_current_app);
-    appendField('navigation.visible', navigation.visible);
-    appendField('navigation.order', navigation.order);
-    appendField('navigation.label', navigation.label);
-    appendField('diagram.rank', diagram.rank);
-    appendField('diagram.order', diagram.order);
-    appendField('initial_state', model.definition.initial_state === id);
+    appendField('initial', model.definition.initial_state === id);
+    if (typeof model.definition.final_state === 'string' && model.definition.final_state !== '') {
+      appendField('final', model.definition.final_state === id);
+    }
+    appendField('incoming', connectivity.incoming);
+    appendField('outgoing', connectivity.outgoing);
+    appendField('self', connectivity.self);
+    appendField('outgoing_signals', connectivity.outgoingSignals);
     return true;
   };
 
@@ -196,26 +220,15 @@
     idNode.textContent = id;
     fieldsNode.replaceChildren();
     appendField('id', transition.id);
+    appendField('scope', transition.scope || (transition.interrupt === 'nmi' ? 'nmi' : 'local'));
     appendField('from', transition.from);
-    appendField('next_state', transition.next_state || transition.nextState);
-    appendField('scope', transition.scope || 'local');
     appendField('from_states', transition.from_states || []);
     appendField('signal', transition.signal);
+    appendField('signal.origin', signals[transition.signal]?.origin);
     appendField('guards', transition.guards || transition.guard || []);
     appendField('actions', transition.actions || transition.action || []);
     appendField('runtime_operations', transition.runtime_operations || []);
-    const signal = signals[transition.signal] || {};
-    appendField('signal.type', signal.type);
-    appendField('signal.origin', signal.origin);
-    appendField('signal.menu', signal.menu);
-    appendField('signal.menu_order', signal.menu_order);
-    appendField('signal.label_key', signal.label_key);
-    appendField('signal.menu_state', signal.menu_state);
-    appendField('signal.resource', signal.resource);
-    appendField('signal.operation', signal.operation);
-    const [eligible, reason] = menuEligibility(signal);
-    appendField('signal.menu_eligible', eligible);
-    appendField('signal.menu_reason', reason);
+    appendField('next_state', transition.next_state || transition.nextState);
     appendField('layout.path_kind', showBezierPreview(group));
     return true;
   };
@@ -228,7 +241,7 @@
   const updateButtons = () => {
     const stateSelected = selectedKind === 'state' && !!states[selectedId];
     if (createButton instanceof HTMLButtonElement) createButton.disabled = false;
-    [editButton, renameButton, deleteButton].forEach((button) => {
+    [renameButton, deleteButton].forEach((button) => {
       if (button instanceof HTMLButtonElement) button.disabled = !stateSelected;
     });
   };
@@ -260,52 +273,39 @@
   const setValue = (name, value) => {
     const node = field(name);
     if (node instanceof HTMLInputElement || node instanceof HTMLSelectElement) {
-      if (node.type === 'checkbox') node.checked = value === true;
-      else node.value = value === null || value === undefined ? '' : String(value);
+      node.value = value === null || value === undefined ? '' : String(value);
     }
   };
   const getValue = (name) => {
     const node = field(name);
     if (node instanceof HTMLInputElement || node instanceof HTMLSelectElement) {
-      return node.type === 'checkbox' ? node.checked : node.value;
+      return node.value;
     }
     return '';
   };
 
   const setEditorMode = (mode, state = null) => {
+    if (!['create','rename','delete'].includes(mode)) {
+      throw new Error('OWASYS_FSM_DESIGNER_STATE_MODE_INVALID');
+    }
     editor.reset();
     editor.dataset.mode = mode;
     editor.hidden = false;
     selection.hidden = true;
     empty.hidden = true;
     const source = state || {};
-    const navigation = source.navigation && typeof source.navigation === 'object' ? source.navigation : {};
-    const diagram = source.diagram && typeof source.diagram === 'object' ? source.diagram : {};
     setValue('state_id', source.id || '');
-    setValue('type', source.type || 'screen');
-    setValue('module', source.module || '');
-    setValue('route', source.route || '');
-    setValue('template', source.template || '');
-    setValue('requires_auth', source.requires_auth === true);
-    setValue('requires_current_app', source.requires_current_app === true);
-    setValue('navigation_visible', navigation.visible === true);
-    setValue('navigation_order', navigation.order ?? 1000);
-    setValue('navigation_label', navigation.label || '');
-    setValue('diagram_rank', diagram.rank ?? 0);
-    setValue('diagram_order', diagram.order ?? 0);
     setValue('delete_confirmation', '');
 
-    const identityOnly = mode === 'rename';
     const deleting = mode === 'delete';
-    editor.querySelectorAll('[data-fsm-state-detail]').forEach((row) => {
-      if (row instanceof HTMLElement) row.hidden = identityOnly || deleting;
-    });
     if (confirmationRow instanceof HTMLElement) confirmationRow.hidden = !deleting;
+    if (confirmationInput instanceof HTMLInputElement) confirmationInput.required = deleting;
+
     const idInput = field('state_id');
     if (idInput instanceof HTMLInputElement) {
-      idInput.readOnly = mode === 'edit' || mode === 'delete';
+      idInput.readOnly = deleting;
       idInput.focus();
-      idInput.select();
+      if (!deleting) idInput.select();
     }
     editor.dataset.originalId = source.id || '';
     editorStatus.textContent = '';
@@ -324,39 +324,18 @@
     updateButtons();
   };
 
-  const statePayload = () => ({
-    id:String(getValue('state_id')).trim(),
-    type:String(getValue('type')).trim(),
-    module:String(getValue('module')).trim(),
-    route:String(getValue('route')).trim(),
-    template:String(getValue('template')).trim(),
-    requires_auth:getValue('requires_auth') === true,
-    requires_current_app:getValue('requires_current_app') === true,
-    navigation:{
-      visible:getValue('navigation_visible') === true,
-      order:Number.parseInt(String(getValue('navigation_order') || '0'), 10),
-      label:String(getValue('navigation_label')).trim(),
-    },
-    diagram:{
-      rank:Number.parseInt(String(getValue('diagram_rank') || '0'), 10),
-      order:Number.parseInt(String(getValue('diagram_order') || '0'), 10),
-    },
-  });
-
   const commandForEditor = () => {
     const mode = editor.dataset.mode || '';
     const originalId = editor.dataset.originalId || '';
-    if (mode === 'create') return {operation:'state.create', state:statePayload()};
-    if (mode === 'edit') {
-      const state = statePayload();
-      delete state.id;
-      return {operation:'state.update', state_id:originalId, changes:state};
-    }
-    if (mode === 'rename') {
-      return {operation:'state.rename', state_id:originalId, new_id:String(getValue('state_id')).trim()};
-    }
+    const id = String(getValue('state_id')).trim();
+    if (mode === 'create') return {operation:'state.create', state:{id}};
+    if (mode === 'rename') return {operation:'state.rename', state_id:originalId, new_id:id};
     if (mode === 'delete') {
-      return {operation:'state.delete', state_id:originalId, confirmation:String(getValue('delete_confirmation')).trim()};
+      return {
+        operation:'state.delete',
+        state_id:originalId,
+        confirmation:String(getValue('delete_confirmation')).trim(),
+      };
     }
     throw new Error('OWASYS_FSM_DESIGNER_EDITOR_MODE_INVALID');
   };
@@ -406,7 +385,8 @@
         node.querySelectorAll('text').forEach((text) => {
           if ((text.textContent || '').trim() === oldId) text.textContent = newId;
         });
-        selectedKind = 'state'; selectedId = newId;
+        selectedKind = 'state';
+        selectedId = newId;
         showSelection('state', newId, node);
       }
       return;
@@ -414,14 +394,13 @@
     if (operation === 'state.delete') {
       const node = svg.querySelector(`.fsm-node[data-state="${CSS.escape(originalId)}"]`);
       if (node) node.remove();
-      selectedKind = ''; selectedId = '';
-      clearSelection(); selection.hidden = true; editor.hidden = true; empty.hidden = false;
+      selectedKind = '';
+      selectedId = '';
+      clearSelection();
+      selection.hidden = true;
+      editor.hidden = true;
+      empty.hidden = false;
       updateButtons();
-      return;
-    }
-    if (operation === 'state.update') {
-      const node = svg.querySelector(`.fsm-node[data-state="${CSS.escape(originalId)}"]`);
-      if (node instanceof SVGGElement) showSelection('state', originalId, node);
     }
   };
 
@@ -489,7 +468,9 @@
       await sendCommand(commandForEditor(), originalId);
       closeEditor();
     } catch (error) {
-      editorStatus.textContent = error instanceof Error ? error.message : 'OWASYS_FSM_DESIGNER_DRAFT_COMMAND_FAILED';
+      editorStatus.textContent = error instanceof Error
+        ? error.message
+        : 'OWASYS_FSM_DESIGNER_DRAFT_COMMAND_FAILED';
     } finally {
       if (submitButton instanceof HTMLButtonElement) submitButton.disabled = false;
     }
@@ -499,7 +480,8 @@
     const target = event.target;
     if (target instanceof HTMLFormElement && target !== editor
         && target.closest('[data-owasys-fsm-diagram]') === section) {
-      event.preventDefault(); event.stopImmediatePropagation();
+      event.preventDefault();
+      event.stopImmediatePropagation();
     }
   }, true);
 
@@ -511,21 +493,24 @@
     const transition = target.closest('.fsm-transition[data-transition-id]');
     const state = target.closest('.fsm-node[data-state]');
     if (transition instanceof SVGGElement) {
-      event.preventDefault(); event.stopImmediatePropagation();
+      event.preventDefault();
+      event.stopImmediatePropagation();
       if (activeTool === 'state-create') return;
       const id = transition.dataset.transitionId || '';
       if (id !== '') showSelection('transition', id, transition);
       return;
     }
     if (state instanceof SVGGElement) {
-      event.preventDefault(); event.stopImmediatePropagation();
+      event.preventDefault();
+      event.stopImmediatePropagation();
       if (activeTool === 'state-create') return;
       const id = state.dataset.state || '';
       if (id !== '') showSelection('state', id, state);
       return;
     }
     if (activeTool === 'state-create' && target.closest('svg.fsm-diagram')) {
-      event.preventDefault(); event.stopImmediatePropagation();
+      event.preventDefault();
+      event.stopImmediatePropagation();
       pendingCreatePoint = svgPoint(event);
       setEditorMode('create', null);
     }
@@ -536,10 +521,12 @@
     if (!(target instanceof Element)) return;
     if ((event.key === 'Enter' || event.key === ' ')
         && target.closest('.fsm-signal-link, .fsm-signal-post-submit')) {
-      event.preventDefault(); event.stopImmediatePropagation();
+      event.preventDefault();
+      event.stopImmediatePropagation();
     }
   }, true);
 
   updateButtons();
   section.dataset.fsmDesignerReady = '1';
+  section.dataset.fsmDesignerRevision = DESIGNER_REVISION;
 })();

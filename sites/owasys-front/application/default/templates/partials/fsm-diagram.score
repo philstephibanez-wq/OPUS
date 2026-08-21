@@ -3,7 +3,7 @@
   data-context="OWASYS_NATIVE_FSM_NAVIGATION"
   data-owasys-fsm-diagram
   data-fsm-ui-contract="OWASYS_FSM_MENU_V1"
-  data-fsm-ui-revision="P117W_R45B2A4BZ2"
+  data-fsm-ui-revision="P117W_R45B2A4BZ2R6"
   data-fsm-designer-mode="{{ fsm_designer.mode }}"
   data-fsm-designer-payload="{{ fsm_diagram.designer_payload }}"
   data-fsm-designer-action-url="{{ fsm_designer.action_url }}"
@@ -11,7 +11,7 @@
 >
   <div class="ow-fsm-heading">
     <h2>[[ i18n: navigation.main ]] · FSM</h2>
-    <small class="ow-fsm-ui-revision">menu = FSM · EFSM designer · A4BZ2</small>
+    <small class="ow-fsm-ui-revision">menu = FSM · EFSM designer · A4BZ2R6</small>
   </div>
   <p class="ow-muted">{{ fsm_diagram.description }}</p>
 
@@ -32,10 +32,6 @@
           <button type="button" class="ow-fsm-tool" data-fsm-state-action="create" title="{{ fsm_designer.labels.create }} {{ fsm_designer.labels.state }}">
             <span class="ow-fsm-tool-icon" aria-hidden="true">＋</span>
             <span class="ow-fsm-tool-label">{{ fsm_designer.labels.create }}</span>
-          </button>
-          <button type="button" class="ow-fsm-tool" data-fsm-state-action="edit" title="{{ fsm_designer.labels.edit }} {{ fsm_designer.labels.state }}" disabled>
-            <span class="ow-fsm-tool-icon" aria-hidden="true">✎</span>
-            <span class="ow-fsm-tool-label">{{ fsm_designer.labels.edit }}</span>
           </button>
           <button type="button" class="ow-fsm-tool" data-fsm-state-action="rename" title="{{ fsm_designer.labels.rename }} {{ fsm_designer.labels.state }}" disabled>
             <span class="ow-fsm-tool-icon" aria-hidden="true">↔</span>
@@ -93,25 +89,11 @@
 
         <form class="ow-fsm-state-editor" data-fsm-state-editor hidden>
           <label class="ow-fsm-state-field ow-fsm-state-identity">
-            <span>id</span><input type="text" name="state_id" required pattern="[a-z][a-z0-9_]{0,95}" autocomplete="off">
+            <span>id</span><input type="text" name="state_id" required pattern="[A-Za-z][A-Za-z0-9_.:-]{0,127}" autocomplete="off">
           </label>
-          <label class="ow-fsm-state-field" data-fsm-state-detail>
-            <span>type</span>
-            <select name="type">
-              <option value="entry">entry</option><option value="screen">screen</option><option value="workflow">workflow</option><option value="result">result</option><option value="system">system</option>
-            </select>
-          </label>
-          <label class="ow-fsm-state-field" data-fsm-state-detail><span>module</span><input type="text" name="module" required autocomplete="off"></label>
-          <label class="ow-fsm-state-field" data-fsm-state-detail><span>route</span><input type="text" name="route" required autocomplete="off"></label>
-          <label class="ow-fsm-state-field" data-fsm-state-detail><span>template</span><input type="text" name="template" autocomplete="off"></label>
-          <label class="ow-fsm-state-check" data-fsm-state-detail><input type="checkbox" name="requires_auth"><span>requires_auth</span></label>
-          <label class="ow-fsm-state-check" data-fsm-state-detail><input type="checkbox" name="requires_current_app"><span>requires_current_app</span></label>
-          <label class="ow-fsm-state-check" data-fsm-state-detail><input type="checkbox" name="navigation_visible"><span>navigation.visible</span></label>
-          <label class="ow-fsm-state-field" data-fsm-state-detail><span>navigation.order</span><input type="number" name="navigation_order" step="1"></label>
-          <label class="ow-fsm-state-field" data-fsm-state-detail><span>navigation.label</span><input type="text" name="navigation_label" autocomplete="off"></label>
-          <label class="ow-fsm-state-field" data-fsm-state-detail><span>diagram.rank</span><input type="number" name="diagram_rank" min="0" step="1"></label>
-          <label class="ow-fsm-state-field" data-fsm-state-detail><span>diagram.order</span><input type="number" name="diagram_order" step="1"></label>
-          <label class="ow-fsm-state-field is-danger" data-fsm-delete-confirmation-row hidden><span>confirmation</span><input type="text" name="delete_confirmation" autocomplete="off"></label>
+          <div data-fsm-delete-confirmation-row hidden>
+            <label class="ow-fsm-state-field is-danger"><span>confirmation</span><input type="text" name="delete_confirmation" autocomplete="off"></label>
+          </div>
           <div class="ow-fsm-state-editor-actions">
             <button type="submit" class="ow-fsm-tool is-primary" data-fsm-state-submit title="{{ fsm_designer.labels.validate }}"><span class="ow-fsm-tool-icon" aria-hidden="true">✓</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.validate }}</span></button>
             <button type="button" class="ow-fsm-tool" data-fsm-state-cancel title="{{ fsm_designer.labels.select }}"><span class="ow-fsm-tool-icon" aria-hidden="true">×</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.select }}</span></button>

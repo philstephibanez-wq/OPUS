@@ -7,20 +7,6 @@ namespace Opus\Fsm\Definition;
 final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
 {
     private const ID_PATTERN = '/^[A-Za-z][A-Za-z0-9_.:-]{0,127}$/D';
-    private const STATE_FIELDS = [
-        'type' => true,
-        'module' => true,
-        'route' => true,
-        'template' => true,
-        'requires_auth' => true,
-        'requires_current_app' => true,
-        'navigation' => true,
-        'diagram' => true,
-        'title_key' => true,
-        'summary_key' => true,
-        'final' => true,
-        'terminal' => true,
-    ];
 
     public function __construct(
         private readonly FsmDefinitionValidatorInterface $validator = new FsmDefinitionValidator()
@@ -37,15 +23,14 @@ final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
             case 'state.create':
                 $definition = $this->createState($definition, $command);
                 break;
-            case 'state.update':
-                $definition = $this->updateState($definition, $command);
-                break;
             case 'state.rename':
                 [$definition, $refactor] = $this->renameState($definition, $command);
                 break;
             case 'state.delete':
                 $definition = $this->deleteState($definition, $command);
                 break;
+            case 'state.update':
+                throw new \RuntimeException('OPUS_EFSM_STATE_UPDATE_NOT_SEMANTIC');
             default:
                 throw new \RuntimeException('OPUS_EFSM_EDITOR_OPERATION_UNKNOWN:' . $operation);
         }
@@ -75,42 +60,23 @@ final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
         if (!is_array($state)) {
             throw new \RuntimeException('OPUS_EFSM_STATE_CREATE_PAYLOAD_INVALID');
         }
+
+        foreach (array_keys($state) as $field) {
+            if ($field !== 'id') {
+                throw new \RuntimeException(
+                    'OPUS_EFSM_STATE_FIELD_FORBIDDEN:' . (string) $field
+                );
+            }
+        }
+
         $id = $this->stateId($state['id'] ?? null);
         foreach ((array) ($definition['states'] ?? []) as $existing) {
             if (is_array($existing) && (string) ($existing['id'] ?? '') === $id) {
                 throw new \RuntimeException('OPUS_EFSM_STATE_ID_DUPLICATE:' . $id);
             }
         }
-        $normalized = ['id' => $id];
-        foreach (self::STATE_FIELDS as $field => $_) {
-            if (array_key_exists($field, $state)) {
-                $normalized[$field] = $state[$field];
-            }
-        }
-        $definition['states'][] = $normalized;
-        return $definition;
-    }
 
-    /** @param array<string,mixed> $definition @param array<string,mixed> $command @return array<string,mixed> */
-    private function updateState(array $definition, array $command): array
-    {
-        $id = $this->stateId($command['state_id'] ?? null);
-        $changes = $command['changes'] ?? null;
-        if (!is_array($changes) || array_key_exists('id', $changes)) {
-            throw new \RuntimeException('OPUS_EFSM_STATE_UPDATE_PAYLOAD_INVALID');
-        }
-        $index = $this->stateIndex($definition, $id);
-        $state = $definition['states'][$index];
-        if (!is_array($state)) {
-            throw new \RuntimeException('OPUS_EFSM_STATE_INVALID:' . $id);
-        }
-        foreach ($changes as $field => $value) {
-            if (!is_string($field) || !isset(self::STATE_FIELDS[$field])) {
-                throw new \RuntimeException('OPUS_EFSM_STATE_FIELD_FORBIDDEN:' . (string) $field);
-            }
-            $state[$field] = $value;
-        }
-        $definition['states'][$index] = $state;
+        $definition['states'][] = ['id' => $id];
         return $definition;
     }
 
@@ -122,12 +88,14 @@ final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
         if ($old === $new) {
             return [$definition, []];
         }
+
         $index = $this->stateIndex($definition, $old);
         foreach ((array) ($definition['states'] ?? []) as $existing) {
             if (is_array($existing) && (string) ($existing['id'] ?? '') === $new) {
                 throw new \RuntimeException('OPUS_EFSM_STATE_ID_DUPLICATE:' . $new);
             }
         }
+
         $state = $definition['states'][$index];
         if (!is_array($state)) {
             throw new \RuntimeException('OPUS_EFSM_STATE_INVALID:' . $old);
@@ -140,6 +108,7 @@ final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
                 $definition[$field] = $new;
             }
         }
+
         foreach ((array) ($definition['transitions'] ?? []) as $transitionIndex => $transition) {
             if (!is_array($transition)) {
                 continue;
@@ -179,6 +148,7 @@ final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
         if (($definition['final_state'] ?? null) === $id) {
             throw new \RuntimeException('OPUS_EFSM_FINAL_STATE_DELETE_FORBIDDEN:' . $id);
         }
+
         foreach ((array) ($definition['transitions'] ?? []) as $transition) {
             if (!is_array($transition)) {
                 continue;
@@ -193,6 +163,7 @@ final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
                 throw new \RuntimeException('OPUS_EFSM_STATE_DELETE_DEPENDENCY:' . $id);
             }
         }
+
         $index = $this->stateIndex($definition, $id);
         array_splice($definition['states'], $index, 1);
         return $definition;
