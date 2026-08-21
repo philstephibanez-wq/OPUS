@@ -406,6 +406,12 @@
             "menu_order": 10
         },
         {
+            "id": "begin_application_deletion",
+            "type": "command",
+            "menu": false,
+            "origin": "user"
+        },
+        {
             "id": "application_deleted",
             "type": "outcome",
             "menu": false,
@@ -1088,12 +1094,29 @@
             ]
         },
         {
+            "id": "t_delete_begin",
+            "from": "registry",
+            "signal": "begin_application_deletion",
+            "next_state": "registry",
+            "guards": [
+                "app_exists",
+                "acl:registry:delete"
+            ],
+            "runtime_operations": [
+                {
+                    "op": "poke",
+                    "name": "deletion_target",
+                    "context": "deletion_target"
+                }
+            ]
+        },
+        {
             "id": "t_delete_app",
             "from": "registry",
             "signal": "application_deleted",
             "next_state": "registry",
             "actions": [
-                "clear_current_app"
+                "clear_deleted_app_context"
             ]
         },
         {
@@ -1964,7 +1987,7 @@
                 "password"
             ],
             "signal": "delete_current_application",
-            "next_state": "application",
+            "next_state": "registry",
             "guards": [
                 "current_app_required",
                 "acl:application:delete"

@@ -3,6 +3,7 @@
 [[ if: registry.error_action_invalid ]]<p class="ow-error">[[ i18n: registry.error.action_invalid ]]</p>[[ endif ]]
 [[ if: registry.error_application_protected ]]<p class="ow-error">[[ i18n: registry.error.application_protected ]]</p>[[ endif ]]
 [[ if: registry.error_delete_confirmation ]]<p class="ow-error">[[ i18n: registry.error.delete_confirmation ]]</p>[[ endif ]]
+[[ if: registry.error_delete_failed ]]<p class="ow-error">[[ i18n: registry.delete.application ]] · <code>{{ registry.delete_error_code }}</code></p>[[ endif ]]
 <section class="ow-card ow-context-panel">
   <div class="ow-section-heading">
     <div>

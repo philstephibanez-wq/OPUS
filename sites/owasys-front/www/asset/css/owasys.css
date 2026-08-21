@@ -247,11 +247,11 @@ button[type="submit"]:hover {
   background: rgba(108, 227, 255, .42);
 }
 
-.ow-tree-app form { height: 100%; }
+.ow-tree-app > form:not(.ow-delete-form) { height: auto; }
 
-.ow-tree-app button {
+.ow-tree-app > form:not(.ow-delete-form) > button {
   width: 100%;
-  height: 100%;
+  height: auto;
   display: grid;
   align-content: start;
   justify-items: start;
@@ -268,16 +268,16 @@ button[type="submit"]:hover {
   transition: transform .12s ease, border-color .12s ease, background .12s ease;
 }
 
-.ow-tree-app button:hover,
-.ow-tree-app button:focus-visible,
-.ow-tree-app.is-current button {
+.ow-tree-app > form:not(.ow-delete-form) > button:hover,
+.ow-tree-app > form:not(.ow-delete-form) > button:focus-visible,
+.ow-tree-app.is-current > form:not(.ow-delete-form) > button {
   transform: translateY(-2px);
   border-color: var(--ow-accent);
   background: rgba(108, 227, 255, .12);
   outline: none;
 }
 
-.ow-tree-app.is-current button {
+.ow-tree-app.is-current > form:not(.ow-delete-form) > button {
   border-color: rgba(74, 222, 128, .72);
   box-shadow: 0 0 0 2px rgba(74, 222, 128, .22), 0 14px 40px rgba(0,0,0,.20);
 }
@@ -290,6 +290,56 @@ button[type="submit"]:hover {
   color: #a7f3d0;
   font-style: normal;
   font-weight: 800;
+}
+
+.ow-delete-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 10px;
+  align-items: end;
+  height: auto;
+  margin-top: 10px;
+}
+
+.ow-delete-form label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  color: var(--ow-muted);
+  font-weight: 700;
+}
+
+.ow-delete-form input {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid var(--ow-line);
+  border-radius: 10px;
+  outline: none;
+  background: rgba(255, 255, 255, .07);
+  color: var(--ow-text);
+}
+
+.ow-delete-form input:focus {
+  border-color: var(--ow-danger);
+  box-shadow: 0 0 0 3px rgba(251, 113, 133, .14);
+}
+
+.ow-delete-form .ow-button {
+  width: auto;
+  min-height: 38px;
+  padding: 8px 12px;
+  align-self: end;
+}
+
+@media (max-width: 680px) {
+  .ow-delete-form {
+    grid-template-columns: 1fr;
+  }
+
+  .ow-delete-form .ow-button {
+    width: 100%;
+  }
 }
 
 .ow-tree-empty {

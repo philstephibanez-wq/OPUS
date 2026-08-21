@@ -13,6 +13,7 @@ final class OwasysRegistryController
         $sync = $this->model->synchronize();
         $signal = null;
         $selectedApp = null;
+        $deletionRequest = null;
         $error = null;
 
         if ($method === 'POST') {
@@ -52,13 +53,17 @@ final class OwasysRegistryController
                 } elseif (!hash_equals($applicationId, $confirmation)) {
                     $error = 'registry.error.delete_confirmation';
                 } else {
-                    $this->model->delete(
-                        $applicationId,
-                        $confirmation,
-                        $this->sessionActor()
-                    );
-                    $sync = $this->model->synchronize();
-                    $signal = 'application_deleted';
+                    $selectedApp = $this->model->find($applicationId);
+                    if (!is_array($selectedApp)) {
+                        throw new RuntimeException(
+                            'OWASYS_REGISTRY_DELETE_TARGET_MISSING'
+                        );
+                    }
+                    $deletionRequest = [
+                        'application_id' => $applicationId,
+                        'confirmation' => $confirmation,
+                    ];
+                    $signal = 'begin_application_deletion';
                 }
             } else {
                 $error = 'registry.error.action_invalid';
@@ -75,6 +80,7 @@ final class OwasysRegistryController
             'recent_events' => $this->model->recentEvents(8),
             'signal' => $signal,
             'selected_app' => $selectedApp,
+            'deletion_request' => $deletionRequest,
             'error' => $error,
         ];
     }

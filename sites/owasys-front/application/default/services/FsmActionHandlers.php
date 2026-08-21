@@ -22,6 +22,7 @@ final class OwasysFsmActionHandlers
             'clear_session' => fn (string $action, array $transition, array $context): bool => $this->clearSession(),
             'set_current_app' => fn (string $action, array $transition, array $context): array => $this->setCurrentApp($context),
             'clear_current_app' => fn (string $action, array $transition, array $context): bool => $this->clearCurrentApp($context),
+            'clear_deleted_app_context' => fn (string $action, array $transition, array $context): bool => $this->clearDeletedAppContext($context),
             'update_runtime_password_hash' => fn (string $action, array $transition, array $context): array => $this->updatePassword($context),
             'clear_must_change_password' => fn (string $action, array $transition, array $context): array => $this->clearMustChangePassword(),
             'redirect_password_change' => static fn (string $action, array $transition, array $context): bool => true,
@@ -66,6 +67,23 @@ final class OwasysFsmActionHandlers
         }
         $this->session->clearCurrentApp();
         return true;
+    }
+
+    /** @param array<string,mixed> $context */
+    private function clearDeletedAppContext(array $context): bool
+    {
+        $deletedId = trim((string) ($context['deleted_app_id'] ?? ''));
+        if ($deletedId === '') {
+            throw new RuntimeException(
+                'OWASYS_FSM_DELETED_APP_ID_MISSING'
+            );
+        }
+        $current = $this->session->currentApp();
+        if (!is_array($current)
+            || (string) ($current['id'] ?? '') !== $deletedId) {
+            return true;
+        }
+        return $this->clearCurrentApp($context);
     }
 
     /** @param array<string,mixed> $context @return array<string,mixed> */

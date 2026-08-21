@@ -137,6 +137,27 @@ final class OwasysRuntimeController
             }
         }
 
+        if (
+            $signal === 'begin_application_deletion'
+            && $errorKey === null
+        ) {
+            $deletion = $this->completeApplicationDeletion(
+                $fsm,
+                $fsmStore,
+                $context,
+                is_array($requestResult) ? $requestResult : []
+            );
+            $targetState = (string) $deletion['state'];
+            $requestResult = is_array($deletion['result'] ?? null)
+                ? $deletion['result']
+                : null;
+            $errorKey = is_string($deletion['error'] ?? null)
+                ? $deletion['error']
+                : null;
+            $redirectAfterTransition =
+                ($deletion['redirect'] ?? false) === true;
+        }
+
         if ($externalRedirect !== '') {
             $this->redirectExternal($externalRedirect);
             return;
@@ -360,6 +381,19 @@ final class OwasysRuntimeController
                         ),
                         'registry_entry' =>
                             $result['selected_app'] ?? null,
+                        'deletion_request' => is_array(
+                            $result['deletion_request'] ?? null
+                        )
+                            ? $result['deletion_request']
+                            : null,
+                        'deletion_target' => is_array(
+                            $result['deletion_request'] ?? null
+                        )
+                            ? (string) (
+                                $result['deletion_request']['application_id']
+                                ?? ''
+                            )
+                            : '',
                     ],
                     'result' => $result,
                     'error' => is_string($result['error'] ?? null)
@@ -628,6 +662,135 @@ final class OwasysRuntimeController
         }
 
         $this->fail(409, $message);
+    }
+
+    /**
+     * @param array<string,mixed> $context
+     * @param array<string,mixed> $requestResult
+     * @return array{state:string,result:array<string,mixed>|null,error:?string,redirect:bool}
+     */
+    private function completeApplicationDeletion(
+        FsmProcessor $fsm,
+        FsmSessionStore $store,
+        array $context,
+        array $requestResult
+    ): array {
+        $request = $context['deletion_request'] ?? null;
+        if (!is_array($request)) {
+            throw new RuntimeException(
+                'OWASYS_APPLICATION_DELETION_REQUEST_MISSING'
+            );
+        }
+        $applicationId = trim((string) (
+            $request['application_id'] ?? ''
+        ));
+        $confirmation = trim((string) (
+            $request['confirmation'] ?? ''
+        ));
+        if ($applicationId === '' || $confirmation === '') {
+            throw new RuntimeException(
+                'OWASYS_APPLICATION_DELETION_REQUEST_INVALID'
+            );
+        }
+
+        $this->profiler?->event(
+            'owasys.registry',
+            'application.delete.requested',
+            ['application_id' => $applicationId]
+        );
+
+        try {
+            $this->registryModel()->delete(
+                $applicationId,
+                $confirmation,
+                is_array($context['identity'] ?? null)
+                    ? $context['identity']
+                    : []
+            );
+            $outcomeContext = array_replace(
+                $context,
+                ['deleted_app_id' => $applicationId]
+            );
+            $outcome = $fsm->transition(
+                'registry',
+                'application_deleted',
+                $outcomeContext
+            );
+            $state = (string) ($outcome['next_state'] ?? '');
+            if ($state !== 'registry') {
+                throw new RuntimeException(
+                    'OWASYS_APPLICATION_DELETION_SUCCESS_STATE_INVALID:'
+                        . $state
+                );
+            }
+            $this->actionHandlersFor($outcome)
+                ->dispatcher()
+                ->dispatch($outcome, $outcomeContext);
+            $store->persist($fsm);
+            $this->profiler?->event(
+                'owasys.registry',
+                'application.delete.succeeded',
+                ['application_id' => $applicationId]
+            );
+
+            return [
+                'state' => 'registry',
+                'result' => null,
+                'error' => null,
+                'redirect' => true,
+            ];
+        } catch (Throwable $error) {
+            $code = $this->deletionErrorCode($error);
+            try {
+                $failure = $fsm->transition(
+                    'registry',
+                    'registry_action_failed',
+                    $context
+                );
+                $state = (string) ($failure['next_state'] ?? '');
+                if ($state !== 'registry') {
+                    throw new RuntimeException(
+                        'OWASYS_APPLICATION_DELETION_FAILURE_STATE_INVALID:'
+                            . $state
+                    );
+                }
+                $store->persist($fsm);
+            } catch (Throwable $fsmError) {
+                $this->profiler?->event(
+                    'owasys.registry',
+                    'application.delete.failure_transition_failed',
+                    ['error_code' => $this->deletionErrorCode($fsmError)],
+                    'error'
+                );
+            }
+            $this->profiler?->event(
+                'owasys.registry',
+                'application.delete.failed',
+                [
+                    'application_id' => $applicationId,
+                    'error_code' => $code,
+                ],
+                'error'
+            );
+            $requestResult['error'] = 'registry.error.delete_failed';
+            $requestResult['delete_error_code'] = $code;
+
+            return [
+                'state' => 'registry',
+                'result' => $requestResult,
+                'error' => 'registry.error.delete_failed',
+                'redirect' => false,
+            ];
+        }
+    }
+
+    private function deletionErrorCode(Throwable $error): string
+    {
+        $message = trim($error->getMessage());
+        $code = trim((string) (explode(':', $message, 2)[0] ?? ''));
+        return preg_match('/^[A-Z][A-Z0-9_]{2,159}$/D', $code) === 1
+            ? $code
+            : 'OWASYS_APPLICATION_DELETE_FAILED';
     }
 
     /** @param array<string,mixed> $identity */
@@ -1087,6 +1250,12 @@ final class OwasysRuntimeController
                 'error_delete_confirmation' =>
                     ($result['error'] ?? null)
                         === 'registry.error.delete_confirmation',
+                'error_delete_failed' =>
+                    ($result['error'] ?? null)
+                        === 'registry.error.delete_failed',
+                'delete_error_code' => (string) (
+                    $result['delete_error_code'] ?? ''
+                ),
                 'singleton_all_compliant' =>
                     $entries !== [] && $singletonNoncompliant === 0,
                 'singleton_has_noncompliant' =>
@@ -1133,7 +1302,7 @@ final class OwasysRuntimeController
             : [];
         $requiresRegistry = array_intersect(
             $actions,
-            ['set_current_app', 'start_creation_flow']
+            ['set_current_app', 'start_creation_flow', 'clear_deleted_app_context']
         ) !== [] || (
             in_array('clear_current_app', $actions, true)
             && is_array($this->session->currentApp())
