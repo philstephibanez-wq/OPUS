@@ -244,36 +244,6 @@
                 "uk": "джерела-даних"
             }
         },
-        "fsm": {
-            "tail": false,
-            "paths": {
-                "bg": "fsm",
-                "hr": "fsm",
-                "cs": "fsm",
-                "da": "fsm",
-                "nl": "fsm",
-                "en": "fsm",
-                "et": "fsm",
-                "fi": "fsm",
-                "fr": "fsm",
-                "de": "fsm",
-                "el": "fsm",
-                "hu": "fsm",
-                "ga": "fsm",
-                "it": "fsm",
-                "lv": "fsm",
-                "lt": "fsm",
-                "mt": "fsm",
-                "pl": "fsm",
-                "pt": "fsm",
-                "ro": "fsm",
-                "sk": "fsm",
-                "sl": "fsm",
-                "es": "fsm",
-                "sv": "fsm",
-                "uk": "fsm"
-            }
-        },
         "security": {
             "tail": false,
             "paths": {

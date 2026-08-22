@@ -51,7 +51,26 @@ final class OwasysRuntimeController
             $this->parentSpanId
         );
         $fsmStore = new FsmSessionStore(self::FSM_SESSION_KEY);
-        $fsmStore->restore($fsm);
+        try {
+            $fsmStore->restore($fsm);
+        } catch (RuntimeException $error) {
+            if (!str_starts_with(
+                $error->getMessage(),
+                'OPUS_FSM_RUNTIME_SNAPSHOT_STATE_UNKNOWN:'
+            )) {
+                throw $error;
+            }
+            $fsmStore->clear();
+            $fsm->reset();
+            $this->profiler?->event(
+                'fsm',
+                'runtime.snapshot.reset',
+                ['reason' => 'removed_state'],
+                'warning',
+                null,
+                $this->parentSpanId
+            );
+        }
         $currentState = $this->currentState($fsm);
         $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
         $requestResult = null;

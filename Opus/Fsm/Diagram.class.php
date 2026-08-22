@@ -469,7 +469,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         string $layoutRoot = '',
         array $stateLayoutHints = [],
         array $transitionActions = [],
-        string $layoutDirection = 'horizontal'
+        string $layoutDirection = 'horizontal',
+        bool $persistLayout = true
     ): string {
         $diagram = self::fromDefinition(
             $fsm,
@@ -487,7 +488,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $diagram->setStateLayoutHints($stateLayoutHints);
 
         $layoutStore = null;
-        if (class_exists(\Opus\Fsm\FsmDiagramLayoutStore::class)) {
+        if ($persistLayout
+            && class_exists(\Opus\Fsm\FsmDiagramLayoutStore::class)) {
             $candidateStore = \Opus\Fsm\FsmDiagramLayoutStore::discover(
                 $fsm,
                 $layoutDirection
@@ -4134,6 +4136,23 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     return matrix ? point.matrixTransform(matrix.inverse()) : point;
   };
 
+  const finiteCanvasCoordinate = (value, max) => {
+    const number = Number(value);
+    const bound = Number(max);
+    if (!Number.isFinite(number)
+        || !Number.isFinite(bound)
+        || bound < 0) {
+      return null;
+    }
+    return Math.max(0, Math.min(number, bound));
+  };
+
+  const safeSvgPath = (value) => {
+    if (typeof value !== 'string' || /(?:NaN|Infinity)/.test(value)) {
+      return '';
+    }
+    return value;
+  };
   const boxFor = (id) => {
     const item = states.get(id);
     if (!item) return null;
@@ -4390,21 +4409,26 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         if (!center) return;
         const edge = group.querySelector('path.fsm-edge');
         const leader = group.querySelector('path.fsm-label-leader');
+        const labelX = finiteCanvasCoordinate(center.x, viewBox.width);
+        const labelY = finiteCanvasCoordinate(center.y, viewBox.height);
+        if (labelX === null || labelY === null) return;
         transitions[id] = {
-          path:edge instanceof SVGPathElement ? (edge.getAttribute('d') || '') : '',
-          label_x:center.x,
-          label_y:center.y,
+          path:edge instanceof SVGPathElement
+            ? safeSvgPath(edge.getAttribute('d') || '')
+            : '',
+          label_x:labelX,
+          label_y:labelY,
           leader_path:leader instanceof SVGPathElement
-            ? (leader.getAttribute('d') || '')
+            ? safeSvgPath(leader.getAttribute('d') || '')
             : '',
         };
       });
     const markerGeometry = {};
     markers.forEach((item, id) => {
-      markerGeometry[id] = {
-        x:item.x + item.dx,
-        y:item.y + item.dy,
-      };
+      const x = finiteCanvasCoordinate(item.x + item.dx, viewBox.width);
+      const y = finiteCanvasCoordinate(item.y + item.dy, viewBox.height);
+      if (x === null || y === null) return;
+      markerGeometry[id] = {x, y};
     });
     return {
       canvas:{width:viewBox.width, height:viewBox.height},
@@ -4444,9 +4468,20 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     if (kind === 'state') {
       const item = states.get(id);
       if (!item) return;
+      const x = finiteCanvasCoordinate(
+        item.x + item.dx,
+        svg.viewBox.baseVal.width
+      );
+      const y = finiteCanvasCoordinate(
+        item.y + item.dy,
+        svg.viewBox.baseVal.height
+      );
+      if (x === null || y === null) {
+        throw new Error('OPUS_FSM_DIAGRAM_LAYOUT_CLIENT_COORDINATE_INVALID');
+      }
       body.set('opus_fsm_layout_state', id);
-      body.set('opus_fsm_layout_x', String(item.x + item.dx));
-      body.set('opus_fsm_layout_y', String(item.y + item.dy));
+      body.set('opus_fsm_layout_x', String(x));
+      body.set('opus_fsm_layout_y', String(y));
     } else if (kind === 'marker') {
       if (!markers.has(id)) return;
       body.set('opus_fsm_layout_marker', id);
@@ -4717,7 +4752,11 @@ SVG;
         if ($origin === '') {
             return 'unspecified';
         }
-        if (!in_array($origin, ['user', 'automatic'], true)) {
+        if (!in_array(
+            $origin,
+            ['user', 'automatic', 'unspecified'],
+            true
+        )) {
             throw new \InvalidArgumentException(
                 'OPUS_FSM_DIAGRAM_SIGNAL_ORIGIN_INVALID:' . $origin
             );

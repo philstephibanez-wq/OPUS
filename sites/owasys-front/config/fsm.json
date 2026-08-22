@@ -215,25 +215,6 @@
             "type": "screen"
         },
         {
-            "id": "workflows",
-            "module": "fsm",
-            "route": "fsm",
-            "requires_auth": true,
-            "requires_current_app": true,
-            "title_key": "menu.fsm",
-            "summary_key": "state.default.summary",
-            "navigation": {
-                "visible": true,
-                "order": 60,
-                "label": "menu.fsm"
-            },
-            "diagram": {
-                "rank": 8,
-                "order": 60
-            },
-            "type": "screen"
-        },
-        {
             "id": "source",
             "module": "source",
             "route": "source",
@@ -493,14 +474,6 @@
             "menu_order": 30,
             "origin": "user",
             "label_key": "menu.data"
-        },
-        {
-            "id": "open_fsm",
-            "type": "navigation",
-            "menu": true,
-            "menu_order": 60,
-            "origin": "user",
-            "label_key": "menu.fsm"
         },
         {
             "id": "open_security",
@@ -860,50 +833,6 @@
             "label_key": "menu.operation.delete",
             "menu_state": "security",
             "resource": "security",
-            "operation": "delete"
-        },
-        {
-            "id": "create_fsm",
-            "type": "command",
-            "menu": true,
-            "menu_order": 10,
-            "origin": "user",
-            "label_key": "menu.operation.create",
-            "menu_state": "workflows",
-            "resource": "fsm",
-            "operation": "create"
-        },
-        {
-            "id": "read_fsm",
-            "type": "command",
-            "menu": true,
-            "menu_order": 20,
-            "origin": "user",
-            "label_key": "menu.operation.read",
-            "menu_state": "workflows",
-            "resource": "fsm",
-            "operation": "read"
-        },
-        {
-            "id": "update_fsm",
-            "type": "command",
-            "menu": true,
-            "menu_order": 30,
-            "origin": "user",
-            "label_key": "menu.operation.update",
-            "menu_state": "workflows",
-            "resource": "fsm",
-            "operation": "update"
-        },
-        {
-            "id": "delete_fsm",
-            "type": "command",
-            "menu": true,
-            "menu_order": 40,
-            "origin": "user",
-            "label_key": "menu.operation.delete",
-            "menu_state": "workflows",
-            "resource": "fsm",
             "operation": "delete"
         },
         {
@@ -1470,7 +1399,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -1497,7 +1425,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -1521,7 +1448,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -1545,7 +1471,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -1569,7 +1494,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -1590,7 +1514,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -1614,7 +1537,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -1638,7 +1560,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -1662,7 +1583,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -1676,30 +1596,6 @@
             ]
         },
         {
-            "id": "g_open_fsm",
-            "scope": "global",
-            "from_states": [
-                "begin",
-                "login",
-                "registry",
-                "application",
-                "data",
-                "structure",
-                "security",
-                "workflows",
-                "source",
-                "build",
-                "account",
-                "password"
-            ],
-            "signal": "open_fsm",
-            "next_state": "workflows",
-            "guards": [
-                "current_app_required",
-                "acl:fsm:open"
-            ]
-        },
-        {
             "id": "g_open_source",
             "scope": "global",
             "from_states": [
@@ -1710,7 +1606,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -1734,7 +1629,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -1762,7 +1656,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -1798,7 +1691,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -1833,7 +1725,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -1861,7 +1752,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -1894,7 +1784,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -1922,7 +1811,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -1951,7 +1839,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -1980,7 +1867,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2011,7 +1897,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2042,7 +1927,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2073,7 +1957,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2104,7 +1987,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2135,7 +2017,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2166,7 +2047,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2197,7 +2077,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2228,7 +2107,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2259,7 +2137,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2290,7 +2167,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2321,7 +2197,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2352,7 +2227,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2373,130 +2247,6 @@
             ]
         },
         {
-            "id": "g_create_fsm",
-            "scope": "global",
-            "from_states": [
-                "begin",
-                "login",
-                "registry",
-                "application",
-                "data",
-                "structure",
-                "security",
-                "workflows",
-                "source",
-                "build",
-                "account",
-                "password"
-            ],
-            "signal": "create_fsm",
-            "next_state": "workflows",
-            "guards": [
-                "current_app_required",
-                "acl:fsm:create"
-            ],
-            "runtime_operations": [
-                {
-                    "op": "poke",
-                    "name": "operation",
-                    "context": "menu_operation"
-                }
-            ]
-        },
-        {
-            "id": "g_read_fsm",
-            "scope": "global",
-            "from_states": [
-                "begin",
-                "login",
-                "registry",
-                "application",
-                "data",
-                "structure",
-                "security",
-                "workflows",
-                "source",
-                "build",
-                "account",
-                "password"
-            ],
-            "signal": "read_fsm",
-            "next_state": "workflows",
-            "guards": [
-                "current_app_required",
-                "acl:fsm:open"
-            ],
-            "runtime_operations": [
-                {
-                    "op": "poke",
-                    "name": "operation",
-                    "context": "menu_operation"
-                }
-            ]
-        },
-        {
-            "id": "g_update_fsm",
-            "scope": "global",
-            "from_states": [
-                "begin",
-                "login",
-                "registry",
-                "application",
-                "data",
-                "structure",
-                "security",
-                "workflows",
-                "source",
-                "build",
-                "account",
-                "password"
-            ],
-            "signal": "update_fsm",
-            "next_state": "workflows",
-            "guards": [
-                "current_app_required",
-                "acl:fsm:update"
-            ],
-            "runtime_operations": [
-                {
-                    "op": "poke",
-                    "name": "operation",
-                    "context": "menu_operation"
-                }
-            ]
-        },
-        {
-            "id": "g_delete_fsm",
-            "scope": "global",
-            "from_states": [
-                "begin",
-                "login",
-                "registry",
-                "application",
-                "data",
-                "structure",
-                "security",
-                "workflows",
-                "source",
-                "build",
-                "account",
-                "password"
-            ],
-            "signal": "delete_fsm",
-            "next_state": "workflows",
-            "guards": [
-                "current_app_required",
-                "acl:fsm:delete"
-            ],
-            "runtime_operations": [
-                {
-                    "op": "poke",
-                    "name": "operation",
-                    "context": "menu_operation"
-                }
-            ]
-        },
-        {
             "id": "g_create_source",
             "scope": "global",
             "from_states": [
@@ -2507,7 +2257,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2538,7 +2287,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2569,7 +2317,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2600,7 +2347,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2631,7 +2377,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2662,7 +2407,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2693,7 +2437,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2724,7 +2467,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",
@@ -2755,7 +2497,6 @@
                 "data",
                 "structure",
                 "security",
-                "workflows",
                 "source",
                 "build",
                 "account",

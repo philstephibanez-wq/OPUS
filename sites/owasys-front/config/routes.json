@@ -1,29 +1,28 @@
 {
-  "contract": "OPUS_SIGNAL_ROUTES_V2",
-  "rule": "Every route resolves to a frontend FSM signal.",
-  "system_routes": {
-    "login": "open_login",
-    "account": "open_account",
-    "account/password": "open_password_change"
-  },
-  "routes": {
-    "applications": "open_applications",
-    "application": "open_application",
-    "applications/new": "open_creation",
-    "structure": "open_structure",
-    "data": "open_data",
-    "fsm": "open_fsm",
-    "security": "open_security",
-    "source": "open_source",
-    "build": "open_build",
-    "logout": "logout"
-  },
-  "post_actions": {
-    "applications": {
-      "create-new-app": "create_new_app"
+    "contract": "OPUS_SIGNAL_ROUTES_V2",
+    "rule": "Every route resolves to a frontend FSM signal.",
+    "system_routes": {
+        "login": "open_login",
+        "account": "open_account",
+        "account/password": "open_password_change"
     },
-    "applications/new": {
-      "cancel-creation": "cancel_creation"
+    "routes": {
+        "applications": "open_applications",
+        "application": "open_application",
+        "applications/new": "open_creation",
+        "structure": "open_structure",
+        "data": "open_data",
+        "security": "open_security",
+        "source": "open_source",
+        "build": "open_build",
+        "logout": "logout"
+    },
+    "post_actions": {
+        "applications": {
+            "create-new-app": "create_new_app"
+        },
+        "applications/new": {
+            "cancel-creation": "cancel_creation"
+        }
     }
-  }
 }

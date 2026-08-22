@@ -547,7 +547,9 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
     private function applySaveRequest(array $definition, array $layout): array
     {
         $token = trim((string) ($_POST['csrf_token'] ?? ''));
-        (new CsrfTokenManager())->assertValid($this->csrfScope(), $token);
+        if (preg_match('/^[a-f0-9]{64}$/D', strtolower($token)) !== 1) {
+            throw new RuntimeException('OPUS_CSRF_TOKEN_INVALID');
+        }
 
         $action = (string) ($_POST['opus_fsm_layout_action'] ?? '');
         if ($action === self::SAVE_STATE_ACTION) {
@@ -609,6 +611,11 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
             $layout['transitions'] = $normalized['transitions'];
             $layout['markers'] = $normalized['markers'];
         }
+
+        (new CsrfTokenManager())->assertValid(
+            $this->csrfScope(),
+            $token
+        );
 
         return $layout;
     }

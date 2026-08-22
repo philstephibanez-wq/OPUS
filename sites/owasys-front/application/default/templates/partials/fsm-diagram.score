@@ -3,7 +3,7 @@
   data-context="OWASYS_NATIVE_FSM_NAVIGATION"
   data-owasys-fsm-diagram
   data-fsm-ui-contract="OWASYS_FSM_MENU_V1"
-  data-fsm-ui-revision="P117W_R45B2A4BZ2R7"
+  data-fsm-ui-revision="P117W_R45B2A4BZ2R7R2"
   data-fsm-designer-mode="{{ fsm_designer.mode }}"
   data-fsm-designer-payload="{{ fsm_diagram.designer_payload }}"
   data-fsm-designer-action-url="{{ fsm_designer.action_url }}"
@@ -11,7 +11,7 @@
 >
   <div class="ow-fsm-heading">
     <h2>[[ i18n: navigation.main ]] · FSM</h2>
-    <small class="ow-fsm-ui-revision">menu = FSM · EFSM designer · A4BZ2R7</small>
+    <small class="ow-fsm-ui-revision">EFSM designer · A4BZ2R7R2</small>
   </div>
   <p class="ow-muted">{{ fsm_diagram.description }}</p>
 

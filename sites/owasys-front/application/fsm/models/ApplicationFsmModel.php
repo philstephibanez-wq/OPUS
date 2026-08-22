@@ -129,10 +129,8 @@ final class OwasysApplicationFsmModel
             'transition_count' => count($transitions),
             'definition' => $definition,
             'diagram' => \OPUS_FSM_Diagram::renderDefinition(
-                $definition,
-                '',
-                [],
-                []
+                fsm: $definition,
+                persistLayout: false
             ),
         ];
     }
