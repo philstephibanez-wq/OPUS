@@ -40,9 +40,25 @@ final class OwasysFsmGuardHandlers
         array $fsmConfig,
         ?array $identity
     ): array {
-        $handlers = (
+        $managedHandlers = (
             new OwasysFsmDeveloperHandlers($this->security)
         )->guards();
+
+        /*
+         * acl:* is reserved to the runtime ACL adapter. This test concerns
+         * developer-managed source only; dynamic handlers synthesized below
+         * are deliberately excluded from the namespace-collision invariant.
+         */
+        foreach (array_keys($managedHandlers) as $managedGuard) {
+            if (str_starts_with($managedGuard, 'acl:')) {
+                throw new RuntimeException(
+                    'OWASYS_EFSM_ACL_GUARD_NAMESPACE_RESERVED:'
+                    . $managedGuard
+                );
+            }
+        }
+
+        $handlers = $managedHandlers;
 
         foreach ((array) ($fsmConfig['transitions'] ?? []) as $transition) {
             if (!is_array($transition)) {
@@ -64,12 +80,16 @@ final class OwasysFsmGuardHandlers
                 if (!str_starts_with($guard, 'acl:')) {
                     continue;
                 }
-                if (isset($handlers[$guard])) {
-                    throw new RuntimeException(
-                        'OWASYS_EFSM_ACL_GUARD_NAMESPACE_RESERVED:'
-                        . $guard
-                    );
+
+                /*
+                 * Repeated transition references to the same dynamic ACL
+                 * relation are normal. The first reference synthesizes the
+                 * callable; every later reference reuses it idempotently.
+                 */
+                if (array_key_exists($guard, $handlers)) {
+                    continue;
                 }
+
                 $parts = explode(':', $guard, 3);
                 if (count($parts) !== 3
                     || preg_match(
