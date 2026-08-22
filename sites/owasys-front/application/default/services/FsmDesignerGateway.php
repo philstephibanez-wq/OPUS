@@ -51,10 +51,14 @@ final class OwasysFsmDesignerGateway
         $catalogRequested = (string) (
             $_POST['owasys_fsm_designer_catalog'] ?? ''
         ) === '1';
+        $handlerRequested = (string) (
+            $_POST['owasys_fsm_designer_handler'] ?? ''
+        ) === '1';
+        $requestCount = (int) $commandRequested
+            + (int) $catalogRequested
+            + (int) $handlerRequested;
 
-        if ($method !== 'POST'
-            || (!$commandRequested && !$catalogRequested)
-            || ($commandRequested && $catalogRequested)) {
+        if ($method !== 'POST' || $requestCount !== 1) {
             return false;
         }
 
@@ -80,12 +84,14 @@ final class OwasysFsmDesignerGateway
         }
 
         try {
-            $this->csrf->assertValid(
-                self::CSRF_SCOPE,
-                trim((string) (
-                    $_POST['csrf_token'] ?? ''
-                ))
-            );
+            if (!$catalogRequested) {
+                $this->csrf->assertValid(
+                    self::CSRF_SCOPE,
+                    trim((string) (
+                        $_POST['csrf_token'] ?? ''
+                    ))
+                );
+            }
 
             $handlerCatalog = (
                 new OwasysFsmHandlerCatalog(
@@ -115,6 +121,119 @@ final class OwasysFsmDesignerGateway
                 return true;
             }
 
+            if ($handlerRequested) {
+                $kind = strtolower(trim((string) (
+                    $_POST['handler_kind'] ?? ''
+                )));
+                $handlerId = trim((string) (
+                    $_POST['handler_id'] ?? ''
+                ));
+                $mode = strtolower(trim((string) (
+                    $_POST['handler_mode'] ?? ''
+                )));
+                $handlerCode = $_POST['handler_code'] ?? null;
+                if (!in_array($kind, ['guard', 'action'], true)
+                    || preg_match(
+                        '/^[a-z][a-z0-9_:-]{0,127}$/D',
+                        $handlerId
+                    ) !== 1
+                    || !in_array($mode, ['create', 'update'], true)
+                    || !is_string($handlerCode)
+                    || $handlerCode === ''
+                    || strlen($handlerCode) > 16384
+                    || ($kind === 'guard'
+                        && str_starts_with($handlerId, 'acl:'))) {
+                    throw new RuntimeException(
+                        'OWASYS_FSM_DESIGNER_HANDLER_REQUEST_INVALID'
+                    );
+                }
+
+                $entries = is_array(
+                    $handlerCatalog[$kind . 's'] ?? null
+                ) ? $handlerCatalog[$kind . 's'] : [];
+                $existing = null;
+                foreach ($entries as $entry) {
+                    if (is_array($entry)
+                        && (string) ($entry['id'] ?? '') === $handlerId) {
+                        $existing = $entry;
+                        break;
+                    }
+                }
+                if ($mode === 'create' && is_array($existing)) {
+                    throw new RuntimeException(
+                        'OWASYS_FSM_DESIGNER_HANDLER_ALREADY_EXISTS:'
+                        . $handlerId
+                    );
+                }
+                if ($mode === 'update'
+                    && (!is_array($existing)
+                        || ($existing['managed'] ?? false) !== true)) {
+                    throw new RuntimeException(
+                        'OWASYS_FSM_DESIGNER_HANDLER_NOT_MANAGED:'
+                        . $handlerId
+                    );
+                }
+
+                $sourceHash = strtolower(trim((string) (
+                    $handlerCatalog['managed_source_sha256'] ?? ''
+                )));
+                if (preg_match('/^[a-f0-9]{64}$/D', $sourceHash) !== 1) {
+                    throw new RuntimeException(
+                        'OWASYS_FSM_DESIGNER_HANDLER_SOURCE_HASH_INVALID'
+                    );
+                }
+
+                $actor = [
+                    'subject' => (string) (
+                        $identity['subject'] ?? ''
+                    ),
+                    'roles' => is_array(
+                        $identity['roles'] ?? null
+                    )
+                        ? array_values(array_filter(
+                            $identity['roles'],
+                            'is_string'
+                        ))
+                        : [],
+                    'provider' => (string) (
+                        $identity['provider'] ?? ''
+                    ),
+                ];
+
+                $result = RestClient::fromConfig(
+                    $this->siteRoot . '/config/rest-api.json',
+                    $this->profiler
+                )->request(
+                    'PUT',
+                    '/api/v1/applications/owasys-front/fsm/handlers',
+                    [
+                        'kind' => $kind,
+                        'handler_id' => $handlerId,
+                        'mode' => $mode,
+                        'expected_source_sha256' => $sourceHash,
+                        'handler_code' => $handlerCode,
+                    ],
+                    $actor
+                );
+
+                $this->profiler?->event(
+                    'fsm',
+                    'designer.handler_source.written',
+                    [
+                        'kind' => $kind,
+                        'handler_id' => $handlerId,
+                        'mode' => $mode,
+                        'source_sha256' => (string) (
+                            $result['source_sha256'] ?? ''
+                        ),
+                    ],
+                    'success',
+                    null,
+                    $this->parentSpanId
+                );
+                $this->respondData($result);
+                return true;
+            }
             $baseHash = strtolower(trim((string) (
                 $_POST['base_sha256'] ?? ''
             )));
@@ -268,6 +387,7 @@ final class OwasysFsmDesignerGateway
             'contract' =>
                 'OWASYS_EFSM_DESIGNER_FRONT_RESPONSE_V1',
             'ok' => true,
+            'csrf_token' => $this->csrf->issue(self::CSRF_SCOPE),
             'data' => $data,
         ], 200)->send();
     }
@@ -280,6 +400,7 @@ final class OwasysFsmDesignerGateway
             'contract' =>
                 'OWASYS_EFSM_DESIGNER_FRONT_RESPONSE_V1',
             'ok' => false,
+            'csrf_token' => $this->csrf->issue(self::CSRF_SCOPE),
             'error_code' => $code,
         ], $status)->send();
     }

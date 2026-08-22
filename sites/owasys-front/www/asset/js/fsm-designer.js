@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const DESIGNER_REVISION = 'P117W_R45B2A4BZ2R7';
+  const DESIGNER_REVISION = 'P117W_R45B2A4BZ2R8A';
   const section = document.querySelector('[data-owasys-fsm-diagram]');
   if (!(section instanceof HTMLElement)
       || section.dataset.fsmDesignerMode !== 'design') return;
@@ -114,6 +114,12 @@
       select.append(option);
     });
   };
+  const adoptCsrf = (payload) => {
+    const token = String(payload?.csrf_token || '').trim();
+    if (/^[a-f0-9]{64}$/.test(token)) {
+      section.dataset.fsmDesignerCsrf = token;
+    }
+  };
   const loadHandlerCatalog = async () => {
     const actionUrl = section.dataset.fsmDesignerActionUrl || window.location.pathname;
     const csrf = section.dataset.fsmDesignerCsrf || '';
@@ -128,6 +134,7 @@
       body:body.toString(),
     });
     const payload = await response.json();
+    adoptCsrf(payload);
     const catalog = payload?.data;
     if (!response.ok
         || !payload
@@ -660,6 +667,7 @@
       body:body.toString(),
     });
     const payload = await response.json();
+    adoptCsrf(payload);
     if (!response.ok || !payload || payload.ok !== true) {
       throw new Error(String(payload?.error_code || 'OWASYS_FSM_DESIGNER_DRAFT_COMMAND_FAILED'));
     }

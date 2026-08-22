@@ -6,8 +6,9 @@ use Opus\Fsm\FsmProcessor;
 /**
  * Builds developer-programmed OWASYS EFSM guard handlers.
  *
- * Generic FsmProcessor owns no OWASYS guard vocabulary. Every named guard
- * referenced by the application FSM is backed here by real application PHP.
+ * Generic FsmProcessor owns no OWASYS guard vocabulary. Application guards
+ * are loaded from FsmDeveloperHandlers.php; ACL guards remain dynamic because
+ * their resource/action identity is defined by the canonical EFSM relation.
  */
 final class OwasysFsmGuardHandlers
 {
@@ -39,7 +40,9 @@ final class OwasysFsmGuardHandlers
         array $fsmConfig,
         ?array $identity
     ): array {
-        $handlers = $this->applicationHandlers();
+        $handlers = (
+            new OwasysFsmDeveloperHandlers($this->security)
+        )->guards();
 
         foreach ((array) ($fsmConfig['transitions'] ?? []) as $transition) {
             if (!is_array($transition)) {
@@ -62,7 +65,10 @@ final class OwasysFsmGuardHandlers
                     continue;
                 }
                 if (isset($handlers[$guard])) {
-                    continue;
+                    throw new RuntimeException(
+                        'OWASYS_EFSM_ACL_GUARD_NAMESPACE_RESERVED:'
+                        . $guard
+                    );
                 }
                 $parts = explode(':', $guard, 3);
                 if (count($parts) !== 3
@@ -108,150 +114,5 @@ final class OwasysFsmGuardHandlers
         }
 
         return $handlers;
-    }
-
-    /** @return array<string,callable> */
-    private function applicationHandlers(): array
-    {
-        return [
-            'always' => static function (
-                string $currentState,
-                string $signal,
-                array $transition,
-                array $context,
-                FsmProcessor $processor
-            ): bool {
-                unset(
-                    $currentState,
-                    $signal,
-                    $transition,
-                    $context,
-                    $processor
-                );
-                return true;
-            },
-            'route_exists' => static function (
-                string $currentState,
-                string $signal,
-                array $transition,
-                array $context,
-                FsmProcessor $processor
-            ): bool {
-                unset(
-                    $currentState,
-                    $signal,
-                    $context
-                );
-                $target = (string) (
-                    $transition['next_state'] ?? ''
-                );
-                if ($target === ''
-                    || !$processor->hasState($target)) {
-                    return false;
-                }
-                return (string) (
-                    $processor->state($target)['route'] ?? ''
-                ) !== '';
-            },
-            'app_exists' => static function (
-                string $currentState,
-                string $signal,
-                array $transition,
-                array $context,
-                FsmProcessor $processor
-            ): bool {
-                unset(
-                    $currentState,
-                    $signal,
-                    $transition,
-                    $processor
-                );
-                return ($context['app_exists'] ?? null) === true
-                    || is_array(
-                        $context['registry_entry'] ?? null
-                    )
-                    || is_array(
-                        $context['selected_app'] ?? null
-                    )
-                    || (string) (
-                        $context['selected_app'] ?? ''
-                    ) !== '';
-            },
-            'current_app_required' => static function (
-                string $currentState,
-                string $signal,
-                array $transition,
-                array $context,
-                FsmProcessor $processor
-            ): bool {
-                unset(
-                    $currentState,
-                    $signal,
-                    $transition,
-                    $processor
-                );
-                $currentApp = $context['current_app'] ?? null;
-                return ($context['has_current_app'] ?? null)
-                    === true
-                    || (
-                        is_array($currentApp)
-                        && $currentApp !== []
-                    )
-                    || (
-                        is_string($currentApp)
-                        && $currentApp !== ''
-                    );
-            },
-            'current_app_or_creation_request' => static function (
-                string $currentState,
-                string $signal,
-                array $transition,
-                array $context,
-                FsmProcessor $processor
-            ): bool {
-                unset(
-                    $currentState,
-                    $signal,
-                    $transition,
-                    $processor
-                );
-                $currentApp = $context['current_app'] ?? null;
-                $hasCurrentApp =
-                    ($context['has_current_app'] ?? null) === true
-                    || (
-                        is_array($currentApp)
-                        && $currentApp !== []
-                    )
-                    || (
-                        is_string($currentApp)
-                        && $currentApp !== ''
-                    );
-                return $hasCurrentApp
-                    || is_array(
-                        $context['creation_request'] ?? null
-                    )
-                    || (
-                        $context['creation_request_started']
-                            ?? null
-                    ) === true;
-            },
-            'must_change_password' => static function (
-                string $currentState,
-                string $signal,
-                array $transition,
-                array $context,
-                FsmProcessor $processor
-            ): bool {
-                unset(
-                    $currentState,
-                    $signal,
-                    $transition,
-                    $processor
-                );
-                return (
-                    $context['must_change_password'] ?? null
-                ) === true;
-            },
-        ];
     }
 }

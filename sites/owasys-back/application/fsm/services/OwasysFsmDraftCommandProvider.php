@@ -1,11 +1,13 @@
 <?php
 declare(strict_types=1);
 
+use Opus\Application\Source\SiteSourceWorkspace;
 use Opus\File\File;
 use Opus\File\Json;
 use Opus\File\StructuredFileLoader;
 use Opus\Fsm\Definition\FsmDefinitionEditor;
 use Opus\Fsm\Definition\FsmDefinitionValidator;
+use Opus\Fsm\Definition\FsmHandlerSourceEditor;
 use Opus\Profiler\Profiler;
 use Opus\Profiler\ProfilerInterface;
 use Opus\Security\Acl\AclPolicy;
@@ -19,7 +21,10 @@ use Opus\Security\Acl\AclPolicy;
  */
 final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProviderInterface
 {
-    private const COMMAND = 'owasys:fsm:draft-edit';
+    private const DRAFT_COMMAND = 'owasys:fsm:draft-edit';
+    private const HANDLER_COMMAND = 'owasys:fsm:handler-write';
+    private const HANDLER_SOURCE =
+        'application/default/services/FsmDeveloperHandlers.php';
     private const ENVELOPE_CONTRACT =
         'OWASYS_EFSM_DRAFT_COMMAND_ENVELOPE_V2';
     private const MAX_HISTORY_COMMANDS = 128;
@@ -41,7 +46,11 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
 
     public function supports(string $command): bool
     {
-        return $command === self::COMMAND;
+        return in_array(
+            $command,
+            [self::DRAFT_COMMAND, self::HANDLER_COMMAND],
+            true
+        );
     }
 
     public function execute(
@@ -65,6 +74,14 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
         if (!$decision->allowed) {
             throw new RuntimeException(
                 'OWASYS_FSM_DRAFT_ACL_DENIED'
+            );
+        }
+
+        if ($command === self::HANDLER_COMMAND) {
+            return $this->writeHandler(
+                $arguments,
+                $request,
+                $actor
             );
         }
 
@@ -244,13 +261,161 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
                     !== null) {
                 $this->profiler->stop([
                     'component' => self::class,
-                    'command' => self::COMMAND,
+                    'command' => self::DRAFT_COMMAND,
                     'trace_id' => $traceId,
                 ]);
             }
         }
     }
 
+    /**
+     * @param list<string> $arguments
+     * @param array<string,mixed> $request
+     * @param array<string,mixed> $actor
+     * @return array<string,mixed>
+     */
+    private function writeHandler(
+        array $arguments,
+        array $request,
+        array $actor
+    ): array {
+        $parameters = is_array(
+            $request['parameters'] ?? null
+        ) ? $request['parameters'] : [];
+
+        $siteId = trim((string) (
+            $parameters['site_id'] ?? ($arguments[0] ?? '')
+        ));
+        $kind = strtolower(trim((string) (
+            $parameters['kind'] ?? ''
+        )));
+        $handlerId = trim((string) (
+            $parameters['handler_id'] ?? ''
+        ));
+        $mode = strtolower(trim((string) (
+            $parameters['mode'] ?? ''
+        )));
+        $expectedSourceHash = strtolower(trim((string) (
+            $parameters['expected_source_sha256'] ?? ''
+        )));
+        $handlerCode = $parameters['handler_code'] ?? null;
+
+        if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $siteId) !== 1
+            || !in_array($kind, ['guard', 'action'], true)
+            || preg_match(
+                '/^[a-z][a-z0-9_:-]{0,127}$/D',
+                $handlerId
+            ) !== 1
+            || !in_array($mode, ['create', 'update'], true)
+            || preg_match(
+                '/^[a-f0-9]{64}$/D',
+                $expectedSourceHash
+            ) !== 1
+            || !is_string($handlerCode)
+            || $handlerCode === ''
+            || strlen($handlerCode) > 16384
+            || ($kind === 'guard'
+                && str_starts_with($handlerId, 'acl:'))) {
+            throw new RuntimeException(
+                'OWASYS_FSM_HANDLER_WRITE_PARAMETERS_INVALID'
+            );
+        }
+
+        $sourcePath = $this->opusRoot . '/sites/' . $siteId
+            . '/' . self::HANDLER_SOURCE;
+        $current = File::instance()->read($sourcePath, 1048576);
+        $currentHash = hash('sha256', $current);
+        if (!hash_equals($expectedSourceHash, $currentHash)) {
+            throw new RuntimeException(
+                'OWASYS_FSM_HANDLER_SOURCE_HASH_CONFLICT'
+            );
+        }
+
+        $editor = new FsmHandlerSourceEditor();
+        $edited = $editor->upsert(
+            $current,
+            $kind,
+            $handlerId,
+            $handlerCode,
+            $mode
+        );
+
+        $traceId = $this->traceId($request);
+        $ownsTrace = false;
+        if ($this->profiler->getActiveTrace() === null) {
+            $this->profiler->start($traceId);
+            $ownsTrace = true;
+        }
+
+        try {
+            $this->profiler->event(
+                'fsm',
+                'designer.handler_source.write.started',
+                [
+                    'site_id' => $siteId,
+                    'kind' => $kind,
+                    'handler_id' => $handlerId,
+                    'mode' => $mode,
+                    'role_count' => count((array) ($actor['roles'] ?? [])),
+                ]
+            );
+
+            $write = (new SiteSourceWorkspace(
+                $this->opusRoot,
+                null,
+                $this->profiler
+            ))->write(
+                $siteId,
+                self::HANDLER_SOURCE,
+                $expectedSourceHash,
+                (string) $edited['source']
+            );
+
+            $sourceHash = strtolower((string) (
+                $write['sha256'] ?? ''
+            ));
+            if (preg_match('/^[a-f0-9]{64}$/D', $sourceHash) !== 1) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_HANDLER_WRITE_RESULT_INVALID'
+                );
+            }
+
+            $this->profiler->event(
+                'fsm',
+                'designer.handler_source.write.succeeded',
+                [
+                    'site_id' => $siteId,
+                    'kind' => $kind,
+                    'handler_id' => $handlerId,
+                    'mode' => $mode,
+                    'source_sha256' => $sourceHash,
+                ]
+            );
+
+            return [
+                'contract' => 'OWASYS_EFSM_HANDLER_WRITE_RESULT_V1',
+                'site_id' => $siteId,
+                'kind' => $kind,
+                'handler_id' => $handlerId,
+                'mode' => $mode,
+                'created' => ($edited['created'] ?? false) === true,
+                'handler_sha256' => (string) (
+                    $edited['handler_sha256'] ?? ''
+                ),
+                'source_path' => self::HANDLER_SOURCE,
+                'source_sha256' => $sourceHash,
+            ];
+        } finally {
+            if ($ownsTrace
+                && $this->profiler->getActiveTrace() !== null) {
+                $this->profiler->stop([
+                    'component' => self::class,
+                    'command' => self::HANDLER_COMMAND,
+                    'trace_id' => $traceId,
+                ]);
+            }
+        }
+    }
     /**
      * @param array<string,mixed> $catalog
      * @return array{0:list<string>,1:list<string>}

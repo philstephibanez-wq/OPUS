@@ -62,6 +62,7 @@ $files = [
     'application/default/services/SessionRuntime.php',
     'application/default/services/RuntimeSecurity.php',
     'application/default/services/LocaleRegistry.php',
+    'application/default/services/FsmDeveloperHandlers.php',
     'application/default/services/FsmGuardHandlers.php',
     'application/default/services/NavigationBuilder.php',
     'application/default/services/FsmDiagramBuilder.php',

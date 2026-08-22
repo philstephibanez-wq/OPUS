@@ -764,6 +764,56 @@
                     "max_length": 65536
                 }
             ]
+        },
+        "fsm.handler.write": {
+            "composer_script": "owasys:fsm-handler-write",
+            "roles": [
+                "admin",
+                "developer"
+            ],
+            "arguments": [
+                {
+                    "name": "site_id",
+                    "required": true,
+                    "pattern": "^[a-z][a-z0-9-]*$",
+                    "max_length": 64
+                },
+                {
+                    "name": "kind",
+                    "required": true,
+                    "transport": "request",
+                    "pattern": "^(guard|action)$",
+                    "max_length": 6
+                },
+                {
+                    "name": "handler_id",
+                    "required": true,
+                    "transport": "request",
+                    "pattern": "^[a-z][a-z0-9_:-]{0,127}$",
+                    "max_length": 128
+                },
+                {
+                    "name": "mode",
+                    "required": true,
+                    "transport": "request",
+                    "pattern": "^(create|update)$",
+                    "max_length": 6
+                },
+                {
+                    "name": "expected_source_sha256",
+                    "required": true,
+                    "transport": "request",
+                    "pattern": "^[a-f0-9]{64}$",
+                    "max_length": 64
+                },
+                {
+                    "name": "handler_code",
+                    "required": true,
+                    "transport": "request",
+                    "trim": false,
+                    "max_length": 16384
+                }
+            ]
         }
     }
 }

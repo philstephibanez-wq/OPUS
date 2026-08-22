@@ -48,7 +48,8 @@
             "enabled": true,
             "bootstrap": "application/fsm/console.php",
             "commands": [
-                "owasys:fsm:draft-edit"
+                "owasys:fsm:draft-edit",
+                "owasys:fsm:handler-write"
             ]
         }
     ],
@@ -73,6 +74,7 @@
         "owasys:git-commit": "owasys:git:commit",
         "owasys:git-restore": "owasys:git:restore",
         "owasys:security-fresh-auth-proof": "owasys:security:fresh-auth-proof",
-        "owasys:fsm-draft-edit": "owasys:fsm:draft-edit"
+        "owasys:fsm-draft-edit": "owasys:fsm:draft-edit",
+        "owasys:fsm-handler-write": "owasys:fsm:handler-write"
     }
 }

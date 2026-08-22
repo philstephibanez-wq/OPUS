@@ -203,6 +203,12 @@
             "path": "/api/v1/applications/{site_id}/fsm/drafts/commands",
             "operation": "fsm.draft.edit",
             "success_status": 200
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/applications/{site_id}/fsm/handlers",
+            "operation": "fsm.handler.write",
+            "success_status": 200
         }
     ],
     "supported_locales": [
