@@ -513,6 +513,36 @@
                 "sv": "säkerhet/resurser-och-acl",
                 "uk": "безпека/ресурси-та-acl"
             }
+        },
+        "security/sso": {
+            "tail": false,
+            "paths": {
+                "bg": "сигурност/sso",
+                "hr": "sigurnost/sso",
+                "cs": "zabezpečení/sso",
+                "da": "sikkerhed/sso",
+                "nl": "beveiliging/sso",
+                "en": "security/sso",
+                "et": "turvalisus/sso",
+                "fi": "tietoturva/sso",
+                "fr": "sécurité/sso",
+                "de": "sicherheit/sso",
+                "el": "ασφάλεια/sso",
+                "hu": "biztonság/sso",
+                "ga": "slándáil/sso",
+                "it": "sicurezza/sso",
+                "lv": "drošība/sso",
+                "lt": "sauga/sso",
+                "mt": "sigurtà/sso",
+                "pl": "bezpieczeństwo/sso",
+                "pt": "segurança/sso",
+                "ro": "securitate/sso",
+                "sk": "zabezpečenie/sso",
+                "sl": "varnost/sso",
+                "es": "seguridad/sso",
+                "sv": "säkerhet/sso",
+                "uk": "безпека/sso"
+            }
         }
     },
     "aliases": {
