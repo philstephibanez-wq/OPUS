@@ -1,0 +1,105 @@
+{
+    "contract": "OPUS_SECURITY_FSM_V1",
+    "name": "owasys-back.security",
+    "site_id": "owasys-back",
+    "efsm_id": "security",
+    "initial_state": "anonymous",
+    "signals": [
+        {
+            "id": "login_requested",
+            "origin": "user"
+        },
+        {
+            "id": "authentication_succeeded",
+            "origin": "automatic"
+        },
+        {
+            "id": "authentication_failed",
+            "origin": "automatic"
+        },
+        {
+            "id": "logout_requested",
+            "origin": "user"
+        },
+        {
+            "id": "session_expired",
+            "origin": "automatic"
+        },
+        {
+            "id": "reauth_required",
+            "origin": "automatic"
+        },
+        {
+            "id": "reauthentication_succeeded",
+            "origin": "automatic"
+        },
+        {
+            "id": "reauthentication_failed",
+            "origin": "automatic"
+        }
+    ],
+    "states": [
+        {
+            "id": "anonymous"
+        },
+        {
+            "id": "authenticating"
+        },
+        {
+            "id": "authenticated"
+        },
+        {
+            "id": "reauthenticating"
+        }
+    ],
+    "transitions": [
+        {
+            "id": "security.login.requested",
+            "from": "anonymous",
+            "signal": "login_requested",
+            "next_state": "authenticating"
+        },
+        {
+            "id": "security.authentication.succeeded",
+            "from": "authenticating",
+            "signal": "authentication_succeeded",
+            "next_state": "authenticated"
+        },
+        {
+            "id": "security.authentication.failed",
+            "from": "authenticating",
+            "signal": "authentication_failed",
+            "next_state": "anonymous"
+        },
+        {
+            "id": "security.logout.requested",
+            "from": "authenticated",
+            "signal": "logout_requested",
+            "next_state": "anonymous"
+        },
+        {
+            "id": "security.session.expired",
+            "from": "authenticated",
+            "signal": "session_expired",
+            "next_state": "anonymous"
+        },
+        {
+            "id": "security.reauth.required",
+            "from": "authenticated",
+            "signal": "reauth_required",
+            "next_state": "reauthenticating"
+        },
+        {
+            "id": "security.reauth.succeeded",
+            "from": "reauthenticating",
+            "signal": "reauthentication_succeeded",
+            "next_state": "authenticated"
+        },
+        {
+            "id": "security.reauth.failed",
+            "from": "reauthenticating",
+            "signal": "reauthentication_failed",
+            "next_state": "authenticated"
+        }
+    ]
+}

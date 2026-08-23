@@ -266,5 +266,9 @@
                 }
             }
         }
+    },
+    "efsms": {
+        "navigation": "config/fsm.json",
+        "security": "config/security.fsm.json"
     }
 }

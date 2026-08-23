@@ -258,5 +258,9 @@
         "localized_routes": "config/routes.localized.json",
         "legacy_canonical_routes_accepted": true,
         "unicode_normalization": "NFC"
+    },
+    "efsms": {
+        "navigation": "config/fsm.json",
+        "security": "config/security.fsm.json"
     }
 }
