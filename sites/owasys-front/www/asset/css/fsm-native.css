@@ -1115,3 +1115,47 @@
     grid-template-rows: 1fr;
   }
 }
+
+/* P117W_R45B2A4BZ2R8B2 — real PHP GUARD/ACTION authoring. */
+.ow-fsm-handler-source-editor {
+  display: grid;
+  gap: .48rem;
+}
+
+.ow-fsm-handler-source-editor[hidden] {
+  display: none;
+}
+
+.ow-fsm-handler-code-field {
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+.ow-fsm-handler-code-field textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 18rem;
+  resize: vertical;
+  padding: .55rem .65rem;
+  border: 1px solid var(--ow-line);
+  border-radius: .42rem;
+  background: var(--ow-panel);
+  color: var(--ow-text);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: .72rem;
+  line-height: 1.45;
+  tab-size: 4;
+}
+
+.ow-fsm-handler-source-meta {
+  display: block;
+  overflow-wrap: anywhere;
+  color: var(--ow-muted);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: .66rem;
+}
+
+[data-fsm-handler-source-dirty="1"] .ow-fsm-designer-capability::after {
+  content: " · PHP source";
+}

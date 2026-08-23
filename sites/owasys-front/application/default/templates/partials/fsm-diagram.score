@@ -3,7 +3,7 @@
   data-context="OWASYS_NATIVE_FSM_NAVIGATION"
   data-owasys-fsm-diagram
   data-fsm-ui-contract="OWASYS_FSM_MENU_V1"
-  data-fsm-ui-revision="P117W_R45B2A4BZ2R7R2"
+  data-fsm-ui-revision="P117W_R45B2A4BZ2R8B2"
   data-fsm-designer-mode="{{ fsm_designer.mode }}"
   data-fsm-designer-payload="{{ fsm_diagram.designer_payload }}"
   data-fsm-designer-action-url="{{ fsm_designer.action_url }}"
@@ -11,7 +11,7 @@
 >
   <div class="ow-fsm-heading">
     <h2>[[ i18n: navigation.main ]] · FSM</h2>
-    <small class="ow-fsm-ui-revision">EFSM designer · A4BZ2R7R2</small>
+    <small class="ow-fsm-ui-revision">EFSM designer · A4BZ2R8B2</small>
   </div>
   <p class="ow-muted">{{ fsm_diagram.description }}</p>
 
@@ -51,16 +51,16 @@
           <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.delete }} {{ fsm_designer.labels.transition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">↗×</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.delete }}</span></button>
         </span>
 
-        <span class="ow-fsm-designer-toolgroup is-pending">
+        <span class="ow-fsm-designer-toolgroup">
           <strong>GUARD</strong>
-          <button type="button" class="ow-fsm-tool" disabled title="GUARD {{ fsm_designer.labels.create }}"><span class="ow-fsm-tool-icon" aria-hidden="true">◇＋</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.create }}</span></button>
-          <button type="button" class="ow-fsm-tool" disabled title="GUARD {{ fsm_designer.labels.edit }}"><span class="ow-fsm-tool-icon" aria-hidden="true">◇✎</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.edit }}</span></button>
+          <button type="button" class="ow-fsm-tool" data-fsm-handler-author="guard:create" disabled title="GUARD {{ fsm_designer.labels.create }}"><span class="ow-fsm-tool-icon" aria-hidden="true">◇＋</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.create }}</span></button>
+          <button type="button" class="ow-fsm-tool" data-fsm-handler-author="guard:update" disabled title="GUARD {{ fsm_designer.labels.edit }}"><span class="ow-fsm-tool-icon" aria-hidden="true">◇✎</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.edit }}</span></button>
         </span>
 
-        <span class="ow-fsm-designer-toolgroup is-pending">
+        <span class="ow-fsm-designer-toolgroup">
           <strong>ACTION</strong>
-          <button type="button" class="ow-fsm-tool" disabled title="ACTION {{ fsm_designer.labels.create }}"><span class="ow-fsm-tool-icon" aria-hidden="true">⚙＋</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.create }}</span></button>
-          <button type="button" class="ow-fsm-tool" disabled title="ACTION {{ fsm_designer.labels.edit }}"><span class="ow-fsm-tool-icon" aria-hidden="true">⚙✎</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.edit }}</span></button>
+          <button type="button" class="ow-fsm-tool" data-fsm-handler-author="action:create" disabled title="ACTION {{ fsm_designer.labels.create }}"><span class="ow-fsm-tool-icon" aria-hidden="true">⚙＋</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.create }}</span></button>
+          <button type="button" class="ow-fsm-tool" data-fsm-handler-author="action:update" disabled title="ACTION {{ fsm_designer.labels.edit }}"><span class="ow-fsm-tool-icon" aria-hidden="true">⚙✎</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.edit }}</span></button>
         </span>
 
         <span class="ow-fsm-designer-toolgroup is-pending">
@@ -123,6 +123,21 @@
           </div>
         </form>
 
+        <form class="ow-fsm-state-editor ow-fsm-handler-source-editor" data-fsm-handler-source-editor hidden>
+          <label class="ow-fsm-state-field"><span>type</span><input type="text" name="handler_kind" readonly></label>
+          <label class="ow-fsm-state-field" data-fsm-handler-existing-row hidden>
+            <span>handler</span><select name="handler_existing" data-fsm-handler-existing></select>
+          </label>
+          <label class="ow-fsm-state-field"><span>id</span><input type="text" name="handler_id" required pattern="[a-z][a-z0-9_:-]{0,127}" autocomplete="off"></label>
+          <label class="ow-fsm-state-field ow-fsm-handler-code-field">
+            <span>PHP callable</span><textarea name="handler_code" rows="18" required spellcheck="false"></textarea>
+          </label>
+          <small class="ow-fsm-handler-source-meta" data-fsm-handler-source-meta></small>
+          <div class="ow-fsm-state-editor-actions">
+            <button type="submit" class="ow-fsm-tool is-primary" data-fsm-handler-source-submit title="{{ fsm_designer.labels.validate }}"><span class="ow-fsm-tool-icon" aria-hidden="true">✓</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.validate }}</span></button>
+            <button type="button" class="ow-fsm-tool" data-fsm-handler-source-cancel title="{{ fsm_designer.labels.select }}"><span class="ow-fsm-tool-icon" aria-hidden="true">×</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.select }}</span></button>
+          </div>
+        </form>
         <output class="ow-fsm-designer-status" data-fsm-designer-status></output>
       </aside>
     </div>

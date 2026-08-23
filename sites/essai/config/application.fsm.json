@@ -1,0 +1,103 @@
+{
+    "contract": "OPUS_APPLICATION_FSM_V1",
+    "name": "essai.application",
+    "site_id": "essai",
+    "initial_state": "begin",
+    "states": [
+        {
+            "id": "begin",
+            "type": "entry",
+            "module": "home",
+            "route": "/",
+            "title_key": "menu.home",
+            "summary_key": "page.subtitle",
+            "navigation": {
+                "label": "menu.home"
+            }
+        },
+        {
+            "id": "home",
+            "module": "home",
+            "route": "/",
+            "title_key": "menu.home",
+            "summary_key": "page.subtitle",
+            "navigation": {
+                "label": "menu.home"
+            }
+        }
+    ],
+    "transitions": [
+        {
+            "id": "open.home.from.begin",
+            "from": "begin",
+            "signal": "open_home",
+            "next_state": "home",
+            "guards": [
+                "route_exists"
+            ],
+            "actions": [
+                "render_route"
+            ]
+        },
+        {
+            "id": "open.home.from.home",
+            "from": "home",
+            "signal": "open_home",
+            "next_state": "home",
+            "guards": [
+                "route_exists"
+            ],
+            "actions": [
+                "render_route"
+            ]
+        },
+        {
+            "id": "open.home.from.profiler",
+            "from": "profiler",
+            "signal": "open_home",
+            "next_state": "home",
+            "guards": [
+                "route_exists"
+            ],
+            "actions": [
+                "render_route"
+            ]
+        },
+        {
+            "id": "open.profiler.from.begin",
+            "from": "begin",
+            "signal": "open_profiler",
+            "next_state": "profiler",
+            "guards": [
+                "route_exists"
+            ],
+            "actions": [
+                "render_profiler_trace"
+            ]
+        },
+        {
+            "id": "open.profiler.from.home",
+            "from": "home",
+            "signal": "open_profiler",
+            "next_state": "profiler",
+            "guards": [
+                "route_exists"
+            ],
+            "actions": [
+                "render_profiler_trace"
+            ]
+        },
+        {
+            "id": "open.profiler.from.profiler",
+            "from": "profiler",
+            "signal": "open_profiler",
+            "next_state": "profiler",
+            "guards": [
+                "route_exists"
+            ],
+            "actions": [
+                "render_profiler_trace"
+            ]
+        }
+    ]
+}

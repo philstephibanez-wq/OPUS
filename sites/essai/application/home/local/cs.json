@@ -1,0 +1,14 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "cs",
+    "scope": "home",
+    "messages": {
+        "page.title": "Domů",
+        "page.subtitle": "Modul OPUS řízený FSM: home",
+        "auth.username": "Username",
+        "auth.password": "Password",
+        "auth.submit": "Přihlášení",
+        "auth.error": "Nesprávné uživatelské jméno nebo heslo."
+    }
+}
+

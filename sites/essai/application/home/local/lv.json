@@ -1,0 +1,14 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "lv",
+    "scope": "home",
+    "messages": {
+        "page.title": "Sākums",
+        "page.subtitle": "FSM vadīts OPUS modulis: home",
+        "auth.username": "Username",
+        "auth.password": "Password",
+        "auth.submit": "Pieteikties",
+        "auth.error": "Nepareizs lietotājvārds vai parole."
+    }
+}
+

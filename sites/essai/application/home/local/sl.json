@@ -1,0 +1,14 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "sl",
+    "scope": "home",
+    "messages": {
+        "page.title": "Domov",
+        "page.subtitle": "Modul OPUS, ki ga upravlja FSM: home",
+        "auth.username": "Username",
+        "auth.password": "Password",
+        "auth.submit": "Prijava",
+        "auth.error": "Napačno uporabniško ime ali geslo."
+    }
+}
+

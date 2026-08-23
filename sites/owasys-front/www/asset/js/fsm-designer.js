@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const DESIGNER_REVISION = 'P117W_R45B2A4BZ2R8A';
+  const DESIGNER_REVISION = 'P117W_R45B2A4BZ2R8B2';
   const section = document.querySelector('[data-owasys-fsm-diagram]');
   if (!(section instanceof HTMLElement)
       || section.dataset.fsmDesignerMode !== 'design') return;
@@ -47,6 +47,7 @@
       || !(fieldsNode instanceof HTMLElement)
       || !(stateEditor instanceof HTMLFormElement)
       || !(transitionEditor instanceof HTMLFormElement)
+      || !(handlerSourceEditor instanceof HTMLFormElement)
       || !(editorStatus instanceof HTMLElement)
       || !(svg instanceof SVGSVGElement)) {
     section.dataset.fsmDesignerError = 'surface';
@@ -72,6 +73,25 @@
   const actionCatalogSelect = transitionEditor.querySelector('[data-fsm-action-catalog]');
   const guardAddButton = transitionEditor.querySelector('[data-fsm-handler-add="guard"]');
   const actionAddButton = transitionEditor.querySelector('[data-fsm-handler-add="action"]');
+  const handlerAuthorButtons = Array.from(
+    section.querySelectorAll('[data-fsm-handler-author]')
+  ).filter((node) => node instanceof HTMLButtonElement);
+  const handlerSourceEditor = section.querySelector('[data-fsm-handler-source-editor]');
+  const handlerExistingRow = handlerSourceEditor instanceof HTMLFormElement
+    ? handlerSourceEditor.querySelector('[data-fsm-handler-existing-row]')
+    : null;
+  const handlerExistingSelect = handlerSourceEditor instanceof HTMLFormElement
+    ? handlerSourceEditor.querySelector('[data-fsm-handler-existing]')
+    : null;
+  const handlerSourceSubmitButton = handlerSourceEditor instanceof HTMLFormElement
+    ? handlerSourceEditor.querySelector('[data-fsm-handler-source-submit]')
+    : null;
+  const handlerSourceCancelButton = handlerSourceEditor instanceof HTMLFormElement
+    ? handlerSourceEditor.querySelector('[data-fsm-handler-source-cancel]')
+    : null;
+  const handlerSourceMeta = handlerSourceEditor instanceof HTMLFormElement
+    ? handlerSourceEditor.querySelector('[data-fsm-handler-source-meta]')
+    : null;
 
   const handlerEntries = (entries, kind) => {
     const result = [];
@@ -90,6 +110,10 @@
         description:String(entry.description || ''),
         source:String(entry.source || ''),
         dynamic:entry.dynamic === true,
+        managed:entry.managed === true,
+        code:String(entry.code || ''),
+        handler_sha256:String(entry.handler_sha256 || ''),
+        source_sha256:String(entry.source_sha256 || ''),
       });
     });
     return result;
@@ -371,11 +395,28 @@
     if (transitionEditButton instanceof HTMLButtonElement) {
       transitionEditButton.disabled = !transitionSelected || !handlerCatalogReady;
     }
+    handlerAuthorButtons.forEach((button) => {
+      const [kind, mode] = String(button.dataset.fsmHandlerAuthor || '').split(':', 2);
+      const entries = kind === 'guard'
+        ? guardEntries
+        : kind === 'action'
+          ? actionEntries
+          : [];
+      const editable = entries.some(
+        (entry) => entry.managed === true
+          && !(kind === 'guard' && entry.dynamic === true)
+      );
+      button.disabled = !handlerCatalogReady
+        || !['guard','action'].includes(kind)
+        || !['create','update'].includes(mode)
+        || (mode === 'update' && !editable);
+    });
   };
 
   const hideEditors = () => {
     stateEditor.hidden = true;
     transitionEditor.hidden = true;
+    handlerSourceEditor.hidden = true;
   };
 
   const showSelection = (kind, id, node) => {
@@ -424,6 +465,7 @@
     stateEditor.dataset.mode = mode;
     stateEditor.hidden = false;
     transitionEditor.hidden = true;
+    handlerSourceEditor.hidden = true;
     selection.hidden = true;
     empty.hidden = true;
     const source = state || {};
@@ -511,6 +553,7 @@
     transitionEditor.reset();
     transitionEditor.hidden = false;
     stateEditor.hidden = true;
+    handlerSourceEditor.hidden = true;
     selection.hidden = true;
     empty.hidden = true;
     transitionEditor.dataset.transitionId = id;
@@ -574,6 +617,182 @@
     };
   };
 
+  const entriesForKind = (kind) => kind === 'guard'
+    ? guardEntries
+    : kind === 'action'
+      ? actionEntries
+      : [];
+
+  const editableEntriesForKind = (kind) => entriesForKind(kind).filter(
+    (entry) => entry.managed === true
+      && !(kind === 'guard' && entry.dynamic === true)
+  );
+
+  const defaultHandlerCode = (kind) => kind === 'guard'
+    ? `function (
+    string $currentState,
+    string $signal,
+    array $transition,
+    array $context,
+    FsmProcessor $processor
+): bool {
+    unset($currentState, $signal, $transition, $context, $processor);
+    return true;
+}`
+    : `function (
+    string $action,
+    array $transition,
+    array $context,
+    FsmActionDispatcher $dispatcher
+): bool {
+    unset($action, $transition, $context, $dispatcher);
+    return true;
+}`;
+
+  const handlerField = (name) => handlerSourceEditor.elements.namedItem(name);
+
+  const loadHandlerEditorEntry = (kind, id) => {
+    const entry = editableEntriesForKind(kind).find((item) => item.id === id);
+    if (!entry) {
+      throw new Error(`OWASYS_FSM_DESIGNER_${kind.toUpperCase()}_HANDLER_NOT_MANAGED:${id}`);
+    }
+    const idInput = handlerField('handler_id');
+    const codeInput = handlerField('handler_code');
+    if (idInput instanceof HTMLInputElement) {
+      idInput.value = entry.id;
+      idInput.readOnly = true;
+    }
+    if (codeInput instanceof HTMLTextAreaElement) {
+      codeInput.value = entry.code;
+    }
+    if (handlerSourceMeta instanceof HTMLElement) {
+      handlerSourceMeta.textContent = `${entry.source} · ${entry.handler_sha256.slice(0, 12)}`;
+    }
+  };
+
+  const openHandlerSourceEditor = (kind, mode) => {
+    if (!handlerCatalogReady) {
+      throw new Error('OWASYS_FSM_DESIGNER_HANDLER_CATALOG_NOT_READY');
+    }
+    if (!['guard','action'].includes(kind)
+        || !['create','update'].includes(mode)) {
+      throw new Error('OWASYS_FSM_DESIGNER_HANDLER_EDITOR_MODE_INVALID');
+    }
+
+    handlerSourceEditor.reset();
+    handlerSourceEditor.dataset.handlerKind = kind;
+    handlerSourceEditor.dataset.handlerMode = mode;
+    handlerSourceEditor.hidden = false;
+    stateEditor.hidden = true;
+    transitionEditor.hidden = true;
+    selection.hidden = true;
+    empty.hidden = true;
+
+    const kindInput = handlerField('handler_kind');
+    const idInput = handlerField('handler_id');
+    const codeInput = handlerField('handler_code');
+    if (kindInput instanceof HTMLInputElement) {
+      kindInput.value = kind.toUpperCase();
+    }
+
+    if (mode === 'create') {
+      if (handlerExistingRow instanceof HTMLElement) {
+        handlerExistingRow.hidden = true;
+      }
+      if (idInput instanceof HTMLInputElement) {
+        idInput.value = '';
+        idInput.readOnly = false;
+        idInput.focus();
+      }
+      if (codeInput instanceof HTMLTextAreaElement) {
+        codeInput.value = defaultHandlerCode(kind);
+      }
+      if (handlerSourceMeta instanceof HTMLElement) {
+        handlerSourceMeta.textContent = 'source PHP développeur · écriture persistante';
+      }
+      return;
+    }
+
+    const entries = editableEntriesForKind(kind);
+    if (entries.length === 0) {
+      throw new Error(`OWASYS_FSM_DESIGNER_${kind.toUpperCase()}_HANDLER_NOT_MANAGED`);
+    }
+    if (!(handlerExistingSelect instanceof HTMLSelectElement)) {
+      throw new Error('OWASYS_FSM_DESIGNER_HANDLER_EXISTING_SELECT_MISSING');
+    }
+    handlerExistingSelect.replaceChildren();
+    entries.forEach((entry) => {
+      const option = document.createElement('option');
+      option.value = entry.id;
+      option.textContent = entry.id;
+      handlerExistingSelect.append(option);
+    });
+    if (handlerExistingRow instanceof HTMLElement) {
+      handlerExistingRow.hidden = false;
+    }
+    loadHandlerEditorEntry(kind, entries[0].id);
+  };
+
+  const sendHandlerSource = async () => {
+    const kind = String(handlerSourceEditor.dataset.handlerKind || '');
+    const mode = String(handlerSourceEditor.dataset.handlerMode || '');
+    const idInput = handlerField('handler_id');
+    const codeInput = handlerField('handler_code');
+    const handlerId = idInput instanceof HTMLInputElement
+      ? idInput.value.trim()
+      : '';
+    const handlerCode = codeInput instanceof HTMLTextAreaElement
+      ? codeInput.value.trim()
+      : '';
+
+    if (!['guard','action'].includes(kind)
+        || !['create','update'].includes(mode)
+        || !/^[a-z][a-z0-9_:-]{0,127}$/.test(handlerId)
+        || handlerCode === ''
+        || (kind === 'guard' && handlerId.startsWith('acl:'))) {
+      throw new Error('OWASYS_FSM_DESIGNER_HANDLER_REQUEST_INVALID');
+    }
+
+    const actionUrl = section.dataset.fsmDesignerActionUrl || window.location.pathname;
+    const csrf = section.dataset.fsmDesignerCsrf || '';
+    if (csrf === '') {
+      throw new Error('OWASYS_FSM_DESIGNER_CSRF_MISSING');
+    }
+
+    const body = new URLSearchParams();
+    body.set('owasys_fsm_designer_handler', '1');
+    body.set('csrf_token', csrf);
+    body.set('handler_kind', kind);
+    body.set('handler_id', handlerId);
+    body.set('handler_mode', mode);
+    body.set('handler_code', handlerCode);
+
+    const response = await fetch(actionUrl, {
+      method:'POST',
+      credentials:'same-origin',
+      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+      body:body.toString(),
+    });
+    const payload = await response.json();
+    adoptCsrf(payload);
+    const data = payload?.data;
+    if (!response.ok
+        || !payload
+        || payload.ok !== true
+        || !data
+        || data.contract !== 'OWASYS_EFSM_HANDLER_WRITE_RESULT_V1'
+        || data.kind !== kind
+        || data.handler_id !== handlerId
+        || !/^[a-f0-9]{64}$/.test(String(data.source_sha256 || ''))) {
+      throw new Error(String(payload?.error_code || 'OWASYS_FSM_DESIGNER_HANDLER_WRITE_FAILED'));
+    }
+
+    await loadHandlerCatalog();
+    section.dataset.fsmHandlerSourceDirty = '1';
+    closeEditors();
+    editorStatus.textContent =
+      `${kind}.${mode} ${handlerId} · source ${String(data.source_sha256).slice(0, 12)}`;
+  };
   const drawDraftState = (id, point) => {
     if (!point || svg.querySelector(`.fsm-node[data-state="${CSS.escape(id)}"]`)) return;
     const ns = 'http://www.w3.org/2000/svg';
@@ -724,6 +943,35 @@
   if (actionAddButton instanceof HTMLButtonElement) {
     actionAddButton.addEventListener('click', () => appendHandlerFromCatalog('action'));
   }
+  handlerAuthorButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const [kind, mode] = String(button.dataset.fsmHandlerAuthor || '').split(':', 2);
+      try {
+        openHandlerSourceEditor(kind, mode);
+      } catch (error) {
+        editorStatus.textContent = error instanceof Error
+          ? error.message
+          : 'OWASYS_FSM_DESIGNER_HANDLER_EDITOR_FAILED';
+      }
+    });
+  });
+  if (handlerExistingSelect instanceof HTMLSelectElement) {
+    handlerExistingSelect.addEventListener('change', () => {
+      try {
+        loadHandlerEditorEntry(
+          String(handlerSourceEditor.dataset.handlerKind || ''),
+          String(handlerExistingSelect.value || '')
+        );
+      } catch (error) {
+        editorStatus.textContent = error instanceof Error
+          ? error.message
+          : 'OWASYS_FSM_DESIGNER_HANDLER_LOAD_FAILED';
+      }
+    });
+  }
+  if (handlerSourceCancelButton instanceof HTMLButtonElement) {
+    handlerSourceCancelButton.addEventListener('click', closeEditors);
+  }
   if (stateCancelButton instanceof HTMLButtonElement) {
     stateCancelButton.addEventListener('click', closeEditors);
   }
@@ -764,11 +1012,30 @@
     }
   });
 
+  handlerSourceEditor.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    try {
+      if (handlerSourceSubmitButton instanceof HTMLButtonElement) {
+        handlerSourceSubmitButton.disabled = true;
+      }
+      editorStatus.textContent = 'écriture source PHP…';
+      await sendHandlerSource();
+    } catch (error) {
+      editorStatus.textContent = error instanceof Error
+        ? error.message
+        : 'OWASYS_FSM_DESIGNER_HANDLER_WRITE_FAILED';
+    } finally {
+      if (handlerSourceSubmitButton instanceof HTMLButtonElement) {
+        handlerSourceSubmitButton.disabled = false;
+      }
+    }
+  });
   section.addEventListener('submit', (event) => {
     const target = event.target;
     if (target instanceof HTMLFormElement
         && target !== stateEditor
         && target !== transitionEditor
+        && target !== handlerSourceEditor
         && target.closest('[data-owasys-fsm-diagram]') === section) {
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -778,7 +1045,7 @@
   section.addEventListener('click', (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
-    if (target.closest('.ow-fsm-designer-toolbar, [data-fsm-state-editor], [data-fsm-transition-handler-editor]')) return;
+    if (target.closest('.ow-fsm-designer-toolbar, [data-fsm-state-editor], [data-fsm-transition-handler-editor], [data-fsm-handler-source-editor]')) return;
 
     const transition = target.closest('.fsm-transition[data-transition-id]');
     const state = target.closest('.fsm-node[data-state]');

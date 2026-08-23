@@ -1,0 +1,14 @@
+{
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "fr",
+    "scope": "home",
+    "messages": {
+        "page.title": "Accueil",
+        "page.subtitle": "Module OPUS piloté par FSM : home",
+        "auth.username": "Username",
+        "auth.password": "Password",
+        "auth.submit": "Connexion",
+        "auth.error": "Identifiant ou mot de passe incorrect."
+    }
+}
+
