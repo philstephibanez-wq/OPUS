@@ -550,6 +550,7 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             "sites/{$site}/config/routes.json" => $this->json($this->routesConfig()),
             "sites/{$site}/config/menu.json" => $this->json($this->menuConfig()),
             "sites/{$site}/config/application.fsm.json" => $this->json($this->fsmConfig()),
+            "sites/{$site}/config/security.fsm.json" => $this->json($this->securityFsmConfig()),
             "sites/{$site}/config/rubrics.json" => $this->json([
                 'contract' => 'OPUS_RUBRIC_REGISTRY_V1',
                 'rubrics' => [],
@@ -681,6 +682,15 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             'application_root' => 'application',
             'default_root' => 'application/default',
             'application_fsm' => 'config/application.fsm.json',
+            'efsms' => $this->profile === self::PROFILE_BACKEND
+                ? [
+                    'rest' => 'config/application.fsm.json',
+                    'security' => 'config/security.fsm.json',
+                ]
+                : [
+                    'navigation' => 'config/application.fsm.json',
+                    'security' => 'config/security.fsm.json',
+                ],
             'dispatch_model' => 'fsm-module-first',
             'public_root' => 'www',
             'asset_root' => 'www/asset',
@@ -760,6 +770,18 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
     {
         $states = [];
         $modules = $this->modules();
+        $signals = [];
+
+        foreach ($modules as $module) {
+            $signals[] = [
+                'id' => 'open_' . $module,
+                'origin' => 'user',
+            ];
+        }
+        $signals[] = [
+            'id' => 'open_profiler',
+            'origin' => 'user',
+        ];
 
         $states[] = [
             'id' => 'begin',
@@ -823,11 +845,89 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             'name' => $this->siteId . '.application',
             'site_id' => $this->siteId,
             'initial_state' => 'begin',
+            'signals' => $signals,
             'states' => $states,
             'transitions' => $transitions,
         ];
     }
 
+    /** @return array<string,mixed> */
+    private function securityFsmConfig(): array
+    {
+        return [
+            'contract' => 'OPUS_SECURITY_FSM_V1',
+            'name' => $this->siteId . '.security',
+            'site_id' => $this->siteId,
+            'efsm_id' => 'security',
+            'initial_state' => 'anonymous',
+            'signals' => [
+                ['id' => 'login_requested', 'origin' => 'user'],
+                ['id' => 'authentication_succeeded', 'origin' => 'automatic'],
+                ['id' => 'authentication_failed', 'origin' => 'automatic'],
+                ['id' => 'logout_requested', 'origin' => 'user'],
+                ['id' => 'session_expired', 'origin' => 'automatic'],
+                ['id' => 'reauth_required', 'origin' => 'automatic'],
+                ['id' => 'reauthentication_succeeded', 'origin' => 'automatic'],
+                ['id' => 'reauthentication_failed', 'origin' => 'automatic'],
+            ],
+            'states' => [
+                ['id' => 'anonymous'],
+                ['id' => 'authenticating'],
+                ['id' => 'authenticated'],
+                ['id' => 'reauthenticating'],
+            ],
+            'transitions' => [
+                [
+                    'id' => 'security.login.requested',
+                    'from' => 'anonymous',
+                    'signal' => 'login_requested',
+                    'next_state' => 'authenticating',
+                ],
+                [
+                    'id' => 'security.authentication.succeeded',
+                    'from' => 'authenticating',
+                    'signal' => 'authentication_succeeded',
+                    'next_state' => 'authenticated',
+                ],
+                [
+                    'id' => 'security.authentication.failed',
+                    'from' => 'authenticating',
+                    'signal' => 'authentication_failed',
+                    'next_state' => 'anonymous',
+                ],
+                [
+                    'id' => 'security.logout.requested',
+                    'from' => 'authenticated',
+                    'signal' => 'logout_requested',
+                    'next_state' => 'anonymous',
+                ],
+                [
+                    'id' => 'security.session.expired',
+                    'from' => 'authenticated',
+                    'signal' => 'session_expired',
+                    'next_state' => 'anonymous',
+                ],
+                [
+                    'id' => 'security.reauth.required',
+                    'from' => 'authenticated',
+                    'signal' => 'reauth_required',
+                    'next_state' => 'reauthenticating',
+                ],
+                [
+                    'id' => 'security.reauth.succeeded',
+                    'from' => 'reauthenticating',
+                    'signal' => 'reauthentication_succeeded',
+                    'next_state' => 'authenticated',
+                ],
+                [
+                    'id' => 'security.reauth.failed',
+                    'from' => 'reauthenticating',
+                    'signal' => 'reauthentication_failed',
+                    'next_state' => 'authenticated',
+                ],
+            ],
+        ];
+    }
     /** @return array<string,mixed> */
     private function aclConfig(): array
     {
@@ -1226,6 +1326,12 @@ PHP;
                 'name' => $site . '.application',
                 'site_id' => $site,
                 'initial_state' => 'begin',
+                'signals' => [
+                    [
+                        'id' => 'dispatch_api',
+                        'origin' => 'automatic',
+                    ],
+                ],
                 'states' => [
                     [
                         'id' => 'begin',
@@ -1258,6 +1364,9 @@ PHP;
                     ],
                 ],
             ]),
+            "sites/{$site}/config/security.fsm.json" => $this->json(
+                $this->securityFsmConfig()
+            ),
             "sites/{$site}/config/acl.json" => $this->json($this->aclConfig()),
             "sites/{$site}/config/sso.json" => $this->json($this->ssoConfig()),
             "sites/{$site}/config/backend.rest.json" => $this->json(

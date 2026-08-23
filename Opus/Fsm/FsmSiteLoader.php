@@ -68,6 +68,115 @@ final class FsmSiteLoader implements FsmSiteLoaderInterface
     }
 
     /**
+     * Creates a processor for one named EFSM registered by the application.
+     * The browser/UI never supplies a source path; only the semantic EFSM id
+     * crosses the boundary and this loader resolves the canonical path.
+     *
+     * @param array<string,callable> $guardHandlers
+     */
+    public static function processorForSiteRootEfsm(
+        string $siteRoot,
+        string $efsmId,
+        array $guardHandlers = [],
+        ?ProfilerInterface $profiler = null,
+        ?string $parentSpanId = null
+    ): FsmProcessor {
+        $resolved = self::resolveEfsm($siteRoot, $efsmId);
+
+        return FsmProcessor::fromJsonFile(
+            $resolved['fsm_path'],
+            $guardHandlers,
+            $profiler,
+            $parentSpanId
+        );
+    }
+
+    /**
+     * @return array{
+     *   site_id:string,
+     *   site_root:string,
+     *   role:string,
+     *   efsm_id:string,
+     *   fsm_path:string,
+     *   fsm_relative_path:string,
+     *   modules:list<string>,
+     *   site_config:array<string,mixed>
+     * }
+     */
+    public static function resolveEfsm(string $siteRoot, string $efsmId): array
+    {
+        $efsmId = strtolower(trim($efsmId));
+        if (preg_match('/^[a-z][a-z0-9_-]{0,63}$/D', $efsmId) !== 1) {
+            throw new RuntimeException('OPUS_EFSM_ID_INVALID:' . $efsmId);
+        }
+
+        $siteRoot = rtrim($siteRoot, DIRECTORY_SEPARATOR);
+        if (!is_dir($siteRoot)) {
+            throw new RuntimeException('OPUS_FSM_SITE_ROOT_MISSING: ' . $siteRoot);
+        }
+
+        $siteConfigFile = $siteRoot . DIRECTORY_SEPARATOR
+            . 'config' . DIRECTORY_SEPARATOR . 'site.json';
+        $siteConfig = self::readStructured(
+            $siteConfigFile,
+            'OPUS_EFSM_SITE_JSON_INVALID: ' . $siteRoot
+        );
+        $siteId = (string) ($siteConfig['site_id'] ?? basename($siteRoot));
+        $role = (string) ($siteConfig['role'] ?? '');
+        self::assertApplicationTreeContract($siteRoot, $siteId, $siteConfig);
+
+        $registry = is_array($siteConfig['efsms'] ?? null)
+            ? $siteConfig['efsms']
+            : [];
+        $relative = trim(str_replace(
+            '\\',
+            '/',
+            (string) ($registry[$efsmId] ?? '')
+        ), '/');
+
+        if ($relative === '' && $efsmId === 'navigation') {
+            $resolved = self::resolve($siteRoot);
+            $resolved['efsm_id'] = 'navigation';
+            return $resolved;
+        }
+        if ($relative === '') {
+            throw new RuntimeException(
+                'OPUS_EFSM_SITE_REGISTRY_ENTRY_MISSING:'
+                . $siteId . ':' . $efsmId
+            );
+        }
+
+        self::assertSafeRelativePath(
+            $relative,
+            'OPUS_EFSM_SITE_PATH_INVALID:' . $siteId . ':' . $efsmId
+        );
+        $absolute = $siteRoot . DIRECTORY_SEPARATOR
+            . str_replace('/', DIRECTORY_SEPARATOR, $relative);
+        if (!is_file($absolute)) {
+            throw new RuntimeException(
+                'OPUS_EFSM_SITE_FILE_MISSING:' . $siteId . ':' . $efsmId
+            );
+        }
+
+        $fsm = self::readStructured(
+            $absolute,
+            'OPUS_EFSM_SITE_JSON_INVALID:' . $siteId . ':' . $efsmId
+        );
+        $modules = self::modulesFromFsm($fsm, $siteId);
+        self::assertFsmModuleDirectories($siteRoot, $siteId, $modules);
+
+        return [
+            'site_id' => $siteId,
+            'site_root' => $siteRoot,
+            'role' => $role,
+            'efsm_id' => $efsmId,
+            'fsm_path' => $absolute,
+            'fsm_relative_path' => $relative,
+            'modules' => $modules,
+            'site_config' => $siteConfig,
+        ];
+    }
+    /**
      * @return array{
      *   site_id:string,
      *   site_root:string,
@@ -261,7 +370,15 @@ final class FsmSiteLoader implements FsmSiteLoaderInterface
                 );
             }
 
-            $module = trim((string) ($state['module'] ?? $stateId));
+            /*
+             * A pure EFSM state is an engine object, not an implicit
+             * application module. Only an explicit module field participates
+             * in the application directory contract.
+             */
+            if (!array_key_exists('module', $state)) {
+                continue;
+            }
+            $module = trim((string) $state['module']);
             if (preg_match('/^[a-z][a-z0-9_-]*$/', $module) !== 1) {
                 throw new RuntimeException(
                     'OPUS_FSM_SITE_MODULE_NAME_INVALID: '

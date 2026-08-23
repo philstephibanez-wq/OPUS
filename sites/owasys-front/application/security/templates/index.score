@@ -88,6 +88,10 @@
       <span class="ow-security-metric-icon is-resource">◆</span>
       <div><strong>{{ security.resources_count }}</strong><span>[[ i18n: security.resources_acl ]]</span></div>
     </a>
+    <a class="ow-security-metric ow-security-metric-link" href="{{ security_urls.sso }}">
+      <span class="ow-security-metric-icon">SSO</span>
+      <div><strong>{{ security.providers_count }}</strong><span>SSO / providers</span></div>
+    </a>
   </div>
 
   <nav class="ow-security-flow ow-security-flow-primary" aria-label="[[ i18n: security.dashboard ]]">
@@ -787,4 +791,36 @@
     [[ endforeach ]]
   </div>
 </section>
+[[ endif ]]
+
+[[ if: security.view_sso ]]
+<details class="ow-security-accordion is-active" open>
+  <summary class="ow-security-technical-summary">
+    <strong>SSO / providers</strong>
+    <span class="ow-security-count">{{ security.providers_count }}</span>
+  </summary>
+  <div class="ow-security-accordion-body">
+    <div class="ow-tags">
+      <span>[[ i18n: security.default_provider ]]: {{ security.default_provider }}</span>
+      <span>SSO: {{ security.sso_contract }}</span>
+    </div>
+    [[ if: security.providers_empty ]]
+      <p class="ow-muted">[[ i18n: security.empty ]]</p>
+    [[ else ]]
+      <div class="ow-tree-branches">
+        [[ foreach: providers as provider ]]
+        <article class="ow-tree-app">
+          <strong>{{ provider.id }}</strong>
+          [[ if: provider.enabled ]]
+            <span class="ow-badge">✓</span>
+          [[ endif ]]
+          [[ if: provider.disabled ]]
+            <span class="ow-muted">—</span>
+          [[ endif ]]
+        </article>
+        [[ endforeach ]]
+      </div>
+    [[ endif ]]
+  </div>
+</details>
 [[ endif ]]

@@ -25,6 +25,7 @@ final class OwasysSecurityController
         'permissions',
         'assignments',
         'resources',
+        'sso',
     ];
 
     private readonly OwasysLocaleRegistry $locales;
@@ -594,6 +595,9 @@ final class OwasysSecurityController
                 'view_permissions' => $view === 'permissions',
                 'view_assignments' => $view === 'assignments',
                 'view_resources' => $view === 'resources',
+                'view_sso' => $view === 'sso',
+                'providers_empty' => $this->rows($snapshot, 'providers') === [],
+                'providers_count' => count($this->rows($snapshot, 'providers')),
                 'identities_empty' => $this->rows(
                     $snapshot,
                     'identities'
@@ -683,6 +687,10 @@ final class OwasysSecurityController
                 'resources' => $this->securityUrl(
                     $locale,
                     'resources'
+                ),
+                'sso' => $this->securityUrl(
+                    $locale,
+                    'sso'
                 ),
             ],
             'csrf' => [

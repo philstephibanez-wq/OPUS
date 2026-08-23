@@ -7,7 +7,7 @@ use Opus\File\StructuredFileLoader;
 /** Builds a fixed visual projection from the canonical OWASYS FSM. */
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4BZ2';
+    private const REVISION = 'P117W_R45B2A4BZ2R8B4A';
 
     private string $sourceHash = '';
 
@@ -43,6 +43,19 @@ final class OwasysFsmDiagramBuilder
         if (!is_array($this->session->user())) {
             throw new RuntimeException(
                 'OWASYS_FSM_NATIVE_IDENTITY_REQUIRED'
+            );
+        }
+
+        $contextEfsmId = $this->contextEfsmId($pageData);
+        if ($contextEfsmId !== '') {
+            return $this->buildSelectedApplicationEfsm(
+                $pageData,
+                $contextEfsmId
+            );
+        }
+        if (($pageData['fsm_designer']['active'] ?? false) === true) {
+            throw new RuntimeException(
+                'OWASYS_FSM_DESIGNER_CONTEXT_EFSM_REQUIRED'
             );
         }
 
@@ -305,12 +318,16 @@ final class OwasysFsmDiagramBuilder
 
         return [
             'visible' => true,
-            'description' => 'EFSM verticale · départ '
+            'description' => 'EFSM OWASYS hôte non encore découpée · départ '
                 . $stateLabels[$initialState]
                 . ' · état courant '
                 . $stateLabels[$currentState]
                 . ' surligné uniquement · globals finis',
             'html' => $diagram,
+            'application_id' => 'owasys-front',
+            'efsm_id' => 'navigation',
+            'source_path' => 'config/fsm.json',
+            'source_sha256' => $this->sourceHash,
             'current_state' => $currentState,
             'current_label' => $stateLabels[$currentState],
             'projected_transition_count' => count($transitions),
@@ -575,6 +592,10 @@ final class OwasysFsmDiagramBuilder
             'visible' => false,
             'description' => '',
             'html' => '',
+            'application_id' => '',
+            'efsm_id' => '',
+            'source_path' => '',
+            'source_sha256' => '',
             'current_state' => '',
             'current_label' => '',
             'projected_transition_count' => 0,
@@ -583,6 +604,119 @@ final class OwasysFsmDiagramBuilder
         ];
     }
 
+    /**
+     * Development mode is an application tool: its semantic source is the
+     * currently selected application's canonical EFSM, read through secured
+     * OWASYS REST. The host navigation FSM is never substituted.
+     *
+     * @param array<string,mixed> $pageData
+     * @return array<string,mixed>
+     */
+    private function buildSelectedApplicationEfsm(array $pageData, string $efsmId): array
+    {
+        $applicationId = strtolower(trim((string) (
+            $pageData['current_app']['id'] ?? ''
+        )));
+        if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $applicationId) !== 1) {
+            throw new RuntimeException(
+                'OWASYS_FSM_DESIGNER_APPLICATION_REQUIRED'
+            );
+        }
+
+        $identity = $this->session->user();
+        if (!is_array($identity)) {
+            throw new RuntimeException(
+                'OWASYS_FSM_DESIGNER_IDENTITY_REQUIRED'
+            );
+        }
+
+        $snapshot = (new OwasysApplicationFsmModel(
+            new OwasysSourceModel($this->siteRoot)
+        ))->snapshot($applicationId, $identity, $efsmId);
+        $definition = is_array($snapshot['definition'] ?? null)
+            ? $snapshot['definition']
+            : [];
+        $initialState = trim((string) (
+            $definition['initial_state'] ?? ''
+        ));
+        $sourcePath = trim((string) (
+            $snapshot['source_path'] ?? ''
+        ));
+        $sourceHash = strtolower(trim((string) (
+            $snapshot['sha256'] ?? ''
+        )));
+        if ($definition === []
+            || $initialState === ''
+            || $sourcePath === ''
+            || preg_match('/^[a-f0-9]{64}$/D', $sourceHash) !== 1) {
+            throw new RuntimeException(
+                'OWASYS_FSM_DESIGNER_APPLICATION_SNAPSHOT_INVALID'
+            );
+        }
+
+        try {
+            $encoded = json_encode(
+                [
+                    'contract' => 'OWASYS_EFSM_DESIGNER_SNAPSHOT_V4',
+                    'efsm_id' => $efsmId,
+                    'revision' => self::REVISION,
+                    'application_id' => $applicationId,
+                    'source_path' => $sourcePath,
+                    'base_sha256' => $sourceHash,
+                    'current_state' => $initialState,
+                    'initial_state' => $initialState,
+                    'handler_authoring_supported' =>
+                        $applicationId === 'owasys-front',
+                    'definition' => $definition,
+                ],
+                JSON_THROW_ON_ERROR
+                | JSON_UNESCAPED_SLASHES
+                | JSON_UNESCAPED_UNICODE
+            );
+        } catch (JsonException $cause) {
+            throw new RuntimeException(
+                'OWASYS_FSM_DESIGNER_APPLICATION_SNAPSHOT_ENCODING_FAILED',
+                0,
+                $cause
+            );
+        }
+
+        return [
+            'visible' => true,
+            'description' => 'Application '
+                . $applicationId
+                . ' · micro-EFSM '
+                . $efsmId
+                . ' · source canonique '
+                . $sourcePath,
+            'html' => (string) ($snapshot['diagram'] ?? ''),
+            'application_id' => $applicationId,
+            'efsm_id' => $efsmId,
+            'source_path' => $sourcePath,
+            'source_sha256' => $sourceHash,
+            'current_state' => $initialState,
+            'current_label' => $initialState,
+            'projected_transition_count' => (int) (
+                $snapshot['transition_count'] ?? 0
+            ),
+            'designer_payload' => ($pageData['fsm_designer']['active'] ?? false)
+                ? base64_encode($encoded)
+                : '',
+            'revision' => self::REVISION,
+        ];
+    }
+    /** @param array<string,mixed> $pageData */
+    private function contextEfsmId(array $pageData): string
+    {
+        $module = strtolower(trim((string) (
+            $pageData['fsm']['module'] ?? ''
+        )));
+        return match ($module) {
+            'security' => 'security',
+            'structure' => 'navigation',
+            default => '',
+        };
+    }
     /** @return array<string,mixed> */
     private function loadFsm(): array
     {

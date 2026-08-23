@@ -83,7 +83,47 @@ final class OwasysFsmDesignerGateway
             return true;
         }
 
+        $currentApp = $this->session->currentApp();
+        $targetSiteId = strtolower(trim((string) (
+            $currentApp['id'] ?? ''
+        )));
+        if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $targetSiteId) !== 1) {
+            $this->respondError(
+                'OWASYS_FSM_DESIGNER_APPLICATION_REQUIRED',
+                409
+            );
+            return true;
+        }
+        $targetEfsmId = strtolower(trim((string) (
+            $_POST['efsm_id'] ?? ''
+        )));
+        if (preg_match('/^[a-z][a-z0-9_-]{0,63}$/D', $targetEfsmId) !== 1) {
+            $this->respondError(
+                'OWASYS_FSM_DESIGNER_EFSM_REQUIRED',
+                409
+            );
+            return true;
+        }
+
         try {
+            if ($catalogRequested && $targetSiteId !== 'owasys-front') {
+                $this->respondData([
+                    'contract' => OwasysFsmHandlerCatalog::CONTRACT,
+                    'application_id' => $targetSiteId,
+                    'authoring_supported' => false,
+                    'managed_source_path' => '',
+                    'managed_source_sha256' => '',
+                    'guards' => [],
+                    'actions' => [],
+                ]);
+                return true;
+            }
+            if ($handlerRequested && $targetSiteId !== 'owasys-front') {
+                throw new RuntimeException(
+                    'OWASYS_FSM_DESIGNER_HANDLER_AUTHORING_UNAVAILABLE:'
+                    . $targetSiteId
+                );
+            }
             if (!$catalogRequested) {
                 $this->csrf->assertValid(
                     self::CSRF_SCOPE,
@@ -100,6 +140,8 @@ final class OwasysFsmDesignerGateway
                     $this->security
                 )
             )->snapshot();
+            $handlerCatalog['application_id'] = $targetSiteId;
+            $handlerCatalog['authoring_supported'] = true;
 
             if ($catalogRequested) {
                 $this->profiler?->event(
@@ -205,7 +247,9 @@ final class OwasysFsmDesignerGateway
                     $this->profiler
                 )->request(
                     'PUT',
-                    '/api/v1/applications/owasys-front/fsm/handlers',
+                    '/api/v1/applications/' . rawurlencode(
+                        $targetSiteId
+                    ) . '/fsm/handlers',
                     [
                         'kind' => $kind,
                         'handler_id' => $handlerId,
@@ -263,6 +307,16 @@ final class OwasysFsmDesignerGateway
                 $commandJson,
                 'fsm-command'
             );
+            $operation = trim((string) (
+                $semanticCommand['operation'] ?? ''
+            ));
+            if ($targetSiteId !== 'owasys-front'
+                && $operation === 'transition.handlers.update') {
+                throw new RuntimeException(
+                    'OWASYS_FSM_DESIGNER_HANDLER_BINDING_UNAVAILABLE:'
+                    . $targetSiteId
+                );
+            }
             if (!array_is_list($history)
                 || count($history)
                     > self::MAX_HISTORY_COMMANDS
@@ -284,9 +338,13 @@ final class OwasysFsmDesignerGateway
             $envelopeJson = Json::instance()->encode(
                 [
                     'contract' => self::ENVELOPE_CONTRACT,
+                    'efsm_id' => $targetEfsmId,
                     'history' => $history,
                     'command' => $semanticCommand,
-                    'handler_catalog' => $handlerCatalog,
+                    'handler_catalog' =>
+                        $operation === 'transition.handlers.update'
+                            ? $handlerCatalog
+                            : null,
                 ],
                 false
             );
@@ -318,7 +376,8 @@ final class OwasysFsmDesignerGateway
                 'fsm',
                 'designer.command_envelope.forwarding',
                 [
-                    'site_id' => 'owasys-front',
+                    'site_id' => $targetSiteId,
+                    'efsm_id' => $targetEfsmId,
                     'history_count' => count($history),
                     'request_bytes' =>
                         strlen($envelopeJson) + 2,
@@ -333,7 +392,8 @@ final class OwasysFsmDesignerGateway
                 $this->profiler
             )->request(
                 'POST',
-                '/api/v1/applications/owasys-front'
+                '/api/v1/applications/'
+                    . rawurlencode($targetSiteId)
                     . '/fsm/drafts/commands',
                 [
                     'base_sha256' => $baseHash,

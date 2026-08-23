@@ -50,54 +50,12 @@
             "actions": [
                 "render_route"
             ]
-        },
+        }
+    ],
+    "signals": [
         {
-            "id": "open.home.from.profiler",
-            "from": "profiler",
-            "signal": "open_home",
-            "next_state": "home",
-            "guards": [
-                "route_exists"
-            ],
-            "actions": [
-                "render_route"
-            ]
-        },
-        {
-            "id": "open.profiler.from.begin",
-            "from": "begin",
-            "signal": "open_profiler",
-            "next_state": "profiler",
-            "guards": [
-                "route_exists"
-            ],
-            "actions": [
-                "render_profiler_trace"
-            ]
-        },
-        {
-            "id": "open.profiler.from.home",
-            "from": "home",
-            "signal": "open_profiler",
-            "next_state": "profiler",
-            "guards": [
-                "route_exists"
-            ],
-            "actions": [
-                "render_profiler_trace"
-            ]
-        },
-        {
-            "id": "open.profiler.from.profiler",
-            "from": "profiler",
-            "signal": "open_profiler",
-            "next_state": "profiler",
-            "guards": [
-                "route_exists"
-            ],
-            "actions": [
-                "render_profiler_trace"
-            ]
+            "id": "open_home",
+            "origin": "user"
         }
     ]
 }

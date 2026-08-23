@@ -47,9 +47,9 @@ final class OwasysScorePageRenderer
         );
 
         $assets['fsm_css'] = $assetBase
-            . '/css/fsm-native.css?v=p117w-r45b2a4bz2r8b2';
+            . '/css/fsm-native.css?v=p117w-r45b2a4bz2r8b4a';
         $assets['fsm_designer_js'] = $assetBase
-            . '/js/fsm-designer.js?v=p117w-r45b2a4bz2r8b2';
+            . '/js/fsm-designer.js?v=p117w-r45b2a4bz2r8b4a';
 
         $source = is_array($data['source'] ?? null)
             ? $data['source']
@@ -123,13 +123,40 @@ final class OwasysScorePageRenderer
 
         $designerRequested =
             (string) ($_GET['fsm_design'] ?? '') === '1';
-        $designerAllowed = $this->security !== null
+        $designerApplicationId = strtolower(trim((string) (
+            $data['current_app']['id'] ?? ''
+        )));
+        $designerEfsmId = match (strtolower(trim((string) (
+            $data['fsm']['module'] ?? ''
+        )))) {
+            'security' => 'security',
+            'structure' => 'navigation',
+            default => '',
+        };
+        $designerHasContext = $designerEfsmId !== '';
+        $designerHasApplication = preg_match(
+            '/^[a-z][a-z0-9-]{0,63}$/D',
+            $designerApplicationId
+        ) === 1;
+        $designerAllowed = $designerHasApplication
+            && $designerHasContext
+            && $this->security !== null
             && $this->security->isAllowed(
                 is_array($identity) ? $identity : null,
                 'fsm',
                 'update'
             );
 
+        if ($designerRequested && !$designerHasApplication) {
+            throw new RuntimeException(
+                'OWASYS_FSM_DESIGNER_APPLICATION_REQUIRED'
+            );
+        }
+        if ($designerRequested && !$designerHasContext) {
+            throw new RuntimeException(
+                'OWASYS_FSM_DESIGNER_CONTEXT_EFSM_REQUIRED'
+            );
+        }
         if ($designerRequested && !$designerAllowed) {
             throw new RuntimeException(
                 'OPUS_ACL_DENIED:fsm:update'
@@ -166,7 +193,9 @@ final class OwasysScorePageRenderer
                     'owasys.fsm.designer'
                 )
                 : '',
-            'revision' => 'P117W_R45B2A4BZ2R8B2',
+            'application_id' => $designerApplicationId,
+            'efsm_id' => $designerEfsmId,
+            'revision' => 'P117W_R45B2A4BZ2R8B4A',
             'labels' => $designerAllowed
                 ? $this->designerLabels($locale)
                 : [],

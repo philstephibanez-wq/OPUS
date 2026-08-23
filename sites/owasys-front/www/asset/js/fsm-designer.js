@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const DESIGNER_REVISION = 'P117W_R45B2A4BZ2R8B2';
+  const DESIGNER_REVISION = 'P117W_R45B2A4BZ2R8B4A';
   const section = document.querySelector('[data-owasys-fsm-diagram]');
   if (!(section instanceof HTMLElement)
       || section.dataset.fsmDesignerMode !== 'design') return;
@@ -20,14 +20,18 @@
     return;
   }
   if (!model
-      || model.contract !== 'OWASYS_EFSM_DESIGNER_SNAPSHOT_V2'
+      || model.contract !== 'OWASYS_EFSM_DESIGNER_SNAPSHOT_V4'
+      || !/^[a-z][a-z0-9_-]{0,63}$/.test(String(model.efsm_id || ''))
       || !model.definition
       || typeof model.definition !== 'object'
+      || !/^[a-z][a-z0-9-]{0,63}$/.test(String(model.application_id || ''))
       || !/^[a-f0-9]{64}$/.test(String(model.base_sha256 || ''))) {
     section.dataset.fsmDesignerError = 'contract';
     return;
   }
   model.command_history = [];
+  const handlerAuthoringSupported =
+    model.handler_authoring_supported === true;
 
   const inspector = section.querySelector('[data-fsm-designer-inspector]');
   const empty = section.querySelector('[data-fsm-designer-empty]');
@@ -37,6 +41,7 @@
   const fieldsNode = section.querySelector('[data-fsm-designer-fields]');
   const stateEditor = section.querySelector('[data-fsm-state-editor]');
   const transitionEditor = section.querySelector('[data-fsm-transition-handler-editor]');
+  const handlerSourceEditor = section.querySelector('[data-fsm-handler-source-editor]');
   const editorStatus = section.querySelector('[data-fsm-designer-status]');
   const svg = section.querySelector('svg.fsm-diagram');
   if (!(inspector instanceof HTMLElement)
@@ -76,7 +81,6 @@
   const handlerAuthorButtons = Array.from(
     section.querySelectorAll('[data-fsm-handler-author]')
   ).filter((node) => node instanceof HTMLButtonElement);
-  const handlerSourceEditor = section.querySelector('[data-fsm-handler-source-editor]');
   const handlerExistingRow = handlerSourceEditor instanceof HTMLFormElement
     ? handlerSourceEditor.querySelector('[data-fsm-handler-existing-row]')
     : null;
@@ -150,6 +154,7 @@
     if (csrf === '') throw new Error('OWASYS_FSM_DESIGNER_CSRF_MISSING');
     const body = new URLSearchParams();
     body.set('owasys_fsm_designer_catalog', '1');
+    body.set('efsm_id', String(model.efsm_id));
     body.set('csrf_token', csrf);
     const response = await fetch(actionUrl, {
       method:'POST',
@@ -393,7 +398,9 @@
       if (button instanceof HTMLButtonElement) button.disabled = !stateSelected;
     });
     if (transitionEditButton instanceof HTMLButtonElement) {
-      transitionEditButton.disabled = !transitionSelected || !handlerCatalogReady;
+      transitionEditButton.disabled = !handlerAuthoringSupported
+        || !transitionSelected
+        || !handlerCatalogReady;
     }
     handlerAuthorButtons.forEach((button) => {
       const [kind, mode] = String(button.dataset.fsmHandlerAuthor || '').split(':', 2);
@@ -406,7 +413,8 @@
         (entry) => entry.managed === true
           && !(kind === 'guard' && entry.dynamic === true)
       );
-      button.disabled = !handlerCatalogReady
+      button.disabled = !handlerAuthoringSupported
+        || !handlerCatalogReady
         || !['guard','action'].includes(kind)
         || !['create','update'].includes(mode)
         || (mode === 'update' && !editable);
@@ -761,6 +769,7 @@
 
     const body = new URLSearchParams();
     body.set('owasys_fsm_designer_handler', '1');
+    body.set('efsm_id', String(model.efsm_id));
     body.set('csrf_token', csrf);
     body.set('handler_kind', kind);
     body.set('handler_id', handlerId);
@@ -875,6 +884,7 @@
     if (csrf === '') throw new Error('OWASYS_FSM_DESIGNER_CSRF_MISSING');
     const body = new URLSearchParams();
     body.set('owasys_fsm_designer_command', '1');
+    body.set('efsm_id', String(model.efsm_id));
     body.set('csrf_token', csrf);
     body.set('base_sha256', String(model.base_sha256));
     body.set('history_json', JSON.stringify(model.command_history));
@@ -891,13 +901,33 @@
       throw new Error(String(payload?.error_code || 'OWASYS_FSM_DESIGNER_DRAFT_COMMAND_FAILED'));
     }
     const data = payload.data;
+    const persisted = data?.persisted === true;
     if (!data
         || data.contract !== 'OWASYS_EFSM_DRAFT_COMMAND_RESULT_V2'
         || !data.definition
-        || Number(data.history_count) !== model.command_history.length + 1) {
+        || (persisted && Number(data.history_count) !== 0)
+        || (!persisted
+          && Number(data.history_count) !== model.command_history.length + 1)) {
       throw new Error('OWASYS_FSM_DESIGNER_DRAFT_RESPONSE_INVALID');
     }
     model.definition = data.definition;
+
+    if (persisted) {
+      const nextBase = String(data.base_sha256 || '');
+      if (!/^[a-f0-9]{64}$/.test(nextBase)
+          || String(data.source_path || '') !== String(model.source_path || '')) {
+        throw new Error('OWASYS_FSM_DESIGNER_PERSISTED_RESPONSE_INVALID');
+      }
+      model.base_sha256 = nextBase;
+      model.command_history = [];
+      rebuildIndexes();
+      section.dataset.fsmDesignerDirty = '0';
+      editorStatus.textContent =
+        `persisted ${String(data.operation || command.operation || '')} · ${nextBase.slice(0, 12)}`;
+      window.location.reload();
+      return;
+    }
+
     model.command_history.push(JSON.parse(JSON.stringify(command)));
     rebuildIndexes();
     applyDomResult(
@@ -916,12 +946,10 @@
       stateButtons.forEach((item) => item.classList.remove('is-active'));
       button.classList.add('is-active');
       if (action === 'create') {
-        activeTool = 'state-create';
+        activeTool = 'select';
         pendingCreatePoint = null;
-        hideEditors();
-        selection.hidden = true;
-        empty.hidden = false;
-        editorStatus.textContent = 'state.create: click canvas';
+        setStateEditorMode('create', null);
+        editorStatus.textContent = '';
         return;
       }
       if (selectedKind !== 'state' || !states[selectedId]) return;
@@ -1084,14 +1112,20 @@
   }, true);
 
   updateButtons();
-  loadHandlerCatalog().catch((error) => {
+  if (handlerAuthoringSupported) {
+    loadHandlerCatalog().catch((error) => {
+      handlerCatalogReady = false;
+      updateButtons();
+      editorStatus.textContent = error instanceof Error
+        ? error.message
+        : 'OWASYS_FSM_DESIGNER_HANDLER_CATALOG_FAILED';
+      section.dataset.fsmDesignerHandlerError = 'handler_catalog';
+    });
+  } else {
     handlerCatalogReady = false;
+    section.dataset.fsmHandlerCatalogReady = '0';
     updateButtons();
-    editorStatus.textContent = error instanceof Error
-      ? error.message
-      : 'OWASYS_FSM_DESIGNER_HANDLER_CATALOG_FAILED';
-    section.dataset.fsmDesignerError = 'handler_catalog';
-  });
+  }
   section.dataset.fsmDesignerReady = '1';
   section.dataset.fsmDesignerRevision = DESIGNER_REVISION;
 })();

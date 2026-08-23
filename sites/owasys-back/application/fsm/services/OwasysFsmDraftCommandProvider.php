@@ -8,6 +8,7 @@ use Opus\File\StructuredFileLoader;
 use Opus\Fsm\Definition\FsmDefinitionEditor;
 use Opus\Fsm\Definition\FsmDefinitionValidator;
 use Opus\Fsm\Definition\FsmHandlerSourceEditor;
+use Opus\Fsm\FsmSiteLoader;
 use Opus\Profiler\Profiler;
 use Opus\Profiler\ProfilerInterface;
 use Opus\Security\Acl\AclPolicy;
@@ -116,9 +117,36 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
             );
         }
 
-        $fsmPath = $this->opusRoot
-            . '/sites/' . $siteId
-            . '/config/fsm.json';
+        $envelope = Json::instance()->parse(
+            $envelopeJson,
+            'fsm-command-envelope'
+        );
+        if (($envelope['contract'] ?? null)
+            !== self::ENVELOPE_CONTRACT) {
+            throw new RuntimeException(
+                'OWASYS_FSM_DRAFT_ENVELOPE_CONTRACT_INVALID'
+            );
+        }
+        $efsmId = strtolower(trim((string) (
+            $envelope['efsm_id'] ?? ''
+        )));
+        if (preg_match('/^[a-z][a-z0-9_-]{0,63}$/D', $efsmId) !== 1) {
+            throw new RuntimeException(
+                'OWASYS_FSM_DRAFT_EFSM_ID_INVALID'
+            );
+        }
+
+        $siteRoot = $this->opusRoot . '/sites/' . $siteId;
+        $resolvedFsm = FsmSiteLoader::resolveEfsm($siteRoot, $efsmId);
+        $fsmPath = (string) ($resolvedFsm['fsm_path'] ?? '');
+        $fsmRelativePath = trim((string) (
+            $resolvedFsm['fsm_relative_path'] ?? ''
+        ));
+        if ($fsmPath === '' || $fsmRelativePath === '') {
+            throw new RuntimeException(
+                'OWASYS_FSM_CANONICAL_SOURCE_UNRESOLVED'
+            );
+        }
         $raw = File::instance()->read(
             $fsmPath,
             2097152
@@ -133,17 +161,6 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
             $fsmPath
         );
 
-        $envelope = Json::instance()->parse(
-            $envelopeJson,
-            'fsm-command-envelope'
-        );
-        if (($envelope['contract'] ?? null)
-            !== self::ENVELOPE_CONTRACT) {
-            throw new RuntimeException(
-                'OWASYS_FSM_DRAFT_ENVELOPE_CONTRACT_INVALID'
-            );
-        }
-
         $history = $envelope['history'] ?? null;
         $semanticCommand = $envelope['command'] ?? null;
         $catalog = $envelope['handler_catalog'] ?? null;
@@ -152,7 +169,7 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
             || count($history) > self::MAX_HISTORY_COMMANDS
             || !is_array($semanticCommand)
             || array_is_list($semanticCommand)
-            || !is_array($catalog)) {
+            || (!is_array($catalog) && $catalog !== null)) {
             throw new RuntimeException(
                 'OWASYS_FSM_DRAFT_ENVELOPE_INVALID'
             );
@@ -166,13 +183,40 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
             }
         }
 
-        [$guardNames, $actionNames] =
-            $this->handlerNames($catalog);
-        $editor = new FsmDefinitionEditor(
-            new FsmDefinitionValidator(),
-            $guardNames,
-            $actionNames
+        $operation = trim((string) (
+            $semanticCommand['operation'] ?? ''
+        ));
+        $persistentStateOperation = in_array(
+            $operation,
+            ['state.create', 'state.rename', 'state.delete'],
+            true
         );
+        if ($persistentStateOperation && $history !== []) {
+            throw new RuntimeException(
+                'OWASYS_FSM_STATE_WRITE_HISTORY_FORBIDDEN'
+            );
+        }
+
+        if ($operation === 'transition.handlers.update') {
+            if (!is_array($catalog)
+                || (isset($catalog['application_id'])
+                    && (string) $catalog['application_id'] !== $siteId)) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_DRAFT_HANDLER_CATALOG_INVALID'
+                );
+            }
+            [$guardNames, $actionNames] =
+                $this->handlerNames($catalog);
+            $editor = new FsmDefinitionEditor(
+                new FsmDefinitionValidator(),
+                $guardNames,
+                $actionNames
+            );
+        } else {
+            $editor = new FsmDefinitionEditor(
+                new FsmDefinitionValidator()
+            );
+        }
 
         $traceId = $this->traceId($request);
         $ownsTrace = false;
@@ -181,15 +225,13 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
             $ownsTrace = true;
         }
 
-        $operation = trim((string) (
-            $semanticCommand['operation'] ?? ''
-        ));
         try {
             $this->profiler->event(
                 'fsm',
                 'designer.draft_command.received',
                 [
                     'site_id' => $siteId,
+                    'efsm_id' => $efsmId,
                     'operation' => $operation,
                     'history_count' => count($history),
                     'state_id' => (string) (
@@ -224,19 +266,46 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
             $definition = $result['definition'];
             $definitionJson = Json::instance()->encode(
                 $definition,
-                false
+                true
             );
+
+            $sourceHash = $baseHash;
+            if ($persistentStateOperation) {
+                $write = (new SiteSourceWorkspace(
+                    $this->opusRoot,
+                    null,
+                    $this->profiler
+                ))->write(
+                    $siteId,
+                    $fsmRelativePath,
+                    $baseHash,
+                    $definitionJson
+                );
+                $sourceHash = strtolower(trim((string) (
+                    $write['sha256'] ?? ''
+                )));
+                if (preg_match('/^[a-f0-9]{64}$/D', $sourceHash) !== 1) {
+                    throw new RuntimeException(
+                        'OWASYS_FSM_STATE_WRITE_RESULT_INVALID'
+                    );
+                }
+            }
 
             $this->profiler->event(
                 'fsm',
                 'designer.draft_command.validated',
                 [
                     'site_id' => $siteId,
+                    'efsm_id' => $efsmId,
                     'operation' => $operation,
-                    'history_count' =>
-                        count($history) + 1,
+                    'history_count' => $persistentStateOperation
+                        ? 0
+                        : count($history) + 1,
                     'definition_sha256' =>
                         hash('sha256', $definitionJson),
+                    'persisted' => $persistentStateOperation,
+                    'source_path' => $fsmRelativePath,
+                    'source_sha256' => $sourceHash,
                     'diagnostic_count' =>
                         count($result['diagnostics']),
                 ]
@@ -245,11 +314,16 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
             return [
                 'contract' =>
                     'OWASYS_EFSM_DRAFT_COMMAND_RESULT_V2',
-                'base_sha256' => $baseHash,
+                'base_sha256' => $sourceHash,
+                'efsm_id' => $efsmId,
                 'draft_sha256' =>
                     hash('sha256', $definitionJson),
-                'history_count' =>
-                    count($history) + 1,
+                'history_count' => $persistentStateOperation
+                    ? 0
+                    : count($history) + 1,
+                'persisted' => $persistentStateOperation,
+                'source_path' => $fsmRelativePath,
+                'source_sha256' => $sourceHash,
                 'operation' => $result['operation'],
                 'refactor' => $result['refactor'],
                 'diagnostics' => $result['diagnostics'],

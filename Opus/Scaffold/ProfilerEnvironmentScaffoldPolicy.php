@@ -104,6 +104,7 @@ final class ProfilerEnvironmentScaffoldPolicy implements ProfilerEnvironmentScaf
     private function withoutProfilerFsm(string $content, string $source): string
     {
         $data = Json::instance()->parse($content, $source);
+
         if (is_array($data['states'] ?? null)) {
             $data['states'] = array_values(array_filter(
                 $data['states'],
@@ -111,16 +112,57 @@ final class ProfilerEnvironmentScaffoldPolicy implements ProfilerEnvironmentScaf
                     || (string) ($state['id'] ?? '') !== 'profiler'
             ));
         }
-        if (is_array($data['transitions'] ?? null)) {
-            $data['transitions'] = array_values(array_filter(
-                $data['transitions'],
-                static fn (mixed $transition): bool => !is_array($transition)
-                    || (string) ($transition['id'] ?? '') !== 'open.profiler'
+
+        if (is_array($data['signals'] ?? null)) {
+            $data['signals'] = array_values(array_filter(
+                $data['signals'],
+                static fn (mixed $signal): bool => !is_array($signal)
+                    || (string) ($signal['id'] ?? '') !== 'open_profiler'
             ));
         }
+
+        if (is_array($data['transitions'] ?? null)) {
+            $transitions = [];
+            foreach ($data['transitions'] as $transition) {
+                if (!is_array($transition)) {
+                    $transitions[] = $transition;
+                    continue;
+                }
+
+                $from = trim((string) ($transition['from'] ?? ''));
+                $to = trim((string) (
+                    $transition['next_state']
+                    ?? $transition['nextState']
+                    ?? ''
+                ));
+                $signal = trim((string) ($transition['signal'] ?? ''));
+
+                if ($from === 'profiler'
+                    || $to === 'profiler'
+                    || $signal === 'open_profiler') {
+                    continue;
+                }
+
+                if (is_array($transition['from_states'] ?? null)) {
+                    $sources = array_values(array_filter(
+                        $transition['from_states'],
+                        static fn (mixed $state): bool =>
+                            is_string($state) && trim($state) !== 'profiler'
+                    ));
+                    if (($transition['scope'] ?? null) === 'global'
+                        && $sources === []) {
+                        continue;
+                    }
+                    $transition['from_states'] = $sources;
+                }
+
+                $transitions[] = $transition;
+            }
+            $data['transitions'] = $transitions;
+        }
+
         return Json::instance()->encode($data, true);
     }
-
     private function withoutProfilerAcl(string $content, string $source): string
     {
         $data = Json::instance()->parse($content, $source);

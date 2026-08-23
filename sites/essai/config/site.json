@@ -133,5 +133,9 @@
         "entrypoint": "www/index.php",
         "factory": "instance",
         "runner": "run"
+    },
+    "efsms": {
+        "navigation": "config/application.fsm.json",
+        "security": "config/security.fsm.json"
     }
 }
