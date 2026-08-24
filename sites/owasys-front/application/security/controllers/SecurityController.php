@@ -98,6 +98,16 @@ final class OwasysSecurityController
         if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $siteId) !== 1) {
             throw new RuntimeException('OWASYS_SECURITY_CURRENT_APP_INVALID');
         }
+        $runtime = (new OwasysSecurityRuntimeCoordinator(
+            $this->siteRoot,
+            $this->siteConfig,
+            $this->profiler,
+            $this->parentSpanId
+        ))->enter($identity, $siteId);
+        if ((string) ($runtime['navigation_state'] ?? '') !== $state
+            || (string) ($runtime['security_state'] ?? '') !== 'authenticated') {
+            throw new RuntimeException('OWASYS_SECURITY_RUNTIME_COORDINATION_INVALID');
+        }
         $view = $this->securityView($locale, $route);
         if ($view === null) {
             return;

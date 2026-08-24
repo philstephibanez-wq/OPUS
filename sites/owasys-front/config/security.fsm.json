@@ -36,6 +36,11 @@
         {
             "id": "reauthentication_failed",
             "origin": "automatic"
+        },
+        {
+            "id": "enter_security_context",
+            "type": "command",
+            "origin": "automatic"
         }
     ],
     "states": [
@@ -99,6 +104,12 @@
             "id": "security.reauth.failed",
             "from": "reauthenticating",
             "signal": "reauthentication_failed",
+            "next_state": "authenticated"
+        },
+        {
+            "id": "security.context.entered.authenticated",
+            "from": "authenticated",
+            "signal": "enter_security_context",
             "next_state": "authenticated"
         }
     ]

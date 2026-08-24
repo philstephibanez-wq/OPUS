@@ -933,6 +933,12 @@
             "menu_state": "build",
             "resource": "build",
             "operation": "export"
+        },
+        {
+            "id": "security_context_ready",
+            "type": "event",
+            "menu": false,
+            "origin": "automatic"
         }
     ],
     "transitions": [
@@ -2515,6 +2521,12 @@
                     "context": "menu_operation"
                 }
             ]
+        },
+        {
+            "id": "t_security_context_ready",
+            "from": "security",
+            "signal": "security_context_ready",
+            "next_state": "security"
         }
     ],
     "guards": {
