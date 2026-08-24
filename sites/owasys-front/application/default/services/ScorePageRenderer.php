@@ -32,7 +32,8 @@ final class OwasysScorePageRenderer
 
         $this->fsmDiagram = new OwasysFsmDiagramBuilder(
             $siteRoot,
-            $session
+            $session,
+            $this->profiler
         );
     }
 

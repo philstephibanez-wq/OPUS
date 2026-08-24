@@ -159,6 +159,53 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
         );
     }
 
+    public static function forSource(
+        string $siteRoot,
+        string $fsmRelative,
+        string $layoutDirection,
+        bool $writable = false
+    ): self {
+        $resolvedRoot = realpath($siteRoot);
+        if (!is_string($resolvedRoot) || !is_dir($resolvedRoot)) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_LAYOUT_SITE_ROOT_INVALID'
+            );
+        }
+        $normalizedRoot = rtrim(str_replace('\\', '/', $resolvedRoot), '/');
+        $relative = self::safeRelative($fsmRelative);
+        if ($relative === ''
+            || preg_match('/\.json$/D', $relative) !== 1
+            || !File::instance()->exists($normalizedRoot . '/' . $relative)) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_LAYOUT_SOURCE_INVALID:' . $fsmRelative
+            );
+        }
+        $layoutRelative = preg_replace(
+            '/\.json$/D',
+            '.layout.json',
+            $relative
+        );
+        if (!is_string($layoutRelative)
+            || $layoutRelative === $relative) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_LAYOUT_PATH_INVALID:' . $relative
+            );
+        }
+        $direction = strtolower(trim($layoutDirection));
+        if (!in_array($direction, ['horizontal', 'vertical'], true)) {
+            throw new \InvalidArgumentException(
+                'OPUS_FSM_DIAGRAM_LAYOUT_DIRECTION_INVALID:' . $direction
+            );
+        }
+        return new self(
+            $normalizedRoot,
+            $relative,
+            $layoutRelative,
+            $direction,
+            $writable
+        );
+    }
+
     public function resolve(array $definition, array $automaticLayout): array
     {
         $automatic = $this->automaticLayout($definition, $automaticLayout);
@@ -197,6 +244,83 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
 
         $this->resolved = $layout;
         return $layout;
+    }
+
+    /**
+     * Apply one transport-neutral presentation mutation. Trusted callers bind
+     * this store explicitly with forSource(); no browser-authored path is used.
+     *
+     * @param array<string,mixed> $definition
+     * @param array<string,mixed> $automaticLayout
+     * @param array<string,mixed> $command
+     * @return array<string,mixed>
+     */
+    public function mutate(
+        array $definition,
+        array $automaticLayout,
+        array $command
+    ): array {
+        if (!$this->writable) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_LAYOUT_WRITE_FORBIDDEN'
+            );
+        }
+
+        $automatic = $this->automaticLayout($definition, $automaticLayout);
+        $layout = $this->loadPersisted($definition, $automatic);
+        if ($layout === null) {
+            $layout = $automatic;
+        }
+        $layout = $this->mergeCurrentStates(
+            $definition,
+            $layout,
+            $automatic
+        );
+
+        $action = trim((string) ($command['action'] ?? ''));
+        if ($action === self::SAVE_STATE_ACTION) {
+            $stateId = trim((string) ($command['state_id'] ?? ''));
+            $known = $this->definitionStateSet($definition);
+            if ($stateId === '' || !isset($known[$stateId])) {
+                throw new RuntimeException(
+                    'OPUS_FSM_DIAGRAM_LAYOUT_STATE_UNKNOWN:' . $stateId
+                );
+            }
+            $layout['states'][$stateId] = [
+                'x' => $this->coordinate($command['x'] ?? null, 'x'),
+                'y' => $this->coordinate($command['y'] ?? null, 'y'),
+            ];
+        } elseif ($action === self::SAVE_MARKER_ACTION) {
+            $markerId = trim((string) ($command['marker_id'] ?? ''));
+            $knownMarkers = $this->definitionMarkerSet($definition);
+            if ($markerId === '' || !isset($knownMarkers[$markerId])) {
+                throw new RuntimeException(
+                    'OPUS_FSM_DIAGRAM_LAYOUT_MARKER_UNKNOWN:' . $markerId
+                );
+            }
+        } elseif ($action !== self::SAVE_SIGNAL_ACTION) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_LAYOUT_ACTION_INVALID:' . $action
+            );
+        }
+
+        $geometry = $command['geometry'] ?? null;
+        if (!is_array($geometry) || array_is_list($geometry)) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_LAYOUT_GEOMETRY_INVALID'
+            );
+        }
+        $normalized = $this->normalizeGeometryPayload(
+            $definition,
+            $geometry
+        );
+        $layout['canvas'] = $normalized['canvas'];
+        $layout['transitions'] = $normalized['transitions'];
+        $layout['markers'] = $normalized['markers'];
+
+        $this->write($layout);
+        $this->resolved = $this->readLayout();
+        return $this->resolved;
     }
 
     /**

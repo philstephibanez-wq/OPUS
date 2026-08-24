@@ -814,6 +814,94 @@
                     "max_length": 16384
                 }
             ]
+        },
+        "fsm.layout.read": {
+            "composer_script": "owasys:fsm-layout-read",
+            "roles": [
+                "admin",
+                "developer",
+                "viewer"
+            ],
+            "arguments": [
+                {
+                    "name": "site_id",
+                    "required": true,
+                    "pattern": "^[a-z][a-z0-9-]*$",
+                    "max_length": 64
+                },
+                {
+                    "name": "efsm_id",
+                    "required": true,
+                    "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+                    "max_length": 64
+                }
+            ]
+        },
+        "fsm.layout.write": {
+            "composer_script": "owasys:fsm-layout-write",
+            "roles": [
+                "admin",
+                "developer"
+            ],
+            "arguments": [
+                {
+                    "name": "site_id",
+                    "required": true,
+                    "pattern": "^[a-z][a-z0-9-]*$",
+                    "max_length": 64
+                },
+                {
+                    "name": "efsm_id",
+                    "required": true,
+                    "pattern": "^[a-z][a-z0-9_-]{0,63}$",
+                    "max_length": 64
+                },
+                {
+                    "name": "expected_definition_sha256",
+                    "required": true,
+                    "transport": "request",
+                    "pattern": "^[a-f0-9]{64}$",
+                    "max_length": 64
+                },
+                {
+                    "name": "layout_action",
+                    "required": true,
+                    "transport": "request",
+                    "pattern": "^(save-state|save-signal|save-marker)$",
+                    "max_length": 11
+                },
+                {
+                    "name": "state_id",
+                    "transport": "request",
+                    "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+                    "max_length": 128
+                },
+                {
+                    "name": "marker_id",
+                    "transport": "request",
+                    "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+                    "max_length": 128
+                },
+                {
+                    "name": "x",
+                    "transport": "request",
+                    "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+                    "max_length": 32
+                },
+                {
+                    "name": "y",
+                    "transport": "request",
+                    "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+                    "max_length": 32
+                },
+                {
+                    "name": "geometry_json",
+                    "required": true,
+                    "transport": "request",
+                    "trim": false,
+                    "max_length": 262144
+                }
+            ]
         }
     }
 }

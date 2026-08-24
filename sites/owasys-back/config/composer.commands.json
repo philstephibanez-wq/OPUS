@@ -51,6 +51,15 @@
                 "owasys:fsm:draft-edit",
                 "owasys:fsm:handler-write"
             ]
+        },
+        {
+            "id": "owasys-back-fsm-layout",
+            "enabled": true,
+            "bootstrap": "application/fsm/layout.console.php",
+            "commands": [
+                "owasys:fsm:layout-read",
+                "owasys:fsm:layout-write"
+            ]
         }
     ],
     "aliases": {
@@ -75,6 +84,8 @@
         "owasys:git-restore": "owasys:git:restore",
         "owasys:security-fresh-auth-proof": "owasys:security:fresh-auth-proof",
         "owasys:fsm-draft-edit": "owasys:fsm:draft-edit",
-        "owasys:fsm-handler-write": "owasys:fsm:handler-write"
+        "owasys:fsm-handler-write": "owasys:fsm:handler-write",
+        "owasys:fsm-layout-read": "owasys:fsm:layout-read",
+        "owasys:fsm-layout-write": "owasys:fsm:layout-write"
     }
 }

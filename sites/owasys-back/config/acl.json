@@ -21,7 +21,8 @@
             "site:routes:list",
             "security:read",
             "source:read",
-            "git:read"
+            "git:read",
+            "fsm:read"
         ]
     }
 }

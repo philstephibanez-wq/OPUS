@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 use Opus\File\File;
 use Opus\File\StructuredFileLoader;
+use Opus\Profiler\ProfilerInterface;
 
 /** Builds a fixed visual projection from the canonical OWASYS FSM. */
 final class OwasysFsmDiagramBuilder
@@ -13,7 +14,8 @@ final class OwasysFsmDiagramBuilder
 
     public function __construct(
         private readonly string $siteRoot,
-        private readonly OwasysAuthSession $session
+        private readonly OwasysAuthSession $session,
+        private readonly ?ProfilerInterface $profiler = null
     ) {
     }
 
@@ -654,6 +656,77 @@ final class OwasysFsmDiagramBuilder
             );
         }
 
+        $layoutSnapshot = (new OwasysApplicationFsmLayoutModel(
+            $this->siteRoot,
+            null,
+            $this->profiler
+        ))->snapshot($applicationId, $efsmId, $identity);
+        $layout = is_array($layoutSnapshot['layout'] ?? null)
+            ? $layoutSnapshot['layout']
+            : [];
+        $layoutPath = trim((string) (
+            $layoutSnapshot['layout_path'] ?? ''
+        ));
+        if ((string) ($layoutSnapshot['source_path'] ?? '') !== $sourcePath
+            || (string) ($layoutSnapshot['source_sha256'] ?? '') !== $sourceHash
+            || $layoutPath === ''
+            || $layout === []) {
+            throw new RuntimeException(
+                'OWASYS_FSM_DESIGNER_LAYOUT_SNAPSHOT_DIVERGENCE'
+            );
+        }
+
+        $layoutDirection = strtolower(trim((string) (
+            $layout['layout_direction'] ?? ''
+        )));
+        if (!in_array($layoutDirection, ['horizontal', 'vertical'], true)) {
+            throw new RuntimeException(
+                'OWASYS_FSM_DESIGNER_LAYOUT_DIRECTION_INVALID'
+            );
+        }
+        $contextualDiagram = \OPUS_FSM_Diagram::fromDefinition($definition);
+        $contextualDiagram->setLayoutDirection($layoutDirection);
+        $contextualDiagram->setPersistedStatePositions(
+            is_array($layout['states'] ?? null) ? $layout['states'] : []
+        );
+        $contextualDiagram->setPersistedCanvas(
+            is_array($layout['canvas'] ?? null) ? $layout['canvas'] : []
+        );
+        $contextualDiagram->setPersistedTransitionGeometry(
+            is_array($layout['transitions'] ?? null)
+                ? $layout['transitions']
+                : []
+        );
+        $contextualDiagram->setPersistedMarkerGeometry(
+            is_array($layout['markers'] ?? null) ? $layout['markers'] : []
+        );
+
+        if (($pageData['fsm_designer']['active'] ?? false) === true) {
+            $csrfToken = strtolower(trim((string) (
+                $pageData['fsm_designer']['csrf_token'] ?? ''
+            )));
+            if (preg_match('/^[a-f0-9]{64}$/D', $csrfToken) !== 1) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_DESIGNER_LAYOUT_CSRF_INVALID'
+                );
+            }
+            $contextualDiagram->setLayoutPersistence([
+                'writable' => true,
+                'layout_key' => hash(
+                    'sha256',
+                    'owasys.contextual.layout.v1' . "\0"
+                        . $applicationId . "\0"
+                        . $efsmId . "\0"
+                        . $sourceHash
+                ),
+                'csrf_token' => $csrfToken,
+                'layout_path' => $layoutPath,
+                'efsm_id' => $efsmId,
+                'definition_sha256' => $sourceHash,
+            ]);
+        }
+        $contextualDiagramHtml = $contextualDiagram->renderHtml();
+
         try {
             $encoded = json_encode(
                 [
@@ -689,7 +762,7 @@ final class OwasysFsmDiagramBuilder
                 . $efsmId
                 . ' · source canonique '
                 . $sourcePath,
-            'html' => (string) ($snapshot['diagram'] ?? ''),
+            'html' => $contextualDiagramHtml,
             'application_id' => $applicationId,
             'efsm_id' => $efsmId,
             'source_path' => $sourcePath,

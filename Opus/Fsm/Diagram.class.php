@@ -1148,6 +1148,14 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 . self::h((string) (
                     $this->_layoutPersistence['layout_path'] ?? ''
                 )) . '"';
+            $attributes .= ' data-opus-fsm-layout-efsm-id="'
+                . self::h((string) (
+                    $this->_layoutPersistence['efsm_id'] ?? ''
+                )) . '"';
+            $attributes .= ' data-opus-fsm-layout-definition-sha256="'
+                . self::h((string) (
+                    $this->_layoutPersistence['definition_sha256'] ?? ''
+                )) . '"';
             $attributes .= ' data-opus-fsm-layout-writable="'
                 . ($writable ? '1' : '0') . '"';
         }
@@ -4441,8 +4449,23 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     .forEach((group) => repairLocalTransition(group));
   updateInitialMarker();
 
-  const rotateCsrfFromResponse = (html) => {
-    const documentCopy = new DOMParser().parseFromString(html, 'text/html');
+  const rotateCsrfFromResponse = (payload) => {
+    const trimmed = String(payload || '').trim();
+    if (trimmed !== '') {
+      try {
+        const parsed = JSON.parse(trimmed);
+        const token = parsed && typeof parsed.csrf_token === 'string'
+          ? parsed.csrf_token
+          : '';
+        if (/^[a-f0-9]{64}$/.test(token)) {
+          card.dataset.opusFsmLayoutCsrf = token;
+          return;
+        }
+      } catch (_) {
+        // Local legacy layout persistence returns HTML, not JSON.
+      }
+    }
+    const documentCopy = new DOMParser().parseFromString(payload, 'text/html');
     const key = card.dataset.opusFsmLayoutKey || '';
     let nextCard = null;
     documentCopy.querySelectorAll('.fsm-diagram-card[data-opus-fsm-layout-key]')
@@ -4465,6 +4488,12 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
       : (kind === 'marker' ? 'save-marker' : 'save-signal');
     body.set('opus_fsm_layout_action', action);
     body.set('opus_fsm_layout_key', card.dataset.opusFsmLayoutKey || '');
+    const efsmId = card.dataset.opusFsmLayoutEfsmId || '';
+    const definitionSha = card.dataset.opusFsmLayoutDefinitionSha256 || '';
+    if (efsmId !== '') body.set('efsm_id', efsmId);
+    if (definitionSha !== '') {
+      body.set('expected_definition_sha256', definitionSha);
+    }
     if (kind === 'state') {
       const item = states.get(id);
       if (!item) return;

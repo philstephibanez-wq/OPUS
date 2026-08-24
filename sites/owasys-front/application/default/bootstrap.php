@@ -74,6 +74,7 @@ $files = [
     'application/creation/controllers/CreationController.php',
     'application/source/models/SourceModel.php',
     'application/fsm/models/ApplicationFsmModel.php',
+    'application/fsm/models/ApplicationFsmLayoutModel.php',
     'application/source/controllers/SourceController.php',
     'application/security/services/SecurityContextInterface.php',
     'application/security/services/SecurityContextWriterInterface.php',

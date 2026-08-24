@@ -25,6 +25,7 @@ final class OwasysFsmDesignerGateway
     private const MAX_HISTORY_BYTES = 32768;
     private const MAX_COMMAND_BYTES = 16384;
     private const MAX_ENVELOPE_BYTES = 65536;
+    private const MAX_LAYOUT_GEOMETRY_BYTES = 262144;
 
     private readonly CsrfTokenManagerInterface $csrf;
 
@@ -54,9 +55,14 @@ final class OwasysFsmDesignerGateway
         $handlerRequested = (string) (
             $_POST['owasys_fsm_designer_handler'] ?? ''
         ) === '1';
+        $layoutRequested = (string) (
+            $_POST['owasys_action'] ?? ''
+        ) === 'persist-fsm-layout'
+            && trim((string) ($_POST['efsm_id'] ?? '')) !== '';
         $requestCount = (int) $commandRequested
             + (int) $catalogRequested
-            + (int) $handlerRequested;
+            + (int) $handlerRequested
+            + (int) $layoutRequested;
 
         if ($method !== 'POST' || $requestCount !== 1) {
             return false;
@@ -131,6 +137,128 @@ final class OwasysFsmDesignerGateway
                         $_POST['csrf_token'] ?? ''
                     ))
                 );
+            }
+
+            if ($layoutRequested) {
+                $expectedHash = strtolower(trim((string) (
+                    $_POST['expected_definition_sha256'] ?? ''
+                )));
+                $layoutAction = trim((string) (
+                    $_POST['opus_fsm_layout_action'] ?? ''
+                ));
+                $geometryJson = $_POST['opus_fsm_layout_geometry'] ?? null;
+                $stateId = trim((string) (
+                    $_POST['opus_fsm_layout_state'] ?? ''
+                ));
+                $markerId = trim((string) (
+                    $_POST['opus_fsm_layout_marker'] ?? ''
+                ));
+                $x = $_POST['opus_fsm_layout_x'] ?? null;
+                $y = $_POST['opus_fsm_layout_y'] ?? null;
+
+                if (preg_match('/^[a-f0-9]{64}$/D', $expectedHash) !== 1
+                    || !in_array(
+                        $layoutAction,
+                        ['save-state', 'save-signal', 'save-marker'],
+                        true
+                    )
+                    || !is_string($geometryJson)
+                    || $geometryJson === ''
+                    || strlen($geometryJson)
+                        > self::MAX_LAYOUT_GEOMETRY_BYTES) {
+                    throw new RuntimeException(
+                        'OWASYS_FSM_LAYOUT_REQUEST_INVALID'
+                    );
+                }
+                if ($layoutAction === 'save-state'
+                    && (preg_match(
+                        '/^[A-Za-z][A-Za-z0-9_.:-]{0,127}$/D',
+                        $stateId
+                    ) !== 1
+                        || !is_numeric($x)
+                        || !is_numeric($y))) {
+                    throw new RuntimeException(
+                        'OWASYS_FSM_LAYOUT_STATE_REQUEST_INVALID'
+                    );
+                }
+                if ($layoutAction === 'save-marker'
+                    && preg_match(
+                        '/^[A-Za-z][A-Za-z0-9_.:-]{0,127}$/D',
+                        $markerId
+                    ) !== 1) {
+                    throw new RuntimeException(
+                        'OWASYS_FSM_LAYOUT_MARKER_REQUEST_INVALID'
+                    );
+                }
+
+                $actor = [
+                    'subject' => (string) (
+                        $identity['subject'] ?? ''
+                    ),
+                    'roles' => is_array(
+                        $identity['roles'] ?? null
+                    )
+                        ? array_values(array_filter(
+                            $identity['roles'],
+                            'is_string'
+                        ))
+                        : [],
+                    'provider' => (string) (
+                        $identity['provider'] ?? ''
+                    ),
+                ];
+                $layoutRequest = [
+                    'expected_definition_sha256' => $expectedHash,
+                    'layout_action' => $layoutAction,
+                    'geometry_json' => $geometryJson,
+                ];
+                if ($layoutAction === 'save-state') {
+                    $layoutRequest['state_id'] = $stateId;
+                    $layoutRequest['x'] = (string) $x;
+                    $layoutRequest['y'] = (string) $y;
+                } elseif ($layoutAction === 'save-marker') {
+                    $layoutRequest['marker_id'] = $markerId;
+                }
+                $result = RestClient::fromConfig(
+                    $this->siteRoot . '/config/rest-api.json',
+                    $this->profiler
+                )->request(
+                    'PUT',
+                    '/api/v1/applications/'
+                        . rawurlencode($targetSiteId)
+                        . '/fsm/layouts/'
+                        . rawurlencode($targetEfsmId),
+                    $layoutRequest,
+                    $actor
+                );
+                if (($result['contract'] ?? null)
+                        !== 'OWASYS_EFSM_LAYOUT_WRITE_RESULT_V1'
+                    || (string) ($result['application_id'] ?? '')
+                        !== $targetSiteId
+                    || (string) ($result['efsm_id'] ?? '')
+                        !== $targetEfsmId
+                    || !is_array($result['layout'] ?? null)) {
+                    throw new RuntimeException(
+                        'OWASYS_FSM_LAYOUT_RESULT_INVALID'
+                    );
+                }
+                $this->profiler?->event(
+                    'fsm',
+                    'designer.layout.persisted',
+                    [
+                        'site_id' => $targetSiteId,
+                        'efsm_id' => $targetEfsmId,
+                        'layout_action' => $layoutAction,
+                        'layout_path' => (string) (
+                            $result['layout_path'] ?? ''
+                        ),
+                    ],
+                    'success',
+                    null,
+                    $this->parentSpanId
+                );
+                $this->respondData($result);
+                return true;
             }
 
             $handlerCatalog = (
@@ -418,10 +546,13 @@ final class OwasysFsmDesignerGateway
             )
                 ? 403
                 : (
-                    str_contains(
+                    (str_contains(
                         $code,
                         'BASE_HASH_CONFLICT'
-                    )
+                    ) || str_contains(
+                        $code,
+                        'DEFINITION_HASH_CONFLICT'
+                    ))
                         ? 409
                         : 422
                 );

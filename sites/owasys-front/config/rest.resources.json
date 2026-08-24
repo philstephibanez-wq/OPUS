@@ -201,6 +201,18 @@
             "path": "/api/v1/applications/{site_id}/fsm/handlers",
             "operation": "fsm.handler.write",
             "success_status": 200
+        },
+        {
+            "method": "GET",
+            "path": "/api/v1/applications/{site_id}/fsm/layouts/{efsm_id}",
+            "operation": "fsm.layout.read",
+            "success_status": 200
+        },
+        {
+            "method": "PUT",
+            "path": "/api/v1/applications/{site_id}/fsm/layouts/{efsm_id}",
+            "operation": "fsm.layout.write",
+            "success_status": 200
         }
     ]
 }
