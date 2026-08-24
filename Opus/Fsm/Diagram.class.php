@@ -1134,6 +1134,11 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     {
         $runtime = $this->renderRuntimeFacts();
         $writable = ($this->_layoutPersistence['writable'] ?? false) === true;
+        $geometryRuntime = $writable
+            || $this->_persistedStatePositions !== []
+            || $this->_persistedCanvas !== []
+            || $this->_persistedTransitionGeometry !== []
+            || $this->_persistedMarkerGeometry !== [];
         $attributes = '';
         if ($this->_layoutPersistence !== []) {
             $attributes .= ' data-opus-fsm-layout-key="'
@@ -1169,7 +1174,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             . $runtime
             . '</div>';
 
-        return $html . ($writable ? self::layoutInteractionScript() : '');
+        return $html . ($geometryRuntime ? self::layoutInteractionScript() : '');
     }
 
     public function renderSvg(): string
@@ -4079,10 +4084,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
 (() => {
   const script = document.currentScript;
   const card = script && script.previousElementSibling;
-  if (!(card instanceof HTMLElement)
-      || card.dataset.opusFsmLayoutWritable !== '1') {
-    return;
-  }
+  if (!(card instanceof HTMLElement)) return;
+  const writable = card.dataset.opusFsmLayoutWritable === '1';
   const svg = card.querySelector('svg.fsm-diagram');
   if (!(svg instanceof SVGSVGElement)) return;
 
@@ -4105,7 +4108,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
   svg.querySelectorAll('.fsm-transition[data-transition-id]').forEach((group) => {
     const id = group.dataset.transitionId || '';
     const node = group.querySelector(
-      '.fsm-signal-card[data-layout-signal-draggable="1"]'
+      '.fsm-signal-card[data-signal-x][data-signal-y]'
     );
     if (id === '' || !(node instanceof SVGGElement)) return;
     signals.set(id, {
@@ -4122,7 +4125,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
 
   const markers = new Map();
   svg.querySelectorAll(
-    '.fsm-initial-marker[data-marker-id][data-layout-marker-draggable="1"]'
+    '.fsm-initial-marker[data-marker-id][data-marker-x][data-marker-y]'
   ).forEach((node) => {
     const id = node.dataset.markerId || '';
     if (id === '') return;
@@ -4448,6 +4451,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
   svg.querySelectorAll('.fsm-transition[data-transition-id]')
     .forEach((group) => repairLocalTransition(group));
   updateInitialMarker();
+
+  if (!writable) return;
 
   const rotateCsrfFromResponse = (payload) => {
     const trimmed = String(payload || '').trim();
