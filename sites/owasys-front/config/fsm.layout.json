@@ -1,7 +1,7 @@
 {
     "contract": "OPUS_FSM_DIAGRAM_LAYOUT_V4",
     "fsm_path": "config/fsm.json",
-    "definition_sha256": "2507eb3ac27b4335786fd644a2f2968ae265787cb3539acf0cd3d373bb99d1b6",
+    "definition_sha256": "bd249a14c44c0a61e478810cf83c976af8e81b4149f16e8a5a5fe7b9a1cdc2ff",
     "layout_direction": "vertical",
     "canvas": {
         "width": 1282,
@@ -452,6 +452,12 @@
             "path": "M671 1109 C671 1116, 671 1116, 671 1123",
             "label_x": 671,
             "label_y": 1074,
+            "leader_path": ""
+        },
+        "t_security_context_ready": {
+            "path": "",
+            "label_x": 288,
+            "label_y": 1216.5,
             "leader_path": ""
         }
     },

@@ -14,6 +14,7 @@ final class OwasysNavigationBuilder
     private const SIGNAL_TYPES = [
         'navigation' => true,
         'command' => true,
+        'event' => true,
         'outcome' => true,
         'system' => true,
     ];
