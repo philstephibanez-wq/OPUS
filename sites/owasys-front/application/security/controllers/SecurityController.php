@@ -98,12 +98,13 @@ final class OwasysSecurityController
         if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $siteId) !== 1) {
             throw new RuntimeException('OWASYS_SECURITY_CURRENT_APP_INVALID');
         }
-        $runtime = (new OwasysSecurityRuntimeCoordinator(
+        $runtimeCoordinator = new OwasysSecurityRuntimeCoordinator(
             $this->siteRoot,
             $this->siteConfig,
             $this->profiler,
             $this->parentSpanId
-        ))->enter($identity, $siteId);
+        );
+        $runtime = $runtimeCoordinator->enter($identity, $siteId);
         if ((string) ($runtime['navigation_state'] ?? '') !== $state
             || (string) ($runtime['security_state'] ?? '') !== 'authenticated') {
             throw new RuntimeException('OWASYS_SECURITY_RUNTIME_COORDINATION_INVALID');
@@ -156,12 +157,16 @@ final class OwasysSecurityController
                     );
                 }
 
-                $freshAuthProof = $this->security->reauthenticate(
+                $freshAuthProof = $runtimeCoordinator->reauthenticate(
                     $identity,
-                    (string) ($_POST['owasys_reauth_password'] ?? ''),
                     $siteId,
-                    $mutation,
-                    $phase
+                    fn (): string => $this->security->reauthenticate(
+                        $identity,
+                        (string) ($_POST['owasys_reauth_password'] ?? ''),
+                        $siteId,
+                        $mutation,
+                        $phase
+                    )
                 );
                 unset($_POST['owasys_reauth_password']);
 

@@ -173,6 +173,176 @@ final class OwasysSecurityRuntimeCoordinator implements OwasysSecurityRuntimeCoo
         ];
     }
 
+    /**
+     * Executes the real fresh-auth operation inside the autonomous Security
+     * EFSM lifecycle. The credential itself never enters SecurityContext,
+     * Logger, Profiler or the EFSM signal bus.
+     *
+     * @param array<string,mixed> $identity
+     * @param callable():mixed $operation
+     */
+    public function reauthenticate(
+        array $identity,
+        string $applicationId,
+        callable $operation
+    ): mixed {
+        $applicationId = strtolower(trim($applicationId));
+        if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $applicationId) !== 1) {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_REAUTH_APPLICATION_INVALID'
+            );
+        }
+
+        $navigationFsm = FsmSiteLoader::processorForSiteRoot(
+            $this->siteRoot,
+            [],
+            $this->profiler,
+            $this->parentSpanId
+        );
+        $navigationStore = new FsmSessionStore(
+            self::NAVIGATION_SESSION_KEY
+        );
+        $navigationStore->restore($navigationFsm);
+        if ($navigationFsm->currentState() !== 'security') {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_REAUTH_NAVIGATION_STATE_INVALID:'
+                . $navigationFsm->currentState()
+            );
+        }
+
+        $securityFsm = FsmSiteLoader::processorForSiteRootEfsm(
+            $this->siteRoot,
+            'security',
+            [],
+            $this->profiler,
+            $this->parentSpanId
+        );
+        $securityStore = new FsmSessionStore(
+            self::SECURITY_SESSION_KEY
+        );
+        $securityStore->restore($securityFsm);
+        if ($securityFsm->currentState() !== 'authenticated') {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_REAUTH_SECURITY_STATE_INVALID:'
+                . $securityFsm->currentState()
+            );
+        }
+
+        $context = new OwasysSecurityContext();
+        $context->synchronize(
+            $identity,
+            $applicationId,
+            $securityFsm->currentState()
+        );
+        $transitionContext = [
+            'security_context' => $context->snapshot(),
+            'application_id' => $applicationId,
+            'is_authenticated' => true,
+        ];
+        $started = $securityFsm->transition(
+            'authenticated',
+            'reauth_required',
+            $transitionContext
+        );
+        $securityState = (string) ($started['next_state'] ?? '');
+        if ($securityState !== 'reauthenticating') {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_REAUTH_ENTRY_STATE_INVALID:'
+                . $securityState
+            );
+        }
+        $context->setRuntimeState($securityState);
+        if ($this->profiler?->getActiveTrace() !== null) {
+            $this->profiler->event(
+                'fsm.security',
+                'security_context.reauthentication.required',
+                [
+                    'application_id' => $applicationId,
+                    'navigation_state' => $navigationFsm->currentState(),
+                    'security_state' => $securityState,
+                ],
+                'success',
+                null,
+                $this->parentSpanId
+            );
+        }
+
+        try {
+            $result = $operation();
+        } catch (\Throwable $error) {
+            $failed = $securityFsm->transition(
+                'reauthenticating',
+                'reauthentication_failed',
+                [
+                    'security_context' => $context->snapshot(),
+                    'application_id' => $applicationId,
+                    'exception_class' => get_class($error),
+                ]
+            );
+            $securityState = (string) ($failed['next_state'] ?? '');
+            if ($securityState !== 'authenticated'
+                || $navigationFsm->currentState() !== 'security') {
+                throw new RuntimeException(
+                    'OWASYS_SECURITY_REAUTH_FAILURE_STATE_INVALID',
+                    0,
+                    $error
+                );
+            }
+            $securityStore->persist($securityFsm);
+            $context->setRuntimeState($securityState);
+            if ($this->profiler?->getActiveTrace() !== null) {
+                $this->profiler->event(
+                    'fsm.security',
+                    'security_context.reauthentication.failed',
+                    [
+                        'application_id' => $applicationId,
+                        'navigation_state' => $navigationFsm->currentState(),
+                        'security_state' => $securityState,
+                        'exception_class' => get_class($error),
+                    ],
+                    'error',
+                    null,
+                    $this->parentSpanId
+                );
+            }
+            throw $error;
+        }
+
+        $succeeded = $securityFsm->transition(
+            'reauthenticating',
+            'reauthentication_succeeded',
+            [
+                'security_context' => $context->snapshot(),
+                'application_id' => $applicationId,
+            ]
+        );
+        $securityState = (string) ($succeeded['next_state'] ?? '');
+        if ($securityState !== 'authenticated'
+            || $navigationFsm->currentState() !== 'security') {
+            throw new RuntimeException(
+                'OWASYS_SECURITY_REAUTH_SUCCESS_STATE_INVALID'
+            );
+        }
+        $securityStore->persist($securityFsm);
+        $context->setRuntimeState($securityState);
+        if ($this->profiler?->getActiveTrace() !== null) {
+            $this->profiler->event(
+                'fsm.security',
+                'security_context.reauthentication.succeeded',
+                [
+                    'application_id' => $applicationId,
+                    'navigation_state' => $navigationFsm->currentState(),
+                    'security_state' => $securityState,
+                ],
+                'success',
+                null,
+                $this->parentSpanId
+            );
+        }
+
+        return $result;
+    }
+
     /** @param array<string,mixed> $identity */
     private function synchronizeSecurity(
         FsmProcessor $fsm,
