@@ -1188,6 +1188,22 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $positions = $layout['positions'];
         $width = $layout['width'];
         $height = $layout['height'];
+        if ($this->_layoutDirection !== 'vertical') {
+            $globalGroupCount = count($this->finiteGlobalSourceGroups());
+            if ($globalGroupCount > 0) {
+                $maxBottom = 0.0;
+                foreach ($positions as $position) {
+                    $maxBottom = max(
+                        $maxBottom,
+                        $position['y'] + $position['h']
+                    );
+                }
+                $height = max(
+                    $height,
+                    $maxBottom + 190.0 + ($globalGroupCount - 1) * 70.0
+                );
+            }
+        }
 
         $this->_renderPositions = $positions;
         $this->_renderedLabelBoxes = [];
@@ -1229,6 +1245,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
 
         if ($this->hasGlobalSource()) {
             $svg .= $this->renderGlobalSource($positions);
+        }
+        if ($this->_layoutDirection !== 'vertical') {
+            $svg .= $this->renderFiniteGlobalSources($positions);
         }
 
         $pairOrdinals = [];
@@ -2089,6 +2108,51 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $id,
                 $label,
                 $semanticLabel
+            );
+        }
+
+        if (($transition['scope'] ?? '') === 'global') {
+            $fromStates = array_values(array_filter(
+                (array) ($transition['from_states'] ?? []),
+                static fn (mixed $state): bool => is_string($state)
+                    && isset($positions[$state])
+            ));
+            if ($fromStates === []) {
+                throw new \RuntimeException(
+                    'OPUS_FSM_DIAGRAM_GLOBAL_HORIZONTAL_SOURCES_MISSING:'
+                    . $id
+                );
+            }
+
+            $sourcePort = $this->finiteGlobalSourcePort(
+                $transition,
+                $positions
+            );
+            $targetX = $toPos['x'] + $toPos['w'] / 2;
+            $targetY = $toPos['y'] + $toPos['h'];
+            $middleY = ($sourcePort['y'] + $targetY) / 2;
+            $path = 'M' . self::n($sourcePort['x']) . ' '
+                . self::n($sourcePort['y'])
+                . ' C' . self::n($sourcePort['x']) . ' '
+                . self::n($middleY)
+                . ', ' . self::n($targetX) . ' '
+                . self::n($middleY)
+                . ', ' . self::n($targetX) . ' '
+                . self::n($targetY);
+            $labelX = $toPos['x'] + $toPos['w'] / 2;
+            $labelY = $toPos['y'] + $toPos['h'] + 30.0;
+
+            return $this->transitionSvg(
+                $class . ' global-scope finite-global-transition',
+                $id,
+                $path,
+                $label,
+                $labelX,
+                $labelY,
+                $semanticLabel . ' {global from '
+                    . implode(', ', $fromStates) . '}',
+                $transition,
+                $positions
             );
         }
 
@@ -3117,6 +3181,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         array $transition,
         array $positions
     ): string {
+        $global = (($transition['scope'] ?? '') === 'global');
         $length = function_exists('mb_strlen')
             ? mb_strlen($label, 'UTF-8')
             : strlen($label);
@@ -3144,7 +3209,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         if (is_array($persistedGeometry)) {
             $labelX = (float) ($persistedGeometry['label_x'] ?? $labelX);
             $labelY = (float) ($persistedGeometry['label_y'] ?? $labelY);
-        } else {
+        } elseif (!$global) {
             [$labelX, $labelY] = $this->reserveTransitionLabel(
                 $labelX,
                 $labelY,
@@ -3178,7 +3243,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             . '<rect class="fsm-edge-label-bg" x="'
             . self::n($labelX - $labelWidth / 2)
             . '" y="'
-            . self::n($labelY - 14.0)
+            . self::n($labelY - $labelHeight / 2)
             . '" width="'
             . self::n($labelWidth)
             . '" height="'
@@ -3210,7 +3275,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $postAction,
                 $label,
                 $labelX - $labelWidth / 2,
-                $labelY - 14.0,
+                $labelY - $labelHeight / 2,
                 $labelWidth,
                 $labelHeight
             );
@@ -3934,6 +3999,149 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             }
         }
         return false;
+    }
+
+    /**
+     * Group finite global transitions by their exact canonical source set.
+     *
+     * @return list<array{states:list<string>,transitions:list<string>}>
+     */
+    private function finiteGlobalSourceGroups(): array
+    {
+        $groups = [];
+        foreach ($this->_transitions as $transition) {
+            if (($transition['scope'] ?? '') !== 'global') {
+                continue;
+            }
+            $states = array_values(array_filter(
+                (array) ($transition['from_states'] ?? []),
+                'is_string'
+            ));
+            if ($states === []) {
+                continue;
+            }
+            $key = implode("\0", $states);
+            $groups[$key] ??= [
+                'states' => $states,
+                'transitions' => [],
+            ];
+            $groups[$key]['transitions'][] = (string) $transition['id'];
+        }
+        return array_values($groups);
+    }
+
+    /**
+     * @param array<string,array{x:float,y:float,w:float,h:float,rank:int}> $positions
+     * @return array{x:float,y:float,width:float}
+     */
+    private function finiteGlobalSourcePoint(
+        array $positions,
+        int $groupOrdinal,
+        array $states
+    ): array {
+        $minX = PHP_FLOAT_MAX;
+        $maxX = 0.0;
+        $maxBottom = 0.0;
+        foreach ($positions as $position) {
+            $minX = min($minX, $position['x']);
+            $maxX = max($maxX, $position['x'] + $position['w']);
+            $maxBottom = max(
+                $maxBottom,
+                $position['y'] + $position['h']
+            );
+        }
+        $stateLabel = implode(', ', $states);
+        $length = function_exists('mb_strlen')
+            ? mb_strlen($stateLabel, 'UTF-8')
+            : strlen($stateLabel);
+        $width = min(520.0, max(240.0, 30.0 + $length * 6.1));
+
+        return [
+            'x' => ($minX + $maxX) / 2,
+            'y' => $maxBottom + 100.0 + $groupOrdinal * 70.0,
+            'width' => $width,
+        ];
+    }
+
+    /**
+     * @param array<string,mixed> $transition
+     * @param array<string,array{x:float,y:float,w:float,h:float,rank:int}> $positions
+     * @return array{x:float,y:float}
+     */
+    private function finiteGlobalSourcePort(
+        array $transition,
+        array $positions
+    ): array {
+        $states = array_values(array_filter(
+            (array) ($transition['from_states'] ?? []),
+            'is_string'
+        ));
+        foreach ($this->finiteGlobalSourceGroups() as $groupOrdinal => $group) {
+            if ($group['states'] !== $states) {
+                continue;
+            }
+            $point = $this->finiteGlobalSourcePoint(
+                $positions,
+                $groupOrdinal,
+                $states
+            );
+            $transitionId = (string) ($transition['id'] ?? '');
+            $ordinal = array_search(
+                $transitionId,
+                $group['transitions'],
+                true
+            );
+            if (!is_int($ordinal)) {
+                $ordinal = 0;
+            }
+            $total = count($group['transitions']);
+            $spread = min(28.0, ($point['width'] - 36.0) / max(1, $total));
+            return [
+                'x' => $point['x']
+                    + ($ordinal - (($total - 1) / 2)) * $spread,
+                'y' => $point['y'] - 22.0,
+            ];
+        }
+
+        throw new \RuntimeException(
+            'OPUS_FSM_DIAGRAM_FINITE_GLOBAL_SOURCE_GROUP_MISSING:'
+            . (string) ($transition['id'] ?? '')
+        );
+    }
+
+    /**
+     * @param array<string,array{x:float,y:float,w:float,h:float,rank:int}> $positions
+     */
+    private function renderFiniteGlobalSources(array $positions): string
+    {
+        $svg = '';
+        foreach ($this->finiteGlobalSourceGroups() as $ordinal => $group) {
+            $point = $this->finiteGlobalSourcePoint(
+                $positions,
+                $ordinal,
+                $group['states']
+            );
+            $stateLabel = '{' . implode(', ', $group['states']) . '}';
+            $svg .= '<g class="fsm-finite-global-source"'
+                . ' data-finite-source-count="'
+                . count($group['states']) . '">'
+                . '<rect x="' . self::n($point['x'] - $point['width'] / 2)
+                . '" y="' . self::n($point['y'] - 22.0)
+                . '" width="' . self::n($point['width'])
+                . '" height="44" rx="8" />'
+                . '<text class="fsm-finite-global-source-title" x="'
+                . self::n($point['x']) . '" y="'
+                . self::n($point['y'] - 4.0)
+                . '">FINITE GLOBAL SOURCE SET</text>'
+                . '<text class="fsm-finite-global-source-states" x="'
+                . self::n($point['x']) . '" y="'
+                . self::n($point['y'] + 13.0) . '">'
+                . self::h($stateLabel) . '</text>'
+                . '<title>Finite global source set: '
+                . self::h(implode(', ', $group['states']))
+                . '</title></g>';
+        }
+        return $svg;
     }
 
     /**
@@ -4764,6 +4972,10 @@ HTML;
     .fsm-global-source rect { fill:var(--opus-fsm-nmi-bg,#172033); stroke:var(--opus-fsm-nmi,#fbbf24); stroke-width:1.5; stroke-dasharray:5 4; }
     .fsm-global-source text { fill:var(--opus-fsm-nmi,#fbbf24); font-size:16px; font-weight:900; text-anchor:middle; }
     .fsm-global-bus { fill:none; stroke:var(--opus-fsm-nmi,#fbbf24); stroke-width:1.2; stroke-dasharray:5 4; }
+    .fsm-finite-global-source rect { fill:var(--opus-fsm-label-halo,#07111f); stroke:var(--opus-fsm-transition-color,#38bdf8); stroke-width:1.5; }
+    .fsm-finite-global-source text { text-anchor:middle; paint-order:stroke; stroke:var(--opus-fsm-label-halo,#07111f); stroke-width:3px; stroke-linejoin:round; }
+    .fsm-finite-global-source-title { fill:var(--opus-fsm-transition-color,#38bdf8); font-size:11px; font-weight:900; }
+    .fsm-finite-global-source-states { fill:var(--opus-fsm-label,#dbeafe); font-size:10px; font-weight:700; }
     .fsm-legend text { fill:var(--opus-fsm-muted,#9fb4cf); font-size:10px; }
   </style>
 </defs>
