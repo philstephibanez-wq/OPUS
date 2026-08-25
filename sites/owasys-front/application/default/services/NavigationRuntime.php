@@ -13,14 +13,13 @@ final class OwasysNavigationRuntime implements OwasysNavigationRuntimeInterface
     public const SESSION_KEY = 'opus.fsm.owasys-front.navigation';
     public const FSM_ID = 'owasys-front/navigation';
 
-    private const LEGACY_SESSION_KEY = 'opus.fsm.owasys-front';
-
     /** @var array<string,string> */
-    private const LEGACY_TO_NAVIGATION = [
+    private const REQUESTED_TO_NAVIGATION = [
         'registry' => 'registry',
         'application' => 'application',
         'data' => 'data',
         'structure' => 'navigation',
+        'navigation' => 'navigation',
         'security' => 'security',
         'source' => 'source',
         'build' => 'build',
@@ -47,27 +46,13 @@ final class OwasysNavigationRuntime implements OwasysNavigationRuntimeInterface
     ) {
     }
 
-    public function synchronize(string $legacyState): string
+    public function synchronize(string $requestedState): string
     {
-        $legacyState = strtolower(trim($legacyState));
-        $target = self::LEGACY_TO_NAVIGATION[$legacyState] ?? '';
+        $requestedState = strtolower(trim($requestedState));
+        $target = self::REQUESTED_TO_NAVIGATION[$requestedState] ?? '';
         if ($target === '') {
             throw new RuntimeException(
-                'OWASYS_NAVIGATION_RUNTIME_LEGACY_STATE_UNKNOWN:' . $legacyState
-            );
-        }
-
-        $legacy = FsmSiteLoader::processorForSiteRoot(
-            $this->siteRoot,
-            [],
-            $this->profiler,
-            $this->parentSpanId
-        );
-        (new FsmSessionStore(self::LEGACY_SESSION_KEY))->restore($legacy);
-        if ($legacy->currentState() !== $legacyState) {
-            throw new RuntimeException(
-                'OWASYS_NAVIGATION_RUNTIME_LEGACY_STATE_INVALID:'
-                . $legacyState . ':' . $legacy->currentState()
+                'OWASYS_NAVIGATION_RUNTIME_REQUESTED_STATE_UNKNOWN:' . $requestedState
             );
         }
 
@@ -93,8 +78,9 @@ final class OwasysNavigationRuntime implements OwasysNavigationRuntimeInterface
                 $from,
                 $signal,
                 [
-                    'legacy_state' => $legacyState,
+                    'requested_state' => $requestedState,
                     'navigation_state' => $target,
+                    'runtime_authority' => 'dedicated-navigation-efsm',
                 ]
             );
             if ((string) ($transition['next_state'] ?? '') !== $target
@@ -112,9 +98,10 @@ final class OwasysNavigationRuntime implements OwasysNavigationRuntimeInterface
             'fsm.navigation',
             'navigation.synchronized',
             [
-                'legacy_state' => $legacyState,
+                'requested_state' => $requestedState,
                 'from_state' => $from,
                 'navigation_state' => $fsm->currentState(),
+                'runtime_authority' => 'dedicated-navigation-efsm',
             ],
             'success',
             null,
@@ -144,6 +131,7 @@ final class OwasysNavigationRuntime implements OwasysNavigationRuntimeInterface
                 $context['correlation_id'] = (string) (
                     $message['correlation_id'] ?? ''
                 );
+                $context['runtime_authority'] = 'dedicated-navigation-efsm';
                 $result = $fsm->transition(
                     $fsm->currentState(),
                     (string) ($message['signal'] ?? ''),
