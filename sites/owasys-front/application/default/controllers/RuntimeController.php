@@ -380,10 +380,56 @@ final class OwasysRuntimeController
                 }
 
                 $this->assertRegistryActionAllowed($identity, $action);
+                $contextRuntime = new OwasysContextRuntimeCoordinator(
+                    $this->siteRoot,
+                    $this->siteConfig,
+                    $this->profiler,
+                    $this->parentSpanId
+                );
+                $contextRuntime->enter(
+                    $identity,
+                    'registry',
+                    (string) (($this->session->currentApp()['id'] ?? ''))
+                );
+                if ($action === 'select-app') {
+                    $contextRuntime->transition(
+                        'registry',
+                        'selection_requested',
+                        ['application_id' => (string) (
+                            $_POST['owasys_app_id'] ?? ''
+                        )]
+                    );
+                } elseif ($action === 'delete-app') {
+                    $contextRuntime->transition(
+                        'registry',
+                        'deletion_requested',
+                        ['application_id' => (string) (
+                            $_POST['owasys_app_id'] ?? ''
+                        )]
+                    );
+                }
+
                 $result = $this->registryController()->handle(
                     $method,
                     $_POST
                 );
+                if (is_string($result['error'] ?? null)) {
+                    if (in_array($action, ['select-app', 'delete-app'], true)) {
+                        $contextRuntime->transition(
+                            'registry',
+                            'registry_failed',
+                            ['action' => $action]
+                        );
+                    }
+                } elseif ($action === 'select-app') {
+                    $contextRuntime->transition(
+                        'registry',
+                        'selection_succeeded',
+                        ['application_id' => (string) (
+                            $result['selected_app']['id'] ?? ''
+                        )]
+                    );
+                }
 
                 return [
                     'signal' => (string) (
@@ -451,10 +497,40 @@ final class OwasysRuntimeController
                     'build',
                     'preview'
                 );
-                $result = $this->security->startDevelopmentServer(
+                $contextRuntime = new OwasysContextRuntimeCoordinator(
+                    $this->siteRoot,
+                    $this->siteConfig,
+                    $this->profiler,
+                    $this->parentSpanId
+                );
+                $contextRuntime->enter(
                     $identity,
+                    'build',
                     (string) ($currentApp['id'] ?? '')
                 );
+                $contextRuntime->transition(
+                    'build',
+                    'preview_requested',
+                    ['application_id' => (string) ($currentApp['id'] ?? '')]
+                );
+                try {
+                    $result = $this->security->startDevelopmentServer(
+                        $identity,
+                        (string) ($currentApp['id'] ?? '')
+                    );
+                    $contextRuntime->transition(
+                        'build',
+                        'preview_started',
+                        ['application_id' => (string) ($currentApp['id'] ?? '')]
+                    );
+                } catch (Throwable $error) {
+                    $contextRuntime->transition(
+                        'build',
+                        'preview_failed',
+                        ['exception_class' => get_class($error)]
+                    );
+                    throw $error;
+                }
 
                 return [
                     'signal' => 'open_build',
@@ -882,6 +958,20 @@ final class OwasysRuntimeController
                 $this->session->setCurrentApp($canonicalCurrent);
                 $currentApp = $canonicalCurrent;
             }
+        }
+
+        if (is_array($identity)
+            && in_array($module, ['registry', 'application', 'data', 'build'], true)) {
+            (new OwasysContextRuntimeCoordinator(
+                $this->siteRoot,
+                $this->siteConfig,
+                $this->profiler,
+                $this->parentSpanId
+            ))->enter(
+                $identity,
+                $module,
+                (string) ($currentApp['id'] ?? '')
+            );
         }
 
         $basePath = $this->basePath();

@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 use Opus\File\File;
 use Opus\File\StructuredFileLoader;
+use Opus\Fsm\FsmSessionStore;
+use Opus\Fsm\FsmSiteLoader;
 use Opus\Profiler\ProfilerInterface;
 
 /** Builds a fixed visual projection from the canonical OWASYS FSM. */
@@ -616,9 +618,13 @@ final class OwasysFsmDiagramBuilder
      */
     private function buildSelectedApplicationEfsm(array $pageData, string $efsmId): array
     {
-        $applicationId = strtolower(trim((string) (
-            $pageData['current_app']['id'] ?? ''
-        )));
+        $contextRegistry = new OwasysContextEfsmRegistry();
+        $hostContext = $contextRegistry->isHostEfsm($efsmId);
+        $applicationId = $hostContext
+            ? 'owasys-front'
+            : strtolower(trim((string) (
+                $pageData['current_app']['id'] ?? ''
+            )));
         if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $applicationId) !== 1) {
             throw new RuntimeException(
                 'OWASYS_FSM_DESIGNER_APPLICATION_REQUIRED'
@@ -656,6 +662,22 @@ final class OwasysFsmDiagramBuilder
             );
         }
 
+        $currentState = $initialState;
+        $runtimeMemory = [];
+        if ($hostContext) {
+            $runtime = FsmSiteLoader::processorForSiteRootEfsm(
+                $this->siteRoot,
+                $efsmId,
+                [],
+                $this->profiler
+            );
+            (new FsmSessionStore(
+                $contextRegistry->sessionKey($efsmId)
+            ))->restore($runtime);
+            $currentState = $runtime->currentState();
+            $runtimeMemory = $runtime->memory();
+        }
+
         $layoutSnapshot = (new OwasysApplicationFsmLayoutModel(
             $this->siteRoot,
             null,
@@ -684,7 +706,11 @@ final class OwasysFsmDiagramBuilder
                 'OWASYS_FSM_DESIGNER_LAYOUT_DIRECTION_INVALID'
             );
         }
-        $contextualDiagram = \OPUS_FSM_Diagram::fromDefinition($definition);
+        $contextualDiagram = \OPUS_FSM_Diagram::fromDefinition(
+            $definition,
+            $currentState,
+            $runtimeMemory
+        );
         $contextualDiagram->setLayoutDirection($layoutDirection);
         $contextualDiagram->setPersistedStatePositions(
             is_array($layout['states'] ?? null) ? $layout['states'] : []
@@ -736,7 +762,7 @@ final class OwasysFsmDiagramBuilder
                     'application_id' => $applicationId,
                     'source_path' => $sourcePath,
                     'base_sha256' => $sourceHash,
-                    'current_state' => $initialState,
+                    'current_state' => $currentState,
                     'initial_state' => $initialState,
                     'handler_authoring_supported' =>
                         $applicationId === 'owasys-front',
@@ -767,8 +793,8 @@ final class OwasysFsmDiagramBuilder
             'efsm_id' => $efsmId,
             'source_path' => $sourcePath,
             'source_sha256' => $sourceHash,
-            'current_state' => $initialState,
-            'current_label' => $initialState,
+            'current_state' => $currentState,
+            'current_label' => $currentState,
             'projected_transition_count' => (int) (
                 $snapshot['transition_count'] ?? 0
             ),
@@ -781,14 +807,7 @@ final class OwasysFsmDiagramBuilder
     /** @param array<string,mixed> $pageData */
     private function contextEfsmId(array $pageData): string
     {
-        $module = strtolower(trim((string) (
-            $pageData['fsm']['module'] ?? ''
-        )));
-        return match ($module) {
-            'security' => 'security',
-            'structure' => 'navigation',
-            default => '',
-        };
+        return (new OwasysContextEfsmRegistry())->efsmIdForPage($pageData);
     }
     /** @return array<string,mixed> */
     private function loadFsm(): array

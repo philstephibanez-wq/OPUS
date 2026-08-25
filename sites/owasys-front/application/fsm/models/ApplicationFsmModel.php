@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use Opus\File\Json;
+use Opus\Fsm\Definition\FsmDefinitionValidator;
 
 /** Read-only projection of one selected application's named EFSM through secured REST. */
 final class OwasysApplicationFsmModel
@@ -78,18 +79,10 @@ final class OwasysApplicationFsmModel
         );
 
         $contract = trim((string) ($definition['contract'] ?? ''));
-        if (!in_array(
-            $contract,
-            [
-                'OPUS_APPLICATION_FSM_V1',
-                'OPUS_SECURITY_FSM_V1',
-                'OWASYS_NAVIGATION_FSM_V1',
-                'OWASYS_BACK_FSM_V1',
-            ],
-            true
-        )) {
+        if ($contract === '') {
             throw new RuntimeException('OWASYS_APPLICATION_EFSM_CONTRACT_INVALID');
         }
+        (new FsmDefinitionValidator())->assertValid($definition);
         $declaredEfsm = trim((string) ($definition['efsm_id'] ?? ''));
         if ($declaredEfsm !== '' && $declaredEfsm !== $efsmId) {
             throw new RuntimeException('OWASYS_APPLICATION_EFSM_KIND_MISMATCH');

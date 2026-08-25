@@ -77,29 +77,7 @@ final class OwasysFsmDesignerGateway
             );
             return true;
         }
-        if (!$this->security->isAllowed(
-            $identity,
-            'fsm',
-            'update'
-        )) {
-            $this->respondError(
-                'OPUS_ACL_DENIED:fsm:update',
-                403
-            );
-            return true;
-        }
-
         $currentApp = $this->session->currentApp();
-        $targetSiteId = strtolower(trim((string) (
-            $currentApp['id'] ?? ''
-        )));
-        if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $targetSiteId) !== 1) {
-            $this->respondError(
-                'OWASYS_FSM_DESIGNER_APPLICATION_REQUIRED',
-                409
-            );
-            return true;
-        }
         $targetEfsmId = strtolower(trim((string) (
             $_POST['efsm_id'] ?? ''
         )));
@@ -107,6 +85,33 @@ final class OwasysFsmDesignerGateway
             $this->respondError(
                 'OWASYS_FSM_DESIGNER_EFSM_REQUIRED',
                 409
+            );
+            return true;
+        }
+        $contextRegistry = new OwasysContextEfsmRegistry();
+        $hostTarget = $contextRegistry->isHostEfsm($targetEfsmId);
+        $targetSiteId = $hostTarget
+            ? 'owasys-front'
+            : strtolower(trim((string) (
+                $currentApp['id'] ?? ''
+            )));
+        if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $targetSiteId) !== 1) {
+            $this->respondError(
+                'OWASYS_FSM_DESIGNER_APPLICATION_REQUIRED',
+                409
+            );
+            return true;
+        }
+        $aclResource = $hostTarget ? 'owasys' : 'fsm';
+        $aclAction = $hostTarget ? 'modify' : 'update';
+        if (!$this->security->isAllowed(
+            $identity,
+            $aclResource,
+            $aclAction
+        )) {
+            $this->respondError(
+                'OPUS_ACL_DENIED:' . $aclResource . ':' . $aclAction,
+                403
             );
             return true;
         }

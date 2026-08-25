@@ -939,6 +939,42 @@
             "type": "event",
             "menu": false,
             "origin": "automatic"
+        },
+        {
+            "id": "registry_context_ready",
+            "type": "event",
+            "menu": false,
+            "origin": "automatic"
+        },
+        {
+            "id": "application_context_ready",
+            "type": "event",
+            "menu": false,
+            "origin": "automatic"
+        },
+        {
+            "id": "data_context_ready",
+            "type": "event",
+            "menu": false,
+            "origin": "automatic"
+        },
+        {
+            "id": "source_context_ready",
+            "type": "event",
+            "menu": false,
+            "origin": "automatic"
+        },
+        {
+            "id": "git_context_ready",
+            "type": "event",
+            "menu": false,
+            "origin": "automatic"
+        },
+        {
+            "id": "build_context_ready",
+            "type": "event",
+            "menu": false,
+            "origin": "automatic"
         }
     ],
     "transitions": [
@@ -2527,6 +2563,42 @@
             "from": "security",
             "signal": "security_context_ready",
             "next_state": "security"
+        },
+        {
+            "id": "t_registry_context_ready",
+            "from": "registry",
+            "signal": "registry_context_ready",
+            "next_state": "registry"
+        },
+        {
+            "id": "t_application_context_ready",
+            "from": "application",
+            "signal": "application_context_ready",
+            "next_state": "application"
+        },
+        {
+            "id": "t_data_context_ready",
+            "from": "data",
+            "signal": "data_context_ready",
+            "next_state": "data"
+        },
+        {
+            "id": "t_source_context_ready",
+            "from": "source",
+            "signal": "source_context_ready",
+            "next_state": "source"
+        },
+        {
+            "id": "t_git_context_ready",
+            "from": "source",
+            "signal": "git_context_ready",
+            "next_state": "source"
+        },
+        {
+            "id": "t_build_context_ready",
+            "from": "build",
+            "signal": "build_context_ready",
+            "next_state": "build"
         }
     ],
     "guards": {

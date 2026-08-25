@@ -1,0 +1,203 @@
+{
+    "contract": "OWASYS_HOST_CONTEXT_FSM_V1",
+    "name": "owasys-front.source",
+    "site_id": "owasys-front",
+    "efsm_id": "source",
+    "initial_state": "browsing",
+    "signals": [
+        {
+            "id": "enter_source_context",
+            "origin": "automatic",
+            "type": "command"
+        },
+        {
+            "id": "source_file_opened",
+            "origin": "user",
+            "type": "navigation"
+        },
+        {
+            "id": "preview_source",
+            "origin": "user",
+            "type": "command"
+        },
+        {
+            "id": "source_previewed",
+            "origin": "automatic",
+            "type": "outcome"
+        },
+        {
+            "id": "write_source",
+            "origin": "user",
+            "type": "command"
+        },
+        {
+            "id": "source_written",
+            "origin": "automatic",
+            "type": "outcome"
+        },
+        {
+            "id": "source_conflict",
+            "origin": "automatic",
+            "type": "outcome"
+        },
+        {
+            "id": "source_action_failed",
+            "origin": "automatic",
+            "type": "outcome"
+        }
+    ],
+    "states": [
+        {
+            "id": "browsing"
+        },
+        {
+            "id": "opened"
+        },
+        {
+            "id": "previewing"
+        },
+        {
+            "id": "writing"
+        },
+        {
+            "id": "conflict"
+        },
+        {
+            "id": "failed"
+        }
+    ],
+    "transitions": [
+        {
+            "id": "source.context.enter.browsing",
+            "from": "browsing",
+            "signal": "enter_source_context",
+            "next_state": "browsing"
+        },
+        {
+            "id": "source.context.enter.opened",
+            "from": "opened",
+            "signal": "enter_source_context",
+            "next_state": "opened"
+        },
+        {
+            "id": "source.context.enter.previewing",
+            "from": "previewing",
+            "signal": "enter_source_context",
+            "next_state": "previewing"
+        },
+        {
+            "id": "source.context.enter.writing",
+            "from": "writing",
+            "signal": "enter_source_context",
+            "next_state": "writing"
+        },
+        {
+            "id": "source.context.enter.conflict",
+            "from": "conflict",
+            "signal": "enter_source_context",
+            "next_state": "conflict"
+        },
+        {
+            "id": "source.context.enter.failed",
+            "from": "failed",
+            "signal": "enter_source_context",
+            "next_state": "failed"
+        },
+        {
+            "id": "source.file.open.browsing",
+            "from": "browsing",
+            "signal": "source_file_opened",
+            "next_state": "opened"
+        },
+        {
+            "id": "source.file.open.opened",
+            "from": "opened",
+            "signal": "source_file_opened",
+            "next_state": "opened"
+        },
+        {
+            "id": "source.file.open.conflict",
+            "from": "conflict",
+            "signal": "source_file_opened",
+            "next_state": "opened"
+        },
+        {
+            "id": "source.file.open.failed",
+            "from": "failed",
+            "signal": "source_file_opened",
+            "next_state": "opened"
+        },
+        {
+            "id": "source.preview.requested",
+            "from": "opened",
+            "signal": "preview_source",
+            "next_state": "previewing"
+        },
+        {
+            "id": "source.preview.succeeded",
+            "from": "previewing",
+            "signal": "source_previewed",
+            "next_state": "opened"
+        },
+        {
+            "id": "source.preview.failed",
+            "from": "previewing",
+            "signal": "source_action_failed",
+            "next_state": "failed"
+        },
+        {
+            "id": "source.write.requested",
+            "from": "opened",
+            "signal": "write_source",
+            "next_state": "writing"
+        },
+        {
+            "id": "source.write.succeeded",
+            "from": "writing",
+            "signal": "source_written",
+            "next_state": "opened"
+        },
+        {
+            "id": "source.write.conflict",
+            "from": "writing",
+            "signal": "source_conflict",
+            "next_state": "conflict"
+        },
+        {
+            "id": "source.write.failed",
+            "from": "writing",
+            "signal": "source_action_failed",
+            "next_state": "failed"
+        },
+        {
+            "id": "source.failure.browsing",
+            "from": "browsing",
+            "signal": "source_action_failed",
+            "next_state": "failed"
+        },
+        {
+            "id": "source.failure.opened",
+            "from": "opened",
+            "signal": "source_action_failed",
+            "next_state": "failed"
+        },
+        {
+            "id": "source.failure.conflict",
+            "from": "conflict",
+            "signal": "source_action_failed",
+            "next_state": "failed"
+        },
+        {
+            "id": "source.failure.failed",
+            "from": "failed",
+            "signal": "source_action_failed",
+            "next_state": "failed"
+        },
+        {
+            "id": "source.conflict.opened",
+            "from": "opened",
+            "signal": "source_conflict",
+            "next_state": "conflict"
+        }
+    ]
+}

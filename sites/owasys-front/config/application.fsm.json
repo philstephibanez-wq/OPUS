@@ -1,0 +1,36 @@
+{
+    "contract": "OWASYS_HOST_CONTEXT_FSM_V1",
+    "name": "owasys-front.application",
+    "site_id": "owasys-front",
+    "efsm_id": "application",
+    "initial_state": "unselected",
+    "signals": [
+        {
+            "id": "enter_application_context",
+            "origin": "automatic",
+            "type": "command"
+        }
+    ],
+    "states": [
+        {
+            "id": "unselected"
+        },
+        {
+            "id": "selected"
+        }
+    ],
+    "transitions": [
+        {
+            "id": "application.context.select",
+            "from": "unselected",
+            "signal": "enter_application_context",
+            "next_state": "selected"
+        },
+        {
+            "id": "application.context.enter.selected",
+            "from": "selected",
+            "signal": "enter_application_context",
+            "next_state": "selected"
+        }
+    ]
+}

@@ -76,6 +76,19 @@ final class OwasysFsmLayoutCommandProvider implements
             || preg_match('/^[a-z][a-z0-9_-]{0,63}$/D', $efsmId) !== 1) {
             throw new RuntimeException('OWASYS_FSM_LAYOUT_TARGET_INVALID');
         }
+        if ($command === self::WRITE_COMMAND
+            && in_array($siteId, ['owasys-front', 'owasys-back'], true)) {
+            $systemDecision = $this->acl->decide(
+                (array) $actor['roles'],
+                'owasys',
+                'modify'
+            );
+            if (!$systemDecision->allowed) {
+                throw new RuntimeException(
+                    'OWASYS_SYSTEM_APPLICATION_MODIFY_ACL_DENIED:' . $siteId
+                );
+            }
+        }
 
         $applicationRoot = rtrim(
             str_replace('\\', '/', $this->opusRoot),

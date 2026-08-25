@@ -1,0 +1,349 @@
+{
+    "contract": "OWASYS_HOST_CONTEXT_FSM_V1",
+    "name": "owasys-front.git",
+    "site_id": "owasys-front",
+    "efsm_id": "git",
+    "initial_state": "unknown",
+    "signals": [
+        {
+            "id": "enter_git_context",
+            "origin": "automatic",
+            "type": "command"
+        },
+        {
+            "id": "git_status_clean",
+            "origin": "automatic",
+            "type": "outcome"
+        },
+        {
+            "id": "git_status_dirty",
+            "origin": "automatic",
+            "type": "outcome"
+        },
+        {
+            "id": "stage_source",
+            "origin": "user",
+            "type": "command"
+        },
+        {
+            "id": "source_staged",
+            "origin": "automatic",
+            "type": "outcome"
+        },
+        {
+            "id": "unstage_source",
+            "origin": "user",
+            "type": "command"
+        },
+        {
+            "id": "source_unstaged",
+            "origin": "automatic",
+            "type": "outcome"
+        },
+        {
+            "id": "commit_source",
+            "origin": "user",
+            "type": "command"
+        },
+        {
+            "id": "source_committed",
+            "origin": "automatic",
+            "type": "outcome"
+        },
+        {
+            "id": "restore_source",
+            "origin": "user",
+            "type": "command"
+        },
+        {
+            "id": "source_restored",
+            "origin": "automatic",
+            "type": "outcome"
+        },
+        {
+            "id": "git_action_failed",
+            "origin": "automatic",
+            "type": "outcome"
+        }
+    ],
+    "states": [
+        {
+            "id": "unknown"
+        },
+        {
+            "id": "clean"
+        },
+        {
+            "id": "dirty"
+        },
+        {
+            "id": "staging"
+        },
+        {
+            "id": "unstaging"
+        },
+        {
+            "id": "committing"
+        },
+        {
+            "id": "restoring"
+        },
+        {
+            "id": "failed"
+        }
+    ],
+    "transitions": [
+        {
+            "id": "git.context.enter.unknown",
+            "from": "unknown",
+            "signal": "enter_git_context",
+            "next_state": "unknown"
+        },
+        {
+            "id": "git.context.enter.clean",
+            "from": "clean",
+            "signal": "enter_git_context",
+            "next_state": "clean"
+        },
+        {
+            "id": "git.context.enter.dirty",
+            "from": "dirty",
+            "signal": "enter_git_context",
+            "next_state": "dirty"
+        },
+        {
+            "id": "git.context.enter.staging",
+            "from": "staging",
+            "signal": "enter_git_context",
+            "next_state": "staging"
+        },
+        {
+            "id": "git.context.enter.unstaging",
+            "from": "unstaging",
+            "signal": "enter_git_context",
+            "next_state": "unstaging"
+        },
+        {
+            "id": "git.context.enter.committing",
+            "from": "committing",
+            "signal": "enter_git_context",
+            "next_state": "committing"
+        },
+        {
+            "id": "git.context.enter.restoring",
+            "from": "restoring",
+            "signal": "enter_git_context",
+            "next_state": "restoring"
+        },
+        {
+            "id": "git.context.enter.failed",
+            "from": "failed",
+            "signal": "enter_git_context",
+            "next_state": "failed"
+        },
+        {
+            "id": "git.status.clean.unknown",
+            "from": "unknown",
+            "signal": "git_status_clean",
+            "next_state": "clean"
+        },
+        {
+            "id": "git.status.dirty.unknown",
+            "from": "unknown",
+            "signal": "git_status_dirty",
+            "next_state": "dirty"
+        },
+        {
+            "id": "git.status.clean.clean",
+            "from": "clean",
+            "signal": "git_status_clean",
+            "next_state": "clean"
+        },
+        {
+            "id": "git.status.dirty.clean",
+            "from": "clean",
+            "signal": "git_status_dirty",
+            "next_state": "dirty"
+        },
+        {
+            "id": "git.status.clean.dirty",
+            "from": "dirty",
+            "signal": "git_status_clean",
+            "next_state": "clean"
+        },
+        {
+            "id": "git.status.dirty.dirty",
+            "from": "dirty",
+            "signal": "git_status_dirty",
+            "next_state": "dirty"
+        },
+        {
+            "id": "git.status.clean.failed",
+            "from": "failed",
+            "signal": "git_status_clean",
+            "next_state": "clean"
+        },
+        {
+            "id": "git.status.dirty.failed",
+            "from": "failed",
+            "signal": "git_status_dirty",
+            "next_state": "dirty"
+        },
+        {
+            "id": "git.stage.requested",
+            "from": "dirty",
+            "signal": "stage_source",
+            "next_state": "staging"
+        },
+        {
+            "id": "git.stage.completed",
+            "from": "staging",
+            "signal": "source_staged",
+            "next_state": "unknown"
+        },
+        {
+            "id": "git.stage.failed",
+            "from": "staging",
+            "signal": "git_action_failed",
+            "next_state": "failed"
+        },
+        {
+            "id": "git.unstage.requested.dirty",
+            "from": "dirty",
+            "signal": "unstage_source",
+            "next_state": "unstaging"
+        },
+        {
+            "id": "git.unstage.requested.clean",
+            "from": "clean",
+            "signal": "unstage_source",
+            "next_state": "unstaging"
+        },
+        {
+            "id": "git.unstage.completed",
+            "from": "unstaging",
+            "signal": "source_unstaged",
+            "next_state": "unknown"
+        },
+        {
+            "id": "git.unstage.failed",
+            "from": "unstaging",
+            "signal": "git_action_failed",
+            "next_state": "failed"
+        },
+        {
+            "id": "git.commit.requested.dirty",
+            "from": "dirty",
+            "signal": "commit_source",
+            "next_state": "committing"
+        },
+        {
+            "id": "git.commit.requested.clean",
+            "from": "clean",
+            "signal": "commit_source",
+            "next_state": "committing"
+        },
+        {
+            "id": "git.commit.completed",
+            "from": "committing",
+            "signal": "source_committed",
+            "next_state": "unknown"
+        },
+        {
+            "id": "git.commit.failed",
+            "from": "committing",
+            "signal": "git_action_failed",
+            "next_state": "failed"
+        },
+        {
+            "id": "git.restore.requested",
+            "from": "dirty",
+            "signal": "restore_source",
+            "next_state": "restoring"
+        },
+        {
+            "id": "git.restore.completed",
+            "from": "restoring",
+            "signal": "source_restored",
+            "next_state": "unknown"
+        },
+        {
+            "id": "git.restore.failed",
+            "from": "restoring",
+            "signal": "git_action_failed",
+            "next_state": "failed"
+        },
+        {
+            "id": "git.status.clean.staging",
+            "from": "staging",
+            "signal": "git_status_clean",
+            "next_state": "clean"
+        },
+        {
+            "id": "git.status.dirty.staging",
+            "from": "staging",
+            "signal": "git_status_dirty",
+            "next_state": "dirty"
+        },
+        {
+            "id": "git.status.clean.unstaging",
+            "from": "unstaging",
+            "signal": "git_status_clean",
+            "next_state": "clean"
+        },
+        {
+            "id": "git.status.dirty.unstaging",
+            "from": "unstaging",
+            "signal": "git_status_dirty",
+            "next_state": "dirty"
+        },
+        {
+            "id": "git.status.clean.committing",
+            "from": "committing",
+            "signal": "git_status_clean",
+            "next_state": "clean"
+        },
+        {
+            "id": "git.status.dirty.committing",
+            "from": "committing",
+            "signal": "git_status_dirty",
+            "next_state": "dirty"
+        },
+        {
+            "id": "git.status.clean.restoring",
+            "from": "restoring",
+            "signal": "git_status_clean",
+            "next_state": "clean"
+        },
+        {
+            "id": "git.status.dirty.restoring",
+            "from": "restoring",
+            "signal": "git_status_dirty",
+            "next_state": "dirty"
+        },
+        {
+            "id": "git.failure.unknown",
+            "from": "unknown",
+            "signal": "git_action_failed",
+            "next_state": "failed"
+        },
+        {
+            "id": "git.failure.clean",
+            "from": "clean",
+            "signal": "git_action_failed",
+            "next_state": "failed"
+        },
+        {
+            "id": "git.failure.dirty",
+            "from": "dirty",
+            "signal": "git_action_failed",
+            "next_state": "failed"
+        },
+        {
+            "id": "git.failure.failed",
+            "from": "failed",
+            "signal": "git_action_failed",
+            "next_state": "failed"
+        }
+    ]
+}

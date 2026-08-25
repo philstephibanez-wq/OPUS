@@ -116,6 +116,7 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
                 'OWASYS_FSM_DRAFT_PARAMETERS_INVALID'
             );
         }
+        $this->assertSystemApplicationMutationAllowed($actor, $siteId);
 
         $envelope = Json::instance()->parse(
             $envelopeJson,
@@ -394,6 +395,7 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
                 'OWASYS_FSM_HANDLER_WRITE_PARAMETERS_INVALID'
             );
         }
+        $this->assertSystemApplicationMutationAllowed($actor, $siteId);
 
         $sourcePath = $this->opusRoot . '/sites/' . $siteId
             . '/' . self::HANDLER_SOURCE;
@@ -560,6 +562,26 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
             $names[] = $id;
         }
         return $names;
+    }
+
+    /** @param array<string,mixed> $actor */
+    private function assertSystemApplicationMutationAllowed(
+        array $actor,
+        string $siteId
+    ): void {
+        if (!in_array($siteId, ['owasys-front', 'owasys-back'], true)) {
+            return;
+        }
+        $decision = $this->acl->decide(
+            (array) ($actor['roles'] ?? []),
+            'owasys',
+            'modify'
+        );
+        if (!$decision->allowed) {
+            throw new RuntimeException(
+                'OWASYS_SYSTEM_APPLICATION_MODIFY_ACL_DENIED:' . $siteId
+            );
+        }
     }
 
     /**

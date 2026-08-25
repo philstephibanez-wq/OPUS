@@ -1,0 +1,36 @@
+{
+    "contract": "OWASYS_HOST_CONTEXT_FSM_V1",
+    "name": "owasys-front.data",
+    "site_id": "owasys-front",
+    "efsm_id": "data",
+    "initial_state": "detached",
+    "signals": [
+        {
+            "id": "enter_data_context",
+            "origin": "automatic",
+            "type": "command"
+        }
+    ],
+    "states": [
+        {
+            "id": "detached"
+        },
+        {
+            "id": "ready"
+        }
+    ],
+    "transitions": [
+        {
+            "id": "data.context.attach",
+            "from": "detached",
+            "signal": "enter_data_context",
+            "next_state": "ready"
+        },
+        {
+            "id": "data.context.enter.ready",
+            "from": "ready",
+            "signal": "enter_data_context",
+            "next_state": "ready"
+        }
+    ]
+}

@@ -1,0 +1,104 @@
+{
+    "contract": "OWASYS_HOST_CONTEXT_FSM_V1",
+    "name": "owasys-front.registry",
+    "site_id": "owasys-front",
+    "efsm_id": "registry",
+    "initial_state": "browsing",
+    "signals": [
+        {
+            "id": "enter_registry_context",
+            "origin": "automatic",
+            "type": "command"
+        },
+        {
+            "id": "selection_requested",
+            "origin": "user",
+            "type": "command"
+        },
+        {
+            "id": "selection_succeeded",
+            "origin": "automatic",
+            "type": "outcome"
+        },
+        {
+            "id": "deletion_requested",
+            "origin": "user",
+            "type": "command"
+        },
+        {
+            "id": "registry_failed",
+            "origin": "automatic",
+            "type": "outcome"
+        }
+    ],
+    "states": [
+        {
+            "id": "browsing"
+        },
+        {
+            "id": "selecting"
+        },
+        {
+            "id": "deleting"
+        },
+        {
+            "id": "failed"
+        }
+    ],
+    "transitions": [
+        {
+            "id": "registry.context.enter.browsing",
+            "from": "browsing",
+            "signal": "enter_registry_context",
+            "next_state": "browsing"
+        },
+        {
+            "id": "registry.context.enter.selecting",
+            "from": "selecting",
+            "signal": "enter_registry_context",
+            "next_state": "browsing"
+        },
+        {
+            "id": "registry.context.enter.deleting",
+            "from": "deleting",
+            "signal": "enter_registry_context",
+            "next_state": "browsing"
+        },
+        {
+            "id": "registry.context.enter.failed",
+            "from": "failed",
+            "signal": "enter_registry_context",
+            "next_state": "browsing"
+        },
+        {
+            "id": "registry.selection.requested",
+            "from": "browsing",
+            "signal": "selection_requested",
+            "next_state": "selecting"
+        },
+        {
+            "id": "registry.selection.succeeded",
+            "from": "selecting",
+            "signal": "selection_succeeded",
+            "next_state": "browsing"
+        },
+        {
+            "id": "registry.selection.failed",
+            "from": "selecting",
+            "signal": "registry_failed",
+            "next_state": "failed"
+        },
+        {
+            "id": "registry.deletion.requested",
+            "from": "browsing",
+            "signal": "deletion_requested",
+            "next_state": "deleting"
+        },
+        {
+            "id": "registry.deletion.failed",
+            "from": "deleting",
+            "signal": "registry_failed",
+            "next_state": "failed"
+        }
+    ]
+}

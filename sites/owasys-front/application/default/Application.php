@@ -385,7 +385,9 @@ final class OwasysFrontApplication implements OwasysFrontApplicationInterface
                 $renderer,
                 $localizedRoutes,
                 $this->sessionRuntime,
-                new OwasysSourceModel($this->siteRoot)
+                new OwasysSourceModel($this->siteRoot),
+                $this->profiler,
+                $httpSpanId
             ),
             new OwasysSecurityController(
                 $this->siteRoot,

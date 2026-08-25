@@ -9,6 +9,7 @@ use Opus\Http\Response;
 use Opus\Http\UrlBuilder;
 use Opus\Http\LocalizedRouteResolverInterface;
 use Opus\I18n\BrowserLocaleNegotiator;
+use Opus\Profiler\ProfilerInterface;
 use Opus\Security\Csrf\CsrfTokenManager;
 use Opus\Security\Csrf\CsrfTokenManagerInterface;
 
@@ -34,6 +35,8 @@ final class OwasysSourceController
         private readonly LocalizedRouteResolverInterface $localizedRoutes,
         private readonly OwasysSessionRuntimeInterface $sessionRuntime,
         private readonly OwasysSourceModel $source,
+        private readonly ?ProfilerInterface $profiler = null,
+        private readonly ?string $parentSpanId = null,
         ?CsrfTokenManagerInterface $csrf = null
     ) {
         $this->locales = new OwasysLocaleRegistry($siteConfig);
@@ -116,6 +119,23 @@ final class OwasysSourceController
         $gitPost = $method === 'POST'
             && array_key_exists('git_action', $_POST);
         $gitRequested = $this->gitWorkspaceRequested();
+        $contextRuntime = new OwasysContextRuntimeCoordinator(
+            $this->siteRoot,
+            $this->siteConfig,
+            $this->profiler,
+            $this->parentSpanId
+        );
+        $contextRuntime->enter($identity, 'source', $siteId);
+        if ($sourcePath !== '') {
+            $contextRuntime->transition(
+                'source',
+                'source_file_opened',
+                ['source_path' => $sourcePath]
+            );
+        }
+        if ($gitRequested || $gitPost) {
+            $contextRuntime->enter($identity, 'git', $siteId);
+        }
 
         if ($method === 'GET') {
             try {
@@ -174,6 +194,15 @@ final class OwasysSourceController
                         $_POST['commit_message'] ?? null
                     ) ? (string) $_POST['commit_message'] : '';
                     http_response_code($this->statusForError($gitErrorCode));
+                    $contextRuntime->transition(
+                        'git',
+                        'git_action_failed',
+                        [
+                            'application_id' => $siteId,
+                            'source_path' => $sourcePath,
+                            'error_code' => $gitErrorCode,
+                        ]
+                    );
                     $this->recordGitFailure(
                         $fsm,
                         $store,
@@ -224,6 +253,11 @@ final class OwasysSourceController
                             'preview_source',
                             $context
                         );
+                        $contextRuntime->transition(
+                            'source',
+                            'preview_source',
+                            ['source_path' => $sourcePath]
+                        );
                         [$listing, $selected] = $this->loadSelection(
                             $siteId,
                             $sourcePath,
@@ -246,6 +280,15 @@ final class OwasysSourceController
                                     ($preview['changed'] ?? false) === true,
                             ])
                         );
+                        $contextRuntime->transition(
+                            'source',
+                            'source_previewed',
+                            [
+                                'source_path' => $sourcePath,
+                                'source_changed' =>
+                                    ($preview['changed'] ?? false) === true,
+                            ]
+                        );
                         $sourceFeedback = 'previewed';
                         if ($this->expectsJson()) {
                             Response::json([
@@ -266,6 +309,11 @@ final class OwasysSourceController
                             'write_source',
                             $context
                         );
+                        $contextRuntime->transition(
+                            'source',
+                            'write_source',
+                            ['source_path' => $sourcePath]
+                        );
                         $written = $this->source->write(
                             $siteId,
                             $sourcePath,
@@ -281,6 +329,15 @@ final class OwasysSourceController
                                 'source_changed' =>
                                     ($written['changed'] ?? false) === true,
                             ])
+                        );
+                        $contextRuntime->transition(
+                            'source',
+                            'source_written',
+                            [
+                                'source_path' => $sourcePath,
+                                'source_changed' =>
+                                    ($written['changed'] ?? false) === true,
+                            ]
                         );
                         if ($this->expectsJson()) {
                             Response::json([
@@ -309,6 +366,16 @@ final class OwasysSourceController
                         $locale,
                         $sourcePath,
                         $sourceErrorCode
+                    );
+                    $contextRuntime->transition(
+                        'source',
+                        $sourceErrorCode === 'OPUS_SITE_SOURCE_CONFLICT'
+                            ? 'source_conflict'
+                            : 'source_action_failed',
+                        [
+                            'source_path' => $sourcePath,
+                            'error_code' => $sourceErrorCode,
+                        ]
                     );
                     $sourceFeedback = $sourceErrorCode
                         === 'OPUS_SITE_SOURCE_CONFLICT'
@@ -349,6 +416,13 @@ final class OwasysSourceController
             try {
                 $this->security->assertAllowed($identity, 'git', 'read');
                 $gitStatus = $this->source->gitStatus($siteId, $identity);
+                $contextRuntime->transition(
+                    'git',
+                    ($gitStatus['clean'] ?? false) === true
+                        ? 'git_status_clean'
+                        : 'git_status_dirty',
+                    ['application_id' => $siteId]
+                );
                 $gitHistory = $this->source->gitHistory($siteId, $identity);
                 if ($sourcePath !== '') {
                     $gitDiff = $this->source->gitDiff(
@@ -466,6 +540,21 @@ final class OwasysSourceController
             $this->gitRequestedSignal($action),
             $context
         );
+        $contextRuntime = new OwasysContextRuntimeCoordinator(
+            $this->siteRoot,
+            $this->siteConfig,
+            $this->profiler,
+            $this->parentSpanId
+        );
+        $contextRuntime->transition(
+            'git',
+            $this->gitRequestedSignal($action),
+            [
+                'application_id' => $siteId,
+                'git_action' => $action,
+                'git_path' => $path,
+            ]
+        );
 
         $result = match ($action) {
             'stage' => $this->source->gitStage(
@@ -504,6 +593,15 @@ final class OwasysSourceController
             $store,
             $this->gitCompletedSignal($action),
             $context
+        );
+        $contextRuntime->transition(
+            'git',
+            $this->gitCompletedSignal($action),
+            [
+                'application_id' => $siteId,
+                'git_action' => $action,
+                'git_path' => $path,
+            ]
         );
         return [$action, $result];
     }
@@ -1070,7 +1168,13 @@ final class OwasysSourceController
 
         $data = [
             'page' => ['title' => '', 'summary' => ''],
-            'fsm' => ['state' => $state, 'module' => 'source'],
+            'fsm' => [
+                'state' => $state,
+                'module' => 'source',
+                'context_efsm' => (
+                    is_array($gitStatus) || $gitFeedback !== ''
+                ) ? 'git' : 'source',
+            ],
             'identity' => [
                 'authenticated' => true,
                 'label' => (string) ($identity['label'] ?? ''),

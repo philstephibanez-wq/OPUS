@@ -124,16 +124,17 @@ final class OwasysScorePageRenderer
 
         $designerRequested =
             (string) ($_GET['fsm_design'] ?? '') === '1';
-        $designerApplicationId = strtolower(trim((string) (
-            $data['current_app']['id'] ?? ''
-        )));
-        $designerEfsmId = match (strtolower(trim((string) (
-            $data['fsm']['module'] ?? ''
-        )))) {
-            'security' => 'security',
-            'structure' => 'navigation',
-            default => '',
-        };
+        $contextRegistry = new OwasysContextEfsmRegistry();
+        $designerContext = $contextRegistry->forPage($data);
+        $designerEfsmId = (string) ($designerContext['efsm_id'] ?? '');
+        $designerHostContext = ($designerContext['host'] ?? false) === true;
+        $designerApplicationId = $designerHostContext
+            ? 'owasys-front'
+            : strtolower(trim((string) (
+                $data['current_app']['id'] ?? ''
+            )));
+        $designerAclResource = $designerHostContext ? 'owasys' : 'fsm';
+        $designerAclAction = $designerHostContext ? 'modify' : 'update';
         $designerHasContext = $designerEfsmId !== '';
         $designerHasApplication = preg_match(
             '/^[a-z][a-z0-9-]{0,63}$/D',
@@ -144,8 +145,8 @@ final class OwasysScorePageRenderer
             && $this->security !== null
             && $this->security->isAllowed(
                 is_array($identity) ? $identity : null,
-                'fsm',
-                'update'
+                $designerAclResource,
+                $designerAclAction
             );
 
         if ($designerRequested && !$designerHasApplication) {
@@ -160,7 +161,8 @@ final class OwasysScorePageRenderer
         }
         if ($designerRequested && !$designerAllowed) {
             throw new RuntimeException(
-                'OPUS_ACL_DENIED:fsm:update'
+                'OPUS_ACL_DENIED:' . $designerAclResource
+                . ':' . $designerAclAction
             );
         }
 

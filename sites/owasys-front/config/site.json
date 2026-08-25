@@ -261,6 +261,12 @@
     },
     "efsms": {
         "navigation": "config/fsm.json",
-        "security": "config/security.fsm.json"
+        "security": "config/security.fsm.json",
+        "registry": "config/registry.fsm.json",
+        "application": "config/application.fsm.json",
+        "data": "config/data.fsm.json",
+        "source": "config/source.fsm.json",
+        "git": "config/git.fsm.json",
+        "build": "config/build.fsm.json"
     }
 }

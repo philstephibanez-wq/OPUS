@@ -1,0 +1,99 @@
+{
+    "contract": "OWASYS_HOST_CONTEXT_FSM_V1",
+    "name": "owasys-front.build",
+    "site_id": "owasys-front",
+    "efsm_id": "build",
+    "initial_state": "ready",
+    "signals": [
+        {
+            "id": "enter_build_context",
+            "origin": "automatic",
+            "type": "command"
+        },
+        {
+            "id": "preview_requested",
+            "origin": "user",
+            "type": "command"
+        },
+        {
+            "id": "preview_started",
+            "origin": "automatic",
+            "type": "outcome"
+        },
+        {
+            "id": "preview_failed",
+            "origin": "automatic",
+            "type": "outcome"
+        }
+    ],
+    "states": [
+        {
+            "id": "ready"
+        },
+        {
+            "id": "preview_starting"
+        },
+        {
+            "id": "preview_running"
+        },
+        {
+            "id": "failed"
+        }
+    ],
+    "transitions": [
+        {
+            "id": "build.context.enter.ready",
+            "from": "ready",
+            "signal": "enter_build_context",
+            "next_state": "ready"
+        },
+        {
+            "id": "build.context.enter.preview_starting",
+            "from": "preview_starting",
+            "signal": "enter_build_context",
+            "next_state": "preview_starting"
+        },
+        {
+            "id": "build.context.enter.preview_running",
+            "from": "preview_running",
+            "signal": "enter_build_context",
+            "next_state": "preview_running"
+        },
+        {
+            "id": "build.context.enter.failed",
+            "from": "failed",
+            "signal": "enter_build_context",
+            "next_state": "failed"
+        },
+        {
+            "id": "build.preview.requested.ready",
+            "from": "ready",
+            "signal": "preview_requested",
+            "next_state": "preview_starting"
+        },
+        {
+            "id": "build.preview.requested.running",
+            "from": "preview_running",
+            "signal": "preview_requested",
+            "next_state": "preview_starting"
+        },
+        {
+            "id": "build.preview.started",
+            "from": "preview_starting",
+            "signal": "preview_started",
+            "next_state": "preview_running"
+        },
+        {
+            "id": "build.preview.failed",
+            "from": "preview_starting",
+            "signal": "preview_failed",
+            "next_state": "failed"
+        },
+        {
+            "id": "build.preview.retry",
+            "from": "failed",
+            "signal": "preview_requested",
+            "next_state": "preview_starting"
+        }
+    ]
+}
