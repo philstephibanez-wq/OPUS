@@ -2128,6 +2128,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $transition,
                 $positions
             );
+            $transition['diagram_source_x'] = $sourcePort['x'];
+            $transition['diagram_source_y'] = $sourcePort['y'];
             $targetX = $toPos['x'] + $toPos['w'] / 2;
             $targetY = $toPos['y'] + $toPos['h'];
             $middleY = ($sourcePort['y'] + $targetY) / 2;
@@ -3319,14 +3321,24 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $from = trim((string) ($transition['from'] ?? ''));
         $to = trim((string) ($transition['to'] ?? ''));
         $scope = trim((string) ($transition['scope'] ?? ''));
-        $anchor = ($scope === 'global' || ($from !== '' && $from === $to))
+        $anchor = ($from !== '' && $from === $to)
             ? $to
             : '';
+        $sourceX = $transition['diagram_source_x'] ?? null;
+        $sourceY = $transition['diagram_source_y'] ?? null;
+        $finiteSource = $scope === 'global'
+            && is_numeric($sourceX)
+            && is_numeric($sourceY);
 
         return ' data-from-state="' . self::h($from) . '"'
             . ' data-to-state="' . self::h($to) . '"'
             . ' data-transition-scope="' . self::h($scope) . '"'
-            . ' data-anchor-state="' . self::h($anchor) . '"';
+            . ' data-anchor-state="' . self::h($anchor) . '"'
+            . ($finiteSource
+                ? ' data-finite-source-x="' . self::n((float) $sourceX)
+                    . '" data-finite-source-y="'
+                    . self::n((float) $sourceY) . '"'
+                : '');
     }
 
     /**
@@ -4473,6 +4485,21 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     return `M${x1} ${y1} C${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
   };
 
+  const finiteGlobalPath = (group, toId) => {
+    const to = boxFor(toId);
+    const sourceX = Number(group.dataset.finiteSourceX || NaN);
+    const sourceY = Number(group.dataset.finiteSourceY || NaN);
+    if (!to || !Number.isFinite(sourceX) || !Number.isFinite(sourceY)) {
+      return '';
+    }
+    const targetX = to.x + to.w / 2;
+    const targetCenterY = to.y + to.h / 2;
+    const targetY = sourceY >= targetCenterY ? to.y + to.h : to.y;
+    const middleY = (sourceY + targetY) / 2;
+    return `M${sourceX} ${sourceY} C${sourceX} ${middleY}, `
+      + `${targetX} ${middleY}, ${targetX} ${targetY}`;
+  };
+
   const pointOnBoundary = (point, box) => {
     if (!point || !box) return false;
     const tolerance = 3;
@@ -4564,7 +4591,16 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     const from = group.dataset.fromState || '';
     const to = group.dataset.toState || '';
     const scope = group.dataset.transitionScope || '';
-    if (scope === 'global' || from === '' || to === '' || from === to
+    if (scope === 'global') {
+      const edge = group.querySelector('path.fsm-edge');
+      const d = finiteGlobalPath(group, to);
+      if (edge instanceof SVGPathElement && d !== '') {
+        edge.setAttribute('d', d);
+      }
+      updateLabelLeader(group, edge);
+      return;
+    }
+    if (from === '' || to === '' || from === to
         || !states.has(from) || !states.has(to)) {
       updateLabelLeader(group, group.querySelector('path.fsm-edge'));
       return;
@@ -4585,7 +4621,18 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
       .forEach((group) => {
         const from = group.dataset.fromState || '';
         const to = group.dataset.toState || '';
+        const scope = group.dataset.transitionScope || '';
         const anchor = group.dataset.anchorState || '';
+        if (scope === 'global' && to === state) {
+          group.removeAttribute('transform');
+          const edge = group.querySelector('path.fsm-edge');
+          const d = finiteGlobalPath(group, to);
+          if (edge instanceof SVGPathElement && d !== '') {
+            edge.setAttribute('d', d);
+          }
+          updateLabelLeader(group, edge);
+          return;
+        }
         if (anchor === state) {
           group.setAttribute('transform', `translate(${item.dx} ${item.dy})`);
           updateLabelLeader(group, group.querySelector('path.fsm-edge'));
