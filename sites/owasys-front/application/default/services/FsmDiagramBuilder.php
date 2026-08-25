@@ -664,16 +664,24 @@ final class OwasysFsmDiagramBuilder
 
         $currentState = $initialState;
         $runtimeMemory = [];
+        $runtimeSessionKey = '';
         if ($hostContext) {
+            $runtimeSessionKey = $contextRegistry->sessionKey($efsmId);
+        } elseif ($applicationId === 'owasys-front') {
+            $runtimeSessionKey = match ($efsmId) {
+                'navigation' => OwasysNavigationRuntime::SESSION_KEY,
+                'security' => 'opus.fsm.owasys-front.security',
+                default => '',
+            };
+        }
+        if ($runtimeSessionKey !== '') {
             $runtime = FsmSiteLoader::processorForSiteRootEfsm(
                 $this->siteRoot,
                 $efsmId,
                 [],
                 $this->profiler
             );
-            (new FsmSessionStore(
-                $contextRegistry->sessionKey($efsmId)
-            ))->restore($runtime);
+            (new FsmSessionStore($runtimeSessionKey))->restore($runtime);
             $currentState = $runtime->currentState();
             $runtimeMemory = $runtime->memory();
         }

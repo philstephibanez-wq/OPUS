@@ -11,7 +11,6 @@ use Opus\Profiler\ProfilerInterface;
 final class OwasysContextRuntimeCoordinator implements
     OwasysContextRuntimeCoordinatorInterface
 {
-    private const NAVIGATION_SESSION_KEY = 'opus.fsm.owasys-front';
     private const NAVIGATION_FSM_ID = 'owasys-front/navigation';
 
     private readonly OwasysContextEfsmRegistry $registry;
@@ -38,21 +37,13 @@ final class OwasysContextRuntimeCoordinator implements
             );
         }
 
-        $navigation = FsmSiteLoader::processorForSiteRoot(
+        $expectedNavigationState = $this->registry->navigationState($contextId);
+        $navigationRuntime = new OwasysNavigationRuntime(
             $this->siteRoot,
-            [],
             $this->profiler,
             $this->parentSpanId
         );
-        $navigationStore = new FsmSessionStore(self::NAVIGATION_SESSION_KEY);
-        $navigationStore->restore($navigation);
-        $expectedNavigationState = $this->registry->navigationState($contextId);
-        if ($navigation->currentState() !== $expectedNavigationState) {
-            throw new RuntimeException(
-                'OWASYS_CONTEXT_RUNTIME_NAVIGATION_STATE_INVALID:'
-                . $contextId . ':' . $navigation->currentState()
-            );
-        }
+        $navigationRuntime->synchronize($expectedNavigationState);
 
         $contextFsm = FsmSiteLoader::processorForSiteRootEfsm(
             $this->siteRoot,
@@ -86,23 +77,7 @@ final class OwasysContextRuntimeCoordinator implements
                 return $transition;
             }
         );
-        $bus->register(
-            self::NAVIGATION_FSM_ID,
-            static function (array $message) use (
-                $navigation,
-                $navigationStore
-            ): array {
-                $transition = $navigation->transition(
-                    $navigation->currentState(),
-                    (string) ($message['signal'] ?? ''),
-                    is_array($message['context'] ?? null)
-                        ? $message['context']
-                        : []
-                );
-                $navigationStore->persist($navigation);
-                return $transition;
-            }
-        );
+        $navigationRuntime->register($bus);
 
         $roles = is_array($identity['roles'] ?? null)
             ? array_values(array_filter($identity['roles'], 'is_string'))
@@ -146,7 +121,7 @@ final class OwasysContextRuntimeCoordinator implements
         if ((string) ($eventMeta['correlation_id'] ?? '') !== $correlationId
             || (string) ($eventMeta['causation_id'] ?? '') !== $commandMessageId
             || $eventMessageId === ''
-            || $navigation->currentState() !== $expectedNavigationState) {
+            || $navigationRuntime->currentState() !== $expectedNavigationState) {
             throw new RuntimeException(
                 'OWASYS_CONTEXT_RUNTIME_HANDSHAKE_INVALID:' . $contextId
             );
@@ -156,7 +131,7 @@ final class OwasysContextRuntimeCoordinator implements
             'context.handshake',
             [
                 'context_id' => $contextId,
-                'navigation_state' => $navigation->currentState(),
+                'navigation_state' => $navigationRuntime->currentState(),
                 'context_state' => $contextFsm->currentState(),
                 'correlation_id' => $correlationId,
                 'command_message_id' => $commandMessageId,
@@ -167,7 +142,7 @@ final class OwasysContextRuntimeCoordinator implements
 
         return [
             'context_id' => $contextId,
-            'navigation_state' => $navigation->currentState(),
+            'navigation_state' => $navigationRuntime->currentState(),
             'context_state' => $contextFsm->currentState(),
             'correlation_id' => $correlationId,
             'command_message_id' => $commandMessageId,

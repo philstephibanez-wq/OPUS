@@ -63,6 +63,8 @@ $files = [
     'application/default/services/RuntimeSecurity.php',
     'application/default/services/LocaleRegistry.php',
     'application/default/services/ContextEfsmRegistry.php',
+    'application/default/services/NavigationRuntimeInterface.php',
+    'application/default/services/NavigationRuntime.php',
     'application/default/services/ContextRuntimeCoordinatorInterface.php',
     'application/default/services/ContextRuntimeCoordinator.php',
     'application/default/services/FsmDeveloperHandlers.php',

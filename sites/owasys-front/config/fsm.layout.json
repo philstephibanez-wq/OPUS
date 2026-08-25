@@ -74,421 +74,541 @@
             "path": "M188 217.66668701171875 C257 217.66668701171875, 257 171, 326 171",
             "label_x": 293.33,
             "label_y": 241.67,
-            "leader_path": "M257 76 L293.33 241.67"
+            "leader_path": "M257 194.33334350585938 L293.33 241.67"
         },
         "t_open_login": {
             "path": "",
             "label_x": 472,
             "label_y": 250.5,
-            "leader_path": "M416 230.5 L472 250.5"
+            "leader_path": "M416 204 L472 250.5"
         },
         "t_login_success": {
             "path": "M506 171 C536.5 171, 536.5 331, 567 331",
             "label_x": 493.83,
             "label_y": 295.17,
-            "leader_path": "M556 251 L493.83 295.17"
+            "leader_path": "M536.5 251 L493.83 295.17"
         },
         "t_login_failed": {
             "path": "",
             "label_x": 359,
             "label_y": 352.17,
-            "leader_path": "M416 262.5 L359 352.17"
+            "leader_path": "M416 204 L359 352.17"
         },
         "t_password_required": {
             "path": "M416 204 C416 339.33331298828125, 98 339.33331298828125, 98 474.6666259765625",
             "label_x": 126,
             "label_y": 294,
-            "leader_path": "M18 339.34 L126 294"
+            "leader_path": "M257.00006103515625 339.3332824707031 L126 294"
         },
         "t_password_changed": {
             "path": "M188 507.6666259765625 C377.5 507.6666259765625, 377.5 331, 567 331",
             "label_x": 357.33,
             "label_y": 537.17,
-            "leader_path": "M18 419.34 L357.33 537.17"
+            "leader_path": "M377.5000915527344 419.333251953125 L357.33 537.17"
         },
         "t_password_failed": {
             "path": "",
             "label_x": 99.33,
             "label_y": 592.83,
-            "leader_path": "M98 567.17 L99.33 592.83"
+            "leader_path": "M98 540.6700000000001 L99.33 592.83"
         },
         "t_select_app": {
             "path": "M657 364 C657 650, 1144 650, 1144 936",
-            "label_x": 693.43,
-            "label_y": 616.5,
-            "leader_path": "M18 650 L693.43 616.5"
+            "label_x": 847.18,
+            "label_y": 699,
+            "leader_path": "M900.5 650 L847.1832348632812 699.0017700195312"
         },
         "t_clear_context": {
             "path": "",
             "label_x": 654.33,
             "label_y": 522.67,
-            "leader_path": "M657 398 L654.33 522.67"
+            "leader_path": "M657 364 L654.33 522.67"
         },
         "t_create_app": {
             "path": "M747 331 C900.5 331, 900.5 127, 1054 127",
             "label_x": 891,
             "label_y": 174,
-            "leader_path": "M18 229 L891 174"
+            "leader_path": "M900.4999389648438 229.00010681152344 L891 174"
+        },
+        "t_delete_begin": {
+            "path": "",
+            "label_x": 657,
+            "label_y": 460,
+            "leader_path": "M657 364 L657 460"
         },
         "t_delete_app": {
             "path": "",
             "label_x": 829,
             "label_y": 451,
-            "leader_path": "M657 445 L829 451"
+            "leader_path": "M657 364 L829 451"
+        },
+        "t_registry_failed": {
+            "path": "",
+            "label_x": 657,
+            "label_y": 561.5,
+            "leader_path": "M657 364 L657 561.5"
         },
         "t_creation_basics_security": {
             "path": "M1144 160 C1144 189, 1144 189, 1144 218",
             "label_x": 856,
             "label_y": 262.5,
-            "leader_path": "M18 189 L856 262.5"
+            "leader_path": "M1144 189 L856 262.5"
         },
         "t_creation_basics_cancel": {
             "path": "M1054 127 C900.5 127, 900.5 331, 747 331",
             "label_x": 820,
             "label_y": 224.5,
-            "leader_path": "M18 229 L820 224.5"
+            "leader_path": "M900.5000610351562 228.9999542236328 L820 224.5"
         },
         "t_creation_security_basics": {
             "path": "M1144 218 C1144 189, 1144 189, 1144 160",
             "label_x": 1056,
             "label_y": 185.5,
-            "leader_path": "M18 189 L1056 185.5"
+            "leader_path": "M1144 189 L1056 185.5"
         },
         "t_creation_security_review": {
             "path": "M1144 284 C1144 328, 1144 328, 1144 372",
             "label_x": 1031,
             "label_y": 308.5,
-            "leader_path": "M18 328 L1031 308.5"
+            "leader_path": "M1144 328 L1031 308.5"
         },
         "t_creation_security_cancel": {
             "path": "M1054 251 C900.5 251, 900.5 331, 747 331",
             "label_x": 898,
             "label_y": 317.5,
-            "leader_path": "M18 291 L898 317.5"
+            "leader_path": "M900.5 291 L898 317.5"
         },
         "t_creation_review_security": {
             "path": "M1144 372 C1144 328, 1144 328, 1144 284",
             "label_x": 1037,
             "label_y": 346.5,
-            "leader_path": "M18 328 L1037 346.5"
+            "leader_path": "M1144 328 L1037 346.5"
         },
         "t_creation_begin": {
             "path": "M1144 438 C1144 483, 1143 483, 1143 528",
             "label_x": 905,
             "label_y": 509,
-            "leader_path": "M18 483 L905 509"
+            "leader_path": "M1143.5 483 L905 509"
         },
         "t_creation_created": {
             "path": "M1143 594 C1143 765, 1144 765, 1144 936",
             "label_x": 977,
             "label_y": 624.5,
-            "leader_path": "M18 765 L977 624.5"
+            "leader_path": "M1143.5 765 L977 624.5"
         },
         "t_creation_failed": {
             "path": "M1143 528 C1143 483, 1144 483, 1144 438",
             "label_x": 902,
             "label_y": 565,
-            "leader_path": "M18 483 L902 565"
+            "leader_path": "M1143.5 483 L902 565"
         },
         "t_creation_review_cancel": {
             "path": "M1054 405 C900.5 405, 900.5 331, 747 331",
             "label_x": 818,
             "label_y": 398,
-            "leader_path": "M18 368 L818 398"
+            "leader_path": "M900.5 368 L818 398"
         },
         "t_source_file": {
             "path": "",
             "label_x": 490,
             "label_y": 1063.5,
-            "leader_path": "M481 1230.5 L490 1063.5"
+            "leader_path": "M481 1189 L490 1063.5"
+        },
+        "t_source_locale": {
+            "path": "",
+            "label_x": 481,
+            "label_y": 1292.5,
+            "leader_path": "M481 1189 L481 1292.5"
         },
         "t_source_preview_requested": {
             "path": "",
             "label_x": 485,
             "label_y": 955,
-            "leader_path": "M481 1285 L485 955"
+            "leader_path": "M481 1189 L485 955"
         },
         "t_source_previewed": {
             "path": "",
             "label_x": 483,
             "label_y": 1003,
-            "leader_path": "M481 1332 L483 1003"
+            "leader_path": "M481 1189 L483 1003"
+        },
+        "t_source_write_requested": {
+            "path": "",
+            "label_x": 481,
+            "label_y": 1441,
+            "leader_path": "M481 1189 L481 1441"
+        },
+        "t_source_written": {
+            "path": "",
+            "label_x": 481,
+            "label_y": 1488,
+            "leader_path": "M481 1189 L481 1488"
+        },
+        "t_source_conflict": {
+            "path": "",
+            "label_x": 481,
+            "label_y": 1535,
+            "leader_path": "M481 1189 L481 1535"
+        },
+        "t_source_action_failed": {
+            "path": "",
+            "label_x": 481,
+            "label_y": 1582,
+            "leader_path": "M481 1189 L481 1582"
+        },
+        "t_git_stage_requested": {
+            "path": "",
+            "label_x": 481,
+            "label_y": 1636.5,
+            "leader_path": "M481 1189 L481 1636.5"
+        },
+        "t_git_staged": {
+            "path": "",
+            "label_x": 481,
+            "label_y": 1691,
+            "leader_path": "M481 1189 L481 1691"
+        },
+        "t_git_unstage_requested": {
+            "path": "",
+            "label_x": 481,
+            "label_y": 1745.5,
+            "leader_path": "M481 1189 L481 1745.5"
+        },
+        "t_git_unstaged": {
+            "path": "",
+            "label_x": 481,
+            "label_y": 1800,
+            "leader_path": "M481 1189 L481 1800"
+        },
+        "t_git_commit_requested": {
+            "path": "",
+            "label_x": 481,
+            "label_y": 1854.5,
+            "leader_path": "M481 1189 L481 1854.5"
+        },
+        "t_git_committed": {
+            "path": "",
+            "label_x": 481,
+            "label_y": 1909,
+            "leader_path": "M481 1189 L481 1909"
+        },
+        "t_git_restore_requested": {
+            "path": "",
+            "label_x": 481,
+            "label_y": 1963.5,
+            "leader_path": "M481 1189 L481 1963.5"
+        },
+        "t_git_restored": {
+            "path": "",
+            "label_x": 481,
+            "label_y": 2018,
+            "leader_path": "M481 1189 L481 2018"
+        },
+        "t_git_action_failed": {
+            "path": "",
+            "label_x": 481,
+            "label_y": 2065,
+            "leader_path": "M481 1189 L481 2065"
+        },
+        "t_source_profiler_open": {
+            "path": "",
+            "label_x": 481,
+            "label_y": 2119.5,
+            "leader_path": "M481 1189 L481 2119.5"
+        },
+        "t_source_profiler_close": {
+            "path": "",
+            "label_x": 481,
+            "label_y": 2181.5,
+            "leader_path": "M481 1189 L481 2181.5"
         },
         "g_open_applications": {
             "path": "",
-            "label_x": 657,
-            "label_y": 16,
-            "leader_path": ""
+            "label_x": 662,
+            "label_y": 90,
+            "leader_path": "M657 298 L662.0001220703125 90"
         },
         "g_open_account": {
             "path": "M1047 1105 C1047 1112, 1047 1112, 1047 1119",
             "label_x": 1047,
             "label_y": 1092.5,
-            "leader_path": ""
+            "leader_path": "M1047 1112 L1047 1092.5"
         },
         "g_open_password_change": {
             "path": "M98 460.67 C98 467.67, 98 467.67, 98 474.67",
             "label_x": 98,
             "label_y": 448.17,
-            "leader_path": ""
+            "leader_path": "M98 467.6700134277344 L98 448.17"
         },
         "g_open_creation": {
             "path": "",
             "label_x": 1144,
             "label_y": 5.5,
-            "leader_path": ""
+            "leader_path": "M1144 94 L1144 5.5"
         },
         "g_change_app": {
             "path": "",
-            "label_x": 657,
-            "label_y": 63,
-            "leader_path": ""
+            "label_x": 650.75,
+            "label_y": 394.26,
+            "leader_path": "M657 298 L650.7498779296875 394.25706481933594"
         },
         "g_open_application": {
             "path": "",
             "label_x": 1144,
             "label_y": 663.5,
-            "leader_path": ""
+            "leader_path": "M1144 936 L1144 663.5"
         },
         "g_open_data": {
             "path": "",
             "label_x": 858,
             "label_y": 771.5,
-            "leader_path": ""
+            "leader_path": "M859 1118 L858 771.5"
         },
         "g_open_structure": {
             "path": "",
             "label_x": 98,
             "label_y": 777.5,
-            "leader_path": ""
+            "leader_path": "M98 1127 L98 777.5"
         },
         "g_open_security": {
             "path": "",
             "label_x": 288,
             "label_y": 774.5,
-            "leader_path": ""
+            "leader_path": "M288 1124 L288 774.5"
         },
         "g_open_source": {
             "path": "",
             "label_x": 484,
             "label_y": 593.5,
-            "leader_path": "M481 773.5 L484 593.5"
+            "leader_path": "M481 1123 L484 593.5"
         },
         "g_open_build": {
             "path": "",
             "label_x": 669,
             "label_y": 697.5,
-            "leader_path": ""
+            "leader_path": "M671 1123 L669 697.5"
         },
         "g_logout": {
             "path": "M416 124 C416 131, 416 131, 416 138",
-            "label_x": 424.33,
+            "label_x": 416.83,
             "label_y": 90,
-            "leader_path": ""
+            "leader_path": "M416 131 L416.82984741210936 90"
+        },
+        "t_auth_required": {
+            "path": "M48 92 C48 115, 416 115, 416 138",
+            "label_x": 71.28,
+            "label_y": 145,
+            "leader_path": "M231.9999237060547 114.99999237060547 L71.275 145.0006332397461"
         },
         "g_create_application": {
             "path": "M1144 80 C1144 87, 1144 87, 1144 94",
             "label_x": 888,
             "label_y": 102.5,
-            "leader_path": "M1144 52.5 L888 102.5"
+            "leader_path": "M1144 87 L888 102.5"
         },
         "g_list_applications": {
             "path": "",
             "label_x": 657,
             "label_y": 117.5,
-            "leader_path": ""
+            "leader_path": "M657 298 L657 117.5"
         },
         "g_update_application": {
             "path": "",
             "label_x": 1144,
             "label_y": 733,
-            "leader_path": ""
+            "leader_path": "M1144 936 L1144 733"
         },
         "g_delete_application": {
             "path": "",
             "label_x": 657,
             "label_y": 179.5,
-            "leader_path": ""
+            "leader_path": "M657 298 L657 179.5"
         },
         "g_read_current_application": {
             "path": "",
             "label_x": 1144,
             "label_y": 810,
-            "leader_path": ""
+            "leader_path": "M1144 936 L1144 810"
         },
         "g_update_current_application": {
             "path": "M1144 922 C1144 929, 1144 929, 1144 936",
             "label_x": 1144,
             "label_y": 887,
-            "leader_path": ""
+            "leader_path": "M1144 929 L1144 887"
         },
         "g_delete_current_application": {
             "path": "M657 284 C657 291, 657 291, 657 298",
             "label_x": 657,
             "label_y": 249,
-            "leader_path": ""
+            "leader_path": "M657 291 L657 249"
         },
         "g_create_data": {
             "path": "",
             "label_x": 858,
             "label_y": 841,
-            "leader_path": ""
+            "leader_path": "M859 1118 L858 841"
         },
         "g_read_data": {
             "path": "",
             "label_x": 858,
             "label_y": 918,
-            "leader_path": ""
+            "leader_path": "M859 1118 L858 918"
         },
         "g_update_data": {
             "path": "",
             "label_x": 858,
             "label_y": 995,
-            "leader_path": ""
+            "leader_path": "M859 1118 L858 995"
         },
         "g_delete_data": {
             "path": "M859 1104 C859 1111, 859 1111, 859 1118",
             "label_x": 858,
             "label_y": 1072,
-            "leader_path": ""
+            "leader_path": "M859 1111 L858 1072"
         },
         "g_create_structure": {
             "path": "",
             "label_x": 98,
             "label_y": 847,
-            "leader_path": ""
+            "leader_path": "M98 1127 L98 847"
         },
         "g_read_structure": {
             "path": "",
             "label_x": 98,
             "label_y": 924,
-            "leader_path": ""
+            "leader_path": "M98 1127 L98 924"
         },
         "g_update_structure": {
             "path": "",
             "label_x": 98,
             "label_y": 1001,
-            "leader_path": ""
+            "leader_path": "M98 1127 L98 1001"
         },
         "g_delete_structure": {
             "path": "M98 1113 C98 1120, 98 1120, 98 1127",
             "label_x": 98,
             "label_y": 1078,
-            "leader_path": ""
+            "leader_path": "M98 1120 L98 1078"
         },
         "g_create_security": {
             "path": "",
             "label_x": 288,
             "label_y": 844,
-            "leader_path": ""
+            "leader_path": "M288 1124 L288 844"
         },
         "g_read_security": {
             "path": "",
             "label_x": 288,
             "label_y": 921,
-            "leader_path": ""
+            "leader_path": "M288 1124 L288 921"
         },
         "g_update_security": {
             "path": "",
             "label_x": 288,
             "label_y": 998,
-            "leader_path": ""
+            "leader_path": "M288 1124 L288 998"
         },
         "g_delete_security": {
             "path": "M288 1110 C288 1117, 288 1117, 288 1124",
             "label_x": 288,
             "label_y": 1075,
-            "leader_path": ""
+            "leader_path": "M288 1117 L288 1075"
         },
         "g_create_source": {
             "path": "",
             "label_x": 485,
             "label_y": 668,
-            "leader_path": "M481 843 L485 668"
+            "leader_path": "M481 1123 L485 668"
         },
         "g_read_source": {
             "path": "",
             "label_x": 483,
             "label_y": 744,
-            "leader_path": "M481 920 L483 744"
+            "leader_path": "M481 1123 L483 744"
         },
         "g_update_source": {
             "path": "",
             "label_x": 485,
             "label_y": 821,
-            "leader_path": "M481 997 L485 821"
+            "leader_path": "M481 1123 L485 821"
         },
         "g_delete_source": {
             "path": "M481 1109 C481 1116, 481 1116, 481 1123",
             "label_x": 485,
             "label_y": 896,
-            "leader_path": "M481 1074 L485 896"
+            "leader_path": "M481 1116 L485 896"
         },
         "g_read_build": {
             "path": "",
             "label_x": 671,
             "label_y": 766,
-            "leader_path": ""
+            "leader_path": "M671 1123 L671 766"
         },
         "g_update_build": {
             "path": "",
             "label_x": 671,
             "label_y": 843,
-            "leader_path": ""
+            "leader_path": "M671 1123 L671 843"
         },
         "g_validate_build": {
             "path": "",
             "label_x": 671,
             "label_y": 920,
-            "leader_path": ""
+            "leader_path": "M671 1123 L671 920"
         },
         "g_run_build": {
             "path": "",
             "label_x": 671,
             "label_y": 997,
-            "leader_path": ""
+            "leader_path": "M671 1123 L671 997"
         },
         "g_export_build": {
             "path": "M671 1109 C671 1116, 671 1116, 671 1123",
             "label_x": 671,
             "label_y": 1074,
-            "leader_path": ""
+            "leader_path": "M671 1116 L671 1074"
         },
         "t_security_context_ready": {
             "path": "",
             "label_x": 288,
             "label_y": 1216.5,
-            "leader_path": ""
+            "leader_path": "M288 1190 L288 1216.5"
         },
         "t_registry_context_ready": {
             "path": "",
             "label_x": 657,
             "label_y": 593.5,
-            "leader_path": "M657 484.5 L657 593.5"
+            "leader_path": "M657 364 L657 593.5"
         },
         "t_application_context_ready": {
             "path": "",
             "label_x": 1144,
             "label_y": 1028.5,
-            "leader_path": ""
+            "leader_path": "M1144 1002 L1144 1028.5"
         },
         "t_data_context_ready": {
             "path": "",
             "label_x": 859,
             "label_y": 1210.5,
-            "leader_path": ""
+            "leader_path": "M859 1184 L859 1210.5"
         },
         "t_source_context_ready": {
             "path": "",
             "label_x": 481,
             "label_y": 2228.5,
-            "leader_path": "M481 1371.5 L481 2228.5"
+            "leader_path": "M481 1189 L481 2228.5"
+        },
+        "t_git_context_ready": {
+            "path": "",
+            "label_x": 481,
+            "label_y": 2260.5,
+            "leader_path": "M481 1189 L481 2260.5"
         },
         "t_build_context_ready": {
             "path": "",
             "label_x": 671,
             "label_y": 1215.5,
-            "leader_path": ""
+            "leader_path": "M671 1189 L671 1215.5"
         }
     },
     "markers": []

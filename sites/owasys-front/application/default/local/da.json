@@ -21,7 +21,7 @@
         "menu.login": "Log ind",
         "menu.security": "Sikkerhed",
         "menu.source": "Kildekode og Git",
-        "menu.structure": "Struktur",
+        "menu.structure": "Navigation",
         "menu.workflows": "Arbejdsgange",
         "module.pending": "Dette modul findes i OWASYS-skelettet, men er endnu ikke implementeret.",
         "navigation.main": "Hovednavigation",

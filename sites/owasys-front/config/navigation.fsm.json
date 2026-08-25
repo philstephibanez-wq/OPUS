@@ -1,0 +1,251 @@
+{
+    "contract": "OWASYS_HOST_CONTEXT_FSM_V1",
+    "name": "owasys-front.navigation",
+    "site_id": "owasys-front",
+    "efsm_id": "navigation",
+    "initial_state": "registry",
+    "signals": [
+        {
+            "id": "open_applications",
+            "origin": "user",
+            "type": "navigation"
+        },
+        {
+            "id": "open_application",
+            "origin": "user",
+            "type": "navigation"
+        },
+        {
+            "id": "open_data",
+            "origin": "user",
+            "type": "navigation"
+        },
+        {
+            "id": "open_navigation",
+            "origin": "user",
+            "type": "navigation"
+        },
+        {
+            "id": "open_security",
+            "origin": "user",
+            "type": "navigation"
+        },
+        {
+            "id": "open_source",
+            "origin": "user",
+            "type": "navigation"
+        },
+        {
+            "id": "open_build",
+            "origin": "user",
+            "type": "navigation"
+        },
+        {
+            "id": "registry_context_ready",
+            "origin": "automatic",
+            "type": "event"
+        },
+        {
+            "id": "application_context_ready",
+            "origin": "automatic",
+            "type": "event"
+        },
+        {
+            "id": "data_context_ready",
+            "origin": "automatic",
+            "type": "event"
+        },
+        {
+            "id": "security_context_ready",
+            "origin": "automatic",
+            "type": "event"
+        },
+        {
+            "id": "source_context_ready",
+            "origin": "automatic",
+            "type": "event"
+        },
+        {
+            "id": "git_context_ready",
+            "origin": "automatic",
+            "type": "event"
+        },
+        {
+            "id": "build_context_ready",
+            "origin": "automatic",
+            "type": "event"
+        }
+    ],
+    "states": [
+        {
+            "id": "registry"
+        },
+        {
+            "id": "application"
+        },
+        {
+            "id": "data"
+        },
+        {
+            "id": "navigation"
+        },
+        {
+            "id": "security"
+        },
+        {
+            "id": "source"
+        },
+        {
+            "id": "build"
+        }
+    ],
+    "transitions": [
+        {
+            "id": "navigation.open.registry",
+            "scope": "global",
+            "from_states": [
+                "registry",
+                "application",
+                "data",
+                "navigation",
+                "security",
+                "source",
+                "build"
+            ],
+            "signal": "open_applications",
+            "next_state": "registry"
+        },
+        {
+            "id": "navigation.open.application",
+            "scope": "global",
+            "from_states": [
+                "registry",
+                "application",
+                "data",
+                "navigation",
+                "security",
+                "source",
+                "build"
+            ],
+            "signal": "open_application",
+            "next_state": "application"
+        },
+        {
+            "id": "navigation.open.data",
+            "scope": "global",
+            "from_states": [
+                "registry",
+                "application",
+                "data",
+                "navigation",
+                "security",
+                "source",
+                "build"
+            ],
+            "signal": "open_data",
+            "next_state": "data"
+        },
+        {
+            "id": "navigation.open.navigation",
+            "scope": "global",
+            "from_states": [
+                "registry",
+                "application",
+                "data",
+                "navigation",
+                "security",
+                "source",
+                "build"
+            ],
+            "signal": "open_navigation",
+            "next_state": "navigation"
+        },
+        {
+            "id": "navigation.open.security",
+            "scope": "global",
+            "from_states": [
+                "registry",
+                "application",
+                "data",
+                "navigation",
+                "security",
+                "source",
+                "build"
+            ],
+            "signal": "open_security",
+            "next_state": "security"
+        },
+        {
+            "id": "navigation.open.source",
+            "scope": "global",
+            "from_states": [
+                "registry",
+                "application",
+                "data",
+                "navigation",
+                "security",
+                "source",
+                "build"
+            ],
+            "signal": "open_source",
+            "next_state": "source"
+        },
+        {
+            "id": "navigation.open.build",
+            "scope": "global",
+            "from_states": [
+                "registry",
+                "application",
+                "data",
+                "navigation",
+                "security",
+                "source",
+                "build"
+            ],
+            "signal": "open_build",
+            "next_state": "build"
+        },
+        {
+            "id": "navigation.context.registry.ready",
+            "from": "registry",
+            "signal": "registry_context_ready",
+            "next_state": "registry"
+        },
+        {
+            "id": "navigation.context.application.ready",
+            "from": "application",
+            "signal": "application_context_ready",
+            "next_state": "application"
+        },
+        {
+            "id": "navigation.context.data.ready",
+            "from": "data",
+            "signal": "data_context_ready",
+            "next_state": "data"
+        },
+        {
+            "id": "navigation.context.security.ready",
+            "from": "security",
+            "signal": "security_context_ready",
+            "next_state": "security"
+        },
+        {
+            "id": "navigation.context.source.ready",
+            "from": "source",
+            "signal": "source_context_ready",
+            "next_state": "source"
+        },
+        {
+            "id": "navigation.context.git.ready",
+            "from": "source",
+            "signal": "git_context_ready",
+            "next_state": "source"
+        },
+        {
+            "id": "navigation.context.build.ready",
+            "from": "build",
+            "signal": "build_context_ready",
+            "next_state": "build"
+        }
+    ]
+}

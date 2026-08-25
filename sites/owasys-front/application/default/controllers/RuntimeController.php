@@ -960,6 +960,14 @@ final class OwasysRuntimeController
             }
         }
 
+        if (is_array($identity) && $module === 'structure') {
+            (new OwasysNavigationRuntime(
+                $this->siteRoot,
+                $this->profiler,
+                $this->parentSpanId
+            ))->synchronize('structure');
+        }
+
         if (is_array($identity)
             && in_array($module, ['registry', 'application', 'data', 'build'], true)) {
             (new OwasysContextRuntimeCoordinator(

@@ -260,7 +260,7 @@
         "unicode_normalization": "NFC"
     },
     "efsms": {
-        "navigation": "config/fsm.json",
+        "navigation": "config/navigation.fsm.json",
         "security": "config/security.fsm.json",
         "registry": "config/registry.fsm.json",
         "application": "config/application.fsm.json",

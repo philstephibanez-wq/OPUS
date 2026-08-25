@@ -11,7 +11,6 @@ use Opus\Profiler\ProfilerInterface;
 /** Coordinates Navigation/Security without either EFSM mutating the other directly. */
 final class OwasysSecurityRuntimeCoordinator implements OwasysSecurityRuntimeCoordinatorInterface
 {
-    private const NAVIGATION_SESSION_KEY = 'opus.fsm.owasys-front';
     private const SECURITY_SESSION_KEY = 'opus.fsm.owasys-front.security';
     private const NAVIGATION_FSM_ID = 'owasys-front/navigation';
     private const SECURITY_FSM_ID = 'owasys-front/security';
@@ -32,20 +31,12 @@ final class OwasysSecurityRuntimeCoordinator implements OwasysSecurityRuntimeCoo
             throw new RuntimeException('OWASYS_SECURITY_RUNTIME_APPLICATION_INVALID');
         }
 
-        $navigationFsm = FsmSiteLoader::processorForSiteRoot(
+        $navigationRuntime = new OwasysNavigationRuntime(
             $this->siteRoot,
-            [],
             $this->profiler,
             $this->parentSpanId
         );
-        $navigationStore = new FsmSessionStore(self::NAVIGATION_SESSION_KEY);
-        $navigationStore->restore($navigationFsm);
-        if ($navigationFsm->currentState() !== 'security') {
-            throw new RuntimeException(
-                'OWASYS_SECURITY_RUNTIME_NAVIGATION_STATE_INVALID:'
-                . $navigationFsm->currentState()
-            );
-        }
+        $navigationRuntime->synchronize('security');
 
         $securityFsm = FsmSiteLoader::processorForSiteRootEfsm(
             $this->siteRoot,
@@ -82,26 +73,7 @@ final class OwasysSecurityRuntimeCoordinator implements OwasysSecurityRuntimeCoo
                 return $result;
             }
         );
-        $bus->register(
-            self::NAVIGATION_FSM_ID,
-            static function (array $message) use (
-                $navigationFsm,
-                $navigationStore,
-                $context
-            ): array {
-                $result = $navigationFsm->transition(
-                    $navigationFsm->currentState(),
-                    (string) ($message['signal'] ?? ''),
-                    [
-                        'security_context' => $context->snapshot(),
-                        'message_id' => (string) ($message['message_id'] ?? ''),
-                        'correlation_id' => (string) ($message['correlation_id'] ?? ''),
-                    ]
-                );
-                $navigationStore->persist($navigationFsm);
-                return $result;
-            }
-        );
+        $navigationRuntime->register($bus);
 
         $command = $bus->command(
             self::NAVIGATION_FSM_ID,
@@ -141,7 +113,7 @@ final class OwasysSecurityRuntimeCoordinator implements OwasysSecurityRuntimeCoo
         if ((string) ($eventMeta['correlation_id'] ?? '') !== $correlationId
             || (string) ($eventMeta['causation_id'] ?? '') !== $commandMessageId
             || $eventMessageId === ''
-            || $navigationFsm->currentState() !== 'security'
+            || $navigationRuntime->currentState() !== 'security'
             || $securityFsm->currentState() !== 'authenticated') {
             throw new RuntimeException('OWASYS_SECURITY_CONTEXT_HANDSHAKE_INVALID');
         }
@@ -151,7 +123,7 @@ final class OwasysSecurityRuntimeCoordinator implements OwasysSecurityRuntimeCoo
                 'fsm.network',
                 'security_context.handshake',
                 [
-                    'navigation_state' => $navigationFsm->currentState(),
+                    'navigation_state' => $navigationRuntime->currentState(),
                     'security_state' => $securityFsm->currentState(),
                     'correlation_id' => $correlationId,
                     'command_message_id' => $commandMessageId,
@@ -165,7 +137,7 @@ final class OwasysSecurityRuntimeCoordinator implements OwasysSecurityRuntimeCoo
         }
 
         return [
-            'navigation_state' => $navigationFsm->currentState(),
+            'navigation_state' => $navigationRuntime->currentState(),
             'security_state' => $securityFsm->currentState(),
             'correlation_id' => $correlationId,
             'command_message_id' => $commandMessageId,
@@ -193,22 +165,12 @@ final class OwasysSecurityRuntimeCoordinator implements OwasysSecurityRuntimeCoo
             );
         }
 
-        $navigationFsm = FsmSiteLoader::processorForSiteRoot(
+        $navigationRuntime = new OwasysNavigationRuntime(
             $this->siteRoot,
-            [],
             $this->profiler,
             $this->parentSpanId
         );
-        $navigationStore = new FsmSessionStore(
-            self::NAVIGATION_SESSION_KEY
-        );
-        $navigationStore->restore($navigationFsm);
-        if ($navigationFsm->currentState() !== 'security') {
-            throw new RuntimeException(
-                'OWASYS_SECURITY_REAUTH_NAVIGATION_STATE_INVALID:'
-                . $navigationFsm->currentState()
-            );
-        }
+        $navigationRuntime->synchronize('security');
 
         $securityFsm = FsmSiteLoader::processorForSiteRootEfsm(
             $this->siteRoot,
@@ -258,7 +220,7 @@ final class OwasysSecurityRuntimeCoordinator implements OwasysSecurityRuntimeCoo
                 'security_context.reauthentication.required',
                 [
                     'application_id' => $applicationId,
-                    'navigation_state' => $navigationFsm->currentState(),
+                    'navigation_state' => $navigationRuntime->currentState(),
                     'security_state' => $securityState,
                 ],
                 'success',
@@ -281,7 +243,7 @@ final class OwasysSecurityRuntimeCoordinator implements OwasysSecurityRuntimeCoo
             );
             $securityState = (string) ($failed['next_state'] ?? '');
             if ($securityState !== 'authenticated'
-                || $navigationFsm->currentState() !== 'security') {
+                || $navigationRuntime->currentState() !== 'security') {
                 throw new RuntimeException(
                     'OWASYS_SECURITY_REAUTH_FAILURE_STATE_INVALID',
                     0,
@@ -296,7 +258,7 @@ final class OwasysSecurityRuntimeCoordinator implements OwasysSecurityRuntimeCoo
                     'security_context.reauthentication.failed',
                     [
                         'application_id' => $applicationId,
-                        'navigation_state' => $navigationFsm->currentState(),
+                        'navigation_state' => $navigationRuntime->currentState(),
                         'security_state' => $securityState,
                         'exception_class' => get_class($error),
                     ],
@@ -318,7 +280,7 @@ final class OwasysSecurityRuntimeCoordinator implements OwasysSecurityRuntimeCoo
         );
         $securityState = (string) ($succeeded['next_state'] ?? '');
         if ($securityState !== 'authenticated'
-            || $navigationFsm->currentState() !== 'security') {
+            || $navigationRuntime->currentState() !== 'security') {
             throw new RuntimeException(
                 'OWASYS_SECURITY_REAUTH_SUCCESS_STATE_INVALID'
             );
@@ -331,7 +293,7 @@ final class OwasysSecurityRuntimeCoordinator implements OwasysSecurityRuntimeCoo
                 'security_context.reauthentication.succeeded',
                 [
                     'application_id' => $applicationId,
-                    'navigation_state' => $navigationFsm->currentState(),
+                    'navigation_state' => $navigationRuntime->currentState(),
                     'security_state' => $securityState,
                 ],
                 'success',

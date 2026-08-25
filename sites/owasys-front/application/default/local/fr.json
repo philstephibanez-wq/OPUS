@@ -21,7 +21,7 @@
         "menu.login": "Connexion",
         "menu.security": "Sécurité",
         "menu.source": "Sources et Git",
-        "menu.structure": "Structure",
+        "menu.structure": "Navigation",
         "menu.workflows": "Workflows",
         "module.pending": "Ce module existe dans le squelette OWASYS mais n’est pas encore implémenté.",
         "navigation.main": "Navigation principale",
