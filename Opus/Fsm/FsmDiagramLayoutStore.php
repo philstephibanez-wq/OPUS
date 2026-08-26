@@ -15,9 +15,8 @@ use RuntimeException;
  * Contract:
  * - the canonical FSM definition remains the sole semantic source of truth;
  * - persisted layout stores only presentation geometry and canvas metadata;
- * - V4 persists state coordinates and independently movable signal-card
- *   coordinates; the initial pseudo-state marker remains supported only for
- *   legacy FSM definitions without a canonical entry state;
+ * - V4 persists state coordinates, independently movable signal-card
+ *   coordinates and non-semantic diagram-marker coordinates;
  * - canonical entry-state FSMs persist `begin` through ordinary state geometry
  *   and never duplicate it as presentation-marker semantics;
  * - when no layout exists, OPUS persists the computed automatic layout in DEV;
@@ -848,9 +847,31 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
     /** @param array<string,mixed> $definition @return array<string,true> */
     private function definitionMarkerSet(array $definition): array
     {
+        $markers = [];
+        $finiteSourceSets = [];
+        foreach ((array) ($definition['transitions'] ?? []) as $transition) {
+            if (!is_array($transition)
+                || trim((string) ($transition['scope'] ?? '')) !== 'global') {
+                continue;
+            }
+            $states = array_values(array_filter(
+                (array) ($transition['from_states'] ?? []),
+                'is_string'
+            ));
+            if ($states === []) {
+                continue;
+            }
+            $key = implode("\0", $states);
+            $finiteSourceSets[$key] = true;
+        }
+        foreach (array_keys($finiteSourceSets) as $key) {
+            $markers['finite-global-source-'
+                . substr(hash('sha256', $key), 0, 16)] = true;
+        }
+
         $initial = trim((string) ($definition['initial_state'] ?? ''));
         if ($initial === '') {
-            return [];
+            return $markers;
         }
 
         foreach ((array) ($definition['states'] ?? []) as $state) {
@@ -859,13 +880,16 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
                 continue;
             }
             if (trim((string) ($state['type'] ?? '')) === 'entry') {
-                return [];
+                return $markers;
             }
             break;
         }
 
         $states = $this->definitionStateSet($definition);
-        return isset($states[$initial]) ? ['initial' => true] : [];
+        if (isset($states[$initial])) {
+            $markers['initial'] = true;
+        }
+        return $markers;
     }
 
     /** @param array<string,mixed> $definition @return array<string,true> */

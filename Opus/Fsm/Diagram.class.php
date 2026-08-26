@@ -789,14 +789,17 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     public function setPersistedMarkerGeometry(array $geometry): void
     {
         $normalized = [];
-        $initial = $geometry['initial'] ?? null;
-        if (is_array($initial)
-            && is_numeric($initial['x'] ?? null)
-            && is_numeric($initial['y'] ?? null)) {
-            $x = (float) $initial['x'];
-            $y = (float) $initial['y'];
+        foreach ($geometry as $id => $marker) {
+            if (!is_string($id)
+                || !is_array($marker)
+                || !is_numeric($marker['x'] ?? null)
+                || !is_numeric($marker['y'] ?? null)) {
+                continue;
+            }
+            $x = (float) $marker['x'];
+            $y = (float) $marker['y'];
             if (is_finite($x) && is_finite($y) && $x >= 0.0 && $y >= 0.0) {
-                $normalized['initial'] = ['x' => $x, 'y' => $y];
+                $normalized[$id] = ['x' => $x, 'y' => $y];
             }
         }
         $this->_persistedMarkerGeometry = $normalized;
@@ -2130,6 +2133,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             );
             $transition['diagram_source_x'] = $sourcePort['x'];
             $transition['diagram_source_y'] = $sourcePort['y'];
+            $transition['diagram_source_marker'] = $sourcePort['marker_id'];
             $targetX = $toPos['x'] + $toPos['w'] / 2;
             $targetY = $toPos['y'] + $toPos['h'];
             $middleY = ($sourcePort['y'] + $targetY) / 2;
@@ -3326,6 +3330,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             : '';
         $sourceX = $transition['diagram_source_x'] ?? null;
         $sourceY = $transition['diagram_source_y'] ?? null;
+        $sourceMarker = trim((string) (
+            $transition['diagram_source_marker'] ?? ''
+        ));
         $finiteSource = $scope === 'global'
             && is_numeric($sourceX)
             && is_numeric($sourceY);
@@ -3338,6 +3345,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 ? ' data-finite-source-x="' . self::n((float) $sourceX)
                     . '" data-finite-source-y="'
                     . self::n((float) $sourceY) . '"'
+                    . ' data-finite-source-marker="'
+                    . self::h($sourceMarker) . '"'
                 : '');
     }
 
@@ -3918,11 +3927,13 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $path = $this->initialMarkerPath($cx, $cy, $target);
         $writable = (($this->_layoutPersistence['writable'] ?? false) === true);
 
-        return '<g class="fsm-initial-marker" aria-label="initial"'
+        return '<g class="fsm-diagram-marker fsm-initial-marker"'
+            . ' data-marker-kind="initial" aria-label="initial"'
             . ' data-marker-id="initial"'
             . ' data-anchor-state="' . self::h($this->_initialState) . '"'
             . ' data-marker-x="' . self::n($cx) . '"'
             . ' data-marker-y="' . self::n($cy) . '"'
+            . ' data-marker-w="18" data-marker-h="18"'
             . ' data-layout-marker-draggable="' . ($writable ? '1' : '0') . '">'
             . '<circle cx="' . self::n($cx)
             . '" cy="' . self::n($cy)
@@ -4042,6 +4053,13 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         return array_values($groups);
     }
 
+    /** @param list<string> $states */
+    private static function finiteGlobalSourceMarkerId(array $states): string
+    {
+        return 'finite-global-source-'
+            . substr(hash('sha256', implode("\0", $states)), 0, 16);
+    }
+
     /**
      * @param array<string,array{x:float,y:float,w:float,h:float,rank:int}> $positions
      * @return array{x:float,y:float,width:float}
@@ -4068,9 +4086,15 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             : strlen($stateLabel);
         $width = min(520.0, max(240.0, 30.0 + $length * 6.1));
 
+        $markerId = self::finiteGlobalSourceMarkerId($states);
+        $persisted = $this->_persistedMarkerGeometry[$markerId] ?? null;
         return [
-            'x' => ($minX + $maxX) / 2,
-            'y' => $maxBottom + 100.0 + $groupOrdinal * 70.0,
+            'x' => is_array($persisted)
+                ? (float) $persisted['x']
+                : ($minX + $maxX) / 2,
+            'y' => is_array($persisted)
+                ? (float) $persisted['y']
+                : $maxBottom + 100.0 + $groupOrdinal * 70.0,
             'width' => $width,
         ];
     }
@@ -4078,7 +4102,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     /**
      * @param array<string,mixed> $transition
      * @param array<string,array{x:float,y:float,w:float,h:float,rank:int}> $positions
-     * @return array{x:float,y:float}
+     * @return array{x:float,y:float,marker_id:string}
      */
     private function finiteGlobalSourcePort(
         array $transition,
@@ -4097,6 +4121,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $groupOrdinal,
                 $states
             );
+            $markerId = self::finiteGlobalSourceMarkerId($states);
             $transitionId = (string) ($transition['id'] ?? '');
             $ordinal = array_search(
                 $transitionId,
@@ -4112,6 +4137,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 'x' => $point['x']
                     + ($ordinal - (($total - 1) / 2)) * $spread,
                 'y' => $point['y'] - 22.0,
+                'marker_id' => $markerId,
             ];
         }
 
@@ -4133,8 +4159,23 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                 $ordinal,
                 $group['states']
             );
+            $markerId = self::finiteGlobalSourceMarkerId($group['states']);
+            $this->_renderedMarkerGeometry[$markerId] = [
+                'x' => $point['x'],
+                'y' => $point['y'],
+            ];
+            $writable = (($this->_layoutPersistence['writable'] ?? false)
+                === true);
             $stateLabel = '{' . implode(', ', $group['states']) . '}';
-            $svg .= '<g class="fsm-finite-global-source"'
+            $svg .= '<g class="fsm-diagram-marker fsm-finite-global-source"'
+                . ' data-marker-kind="finite-global-source"'
+                . ' data-marker-id="' . self::h($markerId) . '"'
+                . ' data-marker-x="' . self::n($point['x']) . '"'
+                . ' data-marker-y="' . self::n($point['y']) . '"'
+                . ' data-marker-w="' . self::n($point['width']) . '"'
+                . ' data-marker-h="44"'
+                . ' data-layout-marker-draggable="'
+                . ($writable ? '1' : '0') . '"'
                 . ' data-finite-source-count="'
                 . count($group['states']) . '">'
                 . '<rect x="' . self::n($point['x'] - $point['width'] / 2)
@@ -4345,7 +4386,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
 
   const markers = new Map();
   svg.querySelectorAll(
-    '.fsm-initial-marker[data-marker-id][data-marker-x][data-marker-y]'
+    '.fsm-diagram-marker[data-marker-id][data-marker-x][data-marker-y]'
   ).forEach((node) => {
     const id = node.dataset.markerId || '';
     if (id === '') return;
@@ -4355,7 +4396,10 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
       y:Number(node.dataset.markerY || 0),
       dx:0,
       dy:0,
-      r:9,
+      r:node.dataset.markerKind === 'initial' ? 9 : 0,
+      w:Number(node.dataset.markerW || 0),
+      h:Number(node.dataset.markerH || 0),
+      kind:node.dataset.markerKind || '',
     });
   });
 
@@ -4437,6 +4481,30 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     }
   };
 
+  const updateDiagramMarker = (id) => {
+    const marker = markers.get(id);
+    if (!marker) return;
+    if (marker.kind === 'initial') {
+      updateInitialMarker();
+      return;
+    }
+    marker.node.setAttribute(
+      'transform',
+      `translate(${marker.dx} ${marker.dy})`
+    );
+    svg.querySelectorAll('.fsm-transition[data-finite-source-marker]')
+      .forEach((group) => {
+        if (group.dataset.finiteSourceMarker !== id) return;
+        const to = group.dataset.toState || '';
+        const edge = group.querySelector('path.fsm-edge');
+        const d = finiteGlobalPath(group, to);
+        if (edge instanceof SVGPathElement && d !== '') {
+          edge.setAttribute('d', d);
+        }
+        updateLabelLeader(group, edge);
+      });
+  };
+
   const anchorOffset = (group) => {
     const id = group.dataset.anchorState || '';
     const item = states.get(id);
@@ -4487,8 +4555,12 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
 
   const finiteGlobalPath = (group, toId) => {
     const to = boxFor(toId);
-    const sourceX = Number(group.dataset.finiteSourceX || NaN);
-    const sourceY = Number(group.dataset.finiteSourceY || NaN);
+    const markerId = group.dataset.finiteSourceMarker || '';
+    const marker = markers.get(markerId);
+    const baseSourceX = Number(group.dataset.finiteSourceX || NaN);
+    const baseSourceY = Number(group.dataset.finiteSourceY || NaN);
+    const sourceX = marker ? baseSourceX + marker.dx : baseSourceX;
+    const sourceY = marker ? baseSourceY + marker.dy : baseSourceY;
     if (!to || !Number.isFinite(sourceX) || !Number.isFinite(sourceY)) {
       return '';
     }
@@ -4798,7 +4870,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
   const draggableTarget = (target) => {
     if (!(target instanceof Element)) return null;
     const marker = target.closest(
-      '.fsm-initial-marker[data-layout-marker-draggable="1"]'
+      '.fsm-diagram-marker[data-layout-marker-draggable="1"]'
     );
     if (marker instanceof SVGGElement) return {kind:'marker', node:marker};
     const signal = target.closest(
@@ -4901,17 +4973,19 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
       if (!item) return;
       let x = item.x + drag.baseDx + (point.x - drag.startX);
       let y = item.y + drag.baseDy + (point.y - drag.startY);
-      x = Math.max(item.r + 8, Math.min(
+      const halfW = Math.max(item.r, item.w / 2);
+      const halfH = Math.max(item.r, item.h / 2);
+      x = Math.max(halfW + 8, Math.min(
         x,
-        Math.max(item.r + 8, viewBox.width - item.r - 8)
+        Math.max(halfW + 8, viewBox.width - halfW - 8)
       ));
-      y = Math.max(item.r + 70, Math.min(
+      y = Math.max(halfH + 70, Math.min(
         y,
-        Math.max(item.r + 70, viewBox.height - item.r - 8)
+        Math.max(halfH + 70, viewBox.height - halfH - 8)
       ));
       item.dx = x - item.x;
       item.dy = y - item.y;
-      updateInitialMarker();
+      updateDiagramMarker(drag.id);
       return;
     }
 
@@ -4980,8 +5054,9 @@ HTML;
     .fsm-node[data-layout-draggable="1"].is-layout-dragging rect { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:3; }
     .fsm-signal-card[data-layout-signal-draggable="1"] { cursor:move; touch-action:none; }
     .fsm-signal-card[data-layout-signal-draggable="1"].is-layout-dragging .fsm-edge-label-bg { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:2.4; }
-    .fsm-initial-marker[data-layout-marker-draggable="1"] { cursor:move; touch-action:none; }
+    .fsm-diagram-marker[data-layout-marker-draggable="1"] { cursor:move; touch-action:none; }
     .fsm-initial-marker[data-layout-marker-draggable="1"].is-layout-dragging circle { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:3; }
+    .fsm-finite-global-source[data-layout-marker-draggable="1"].is-layout-dragging rect { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:2.5; }
     .fsm-node-link { cursor:pointer; text-decoration:none; }
     .fsm-node-link:hover .fsm-node rect,
     .fsm-node-link:focus .fsm-node rect { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:3; }
