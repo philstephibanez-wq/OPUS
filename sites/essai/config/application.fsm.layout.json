@@ -1,0 +1,35 @@
+{
+    "contract": "OPUS_FSM_DIAGRAM_LAYOUT_V4",
+    "fsm_path": "config/application.fsm.json",
+    "definition_sha256": "8e263a657a1254fbf71b160c0a53f92be742292ea271981c6c0130f2e97be716",
+    "layout_direction": "horizontal",
+    "canvas": {
+        "width": 888,
+        "height": 504
+    },
+    "states": {
+        "begin": {
+            "x": 35,
+            "y": 216.75
+        },
+        "home": {
+            "x": 676,
+            "y": 348
+        }
+    },
+    "transitions": {
+        "open.home.from.begin": {
+            "path": "M238.9987335205078 254.75062561035156 C457.4993667602539 254.75062561035156, 457.4993667602539 386.00238037109375, 676 386.00238037109375",
+            "label_x": 444,
+            "label_y": 144,
+            "leader_path": "M457.4992980957031 320.3764953613281 L444 144"
+        },
+        "open.home.from.home": {
+            "path": "M692.72 168 C736.72 124, 648.72 124, 684.72 168",
+            "label_x": 814.72,
+            "label_y": 269,
+            "leader_path": "M691.945556640625 135.0014190673828 L692.72 89"
+        }
+    },
+    "markers": []
+}
