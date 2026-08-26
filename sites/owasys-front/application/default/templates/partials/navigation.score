@@ -31,7 +31,7 @@
           [[ if: item.has_operations ]]
             <details
               class="ow-fsm-menu-operations"
-              name="owasys-efsm-resource-operations"[[ if: item.active ]] open[[ endif ]]
+              name="owasys-efsm-resource-operations"
             >
               <summary
                 class="ow-fsm-menu-operations-toggle"

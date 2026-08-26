@@ -3191,11 +3191,15 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $length = function_exists('mb_strlen')
             ? mb_strlen($label, 'UTF-8')
             : strlen($label);
+        // Horizontal diagrams keep the complete EFSM semantic label on one
+        // line. Size the card for that complete label: the former 260px cap
+        // made guards/effects overflow and reduced the visible frame to an
+        // underline below long signals.
         $labelWidth = min(
-            260.0,
-            max(56.0, 20.0 + $length * 7.1)
+            520.0,
+            max(72.0, 30.0 + $length * 7.4)
         );
-        $labelHeight = 20.0;
+        $labelHeight = 28.0;
 
         $anchorX = $labelX;
         $anchorY = $labelY;
@@ -3262,7 +3266,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             . '<text class="fsm-edge-label" x="'
             . self::n($labelX)
             . '" y="'
-            . self::n($labelY)
+            . self::n($labelY + 4.0)
             . '">'
             . self::h($label)
             . '</text>'
@@ -3901,8 +3905,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     private function renderInitialMarker(array $positions): string
     {
         if ($this->_initialState === ''
-            || !isset($positions[$this->_initialState])
-            || ($this->_stateTypes[$this->_initialState] ?? '') === 'entry') {
+            || !isset($positions[$this->_initialState])) {
             return '';
         }
 
@@ -3944,10 +3947,11 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     }
 
     /**
-     * Keep the legacy initial pseudo-state presentation point independent from
-     * the canonical initial_state while always routing its arrow to the current
-     * initial-state rectangle boundary. Canonical entry-state FSMs render their
-     * real `begin` state instead and never use this pseudo marker.
+     * Keep the initial pseudo-state presentation point independent from the
+     * canonical initial_state while always routing its arrow to the current
+     * initial-state rectangle boundary. The marker remains explicit when the
+     * canonical state has type `entry`: the white point expresses the initial
+     * pseudostate, while the entry rectangle remains an actual EFSM state.
      *
      * @param array{x:float,y:float,w:float,h:float,rank:int} $target
      */

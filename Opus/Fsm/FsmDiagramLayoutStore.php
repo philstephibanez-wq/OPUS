@@ -18,7 +18,7 @@ use RuntimeException;
  * - V4 persists state coordinates, independently movable signal-card
  *   coordinates and non-semantic diagram-marker coordinates;
  * - canonical entry-state FSMs persist `begin` through ordinary state geometry
- *   and never duplicate it as presentation-marker semantics;
+ *   and keep the independently positioned initial pseudostate marker explicit;
  * - when no layout exists, OPUS persists the computed automatic layout in DEV;
  * - when a layout exists, persisted state and transition geometry wins;
  * - new FSM states are auto-positioned and merged without discarding existing
@@ -872,17 +872,6 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
         $initial = trim((string) ($definition['initial_state'] ?? ''));
         if ($initial === '') {
             return $markers;
-        }
-
-        foreach ((array) ($definition['states'] ?? []) as $state) {
-            if (!is_array($state)
-                || trim((string) ($state['id'] ?? '')) !== $initial) {
-                continue;
-            }
-            if (trim((string) ($state['type'] ?? '')) === 'entry') {
-                return $markers;
-            }
-            break;
         }
 
         $states = $this->definitionStateSet($definition);
