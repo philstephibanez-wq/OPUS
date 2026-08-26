@@ -4354,6 +4354,58 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
   const svg = card.querySelector('svg.fsm-diagram');
   if (!(svg instanceof SVGSVGElement)) return;
 
+  // Font metrics belong to the browser, not to the PHP renderer. Reconcile
+  // every signal frame against the text actually painted by SVG so long
+  // signals, guards and effects remain fully enclosed at every zoom/font.
+  const fitSignalCardFrame = (node) => {
+    const box = node.querySelector('.fsm-edge-label-box');
+    const rect = box && box.querySelector('rect.fsm-edge-label-bg');
+    const labels = box
+      ? Array.from(box.querySelectorAll('text'))
+      : [];
+    if (!(box instanceof SVGGElement)
+        || !(rect instanceof SVGRectElement)
+        || labels.length === 0) return;
+
+    let left = Infinity;
+    let top = Infinity;
+    let right = -Infinity;
+    let bottom = -Infinity;
+    labels.forEach((label) => {
+      if (!(label instanceof SVGTextElement)) return;
+      const bounds = label.getBBox();
+      left = Math.min(left, bounds.x);
+      top = Math.min(top, bounds.y);
+      right = Math.max(right, bounds.x + bounds.width);
+      bottom = Math.max(bottom, bounds.y + bounds.height);
+    });
+    if (![left, top, right, bottom].every(Number.isFinite)) return;
+
+    const paddingX = 14;
+    const paddingY = 8;
+    const x = left - paddingX;
+    const y = top - paddingY;
+    const width = Math.max(72, right - left + paddingX * 2);
+    const height = Math.max(28, bottom - top + paddingY * 2);
+    rect.setAttribute('x', String(x));
+    rect.setAttribute('y', String(y));
+    rect.setAttribute('width', String(width));
+    rect.setAttribute('height', String(height));
+    node.dataset.signalW = String(width);
+    node.dataset.signalH = String(height);
+
+    const postObject = node.querySelector('.fsm-signal-post-object');
+    if (postObject instanceof SVGForeignObjectElement) {
+      postObject.setAttribute('x', String(x));
+      postObject.setAttribute('y', String(y));
+      postObject.setAttribute('width', String(width));
+      postObject.setAttribute('height', String(height));
+    }
+  };
+
+  svg.querySelectorAll('.fsm-signal-card')
+    .forEach((node) => fitSignalCardFrame(node));
+
   const states = new Map();
   svg.querySelectorAll('.fsm-node[data-state]').forEach((node) => {
     const id = node.dataset.state || '';

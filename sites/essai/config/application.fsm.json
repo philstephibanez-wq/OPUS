@@ -24,6 +24,9 @@
             "navigation": {
                 "label": "menu.home"
             }
+        },
+        {
+            "id": "test"
         }
     ],
     "transitions": [

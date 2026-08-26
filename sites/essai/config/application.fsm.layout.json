@@ -1,10 +1,10 @@
 {
     "contract": "OPUS_FSM_DIAGRAM_LAYOUT_V4",
     "fsm_path": "config/application.fsm.json",
-    "definition_sha256": "8e263a657a1254fbf71b160c0a53f92be742292ea271981c6c0130f2e97be716",
+    "definition_sha256": "e3887912c9ed7a9fa98e2b57ab2608192157888998f94d5aab73250339e93d10",
     "layout_direction": "horizontal",
     "canvas": {
-        "width": 928,
+        "width": 1312,
         "height": 504
     },
     "states": {
@@ -15,6 +15,10 @@
         "home": {
             "x": 676,
             "y": 348
+        },
+        "test": {
+            "x": 1000.5,
+            "y": 74.25
         }
     },
     "transitions": {
