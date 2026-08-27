@@ -8,6 +8,7 @@ use Opus\File\StructuredFileLoader;
 use Opus\Fsm\Definition\FsmDefinitionEditor;
 use Opus\Fsm\Definition\FsmDefinitionValidator;
 use Opus\Fsm\Definition\FsmHandlerSourceEditor;
+use Opus\Fsm\FsmDiagramLayoutStore;
 use Opus\Fsm\FsmSiteLoader;
 use Opus\Profiler\Profiler;
 use Opus\Profiler\ProfilerInterface;
@@ -279,20 +280,62 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
             );
 
             $sourceHash = $baseHash;
+            $layoutRefactor = null;
             if ($persistentSemanticOperation) {
-                $write = (new SiteSourceWorkspace(
+                $workspace = new SiteSourceWorkspace(
                     $this->opusRoot,
                     null,
                     $this->profiler
-                ))->write(
-                    $siteId,
-                    $fsmRelativePath,
-                    $baseHash,
-                    $definitionJson
                 );
-                $sourceHash = strtolower(trim((string) (
-                    $write['sha256'] ?? ''
-                )));
+                if ($operation === 'state.rename'
+                    && trim((string) (
+                        $result['refactor']['state_old'] ?? ''
+                    )) !== ''
+                    && trim((string) (
+                        $result['refactor']['state_new'] ?? ''
+                    )) !== '') {
+                    $layoutRefactor = $this->prepareStateRenameLayoutRefactor(
+                        $siteRoot,
+                        $fsmRelativePath,
+                        $live,
+                        $definition,
+                        $result['refactor'],
+                        hash('sha256', $definitionJson)
+                    );
+                }
+
+                if ($layoutRefactor !== null) {
+                    $batch = $workspace->writeBatch(
+                        $siteId,
+                        [
+                            [
+                                'path' => $fsmRelativePath,
+                                'expected_sha256' => $baseHash,
+                                'content' => $definitionJson,
+                            ],
+                            [
+                                'path' => $layoutRefactor['path'],
+                                'expected_sha256' =>
+                                    $layoutRefactor['expected_sha256'],
+                                'content' => $layoutRefactor['content'],
+                            ],
+                        ]
+                    );
+                    $sourceHash = $this->batchSourceHash(
+                        $batch,
+                        $fsmRelativePath
+                    );
+                } else {
+                    $write = $workspace->write(
+                        $siteId,
+                        $fsmRelativePath,
+                        $baseHash,
+                        $definitionJson
+                    );
+                    $sourceHash = strtolower(trim((string) (
+                        $write['sha256'] ?? ''
+                    )));
+                }
                 if (preg_match('/^[a-f0-9]{64}$/D', $sourceHash) !== 1) {
                     throw new RuntimeException(
                         'OWASYS_FSM_SEMANTIC_WRITE_RESULT_INVALID'
@@ -315,6 +358,16 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
                     'persisted' => $persistentSemanticOperation,
                     'source_path' => $fsmRelativePath,
                     'source_sha256' => $sourceHash,
+                    'layout_refactor_prepared' =>
+                        $layoutRefactor !== null,
+                    'state_position_migrated' => (bool) (
+                        $layoutRefactor['state_position_migrated']
+                            ?? false
+                    ),
+                    'marker_count_migrated' => (int) (
+                        $layoutRefactor['marker_count_migrated']
+                            ?? 0
+                    ),
                     'diagnostic_count' =>
                         count($result['diagnostics']),
                 ]
@@ -335,6 +388,17 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
                 'source_sha256' => $sourceHash,
                 'operation' => $result['operation'],
                 'refactor' => $result['refactor'],
+                'layout_refactor' => [
+                    'prepared' => $layoutRefactor !== null,
+                    'state_position_migrated' => (bool) (
+                        $layoutRefactor['state_position_migrated']
+                            ?? false
+                    ),
+                    'marker_count_migrated' => (int) (
+                        $layoutRefactor['marker_count_migrated']
+                            ?? 0
+                    ),
+                ],
                 'diagnostics' => $result['diagnostics'],
                 'definition' => $definition,
             ];
@@ -349,6 +413,82 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
                 ]);
             }
         }
+    }
+
+    /**
+     * @param array<string,mixed> $oldDefinition
+     * @param array<string,mixed> $newDefinition
+     * @param array<string,mixed> $refactor
+     * @return array{
+     *   path:string,
+     *   expected_sha256:string,
+     *   content:string,
+     *   state_position_migrated:bool,
+     *   marker_count_migrated:int
+     * }|null
+     */
+    private function prepareStateRenameLayoutRefactor(
+        string $siteRoot,
+        string $fsmRelativePath,
+        array $oldDefinition,
+        array $newDefinition,
+        array $refactor,
+        string $newDefinitionSha256
+    ): ?array {
+        $layoutRelativePath = preg_replace(
+            '/\.json$/D',
+            '.layout.json',
+            $fsmRelativePath
+        );
+        if (!is_string($layoutRelativePath)
+            || $layoutRelativePath === $fsmRelativePath) {
+            throw new RuntimeException(
+                'OWASYS_FSM_LAYOUT_PATH_INVALID'
+            );
+        }
+        $layoutPath = rtrim($siteRoot, '/\\')
+            . '/' . $layoutRelativePath;
+        if (!File::instance()->exists($layoutPath)) {
+            return null;
+        }
+        $layout = StructuredFileLoader::instance()->read($layoutPath);
+        $direction = strtolower(trim((string) (
+            $layout['layout_direction'] ?? ''
+        )));
+        if (!in_array($direction, ['horizontal', 'vertical'], true)) {
+            throw new RuntimeException(
+                'OWASYS_FSM_LAYOUT_DIRECTION_INVALID'
+            );
+        }
+
+        return FsmDiagramLayoutStore::forSource(
+            $siteRoot,
+            $fsmRelativePath,
+            $direction,
+            false
+        )->prepareStateIdentityRefactor(
+            $oldDefinition,
+            $newDefinition,
+            trim((string) ($refactor['state_old'] ?? '')),
+            trim((string) ($refactor['state_new'] ?? '')),
+            $newDefinitionSha256
+        );
+    }
+
+    /** @param array<string,mixed> $batch */
+    private function batchSourceHash(
+        array $batch,
+        string $fsmRelativePath
+    ): string {
+        foreach ((array) ($batch['files'] ?? []) as $file) {
+            if (is_array($file)
+                && (string) ($file['path'] ?? '') === $fsmRelativePath) {
+                return strtolower(trim((string) ($file['sha256'] ?? '')));
+            }
+        }
+        throw new RuntimeException(
+            'OWASYS_FSM_SEMANTIC_BATCH_RESULT_INVALID'
+        );
     }
 
     /**

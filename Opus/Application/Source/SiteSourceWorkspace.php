@@ -11,13 +11,15 @@ use Throwable;
 
 /**
  * Generic OPUS source workspace with bounded reads, optimistic locking,
- * diff preview and atomic writes. Source contents never enter logs or traces.
+ * diff preview, atomic writes and bounded multi-file transactions. Source
+ * contents never enter logs or traces.
  */
 final class SiteSourceWorkspace implements SiteSourceWorkspaceInterface
 {
     public const CONTRACT = 'OPUS_SITE_SOURCE_WORKSPACE_V1';
     private const DEFAULT_MAX_BYTES = 1048576;
     private const MAX_FILES = 5000;
+    private const MAX_BATCH_FILES = 16;
     private const MAX_DIFF_BYTES = 262144;
 
     /** @var list<string> */
@@ -320,6 +322,170 @@ final class SiteSourceWorkspace implements SiteSourceWorkspaceInterface
                     'diff' => $preview['diff'],
                     'diff_truncated' => $preview['diff_truncated'],
                 ];
+            }
+        );
+    }
+
+    public function writeBatch(
+        string $siteId,
+        array $changes,
+        int $maxBytes = self::DEFAULT_MAX_BYTES
+    ): array {
+        return $this->observed(
+            'write_batch',
+            [
+                'application_id' => $siteId,
+                'file_count' => count($changes),
+            ],
+            function () use ($siteId, $changes, $maxBytes): array {
+                if (!array_is_list($changes)
+                    || $changes === []
+                    || count($changes) > self::MAX_BATCH_FILES) {
+                    throw new \InvalidArgumentException(
+                        'OPUS_SITE_SOURCE_BATCH_INVALID'
+                    );
+                }
+
+                $prepared = [];
+                foreach ($changes as $change) {
+                    if (!is_array($change)
+                        || array_is_list($change)
+                        || !is_string($change['path'] ?? null)
+                        || !is_string($change['expected_sha256'] ?? null)
+                        || !is_string($change['content'] ?? null)) {
+                        throw new \InvalidArgumentException(
+                            'OPUS_SITE_SOURCE_BATCH_CHANGE_INVALID'
+                        );
+                    }
+                    $item = $this->prepare(
+                        $siteId,
+                        $change['path'],
+                        $change['expected_sha256'],
+                        $change['content'],
+                        $maxBytes
+                    );
+                    if (isset($prepared[$item['relative']])) {
+                        throw new \InvalidArgumentException(
+                            'OPUS_SITE_SOURCE_BATCH_PATH_DUPLICATE'
+                        );
+                    }
+                    $item['proposed'] = $change['content'];
+                    $prepared[$item['relative']] = $item;
+                }
+                ksort($prepared, SORT_STRING);
+
+                $locks = [];
+                $written = [];
+                try {
+                    foreach ($prepared as $relative => $item) {
+                        $locks[$relative] = $this->lock(
+                            $item['site_root'],
+                            $relative
+                        );
+                    }
+
+                    foreach ($prepared as $item) {
+                        $target = $this->existingTarget(
+                            $item['site_root'],
+                            $item['relative']
+                        );
+                        if ($target !== $item['target']) {
+                            throw new \RuntimeException(
+                                'OPUS_SITE_SOURCE_TARGET_CHANGED'
+                            );
+                        }
+                        $current = $this->files->read($target, $maxBytes);
+                        $this->assertText($current);
+                        if (!hash_equals(
+                            hash('sha256', $item['current']),
+                            hash('sha256', $current)
+                        )) {
+                            throw new \RuntimeException(
+                                'OPUS_SITE_SOURCE_CONFLICT'
+                            );
+                        }
+                    }
+
+                    $files = [];
+                    foreach ($prepared as $relative => $item) {
+                        $proposed = $item['proposed'];
+                        $changed = $item['current'] !== $proposed;
+                        if ($changed) {
+                            $this->files->writeAtomic(
+                                $item['target'],
+                                $proposed
+                            );
+                            $written[] = $relative;
+                            $verified = $this->files->read(
+                                $this->existingTarget(
+                                    $item['site_root'],
+                                    $relative
+                                ),
+                                $maxBytes
+                            );
+                            if (!hash_equals(
+                                hash('sha256', $proposed),
+                                hash('sha256', $verified)
+                            )) {
+                                throw new \RuntimeException(
+                                    'OPUS_SITE_SOURCE_WRITE_VERIFY_FAILED'
+                                );
+                            }
+                        }
+                        $files[] = [
+                            'path' => $relative,
+                            'changed' => $changed,
+                            'previous_sha256' => hash(
+                                'sha256',
+                                $item['current']
+                            ),
+                            'sha256' => hash('sha256', $proposed),
+                            'bytes' => strlen($proposed),
+                        ];
+                    }
+
+                    return [
+                        'contract' => 'OPUS_SITE_SOURCE_BATCH_WRITE_V1',
+                        'application_id' => strtolower(trim($siteId)),
+                        'changed' => $written !== [],
+                        'files' => $files,
+                    ];
+                } catch (Throwable $error) {
+                    $rollbackFailed = false;
+                    foreach (array_reverse($written) as $relative) {
+                        $item = $prepared[$relative];
+                        try {
+                            $this->files->writeAtomic(
+                                $item['target'],
+                                $item['current']
+                            );
+                            $restored = $this->files->read(
+                                $item['target'],
+                                $maxBytes
+                            );
+                            if (!hash_equals(
+                                hash('sha256', $item['current']),
+                                hash('sha256', $restored)
+                            )) {
+                                $rollbackFailed = true;
+                            }
+                        } catch (Throwable) {
+                            $rollbackFailed = true;
+                        }
+                    }
+                    if ($rollbackFailed) {
+                        throw new \RuntimeException(
+                            'OPUS_SITE_SOURCE_BATCH_ROLLBACK_FAILED',
+                            0,
+                            $error
+                        );
+                    }
+                    throw $error;
+                } finally {
+                    foreach (array_reverse($locks, true) as $lock) {
+                        $this->unlock($lock);
+                    }
+                }
             }
         );
     }
@@ -781,7 +947,7 @@ final class SiteSourceWorkspace implements SiteSourceWorkspaceInterface
     {
         $allowed = [
             'application_id', 'path', 'operation', 'status',
-            'proposed_bytes', 'error_code',
+            'proposed_bytes', 'file_count', 'error_code',
         ];
         return array_intersect_key($context, array_flip($allowed));
     }

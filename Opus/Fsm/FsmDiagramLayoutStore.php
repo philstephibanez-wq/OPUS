@@ -24,6 +24,8 @@ use RuntimeException;
  * - when a layout exists, persisted state and transition geometry wins;
  * - new FSM states are auto-positioned and merged without discarding existing
  *   manual coordinates;
+ * - a semantic state rename can prepare an optimistic identity refactor that
+ *   preserves state, transition and finite-global-marker presentation;
  * - writes are allowed only under the PHP development server or when the
  *   explicit OPUS_FSM_LAYOUT_WRITE=1 override is present.
  */
@@ -40,6 +42,7 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
     private const SAVE_MARKER_ACTION = 'save-marker';
     private const MAX_COORDINATE = 100000.0;
     private const MAX_GEOMETRY_BYTES = 262144;
+    private const MAX_LAYOUT_BYTES = 1048576;
     private const MAX_SVG_PATH_BYTES = 8192;
 
     private readonly File $file;
@@ -387,6 +390,107 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
 
         $this->write($layout);
         $this->resolved = $this->readLayout();
+    }
+
+    public function prepareStateIdentityRefactor(
+        array $oldDefinition,
+        array $newDefinition,
+        string $oldStateId,
+        string $newStateId,
+        string $newDefinitionSha256
+    ): ?array {
+        $oldStateId = trim($oldStateId);
+        $newStateId = trim($newStateId);
+        $newDefinitionSha256 = strtolower(trim($newDefinitionSha256));
+        $oldStates = $this->definitionStateSet($oldDefinition);
+        $newStates = $this->definitionStateSet($newDefinition);
+        if ($oldStateId === ''
+            || $newStateId === ''
+            || !isset($oldStates[$oldStateId])
+            || isset($oldStates[$newStateId])
+            || isset($newStates[$oldStateId])
+            || !isset($newStates[$newStateId])) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_LAYOUT_STATE_REFACTOR_INVALID'
+            );
+        }
+        if (preg_match('/^[a-f0-9]{64}$/D', $newDefinitionSha256) !== 1) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_LAYOUT_DEFINITION_HASH_INVALID'
+            );
+        }
+
+        $path = $this->siteRoot . '/' . $this->layoutRelative;
+        if (!$this->file->exists($path)) {
+            return null;
+        }
+        $raw = $this->file->read($path, self::MAX_LAYOUT_BYTES);
+        $layout = $this->readLayout();
+        $contract = trim((string) ($layout['contract'] ?? ''));
+        if (($contract !== self::CONTRACT
+                && !in_array($contract, self::LEGACY_CONTRACTS, true))
+            || ($layout['fsm_path'] ?? null) !== $this->fsmRelative
+            || ($layout['layout_direction'] ?? null)
+                !== $this->layoutDirection
+            || !is_array($layout['states'] ?? null)) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_LAYOUT_REFACTOR_SOURCE_INVALID:'
+                . $this->layoutRelative
+            );
+        }
+
+        $statePositionMigrated = false;
+        if (isset($layout['states'][$newStateId])) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_LAYOUT_STATE_REFACTOR_CONFLICT:'
+                . $newStateId
+            );
+        }
+        if (is_array($layout['states'][$oldStateId] ?? null)) {
+            $layout['states'][$newStateId] =
+                $layout['states'][$oldStateId];
+            unset($layout['states'][$oldStateId]);
+            $statePositionMigrated = true;
+        }
+
+        $markers = is_array($layout['markers'] ?? null)
+            ? $layout['markers']
+            : [];
+        $oldMarkerIds = $this->finiteGlobalMarkerIdsByTransition(
+            $oldDefinition
+        );
+        $newMarkerIds = $this->finiteGlobalMarkerIdsByTransition(
+            $newDefinition
+        );
+        $markerCountMigrated = 0;
+        foreach ($oldMarkerIds as $transitionId => $oldMarkerId) {
+            $newMarkerId = $newMarkerIds[$transitionId] ?? null;
+            if (!is_string($newMarkerId)
+                || $newMarkerId === $oldMarkerId
+                || !is_array($markers[$oldMarkerId] ?? null)
+                || isset($markers[$newMarkerId])) {
+                continue;
+            }
+            $markers[$newMarkerId] = $markers[$oldMarkerId];
+            ++$markerCountMigrated;
+        }
+        $layout['markers'] = $markers;
+        $layout = $this->normalizeExistingPersisted(
+            $newDefinition,
+            $layout
+        );
+        $layout['contract'] = self::CONTRACT;
+        $layout['fsm_path'] = $this->fsmRelative;
+        $layout['definition_sha256'] = $newDefinitionSha256;
+        $layout['layout_direction'] = $this->layoutDirection;
+
+        return [
+            'path' => $this->layoutRelative,
+            'expected_sha256' => hash('sha256', $raw),
+            'content' => $this->json->encode($layout, true),
+            'state_position_migrated' => $statePositionMigrated,
+            'marker_count_migrated' => $markerCountMigrated,
+        ];
     }
 
     public function clientConfig(): array
@@ -917,6 +1021,37 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
         $states = $this->definitionStateSet($definition);
         if (isset($states[$initial])) {
             $markers['initial'] = true;
+        }
+        return $markers;
+    }
+
+    /**
+     * @param array<string,mixed> $definition
+     * @return array<string,string>
+     */
+    private function finiteGlobalMarkerIdsByTransition(
+        array $definition
+    ): array {
+        $markers = [];
+        $ordinal = 0;
+        foreach ((array) ($definition['transitions'] ?? []) as $transition) {
+            ++$ordinal;
+            if (!is_array($transition)
+                || trim((string) ($transition['scope'] ?? '')) !== 'global') {
+                continue;
+            }
+            $transitionId = trim((string) (
+                $transition['id'] ?? 'transition-' . $ordinal
+            ));
+            $states = array_values(array_filter(
+                (array) ($transition['from_states'] ?? []),
+                'is_string'
+            ));
+            if ($transitionId === '' || $states === []) {
+                continue;
+            }
+            $markers[$transitionId] = 'finite-global-source-'
+                . substr(hash('sha256', implode("\0", $states)), 0, 16);
         }
         return $markers;
     }

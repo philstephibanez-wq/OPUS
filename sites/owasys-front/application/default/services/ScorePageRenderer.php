@@ -50,7 +50,7 @@ final class OwasysScorePageRenderer
         $assets['fsm_css'] = $assetBase
             . '/css/fsm-native.css?v=p117w-r45b2a4bz2r8b6o';
         $assets['fsm_designer_js'] = $assetBase
-            . '/js/fsm-designer.js?v=p117w-r45b2a4bz2r8b6p';
+            . '/js/fsm-designer.js?v=p117w-r45b2a4bz2r8b6q';
 
         $source = is_array($data['source'] ?? null)
             ? $data['source']
@@ -198,7 +198,7 @@ final class OwasysScorePageRenderer
                 : '',
             'application_id' => $designerApplicationId,
             'efsm_id' => $designerEfsmId,
-            'revision' => 'P117W_R45B2A4BZ2R8B6P',
+            'revision' => 'P117W_R45B2A4BZ2R8B6Q',
             'labels' => $designerAllowed
                 ? $this->designerLabels($locale)
                 : [],

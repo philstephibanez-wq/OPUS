@@ -1,7 +1,7 @@
 {
     "contract": "OPUS_FSM_DIAGRAM_LAYOUT_V4",
     "fsm_path": "config/application.fsm.json",
-    "definition_sha256": "d42811a60e8fea3f7536f38e42825c9d1600b9c1f83591e38cd347244418512b",
+    "definition_sha256": "314c64f291003de85f3459430a1324b0f5563fb85df3a0b2595fca6f213ab0ba",
     "layout_direction": "horizontal",
     "canvas": {
         "width": 928,
@@ -12,7 +12,7 @@
             "x": 597.25,
             "y": 378
         },
-        "test2": {
+        "connexion": {
             "x": 88.75,
             "y": 331.75
         }

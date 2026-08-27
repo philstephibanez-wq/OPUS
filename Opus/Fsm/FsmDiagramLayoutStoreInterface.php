@@ -35,6 +35,28 @@ interface FsmDiagramLayoutStoreInterface extends
         array $renderedGeometry
     ): void;
 
+    /**
+     * Prepare an optimistic layout-file rewrite for a semantic state rename.
+     * No write is performed by this method.
+     *
+     * @param array<string,mixed> $oldDefinition
+     * @param array<string,mixed> $newDefinition
+     * @return array{
+     *   path:string,
+     *   expected_sha256:string,
+     *   content:string,
+     *   state_position_migrated:bool,
+     *   marker_count_migrated:int
+     * }|null
+     */
+    public function prepareStateIdentityRefactor(
+        array $oldDefinition,
+        array $newDefinition,
+        string $oldStateId,
+        string $newStateId,
+        string $newDefinitionSha256
+    ): ?array;
+
     /** @return array<string,mixed> */
     public function clientConfig(): array;
 }

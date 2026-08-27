@@ -46,4 +46,20 @@ interface SiteSourceWorkspaceInterface extends
         string $newContent,
         int $maxBytes = 1048576
     ): array;
+
+    /**
+     * Atomically apply a bounded set of optimistic source-file changes.
+     *
+     * @param list<array{
+     *   path:string,
+     *   expected_sha256:string,
+     *   content:string
+     * }> $changes
+     * @return array<string,mixed>
+     */
+    public function writeBatch(
+        string $siteId,
+        array $changes,
+        int $maxBytes = 1048576
+    ): array;
 }
