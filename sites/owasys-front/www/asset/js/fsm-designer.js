@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const DESIGNER_REVISION = 'P117W_R45B2A4BZ2R8B6N';
+  const DESIGNER_REVISION = 'P117W_R45B2A4BZ2R8B6O';
   const section = document.querySelector('[data-owasys-fsm-diagram]');
   if (!(section instanceof HTMLElement)
       || section.dataset.fsmDesignerMode !== 'design') return;
@@ -293,11 +293,16 @@
     clearBezier();
     const curve = simpleCubic(group.querySelector('path.fsm-edge'));
     if (!curve) return 'compound_or_none';
+    const transitionId = group.dataset.transitionId || '';
+    if (transitionId === '') return 'compound_or_none';
     const ns = 'http://www.w3.org/2000/svg';
     const overlay = document.createElementNS(ns, 'g');
     overlay.setAttribute('class', 'fsm-designer-bezier-preview');
-    [[curve.p0,curve.c1],[curve.c2,curve.p3]].forEach(([a,b]) => {
+    overlay.setAttribute('data-transition-id', transitionId);
+    [['source',curve.p0,curve.c1],['target',curve.c2,curve.p3]]
+      .forEach(([role,a,b]) => {
       const line = document.createElementNS(ns, 'line');
+      line.setAttribute('data-bezier-line', role);
       line.setAttribute('x1', String(a.x));
       line.setAttribute('y1', String(a.y));
       line.setAttribute('x2', String(b.x));
@@ -310,9 +315,13 @@
       circle.setAttribute('cy', String(p.y));
       circle.setAttribute('r', role.startsWith('C') ? '6' : '4');
       circle.setAttribute('data-bezier-role', role);
+      if (role === 'C1' || role === 'C2') {
+        circle.setAttribute('data-layout-bezier-draggable', '1');
+        circle.setAttribute('tabindex', '0');
+      }
       overlay.append(circle);
     });
-    svg.append(overlay);
+    group.append(overlay);
     return 'cubic_bezier';
   };
 
@@ -1258,6 +1267,7 @@
   section.addEventListener('click', (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
+    if (target.closest('[data-layout-bezier-draggable="1"]')) return;
     if (target.closest('.ow-fsm-designer-toolbar, [data-fsm-state-editor], [data-fsm-signal-editor], [data-fsm-transition-create-editor], [data-fsm-transition-handler-editor], [data-fsm-handler-source-editor]')) return;
 
     const transition = target.closest('.fsm-transition[data-transition-id]');

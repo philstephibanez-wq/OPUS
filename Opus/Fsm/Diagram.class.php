@@ -110,14 +110,14 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
      * topology-validated; signal-card coordinates may be persisted for local,
      * global and self transitions. EFSM semantics are never stored here.
      *
-     * @var array<string,array{path:string,label_x:float,label_y:float,leader_path:string}>
+     * @var array<string,array{path:string,label_x:float,label_y:float,leader_path:string,path_kind?:string,source_control?:array{dx:float,dy:float},target_control?:array{dx:float,dy:float}}>
      */
     private array $_persistedTransitionGeometry = [];
 
     /**
      * Geometry actually emitted by the latest SVG render.
      *
-     * @var array<string,array{path:string,label_x:float,label_y:float,leader_path:string}>
+     * @var array<string,array{path:string,label_x:float,label_y:float,leader_path:string,path_kind:string,source_control:array{dx:float,dy:float},target_control:array{dx:float,dy:float}}>
      */
     private array $_renderedTransitionGeometry = [];
 
@@ -2876,16 +2876,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         array $transition,
         array $positions
     ): bool {
-        if (($transition['scope'] ?? '') === 'global') {
-            return false;
-        }
-
         $from = trim((string) ($transition['from'] ?? ''));
         $to = trim((string) ($transition['to'] ?? ''));
-        if ($from === ''
-            || $to === ''
-            || $from === $to
-            || !isset($positions[$from], $positions[$to])) {
+        if ($to === '' || !isset($positions[$to])) {
             return false;
         }
 
@@ -2895,14 +2888,31 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             return false;
         }
 
+        $targetAnchored = self::pointOnStateBoundary(
+            $endpoints['end_x'],
+            $endpoints['end_y'],
+            $positions[$to]
+        );
+        if (!$targetAnchored) {
+            return false;
+        }
+
+        if (($transition['scope'] ?? '') === 'global') {
+            $sourceX = $transition['diagram_source_x'] ?? null;
+            $sourceY = $transition['diagram_source_y'] ?? null;
+            return is_numeric($sourceX)
+                && is_numeric($sourceY)
+                && abs($endpoints['start_x'] - (float) $sourceX) <= 3.0
+                && abs($endpoints['start_y'] - (float) $sourceY) <= 3.0;
+        }
+
+        if ($from === '' || !isset($positions[$from])) {
+            return false;
+        }
         return self::pointOnStateBoundary(
             $endpoints['start_x'],
             $endpoints['start_y'],
             $positions[$from]
-        ) && self::pointOnStateBoundary(
-            $endpoints['end_x'],
-            $endpoints['end_y'],
-            $positions[$to]
         );
     }
 
@@ -2952,6 +2962,61 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             'end_x' => $endX,
             'end_y' => $endY,
         ];
+    }
+
+    /**
+     * Rebuild a manual cubic from the current automatic source/target ports
+     * and persisted relative controls. This keeps the authored curve stable
+     * when either attached state (or a finite-global source marker) moves.
+     *
+     * @param array<string,mixed> $geometry
+     */
+    private static function persistedManualBezierPath(
+        array $geometry,
+        string $automaticPath
+    ): ?string {
+        if ((string) ($geometry['path_kind'] ?? '') !== 'cubic_bezier') {
+            return null;
+        }
+        $number = '([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)';
+        $pattern = '/\A\s*M\s*' . $number . '[\s,]+'
+            . $number . '\s*C\s*'
+            . $number . '[\s,]+' . $number . '[\s,]+'
+            . $number . '[\s,]+' . $number . '[\s,]+'
+            . $number . '[\s,]+' . $number . '\s*\z/D';
+        if (preg_match($pattern, trim($automaticPath), $match) !== 1) {
+            return null;
+        }
+        $source = is_array($geometry['source_control'] ?? null)
+            ? $geometry['source_control']
+            : [];
+        $target = is_array($geometry['target_control'] ?? null)
+            ? $geometry['target_control']
+            : [];
+        if (!is_numeric($source['dx'] ?? null)
+            || !is_numeric($source['dy'] ?? null)
+            || !is_numeric($target['dx'] ?? null)
+            || !is_numeric($target['dy'] ?? null)) {
+            return null;
+        }
+        $p0x = (float) $match[1];
+        $p0y = (float) $match[2];
+        $p3x = (float) $match[7];
+        $p3y = (float) $match[8];
+        $c1x = $p0x + (float) $source['dx'];
+        $c1y = $p0y + (float) $source['dy'];
+        $c2x = $p3x + (float) $target['dx'];
+        $c2y = $p3y + (float) $target['dy'];
+        foreach ([$p0x, $p0y, $c1x, $c1y, $c2x, $c2y, $p3x, $p3y]
+            as $value) {
+            if (!is_finite($value)) {
+                return null;
+            }
+        }
+        return 'M' . self::n($p0x) . ' ' . self::n($p0y)
+            . ' C' . self::n($c1x) . ' ' . self::n($c1y)
+            . ', ' . self::n($c2x) . ' ' . self::n($c2y)
+            . ', ' . self::n($p3x) . ' ' . self::n($p3y);
     }
 
     /**
@@ -3037,16 +3102,24 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $fixedCard = (($transition['scope'] ?? '') === 'global')
             || (($transition['from'] ?? '') === ($transition['to'] ?? ''));
         $persistedGeometry = $this->_persistedTransitionGeometry[$id] ?? null;
-        $persistedPathAnchored = !$fixedCard
-            && is_array($persistedGeometry)
+        $manualBezierPath = is_array($persistedGeometry)
+            ? self::persistedManualBezierPath($persistedGeometry, $path)
+            : null;
+        $persistedPathAnchored = $manualBezierPath !== null
+            || (is_array($persistedGeometry)
             && $this->persistedTransitionGeometryAnchored(
                 $persistedGeometry,
                 $transition,
                 $positions
-            );
-        if ($persistedPathAnchored) {
+            ));
+        if ($manualBezierPath !== null) {
+            $path = $manualBezierPath;
+        } elseif ($persistedPathAnchored) {
             $path = (string) ($persistedGeometry['path'] ?? $path);
         }
+        $manualBezier = $manualBezierPath !== null
+            && (string) ($persistedGeometry['path_kind'] ?? '')
+                === 'cubic_bezier';
         if (is_array($persistedGeometry)) {
             $labelX = (float) ($persistedGeometry['label_x'] ?? $labelX);
             $labelY = (float) ($persistedGeometry['label_y'] ?? $labelY);
@@ -3162,11 +3235,20 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             'label_x' => $labelX,
             'label_y' => $labelY,
             'leader_path' => $labelLeaderPath,
+            'path_kind' => $manualBezier ? 'cubic_bezier' : 'auto',
+            'source_control' => $manualBezier
+                ? (array) ($persistedGeometry['source_control'] ?? [])
+                : ['dx' => 0.0, 'dy' => 0.0],
+            'target_control' => $manualBezier
+                ? (array) ($persistedGeometry['target_control'] ?? [])
+                : ['dx' => 0.0, 'dy' => 0.0],
         ];
 
         return '<g class="' . self::h($class)
             . '" data-transition-id="' . self::h($id)
             . '" data-signal-origin="' . self::h($origin)
+            . '" data-layout-path-kind="'
+            . ($manualBezier ? 'cubic_bezier' : 'auto')
             . '"' . $this->transitionLayoutAttributes($transition) . '>'
             . '<title>' . self::h($semanticLabel) . '</title>'
             . $edgeSvg
@@ -3206,16 +3288,24 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $fixedCard = (($transition['scope'] ?? '') === 'global')
             || (($transition['from'] ?? '') === ($transition['to'] ?? ''));
         $persistedGeometry = $this->_persistedTransitionGeometry[$id] ?? null;
-        $persistedPathAnchored = !$fixedCard
-            && is_array($persistedGeometry)
+        $manualBezierPath = is_array($persistedGeometry)
+            ? self::persistedManualBezierPath($persistedGeometry, $path)
+            : null;
+        $persistedPathAnchored = $manualBezierPath !== null
+            || (is_array($persistedGeometry)
             && $this->persistedTransitionGeometryAnchored(
                 $persistedGeometry,
                 $transition,
                 $positions
-            );
-        if ($persistedPathAnchored) {
+            ));
+        if ($manualBezierPath !== null) {
+            $path = $manualBezierPath;
+        } elseif ($persistedPathAnchored) {
             $path = (string) ($persistedGeometry['path'] ?? $path);
         }
+        $manualBezier = $manualBezierPath !== null
+            && (string) ($persistedGeometry['path_kind'] ?? '')
+                === 'cubic_bezier';
         if (is_array($persistedGeometry)) {
             $labelX = (float) ($persistedGeometry['label_x'] ?? $labelX);
             $labelY = (float) ($persistedGeometry['label_y'] ?? $labelY);
@@ -3309,11 +3399,20 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             'label_x' => $labelX,
             'label_y' => $labelY,
             'leader_path' => $labelLeaderPath,
+            'path_kind' => $manualBezier ? 'cubic_bezier' : 'auto',
+            'source_control' => $manualBezier
+                ? (array) ($persistedGeometry['source_control'] ?? [])
+                : ['dx' => 0.0, 'dy' => 0.0],
+            'target_control' => $manualBezier
+                ? (array) ($persistedGeometry['target_control'] ?? [])
+                : ['dx' => 0.0, 'dy' => 0.0],
         ];
 
         return '<g class="' . self::h($class)
             . '" data-transition-id="' . self::h($id)
             . '" data-signal-origin="' . self::h($origin)
+            . '" data-layout-path-kind="'
+            . ($manualBezier ? 'cubic_bezier' : 'auto')
             . '"' . $this->transitionLayoutAttributes($transition) . '>'
             . '<title>' . self::h($semanticLabel) . '</title>'
             . '<path class="fsm-edge" d="' . self::h($path)
@@ -4467,6 +4566,16 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     return matrix ? point.matrixTransform(matrix.inverse()) : point;
   };
 
+  const pointForElement = (event, element) => {
+    const point = svg.createSVGPoint();
+    point.x = event.clientX;
+    point.y = event.clientY;
+    const matrix = element instanceof SVGGraphicsElement
+      ? element.getScreenCTM()
+      : svg.getScreenCTM();
+    return matrix ? point.matrixTransform(matrix.inverse()) : point;
+  };
+
   const finiteCanvasCoordinate = (value, max) => {
     const number = Number(value);
     const bound = Number(max);
@@ -4484,6 +4593,92 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     }
     return value;
   };
+
+  const simpleCubicPath = (path) => {
+    if (!(path instanceof SVGPathElement)) return null;
+    const d = path.getAttribute('d') || '';
+    const numberPattern = /[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[-+]?\d+)?/gi;
+    const values = Array.from(
+      d.matchAll(numberPattern),
+      (match) => Number(match[0])
+    );
+    const commands = d.replace(numberPattern, '').replace(/[\s,]/g, '');
+    if (commands !== 'MC'
+        || values.length !== 8
+        || values.some((value) => !Number.isFinite(value))) {
+      return null;
+    }
+    return {
+      p0:{x:values[0], y:values[1]},
+      c1:{x:values[2], y:values[3]},
+      c2:{x:values[4], y:values[5]},
+      p3:{x:values[6], y:values[7]},
+    };
+  };
+
+  const cubicPathData = (curve) => `M${curve.p0.x} ${curve.p0.y} `
+    + `C${curve.c1.x} ${curve.c1.y}, `
+    + `${curve.c2.x} ${curve.c2.y}, ${curve.p3.x} ${curve.p3.y}`;
+
+  const isManualBezier = (group) =>
+    group instanceof SVGGElement
+      && group.dataset.layoutPathKind === 'cubic_bezier';
+
+  const translateCurvePoint = (point, dx, dy) => ({
+    x:point.x + dx,
+    y:point.y + dy,
+  });
+
+  const setManualCurve = (group, curve) => {
+    if (!(group instanceof SVGGElement) || !curve) return false;
+    const edge = group.querySelector('path.fsm-edge');
+    if (!(edge instanceof SVGPathElement)) return false;
+    edge.setAttribute('d', cubicPathData(curve));
+    group.dataset.layoutPathKind = 'cubic_bezier';
+    updateBezierPreview(group, curve);
+    updateLabelLeader(group, edge);
+    return true;
+  };
+
+  const updateBezierPreview = (group, suppliedCurve = null) => {
+    if (!(group instanceof SVGGElement)) return;
+    const overlay = group.querySelector(
+      ':scope > .fsm-designer-bezier-preview[data-transition-id]'
+    );
+    if (!(overlay instanceof SVGGElement)) return;
+    const curve = suppliedCurve
+      || simpleCubicPath(group.querySelector('path.fsm-edge'));
+    if (!curve) return;
+    const sourceLine = overlay.querySelector('[data-bezier-line="source"]');
+    const targetLine = overlay.querySelector('[data-bezier-line="target"]');
+    if (sourceLine instanceof SVGLineElement) {
+      sourceLine.setAttribute('x1', String(curve.p0.x));
+      sourceLine.setAttribute('y1', String(curve.p0.y));
+      sourceLine.setAttribute('x2', String(curve.c1.x));
+      sourceLine.setAttribute('y2', String(curve.c1.y));
+    }
+    if (targetLine instanceof SVGLineElement) {
+      targetLine.setAttribute('x1', String(curve.c2.x));
+      targetLine.setAttribute('y1', String(curve.c2.y));
+      targetLine.setAttribute('x2', String(curve.p3.x));
+      targetLine.setAttribute('y2', String(curve.p3.y));
+    }
+    const points = {
+      P0:curve.p0,
+      C1:curve.c1,
+      C2:curve.c2,
+      P3:curve.p3,
+    };
+    Object.entries(points).forEach(([role, point]) => {
+      const handle = overlay.querySelector(
+        `[data-bezier-role="${role}"]`
+      );
+      if (!(handle instanceof SVGCircleElement)) return;
+      handle.setAttribute('cx', String(point.x));
+      handle.setAttribute('cy', String(point.y));
+    });
+  };
+
   const boxFor = (id) => {
     const item = states.get(id);
     if (!item) return null;
@@ -4537,7 +4732,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     }
   };
 
-  const updateDiagramMarker = (id) => {
+  const updateDiagramMarker = (id, deltaX = 0, deltaY = 0) => {
     const marker = markers.get(id);
     if (!marker) return;
     if (marker.kind === 'initial') {
@@ -4553,11 +4748,21 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         if (group.dataset.finiteSourceMarker !== id) return;
         const to = group.dataset.toState || '';
         const edge = group.querySelector('path.fsm-edge');
+        const curve = isManualBezier(group)
+          ? simpleCubicPath(edge)
+          : null;
+        if (curve) {
+          curve.p0 = translateCurvePoint(curve.p0, deltaX, deltaY);
+          curve.c1 = translateCurvePoint(curve.c1, deltaX, deltaY);
+          setManualCurve(group, curve);
+          return;
+        }
         const d = finiteGlobalPath(group, to);
         if (edge instanceof SVGPathElement && d !== '') {
           edge.setAttribute('d', d);
         }
         updateLabelLeader(group, edge);
+        updateBezierPreview(group);
       });
   };
 
@@ -4719,6 +4924,15 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     const from = group.dataset.fromState || '';
     const to = group.dataset.toState || '';
     const scope = group.dataset.transitionScope || '';
+    if (isManualBezier(group)) {
+      const edge = group.querySelector('path.fsm-edge');
+      if (simpleCubicPath(edge)) {
+        updateLabelLeader(group, edge);
+        updateBezierPreview(group);
+        return;
+      }
+      group.dataset.layoutPathKind = 'auto';
+    }
     if (scope === 'global') {
       const edge = group.querySelector('path.fsm-edge');
       const d = finiteGlobalPath(group, to);
@@ -4726,11 +4940,13 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         edge.setAttribute('d', d);
       }
       updateLabelLeader(group, edge);
+      updateBezierPreview(group);
       return;
     }
     if (from === '' || to === '' || from === to
         || !states.has(from) || !states.has(to)) {
       updateLabelLeader(group, group.querySelector('path.fsm-edge'));
+      updateBezierPreview(group);
       return;
     }
     const edge = group.querySelector('path.fsm-edge');
@@ -4740,9 +4956,10 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
       if (d !== '') edge.setAttribute('d', d);
     }
     updateLabelLeader(group, edge);
+    updateBezierPreview(group);
   };
 
-  const updateGeometry = (state) => {
+  const updateGeometry = (state, deltaX = 0, deltaY = 0) => {
     const item = states.get(state);
     if (!item) return;
     svg.querySelectorAll('.fsm-transition[data-from-state][data-to-state]')
@@ -4751,19 +4968,42 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         const to = group.dataset.toState || '';
         const scope = group.dataset.transitionScope || '';
         const anchor = group.dataset.anchorState || '';
+        const edge = group.querySelector('path.fsm-edge');
+        const curve = isManualBezier(group)
+          ? simpleCubicPath(edge)
+          : null;
+        if (curve && from === state && to === state) {
+          group.setAttribute('transform', `translate(${item.dx} ${item.dy})`);
+          updateLabelLeader(group, edge);
+          updateBezierPreview(group, curve);
+          return;
+        }
+        if (curve && (from === state || to === state)) {
+          if (from === state) {
+            curve.p0 = translateCurvePoint(curve.p0, deltaX, deltaY);
+            curve.c1 = translateCurvePoint(curve.c1, deltaX, deltaY);
+          }
+          if (to === state) {
+            curve.c2 = translateCurvePoint(curve.c2, deltaX, deltaY);
+            curve.p3 = translateCurvePoint(curve.p3, deltaX, deltaY);
+          }
+          setManualCurve(group, curve);
+          return;
+        }
         if (scope === 'global' && to === state) {
           group.removeAttribute('transform');
-          const edge = group.querySelector('path.fsm-edge');
           const d = finiteGlobalPath(group, to);
           if (edge instanceof SVGPathElement && d !== '') {
             edge.setAttribute('d', d);
           }
           updateLabelLeader(group, edge);
+          updateBezierPreview(group);
           return;
         }
         if (anchor === state) {
           group.setAttribute('transform', `translate(${item.dx} ${item.dy})`);
           updateLabelLeader(group, group.querySelector('path.fsm-edge'));
+          updateBezierPreview(group);
           return;
         }
         if ((from !== state && to !== state)
@@ -4771,11 +5011,11 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             || !states.has(to)) {
           return;
         }
-        const edge = group.querySelector('path.fsm-edge');
         if (edge instanceof SVGPathElement) {
           const d = pathFor(from, to);
           if (d !== '') edge.setAttribute('d', d);
           updateLabelLeader(group, edge);
+          updateBezierPreview(group);
         }
       });
     svg.querySelectorAll(`[data-anchor-state="${CSS.escape(state)}"]`)
@@ -4803,6 +5043,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         if (!center) return;
         const edge = group.querySelector('path.fsm-edge');
         const leader = group.querySelector('path.fsm-label-leader');
+        const curve = simpleCubicPath(edge);
         const labelX = finiteCanvasCoordinate(center.x, viewBox.width);
         const labelY = finiteCanvasCoordinate(center.y, viewBox.height);
         if (labelX === null || labelY === null) return;
@@ -4815,6 +5056,15 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
           leader_path:leader instanceof SVGPathElement
             ? safeSvgPath(leader.getAttribute('d') || '')
             : '',
+          path_kind:isManualBezier(group) && curve
+            ? 'cubic_bezier'
+            : 'auto',
+          source_control:curve
+            ? {dx:curve.c1.x - curve.p0.x, dy:curve.c1.y - curve.p0.y}
+            : {dx:0, dy:0},
+          target_control:curve
+            ? {dx:curve.c2.x - curve.p3.x, dy:curve.c2.y - curve.p3.y}
+            : {dx:0, dy:0},
         };
       });
     const markerGeometry = {};
@@ -4925,6 +5175,29 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
 
   const draggableTarget = (target) => {
     if (!(target instanceof Element)) return null;
+    const bezierHandle = target.closest(
+      '[data-layout-bezier-draggable="1"][data-bezier-role]'
+    );
+    if (bezierHandle instanceof SVGCircleElement) {
+      const overlay = bezierHandle.closest(
+        '.fsm-designer-bezier-preview[data-transition-id]'
+      );
+      const group = bezierHandle.closest(
+        '.fsm-transition[data-transition-id]'
+      );
+      const role = bezierHandle.dataset.bezierRole || '';
+      if (overlay instanceof SVGGElement
+          && group instanceof SVGGElement
+          && (role === 'C1' || role === 'C2')) {
+        return {
+          kind:'bezier',
+          node:overlay,
+          handle:bezierHandle,
+          group,
+          role,
+        };
+      }
+    }
     const marker = target.closest(
       '.fsm-diagram-marker[data-layout-marker-draggable="1"]'
     );
@@ -4949,10 +5222,35 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
   });
 
   svg.addEventListener('pointerdown', (event) => {
-    if (event.button !== 2) return;
     const target = draggableTarget(event.target);
     if (!target) return;
+    if ((target.kind === 'bezier' && event.button !== 0)
+        || (target.kind !== 'bezier' && event.button !== 2)) return;
     event.preventDefault();
+    event.stopImmediatePropagation();
+    if (target.kind === 'bezier') {
+      const id = target.group.dataset.transitionId || '';
+      const edge = target.group.querySelector('path.fsm-edge');
+      const curve = simpleCubicPath(edge);
+      if (id === '' || !curve) return;
+      const start = pointForElement(event, target.group);
+      drag = {
+        kind:'bezier',
+        id,
+        node:target.node,
+        handle:target.handle,
+        group:target.group,
+        role:target.role,
+        curve,
+        pointerId:event.pointerId,
+        startX:start.x,
+        startY:start.y,
+      };
+      svg.setPointerCapture(event.pointerId);
+      card.classList.add('is-layout-dragging');
+      target.node.classList.add('is-layout-dragging');
+      return;
+    }
     const start = pointFor(event);
     if (target.kind === 'state') {
       const state = target.node.dataset.state || '';
@@ -5008,6 +5306,19 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
   svg.addEventListener('pointermove', (event) => {
     if (!drag || event.pointerId !== drag.pointerId) return;
     event.preventDefault();
+    if (drag.kind === 'bezier') {
+      const point = pointForElement(event, drag.group);
+      if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return;
+      const curve = {
+        p0:{...drag.curve.p0},
+        c1:{...drag.curve.c1},
+        c2:{...drag.curve.c2},
+        p3:{...drag.curve.p3},
+      };
+      curve[drag.role.toLowerCase()] = {x:point.x, y:point.y};
+      setManualCurve(drag.group, curve);
+      return;
+    }
     const point = pointFor(event);
     const viewBox = svg.viewBox.baseVal;
     if (drag.kind === 'state') {
@@ -5017,10 +5328,16 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
       let y = item.y + drag.baseDy + (point.y - drag.startY);
       x = Math.max(8, Math.min(x, Math.max(8, viewBox.width - item.w - 8)));
       y = Math.max(70, Math.min(y, Math.max(70, viewBox.height - item.h - 8)));
+      const previousDx = item.dx;
+      const previousDy = item.dy;
       item.dx = x - item.x;
       item.dy = y - item.y;
       item.node.setAttribute('transform', `translate(${item.dx} ${item.dy})`);
-      updateGeometry(drag.id);
+      updateGeometry(
+        drag.id,
+        item.dx - previousDx,
+        item.dy - previousDy
+      );
       return;
     }
 
@@ -5039,9 +5356,15 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         y,
         Math.max(halfH + 70, viewBox.height - halfH - 8)
       ));
+      const previousDx = item.dx;
+      const previousDy = item.dy;
       item.dx = x - item.x;
       item.dy = y - item.y;
-      updateDiagramMarker(drag.id);
+      updateDiagramMarker(
+        drag.id,
+        item.dx - previousDx,
+        item.dy - previousDy
+      );
       return;
     }
 
@@ -5071,7 +5394,10 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     card.classList.remove('is-layout-dragging');
     completed.node.classList.remove('is-layout-dragging');
     try {
-      await persist(completed.kind, completed.id);
+      await persist(
+        completed.kind === 'bezier' ? 'signal' : completed.kind,
+        completed.id
+      );
       card.dataset.opusFsmLayoutSaveState = 'saved';
     } catch (error) {
       card.dataset.opusFsmLayoutSaveState = 'error';

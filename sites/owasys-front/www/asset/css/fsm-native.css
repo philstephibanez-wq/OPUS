@@ -926,6 +926,18 @@
 .fsm-designer-bezier-preview circle[data-bezier-role="C1"],
 .fsm-designer-bezier-preview circle[data-bezier-role="C2"] {
   fill: var(--ow-accent);
+  cursor: move;
+  pointer-events: all;
+  touch-action: none;
+}
+
+.fsm-designer-bezier-preview circle[data-bezier-role="C1"]:hover,
+.fsm-designer-bezier-preview circle[data-bezier-role="C2"]:hover,
+.fsm-designer-bezier-preview.is-layout-dragging
+  circle[data-layout-bezier-draggable="1"] {
+  stroke: var(--ow-warning, #fbbf24);
+  stroke-width: 3;
+  filter: drop-shadow(0 0 5px var(--ow-accent));
 }
 
 @media (max-width: 1180px) {

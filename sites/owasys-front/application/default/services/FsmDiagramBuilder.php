@@ -10,7 +10,7 @@ use Opus\Profiler\ProfilerInterface;
 /** Builds a fixed visual projection from the canonical OWASYS FSM. */
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4BZ2R8B6N';
+    private const REVISION = 'P117W_R45B2A4BZ2R8B6O';
 
     private string $sourceHash = '';
 

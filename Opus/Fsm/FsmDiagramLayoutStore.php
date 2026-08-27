@@ -16,7 +16,8 @@ use RuntimeException;
  * - the canonical FSM definition remains the sole semantic source of truth;
  * - persisted layout stores only presentation geometry and canvas metadata;
  * - V4 persists state coordinates, independently movable signal-card
- *   coordinates and non-semantic diagram-marker coordinates;
+ *   coordinates, non-semantic diagram-marker coordinates and relative cubic
+ *   Bézier controls for transition presentation;
  * - canonical entry-state FSMs persist `begin` through ordinary state geometry
  *   and keep the independently positioned initial pseudostate marker explicit;
  * - when no layout exists, OPUS persists the computed automatic layout in DEV;
@@ -748,7 +749,7 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
      * @param array<string,mixed> $payload
      * @return array{
      *   canvas:array{width:float,height:float},
-     *   transitions:array<string,array{path:string,label_x:float,label_y:float,leader_path:string}>
+     *   transitions:array<string,array{path:string,label_x:float,label_y:float,leader_path:string,path_kind:string,source_control:array{dx:float,dy:float},target_control:array{dx:float,dy:float}}>
      * }
      */
     private function normalizeGeometryPayload(
@@ -783,7 +784,7 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
     /**
      * @param array<string,mixed> $definition
      * @param array<string,mixed> $geometryMap
-     * @return array<string,array{path:string,label_x:float,label_y:float,leader_path:string}>
+     * @return array<string,array{path:string,label_x:float,label_y:float,leader_path:string,path_kind:string,source_control:array{dx:float,dy:float},target_control:array{dx:float,dy:float}}>
      */
     private function normalizeTransitionGeometryMap(
         array $definition,
@@ -796,6 +797,24 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
                 || !isset($known[$id])
                 || !is_array($geometry)) {
                 continue;
+            }
+            $pathKind = trim((string) ($geometry['path_kind'] ?? 'auto'));
+            if (!in_array($pathKind, ['auto', 'cubic_bezier'], true)) {
+                throw new RuntimeException(
+                    'OPUS_FSM_DIAGRAM_LAYOUT_PATH_KIND_INVALID:' . $id
+                );
+            }
+            $sourceControl = is_array($geometry['source_control'] ?? null)
+                ? $geometry['source_control']
+                : [];
+            $targetControl = is_array($geometry['target_control'] ?? null)
+                ? $geometry['target_control']
+                : [];
+            if ($pathKind === 'cubic_bezier'
+                && ($sourceControl === [] || $targetControl === [])) {
+                throw new RuntimeException(
+                    'OPUS_FSM_DIAGRAM_LAYOUT_BEZIER_CONTROL_MISSING:' . $id
+                );
             }
             $normalized[$id] = [
                 'path' => $this->svgPath(
@@ -814,6 +833,27 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
                     (string) ($geometry['leader_path'] ?? ''),
                     'leader_path'
                 ),
+                'path_kind' => $pathKind,
+                'source_control' => [
+                    'dx' => $this->signedCoordinate(
+                        $sourceControl['dx'] ?? 0,
+                        'source_control.dx'
+                    ),
+                    'dy' => $this->signedCoordinate(
+                        $sourceControl['dy'] ?? 0,
+                        'source_control.dy'
+                    ),
+                ],
+                'target_control' => [
+                    'dx' => $this->signedCoordinate(
+                        $targetControl['dx'] ?? 0,
+                        'target_control.dx'
+                    ),
+                    'dy' => $this->signedCoordinate(
+                        $targetControl['dy'] ?? 0,
+                        'target_control.dy'
+                    ),
+                ],
             ];
         }
         return $normalized;
@@ -967,6 +1007,28 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
         if (!is_finite($number)
             || $number < 0.0
             || $number > self::MAX_COORDINATE) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_LAYOUT_COORDINATE_INVALID:' . $axis
+            );
+        }
+        return round($number, 2);
+    }
+
+    private function signedCoordinate(mixed $value, string $axis): float
+    {
+        if (!is_int($value) && !is_float($value) && !is_string($value)) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_LAYOUT_COORDINATE_INVALID:' . $axis
+            );
+        }
+        if (!is_numeric($value)) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_LAYOUT_COORDINATE_INVALID:' . $axis
+            );
+        }
+        $number = (float) $value;
+        if (!is_finite($number)
+            || abs($number) > self::MAX_COORDINATE) {
             throw new RuntimeException(
                 'OPUS_FSM_DIAGRAM_LAYOUT_COORDINATE_INVALID:' . $axis
             );
