@@ -68,6 +68,12 @@ final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
                     $command
                 );
                 break;
+            case 'transition.delete':
+                [$definition, $refactor] = $this->deleteTransition(
+                    $definition,
+                    $command
+                );
+                break;
             case 'transition.handlers.update':
                 $definition = $this->updateTransitionHandlers(
                     $definition,
@@ -339,6 +345,55 @@ final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
         $index = $this->stateIndex($definition, $id);
         array_splice($definition['states'], $index, 1);
         return $definition;
+    }
+
+    /**
+     * @param array<string,mixed> $definition
+     * @param array<string,mixed> $command
+     * @return array{0:array<string,mixed>,1:array<string,string>}
+     */
+    private function deleteTransition(
+        array $definition,
+        array $command
+    ): array {
+        $id = $this->transitionId(
+            $command['transition_id'] ?? null
+        );
+        $confirmation = trim((string) (
+            $command['confirmation'] ?? ''
+        ));
+        if (!hash_equals($id, $confirmation)) {
+            throw new \RuntimeException(
+                'OPUS_EFSM_TRANSITION_DELETE_CONFIRMATION_INVALID'
+            );
+        }
+
+        $index = $this->transitionIndex($definition, $id);
+        $transition = $definition['transitions'][$index] ?? null;
+        if (!is_array($transition)) {
+            throw new \RuntimeException(
+                'OPUS_EFSM_TRANSITION_INVALID:' . $id
+            );
+        }
+        $signal = $this->signalId($transition['signal'] ?? null);
+        array_splice($definition['transitions'], $index, 1);
+
+        $signalStillUsed = false;
+        foreach ((array) ($definition['transitions'] ?? []) as $remaining) {
+            if (is_array($remaining)
+                && (string) ($remaining['signal'] ?? '') === $signal) {
+                $signalStillUsed = true;
+                break;
+            }
+        }
+
+        return [
+            $definition,
+            [
+                'transition_deleted' => $id,
+                'signal_orphaned' => $signalStillUsed ? '' : $signal,
+            ],
+        ];
     }
 
     /** @param array<string,mixed> $definition @param array<string,mixed> $command @return array<string,mixed> */

@@ -196,6 +196,7 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
                 'state.delete',
                 'signal.create',
                 'transition.create',
+                'transition.delete',
             ],
             true
         );
