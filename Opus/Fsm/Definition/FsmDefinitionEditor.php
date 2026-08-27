@@ -59,6 +59,15 @@ final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
                 throw new \RuntimeException(
                     'OPUS_EFSM_STATE_UPDATE_NOT_SEMANTIC'
                 );
+            case 'signal.create':
+                $definition = $this->createSignal($definition, $command);
+                break;
+            case 'transition.create':
+                $definition = $this->createTransition(
+                    $definition,
+                    $command
+                );
+                break;
             case 'transition.handlers.update':
                 $definition = $this->updateTransitionHandlers(
                     $definition,
@@ -119,6 +128,106 @@ final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
         }
 
         $definition['states'][] = ['id' => $id];
+        return $definition;
+    }
+
+    /** @param array<string,mixed> $definition @param array<string,mixed> $command @return array<string,mixed> */
+    private function createSignal(array $definition, array $command): array
+    {
+        $signal = $command['signal'] ?? null;
+        if (!is_array($signal) || array_is_list($signal)) {
+            throw new \RuntimeException(
+                'OPUS_EFSM_SIGNAL_CREATE_PAYLOAD_INVALID'
+            );
+        }
+        foreach (array_keys($signal) as $field) {
+            if (!in_array($field, ['id', 'origin', 'type'], true)) {
+                throw new \RuntimeException(
+                    'OPUS_EFSM_SIGNAL_FIELD_FORBIDDEN:' . (string) $field
+                );
+            }
+        }
+
+        $id = $this->signalId($signal['id'] ?? null);
+        $origin = strtolower(trim((string) ($signal['origin'] ?? '')));
+        if (!in_array($origin, ['user', 'automatic'], true)) {
+            throw new \RuntimeException(
+                'OPUS_EFSM_SIGNAL_ORIGIN_INVALID:' . $origin
+            );
+        }
+        $type = strtolower(trim((string) ($signal['type'] ?? '')));
+        if (!in_array(
+            $type,
+            ['navigation', 'command', 'outcome', 'event', 'system'],
+            true
+        )) {
+            throw new \RuntimeException(
+                'OPUS_EFSM_SIGNAL_TYPE_INVALID:' . $type
+            );
+        }
+        foreach ((array) ($definition['signals'] ?? []) as $existing) {
+            if (is_array($existing)
+                && (string) ($existing['id'] ?? '') === $id) {
+                throw new \RuntimeException(
+                    'OPUS_EFSM_SIGNAL_ID_DUPLICATE:' . $id
+                );
+            }
+        }
+
+        $definition['signals'][] = [
+            'id' => $id,
+            'origin' => $origin,
+            'type' => $type,
+        ];
+        return $definition;
+    }
+
+    /** @param array<string,mixed> $definition @param array<string,mixed> $command @return array<string,mixed> */
+    private function createTransition(
+        array $definition,
+        array $command
+    ): array {
+        $transition = $command['transition'] ?? null;
+        if (!is_array($transition) || array_is_list($transition)) {
+            throw new \RuntimeException(
+                'OPUS_EFSM_TRANSITION_CREATE_PAYLOAD_INVALID'
+            );
+        }
+        foreach (array_keys($transition) as $field) {
+            if (!in_array(
+                $field,
+                ['id', 'from', 'signal', 'next_state'],
+                true
+            )) {
+                throw new \RuntimeException(
+                    'OPUS_EFSM_TRANSITION_FIELD_FORBIDDEN:'
+                    . (string) $field
+                );
+            }
+        }
+
+        $id = $this->transitionId($transition['id'] ?? null);
+        $from = $this->stateId($transition['from'] ?? null);
+        $signal = $this->signalId($transition['signal'] ?? null);
+        $target = $this->stateId($transition['next_state'] ?? null);
+        $this->stateIndex($definition, $from);
+        $this->stateIndex($definition, $target);
+        $this->signalIndex($definition, $signal);
+        foreach ((array) ($definition['transitions'] ?? []) as $existing) {
+            if (is_array($existing)
+                && (string) ($existing['id'] ?? '') === $id) {
+                throw new \RuntimeException(
+                    'OPUS_EFSM_TRANSITION_ID_DUPLICATE:' . $id
+                );
+            }
+        }
+
+        $definition['transitions'][] = [
+            'id' => $id,
+            'from' => $from,
+            'signal' => $signal,
+            'next_state' => $target,
+        ];
         return $definition;
     }
 
@@ -326,6 +435,17 @@ final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
         return $id;
     }
 
+    private function signalId(mixed $value): string
+    {
+        $id = is_string($value) ? trim($value) : '';
+        if (preg_match(self::ID_PATTERN, $id) !== 1) {
+            throw new \RuntimeException(
+                'OPUS_EFSM_SIGNAL_ID_INVALID:' . $id
+            );
+        }
+        return $id;
+    }
+
     /**
      * @param list<string>|null $names
      * @return array<string,true>|null
@@ -487,6 +607,20 @@ final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
         }
         throw new \RuntimeException(
             'OPUS_EFSM_TRANSITION_UNKNOWN:' . $id
+        );
+    }
+
+    /** @param array<string,mixed> $definition */
+    private function signalIndex(array $definition, string $id): int
+    {
+        foreach ((array) ($definition['signals'] ?? []) as $index => $signal) {
+            if (is_array($signal)
+                && (string) ($signal['id'] ?? '') === $id) {
+                return (int) $index;
+            }
+        }
+        throw new \RuntimeException(
+            'OPUS_EFSM_SIGNAL_UNKNOWN:' . $id
         );
     }
 }

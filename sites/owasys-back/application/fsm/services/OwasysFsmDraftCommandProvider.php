@@ -14,11 +14,12 @@ use Opus\Profiler\ProfilerInterface;
 use Opus\Security\Acl\AclPolicy;
 
 /**
- * OWASYS backend adapter for validated, non-persistent EFSM draft commands.
+ * OWASYS backend adapter for validated EFSM semantic commands.
  *
- * V2 never trusts a browser-authored draft definition. It rebuilds the draft
- * deterministically from the live canonical fsm.json by replaying the bounded
- * semantic command history through the generic OPUS EFSM editor.
+ * V2 never trusts a browser-authored definition. It rebuilds draft operations
+ * deterministically from the live canonical fsm.json and persists atomic
+ * state, signal and transition creation/refactor commands through the source
+ * workspace after generic OPUS validation.
  */
 final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProviderInterface
 {
@@ -187,14 +188,20 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
         $operation = trim((string) (
             $semanticCommand['operation'] ?? ''
         ));
-        $persistentStateOperation = in_array(
+        $persistentSemanticOperation = in_array(
             $operation,
-            ['state.create', 'state.rename', 'state.delete'],
+            [
+                'state.create',
+                'state.rename',
+                'state.delete',
+                'signal.create',
+                'transition.create',
+            ],
             true
         );
-        if ($persistentStateOperation && $history !== []) {
+        if ($persistentSemanticOperation && $history !== []) {
             throw new RuntimeException(
-                'OWASYS_FSM_STATE_WRITE_HISTORY_FORBIDDEN'
+                'OWASYS_FSM_SEMANTIC_WRITE_HISTORY_FORBIDDEN'
             );
         }
 
@@ -271,7 +278,7 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
             );
 
             $sourceHash = $baseHash;
-            if ($persistentStateOperation) {
+            if ($persistentSemanticOperation) {
                 $write = (new SiteSourceWorkspace(
                     $this->opusRoot,
                     null,
@@ -287,7 +294,7 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
                 )));
                 if (preg_match('/^[a-f0-9]{64}$/D', $sourceHash) !== 1) {
                     throw new RuntimeException(
-                        'OWASYS_FSM_STATE_WRITE_RESULT_INVALID'
+                        'OWASYS_FSM_SEMANTIC_WRITE_RESULT_INVALID'
                     );
                 }
             }
@@ -299,12 +306,12 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
                     'site_id' => $siteId,
                     'efsm_id' => $efsmId,
                     'operation' => $operation,
-                    'history_count' => $persistentStateOperation
+                    'history_count' => $persistentSemanticOperation
                         ? 0
                         : count($history) + 1,
                     'definition_sha256' =>
                         hash('sha256', $definitionJson),
-                    'persisted' => $persistentStateOperation,
+                    'persisted' => $persistentSemanticOperation,
                     'source_path' => $fsmRelativePath,
                     'source_sha256' => $sourceHash,
                     'diagnostic_count' =>
@@ -319,10 +326,10 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
                 'efsm_id' => $efsmId,
                 'draft_sha256' =>
                     hash('sha256', $definitionJson),
-                'history_count' => $persistentStateOperation
+                'history_count' => $persistentSemanticOperation
                     ? 0
                     : count($history) + 1,
-                'persisted' => $persistentStateOperation,
+                'persisted' => $persistentSemanticOperation,
                 'source_path' => $fsmRelativePath,
                 'source_sha256' => $sourceHash,
                 'operation' => $result['operation'],

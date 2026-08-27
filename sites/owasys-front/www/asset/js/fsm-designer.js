@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const DESIGNER_REVISION = 'P117W_R45B2A4BZ2R8B4A';
+  const DESIGNER_REVISION = 'P117W_R45B2A4BZ2R8B6N';
   const section = document.querySelector('[data-owasys-fsm-diagram]');
   if (!(section instanceof HTMLElement)
       || section.dataset.fsmDesignerMode !== 'design') return;
@@ -40,6 +40,8 @@
   const idNode = section.querySelector('[data-fsm-designer-id]');
   const fieldsNode = section.querySelector('[data-fsm-designer-fields]');
   const stateEditor = section.querySelector('[data-fsm-state-editor]');
+  const signalEditor = section.querySelector('[data-fsm-signal-editor]');
+  const transitionCreateEditor = section.querySelector('[data-fsm-transition-create-editor]');
   const transitionEditor = section.querySelector('[data-fsm-transition-handler-editor]');
   const handlerSourceEditor = section.querySelector('[data-fsm-handler-source-editor]');
   const editorStatus = section.querySelector('[data-fsm-designer-status]');
@@ -51,6 +53,8 @@
       || !(idNode instanceof HTMLElement)
       || !(fieldsNode instanceof HTMLElement)
       || !(stateEditor instanceof HTMLFormElement)
+      || !(signalEditor instanceof HTMLFormElement)
+      || !(transitionCreateEditor instanceof HTMLFormElement)
       || !(transitionEditor instanceof HTMLFormElement)
       || !(handlerSourceEditor instanceof HTMLFormElement)
       || !(editorStatus instanceof HTMLElement)
@@ -65,11 +69,17 @@
   const createButton = section.querySelector('[data-fsm-state-action="create"]');
   const renameButton = section.querySelector('[data-fsm-state-action="rename"]');
   const deleteButton = section.querySelector('[data-fsm-state-action="delete"]');
+  const signalCreateButton = section.querySelector('[data-fsm-signal-action="create"]');
+  const transitionCreateButton = section.querySelector('[data-fsm-transition-action="create"]');
   const transitionEditButton = section.querySelector('[data-fsm-transition-action="handlers"]');
   const stateCancelButton = stateEditor.querySelector('[data-fsm-state-cancel]');
   const stateSubmitButton = stateEditor.querySelector('[data-fsm-state-submit]');
   const confirmationRow = stateEditor.querySelector('[data-fsm-delete-confirmation-row]');
   const confirmationInput = stateEditor.querySelector('[name="delete_confirmation"]');
+  const signalCancelButton = signalEditor.querySelector('[data-fsm-signal-cancel]');
+  const signalSubmitButton = signalEditor.querySelector('[data-fsm-signal-submit]');
+  const transitionCreateCancelButton = transitionCreateEditor.querySelector('[data-fsm-transition-create-cancel]');
+  const transitionCreateSubmitButton = transitionCreateEditor.querySelector('[data-fsm-transition-create-submit]');
   const transitionCancelButton = transitionEditor.querySelector('[data-fsm-transition-handler-cancel]');
   const transitionSubmitButton = transitionEditor.querySelector('[data-fsm-transition-handler-submit]');
   const guardTextarea = transitionEditor.querySelector('[name="transition_guards"]');
@@ -394,6 +404,13 @@
     const stateSelected = selectedKind === 'state' && !!states[selectedId];
     const transitionSelected = selectedKind === 'transition' && !!transitions[selectedId];
     if (createButton instanceof HTMLButtonElement) createButton.disabled = false;
+    if (signalCreateButton instanceof HTMLButtonElement) {
+      signalCreateButton.disabled = false;
+    }
+    if (transitionCreateButton instanceof HTMLButtonElement) {
+      transitionCreateButton.disabled = Object.keys(states).length === 0
+        || Object.keys(signals).length === 0;
+    }
     [renameButton, deleteButton].forEach((button) => {
       if (button instanceof HTMLButtonElement) button.disabled = !stateSelected;
     });
@@ -423,6 +440,8 @@
 
   const hideEditors = () => {
     stateEditor.hidden = true;
+    signalEditor.hidden = true;
+    transitionCreateEditor.hidden = true;
     transitionEditor.hidden = true;
     handlerSourceEditor.hidden = true;
   };
@@ -472,6 +491,8 @@
     stateEditor.reset();
     stateEditor.dataset.mode = mode;
     stateEditor.hidden = false;
+    signalEditor.hidden = true;
+    transitionCreateEditor.hidden = true;
     transitionEditor.hidden = true;
     handlerSourceEditor.hidden = true;
     selection.hidden = true;
@@ -528,6 +549,99 @@
     throw new Error('OWASYS_FSM_DESIGNER_EDITOR_MODE_INVALID');
   };
 
+  const openSignalCreateEditor = () => {
+    signalEditor.reset();
+    hideEditors();
+    signalEditor.hidden = false;
+    selection.hidden = true;
+    empty.hidden = true;
+    const input = signalEditor.elements.namedItem('signal_id');
+    if (input instanceof HTMLInputElement) input.focus();
+    editorStatus.textContent = '';
+  };
+
+  const commandForSignalEditor = () => {
+    const id = signalEditor.elements.namedItem('signal_id');
+    const origin = signalEditor.elements.namedItem('signal_origin');
+    const type = signalEditor.elements.namedItem('signal_type');
+    if (!(id instanceof HTMLInputElement)
+        || !(origin instanceof HTMLSelectElement)
+        || !(type instanceof HTMLSelectElement)) {
+      throw new Error('OWASYS_FSM_DESIGNER_SIGNAL_EDITOR_INVALID');
+    }
+    return {
+      operation:'signal.create',
+      signal:{
+        id:id.value.trim(),
+        origin:origin.value,
+        type:type.value,
+      },
+    };
+  };
+
+  const fillIdentitySelect = (select, values) => {
+    if (!(select instanceof HTMLSelectElement)) {
+      throw new Error('OWASYS_FSM_DESIGNER_IDENTITY_SELECT_MISSING');
+    }
+    select.replaceChildren();
+    values.forEach((id) => {
+      const option = document.createElement('option');
+      option.value = id;
+      option.textContent = id;
+      select.append(option);
+    });
+  };
+
+  const openTransitionCreateEditor = () => {
+    const stateIds = Object.keys(states);
+    const signalIds = Object.keys(signals);
+    if (stateIds.length === 0 || signalIds.length === 0) {
+      throw new Error('OWASYS_FSM_DESIGNER_TRANSITION_DEPENDENCY_MISSING');
+    }
+    transitionCreateEditor.reset();
+    fillIdentitySelect(
+      transitionCreateEditor.elements.namedItem('transition_from'),
+      stateIds
+    );
+    fillIdentitySelect(
+      transitionCreateEditor.elements.namedItem('transition_signal'),
+      signalIds
+    );
+    fillIdentitySelect(
+      transitionCreateEditor.elements.namedItem('transition_target'),
+      stateIds
+    );
+    hideEditors();
+    transitionCreateEditor.hidden = false;
+    selection.hidden = true;
+    empty.hidden = true;
+    const input = transitionCreateEditor.elements.namedItem('transition_id');
+    if (input instanceof HTMLInputElement) input.focus();
+    editorStatus.textContent = '';
+  };
+
+  const commandForTransitionCreateEditor = () => {
+    const id = transitionCreateEditor.elements.namedItem('transition_id');
+    const from = transitionCreateEditor.elements.namedItem('transition_from');
+    const signal = transitionCreateEditor.elements.namedItem('transition_signal');
+    const target = transitionCreateEditor.elements.namedItem('transition_target');
+    if (!(id instanceof HTMLInputElement)
+        || !(from instanceof HTMLSelectElement)
+        || !(signal instanceof HTMLSelectElement)
+        || !(target instanceof HTMLSelectElement)) {
+      throw new Error('OWASYS_FSM_DESIGNER_TRANSITION_CREATE_EDITOR_INVALID');
+    }
+    return {
+      operation:'transition.create',
+      transition:{
+        id:id.value.trim(),
+        from:from.value,
+        signal:signal.value,
+        next_state:target.value,
+      },
+    };
+  };
+
   const parseHandlerText = (textarea, catalog, kind) => {
     if (!(textarea instanceof HTMLTextAreaElement)) {
       throw new Error(`OWASYS_FSM_DESIGNER_${kind}_EDITOR_MISSING`);
@@ -561,6 +675,8 @@
     transitionEditor.reset();
     transitionEditor.hidden = false;
     stateEditor.hidden = true;
+    signalEditor.hidden = true;
+    transitionCreateEditor.hidden = true;
     handlerSourceEditor.hidden = true;
     selection.hidden = true;
     empty.hidden = true;
@@ -692,6 +808,8 @@
     handlerSourceEditor.dataset.handlerMode = mode;
     handlerSourceEditor.hidden = false;
     stateEditor.hidden = true;
+    signalEditor.hidden = true;
+    transitionCreateEditor.hidden = true;
     transitionEditor.hidden = true;
     selection.hidden = true;
     empty.hidden = true;
@@ -958,6 +1076,25 @@
     });
   });
 
+  if (signalCreateButton instanceof HTMLButtonElement) {
+    signalCreateButton.addEventListener('click', () => {
+      activeTool = 'select';
+      openSignalCreateEditor();
+    });
+  }
+  if (transitionCreateButton instanceof HTMLButtonElement) {
+    transitionCreateButton.addEventListener('click', () => {
+      activeTool = 'select';
+      try {
+        openTransitionCreateEditor();
+      } catch (error) {
+        editorStatus.textContent = error instanceof Error
+          ? error.message
+          : 'OWASYS_FSM_DESIGNER_TRANSITION_CREATE_FAILED';
+      }
+    });
+  }
+
   if (transitionEditButton instanceof HTMLButtonElement) {
     transitionEditButton.addEventListener('click', () => {
       if (selectedKind !== 'transition' || !transitions[selectedId]) return;
@@ -1003,6 +1140,12 @@
   if (stateCancelButton instanceof HTMLButtonElement) {
     stateCancelButton.addEventListener('click', closeEditors);
   }
+  if (signalCancelButton instanceof HTMLButtonElement) {
+    signalCancelButton.addEventListener('click', closeEditors);
+  }
+  if (transitionCreateCancelButton instanceof HTMLButtonElement) {
+    transitionCreateCancelButton.addEventListener('click', closeEditors);
+  }
   if (transitionCancelButton instanceof HTMLButtonElement) {
     transitionCancelButton.addEventListener('click', closeEditors);
   }
@@ -1021,6 +1164,46 @@
         : 'OWASYS_FSM_DESIGNER_DRAFT_COMMAND_FAILED';
     } finally {
       if (stateSubmitButton instanceof HTMLButtonElement) stateSubmitButton.disabled = false;
+    }
+  });
+
+  signalEditor.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    try {
+      if (signalSubmitButton instanceof HTMLButtonElement) {
+        signalSubmitButton.disabled = true;
+      }
+      editorStatus.textContent = 'validation…';
+      await sendCommand(commandForSignalEditor());
+      closeEditors();
+    } catch (error) {
+      editorStatus.textContent = error instanceof Error
+        ? error.message
+        : 'OWASYS_FSM_DESIGNER_SIGNAL_CREATE_FAILED';
+    } finally {
+      if (signalSubmitButton instanceof HTMLButtonElement) {
+        signalSubmitButton.disabled = false;
+      }
+    }
+  });
+
+  transitionCreateEditor.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    try {
+      if (transitionCreateSubmitButton instanceof HTMLButtonElement) {
+        transitionCreateSubmitButton.disabled = true;
+      }
+      editorStatus.textContent = 'validation…';
+      await sendCommand(commandForTransitionCreateEditor());
+      closeEditors();
+    } catch (error) {
+      editorStatus.textContent = error instanceof Error
+        ? error.message
+        : 'OWASYS_FSM_DESIGNER_TRANSITION_CREATE_FAILED';
+    } finally {
+      if (transitionCreateSubmitButton instanceof HTMLButtonElement) {
+        transitionCreateSubmitButton.disabled = false;
+      }
     }
   });
 
@@ -1062,6 +1245,8 @@
     const target = event.target;
     if (target instanceof HTMLFormElement
         && target !== stateEditor
+        && target !== signalEditor
+        && target !== transitionCreateEditor
         && target !== transitionEditor
         && target !== handlerSourceEditor
         && target.closest('[data-owasys-fsm-diagram]') === section) {
@@ -1073,7 +1258,7 @@
   section.addEventListener('click', (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
-    if (target.closest('.ow-fsm-designer-toolbar, [data-fsm-state-editor], [data-fsm-transition-handler-editor], [data-fsm-handler-source-editor]')) return;
+    if (target.closest('.ow-fsm-designer-toolbar, [data-fsm-state-editor], [data-fsm-signal-editor], [data-fsm-transition-create-editor], [data-fsm-transition-handler-editor], [data-fsm-handler-source-editor]')) return;
 
     const transition = target.closest('.fsm-transition[data-transition-id]');
     const state = target.closest('.fsm-node[data-state]');
