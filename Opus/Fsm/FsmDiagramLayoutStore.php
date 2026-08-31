@@ -24,8 +24,8 @@ use RuntimeException;
  * - when a layout exists, persisted state and transition geometry wins;
  * - new FSM states are auto-positioned and merged without discarding existing
  *   manual coordinates;
- * - a semantic state rename can prepare an optimistic identity refactor that
- *   preserves state, transition and finite-global-marker presentation;
+ * - semantic state and transition renames can prepare optimistic identity
+ *   refactors that preserve their associated presentation geometry;
  * - writes are allowed only under the PHP development server or when the
  *   explicit OPUS_FSM_LAYOUT_WRITE=1 override is present.
  */
@@ -490,6 +490,86 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
             'content' => $this->json->encode($layout, true),
             'state_position_migrated' => $statePositionMigrated,
             'marker_count_migrated' => $markerCountMigrated,
+        ];
+    }
+
+    /**
+     * Moves persisted transition geometry when only its canonical identity
+     * changes. Ports, states and semantic routing remain untouched.
+     *
+     * @param array<string,mixed> $oldDefinition
+     * @param array<string,mixed> $newDefinition
+     * @return array{path:string,expected_sha256:string,content:string,transition_geometry_migrated:bool}|null
+     */
+    public function prepareTransitionIdentityRefactor(
+        array $oldDefinition,
+        array $newDefinition,
+        string $oldTransitionId,
+        string $newTransitionId,
+        string $newDefinitionSha256
+    ): ?array {
+        $oldTransitionId = trim($oldTransitionId);
+        $newTransitionId = trim($newTransitionId);
+        $newDefinitionSha256 = strtolower(trim($newDefinitionSha256));
+        $oldTransitions = $this->definitionTransitionSet($oldDefinition);
+        $newTransitions = $this->definitionTransitionSet($newDefinition);
+        if ($oldTransitionId === ''
+            || $newTransitionId === ''
+            || !isset($oldTransitions[$oldTransitionId])
+            || isset($oldTransitions[$newTransitionId])
+            || isset($newTransitions[$oldTransitionId])
+            || !isset($newTransitions[$newTransitionId])) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_LAYOUT_TRANSITION_REFACTOR_INVALID'
+            );
+        }
+        if (preg_match('/^[a-f0-9]{64}$/D', $newDefinitionSha256) !== 1) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_LAYOUT_DEFINITION_HASH_INVALID'
+            );
+        }
+
+        $path = $this->siteRoot . '/' . $this->layoutRelative;
+        if (!$this->file->exists($path)) {
+            return null;
+        }
+        $raw = $this->file->read($path, self::MAX_LAYOUT_BYTES);
+        $layout = $this->readLayout();
+        if (($layout['fsm_path'] ?? null) !== $this->fsmRelative
+            || ($layout['layout_direction'] ?? null)
+                !== $this->layoutDirection) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_LAYOUT_REFACTOR_SOURCE_INVALID:'
+                . $this->layoutRelative
+            );
+        }
+
+        $transitions = is_array($layout['transitions'] ?? null)
+            ? $layout['transitions']
+            : [];
+        if (isset($transitions[$newTransitionId])) {
+            throw new RuntimeException(
+                'OPUS_FSM_DIAGRAM_LAYOUT_TRANSITION_REFACTOR_CONFLICT:'
+                . $newTransitionId
+            );
+        }
+        $geometryMigrated = is_array($transitions[$oldTransitionId] ?? null);
+        if ($geometryMigrated) {
+            $transitions[$newTransitionId] = $transitions[$oldTransitionId];
+            unset($transitions[$oldTransitionId]);
+        }
+        $layout['transitions'] = $transitions;
+        $layout = $this->normalizeExistingPersisted($newDefinition, $layout);
+        $layout['contract'] = self::CONTRACT;
+        $layout['fsm_path'] = $this->fsmRelative;
+        $layout['definition_sha256'] = $newDefinitionSha256;
+        $layout['layout_direction'] = $this->layoutDirection;
+
+        return [
+            'path' => $this->layoutRelative,
+            'expected_sha256' => hash('sha256', $raw),
+            'content' => $this->json->encode($layout, true),
+            'transition_geometry_migrated' => $geometryMigrated,
         ];
     }
 

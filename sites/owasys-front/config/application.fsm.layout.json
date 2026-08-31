@@ -1,43 +1,43 @@
 {
     "contract": "OPUS_FSM_DIAGRAM_LAYOUT_V4",
     "fsm_path": "config/application.fsm.json",
-    "definition_sha256": "872434d1baf47306334fc67be50b1f70615ec169d5def66686d7f13c94952bc5",
+    "definition_sha256": "2fe6871d76db76c2962e11d1142346e28512b2bc435d04d1ee4d8ae0f08e742a",
     "layout_direction": "horizontal",
     "canvas": {
         "width": 888,
         "height": 504
     },
     "states": {
-        "unselected": {
+        "selected": {
+            "x": 532.58,
+            "y": 246.25
+        },
+        "essai": {
             "x": 108.75,
             "y": 201.75
-        },
-        "selected": {
-            "x": 531.33,
-            "y": 200
         }
     },
     "transitions": {
-        "application.context.select": {
-            "path": "M312.7497253417969 239.7504425048828 C422.03986267089846 239.7504425048828, 422.03986267089846 238, 531.33 238",
+        "transition.modiee": {
+            "path": "M312.75 239.75 C434.7127685546875 202.75657653808594, 405.9623718261719 335.2583312988281, 532.58 284.25062561035156",
             "label_x": 424.67,
-            "label_y": 137.33,
-            "leader_path": "M422.03985595703125 238.87521362304688 L424.6698474121094 137.33",
+            "label_y": 121.13,
+            "leader_path": "M421.8775634765625 268.1414794921875 L424.67003051757814 121.12980163574218",
             "path_kind": "auto",
             "source_control": {
-                "dx": 109.29,
-                "dy": 0
+                "dx": 121.96,
+                "dy": -36.99
             },
             "target_control": {
-                "dx": -109.29,
-                "dy": 0
+                "dx": -126.62,
+                "dy": 51.01
             }
         },
         "application.context.enter.selected": {
-            "path": "M670.05 200 C714.05 156, 626.05 156, 662.05 200",
-            "label_x": 703.39,
-            "label_y": 72.33,
-            "leader_path": "M669.2755737304688 167.0014190673828 L703.39 72.33",
+            "path": "M671.3 246.25 C715.3 202.25, 627.3 202.25, 663.3 246.25",
+            "label_x": 736.41,
+            "label_y": 118.58,
+            "leader_path": "M670.5255737304688 213.2514190673828 L736.408447265625 118.58",
             "path_kind": "auto",
             "source_control": {
                 "dx": 44,

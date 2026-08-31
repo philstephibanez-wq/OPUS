@@ -61,7 +61,7 @@
           <strong>{{ fsm_designer.labels.transition }}</strong>
           <button type="button" class="ow-fsm-tool" data-fsm-transition-action="create" title="{{ fsm_designer.labels.create }} {{ fsm_designer.labels.transition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">↗＋</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.create }}</span></button>
           <button type="button" class="ow-fsm-tool" data-fsm-transition-action="handlers" title="{{ fsm_designer.labels.edit }} {{ fsm_designer.labels.transition }}" disabled><span class="ow-fsm-tool-icon" aria-hidden="true">↗✎</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.edit }}</span></button>
-          <button type="button" class="ow-fsm-tool" disabled title="{{ fsm_designer.labels.rename }} {{ fsm_designer.labels.transition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">↗↔</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.rename }}</span></button>
+          <button type="button" class="ow-fsm-tool" data-fsm-transition-action="rename" title="{{ fsm_designer.labels.rename }} {{ fsm_designer.labels.transition }}" disabled><span class="ow-fsm-tool-icon" aria-hidden="true">↗↔</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.rename }}</span></button>
           <button type="button" class="ow-fsm-tool is-danger" data-fsm-transition-action="delete" disabled title="{{ fsm_designer.labels.delete }} {{ fsm_designer.labels.transition }}"><span class="ow-fsm-tool-icon" aria-hidden="true">↗×</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.delete }}</span></button>
         </span>
 
@@ -155,6 +155,15 @@
           <div class="ow-fsm-state-editor-actions">
             <button type="submit" class="ow-fsm-tool is-primary" data-fsm-transition-handler-submit title="{{ fsm_designer.labels.validate }}"><span class="ow-fsm-tool-icon" aria-hidden="true">✓</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.validate }}</span></button>
             <button type="button" class="ow-fsm-tool" data-fsm-transition-handler-cancel title="{{ fsm_designer.labels.select }}"><span class="ow-fsm-tool-icon" aria-hidden="true">×</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.select }}</span></button>
+          </div>
+        </form>
+
+        <form class="ow-fsm-state-editor" data-fsm-transition-rename-editor hidden>
+          <label class="ow-fsm-state-field"><span>transition</span><input type="text" name="transition_id" readonly></label>
+          <label class="ow-fsm-state-field"><span>new id</span><input type="text" name="transition_new_id" required pattern="[A-Za-z][A-Za-z0-9_.:-]{0,127}" autocomplete="off"></label>
+          <div class="ow-fsm-state-editor-actions">
+            <button type="submit" class="ow-fsm-tool is-primary" data-fsm-transition-rename-submit title="{{ fsm_designer.labels.validate }}"><span class="ow-fsm-tool-icon" aria-hidden="true">✓</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.validate }}</span></button>
+            <button type="button" class="ow-fsm-tool" data-fsm-transition-rename-cancel title="{{ fsm_designer.labels.select }}"><span class="ow-fsm-tool-icon" aria-hidden="true">×</span><span class="ow-fsm-tool-label">{{ fsm_designer.labels.select }}</span></button>
           </div>
         </form>
 

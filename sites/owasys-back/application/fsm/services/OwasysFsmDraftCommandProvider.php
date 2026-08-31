@@ -197,6 +197,7 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
                 'state.delete',
                 'signal.create',
                 'transition.create',
+                'transition.rename',
                 'transition.delete',
             ],
             true
@@ -302,6 +303,22 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
                         $result['refactor'],
                         hash('sha256', $definitionJson)
                     );
+                } elseif ($operation === 'transition.rename'
+                    && trim((string) (
+                        $result['refactor']['transition_old'] ?? ''
+                    )) !== ''
+                    && trim((string) (
+                        $result['refactor']['transition_new'] ?? ''
+                    )) !== '') {
+                    $layoutRefactor =
+                        $this->prepareTransitionRenameLayoutRefactor(
+                            $siteRoot,
+                            $fsmRelativePath,
+                            $live,
+                            $definition,
+                            $result['refactor'],
+                            hash('sha256', $definitionJson)
+                        );
                 }
 
                 if ($layoutRefactor !== null) {
@@ -368,6 +385,10 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
                         $layoutRefactor['marker_count_migrated']
                             ?? 0
                     ),
+                    'transition_geometry_migrated' => (bool) (
+                        $layoutRefactor['transition_geometry_migrated']
+                            ?? false
+                    ),
                     'diagnostic_count' =>
                         count($result['diagnostics']),
                 ]
@@ -397,6 +418,10 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
                     'marker_count_migrated' => (int) (
                         $layoutRefactor['marker_count_migrated']
                             ?? 0
+                    ),
+                    'transition_geometry_migrated' => (bool) (
+                        $layoutRefactor['transition_geometry_migrated']
+                            ?? false
                     ),
                 ],
                 'diagnostics' => $result['diagnostics'],
@@ -471,6 +496,60 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
             $newDefinition,
             trim((string) ($refactor['state_old'] ?? '')),
             trim((string) ($refactor['state_new'] ?? '')),
+            $newDefinitionSha256
+        );
+    }
+
+    /**
+     * @param array<string,mixed> $oldDefinition
+     * @param array<string,mixed> $newDefinition
+     * @param array<string,mixed> $refactor
+     * @return array{path:string,expected_sha256:string,content:string,transition_geometry_migrated:bool}|null
+     */
+    private function prepareTransitionRenameLayoutRefactor(
+        string $siteRoot,
+        string $fsmRelativePath,
+        array $oldDefinition,
+        array $newDefinition,
+        array $refactor,
+        string $newDefinitionSha256
+    ): ?array {
+        $layoutRelativePath = preg_replace(
+            '/\\.json$/D',
+            '.layout.json',
+            $fsmRelativePath
+        );
+        if (!is_string($layoutRelativePath)
+            || $layoutRelativePath === $fsmRelativePath) {
+            throw new RuntimeException(
+                'OWASYS_FSM_LAYOUT_PATH_INVALID'
+            );
+        }
+        $layoutPath = rtrim($siteRoot, '/\\\\')
+            . '/' . $layoutRelativePath;
+        if (!File::instance()->exists($layoutPath)) {
+            return null;
+        }
+        $layout = StructuredFileLoader::instance()->read($layoutPath);
+        $direction = strtolower(trim((string) (
+            $layout['layout_direction'] ?? ''
+        )));
+        if (!in_array($direction, ['horizontal', 'vertical'], true)) {
+            throw new RuntimeException(
+                'OWASYS_FSM_LAYOUT_DIRECTION_INVALID'
+            );
+        }
+
+        return FsmDiagramLayoutStore::forSource(
+            $siteRoot,
+            $fsmRelativePath,
+            $direction,
+            false
+        )->prepareTransitionIdentityRefactor(
+            $oldDefinition,
+            $newDefinition,
+            trim((string) ($refactor['transition_old'] ?? '')),
+            trim((string) ($refactor['transition_new'] ?? '')),
             $newDefinitionSha256
         );
     }

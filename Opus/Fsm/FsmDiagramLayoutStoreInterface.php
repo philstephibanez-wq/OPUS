@@ -57,6 +57,27 @@ interface FsmDiagramLayoutStoreInterface extends
         string $newDefinitionSha256
     ): ?array;
 
+    /**
+     * Prepare an optimistic layout-file rewrite for a semantic transition
+     * rename. No write is performed by this method.
+     *
+     * @param array<string,mixed> $oldDefinition
+     * @param array<string,mixed> $newDefinition
+     * @return array{
+     *   path:string,
+     *   expected_sha256:string,
+     *   content:string,
+     *   transition_geometry_migrated:bool
+     * }|null
+     */
+    public function prepareTransitionIdentityRefactor(
+        array $oldDefinition,
+        array $newDefinition,
+        string $oldTransitionId,
+        string $newTransitionId,
+        string $newDefinitionSha256
+    ): ?array;
+
     /** @return array<string,mixed> */
     public function clientConfig(): array;
 }

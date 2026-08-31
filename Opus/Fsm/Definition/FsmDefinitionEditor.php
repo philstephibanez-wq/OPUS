@@ -68,6 +68,12 @@ final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
                     $command
                 );
                 break;
+            case 'transition.rename':
+                [$definition, $refactor] = $this->renameTransition(
+                    $definition,
+                    $command
+                );
+                break;
             case 'transition.delete':
                 [$definition, $refactor] = $this->deleteTransition(
                     $definition,
@@ -235,6 +241,40 @@ final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
             'next_state' => $target,
         ];
         return $definition;
+    }
+
+    /** @param array<string,mixed> $definition @param array<string,mixed> $command @return array{0:array<string,mixed>,1:array<string,string>} */
+    private function renameTransition(array $definition, array $command): array
+    {
+        $old = $this->transitionId($command['transition_id'] ?? null);
+        $new = $this->transitionId($command['new_id'] ?? null);
+        if ($old === $new) {
+            return [$definition, []];
+        }
+
+        $index = $this->transitionIndex($definition, $old);
+        foreach ((array) ($definition['transitions'] ?? []) as $existing) {
+            if (is_array($existing)
+                && (string) ($existing['id'] ?? '') === $new) {
+                throw new \RuntimeException(
+                    'OPUS_EFSM_TRANSITION_ID_DUPLICATE:' . $new
+                );
+            }
+        }
+
+        $transition = $definition['transitions'][$index];
+        if (!is_array($transition)) {
+            throw new \RuntimeException(
+                'OPUS_EFSM_TRANSITION_ENTRY_INVALID:' . $old
+            );
+        }
+        $transition['id'] = $new;
+        $definition['transitions'][$index] = $transition;
+
+        return [$definition, [
+            'transition_old' => $old,
+            'transition_new' => $new,
+        ]];
     }
 
     /** @param array<string,mixed> $definition @param array<string,mixed> $command @return array{0:array<string,mixed>,1:array<string,string>} */
