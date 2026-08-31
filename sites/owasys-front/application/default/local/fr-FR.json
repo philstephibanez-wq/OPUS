@@ -1,8 +1,10 @@
 {
-  "contract": "OPUS_I18N_CATALOG_V1",
-  "locale": "fr-FR",
-  "scope": "default",
-  "messages": {
-    "runtime.error": "Erreur d’exécution"
-  }
+    "contract": "OPUS_I18N_CATALOG_V1",
+    "locale": "fr-FR",
+    "scope": "default",
+    "messages": {
+        "fsm.application.transition.application.context.enter.selected.label": "transition renseignée",
+        "fsm.application.transition.transition.modiee.label": "transition.modifiée",
+        "runtime.error": "Erreur d’exécution"
+    }
 }

@@ -1,9 +1,11 @@
 {
-  "contract": "OPUS_I18N_CATALOG_V2",
-  "locale": "en-IE",
-  "scope": "default",
-  "inherits": "en",
-  "messages": {},
-  "plurals": {},
-  "grammatical": {}
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "en-IE",
+    "scope": "default",
+    "inherits": "en",
+    "messages": {
+        "fsm.application.transition.transition.modiee.label": "changed_trans"
+    },
+    "plurals": [],
+    "grammatical": []
 }

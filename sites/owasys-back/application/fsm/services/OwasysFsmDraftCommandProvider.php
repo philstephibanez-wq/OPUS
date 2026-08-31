@@ -17,10 +17,11 @@ use Opus\Security\Acl\AclPolicy;
 /**
  * OWASYS backend adapter for validated EFSM semantic commands.
  *
- * V2 never trusts a browser-authored definition. It rebuilds draft operations
- * deterministically from the live canonical fsm.json and persists atomic
- * state, signal and transition creation/refactor commands through the source
- * workspace after generic OPUS validation.
+ * Browser-authored definitions are never trusted. Persistent semantic changes
+ * are rebuilt from the live canonical source and written through the OPUS
+ * source workspace. State-label updates keep the technical state identity
+ * unchanged and persist the exact active-locale message atomically with the
+ * canonical label_key.
  */
 final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProviderInterface
 {
@@ -31,6 +32,7 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
     private const ENVELOPE_CONTRACT =
         'OWASYS_EFSM_DRAFT_COMMAND_ENVELOPE_V2';
     private const MAX_HISTORY_COMMANDS = 128;
+    private const MAX_LABEL_BYTES = 1024;
 
     private readonly AclPolicy $acl;
     private readonly ProfilerInterface $profiler;
@@ -194,9 +196,11 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
             [
                 'state.create',
                 'state.rename',
+                'state.label.update',
                 'state.delete',
                 'signal.create',
                 'transition.create',
+                'transition.label.update',
                 'transition.rename',
                 'transition.delete',
             ],
@@ -206,6 +210,33 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
             throw new RuntimeException(
                 'OWASYS_FSM_SEMANTIC_WRITE_HISTORY_FORBIDDEN'
             );
+        }
+
+        $labelMutation = null;
+        $editorCommand = $semanticCommand;
+        if ($operation === 'state.label.update') {
+            $labelMutation = $this->stateLabelMutation(
+                $live,
+                $efsmId,
+                $semanticCommand
+            );
+            $editorCommand = [
+                'operation' => 'state.label.update',
+                'state_id' => $labelMutation['state_id'],
+                'label_key' => $labelMutation['label_key'],
+            ];
+        }
+        elseif ($operation === 'transition.label.update') {
+            $labelMutation = $this->transitionLabelMutation(
+                $live,
+                $efsmId,
+                $semanticCommand
+            );
+            $editorCommand = [
+                'operation' => 'transition.label.update',
+                'transition_id' => $labelMutation['transition_id'],
+                'label_key' => $labelMutation['label_key'],
+            ];
         }
 
         if ($operation === 'transition.handlers.update') {
@@ -253,14 +284,15 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
                         $semanticCommand['transition_id']
                             ?? ''
                     ),
+                    'label_locale' => is_array($labelMutation)
+                        ? $labelMutation['locale']
+                        : '',
+                    'label_key' => is_array($labelMutation)
+                        ? $labelMutation['label_key']
+                        : '',
                 ]
             );
 
-            /*
-             * Stateless authoritative draft: canonical definition + replayed
-             * semantic command history. The browser cannot smuggle arbitrary
-             * definition fields because raw draft_json is never consumed.
-             */
             $definition = $live;
             foreach ($history as $historicCommand) {
                 $replayed = $editor->apply(
@@ -272,7 +304,7 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
 
             $result = $editor->apply(
                 $definition,
-                $semanticCommand
+                $editorCommand
             );
             $definition = $result['definition'];
             $definitionJson = Json::instance()->encode(
@@ -282,6 +314,7 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
 
             $sourceHash = $baseHash;
             $layoutRefactor = null;
+            $labelCatalogPath = '';
             if ($persistentSemanticOperation) {
                 $workspace = new SiteSourceWorkspace(
                     $this->opusRoot,
@@ -321,7 +354,30 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
                         );
                 }
 
-                if ($layoutRefactor !== null) {
+                if (is_array($labelMutation)) {
+                    $catalogWrite = $this->prepareStateLabelCatalogWrite(
+                        $siteRoot,
+                        $labelMutation['locale'],
+                        $labelMutation['label_key'],
+                        $labelMutation['label']
+                    );
+                    $labelCatalogPath = $catalogWrite['path'];
+                    $batch = $workspace->writeBatch(
+                        $siteId,
+                        [
+                            [
+                                'path' => $fsmRelativePath,
+                                'expected_sha256' => $baseHash,
+                                'content' => $definitionJson,
+                            ],
+                            $catalogWrite,
+                        ]
+                    );
+                    $sourceHash = $this->batchSourceHash(
+                        $batch,
+                        $fsmRelativePath
+                    );
+                } elseif ($layoutRefactor !== null) {
                     $batch = $workspace->writeBatch(
                         $siteId,
                         [
@@ -375,6 +431,7 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
                     'persisted' => $persistentSemanticOperation,
                     'source_path' => $fsmRelativePath,
                     'source_sha256' => $sourceHash,
+                    'label_catalog_path' => $labelCatalogPath,
                     'layout_refactor_prepared' =>
                         $layoutRefactor !== null,
                     'state_position_migrated' => (bool) (
@@ -409,6 +466,15 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
                 'source_sha256' => $sourceHash,
                 'operation' => $result['operation'],
                 'refactor' => $result['refactor'],
+                'label' => is_array($labelMutation)
+                    ? [
+                        'state_id' => $labelMutation['state_id'] ?? '',
+                        'transition_id' => $labelMutation['transition_id'] ?? '',
+                        'locale' => $labelMutation['locale'],
+                        'label_key' => $labelMutation['label_key'],
+                        'catalog_path' => $labelCatalogPath,
+                    ]
+                    : null,
                 'layout_refactor' => [
                     'prepared' => $layoutRefactor !== null,
                     'state_position_migrated' => (bool) (
@@ -438,6 +504,168 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
                 ]);
             }
         }
+    }
+
+    /**
+     * @param array<string,mixed> $definition
+     * @param array<string,mixed> $command
+     * @return array{state_id:string,locale:string,label_key:string,label:string}
+     */
+    private function stateLabelMutation(
+        array $definition,
+        string $efsmId,
+        array $command
+    ): array {
+        foreach (array_keys($command) as $field) {
+            if (!in_array(
+                $field,
+                ['operation', 'state_id', 'locale', 'label'],
+                true
+            )) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_STATE_LABEL_FIELD_FORBIDDEN:'
+                    . (string) $field
+                );
+            }
+        }
+        $stateId = trim((string) ($command['state_id'] ?? ''));
+        $locale = trim((string) ($command['locale'] ?? ''));
+        $label = is_string($command['label'] ?? null)
+            ? trim((string) $command['label'])
+            : '';
+        if (preg_match('/^[A-Za-z][A-Za-z0-9_.:-]{0,127}$/D', $stateId) !== 1) {
+            throw new RuntimeException(
+                'OWASYS_FSM_STATE_LABEL_STATE_ID_INVALID:' . $stateId
+            );
+        }
+        if (preg_match('/^[A-Za-z]{2,3}(?:-[A-Za-z]{2})?$/D', $locale) !== 1) {
+            throw new RuntimeException(
+                'OWASYS_FSM_STATE_LABEL_LOCALE_INVALID:' . $locale
+            );
+        }
+        if ($label === ''
+            || strlen($label) > self::MAX_LABEL_BYTES
+            || preg_match('//u', $label) !== 1) {
+            throw new RuntimeException(
+                'OWASYS_FSM_STATE_LABEL_MESSAGE_INVALID'
+            );
+        }
+
+        $state = null;
+        foreach ((array) ($definition['states'] ?? []) as $candidate) {
+            if (is_array($candidate)
+                && (string) ($candidate['id'] ?? '') === $stateId) {
+                $state = $candidate;
+                break;
+            }
+        }
+        if (!is_array($state)) {
+            throw new RuntimeException(
+                'OWASYS_FSM_STATE_UNKNOWN:' . $stateId
+            );
+        }
+        $labelKey = trim((string) ($state['label_key'] ?? ''));
+        if ($labelKey === '') {
+            $safeState = preg_replace('/[^A-Za-z0-9_.:-]+/', '_', $stateId);
+            $safeState = is_string($safeState) ? trim($safeState, '_') : '';
+            if ($safeState === '') {
+                throw new RuntimeException(
+                    'OWASYS_FSM_STATE_LABEL_KEY_INVALID'
+                );
+            }
+            $labelKey = 'fsm.' . $efsmId . '.state.' . $safeState . '.label';
+        }
+        if (preg_match('/^[A-Za-z0-9][A-Za-z0-9_.:-]{0,191}$/D', $labelKey) !== 1) {
+            throw new RuntimeException(
+                'OWASYS_FSM_STATE_LABEL_KEY_INVALID:' . $labelKey
+            );
+        }
+
+        return [
+            'state_id' => $stateId,
+            'locale' => $locale,
+            'label_key' => $labelKey,
+            'label' => $label,
+        ];
+    }
+
+
+    /** @return array{transition_id:string,locale:string,label_key:string,label:string} */
+    private function transitionLabelMutation(array $definition, string $efsmId, array $command): array
+    {
+        foreach (array_keys($command) as $field) {
+            if (!in_array($field, ['operation', 'transition_id', 'locale', 'label'], true)) {
+                throw new RuntimeException('OWASYS_FSM_TRANSITION_LABEL_FIELD_FORBIDDEN:' . (string) $field);
+            }
+        }
+        $transitionId = trim((string) ($command['transition_id'] ?? ''));
+        $locale = trim((string) ($command['locale'] ?? ''));
+        $label = is_string($command['label'] ?? null) ? trim((string) $command['label']) : '';
+        if (preg_match('/^[A-Za-z][A-Za-z0-9_.:-]{0,127}$/D', $transitionId) !== 1) {
+            throw new RuntimeException('OWASYS_FSM_TRANSITION_LABEL_TRANSITION_ID_INVALID:' . $transitionId);
+        }
+        if (preg_match('/^[A-Za-z]{2,3}(?:-[A-Za-z]{2})?$/D', $locale) !== 1) {
+            throw new RuntimeException('OWASYS_FSM_TRANSITION_LABEL_LOCALE_INVALID:' . $locale);
+        }
+        if ($label === '' || strlen($label) > self::MAX_LABEL_BYTES || preg_match('//u', $label) !== 1) {
+            throw new RuntimeException('OWASYS_FSM_TRANSITION_LABEL_MESSAGE_INVALID');
+        }
+        $transition = null;
+        foreach ((array) ($definition['transitions'] ?? []) as $candidate) {
+            if (is_array($candidate) && (string) ($candidate['id'] ?? '') === $transitionId) { $transition = $candidate; break; }
+        }
+        if (!is_array($transition)) {
+            throw new RuntimeException('OWASYS_FSM_TRANSITION_UNKNOWN:' . $transitionId);
+        }
+        $labelKey = trim((string) ($transition['label_key'] ?? ''));
+        if ($labelKey === '') {
+            $labelKey = 'fsm.' . $efsmId . '.transition.' . $transitionId . '.label';
+        }
+        if (preg_match('/^[A-Za-z0-9][A-Za-z0-9_.:-]{0,191}$/D', $labelKey) !== 1) {
+            throw new RuntimeException('OWASYS_FSM_TRANSITION_LABEL_KEY_INVALID:' . $labelKey);
+        }
+        return ['transition_id'=>$transitionId,'locale'=>$locale,'label_key'=>$labelKey,'label'=>$label];
+    }
+
+    /**
+     * @return array{path:string,expected_sha256:string,content:string}
+     */
+    private function prepareStateLabelCatalogWrite(
+        string $siteRoot,
+        string $locale,
+        string $labelKey,
+        string $label
+    ): array {
+        $relativePath = 'application/default/local/' . $locale . '.json';
+        $path = rtrim($siteRoot, '/\\') . '/' . $relativePath;
+        if (!File::instance()->exists($path)) {
+            throw new RuntimeException(
+                'OWASYS_FSM_STATE_LABEL_CATALOG_MISSING:' . $locale
+            );
+        }
+        $raw = File::instance()->read($path, 2097152);
+        $catalog = StructuredFileLoader::instance()->read($path);
+        if (!in_array(
+                (string) ($catalog['contract'] ?? ''),
+                ['OPUS_I18N_CATALOG_V1', 'OPUS_I18N_CATALOG_V2'],
+                true
+            )
+            || (string) ($catalog['locale'] ?? '') !== $locale
+            || !is_array($catalog['messages'] ?? null)) {
+            throw new RuntimeException(
+                'OWASYS_FSM_STATE_LABEL_CATALOG_INVALID:' . $locale
+            );
+        }
+        $messages = $catalog['messages'];
+        $messages[$labelKey] = $label;
+        ksort($messages, SORT_STRING);
+        $catalog['messages'] = $messages;
+
+        return [
+            'path' => $relativePath,
+            'expected_sha256' => hash('sha256', $raw),
+            'content' => Json::instance()->encode($catalog, true),
+        ];
     }
 
     /**
@@ -719,6 +947,7 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
             }
         }
     }
+
     /**
      * @param array<string,mixed> $catalog
      * @return array{0:list<string>,1:list<string>}
@@ -744,9 +973,7 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
         ];
     }
 
-    /**
-     * @return list<string>
-     */
+    /** @return list<string> */
     private function catalogNames(
         mixed $entries,
         string $kind
@@ -813,17 +1040,12 @@ final class OwasysFsmDraftCommandProvider implements OwasysFsmDraftCommandProvid
 
     /**
      * @param array<string,mixed> $request
-     * @return array{
-     *   subject:string,
-     *   roles:list<string>,
-     *   provider:string
-     * }
+     * @return array{subject:string,roles:list<string>,provider:string}
      */
     private function actor(array $request): array
     {
         if (($request['contract'] ?? null)
-            !==
-            'OPUS_REST_API_COMPOSER_COMMAND_REQUEST_V1') {
+            !== 'OPUS_REST_API_COMPOSER_COMMAND_REQUEST_V1') {
             throw new RuntimeException(
                 'OWASYS_FSM_DRAFT_REQUEST_CONTRACT_INVALID'
             );

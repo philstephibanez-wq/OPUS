@@ -24,13 +24,15 @@
             "id": "transition.modiee",
             "from": "essai",
             "signal": "enter_application_context",
-            "next_state": "selected"
+            "next_state": "selected",
+            "label_key": "fsm.application.transition.transition.modiee.label"
         },
         {
             "id": "application.context.enter.selected",
             "from": "selected",
             "signal": "enter_application_context",
-            "next_state": "selected"
+            "next_state": "selected",
+            "label_key": "fsm.application.transition.application.context.enter.selected.label"
         }
     ]
 }

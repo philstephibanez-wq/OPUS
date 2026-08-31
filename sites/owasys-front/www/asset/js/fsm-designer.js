@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const DESIGNER_REVISION = 'P117W_R45B2A4BZ2R8B6R';
+  const DESIGNER_REVISION = 'P117W_R45B2A4BZ2R8B6S';
   const section = document.querySelector('[data-owasys-fsm-diagram]');
   if (!(section instanceof HTMLElement)
       || section.dataset.fsmDesignerMode !== 'design') return;
@@ -25,7 +25,12 @@
       || !model.definition
       || typeof model.definition !== 'object'
       || !/^[a-z][a-z0-9-]{0,63}$/.test(String(model.application_id || ''))
-      || !/^[a-f0-9]{64}$/.test(String(model.base_sha256 || ''))) {
+      || !/^[a-f0-9]{64}$/.test(String(model.base_sha256 || ''))
+      || !/^[A-Za-z]{2,3}(?:-[A-Za-z]{2})?$/.test(String(model.locale || ''))
+      || !model.state_labels
+      || typeof model.state_labels !== 'object'
+      || !model.transition_labels
+      || typeof model.transition_labels !== 'object') {
     section.dataset.fsmDesignerError = 'contract';
     return;
   }
@@ -87,6 +92,11 @@
   const stateDeleteTitle = deleteButton instanceof HTMLButtonElement
     ? deleteButton.title
     : '';
+  if (renameButton instanceof HTMLButtonElement) {
+    renameButton.title = 'Modifier le libellé';
+    const label = renameButton.querySelector('.ow-fsm-tool-label');
+    if (label instanceof HTMLElement) label.textContent = 'Libellé';
+  }
   const signalCreateButton = section.querySelector('[data-fsm-signal-action="create"]');
   const transitionCreateButton = section.querySelector('[data-fsm-transition-action="create"]');
   const transitionEditButton = section.querySelector('[data-fsm-transition-action="handlers"]');
@@ -96,6 +106,27 @@
   const stateSubmitButton = stateEditor.querySelector('[data-fsm-state-submit]');
   const confirmationRow = stateEditor.querySelector('[data-fsm-delete-confirmation-row]');
   const confirmationInput = stateEditor.querySelector('[name="delete_confirmation"]');
+  const stateIdentityLabel = stateEditor.querySelector('.ow-fsm-state-identity > span');
+  const stateIdentityRow = stateEditor.querySelector('.ow-fsm-state-identity');
+  let stateLabelRow = stateEditor.querySelector('[data-fsm-state-label-row]');
+  let stateLabelInput = stateEditor.elements.namedItem('state_label');
+  if (!(stateLabelRow instanceof HTMLElement) && stateIdentityRow instanceof HTMLElement) {
+    const row = document.createElement('label');
+    row.className = 'ow-fsm-state-field';
+    row.dataset.fsmStateLabelRow = '1';
+    const caption = document.createElement('span');
+    caption.textContent = 'libellé';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.name = 'state_label';
+    input.required = true;
+    input.maxLength = 256;
+    input.autocomplete = 'off';
+    row.append(caption, input);
+    stateIdentityRow.insertAdjacentElement('afterend', row);
+    stateLabelRow = row;
+    stateLabelInput = input;
+  }
   const signalCancelButton = signalEditor.querySelector('[data-fsm-signal-cancel]');
   const signalSubmitButton = signalEditor.querySelector('[data-fsm-signal-submit]');
   const transitionCreateCancelButton = transitionCreateEditor.querySelector('[data-fsm-transition-create-cancel]');
@@ -130,6 +161,37 @@
   const handlerSourceMeta = handlerSourceEditor instanceof HTMLFormElement
     ? handlerSourceEditor.querySelector('[data-fsm-handler-source-meta]')
     : null;
+
+  if (renameButton instanceof HTMLButtonElement) {
+    renameButton.title = 'Modifier le libellé';
+    const labelNode = renameButton.querySelector('.ow-fsm-tool-label');
+    if (labelNode) labelNode.textContent = 'Libellé';
+  }
+  if (transitionRenameButton instanceof HTMLButtonElement) {
+    transitionRenameButton.title = 'Modifier le libellé';
+    transitionRenameButton.setAttribute('aria-label', 'Modifier le libellé');
+    const labelNode = transitionRenameButton.querySelector('.ow-fsm-tool-label');
+    if (labelNode) labelNode.textContent = 'Libellé';
+  }
+
+  const stateLabelEntry = (id) => {
+    const entry = model.state_labels?.[id];
+    if (!entry || typeof entry !== 'object') {
+      return {key:'', value:'traduction à renseigner', missing:true};
+    }
+    return {
+      key:String(entry.key || ''),
+      value:String(entry.value || 'traduction à renseigner'),
+      missing:entry.missing === true,
+    };
+  };
+
+
+  const transitionLabelEntry = (id) => {
+    const entry = model.transition_labels?.[id];
+    if (!entry || typeof entry !== 'object') return {key:'',value:'traduction à renseigner',missing:true};
+    return {key:String(entry.key || ''),value:String(entry.value || 'traduction à renseigner'),missing:entry.missing === true};
+  };
 
   const handlerEntries = (entries, kind) => {
     const result = [];
@@ -399,10 +461,14 @@
     const state = states[id];
     if (!state) return false;
     const connectivity = stateConnectivity(id);
+    const label = stateLabelEntry(id);
     kindNode.textContent = 'STATE';
     idNode.textContent = id;
     fieldsNode.replaceChildren();
     appendField('id', state.id);
+    appendField('libellé', stateLabelEntry(id).value);
+    appendField('label', label.value);
+    appendField('label_key', label.key);
     appendField('initial', model.definition.initial_state === id);
     if (typeof model.definition.final_state === 'string'
         && model.definition.final_state !== '') {
@@ -425,6 +491,7 @@
     idNode.textContent = id;
     fieldsNode.replaceChildren();
     appendField('id', transition.id);
+    appendField('libellé', transitionLabelEntry(id).value);
     appendField('scope', transition.scope || (transition.interrupt === 'nmi' ? 'nmi' : 'local'));
     appendField('from', transition.from);
     appendField('from_states', transition.from_states || []);
@@ -562,16 +629,45 @@
     selection.hidden = true;
     empty.hidden = true;
     const source = state || {};
+    let technicalRow = stateEditor.querySelector('[data-fsm-state-technical-id]');
+    if (mode === 'rename') {
+      if (!(technicalRow instanceof HTMLElement)) {
+        technicalRow = document.createElement('label');
+        technicalRow.className = 'ow-fsm-state-field';
+        technicalRow.dataset.fsmStateTechnicalId = '1';
+        technicalRow.innerHTML = '<span>id</span><input type="text" readonly>';
+        stateEditor.prepend(technicalRow);
+      }
+      const technicalInput = technicalRow.querySelector('input');
+      if (technicalInput instanceof HTMLInputElement) technicalInput.value = String(source.id || '');
+      technicalRow.hidden = false;
+    } else if (technicalRow instanceof HTMLElement) {
+      technicalRow.hidden = true;
+    }
+    const label = source.id ? stateLabelEntry(String(source.id)) : null;
     setStateValue('state_id', source.id || '');
     setStateValue('delete_confirmation', '');
     const deleting = mode === 'delete';
+    const labeling = mode === 'rename';
     if (confirmationRow instanceof HTMLElement) confirmationRow.hidden = !deleting;
     if (confirmationInput instanceof HTMLInputElement) confirmationInput.required = deleting;
+    if (stateIdentityLabel instanceof HTMLElement) stateIdentityLabel.textContent = 'id';
     const idInput = stateField('state_id');
     if (idInput instanceof HTMLInputElement) {
-      idInput.readOnly = deleting;
-      idInput.focus();
-      if (!deleting) idInput.select();
+      idInput.setAttribute('pattern', '[A-Za-z][A-Za-z0-9_.:-]{0,127}');
+      idInput.readOnly = labeling || deleting;
+    }
+    if (stateLabelRow instanceof HTMLElement) stateLabelRow.hidden = !labeling;
+    if (stateLabelInput instanceof HTMLInputElement) {
+      stateLabelInput.required = labeling;
+      stateLabelInput.value = labeling && label && !label.missing ? label.value : '';
+      if (labeling) {
+        stateLabelInput.focus();
+        stateLabelInput.select();
+      } else if (idInput instanceof HTMLInputElement && !deleting) {
+        idInput.focus();
+        idInput.select();
+      }
     }
     stateEditor.dataset.originalId = source.id || '';
     editorStatus.textContent = '';
@@ -601,7 +697,18 @@
     const id = String(getStateValue('state_id')).trim();
     if (mode === 'create') return {operation:'state.create', state:{id}};
     if (mode === 'rename') {
-      return {operation:'state.rename', state_id:originalId, new_id:id};
+      const label = stateLabelInput instanceof HTMLInputElement
+        ? stateLabelInput.value.trim()
+        : '';
+      if (label === '') {
+        throw new Error('OWASYS_FSM_DESIGNER_STATE_LABEL_REQUIRED');
+      }
+      return {
+        operation:'state.label.update',
+        state_id:originalId,
+        locale:String(model.locale),
+        label,
+      };
     }
     if (mode === 'delete') {
       return {
@@ -755,12 +862,17 @@
     empty.hidden = true;
     transitionRenameEditor.dataset.transitionId = id;
     const idInput = transitionRenameEditor.elements.namedItem('transition_id');
-    const newIdInput = transitionRenameEditor.elements.namedItem('transition_new_id');
+    const labelInput = transitionRenameEditor.elements.namedItem('transition_new_id');
     if (idInput instanceof HTMLInputElement) idInput.value = id;
-    if (newIdInput instanceof HTMLInputElement) {
-      newIdInput.value = id;
-      newIdInput.focus();
-      newIdInput.select();
+    if (labelInput instanceof HTMLInputElement) {
+      const entry = transitionLabelEntry(id);
+      labelInput.value = entry.missing ? '' : entry.value;
+      labelInput.removeAttribute('pattern');
+      labelInput.maxLength = 256;
+      const caption = labelInput.closest('label')?.querySelector('span');
+      if (caption) caption.textContent = 'libellé';
+      labelInput.focus();
+      labelInput.select();
     }
     editorStatus.textContent = '';
   };
@@ -769,14 +881,17 @@
     const transitionId = String(
       transitionRenameEditor.dataset.transitionId || ''
     );
-    const newId = transitionRenameEditor.elements.namedItem('transition_new_id');
-    if (!transitions[transitionId] || !(newId instanceof HTMLInputElement)) {
+    const labelInput = transitionRenameEditor.elements.namedItem('transition_new_id');
+    if (!transitions[transitionId] || !(labelInput instanceof HTMLInputElement)) {
       throw new Error('OWASYS_FSM_DESIGNER_TRANSITION_RENAME_INVALID');
     }
+    const label = labelInput.value.trim();
+    if (label === '') throw new Error('OWASYS_FSM_DESIGNER_TRANSITION_LABEL_REQUIRED');
     return {
-      operation:'transition.rename',
+      operation:'transition.label.update',
       transition_id:transitionId,
-      new_id:newId.value.trim(),
+      locale:String(model.locale),
+      label,
     };
   };
 

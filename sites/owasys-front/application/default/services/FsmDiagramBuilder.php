@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use Opus\File\File;
+use Opus\File\Json;
 use Opus\File\StructuredFileLoader;
 use Opus\Fsm\FsmSessionStore;
 use Opus\Fsm\FsmSiteLoader;
@@ -10,7 +11,8 @@ use Opus\Profiler\ProfilerInterface;
 /** Builds a fixed visual projection from the canonical OWASYS FSM. */
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4BZ2R8B6Q';
+    private const REVISION = 'P117W_R45B2A4BZ2R8B6S';
+    private const MISSING_TRANSLATION = 'traduction à renseigner';
 
     private string $sourceHash = '';
 
@@ -22,15 +24,6 @@ final class OwasysFsmDiagramBuilder
     }
 
     /**
-     * The topology source is config/fsm.json. Presentation hints come only
-     * from state.diagram {rank,order}; current state changes highlight only.
-     *
-     * Dense same-state technical workflows are reduced to one representative
-     * self-loop per signal type, while every non-self workflow relation is
-     * kept. Finite global transitions are rendered once as compact target-ingress
-     * global-scope stacks above their target; their canonical from_states set remains in the
-     * transition metadata instead of exploding into duplicate long rails.
-     *
      * @param array<string,mixed> $pageData
      * @return array<string,mixed>
      */
@@ -81,8 +74,10 @@ final class OwasysFsmDiagramBuilder
                 );
             }
             $menuByState[$id] = $item;
-            /* Diagram is diagnostic: state IDs stay canonical, never I18n. */
-            $stateLabels[$id] = $id;
+            $label = trim((string) ($item['label'] ?? ''));
+            $stateLabels[$id] = $label !== ''
+                ? $label
+                : self::MISSING_TRANSLATION;
         }
 
         if (!isset($statesById[$currentState], $menuByState[$currentState])) {
@@ -402,7 +397,6 @@ final class OwasysFsmDiagramBuilder
         ];
     }
 
-
     /**
      * @param array<string,array<string,mixed>> $menuByState
      * @return array<string,array{url:string,transition_id:string,is_post:bool,request_field:string,request_value:string,csrf_token:string}>
@@ -631,6 +625,13 @@ final class OwasysFsmDiagramBuilder
             );
         }
 
+        $locale = trim((string) ($pageData['locale']['code'] ?? ''));
+        if (preg_match('/^[A-Za-z]{2,3}(?:-[A-Za-z]{2})?$/D', $locale) !== 1) {
+            throw new RuntimeException(
+                'OWASYS_FSM_DESIGNER_LOCALE_INVALID:' . $locale
+            );
+        }
+
         $identity = $this->session->user();
         if (!is_array($identity)) {
             throw new RuntimeException(
@@ -638,8 +639,9 @@ final class OwasysFsmDiagramBuilder
             );
         }
 
+        $sourceModel = new OwasysSourceModel($this->siteRoot);
         $snapshot = (new OwasysApplicationFsmModel(
-            new OwasysSourceModel($this->siteRoot)
+            $sourceModel
         ))->snapshot($applicationId, $identity, $efsmId);
         $definition = is_array($snapshot['definition'] ?? null)
             ? $snapshot['definition']
@@ -660,6 +662,26 @@ final class OwasysFsmDiagramBuilder
             throw new RuntimeException(
                 'OWASYS_FSM_DESIGNER_APPLICATION_SNAPSHOT_INVALID'
             );
+        }
+
+        $stateLabels = $this->applicationStateLabels(
+            $sourceModel,
+            $applicationId,
+            $efsmId,
+            $locale,
+            $identity,
+            $definition
+        );
+        $resolvedStateLabels = [];
+        foreach ($stateLabels as $stateId => $entry) {
+            $resolvedStateLabels[$stateId] = (string) $entry['value'];
+        }
+        $transitionLabels = $this->applicationTransitionLabels(
+            $sourceModel, $applicationId, $efsmId, $locale, $identity, $definition
+        );
+        $resolvedTransitionLabels = [];
+        foreach ($transitionLabels as $transitionId => $entry) {
+            $resolvedTransitionLabels[$transitionId] = (string) $entry['value'];
         }
 
         $currentState = $initialState;
@@ -719,6 +741,8 @@ final class OwasysFsmDiagramBuilder
             $currentState,
             $runtimeMemory
         );
+        $contextualDiagram->setStateLabels($resolvedStateLabels);
+        $contextualDiagram->setTransitionLabels($resolvedTransitionLabels);
         $contextualDiagram->setLayoutDirection($layoutDirection);
         $contextualDiagram->setPersistedStatePositions(
             is_array($layout['states'] ?? null) ? $layout['states'] : []
@@ -772,6 +796,9 @@ final class OwasysFsmDiagramBuilder
                     'base_sha256' => $sourceHash,
                     'current_state' => $currentState,
                     'initial_state' => $initialState,
+                    'locale' => $locale,
+                    'state_labels' => $stateLabels,
+                    'transition_labels' => $transitionLabels,
                     'handler_authoring_supported' =>
                         $applicationId === 'owasys-front',
                     'definition' => $definition,
@@ -802,7 +829,8 @@ final class OwasysFsmDiagramBuilder
             'source_path' => $sourcePath,
             'source_sha256' => $sourceHash,
             'current_state' => $currentState,
-            'current_label' => $currentState,
+            'current_label' => $resolvedStateLabels[$currentState]
+                ?? self::MISSING_TRANSLATION,
             'projected_transition_count' => (int) (
                 $snapshot['transition_count'] ?? 0
             ),
@@ -812,11 +840,116 @@ final class OwasysFsmDiagramBuilder
             'revision' => self::REVISION,
         ];
     }
+
+    /**
+     * @param array<string,mixed> $identity
+     * @param array<string,mixed> $definition
+     * @return array<string,array{key:string,value:string,missing:bool}>
+     */
+    private function applicationStateLabels(
+        OwasysSourceModel $sourceModel,
+        string $applicationId,
+        string $efsmId,
+        string $locale,
+        array $identity,
+        array $definition
+    ): array {
+        $catalogPath = 'application/default/local/' . $locale . '.json';
+        $file = $sourceModel->read($applicationId, $catalogPath, $identity);
+        $catalog = Json::instance()->parse(
+            (string) ($file['content'] ?? ''),
+            $catalogPath
+        );
+        if (!in_array(
+                (string) ($catalog['contract'] ?? ''),
+                ['OPUS_I18N_CATALOG_V1', 'OPUS_I18N_CATALOG_V2'],
+                true
+            )
+            || (string) ($catalog['locale'] ?? '') !== $locale
+            || !is_array($catalog['messages'] ?? null)) {
+            throw new RuntimeException(
+                'OWASYS_FSM_LABEL_CATALOG_INVALID:'
+                . $applicationId . ':' . $locale
+            );
+        }
+        $messages = $catalog['messages'];
+        $labels = [];
+        foreach ((array) ($definition['states'] ?? []) as $state) {
+            if (!is_array($state)) {
+                continue;
+            }
+            $stateId = trim((string) ($state['id'] ?? ''));
+            if ($stateId === '') {
+                continue;
+            }
+            $labelKey = trim((string) ($state['label_key'] ?? ''));
+            if ($labelKey === '') {
+                $labelKey = $this->defaultStateLabelKey($efsmId, $stateId);
+            }
+            $message = $messages[$labelKey] ?? null;
+            $missing = !is_string($message) || trim($message) === '';
+            $labels[$stateId] = [
+                'key' => $labelKey,
+                'value' => $missing
+                    ? self::MISSING_TRANSLATION
+                    : $message,
+                'missing' => $missing,
+            ];
+        }
+        return $labels;
+    }
+
+
+    /** @return array<string,array{key:string,value:string,missing:bool}> */
+    private function applicationTransitionLabels(
+        OwasysSourceModel $sourceModel, string $applicationId, string $efsmId,
+        string $locale, array $identity, array $definition
+    ): array {
+        $catalogPath = 'application/default/local/' . $locale . '.json';
+        $file = $sourceModel->read($applicationId, $catalogPath, $identity);
+        $catalog = Json::instance()->parse((string) ($file['content'] ?? ''), $catalogPath);
+        if (!in_array(
+                (string) ($catalog['contract'] ?? ''),
+                ['OPUS_I18N_CATALOG_V1', 'OPUS_I18N_CATALOG_V2'],
+                true
+            )
+            || (string) ($catalog['locale'] ?? '') !== $locale
+            || !is_array($catalog['messages'] ?? null)) {
+            throw new RuntimeException('OWASYS_FSM_LABEL_CATALOG_INVALID:' . $applicationId . ':' . $locale);
+        }
+        $messages = $catalog['messages'];
+        $labels = [];
+        foreach ((array) ($definition['transitions'] ?? []) as $transition) {
+            if (!is_array($transition)) continue;
+            $id = trim((string) ($transition['id'] ?? ''));
+            if ($id === '') continue;
+            $key = trim((string) ($transition['label_key'] ?? ''));
+            if ($key === '') $key = 'fsm.' . $efsmId . '.transition.' . $id . '.label';
+            $message = $messages[$key] ?? null;
+            $missing = !is_string($message) || trim($message) === '';
+            $labels[$id] = ['key'=>$key,'value'=>$missing ? self::MISSING_TRANSLATION : $message,'missing'=>$missing];
+        }
+        return $labels;
+    }
+
+    private function defaultStateLabelKey(string $efsmId, string $stateId): string
+    {
+        $safeState = preg_replace('/[^A-Za-z0-9_.:-]+/', '_', $stateId);
+        $safeState = is_string($safeState) ? trim($safeState, '_') : '';
+        if ($safeState === '') {
+            throw new RuntimeException(
+                'OWASYS_FSM_STATE_LABEL_KEY_STATE_INVALID:' . $stateId
+            );
+        }
+        return 'fsm.' . $efsmId . '.state.' . $safeState . '.label';
+    }
+
     /** @param array<string,mixed> $pageData */
     private function contextEfsmId(array $pageData): string
     {
         return (new OwasysContextEfsmRegistry())->efsmIdForPage($pageData);
     }
+
     /** @return array<string,mixed> */
     private function loadFsm(): array
     {

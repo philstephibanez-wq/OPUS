@@ -8,6 +8,7 @@ final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
 {
     private const ID_PATTERN = '/^[A-Za-z][A-Za-z0-9_.:-]{0,127}$/D';
     private const HANDLER_PATTERN = '/^[a-z][a-z0-9_:-]{0,127}$/D';
+    private const LABEL_KEY_PATTERN = '/^[A-Za-z0-9][A-Za-z0-9_.:-]{0,191}$/D';
 
     /** @var array<string,true>|null */
     private readonly ?array $guardHandlers;
@@ -52,6 +53,12 @@ final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
                     $command
                 );
                 break;
+            case 'state.label.update':
+                $definition = $this->updateStateLabel(
+                    $definition,
+                    $command
+                );
+                break;
             case 'state.delete':
                 $definition = $this->deleteState($definition, $command);
                 break;
@@ -67,6 +74,9 @@ final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
                     $definition,
                     $command
                 );
+                break;
+            case 'transition.label.update':
+                $definition = $this->updateTransitionLabel($definition, $command);
                 break;
             case 'transition.rename':
                 [$definition, $refactor] = $this->renameTransition(
@@ -243,6 +253,35 @@ final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
         return $definition;
     }
 
+
+    /** @param array<string,mixed> $definition @param array<string,mixed> $command @return array<string,mixed> */
+    private function updateTransitionLabel(array $definition, array $command): array
+    {
+        foreach (array_keys($command) as $field) {
+            if (!in_array($field, ['operation', 'transition_id', 'label_key'], true)) {
+                throw new \RuntimeException(
+                    'OPUS_EFSM_TRANSITION_LABEL_FIELD_FORBIDDEN:' . (string) $field
+                );
+            }
+        }
+        $id = $this->transitionId($command['transition_id'] ?? null);
+        $labelKey = is_string($command['label_key'] ?? null)
+            ? trim((string) $command['label_key']) : '';
+        if (preg_match(self::LABEL_KEY_PATTERN, $labelKey) !== 1) {
+            throw new \RuntimeException(
+                'OPUS_EFSM_TRANSITION_LABEL_KEY_INVALID:' . $labelKey
+            );
+        }
+        $index = $this->transitionIndex($definition, $id);
+        $transition = $definition['transitions'][$index] ?? null;
+        if (!is_array($transition)) {
+            throw new \RuntimeException('OPUS_EFSM_TRANSITION_INVALID:' . $id);
+        }
+        $transition['label_key'] = $labelKey;
+        $definition['transitions'][$index] = $transition;
+        return $definition;
+    }
+
     /** @param array<string,mixed> $definition @param array<string,mixed> $command @return array{0:array<string,mixed>,1:array<string,string>} */
     private function renameTransition(array $definition, array $command): array
     {
@@ -338,6 +377,39 @@ final class FsmDefinitionEditor implements FsmDefinitionEditorInterface
             $definition,
             ['state_old' => $old, 'state_new' => $new],
         ];
+    }
+
+    /** @param array<string,mixed> $definition @param array<string,mixed> $command @return array<string,mixed> */
+    private function updateStateLabel(array $definition, array $command): array
+    {
+        foreach (array_keys($command) as $field) {
+            if (!in_array($field, ['operation', 'state_id', 'label_key'], true)) {
+                throw new \RuntimeException(
+                    'OPUS_EFSM_STATE_LABEL_FIELD_FORBIDDEN:' . (string) $field
+                );
+            }
+        }
+
+        $id = $this->stateId($command['state_id'] ?? null);
+        $labelKey = is_string($command['label_key'] ?? null)
+            ? trim((string) $command['label_key'])
+            : '';
+        if (preg_match(self::LABEL_KEY_PATTERN, $labelKey) !== 1) {
+            throw new \RuntimeException(
+                'OPUS_EFSM_STATE_LABEL_KEY_INVALID:' . $labelKey
+            );
+        }
+
+        $index = $this->stateIndex($definition, $id);
+        $state = $definition['states'][$index] ?? null;
+        if (!is_array($state)) {
+            throw new \RuntimeException(
+                'OPUS_EFSM_STATE_INVALID:' . $id
+            );
+        }
+        $state['label_key'] = $labelKey;
+        $definition['states'][$index] = $state;
+        return $definition;
     }
 
     /** @param array<string,mixed> $definition @param array<string,mixed> $command @return array<string,mixed> */
