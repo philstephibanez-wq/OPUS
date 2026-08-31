@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const DESIGNER_REVISION = 'P117W_R45B2A4BZ2R8B6S';
+  const DESIGNER_REVISION = 'P117W_R45B2A4BZ2R8B6S5';
   const section = document.querySelector('[data-owasys-fsm-diagram]');
   if (!(section instanceof HTMLElement)
       || section.dataset.fsmDesignerMode !== 'design') return;
@@ -177,11 +177,11 @@
   const stateLabelEntry = (id) => {
     const entry = model.state_labels?.[id];
     if (!entry || typeof entry !== 'object') {
-      return {key:'', value:'traduction à renseigner', missing:true};
+      return {key:'', value:'⚠', missing:true};
     }
     return {
       key:String(entry.key || ''),
-      value:String(entry.value || 'traduction à renseigner'),
+      value:String(entry.value || '⚠'),
       missing:entry.missing === true,
     };
   };
@@ -189,8 +189,8 @@
 
   const transitionLabelEntry = (id) => {
     const entry = model.transition_labels?.[id];
-    if (!entry || typeof entry !== 'object') return {key:'',value:'traduction à renseigner',missing:true};
-    return {key:String(entry.key || ''),value:String(entry.value || 'traduction à renseigner'),missing:entry.missing === true};
+    if (!entry || typeof entry !== 'object') return {key:'',value:'⚠',missing:true};
+    return {key:String(entry.key || ''),value:String(entry.value || '⚠'),missing:entry.missing === true};
   };
 
   const handlerEntries = (entries, kind) => {

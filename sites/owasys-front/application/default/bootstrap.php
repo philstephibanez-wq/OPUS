@@ -53,6 +53,22 @@ if (!is_file($autoload)) {
     );
 }
 require_once $autoload;
+
+/*
+ * R8B6S full-site I18n contract: OWASYS keeps OPUS strict active-locale
+ * catalog loading but renders the exact visible marker for a missing message.
+ * Load the OWASYS-local runtime before any OPUS/ApplicationTranslationRuntime
+ * consumer is instantiated; the framework source itself remains untouched.
+ */
+$i18nRuntime = $siteRoot
+    . '/application/default/services/ApplicationTranslationRuntime.php';
+if (!is_file($i18nRuntime)) {
+    throw new RuntimeException(
+        'OWASYS_FRONT_I18N_RUNTIME_MISSING'
+    );
+}
+require_once $i18nRuntime;
+
 if (FrameworkAssetResponder::serveCurrentRequest($opusRoot)) {
     return true;
 }

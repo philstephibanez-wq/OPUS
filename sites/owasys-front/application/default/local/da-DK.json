@@ -1,9 +1,11 @@
 {
-  "contract": "OPUS_I18N_CATALOG_V2",
-  "locale": "da-DK",
-  "scope": "default",
-  "inherits": "da",
-  "messages": {},
-  "plurals": {},
-  "grammatical": {}
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "da-DK",
+    "scope": "default",
+    "inherits": "da",
+    "messages": {
+        "fsm.application.state.essai.label": "Forsøg"
+    },
+    "plurals": [],
+    "grammatical": []
 }

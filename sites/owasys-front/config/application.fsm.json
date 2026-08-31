@@ -13,7 +13,8 @@
     ],
     "states": [
         {
-            "id": "essai"
+            "id": "essai",
+            "label_key": "fsm.application.state.essai.label"
         },
         {
             "id": "selected"
