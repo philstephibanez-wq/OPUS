@@ -1,7 +1,10 @@
 <?php
 declare(strict_types=1);
 
-/** Owns runtime state and Navigation handshakes for OWASYS host context EFSMs. */
+/**
+ * Owns runtime state and Navigation handshakes for OWASYS host context EFSMs
+ * plus the selected-application navigation context.
+ */
 interface OwasysContextRuntimeCoordinatorInterface
 {
     /** @param array<string,mixed> $identity @return array<string,mixed> */

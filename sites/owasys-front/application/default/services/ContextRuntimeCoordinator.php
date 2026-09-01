@@ -7,7 +7,10 @@ use Opus\Fsm\FsmSiteLoader;
 use Opus\Log\Logger;
 use Opus\Profiler\ProfilerInterface;
 
-/** Coordinates autonomous OWASYS host EFSMs without direct cross-FSM mutation. */
+/**
+ * Coordinates autonomous OWASYS host EFSMs and the selected-application
+ * navigation context without cross-application source substitution.
+ */
 final class OwasysContextRuntimeCoordinator implements
     OwasysContextRuntimeCoordinatorInterface
 {
@@ -31,6 +34,48 @@ final class OwasysContextRuntimeCoordinator implements
         string $applicationId = ''
     ): array {
         $contextId = strtolower(trim($contextId));
+        $applicationId = strtolower(trim($applicationId));
+
+        /*
+         * Application is not an OWASYS host EFSM. It is a navigation context
+         * whose semantic FSM belongs strictly to the selected application.
+         * No host EFSM is loaded and no source is substituted.
+         */
+        if ($contextId === 'application') {
+            if (preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $applicationId) !== 1) {
+                throw new RuntimeException(
+                    'OWASYS_CONTEXT_RUNTIME_APPLICATION_REQUIRED'
+                );
+            }
+
+            $navigationRuntime = new OwasysNavigationRuntime(
+                $this->siteRoot,
+                $this->profiler,
+                $this->parentSpanId
+            );
+            $navigationRuntime->synchronize('application');
+
+            $this->record(
+                'context.application.selected',
+                [
+                    'context_id' => 'application',
+                    'application_id' => $applicationId,
+                    'navigation_state' => $navigationRuntime->currentState(),
+                ],
+                'success'
+            );
+
+            return [
+                'context_id' => 'application',
+                'application_id' => $applicationId,
+                'navigation_state' => $navigationRuntime->currentState(),
+                'context_state' => '',
+                'correlation_id' => '',
+                'command_message_id' => '',
+                'event_message_id' => '',
+            ];
+        }
+
         if (!$this->registry->isHostEfsm($contextId)) {
             throw new RuntimeException(
                 'OWASYS_CONTEXT_RUNTIME_EFSM_UNKNOWN:' . $contextId
@@ -83,7 +128,7 @@ final class OwasysContextRuntimeCoordinator implements
             ? array_values(array_filter($identity['roles'], 'is_string'))
             : [];
         $payload = [
-            'application_id' => strtolower(trim($applicationId)),
+            'application_id' => $applicationId,
             'authenticated' => true,
             'roles' => $roles,
             'provider' => (string) ($identity['provider'] ?? ''),

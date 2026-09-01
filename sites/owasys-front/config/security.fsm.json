@@ -45,16 +45,20 @@
     ],
     "states": [
         {
-            "id": "anonymous"
+            "id": "anonymous",
+            "label_key": "fsm.security.state.anonymous.label"
         },
         {
-            "id": "authenticating"
+            "id": "authenticating",
+            "label_key": "fsm.security.state.authenticating.label"
         },
         {
-            "id": "authenticated"
+            "id": "authenticated",
+            "label_key": "fsm.security.state.authenticated.label"
         },
         {
-            "id": "reauthenticating"
+            "id": "reauthenticating",
+            "label_key": "fsm.security.state.reauthenticating.label"
         }
     ],
     "transitions": [
