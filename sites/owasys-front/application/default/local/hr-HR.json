@@ -1,9 +1,11 @@
 {
-  "contract": "OPUS_I18N_CATALOG_V2",
-  "locale": "hr-HR",
-  "scope": "default",
-  "inherits": "hr",
-  "messages": {},
-  "plurals": {},
-  "grammatical": {}
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "hr-HR",
+    "scope": "default",
+    "inherits": "hr",
+    "messages": {
+        "menu.application": "Aplikacija"
+    },
+    "plurals": [],
+    "grammatical": []
 }

@@ -4,7 +4,8 @@
     "scope": "default",
     "inherits": "da",
     "messages": {
-        "fsm.application.state.essai.label": "Forsøg"
+        "fsm.application.state.essai.label": "Forsøg",
+        "menu.application": "Applikation"
     },
     "plurals": [],
     "grammatical": []

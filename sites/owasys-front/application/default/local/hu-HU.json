@@ -1,9 +1,11 @@
 {
-  "contract": "OPUS_I18N_CATALOG_V2",
-  "locale": "hu-HU",
-  "scope": "default",
-  "inherits": "hu",
-  "messages": {},
-  "plurals": {},
-  "grammatical": {}
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "hu-HU",
+    "scope": "default",
+    "inherits": "hu",
+    "messages": {
+        "menu.application": "Alkalmazás"
+    },
+    "plurals": [],
+    "grammatical": []
 }

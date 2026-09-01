@@ -1,9 +1,11 @@
 {
-  "contract": "OPUS_I18N_CATALOG_V2",
-  "locale": "uk-UA",
-  "scope": "default",
-  "inherits": "uk",
-  "messages": {},
-  "plurals": {},
-  "grammatical": {}
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "uk-UA",
+    "scope": "default",
+    "inherits": "uk",
+    "messages": {
+        "menu.application": "Застосунок"
+    },
+    "plurals": [],
+    "grammatical": []
 }

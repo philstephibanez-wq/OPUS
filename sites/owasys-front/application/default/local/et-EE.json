@@ -1,9 +1,11 @@
 {
-  "contract": "OPUS_I18N_CATALOG_V2",
-  "locale": "et-EE",
-  "scope": "default",
-  "inherits": "et",
-  "messages": {},
-  "plurals": {},
-  "grammatical": {}
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "et-EE",
+    "scope": "default",
+    "inherits": "et",
+    "messages": {
+        "menu.application": "Rakendus"
+    },
+    "plurals": [],
+    "grammatical": []
 }

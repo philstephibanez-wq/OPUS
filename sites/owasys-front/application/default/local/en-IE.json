@@ -4,7 +4,8 @@
     "scope": "default",
     "inherits": "en",
     "messages": {
-        "fsm.application.transition.transition.modiee.label": "changed_trans"
+        "fsm.application.transition.transition.modiee.label": "changed_trans",
+        "menu.application": "Application"
     },
     "plurals": [],
     "grammatical": []

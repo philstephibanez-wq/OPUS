@@ -1,9 +1,11 @@
 {
-  "contract": "OPUS_I18N_CATALOG_V2",
-  "locale": "nl-BE",
-  "scope": "default",
-  "inherits": "nl",
-  "messages": {},
-  "plurals": {},
-  "grammatical": {}
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "nl-BE",
+    "scope": "default",
+    "inherits": "nl",
+    "messages": {
+        "menu.application": "Applicatie"
+    },
+    "plurals": [],
+    "grammatical": []
 }

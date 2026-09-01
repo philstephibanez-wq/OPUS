@@ -22,7 +22,8 @@ final class OwasysLocaleRegistry
         'da-DK'=>'Dansk',
         'nl-NL'=>'Nederlands',
         'nl-BE'=>'Nederlands (België)',
-        'en-IE'=>'English',
+        'en-IE'=>'English (Ireland)',
+        'en-EN'=>'English',
         'en-MT'=>'English (Malta)',
         'et-EE'=>'Eesti',
         'fi-FI'=>'Suomi',
@@ -58,7 +59,7 @@ final class OwasysLocaleRegistry
     /** @var array<string,string> */
     private const REGION_FLAGS = [
         'AT'=>'at','BE'=>'be','BG'=>'bg','CH'=>'ch','CY'=>'cy','CZ'=>'cz','DE'=>'de','DK'=>'dk',
-        'EE'=>'ee','ES'=>'es','FI'=>'fi','FR'=>'fr','GR'=>'el','HR'=>'hr','HU'=>'hu','IE'=>'ie',
+        'EE'=>'ee','EN'=>'en','ES'=>'es','FI'=>'fi','FR'=>'fr','GR'=>'el','HR'=>'hr','HU'=>'hu','IE'=>'ie',
         'IT'=>'it','LT'=>'lt','LU'=>'lu','LV'=>'lv','MT'=>'mt','NL'=>'nl','PL'=>'pl','PT'=>'pt',
         'RO'=>'ro','SE'=>'se','SI'=>'si','SK'=>'sk','UA'=>'uk',
     ];

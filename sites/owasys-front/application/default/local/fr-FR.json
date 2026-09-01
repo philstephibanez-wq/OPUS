@@ -60,7 +60,8 @@
         "runtime_error.security": "Sécurité",
         "runtime_error.technical_details": "Détails techniques",
         "runtime_error.trace": "Trace",
-        "state.default.summary": "Ce module OWASYS est relié à la machine à états OPUS."
+        "state.default.summary": "Ce module OWASYS est relié à la machine à états OPUS.",
+        "menu.application": "Application"
     },
     "plurals": [],
     "grammatical": []

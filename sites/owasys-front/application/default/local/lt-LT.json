@@ -1,9 +1,11 @@
 {
-  "contract": "OPUS_I18N_CATALOG_V2",
-  "locale": "lt-LT",
-  "scope": "default",
-  "inherits": "lt",
-  "messages": {},
-  "plurals": {},
-  "grammatical": {}
+    "contract": "OPUS_I18N_CATALOG_V2",
+    "locale": "lt-LT",
+    "scope": "default",
+    "inherits": "lt",
+    "messages": {
+        "menu.application": "Programa"
+    },
+    "plurals": [],
+    "grammatical": []
 }
