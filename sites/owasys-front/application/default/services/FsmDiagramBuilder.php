@@ -6,12 +6,13 @@ use Opus\File\Json;
 use Opus\File\StructuredFileLoader;
 use Opus\Fsm\FsmSessionStore;
 use Opus\Fsm\FsmSiteLoader;
+use Opus\I18n\Locale;
 use Opus\Profiler\ProfilerInterface;
 
 /** Builds a fixed visual projection from the canonical OWASYS FSM. */
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4BZ2R8B6S5';
+    private const REVISION = 'P117W_R45B2A4BZ2R8B6U';
     private const MISSING_TRANSLATION = '⚠';
 
     private string $sourceHash = '';
@@ -664,12 +665,15 @@ final class OwasysFsmDiagramBuilder
             );
         }
 
-        $stateLabels = $this->applicationStateLabels(
+        $catalogMessages = $this->applicationCatalogMessages(
             $sourceModel,
             $applicationId,
-            $efsmId,
             $locale,
-            $identity,
+            $identity
+        );
+        $stateLabels = $this->applicationStateLabels(
+            $efsmId,
+            $catalogMessages,
             $definition
         );
         $resolvedStateLabels = [];
@@ -677,7 +681,9 @@ final class OwasysFsmDiagramBuilder
             $resolvedStateLabels[$stateId] = (string) $entry['value'];
         }
         $transitionLabels = $this->applicationTransitionLabels(
-            $sourceModel, $applicationId, $efsmId, $locale, $identity, $definition
+            $efsmId,
+            $catalogMessages,
+            $definition
         );
         $resolvedTransitionLabels = [];
         foreach ($transitionLabels as $transitionId => $entry) {
@@ -842,37 +848,92 @@ final class OwasysFsmDiagramBuilder
     }
 
     /**
+     * Resolves application-visible EFSM labels through the canonical OPUS
+     * locale family chain while preserving exact source-resource semantics.
+     *
      * @param array<string,mixed> $identity
+     * @return array<string,mixed>
+     */
+    private function applicationCatalogMessages(
+        OwasysSourceModel $sourceModel,
+        string $applicationId,
+        string $locale,
+        array $identity
+    ): array {
+        $listing = $sourceModel->list($applicationId, $identity);
+        if (($listing['truncated'] ?? false) === true) {
+            throw new RuntimeException(
+                'OWASYS_FSM_LABEL_CATALOG_LIST_TRUNCATED:'
+                . $applicationId
+            );
+        }
+
+        $available = [];
+        foreach ((array) ($listing['files'] ?? []) as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+            $path = trim(str_replace(
+                '\\',
+                '/',
+                (string) ($entry['path'] ?? '')
+            ));
+            if ($path !== '') {
+                $available[$path] = true;
+            }
+        }
+
+        $messages = [];
+        foreach ((new Locale($locale))->fallbackChain() as $candidate) {
+            $candidateLocale = $candidate->value;
+            $catalogPath = 'application/default/local/'
+                . $candidateLocale
+                . '.json';
+            if (!isset($available[$catalogPath])) {
+                continue;
+            }
+
+            $file = $sourceModel->read(
+                $applicationId,
+                $catalogPath,
+                $identity
+            );
+            $catalog = Json::instance()->parse(
+                (string) ($file['content'] ?? ''),
+                $catalogPath
+            );
+            if (!in_array(
+                    (string) ($catalog['contract'] ?? ''),
+                    ['OPUS_I18N_CATALOG_V1', 'OPUS_I18N_CATALOG_V2'],
+                    true
+                )
+                || (string) ($catalog['locale'] ?? '') !== $candidateLocale
+                || !is_array($catalog['messages'] ?? null)) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_LABEL_CATALOG_INVALID:'
+                    . $applicationId . ':' . $candidateLocale
+                );
+            }
+
+            $messages = array_replace(
+                $messages,
+                $catalog['messages']
+            );
+        }
+
+        return $messages;
+    }
+
+    /**
+     * @param array<string,mixed> $messages
      * @param array<string,mixed> $definition
      * @return array<string,array{key:string,value:string,missing:bool}>
      */
     private function applicationStateLabels(
-        OwasysSourceModel $sourceModel,
-        string $applicationId,
         string $efsmId,
-        string $locale,
-        array $identity,
+        array $messages,
         array $definition
     ): array {
-        $catalogPath = 'application/default/local/' . $locale . '.json';
-        $file = $sourceModel->read($applicationId, $catalogPath, $identity);
-        $catalog = Json::instance()->parse(
-            (string) ($file['content'] ?? ''),
-            $catalogPath
-        );
-        if (!in_array(
-                (string) ($catalog['contract'] ?? ''),
-                ['OPUS_I18N_CATALOG_V1', 'OPUS_I18N_CATALOG_V2'],
-                true
-            )
-            || (string) ($catalog['locale'] ?? '') !== $locale
-            || !is_array($catalog['messages'] ?? null)) {
-            throw new RuntimeException(
-                'OWASYS_FSM_LABEL_CATALOG_INVALID:'
-                . $applicationId . ':' . $locale
-            );
-        }
-        $messages = $catalog['messages'];
         $labels = [];
         foreach ((array) ($definition['states'] ?? []) as $state) {
             if (!is_array($state)) {
@@ -899,35 +960,42 @@ final class OwasysFsmDiagramBuilder
         return $labels;
     }
 
-
-    /** @return array<string,array{key:string,value:string,missing:bool}> */
+    /**
+     * @param array<string,mixed> $messages
+     * @param array<string,mixed> $definition
+     * @return array<string,array{key:string,value:string,missing:bool}>
+     */
     private function applicationTransitionLabels(
-        OwasysSourceModel $sourceModel, string $applicationId, string $efsmId,
-        string $locale, array $identity, array $definition
+        string $efsmId,
+        array $messages,
+        array $definition
     ): array {
-        $catalogPath = 'application/default/local/' . $locale . '.json';
-        $file = $sourceModel->read($applicationId, $catalogPath, $identity);
-        $catalog = Json::instance()->parse((string) ($file['content'] ?? ''), $catalogPath);
-        if (!in_array(
-                (string) ($catalog['contract'] ?? ''),
-                ['OPUS_I18N_CATALOG_V1', 'OPUS_I18N_CATALOG_V2'],
-                true
-            )
-            || (string) ($catalog['locale'] ?? '') !== $locale
-            || !is_array($catalog['messages'] ?? null)) {
-            throw new RuntimeException('OWASYS_FSM_LABEL_CATALOG_INVALID:' . $applicationId . ':' . $locale);
-        }
-        $messages = $catalog['messages'];
         $labels = [];
         foreach ((array) ($definition['transitions'] ?? []) as $transition) {
-            if (!is_array($transition)) continue;
+            if (!is_array($transition)) {
+                continue;
+            }
             $id = trim((string) ($transition['id'] ?? ''));
-            if ($id === '') continue;
+            if ($id === '') {
+                continue;
+            }
             $key = trim((string) ($transition['label_key'] ?? ''));
-            if ($key === '') $key = 'fsm.' . $efsmId . '.transition.' . $id . '.label';
+            if ($key === '') {
+                $key = 'fsm.'
+                    . $efsmId
+                    . '.transition.'
+                    . $id
+                    . '.label';
+            }
             $message = $messages[$key] ?? null;
             $missing = !is_string($message) || trim($message) === '';
-            $labels[$id] = ['key'=>$key,'value'=>$missing ? self::MISSING_TRANSLATION : $message,'missing'=>$missing];
+            $labels[$id] = [
+                'key' => $key,
+                'value' => $missing
+                    ? self::MISSING_TRANSLATION
+                    : $message,
+                'missing' => $missing,
+            ];
         }
         return $labels;
     }

@@ -46,7 +46,7 @@ final class OwasysSecurityRuntimeCoordinator implements OwasysSecurityRuntimeCoo
             $this->parentSpanId
         );
         $securityStore = new FsmSessionStore(self::SECURITY_SESSION_KEY);
-        $securityStore->restore($securityFsm);
+        $securityStore->restoreCompatible($securityFsm);
         $securityState = $this->synchronizeSecurity($securityFsm, $securityStore, $identity);
 
         $context = new OwasysSecurityContext();
@@ -182,7 +182,7 @@ final class OwasysSecurityRuntimeCoordinator implements OwasysSecurityRuntimeCoo
         $securityStore = new FsmSessionStore(
             self::SECURITY_SESSION_KEY
         );
-        $securityStore->restore($securityFsm);
+        $securityStore->restoreCompatible($securityFsm);
         if ($securityFsm->currentState() !== 'authenticated') {
             throw new RuntimeException(
                 'OWASYS_SECURITY_REAUTH_SECURITY_STATE_INVALID:'

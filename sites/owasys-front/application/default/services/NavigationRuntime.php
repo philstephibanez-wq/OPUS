@@ -64,7 +64,7 @@ final class OwasysNavigationRuntime implements OwasysNavigationRuntimeInterface
             $this->parentSpanId
         );
         $store = new FsmSessionStore(self::SESSION_KEY);
-        $store->restore($fsm);
+        $store->restoreCompatible($fsm);
         $from = $fsm->currentState();
 
         if ($from !== $target) {

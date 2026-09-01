@@ -30,6 +30,30 @@ final class FsmSessionStore implements FsmSessionStoreInterface
         $processor->restore($_SESSION[$this->key]);
     }
 
+    public function restoreCompatible(FsmProcessor $processor): bool
+    {
+        $this->assertSessionStarted();
+        if (!array_key_exists($this->key, $_SESSION)) {
+            return false;
+        }
+
+        try {
+            $this->restore($processor);
+            return true;
+        } catch (RuntimeException $error) {
+            if (!str_starts_with(
+                $error->getMessage(),
+                'OPUS_FSM_RUNTIME_SNAPSHOT_STATE_UNKNOWN:'
+            )) {
+                throw $error;
+            }
+
+            unset($_SESSION[$this->key]);
+            $processor->reset();
+            return false;
+        }
+    }
+
     public function persist(FsmProcessor $processor): void
     {
         $this->assertSessionStarted();
