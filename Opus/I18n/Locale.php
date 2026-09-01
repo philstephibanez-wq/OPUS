@@ -54,14 +54,14 @@ final readonly class Locale implements LocaleInterface
         return new self(implode('-', $parts));
     }
 
+    /**
+     * Compatibility surface retained temporarily for callers, but strict
+     * NO-FALLBACK policy means the active locale is the only candidate.
+     *
+     * @return list<self>
+     */
     public function fallbackChain(): array
     {
-        $chain = [];
-        $cursor = $this;
-        do {
-            array_unshift($chain, $cursor);
-            $cursor = $cursor->parent();
-        } while ($cursor instanceof self);
-        return $chain;
+        return [$this];
     }
 }

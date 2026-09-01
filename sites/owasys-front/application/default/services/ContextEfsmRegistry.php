@@ -7,7 +7,6 @@ final class OwasysContextEfsmRegistry
     /** @var array<string,string> */
     private const HOST_EFSMS = [
         'registry' => 'registry',
-        'application' => 'application',
         'data' => 'data',
         'source' => 'source',
         'git' => 'git',
@@ -28,9 +27,20 @@ final class OwasysContextEfsmRegistry
         if ($module === 'source' && in_array($explicit, ['source', 'git'], true)) {
             return $explicit;
         }
+
+        /*
+         * Application is not an OWASYS-host EFSM. Its designer projection is
+         * the selected application's canonical navigation/application FSM.
+         * No substitution to owasys-front is permitted.
+         */
+        if ($module === 'application') {
+            return 'navigation';
+        }
+
         if (isset(self::HOST_EFSMS[$module])) {
             return self::HOST_EFSMS[$module];
         }
+
         return match ($module) {
             'structure' => 'navigation',
             'security' => 'security',
@@ -45,13 +55,23 @@ final class OwasysContextEfsmRegistry
         if ($efsmId === '') {
             return [];
         }
+
         $host = $this->isHostEfsm($efsmId);
+        $applicationId = $host
+            ? 'owasys-front'
+            : strtolower(trim((string) ($pageData['current_app']['id'] ?? '')));
+
+        if (!$host
+            && preg_match('/^[a-z][a-z0-9-]{0,63}$/D', $applicationId) !== 1) {
+            throw new RuntimeException(
+                'OWASYS_CONTEXT_EFSM_APPLICATION_REQUIRED:' . $efsmId
+            );
+        }
+
         return [
             'efsm_id' => $efsmId,
             'host' => $host,
-            'application_id' => $host
-                ? 'owasys-front'
-                : strtolower(trim((string) ($pageData['current_app']['id'] ?? ''))),
+            'application_id' => $applicationId,
             'session_key' => $host ? $this->sessionKey($efsmId) : '',
             'navigation_state' => $host ? $this->navigationState($efsmId) : '',
         ];
