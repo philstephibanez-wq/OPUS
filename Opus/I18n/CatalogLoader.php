@@ -49,36 +49,16 @@ final class CatalogLoader implements CatalogLoaderInterface
             return null;
         }
 
-        $merged = [];
-        $loaded = [];
+        $candidates = $this->candidateFiles($directory, $locale);
 
-        foreach ($locale->fallbackChain() as $candidateLocale) {
-            $candidates = $this->candidateFiles(
-                $directory,
-                $candidateLocale
+        if (count($candidates) > 1) {
+            throw TranslationException::because(
+                'OPUS_I18N_CATALOG_FILE_AMBIGUOUS',
+                implode(',', $candidates)
             );
-
-            if (count($candidates) > 1) {
-                throw TranslationException::because(
-                    'OPUS_I18N_CATALOG_FILE_AMBIGUOUS',
-                    implode(',', $candidates)
-                );
-            }
-
-            if ($candidates === []) {
-                continue;
-            }
-
-            $catalog = $this->loadFile(
-                $candidates[0],
-                $candidateLocale,
-                $scope
-            );
-            $merged = array_replace($merged, $catalog->all());
-            $loaded[] = $candidates[0];
         }
 
-        if ($loaded === []) {
+        if ($candidates === []) {
             if ($required) {
                 throw TranslationException::because(
                     'OPUS_I18N_CATALOG_FILE_MISSING',
@@ -89,7 +69,11 @@ final class CatalogLoader implements CatalogLoaderInterface
             return null;
         }
 
-        return new Catalog($locale, $scope, $merged);
+        return $this->loadFile(
+            $candidates[0],
+            $locale,
+            $scope
+        );
     }
 
     public function loadFile(

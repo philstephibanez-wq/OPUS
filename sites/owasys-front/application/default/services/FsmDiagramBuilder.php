@@ -12,7 +12,7 @@ use Opus\Profiler\ProfilerInterface;
 /** Builds a fixed visual projection from the canonical OWASYS FSM. */
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4BZ2R8B6V';
+    private const REVISION = 'P117W_R45B2A4BZ2R8B7F';
     private const MISSING_TRANSLATION = '⚠';
 
     private string $sourceHash = '';
@@ -848,8 +848,12 @@ final class OwasysFsmDiagramBuilder
     }
 
     /**
-     * Resolves application-visible EFSM labels through the canonical OPUS
-     * locale family chain while preserving exact source-resource semantics.
+     * Resolves application-visible EFSM labels from the exact active locale.
+     *
+     * No parent locale, base language, host locale or other fallback is
+     * permitted. A missing exact catalog yields no messages, allowing the
+     * existing visible missing-translation marker to identify each state or
+     * transition explicitly.
      *
      * @param array<string,mixed> $identity
      * @return array<string,mixed>
@@ -883,45 +887,38 @@ final class OwasysFsmDiagramBuilder
             }
         }
 
-        $messages = [];
-        foreach ((new Locale($locale))->fallbackChain() as $candidate) {
-            $candidateLocale = $candidate->value;
-            $catalogPath = 'application/default/local/'
-                . $candidateLocale
-                . '.json';
-            if (!isset($available[$catalogPath])) {
-                continue;
-            }
+        $exactLocale = (new Locale($locale))->value;
+        $catalogPath = 'application/default/local/'
+            . $exactLocale
+            . '.json';
 
-            $file = $sourceModel->read(
-                $applicationId,
-                $catalogPath,
-                $identity
-            );
-            $catalog = Json::instance()->parse(
-                (string) ($file['content'] ?? ''),
-                $catalogPath
-            );
-            if (!in_array(
-                    (string) ($catalog['contract'] ?? ''),
-                    ['OPUS_I18N_CATALOG_V1', 'OPUS_I18N_CATALOG_V2'],
-                    true
-                )
-                || (string) ($catalog['locale'] ?? '') !== $candidateLocale
-                || !is_array($catalog['messages'] ?? null)) {
-                throw new RuntimeException(
-                    'OWASYS_FSM_LABEL_CATALOG_INVALID:'
-                    . $applicationId . ':' . $candidateLocale
-                );
-            }
+        if (!isset($available[$catalogPath])) {
+            return [];
+        }
 
-            $messages = array_replace(
-                $messages,
-                $catalog['messages']
+        $file = $sourceModel->read(
+            $applicationId,
+            $catalogPath,
+            $identity
+        );
+        $catalog = Json::instance()->parse(
+            (string) ($file['content'] ?? ''),
+            $catalogPath
+        );
+        if (!in_array(
+                (string) ($catalog['contract'] ?? ''),
+                ['OPUS_I18N_CATALOG_V1', 'OPUS_I18N_CATALOG_V2'],
+                true
+            )
+            || (string) ($catalog['locale'] ?? '') !== $exactLocale
+            || !is_array($catalog['messages'] ?? null)) {
+            throw new RuntimeException(
+                'OWASYS_FSM_LABEL_CATALOG_INVALID:'
+                . $applicationId . ':' . $exactLocale
             );
         }
 
-        return $messages;
+        return $catalog['messages'];
     }
 
     /**

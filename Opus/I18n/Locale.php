@@ -45,23 +45,4 @@ final readonly class Locale implements LocaleInterface
     {
         return $this->value;
     }
-
-    public function parent(): ?self
-    {
-        $parts = explode('-', $this->value);
-        if (count($parts) === 1) return null;
-        array_pop($parts);
-        return new self(implode('-', $parts));
-    }
-
-    /**
-     * Compatibility surface retained temporarily for callers, but strict
-     * NO-FALLBACK policy means the active locale is the only candidate.
-     *
-     * @return list<self>
-     */
-    public function fallbackChain(): array
-    {
-        return [$this];
-    }
 }

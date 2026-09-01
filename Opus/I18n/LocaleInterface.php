@@ -15,9 +15,4 @@ interface LocaleInterface extends
     \Opus\Framework\OpusSelfDocumentingInterface
 {
     public function __toString(): string;
-
-    public function parent(): ?self;
-
-    /** @return list<self> */
-    public function fallbackChain(): array;
 }
