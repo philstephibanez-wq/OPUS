@@ -168,7 +168,34 @@ final class OwasysLocaleRegistry
             );
         }
 
-        $this->configuredCodes = array_values($configured);
+        $orderedCodes = array_values($configured);
+        usort(
+            $orderedCodes,
+            function (string $left, string $right): int {
+                $leftLocale = new Locale($left);
+                $rightLocale = new Locale($right);
+
+                $leftBase = self::BASE_NAMES[$leftLocale->language] ?? $leftLocale->language;
+                $rightBase = self::BASE_NAMES[$rightLocale->language] ?? $rightLocale->language;
+
+                $baseCompare = strnatcasecmp($leftBase, $rightBase);
+                if ($baseCompare !== 0) {
+                    return $baseCompare;
+                }
+
+                $leftName = self::REGIONAL_NAMES[$leftLocale->value] ?? $leftLocale->value;
+                $rightName = self::REGIONAL_NAMES[$rightLocale->value] ?? $rightLocale->value;
+
+                $nameCompare = strnatcasecmp($leftName, $rightName);
+                if ($nameCompare !== 0) {
+                    return $nameCompare;
+                }
+
+                return strcmp($leftLocale->value, $rightLocale->value);
+            }
+        );
+
+        $this->configuredCodes = $orderedCodes;
         $this->languageDefaults = $defaults;
     }
 
