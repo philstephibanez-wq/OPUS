@@ -12,7 +12,7 @@ use Opus\Profiler\ProfilerInterface;
 /** Builds a fixed visual projection from the canonical OWASYS FSM. */
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4BZ2R8B6U';
+    private const REVISION = 'P117W_R45B2A4BZ2R8B6V';
     private const MISSING_TRANSLATION = '⚠';
 
     private string $sourceHash = '';
@@ -78,7 +78,7 @@ final class OwasysFsmDiagramBuilder
             $label = trim((string) ($item['label'] ?? ''));
             $stateLabels[$id] = $label !== ''
                 ? $label
-                : self::MISSING_TRANSLATION;
+                : self::missingTranslationLabel($id);
         }
 
         if (!isset($statesById[$currentState], $menuByState[$currentState])) {
@@ -836,7 +836,7 @@ final class OwasysFsmDiagramBuilder
             'source_sha256' => $sourceHash,
             'current_state' => $currentState,
             'current_label' => $resolvedStateLabels[$currentState]
-                ?? self::MISSING_TRANSLATION,
+                ?? self::missingTranslationLabel($currentState),
             'projected_transition_count' => (int) (
                 $snapshot['transition_count'] ?? 0
             ),
@@ -952,7 +952,7 @@ final class OwasysFsmDiagramBuilder
             $labels[$stateId] = [
                 'key' => $labelKey,
                 'value' => $missing
-                    ? self::MISSING_TRANSLATION
+                    ? self::missingTranslationLabel($stateId)
                     : $message,
                 'missing' => $missing,
             ];
@@ -992,12 +992,20 @@ final class OwasysFsmDiagramBuilder
             $labels[$id] = [
                 'key' => $key,
                 'value' => $missing
-                    ? self::MISSING_TRANSLATION
+                    ? self::missingTranslationLabel($id)
                     : $message,
                 'missing' => $missing,
             ];
         }
         return $labels;
+    }
+
+    private static function missingTranslationLabel(string $id): string
+    {
+        $id = trim($id);
+        return $id === ''
+            ? self::MISSING_TRANSLATION
+            : self::MISSING_TRANSLATION . ' ' . $id;
     }
 
     private function defaultStateLabelKey(string $efsmId, string $stateId): string
