@@ -76,11 +76,35 @@ final class SiteSourceWorkspace implements SiteSourceWorkspaceInterface
                 $siteRoot = $this->siteRoot($siteId);
                 $result = [];
                 $truncated = false;
+                $directory = new \RecursiveDirectoryIterator(
+                    $siteRoot,
+                    \FilesystemIterator::SKIP_DOTS
+                );
+                $filtered = new \RecursiveCallbackFilterIterator(
+                    $directory,
+                    function (\SplFileInfo $candidate): bool {
+                        if (!$candidate->isDir()) {
+                            return true;
+                        }
+                        if ($candidate->isLink()) {
+                            return false;
+                        }
+                        $name = strtolower($candidate->getFilename());
+                        return !in_array(
+                            $name,
+                            self::BLOCKED_SEGMENTS,
+                            true
+                        )
+                            && !in_array(
+                                $name,
+                                self::BLOCKED_NAMES,
+                                true
+                            )
+                            && !str_starts_with($name, '.env.');
+                    }
+                );
                 $iterator = new \RecursiveIteratorIterator(
-                    new \RecursiveDirectoryIterator(
-                        $siteRoot,
-                        \FilesystemIterator::SKIP_DOTS
-                    ),
+                    $filtered,
                     \RecursiveIteratorIterator::LEAVES_ONLY
                 );
 
