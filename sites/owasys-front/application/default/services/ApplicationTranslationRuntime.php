@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Opus\I18n;
 
 use Opus\I18n\Plural\PluralRuleRegistry;
+use Opus\Log\Logger;
 
 /**
  * OWASYS-local replacement for the OPUS application translation runtime.
@@ -21,6 +22,7 @@ final readonly class ApplicationTranslationRuntime
     private Translator $translator;
     private Locale $activeLocale;
     private string $activeModule;
+    private Logger $logger;
 
     public function __construct(
         string $applicationRoot,
@@ -43,6 +45,11 @@ final readonly class ApplicationTranslationRuntime
         }
         $this->activeLocale = new Locale($locale);
         $this->activeModule = $module;
+        $siteRoot = dirname($realRoot);
+        $this->logger = new Logger(
+            $siteRoot . '/var/logs',
+            basename($siteRoot) . '.log'
+        );
         $loader ??= new CatalogLoader();
         $rules ??= new PluralRuleRegistry();
 
@@ -92,7 +99,19 @@ final readonly class ApplicationTranslationRuntime
                 $error->getMessage(),
                 'OPUS_I18N_MESSAGE_MISSING:'
             )) {
-                return self::OWASYS_MISSING_MESSAGE_MARKER;
+                $traceId = trim((string) getenv('OPUS_TRACE_ID'));
+                $this->logger->warning(
+                    'opus.i18n',
+                    'translation.missing',
+                    [
+                        'error_code' => 'OPUS_I18N_MESSAGE_MISSING',
+                        'i18n_key' => $key,
+                        'locale' => $this->activeLocale->value,
+                        'module' => $this->activeModule,
+                    ],
+                    $traceId !== '' ? $traceId : null
+                );
+                return self::OWASYS_MISSING_MESSAGE_MARKER . ' ' . $key;
             }
             throw $error;
         }
