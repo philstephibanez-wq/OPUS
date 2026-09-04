@@ -23,9 +23,27 @@ final class RestIdentity implements RestIdentityInterface
         return $this->subjectValue;
     }
 
+    public function isAnonymous(): bool
+    {
+        return false;
+    }
+
     public function roles(): array
     {
         return $this->roleValues;
+    }
+
+    public function scopes(): array
+    {
+        return [];
+    }
+
+    public function claims(): array
+    {
+        return [
+            'provider' => $this->provider,
+            'service' => $this->service,
+        ];
     }
 
     public function toArray(): array

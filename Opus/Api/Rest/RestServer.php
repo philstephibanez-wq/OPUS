@@ -20,6 +20,7 @@ use Opus\Log\Logger;
 use Opus\Log\LoggerInterface;
 use Opus\Profiler\Profiler;
 use Opus\Profiler\ProfilerInterface;
+use Opus\Security\Access\Engine\HierarchicalAclEngine;
 
 /** Generic secured OPUS REST API dispatching resources to allow-listed Composer business commands. */
 final class RestServer implements RestServerInterface
@@ -50,38 +51,23 @@ final class RestServer implements RestServerInterface
         $catalogRelative = trim((string) ($config['resource_catalog'] ?? ''));
         $inlineResources = $config['resources'] ?? null;
         $externalCatalog = $catalogRelative !== ''
-            ? RestResourceCatalog::fromFile(
-                $root . '/' . self::safeRelative($catalogRelative)
-            )
+            ? RestResourceCatalog::fromFile($root . '/' . self::safeRelative($catalogRelative))
             : null;
         $inlineCatalog = is_array($inlineResources)
-            ? RestResourceCatalog::fromArray(
-                $inlineResources,
-                (string) ($config['base_path'] ?? '')
-            )
+            ? RestResourceCatalog::fromArray($inlineResources, (string) ($config['base_path'] ?? ''))
             : null;
         if ($externalCatalog !== null && $inlineCatalog !== null) {
-            $externalCatalog->assertPeerFingerprint(
-                $inlineCatalog->fingerprint()
-            );
+            $externalCatalog->assertPeerFingerprint($inlineCatalog->fingerprint());
         }
         $resources = $externalCatalog ?? $inlineCatalog;
         if ($resources === null) {
-            throw new \RuntimeException(
-                'OPUS_REST_API_RESOURCE_CATALOG_MISSING'
-            );
+            throw new \RuntimeException('OPUS_REST_API_RESOURCE_CATALOG_MISSING');
         }
-        $configuredBase = '/' . trim(
-            (string) ($config['base_path'] ?? ''),
-            '/'
-        );
+        $configuredBase = '/' . trim((string) ($config['base_path'] ?? ''), '/');
         if (!hash_equals($resources->basePath(), $configuredBase)) {
-            throw new \RuntimeException(
-                'OPUS_REST_API_RESOURCE_CATALOG_BASE_MISMATCH'
-            );
+            throw new \RuntimeException('OPUS_REST_API_RESOURCE_CATALOG_BASE_MISMATCH');
         }
-        $diagnostics = is_array($config['diagnostics'] ?? null)
-            ? $config['diagnostics'] : [];
+        $diagnostics = is_array($config['diagnostics'] ?? null) ? $config['diagnostics'] : [];
         $logFile = trim((string) ($diagnostics['log_file'] ?? ''));
         if (preg_match('/^[A-Za-z0-9._-]+\.log$/', $logFile) !== 1) {
             throw new \RuntimeException('OPUS_REST_API_LOG_FILE_INVALID');
@@ -109,8 +95,7 @@ final class RestServer implements RestServerInterface
                 $profiler
             ),
             new RestRequestAuthenticator(
-                is_array($config['authentication'] ?? null)
-                    ? $config['authentication'] : []
+                is_array($config['authentication'] ?? null) ? $config['authentication'] : []
             ),
             $logger,
             $profiler
@@ -130,12 +115,10 @@ final class RestServer implements RestServerInterface
                     'transport' => 'rest',
                     'business_boundary' => 'composer',
                     'locale' => $locale,
-                    'catalog_fingerprint' =>
-                        $this->resources->fingerprint(),
+                    'catalog_fingerprint' => $this->resources->fingerprint(),
                 ],
             ], 200, [
-                'X-Opus-Rest-Catalog' =>
-                    $this->resources->fingerprint(),
+                'X-Opus-Rest-Catalog' => $this->resources->fingerprint(),
             ]);
         }
         if ($path === $base . '/status') {
@@ -201,7 +184,7 @@ final class RestServer implements RestServerInterface
             $identity = $this->authenticator->authenticate($request, $_SERVER);
             $fsm->transition('authenticated');
             $entry = $this->registry->operation($operation);
-            $this->assertAuthorized($identity, $entry);
+            $this->assertAuthorized($identity, $entry, $operation);
             $fsm->transition('authorized');
 
             $body = $request->body() === '' ? [] : $request->jsonBody();
@@ -235,14 +218,10 @@ final class RestServer implements RestServerInterface
             }
             $headers = [
                 'X-Opus-Trace-Id' => $traceId,
-                'X-Opus-Rest-Catalog' =>
-                    $this->resources->fingerprint(),
+                'X-Opus-Rest-Catalog' => $this->resources->fingerprint(),
             ];
             $status = $this->resources->successStatus($route);
-            $location = $this->resources->location(
-                $route,
-                $parameters
-            );
+            $location = $this->resources->location($route, $parameters);
             if ($location !== '') {
                 $headers['Location'] = $location;
             }
@@ -272,9 +251,7 @@ final class RestServer implements RestServerInterface
                     $fsm->state()
                 )) {
                     try {
-                        $payload['profiler_records'] = $this->profiler->readTrace(
-                            $traceId
-                        );
+                        $payload['profiler_records'] = $this->profiler->readTrace($traceId);
                     } catch (\Throwable $profilerError) {
                         $this->logProfilerFailure(
                             'profiler.read.failed',
@@ -375,11 +352,7 @@ final class RestServer implements RestServerInterface
     }
 
     /**
-     * @return array{
-     *   0:?array<string,mixed>,
-     *   1:array<string,string>,
-     *   2:list<string>
-     * }
+     * @return array{0:?array<string,mixed>,1:array<string,string>,2:list<string>}
      */
     private function resolve(string $method, string $path): array
     {
@@ -387,12 +360,42 @@ final class RestServer implements RestServerInterface
     }
 
     /** @param array<string,mixed> $entry */
-    private function assertAuthorized(RestIdentityInterface $identity, array $entry): void
-    {
+    private function assertAuthorized(
+        RestIdentityInterface $identity,
+        array $entry,
+        string $operation
+    ): void {
         $required = is_array($entry['roles'] ?? null)
             ? array_values(array_filter($entry['roles'], 'is_string')) : [];
-        if ($required === [] || array_intersect($required, $identity->roles()) === []) {
+        if ($required === []) {
             throw new \RuntimeException('OPUS_REST_API_ACL_DENIED');
+        }
+
+        $engine = HierarchicalAclEngine::fromConfig([
+            'roles' => [],
+            'resources' => [
+                'rest.operation' => [],
+            ],
+            'rules' => [[
+                'effect' => 'allow',
+                'roles' => $required,
+                'resources' => ['rest.operation'],
+                'privileges' => ['execute'],
+                'description' => 'REST operation allow-list from Composer operation catalog',
+            ]],
+        ]);
+        $decision = $engine->decide(
+            $operation !== '' ? $operation : 'rest.operation',
+            [
+                'resource' => 'rest.operation',
+                'privilege' => 'execute',
+            ],
+            $identity
+        );
+        if (!$decision->isGranted()) {
+            throw new \RuntimeException(
+                'OPUS_REST_API_ACL_DENIED: ' . $decision->reason()
+            );
         }
     }
 
@@ -427,8 +430,7 @@ final class RestServer implements RestServerInterface
         array $headers = []
     ): Response {
         $headers = array_replace([
-            'X-Opus-Rest-Catalog' =>
-                $this->resources->fingerprint(),
+            'X-Opus-Rest-Catalog' => $this->resources->fingerprint(),
         ], $headers);
         return Response::json([
             'contract' => 'OPUS_REST_API_ERROR_V1',
@@ -440,11 +442,7 @@ final class RestServer implements RestServerInterface
     private function safeErrorCode(\Throwable $error): string
     {
         $message = trim($error->getMessage());
-        if (preg_match(
-            '/^([A-Z][A-Z0-9_]{2,119})(?::|$)/D',
-            $message,
-            $matches
-        ) === 1) {
+        if (preg_match('/^([A-Z][A-Z0-9_]{2,119})(?::|$)/D', $message, $matches) === 1) {
             return $matches[1];
         }
         return 'OPUS_REST_API_REQUEST_FAILED';

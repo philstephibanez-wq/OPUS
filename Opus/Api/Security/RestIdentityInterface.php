@@ -7,11 +7,17 @@ interface RestIdentityInterface extends
     \Opus\Framework\OpusFrameworkComponentInterface,
     \Opus\Framework\OpusExceptionAwareInterface,
     \Opus\Framework\OpusProfilerAwareInterface,
-    \Opus\Framework\OpusSelfDocumentingInterface
+    \Opus\Framework\OpusSelfDocumentingInterface,
+    \Opus\Security\Identity\IdentityContextInterface
 {
     public function subject(): string;
+    public function isAnonymous(): bool;
     /** @return list<string> */
     public function roles(): array;
+    /** @return list<string> */
+    public function scopes(): array;
+    /** @return array<string,mixed> */
+    public function claims(): array;
     /** @return array<string,mixed> */
     public function toArray(): array;
 }
