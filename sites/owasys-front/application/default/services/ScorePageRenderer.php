@@ -3,18 +3,19 @@ declare(strict_types=1);
 
 use Opus\I18n\ApplicationTranslationRuntime;
 use Opus\I18n\TranslationRuntimeInterface;
-use Opus\I18n\TranslationException;
 use Opus\File\StructuredFileLoader;
 use Opus\Template\ScoreTemplateRenderer;
 use Opus\Http\UrlBuilder;
+use Opus\Log\Logger;
 use Opus\Profiler\ProfilerInterface;
 use Opus\Security\Csrf\CsrfTokenManager;
 
 final class OwasysScorePageRenderer
 {
-    private const FSM_I18N_REVISION = 'P117W_R45B2A4BQ';
+    private const FSM_I18N_REVISION = 'P117W_R8B7P';
 
     private readonly OwasysFsmDiagramBuilder $fsmDiagram;
+    private readonly Logger $i18nLogger;
 
     public function __construct(
         private readonly string $siteRoot,
@@ -29,6 +30,11 @@ final class OwasysScorePageRenderer
                 'OWASYS_FSM_NATIVE_SECURITY_CONTEXT_MISSING'
             );
         }
+
+        $this->i18nLogger = new Logger(
+            $siteRoot . '/var/logs',
+            'owasys-front.log'
+        );
 
         $this->fsmDiagram = new OwasysFsmDiagramBuilder(
             $siteRoot,
@@ -72,7 +78,12 @@ final class OwasysScorePageRenderer
         $i18n = new ApplicationTranslationRuntime(
             $this->siteRoot . '/application',
             $module,
-            $locale
+            $locale,
+            null,
+            null,
+            $this->i18nLogger,
+            $this->profiler,
+            $this->parentSpanId
         );
         $renderer = new ScoreTemplateRenderer(
             $this->siteRoot . '/application',
@@ -537,7 +548,12 @@ final class OwasysScorePageRenderer
             $runtimes[$module] = new ApplicationTranslationRuntime(
                 $this->siteRoot . '/application',
                 $module,
-                $locale
+                $locale,
+                null,
+                null,
+                $this->i18nLogger,
+                $this->profiler,
+                $this->parentSpanId
             );
         }
 
@@ -559,24 +575,7 @@ final class OwasysScorePageRenderer
             );
         }
 
-        try {
-            return $runtime->translate($key);
-        } catch (TranslationException $cause) {
-            /*
-             * Do not silently fall back. Preserve the exact state/module/
-             * locale/key in the exception chain for logs and diagnostics.
-             */
-            throw new RuntimeException(
-                'OWASYS_SCORE_FSM_I18N_MESSAGE_MISSING:'
-                . $stateId
-                . ':' . $module
-                . ':' . $locale
-                . ':' . $role
-                . ':' . $key,
-                0,
-                $cause
-            );
-        }
+        return $runtime->translate($key);
     }
 
     /** @return array<string,string> */
@@ -585,7 +584,12 @@ final class OwasysScorePageRenderer
         $runtime = new ApplicationTranslationRuntime(
             $this->siteRoot . '/application',
             'default',
-            $locale
+            $locale,
+            null,
+            null,
+            $this->i18nLogger,
+            $this->profiler,
+            $this->parentSpanId
         );
         $keys = [
             'designer',
@@ -608,16 +612,7 @@ final class OwasysScorePageRenderer
         $labels = [];
         foreach ($keys as $key) {
             $messageKey = 'fsm_designer.' . $key;
-            try {
-                $labels[$key] = $runtime->translate($messageKey);
-            } catch (TranslationException $cause) {
-                throw new RuntimeException(
-                    'OWASYS_FSM_DESIGNER_I18N_MESSAGE_MISSING:'
-                    . $locale . ':' . $messageKey,
-                    0,
-                    $cause
-                );
-            }
+            $labels[$key] = $runtime->translate($messageKey);
         }
         return $labels;
     }
