@@ -7,11 +7,14 @@ use Opus\I18n\Plural\PluralRuleRegistry;
 use Opus\Log\Logger;
 
 /**
- * OWASYS-local replacement for the OPUS application translation runtime.
+ * OWASYS-local translation runtime compatibility shim.
  *
- * It preserves the OPUS runtime contract and strict active-locale catalog
- * loading. Only a genuinely missing message is converted to the contractual
- * visible marker. All other I18n failures remain exceptions.
+ * Missing messages remain visible and diagnosable:
+ * - UI: "⚠ <exact.i18n.key>"
+ * - log: structured i18n.message_missing event with exact key, locale,
+ *   module and current trace_id.
+ *
+ * All non-missing I18n failures remain exceptions.
  */
 final readonly class ApplicationTranslationRuntime
     implements TranslationRuntimeInterface, ApplicationTranslationRuntimeInterface
@@ -43,13 +46,16 @@ final readonly class ApplicationTranslationRuntime
         if ($module === '' || preg_match('/^[a-z][a-z0-9_-]*$/', $module) !== 1) {
             throw TranslationException::because('OPUS_I18N_MODULE_INVALID', $module);
         }
+
         $this->activeLocale = new Locale($locale);
         $this->activeModule = $module;
-        $siteRoot = dirname($realRoot);
+
+        $siteRoot = dirname(str_replace('\\', '/', $realRoot));
         $this->logger = new Logger(
             $siteRoot . '/var/logs',
-            basename($siteRoot) . '.log'
+            'owasys-front.log'
         );
+
         $loader ??= new CatalogLoader();
         $rules ??= new PluralRuleRegistry();
 
@@ -62,6 +68,7 @@ final readonly class ApplicationTranslationRuntime
         if (!$global instanceof Catalog) {
             throw TranslationException::because('OPUS_I18N_GLOBAL_CATALOG_REQUIRED');
         }
+
         $catalogs = [$global];
         if ($module !== 'default') {
             $moduleCatalog = $loader->loadDirectory(
@@ -74,6 +81,7 @@ final readonly class ApplicationTranslationRuntime
                 $catalogs[] = $moduleCatalog;
             }
         }
+
         $this->translator = new Translator(
             new CatalogStack(...$catalogs),
             $rules->forLocale($this->activeLocale)
@@ -95,25 +103,27 @@ final readonly class ApplicationTranslationRuntime
                 $gender
             );
         } catch (TranslationException $error) {
-            if (str_starts_with(
+            if (!str_starts_with(
                 $error->getMessage(),
                 'OPUS_I18N_MESSAGE_MISSING:'
             )) {
-                $traceId = trim((string) getenv('OPUS_TRACE_ID'));
-                $this->logger->warning(
-                    'opus.i18n',
-                    'translation.missing',
-                    [
-                        'error_code' => 'OPUS_I18N_MESSAGE_MISSING',
-                        'i18n_key' => $key,
-                        'locale' => $this->activeLocale->value,
-                        'module' => $this->activeModule,
-                    ],
-                    $traceId !== '' ? $traceId : null
-                );
-                return self::OWASYS_MISSING_MESSAGE_MARKER . ' ' . $key;
+                throw $error;
             }
-            throw $error;
+
+            $traceId = trim((string) getenv('OPUS_TRACE_ID'));
+            $this->logger->warning(
+                'i18n',
+                'i18n.message_missing',
+                [
+                    'error_code' => 'OPUS_I18N_MESSAGE_MISSING',
+                    'i18n_key' => $key,
+                    'locale' => $this->activeLocale->value,
+                    'module' => $this->activeModule,
+                ],
+                $traceId !== '' ? $traceId : null
+            );
+
+            return self::OWASYS_MISSING_MESSAGE_MARKER . ' ' . $key;
         }
     }
 
