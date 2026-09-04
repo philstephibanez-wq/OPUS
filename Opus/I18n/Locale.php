@@ -41,6 +41,17 @@ final readonly class Locale implements LocaleInterface
         $this->region = $region;
     }
 
+    public function parent(): ?Locale
+    {
+        $parts = explode('-', $this->value);
+        if (count($parts) <= 1) {
+            return null;
+        }
+
+        array_pop($parts);
+        return new self(implode('-', $parts));
+    }
+
     public function __toString(): string
     {
         return $this->value;

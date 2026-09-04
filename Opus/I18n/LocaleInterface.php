@@ -14,5 +14,7 @@ interface LocaleInterface extends
     \Opus\Framework\OpusProfilerAwareInterface,
     \Opus\Framework\OpusSelfDocumentingInterface
 {
+    public function parent(): ?Locale;
+
     public function __toString(): string;
 }
