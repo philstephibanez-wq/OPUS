@@ -820,6 +820,16 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             'summary_key' => 'profiler.summary',
             'navigation' => ['label' => 'OPUS Profiler'],
         ];
+        $states[] = [
+            'id' => 'security_quarantine',
+            'type' => 'security',
+            'module' => 'security',
+        ];
+        $states[] = [
+            'id' => 'fault',
+            'type' => 'fault',
+            'module' => 'system',
+        ];
 
         $stateIds = array_merge(['begin'], $modules, ['profiler']);
         $transitions = [];
@@ -852,14 +862,14 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             'id' => 'nmi.security_violation',
             'from' => '*',
             'signal' => 'security_violation',
-            'next_state' => 'begin',
+            'next_state' => 'security_quarantine',
             'interrupt' => 'nmi',
         ];
         $transitions[] = [
             'id' => 'nmi.critical_error',
             'from' => '*',
             'signal' => 'critical_error',
-            'next_state' => 'begin',
+            'next_state' => 'fault',
             'interrupt' => 'nmi',
         ];
 
@@ -1375,6 +1385,16 @@ PHP;
                         'module' => 'api',
                         'route' => '/api/v1/{*resource}',
                     ],
+                    [
+                        'id' => 'security_quarantine',
+                        'type' => 'security',
+                        'module' => 'security',
+                    ],
+                    [
+                        'id' => 'fault',
+                        'type' => 'fault',
+                        'module' => 'system',
+                    ],
                 ],
                 'transitions' => [
                     [
@@ -1397,14 +1417,14 @@ PHP;
                         'id' => 'nmi.security_violation',
                         'from' => '*',
                         'signal' => 'security_violation',
-                        'next_state' => 'api',
+                        'next_state' => 'security_quarantine',
                         'interrupt' => 'nmi',
                     ],
                     [
                         'id' => 'nmi.critical_error',
                         'from' => '*',
                         'signal' => 'critical_error',
-                        'next_state' => 'api',
+                        'next_state' => 'fault',
                         'interrupt' => 'nmi',
                     ],
                 ],

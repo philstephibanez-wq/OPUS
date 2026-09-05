@@ -24,6 +24,16 @@
             "navigation": {
                 "label": "menu.home"
             }
+        },
+        {
+            "id": "security_quarantine",
+            "type": "security",
+            "module": "security"
+        },
+        {
+            "id": "fault",
+            "type": "fault",
+            "module": "system"
         }
     ],
     "transitions": [
@@ -67,14 +77,14 @@
             "id": "nmi.security_violation",
             "from": "*",
             "signal": "security_violation",
-            "next_state": "connexion",
+            "next_state": "security_quarantine",
             "interrupt": "nmi"
         },
         {
             "id": "nmi.critical_error",
             "from": "*",
             "signal": "critical_error",
-            "next_state": "connexion",
+            "next_state": "fault",
             "interrupt": "nmi"
         }
     ],

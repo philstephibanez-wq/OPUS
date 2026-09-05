@@ -24,6 +24,16 @@
             "id": "composer",
             "module": "composer",
             "route": "internal/composer"
+        },
+        {
+            "id": "security_quarantine",
+            "type": "security",
+            "module": "security"
+        },
+        {
+            "id": "fault",
+            "type": "fault",
+            "module": "system"
         }
     ],
     "signals": [
@@ -103,14 +113,14 @@
             "id": "t_fail",
             "from": "*",
             "signal": "fail",
-            "next_state": "api",
+            "next_state": "fault",
             "interrupt": "nmi"
         },
         {
             "id": "t_security_violation",
             "from": "*",
             "signal": "security_violation",
-            "next_state": "api",
+            "next_state": "security_quarantine",
             "interrupt": "nmi"
         }
     ]

@@ -21,6 +21,8 @@ use Opus\Profiler\WebProfilerController;
 use Opus\Profiler\WebProfilerControllerInterface;
 use Opus\Profiler\WebProfilerView;
 use Opus\Security\Csrf\CsrfTokenManager;
+use Opus\Security\Runtime\SecurityQuarantine;
+use Opus\Security\Runtime\SecurityQuarantineInterface;
 use Opus\Security\Sso\LocalPasswordSsoProvider;
 use Opus\Security\Sso\SsoManager;
 use Opus\Template\ScoreTemplateRenderer;
@@ -43,6 +45,7 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
     private readonly ?WebProfilerControllerInterface $webProfilerController;
     private readonly ?ProfilerLinkProviderInterface $profilerLinkProvider;
     private readonly Logger $logger;
+    private readonly SecurityQuarantineInterface $securityQuarantine;
 
     public function __construct(
         string $siteRoot,
@@ -55,6 +58,7 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
         $this->siteRoot = $root;
         $this->loader = StructuredFileLoader::instance();
         $this->file = File::instance();
+        $this->securityQuarantine = SecurityQuarantine::forSiteRoot($root);
         $this->profilerConfiguration = ProfilerConfiguration::fromSiteRoot($root);
 
         $site = $this->config(
@@ -136,6 +140,8 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                     ['method' => $this->requestMethod()]
                 );
             }
+
+            $this->securityQuarantine->assertBusinessAllowed();
 
             $site = $this->config(
                 'config/site.json',
@@ -234,6 +240,12 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
             return $response;
         } catch (\Throwable $error) {
             $code = $this->safeErrorCode($error);
+            if (str_starts_with(
+                $code,
+                'OPUS_SECURITY_QUARANTINE_ACTIVE:'
+            )) {
+                $code = 'OPUS_SECURITY_QUARANTINE_ACTIVE';
+            }
             $durationMs = round((microtime(true) - $startedAt) * 1000, 3);
             $this->logger->error(
                 'application.runtime',
@@ -250,6 +262,7 @@ final class GeneratedSiteRuntime implements GeneratedSiteRuntimeInterface
                 );
             }
             $httpStatus = match (true) {
+                str_contains($code, 'SECURITY_QUARANTINE') => 423,
                 str_contains($code, 'AUTH_REQUIRED') => 401,
                 str_contains($code, 'ACL_DENIED') => 403,
                 str_contains($code, 'ROUTE_NOT_FOUND') => 404,

@@ -291,6 +291,30 @@
                 "order": 0
             },
             "type": "screen"
+        },
+        {
+            "id": "security_quarantine",
+            "type": "security",
+            "module": "security",
+            "requires_auth": false,
+            "requires_current_app": false,
+            "navigation": {
+                "visible": false,
+                "order": 10000,
+                "label": "security_quarantine"
+            }
+        },
+        {
+            "id": "fault",
+            "type": "fault",
+            "module": "system",
+            "requires_auth": false,
+            "requires_current_app": false,
+            "navigation": {
+                "visible": false,
+                "order": 10010,
+                "label": "fault"
+            }
         }
     ],
     "signals": [
@@ -978,6 +1002,12 @@
         },
         {
             "id": "critical_error",
+            "type": "system",
+            "menu": false,
+            "origin": "automatic"
+        },
+        {
+            "id": "security_violation",
             "type": "system",
             "menu": false,
             "origin": "automatic"
@@ -2610,10 +2640,17 @@
             "id": "t_critical_error",
             "from": "*",
             "signal": "critical_error",
-            "next_state": "login",
+            "next_state": "fault",
+            "interrupt": "nmi",
             "actions": [
                 "clear_session"
-            ],
+            ]
+        },
+        {
+            "id": "t_security_violation",
+            "from": "*",
+            "signal": "security_violation",
+            "next_state": "security_quarantine",
             "interrupt": "nmi"
         }
     ],
