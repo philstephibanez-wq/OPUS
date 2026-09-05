@@ -782,6 +782,14 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
             'id' => 'open_profiler',
             'origin' => 'user',
         ];
+        $signals[] = [
+            'id' => 'security_violation',
+            'origin' => 'automatic',
+        ];
+        $signals[] = [
+            'id' => 'critical_error',
+            'origin' => 'automatic',
+        ];
 
         $states[] = [
             'id' => 'begin',
@@ -839,6 +847,21 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
                 'actions' => ['render_profiler_trace'],
             ];
         }
+
+        $transitions[] = [
+            'id' => 'nmi.security_violation',
+            'from' => '*',
+            'signal' => 'security_violation',
+            'next_state' => 'begin',
+            'interrupt' => 'nmi',
+        ];
+        $transitions[] = [
+            'id' => 'nmi.critical_error',
+            'from' => '*',
+            'signal' => 'critical_error',
+            'next_state' => 'begin',
+            'interrupt' => 'nmi',
+        ];
 
         return [
             'contract' => 'OPUS_APPLICATION_FSM_V1',
@@ -1331,6 +1354,14 @@ PHP;
                         'id' => 'dispatch_api',
                         'origin' => 'automatic',
                     ],
+                    [
+                        'id' => 'security_violation',
+                        'origin' => 'automatic',
+                    ],
+                    [
+                        'id' => 'critical_error',
+                        'origin' => 'automatic',
+                    ],
                 ],
                 'states' => [
                     [
@@ -1361,6 +1392,20 @@ PHP;
                         'next_state' => 'api',
                         'guards' => ['route_exists'],
                         'actions' => ['dispatch_rest'],
+                    ],
+                    [
+                        'id' => 'nmi.security_violation',
+                        'from' => '*',
+                        'signal' => 'security_violation',
+                        'next_state' => 'api',
+                        'interrupt' => 'nmi',
+                    ],
+                    [
+                        'id' => 'nmi.critical_error',
+                        'from' => '*',
+                        'signal' => 'critical_error',
+                        'next_state' => 'api',
+                        'interrupt' => 'nmi',
                     ],
                 ],
             ]),

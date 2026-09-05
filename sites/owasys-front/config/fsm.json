@@ -975,6 +975,12 @@
             "type": "event",
             "menu": false,
             "origin": "automatic"
+        },
+        {
+            "id": "critical_error",
+            "type": "system",
+            "menu": false,
+            "origin": "automatic"
         }
     ],
     "transitions": [
@@ -2599,6 +2605,16 @@
             "from": "build",
             "signal": "build_context_ready",
             "next_state": "build"
+        },
+        {
+            "id": "t_critical_error",
+            "from": "*",
+            "signal": "critical_error",
+            "next_state": "login",
+            "actions": [
+                "clear_session"
+            ],
+            "interrupt": "nmi"
         }
     ],
     "guards": {

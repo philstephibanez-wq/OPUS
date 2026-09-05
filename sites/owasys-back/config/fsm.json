@@ -44,6 +44,10 @@
         },
         {
             "id": "fail"
+        },
+        {
+            "id": "security_violation",
+            "origin": "automatic"
         }
     ],
     "transitions": [
@@ -99,6 +103,13 @@
             "id": "t_fail",
             "from": "*",
             "signal": "fail",
+            "next_state": "api",
+            "interrupt": "nmi"
+        },
+        {
+            "id": "t_security_violation",
+            "from": "*",
+            "signal": "security_violation",
             "next_state": "api",
             "interrupt": "nmi"
         }

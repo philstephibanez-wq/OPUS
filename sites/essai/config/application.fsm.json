@@ -62,6 +62,20 @@
             "from": "connexion",
             "signal": "open_home",
             "next_state": "connexion"
+        },
+        {
+            "id": "nmi.security_violation",
+            "from": "*",
+            "signal": "security_violation",
+            "next_state": "connexion",
+            "interrupt": "nmi"
+        },
+        {
+            "id": "nmi.critical_error",
+            "from": "*",
+            "signal": "critical_error",
+            "next_state": "connexion",
+            "interrupt": "nmi"
         }
     ],
     "signals": [
@@ -78,6 +92,16 @@
             "id": "new",
             "origin": "user",
             "type": "command"
+        },
+        {
+            "id": "security_violation",
+            "origin": "automatic",
+            "type": "system"
+        },
+        {
+            "id": "critical_error",
+            "origin": "automatic",
+            "type": "system"
         }
     ]
 }
