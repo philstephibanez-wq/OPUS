@@ -2163,15 +2163,24 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         }
 
         if ($transition['from'] === '*') {
-            $fromPoint = $this->globalSourcePoint($positions);
+            $sourcePort = $this->nmiSourcePort($positions);
             $offset = ($ordinal - (($total - 1) / 2)) * 16.0;
-            $x = $toPos['x'] + $toPos['w'] / 2 + $offset;
-            $y1 = $fromPoint['y'];
-            $y2 = $toPos['y'];
-            $path = 'M' . self::n($x) . ' ' . self::n($y1)
-                . ' L' . self::n($x) . ' ' . self::n($y2);
-            $labelX = $x;
-            $labelY = ($y1 + $y2) / 2 - 6.0;
+            $targetX = $toPos['x'] + $toPos['w'] / 2 + $offset;
+            $targetY = $toPos['y'];
+            $middleY = ($sourcePort['y'] + $targetY) / 2;
+            $transition['diagram_source_x'] = $sourcePort['x'];
+            $transition['diagram_source_y'] = $sourcePort['y'];
+            $transition['diagram_nmi_target_offset_x'] = $offset;
+            $path = 'M' . self::n($sourcePort['x']) . ' '
+                . self::n($sourcePort['y'])
+                . ' C' . self::n($sourcePort['x']) . ' '
+                . self::n($middleY)
+                . ', ' . self::n($targetX) . ' '
+                . self::n($middleY)
+                . ', ' . self::n($targetX) . ' '
+                . self::n($targetY);
+            $labelX = ($sourcePort['x'] + $targetX) / 2;
+            $labelY = $middleY - 6.0;
 
             return $this->transitionSvg(
                 $class,
@@ -2672,23 +2681,27 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         }
 
         if ($transition['from'] === '*') {
-            $fromPoint = $this->globalSourcePoint($positions);
+            $sourcePort = $this->nmiSourcePort($positions);
             $x2 = $toPos['x'] + $toPos['w'] / 2;
             $y2 = $toPos['y'];
-            $path = 'M' . self::n($fromPoint['x']) . ' '
-                . self::n($fromPoint['y'])
-                . ' C' . self::n($fromPoint['x']) . ' '
-                . self::n(($fromPoint['y'] + $y2) / 2)
+            $middleY = ($sourcePort['y'] + $y2) / 2;
+            $transition['diagram_source_x'] = $sourcePort['x'];
+            $transition['diagram_source_y'] = $sourcePort['y'];
+            $transition['diagram_nmi_target_offset_x'] = 0.0;
+            $path = 'M' . self::n($sourcePort['x']) . ' '
+                . self::n($sourcePort['y'])
+                . ' C' . self::n($sourcePort['x']) . ' '
+                . self::n($middleY)
                 . ', ' . self::n($x2) . ' '
-                . self::n(($fromPoint['y'] + $y2) / 2)
+                . self::n($middleY)
                 . ', ' . self::n($x2) . ' ' . self::n($y2);
             return $this->transitionSvg(
                 $class,
                 $id,
                 $path,
                 $label,
-                ($fromPoint['x'] + $x2) / 2,
-                ($fromPoint['y'] + $y2) / 2,
+                ($sourcePort['x'] + $x2) / 2,
+                $middleY,
                 $semanticLabel,
                 $transition,
                 $positions
@@ -2897,7 +2910,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             return false;
         }
 
-        if (($transition['scope'] ?? '') === 'global') {
+        if (($transition['scope'] ?? '') === 'global' || $from === '*') {
             $sourceX = $transition['diagram_source_x'] ?? null;
             $sourceY = $transition['diagram_source_y'] ?? null;
             return is_numeric($sourceX)
@@ -2978,12 +2991,12 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         if ((string) ($geometry['path_kind'] ?? '') !== 'cubic_bezier') {
             return null;
         }
-        $number = '([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)';
-        $pattern = '/\A\s*M\s*' . $number . '[\s,]+'
-            . $number . '\s*C\s*'
-            . $number . '[\s,]+' . $number . '[\s,]+'
-            . $number . '[\s,]+' . $number . '[\s,]+'
-            . $number . '[\s,]+' . $number . '\s*\z/D';
+        $number = '([-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][-+]?\\d+)?)';
+        $pattern = '/\\A\\s*M\\s*' . $number . '[\\s,]+'
+            . $number . '\\s*C\\s*'
+            . $number . '[\\s,]+' . $number . '[\\s,]+'
+            . $number . '[\\s,]+' . $number . '[\\s,]+'
+            . $number . '[\\s,]+' . $number . '\\s*\\z/D';
         if (preg_match($pattern, trim($automaticPath), $match) !== 1) {
             return null;
         }
@@ -3439,6 +3452,14 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         $finiteSource = $scope === 'global'
             && is_numeric($sourceX)
             && is_numeric($sourceY);
+        $nmiSource = $from === '*'
+            && is_numeric($sourceX)
+            && is_numeric($sourceY);
+        $nmiTargetOffsetX = is_numeric(
+            $transition['diagram_nmi_target_offset_x'] ?? null
+        )
+            ? (float) $transition['diagram_nmi_target_offset_x']
+            : 0.0;
 
         return ' data-from-state="' . self::h($from) . '"'
             . ' data-to-state="' . self::h($to) . '"'
@@ -3450,6 +3471,13 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
                     . self::n((float) $sourceY) . '"'
                     . ' data-finite-source-marker="'
                     . self::h($sourceMarker) . '"'
+                : '')
+            . ($nmiSource
+                ? ' data-nmi-source-x="' . self::n((float) $sourceX)
+                    . '" data-nmi-source-y="'
+                    . self::n((float) $sourceY) . '"'
+                    . ' data-nmi-target-offset-x="'
+                    . self::n($nmiTargetOffsetX) . '"'
                 : '');
     }
 
@@ -4318,6 +4346,31 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     }
 
     /**
+     * Physical attachment port for non-maskable interrupt transitions.
+     *
+     * NMI edges must start on the visible NMI source boundary rather than on
+     * an unrelated target-aligned point of the source rail.
+     *
+     * @param array<string,array{x:float,y:float,w:float,h:float,rank:int}> $positions
+     * @return array{x:float,y:float}
+     */
+    private function nmiSourcePort(array $positions): array
+    {
+        $point = $this->globalSourcePoint($positions);
+        if ($this->_layoutDirection === 'vertical') {
+            return [
+                'x' => $point['x'],
+                'y' => $point['y'] + 15.0,
+            ];
+        }
+
+        return [
+            'x' => $point['x'] + 29.0,
+            'y' => $point['y'],
+        ];
+    }
+
+    /**
      * @param array<string,array{x:float,y:float,w:float,h:float,rank:int}> $positions
      */
     private function renderGlobalSource(array $positions): string
@@ -4597,12 +4650,12 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
   const simpleCubicPath = (path) => {
     if (!(path instanceof SVGPathElement)) return null;
     const d = path.getAttribute('d') || '';
-    const numberPattern = /[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[-+]?\d+)?/gi;
+    const numberPattern = /[-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:e[-+]?\\d+)?/gi;
     const values = Array.from(
       d.matchAll(numberPattern),
       (match) => Number(match[0])
     );
-    const commands = d.replace(numberPattern, '').replace(/[\s,]/g, '');
+    const commands = d.replace(numberPattern, '').replace(/[\\s,]/g, '');
     if (commands !== 'MC'
         || values.length !== 8
         || values.some((value) => !Number.isFinite(value))) {
@@ -4833,6 +4886,25 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
       + `${targetX} ${middleY}, ${targetX} ${targetY}`;
   };
 
+  const nmiPath = (group, toId) => {
+    const to = boxFor(toId);
+    const sourceX = Number(group.dataset.nmiSourceX || NaN);
+    const sourceY = Number(group.dataset.nmiSourceY || NaN);
+    const targetOffsetX = Number(group.dataset.nmiTargetOffsetX || 0);
+    if (!to
+        || !Number.isFinite(sourceX)
+        || !Number.isFinite(sourceY)
+        || !Number.isFinite(targetOffsetX)) {
+      return '';
+    }
+    const targetX = to.x + to.w / 2 + targetOffsetX;
+    const targetCenterY = to.y + to.h / 2;
+    const targetY = sourceY <= targetCenterY ? to.y : to.y + to.h;
+    const middleY = (sourceY + targetY) / 2;
+    return `M${sourceX} ${sourceY} C${sourceX} ${middleY}, `
+      + `${targetX} ${middleY}, ${targetX} ${targetY}`;
+  };
+
   const pointOnBoundary = (point, box) => {
     if (!point || !box) return false;
     const tolerance = 3;
@@ -4943,6 +5015,16 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
       updateBezierPreview(group);
       return;
     }
+    if (from === '*') {
+      const edge = group.querySelector('path.fsm-edge');
+      const d = nmiPath(group, to);
+      if (edge instanceof SVGPathElement && d !== '') {
+        edge.setAttribute('d', d);
+      }
+      updateLabelLeader(group, edge);
+      updateBezierPreview(group);
+      return;
+    }
     if (from === '' || to === '' || from === to
         || !states.has(from) || !states.has(to)) {
       updateLabelLeader(group, group.querySelector('path.fsm-edge'));
@@ -4993,6 +5075,16 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         if (scope === 'global' && to === state) {
           group.removeAttribute('transform');
           const d = finiteGlobalPath(group, to);
+          if (edge instanceof SVGPathElement && d !== '') {
+            edge.setAttribute('d', d);
+          }
+          updateLabelLeader(group, edge);
+          updateBezierPreview(group);
+          return;
+        }
+        if (from === '*' && to === state) {
+          group.removeAttribute('transform');
+          const d = nmiPath(group, to);
           if (edge instanceof SVGPathElement && d !== '') {
             edge.setAttribute('d', d);
           }
