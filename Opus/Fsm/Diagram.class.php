@@ -4785,6 +4785,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         });
       group.append(overlay);
     }
+    group.classList.add('has-native-nmi-bezier-controls');
     updateBezierPreview(group, curve);
   };
 
@@ -5671,7 +5672,7 @@ HTML;
     .fsm-nmi-bezier-controls circle[data-bezier-role="C1"],
     .fsm-nmi-bezier-controls circle[data-bezier-role="C2"] { fill:var(--opus-fsm-nmi,#ef4444); cursor:move; pointer-events:all; touch-action:none; }
     .fsm-nmi-bezier-controls.is-layout-dragging circle[data-layout-bezier-draggable="1"] { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:3; }
-    .fsm-transition.nmi-transition > .fsm-designer-bezier-preview { display:none; }
+    .fsm-transition.nmi-transition.has-native-nmi-bezier-controls > .fsm-designer-bezier-preview { display:none; }
     .fsm-finite-global-source rect { fill:var(--opus-fsm-label-halo,#07111f); stroke:var(--opus-fsm-transition-color,#38bdf8); stroke-width:1.5; }
     .fsm-finite-global-source text { text-anchor:middle; paint-order:stroke; stroke:var(--opus-fsm-label-halo,#07111f); stroke-width:3px; stroke-linejoin:round; }
     .fsm-finite-global-source-title { fill:var(--opus-fsm-transition-color,#38bdf8); font-size:11px; font-weight:900; }
