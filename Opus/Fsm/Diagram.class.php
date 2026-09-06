@@ -2087,6 +2087,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         if ($transition['wildcard']) {
             $class .= ' wildcard';
         }
+        if (($transition['from'] ?? '') === '*') {
+            $class .= ' nmi-transition';
+        }
         if ($transition['fallback']) {
             $class .= ' fallback';
         }
@@ -3237,11 +3240,14 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             : (str_contains($class, 'signal-origin-automatic')
                 ? 'automatic'
                 : 'unspecified');
+        $arrow = (($transition['from'] ?? '') === '*')
+            ? 'nmi'
+            : $origin;
 
         $edgeSvg = $path === ''
             ? ''
             : '<path class="fsm-edge" d="' . self::h($path)
-                . '" marker-end="url(#fsm-arrow-' . self::h($origin) . ')" />';
+                . '" marker-end="url(#fsm-arrow-' . self::h($arrow) . ')" />';
 
         $this->_renderedTransitionGeometry[$id] = [
             'path' => $path,
@@ -3406,6 +3412,9 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             : (str_contains($class, 'signal-origin-automatic')
                 ? 'automatic'
                 : 'unspecified');
+        $arrow = (($transition['from'] ?? '') === '*')
+            ? 'nmi'
+            : $origin;
 
         $this->_renderedTransitionGeometry[$id] = [
             'path' => $path,
@@ -3429,7 +3438,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             . '"' . $this->transitionLayoutAttributes($transition) . '>'
             . '<title>' . self::h($semanticLabel) . '</title>'
             . '<path class="fsm-edge" d="' . self::h($path)
-            . '" marker-end="url(#fsm-arrow-' . self::h($origin) . ')" />'
+            . '" marker-end="url(#fsm-arrow-' . self::h($arrow) . ')" />'
             . $labelLeader
             . $labelSvg
             . '</g>';
@@ -4334,6 +4343,14 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
      */
     private function globalSourcePoint(array $positions): array
     {
+        $persisted = $this->_persistedMarkerGeometry['nmi'] ?? null;
+        if (is_array($persisted)) {
+            return [
+                'x' => (float) $persisted['x'],
+                'y' => (float) $persisted['y'],
+            ];
+        }
+
         $minY = 105.0;
         foreach ($positions as $position) {
             $minY = min($minY, $position['y']);
@@ -4380,6 +4397,11 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         }
 
         $point = $this->globalSourcePoint($positions);
+        $this->_renderedMarkerGeometry['nmi'] = [
+            'x' => $point['x'],
+            'y' => $point['y'],
+        ];
+        $writable = (($this->_layoutPersistence['writable'] ?? false) === true);
         $maxX = $point['x'] + 29.0;
         foreach ($positions as $position) {
             $maxX = max(
@@ -4388,7 +4410,13 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             );
         }
 
-        return '<g class="fsm-global-source fsm-nmi-source">'
+        return '<g class="fsm-diagram-marker fsm-global-source fsm-nmi-source"'
+            . ' data-marker-kind="nmi" aria-label="NMI"'
+            . ' data-marker-id="nmi"'
+            . ' data-marker-x="' . self::n($point['x']) . '"'
+            . ' data-marker-y="' . self::n($point['y']) . '"'
+            . ' data-marker-w="58" data-marker-h="30"'
+            . ' data-layout-marker-draggable="' . ($writable ? '1' : '0') . '">'
             . '<rect x="' . self::n($point['x'] - 29)
             . '" y="' . self::n($point['y'] - 15)
             . '" width="58" height="30" rx="6" />'
@@ -4696,7 +4724,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
   const updateBezierPreview = (group, suppliedCurve = null) => {
     if (!(group instanceof SVGGElement)) return;
     const overlay = group.querySelector(
-      ':scope > .fsm-designer-bezier-preview[data-transition-id]'
+      ':scope > .fsm-nmi-bezier-controls[data-transition-id], '
+        + ':scope > .fsm-designer-bezier-preview[data-transition-id]'
     );
     if (!(overlay instanceof SVGGElement)) return;
     const curve = suppliedCurve
@@ -4730,6 +4759,44 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
       handle.setAttribute('cx', String(point.x));
       handle.setAttribute('cy', String(point.y));
     });
+  };
+
+  const ensureNmiBezierControls = (group) => {
+    if (!writable) return;
+    if (!(group instanceof SVGGElement)
+        || (group.dataset.fromState || '') !== '*') return;
+    let overlay = group.querySelector(
+      ':scope > .fsm-nmi-bezier-controls[data-transition-id]'
+    );
+    const curve = simpleCubicPath(group.querySelector('path.fsm-edge'));
+    if (!curve) return;
+    if (!(overlay instanceof SVGGElement)) {
+      overlay = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      overlay.setAttribute('class', 'fsm-nmi-bezier-controls');
+      overlay.setAttribute(
+        'data-transition-id',
+        group.dataset.transitionId || ''
+      );
+      [['source',curve.p0,curve.c1],['target',curve.c2,curve.p3]]
+        .forEach(([role,a,b]) => {
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('data-bezier-line', role);
+          overlay.append(line);
+        });
+      [['P0',curve.p0],['C1',curve.c1],['C2',curve.c2],['P3',curve.p3]]
+        .forEach(([role,p]) => {
+          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('r', role.startsWith('C') ? '6' : '4');
+          circle.setAttribute('data-bezier-role', role);
+          if (role === 'C1' || role === 'C2') {
+            circle.setAttribute('data-layout-bezier-draggable', '1');
+            circle.setAttribute('tabindex', '0');
+          }
+          overlay.append(circle);
+        });
+      group.append(overlay);
+    }
+    updateBezierPreview(group, curve);
   };
 
   const boxFor = (id) => {
@@ -4796,6 +4863,29 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
       'transform',
       `translate(${marker.dx} ${marker.dy})`
     );
+    if (marker.kind === 'nmi') {
+      svg.querySelectorAll('.fsm-transition[data-from-state="*"]')
+        .forEach((group) => {
+          const to = group.dataset.toState || '';
+          const edge = group.querySelector('path.fsm-edge');
+          const curve = isManualBezier(group)
+            ? simpleCubicPath(edge)
+            : null;
+          if (curve) {
+            curve.p0 = translateCurvePoint(curve.p0, deltaX, deltaY);
+            curve.c1 = translateCurvePoint(curve.c1, deltaX, deltaY);
+            setManualCurve(group, curve);
+            return;
+          }
+          const d = nmiPath(group, to);
+          if (edge instanceof SVGPathElement && d !== '') {
+            edge.setAttribute('d', d);
+          }
+          updateLabelLeader(group, edge);
+          updateBezierPreview(group);
+        });
+      return;
+    }
     svg.querySelectorAll('.fsm-transition[data-finite-source-marker]')
       .forEach((group) => {
         if (group.dataset.finiteSourceMarker !== id) return;
@@ -4888,8 +4978,11 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
 
   const nmiPath = (group, toId) => {
     const to = boxFor(toId);
-    const sourceX = Number(group.dataset.nmiSourceX || NaN);
-    const sourceY = Number(group.dataset.nmiSourceY || NaN);
+    const marker = markers.get('nmi');
+    const markerDx = marker ? marker.dx : 0;
+    const markerDy = marker ? marker.dy : 0;
+    const sourceX = Number(group.dataset.nmiSourceX || NaN) + markerDx;
+    const sourceY = Number(group.dataset.nmiSourceY || NaN) + markerDy;
     const targetOffsetX = Number(group.dataset.nmiTargetOffsetX || 0);
     if (!to
         || !Number.isFinite(sourceX)
@@ -5022,6 +5115,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
         edge.setAttribute('d', d);
       }
       updateLabelLeader(group, edge);
+      ensureNmiBezierControls(group);
       updateBezierPreview(group);
       return;
     }
@@ -5174,7 +5268,12 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
   };
 
   svg.querySelectorAll('.fsm-transition[data-transition-id]')
-    .forEach((group) => repairLocalTransition(group));
+    .forEach((group) => {
+      repairLocalTransition(group);
+      if ((group.dataset.fromState || '') === '*') {
+        ensureNmiBezierControls(group);
+      }
+    });
   updateInitialMarker();
 
   if (!writable) return;
@@ -5272,7 +5371,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     );
     if (bezierHandle instanceof SVGCircleElement) {
       const overlay = bezierHandle.closest(
-        '.fsm-designer-bezier-preview[data-transition-id]'
+        '.fsm-designer-bezier-preview[data-transition-id], '
+          + '.fsm-nmi-bezier-controls[data-transition-id]'
       );
       const group = bezierHandle.closest(
         '.fsm-transition[data-transition-id]'
@@ -5517,6 +5617,9 @@ HTML;
   <marker id="fsm-arrow-unspecified" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
     <path d="M0,0 L0,6 L9,3 z" class="fsm-arrow-head signal-origin-unspecified" />
   </marker>
+  <marker id="fsm-arrow-nmi" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L0,6 L9,3 z" class="fsm-arrow-head nmi" />
+  </marker>
   <style>
     .fsm-diagram { width:auto; max-width:none; height:auto; overflow:visible; font-family:"Segoe UI",Arial,sans-serif; }
     .fsm-diagram[data-opus-fsm-layout="vertical"] { width:auto; max-width:100%; height:auto; }
@@ -5531,6 +5634,8 @@ HTML;
     .fsm-diagram-marker[data-layout-marker-draggable="1"] { cursor:move; touch-action:none; }
     .fsm-initial-marker[data-layout-marker-draggable="1"].is-layout-dragging circle { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:3; }
     .fsm-finite-global-source[data-layout-marker-draggable="1"].is-layout-dragging rect { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:2.5; }
+    .fsm-nmi-source[data-layout-marker-draggable="1"] { cursor:move; touch-action:none; }
+    .fsm-nmi-source[data-layout-marker-draggable="1"].is-layout-dragging rect { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:2.8; }
     .fsm-node-link { cursor:pointer; text-decoration:none; }
     .fsm-node-link:hover .fsm-node rect,
     .fsm-node-link:focus .fsm-node rect { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:3; }
@@ -5552,6 +5657,10 @@ HTML;
     .fsm-arrow-head.signal-origin-user { fill:var(--opus-fsm-signal-user,#6ce3ff); }
     .fsm-arrow-head.signal-origin-automatic { fill:var(--opus-fsm-signal-automatic,#fbbf24); }
     .fsm-arrow-head.signal-origin-unspecified { fill:var(--opus-fsm-edge,#7da4c8); }
+    .fsm-arrow-head.nmi { fill:var(--opus-fsm-nmi,#ef4444); }
+    .fsm-transition.nmi-transition .fsm-edge,
+    .fsm-transition.nmi-transition .fsm-label-leader { stroke:var(--opus-fsm-nmi,#ef4444) !important; }
+    .fsm-transition.nmi-transition .fsm-edge-label { fill:var(--opus-fsm-nmi,#ef4444) !important; }
     .fsm-transition.wildcard .fsm-edge,
     .fsm-transition.fallback .fsm-edge { stroke-dasharray:6 5; }
     .fsm-transition.return-edge .fsm-edge { stroke-dasharray:2 2; }
@@ -5565,9 +5674,16 @@ HTML;
     .fsm-initial-marker circle { fill:var(--opus-fsm-marker,#f6f8ff); stroke:var(--opus-fsm-marker,#f6f8ff); }
     .fsm-final-marker circle:first-child { fill:none; stroke:var(--opus-fsm-marker,#f6f8ff); stroke-width:2; }
     .fsm-final-marker circle:last-child { fill:var(--opus-fsm-marker,#f6f8ff); stroke:none; }
-    .fsm-global-source rect { fill:var(--opus-fsm-nmi-bg,#172033); stroke:var(--opus-fsm-nmi,#fbbf24); stroke-width:1.5; stroke-dasharray:5 4; }
-    .fsm-global-source text { fill:var(--opus-fsm-nmi,#fbbf24); font-size:16px; font-weight:900; text-anchor:middle; }
-    .fsm-global-bus { fill:none; stroke:var(--opus-fsm-nmi,#fbbf24); stroke-width:1.2; stroke-dasharray:5 4; }
+    .fsm-global-source rect { fill:var(--opus-fsm-nmi-bg,#172033); stroke:var(--opus-fsm-nmi,#ef4444); stroke-width:1.5; stroke-dasharray:5 4; }
+    .fsm-global-source text { fill:var(--opus-fsm-nmi,#ef4444); font-size:16px; font-weight:900; text-anchor:middle; }
+    .fsm-global-bus { fill:none; stroke:var(--opus-fsm-nmi,#ef4444); stroke-width:1.2; stroke-dasharray:5 4; }
+    .fsm-nmi-bezier-controls { pointer-events:none; }
+    .fsm-nmi-bezier-controls line { stroke:var(--opus-fsm-nmi,#ef4444); stroke-width:1; stroke-dasharray:4 3; opacity:.9; }
+    .fsm-nmi-bezier-controls circle { fill:var(--opus-fsm-label-halo,#07111f); stroke:var(--opus-fsm-nmi,#ef4444); stroke-width:1.8; }
+    .fsm-nmi-bezier-controls circle[data-bezier-role="C1"],
+    .fsm-nmi-bezier-controls circle[data-bezier-role="C2"] { fill:var(--opus-fsm-nmi,#ef4444); cursor:move; pointer-events:all; touch-action:none; }
+    .fsm-nmi-bezier-controls.is-layout-dragging circle[data-layout-bezier-draggable="1"] { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:3; }
+    .fsm-transition.nmi-transition > .fsm-designer-bezier-preview { display:none; }
     .fsm-finite-global-source rect { fill:var(--opus-fsm-label-halo,#07111f); stroke:var(--opus-fsm-transition-color,#38bdf8); stroke-width:1.5; }
     .fsm-finite-global-source text { text-anchor:middle; paint-order:stroke; stroke:var(--opus-fsm-label-halo,#07111f); stroke-width:3px; stroke-linejoin:round; }
     .fsm-finite-global-source-title { fill:var(--opus-fsm-transition-color,#38bdf8); font-size:11px; font-weight:900; }
