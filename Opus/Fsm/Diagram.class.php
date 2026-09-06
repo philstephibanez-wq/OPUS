@@ -4402,13 +4402,6 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             'y' => $point['y'],
         ];
         $writable = (($this->_layoutPersistence['writable'] ?? false) === true);
-        $maxX = $point['x'] + 29.0;
-        foreach ($positions as $position) {
-            $maxX = max(
-                $maxX,
-                $position['x'] + $position['w'] / 2
-            );
-        }
 
         return '<g class="fsm-diagram-marker fsm-global-source fsm-nmi-source"'
             . ' data-marker-kind="nmi" aria-label="NMI"'
@@ -4423,10 +4416,6 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
             . '<text x="' . self::n($point['x'])
             . '" y="' . self::n($point['y'] + 5)
             . '">NMI</text>'
-            . '<path class="fsm-global-bus" d="M'
-            . self::n($point['x'] + 29)
-            . ' ' . self::n($point['y'])
-            . ' H' . self::n($maxX) . '" />'
             . '<title>Interruption non masquable hors ensemble des états</title>'
             . '</g>';
     }
@@ -5676,7 +5665,6 @@ HTML;
     .fsm-final-marker circle:last-child { fill:var(--opus-fsm-marker,#f6f8ff); stroke:none; }
     .fsm-global-source rect { fill:var(--opus-fsm-nmi-bg,#172033); stroke:var(--opus-fsm-nmi,#ef4444); stroke-width:1.5; stroke-dasharray:5 4; }
     .fsm-global-source text { fill:var(--opus-fsm-nmi,#ef4444); font-size:16px; font-weight:900; text-anchor:middle; }
-    .fsm-global-bus { fill:none; stroke:var(--opus-fsm-nmi,#ef4444); stroke-width:1.2; stroke-dasharray:5 4; }
     .fsm-nmi-bezier-controls { pointer-events:none; }
     .fsm-nmi-bezier-controls line { stroke:var(--opus-fsm-nmi,#ef4444); stroke-width:1; stroke-dasharray:4 3; opacity:.9; }
     .fsm-nmi-bezier-controls circle { fill:var(--opus-fsm-label-halo,#07111f); stroke:var(--opus-fsm-nmi,#ef4444); stroke-width:1.8; }

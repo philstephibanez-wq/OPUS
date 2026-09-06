@@ -1073,9 +1073,16 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
     {
         $markers = [];
         $finiteSourceSets = [];
+        $hasNmi = false;
         foreach ((array) ($definition['transitions'] ?? []) as $transition) {
-            if (!is_array($transition)
-                || trim((string) ($transition['scope'] ?? '')) !== 'global') {
+            if (!is_array($transition)) {
+                continue;
+            }
+            if (trim((string) ($transition['interrupt'] ?? '')) === 'nmi'
+                && trim((string) ($transition['from'] ?? '')) === '*') {
+                $hasNmi = true;
+            }
+            if (trim((string) ($transition['scope'] ?? '')) !== 'global') {
                 continue;
             }
             $states = array_values(array_filter(
@@ -1091,6 +1098,9 @@ final class FsmDiagramLayoutStore implements FsmDiagramLayoutStoreInterface
         foreach (array_keys($finiteSourceSets) as $key) {
             $markers['finite-global-source-'
                 . substr(hash('sha256', $key), 0, 16)] = true;
+        }
+        if ($hasNmi) {
+            $markers['nmi'] = true;
         }
 
         $initial = trim((string) ($definition['initial_state'] ?? ''));
