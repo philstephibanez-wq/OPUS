@@ -823,12 +823,10 @@ final class SiteScaffoldPlan implements ScaffoldPlanInterface, SiteScaffoldPlanI
         $states[] = [
             'id' => 'security_quarantine',
             'type' => 'security',
-            'module' => 'security',
         ];
         $states[] = [
             'id' => 'fault',
             'type' => 'fault',
-            'module' => 'system',
         ];
 
         $stateIds = array_merge(['begin'], $modules, ['profiler']);
@@ -1388,12 +1386,10 @@ PHP;
                     [
                         'id' => 'security_quarantine',
                         'type' => 'security',
-                        'module' => 'security',
                     ],
                     [
                         'id' => 'fault',
                         'type' => 'fault',
-                        'module' => 'system',
                     ],
                 ],
                 'transitions' => [

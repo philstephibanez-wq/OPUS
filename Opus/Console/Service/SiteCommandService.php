@@ -1857,12 +1857,31 @@ final class SiteCommandService implements SiteCommandServiceInterface
             if (!is_array($state)) {
                 throw new OpusConsoleException('OPUS_SITE_FSM_STATE_INVALID');
             }
+
+            $stateId = trim((string) ($state['id'] ?? ''));
+            if ($stateId === '') {
+                throw new OpusConsoleException(
+                    'OPUS_SITE_FSM_STATE_ID_INVALID'
+                );
+            }
+
+            /*
+             * A pure EFSM state is an engine object, not an implicit
+             * application module. This mirrors FsmSiteLoader: only an
+             * explicit module field participates in the application tree.
+             */
+            if (!array_key_exists('module', $state)) {
+                continue;
+            }
+
             $module = $this->identifier(
-                (string) ($state['module'] ?? $state['id'] ?? ''),
+                (string) $state['module'],
                 'OPUS_SITE_FSM_MODULE_INVALID'
             );
             if ($module === 'default') {
-                throw new OpusConsoleException('OPUS_SITE_FSM_DEFAULT_MODULE_FORBIDDEN');
+                throw new OpusConsoleException(
+                    'OPUS_SITE_FSM_DEFAULT_MODULE_FORBIDDEN'
+                );
             }
             $modules[$module] = true;
         }

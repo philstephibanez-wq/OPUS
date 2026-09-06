@@ -27,13 +27,11 @@
         },
         {
             "id": "security_quarantine",
-            "type": "security",
-            "module": "security"
+            "type": "security"
         },
         {
             "id": "fault",
-            "type": "fault",
-            "module": "system"
+            "type": "fault"
         }
     ],
     "transitions": [

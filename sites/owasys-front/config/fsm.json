@@ -295,7 +295,6 @@
         {
             "id": "security_quarantine",
             "type": "security",
-            "module": "security",
             "requires_auth": false,
             "requires_current_app": false,
             "navigation": {
@@ -307,7 +306,6 @@
         {
             "id": "fault",
             "type": "fault",
-            "module": "system",
             "requires_auth": false,
             "requires_current_app": false,
             "navigation": {

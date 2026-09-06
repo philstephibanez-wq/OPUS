@@ -97,6 +97,27 @@ final class OwasysNavigationBuilder
                 );
             }
             $stateType = trim((string) ($state['type'] ?? ''));
+            $statesById[$stateId] = $state;
+
+            /*
+             * Pure EFSM control states are engine targets, not navigation
+             * resources. They may be reached by NMI but must never be
+             * projected as menu/module entries.
+             */
+            if (!array_key_exists('module', $state)) {
+                if (!in_array(
+                    $stateType,
+                    ['security', 'fault', 'system'],
+                    true
+                )) {
+                    throw new RuntimeException(
+                        'OWASYS_NAVIGATION_CONTROL_STATE_TYPE_INVALID:'
+                        . $stateId
+                    );
+                }
+                continue;
+            }
+
             if (!in_array(
                 $stateType,
                 ['entry', 'screen', 'workflow', 'result', 'system'],
@@ -107,7 +128,7 @@ final class OwasysNavigationBuilder
                 );
             }
 
-            $module = trim((string) ($state['module'] ?? $stateId));
+            $module = trim((string) $state['module']);
             $route = trim((string) ($state['route'] ?? ''));
             $navigation = is_array($state['navigation'] ?? null)
                 ? $state['navigation']
@@ -131,7 +152,6 @@ final class OwasysNavigationBuilder
             $available = $allowed
                 && (!$requiresCurrentApp || is_array($currentApp));
 
-            $statesById[$stateId] = $state;
             $items[] = [
                 'id' => $stateId,
                 'state_type' => $stateType,
@@ -209,13 +229,18 @@ final class OwasysNavigationBuilder
                     'OWASYS_NAVIGATION_SIGNAL_UNDECLARED:' . $signal
                 );
             }
-            if (!isset($itemsById[$to])) {
+            if (!isset($statesById[$to])) {
                 throw new RuntimeException(
                     'OWASYS_NAVIGATION_TARGET_UNKNOWN:' . $to
                 );
             }
             if ($interrupt === 'nmi') {
                 continue;
+            }
+            if (!isset($itemsById[$to])) {
+                throw new RuntimeException(
+                    'OWASYS_NAVIGATION_TARGET_NOT_NAVIGABLE:' . $to
+                );
             }
             if ($interrupt !== '') {
                 throw new RuntimeException(

@@ -1,10 +1,10 @@
 {
     "contract": "OPUS_FSM_DIAGRAM_LAYOUT_V4",
     "fsm_path": "config/application.fsm.json",
-    "definition_sha256": "193b07268d6ad0160e855278656d65eb035ed6b0983d7ceb28d0be0334db01f3",
+    "definition_sha256": "2b11c8f9d7de4d56bbe845cc837e8cc9ad877f674e1e7dd20127cb675449b704",
     "layout_direction": "horizontal",
     "canvas": {
-        "width": 998,
+        "width": 1806,
         "height": 550
     },
     "states": {
@@ -15,6 +15,14 @@
         "connexion": {
             "x": 9.25,
             "y": 340.5
+        },
+        "security_quarantine": {
+            "x": 993,
+            "y": 301.5
+        },
+        "fault": {
+            "x": 1397,
+            "y": 297.75
         }
     },
     "transitions": {
@@ -49,10 +57,10 @@
             }
         },
         "new": {
-            "path": "M146.72 244.25 C190.72 200.25, 102.72 200.25, 138.72 244.25",
+            "path": "M147.97 340.5 C191.97 296.5, 103.97 296.5, 139.97 340.5",
             "label_x": 239.22,
             "label_y": 152.38,
-            "leader_path": "M145.9456329345703 211.2514190673828 L237.9706103515625 56.13037384033203",
+            "leader_path": "M147.19564819335938 307.5014343261719 L239.22 152.38",
             "path_kind": "auto",
             "source_control": {
                 "dx": 44,
@@ -64,10 +72,10 @@
             }
         },
         "transac": {
-            "path": "M146.72 244.25 C220.72 170.25, 72.72 170.25, 138.72 244.25",
+            "path": "M147.97 340.5 C221.97 266.5, 73.97 266.5, 139.97 340.5",
             "label_x": 379.94,
             "label_y": 154.88,
-            "leader_path": "M146.02597045898438 188.751708984375 L378.69 58.63",
+            "leader_path": "M147.27598571777344 285.001708984375 L379.94 154.88",
             "path_kind": "auto",
             "source_control": {
                 "dx": 74,
@@ -79,10 +87,10 @@
             }
         },
         "nmi.security_violation": {
-            "path": "M102 92 L102 244.25",
+            "path": "M1080 92 L1080 214",
             "label_x": 155.89,
             "label_y": 204.63,
-            "leader_path": "M102 168.125 L155.88829803466797 204.63027465820312",
+            "leader_path": "M1080 153 L155.89 204.63",
             "path_kind": "auto",
             "source_control": {
                 "dx": 0,
@@ -94,10 +102,10 @@
             }
         },
         "nmi.critical_error": {
-            "path": "M118 92 L118 244.25",
+            "path": "M1504 92 L1504 214",
             "label_x": 520,
             "label_y": 262.88,
-            "leader_path": "M118 168.125 L520 262.88",
+            "leader_path": "M1504 153 L520 262.88",
             "path_kind": "auto",
             "source_control": {
                 "dx": 0,
