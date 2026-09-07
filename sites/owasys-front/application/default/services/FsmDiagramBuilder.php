@@ -12,7 +12,7 @@ use Opus\Profiler\ProfilerInterface;
 /** Builds a fixed visual projection from the canonical OWASYS FSM. */
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R45B2A4BZ2R8B7F';
+    private const REVISION = 'P117W_R8NMI13';
     private const MISSING_TRANSLATION = '⚠';
 
     private string $sourceHash = '';
@@ -100,16 +100,58 @@ final class OwasysFsmDiagramBuilder
             );
         }
 
+        $nmiTargets = [];
+        foreach ((array) ($fsm['transitions'] ?? []) as $transition) {
+            if (!is_array($transition)
+                || ($transition['interrupt'] ?? null) !== 'nmi') {
+                continue;
+            }
+            $from = trim((string) ($transition['from'] ?? ''));
+            $signal = trim((string) ($transition['signal'] ?? ''));
+            $to = trim((string) ($transition['next_state'] ?? ''));
+            if ($from !== '*'
+                || $signal === ''
+                || !isset($signalRegistry[$signal])
+                || $to === ''
+                || !isset($statesById[$to])) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_NMI_PROJECTION_INVALID:'
+                    . (string) ($transition['id'] ?? '')
+                );
+            }
+            $nmiTargets[$to] = true;
+        }
+
         $states = [];
         $layout = [];
+        $maxRank = 0;
         foreach ($stateOrder as $stateId) {
             $states[] = $statesById[$stateId];
             $hint = is_array($statesById[$stateId]['diagram'] ?? null)
                 ? $statesById[$stateId]['diagram']
                 : [];
+            $rank = (int) ($hint['rank'] ?? 0);
+            $maxRank = max($maxRank, $rank);
             $layout[$stateId] = [
-                'rank' => (int) ($hint['rank'] ?? 0),
+                'rank' => $rank,
                 'order' => (int) ($hint['order'] ?? 0),
+            ];
+        }
+        foreach (array_keys($nmiTargets) as $stateId) {
+            if (isset($layout[$stateId])) {
+                continue;
+            }
+            $states[] = $statesById[$stateId];
+            $navigation = is_array(
+                $statesById[$stateId]['navigation'] ?? null
+            )
+                ? $statesById[$stateId]['navigation']
+                : [];
+            $label = trim((string) ($navigation['label'] ?? ''));
+            $stateLabels[$stateId] = $label !== '' ? $label : $stateId;
+            $layout[$stateId] = [
+                'rank' => $maxRank + 1,
+                'order' => count($layout),
             ];
         }
 
@@ -130,15 +172,36 @@ final class OwasysFsmDiagramBuilder
                     'OWASYS_FSM_TRANSITION_ENTRY_INVALID'
                 );
             }
-            if (($transition['interrupt'] ?? null) === 'nmi') {
-                continue;
-            }
-
+            $nmi = (($transition['interrupt'] ?? null) === 'nmi');
             $scope = trim((string) ($transition['scope'] ?? ''));
             $signal = trim((string) ($transition['signal'] ?? ''));
             $to = trim((string) ($transition['next_state'] ?? ''));
             $definition = $signalRegistry[$signal] ?? null;
-            if (!is_array($definition) || !isset($menuByState[$to])) {
+            if (!is_array($definition)) {
+                continue;
+            }
+
+            if ($nmi) {
+                $from = trim((string) ($transition['from'] ?? ''));
+                if ($from !== '*' || !isset($nmiTargets[$to])) {
+                    throw new RuntimeException(
+                        'OWASYS_FSM_NMI_PROJECTION_INVALID:'
+                        . (string) ($transition['id'] ?? '')
+                    );
+                }
+                $this->appendTransition(
+                    $transition,
+                    $signal,
+                    $from,
+                    $to,
+                    $transitions,
+                    $transitionLabels,
+                    $displayedBySignalTarget
+                );
+                continue;
+            }
+
+            if (!isset($menuByState[$to])) {
                 continue;
             }
 
@@ -255,7 +318,7 @@ final class OwasysFsmDiagramBuilder
             [],
             array_intersect_key(
                 $stateLabels,
-                array_fill_keys($stateOrder, true)
+                array_fill_keys(array_keys($layout), true)
             ),
             $transitionLabels,
             false,
