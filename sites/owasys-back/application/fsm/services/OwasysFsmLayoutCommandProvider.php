@@ -19,6 +19,15 @@ final class OwasysFsmLayoutCommandProvider implements
     private const DEFAULT_LAYOUT_DIRECTION = 'horizontal';
     private const MAX_GEOMETRY_BYTES = 262144;
 
+    /** @var list<string> */
+    private const HOST_CONTEXT_EFSMS = [
+        'registry',
+        'data',
+        'source',
+        'git',
+        'build',
+    ];
+
     private readonly AclPolicy $acl;
     private readonly ProfilerInterface $profiler;
 
@@ -111,6 +120,21 @@ final class OwasysFsmLayoutCommandProvider implements
         $raw = $file->read($fsmPath, 2097152);
         $sourceHash = hash('sha256', $raw);
         $definition = StructuredFileLoader::instance()->read($fsmPath);
+
+        /*
+         * Host-context micro-EFSMs inherit the canonical OWASYS NMI edges.
+         * The front renders those inherited edges, so the layout authority
+         * must validate and persist geometry against the exact same projected
+         * definition. The micro-EFSM source remains canonical and unchanged:
+         * only presentation geometry is persisted in its layout sidecar.
+         */
+        $layoutDefinition = $this->withHostNmiProjection(
+            $siteId,
+            $efsmId,
+            $applicationRoot,
+            $definition
+        );
+
         $layoutPath = $this->layoutPath($fsmRelative);
         $layoutAbsolute = $applicationRoot . '/' . $layoutPath;
         $layoutPresent = $file->exists($layoutAbsolute);
@@ -119,7 +143,7 @@ final class OwasysFsmLayoutCommandProvider implements
             $layoutPath
         );
 
-        $diagram = \OPUS_FSM_Diagram::fromDefinition($definition);
+        $diagram = \OPUS_FSM_Diagram::fromDefinition($layoutDefinition);
         $diagram->setLayoutDirection($layoutDirection);
         $automatic = $diagram->layoutSnapshot();
         $store = FsmDiagramLayoutStore::forSource(
@@ -148,11 +172,12 @@ final class OwasysFsmLayoutCommandProvider implements
                     'source_path' => $fsmRelative,
                     'layout_path' => $layoutPath,
                     'layout_present' => $layoutPresent,
+                    'host_nmi_projected' => $layoutDefinition !== $definition,
                 ]
             );
 
             if ($command === self::READ_COMMAND) {
-                $layout = $store->resolve($definition, $automatic);
+                $layout = $store->resolve($layoutDefinition, $automatic);
                 $result = $this->snapshot(
                     $siteId,
                     $efsmId,
@@ -228,7 +253,7 @@ final class OwasysFsmLayoutCommandProvider implements
                 'geometry' => $geometry,
             ];
             $layout = $store->mutate(
-                $definition,
+                $layoutDefinition,
                 $automatic,
                 $mutation
             );
@@ -274,6 +299,123 @@ final class OwasysFsmLayoutCommandProvider implements
                 ]);
             }
         }
+    }
+
+    /**
+     * Adds the canonical host NMI transitions to the five host-context
+     * micro-EFSMs used by the designer. This mirrors the front projection
+     * without rewriting the semantic source.
+     *
+     * @param array<string,mixed> $definition
+     * @return array<string,mixed>
+     */
+    private function withHostNmiProjection(
+        string $siteId,
+        string $efsmId,
+        string $applicationRoot,
+        array $definition
+    ): array {
+        if ($siteId !== 'owasys-front'
+            || !in_array($efsmId, self::HOST_CONTEXT_EFSMS, true)) {
+            return $definition;
+        }
+
+        $hostPath = $applicationRoot . '/config/fsm.json';
+        $host = StructuredFileLoader::instance()->read($hostPath);
+
+        $stateIds = [];
+        foreach ((array) ($definition['states'] ?? []) as $state) {
+            if (!is_array($state)) {
+                continue;
+            }
+            $id = trim((string) ($state['id'] ?? ''));
+            if ($id !== '') {
+                $stateIds[$id] = true;
+            }
+        }
+
+        $signalIds = [];
+        foreach ((array) ($definition['signals'] ?? []) as $signal) {
+            if (!is_array($signal)) {
+                continue;
+            }
+            $id = trim((string) ($signal['id'] ?? ''));
+            if ($id !== '') {
+                $signalIds[$id] = true;
+            }
+        }
+
+        $transitionIds = [];
+        foreach ((array) ($definition['transitions'] ?? []) as $transition) {
+            if (!is_array($transition)) {
+                continue;
+            }
+            $id = trim((string) ($transition['id'] ?? ''));
+            if ($id !== '') {
+                $transitionIds[$id] = true;
+            }
+        }
+
+        $hostStates = [];
+        foreach ((array) ($host['states'] ?? []) as $state) {
+            if (!is_array($state)) {
+                continue;
+            }
+            $id = trim((string) ($state['id'] ?? ''));
+            if ($id !== '') {
+                $hostStates[$id] = $state;
+            }
+        }
+
+        $hostSignals = [];
+        foreach ((array) ($host['signals'] ?? []) as $signal) {
+            if (!is_array($signal)) {
+                continue;
+            }
+            $id = trim((string) ($signal['id'] ?? ''));
+            if ($id !== '') {
+                $hostSignals[$id] = $signal;
+            }
+        }
+
+        foreach ((array) ($host['transitions'] ?? []) as $transition) {
+            if (!is_array($transition)
+                || ($transition['interrupt'] ?? null) !== 'nmi') {
+                continue;
+            }
+
+            $id = trim((string) ($transition['id'] ?? ''));
+            $from = trim((string) ($transition['from'] ?? ''));
+            $signalId = trim((string) ($transition['signal'] ?? ''));
+            $targetId = trim((string) ($transition['next_state'] ?? ''));
+
+            if ($id === ''
+                || $from !== '*'
+                || $signalId === ''
+                || $targetId === ''
+                || !isset($hostSignals[$signalId], $hostStates[$targetId])) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_HOST_NMI_INHERITANCE_INVALID:' . $id
+                );
+            }
+
+            if (!isset($stateIds[$targetId])) {
+                $definition['states'][] = $hostStates[$targetId];
+                $stateIds[$targetId] = true;
+            }
+
+            if (!isset($signalIds[$signalId])) {
+                $definition['signals'][] = $hostSignals[$signalId];
+                $signalIds[$signalId] = true;
+            }
+
+            if (!isset($transitionIds[$id])) {
+                $definition['transitions'][] = $transition;
+                $transitionIds[$id] = true;
+            }
+        }
+
+        return $definition;
     }
 
     /**
