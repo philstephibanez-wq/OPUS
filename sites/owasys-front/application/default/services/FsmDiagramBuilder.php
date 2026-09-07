@@ -12,7 +12,7 @@ use Opus\Profiler\ProfilerInterface;
 /** Builds a fixed visual projection from the canonical OWASYS FSM. */
 final class OwasysFsmDiagramBuilder
 {
-    private const REVISION = 'P117W_R8NMI13';
+    private const REVISION = 'P117W_R8NMI14';
     private const MISSING_TRANSLATION = '⚠';
 
     private string $sourceHash = '';
@@ -710,6 +710,9 @@ final class OwasysFsmDiagramBuilder
         $definition = is_array($snapshot['definition'] ?? null)
             ? $snapshot['definition']
             : [];
+        $renderDefinition = $hostContext
+            ? $this->withHostNmiProjection($definition)
+            : $definition;
         $initialState = trim((string) (
             $definition['initial_state'] ?? ''
         ));
@@ -737,7 +740,7 @@ final class OwasysFsmDiagramBuilder
         $stateLabels = $this->applicationStateLabels(
             $efsmId,
             $catalogMessages,
-            $definition
+            $renderDefinition
         );
         $resolvedStateLabels = [];
         foreach ($stateLabels as $stateId => $entry) {
@@ -746,7 +749,7 @@ final class OwasysFsmDiagramBuilder
         $transitionLabels = $this->applicationTransitionLabels(
             $efsmId,
             $catalogMessages,
-            $definition
+            $renderDefinition
         );
         $resolvedTransitionLabels = [];
         foreach ($transitionLabels as $transitionId => $entry) {
@@ -806,7 +809,7 @@ final class OwasysFsmDiagramBuilder
             );
         }
         $contextualDiagram = \OPUS_FSM_Diagram::fromDefinition(
-            $definition,
+            $renderDefinition,
             $currentState,
             $runtimeMemory
         );
@@ -900,14 +903,128 @@ final class OwasysFsmDiagramBuilder
             'current_state' => $currentState,
             'current_label' => $resolvedStateLabels[$currentState]
                 ?? self::missingTranslationLabel($currentState),
-            'projected_transition_count' => (int) (
-                $snapshot['transition_count'] ?? 0
+            'projected_transition_count' => count(
+                (array) ($renderDefinition['transitions'] ?? [])
             ),
             'designer_payload' => ($pageData['fsm_designer']['active'] ?? false)
                 ? base64_encode($encoded)
                 : '',
             'revision' => self::REVISION,
         ];
+    }
+
+    /**
+     * Adds the canonical host NMI transitions to a host-context micro-EFSM
+     * for rendering only.
+     *
+     * The contextual source definition remains authoritative and is not
+     * rewritten: inherited NMI states/signals/transitions are never injected
+     * into the designer persistence payload.
+     *
+     * @param array<string,mixed> $definition
+     * @return array<string,mixed>
+     */
+    private function withHostNmiProjection(array $definition): array
+    {
+        $host = $this->loadFsm();
+
+        $stateIds = [];
+        foreach ((array) ($definition['states'] ?? []) as $state) {
+            if (is_array($state)) {
+                $id = trim((string) ($state['id'] ?? ''));
+                if ($id !== '') {
+                    $stateIds[$id] = true;
+                }
+            }
+        }
+
+        $signalIds = [];
+        foreach ((array) ($definition['signals'] ?? []) as $signal) {
+            if (is_array($signal)) {
+                $id = trim((string) ($signal['id'] ?? ''));
+                if ($id !== '') {
+                    $signalIds[$id] = true;
+                }
+            }
+        }
+
+        $transitionIds = [];
+        foreach ((array) ($definition['transitions'] ?? []) as $transition) {
+            if (is_array($transition)) {
+                $id = trim((string) ($transition['id'] ?? ''));
+                if ($id !== '') {
+                    $transitionIds[$id] = true;
+                }
+            }
+        }
+
+        $hostStates = [];
+        foreach ((array) ($host['states'] ?? []) as $state) {
+            if (!is_array($state)) {
+                continue;
+            }
+            $id = trim((string) ($state['id'] ?? ''));
+            if ($id !== '') {
+                $hostStates[$id] = $state;
+            }
+        }
+
+        $hostSignals = [];
+        foreach ((array) ($host['signals'] ?? []) as $signal) {
+            if (!is_array($signal)) {
+                continue;
+            }
+            $id = trim((string) ($signal['id'] ?? ''));
+            if ($id !== '') {
+                $hostSignals[$id] = $signal;
+            }
+        }
+
+        foreach ((array) ($host['transitions'] ?? []) as $transition) {
+            if (!is_array($transition)
+                || ($transition['interrupt'] ?? null) !== 'nmi') {
+                continue;
+            }
+
+            $id = trim((string) ($transition['id'] ?? ''));
+            $from = trim((string) ($transition['from'] ?? ''));
+            $signalId = trim((string) ($transition['signal'] ?? ''));
+            $targetId = trim((string) ($transition['next_state'] ?? ''));
+
+            if ($id === ''
+                || $from !== '*'
+                || $signalId === ''
+                || $targetId === ''
+                || !isset($hostSignals[$signalId], $hostStates[$targetId])) {
+                throw new RuntimeException(
+                    'OWASYS_FSM_HOST_NMI_INHERITANCE_INVALID:' . $id
+                );
+            }
+
+            if (!isset($stateIds[$targetId])) {
+                $state = $hostStates[$targetId];
+                $state['label_key'] = 'fsm.nmi.state.'
+                    . $targetId
+                    . '.label';
+                $definition['states'][] = $state;
+                $stateIds[$targetId] = true;
+            }
+
+            if (!isset($signalIds[$signalId])) {
+                $definition['signals'][] = $hostSignals[$signalId];
+                $signalIds[$signalId] = true;
+            }
+
+            if (!isset($transitionIds[$id])) {
+                $transition['label_key'] = 'fsm.nmi.transition.'
+                    . $id
+                    . '.label';
+                $definition['transitions'][] = $transition;
+                $transitionIds[$id] = true;
+            }
+        }
+
+        return $definition;
     }
 
     /**
