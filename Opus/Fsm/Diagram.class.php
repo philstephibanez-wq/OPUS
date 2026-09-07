@@ -4667,12 +4667,12 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
   const simpleCubicPath = (path) => {
     if (!(path instanceof SVGPathElement)) return null;
     const d = path.getAttribute('d') || '';
-    const numberPattern = /[-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:e[-+]?\\d+)?/gi;
+    const numberPattern = /[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[-+]?\d+)?/gi;
     const values = Array.from(
       d.matchAll(numberPattern),
       (match) => Number(match[0])
     );
-    const commands = d.replace(numberPattern, '').replace(/[\\s,]/g, '');
+    const commands = d.replace(numberPattern, '').replace(/[\s,]/g, '');
     if (commands !== 'MC'
         || values.length !== 8
         || values.some((value) => !Number.isFinite(value))) {
@@ -5359,7 +5359,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     const bezierHandle = target.closest(
       '[data-layout-bezier-draggable="1"][data-bezier-role]'
     );
-    if (bezierHandle instanceof SVGCircleElement) {
+    if (bezierHandle instanceof SVGElement) {
       const overlay = bezierHandle.closest(
         '.fsm-designer-bezier-preview[data-transition-id], '
           + '.fsm-nmi-bezier-controls[data-transition-id]'
