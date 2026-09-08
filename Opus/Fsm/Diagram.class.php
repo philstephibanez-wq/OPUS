@@ -4762,6 +4762,7 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     if (!(overlay instanceof SVGGElement)) {
       overlay = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       overlay.setAttribute('class', 'fsm-nmi-bezier-controls');
+      overlay.setAttribute('aria-hidden', 'true');
       overlay.setAttribute(
         'data-transition-id',
         group.dataset.transitionId || ''
@@ -4778,8 +4779,8 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
           circle.setAttribute('r', role.startsWith('C') ? '6' : '4');
           circle.setAttribute('data-bezier-role', role);
           if (role === 'C1' || role === 'C2') {
-            circle.setAttribute('data-layout-bezier-draggable', '1');
-            circle.setAttribute('tabindex', '0');
+            circle.setAttribute('data-layout-bezier-draggable', '0');
+            circle.setAttribute('tabindex', '-1');
           }
           overlay.append(circle);
         });
@@ -4787,6 +4788,29 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
     }
     group.classList.add('has-native-nmi-bezier-controls');
     updateBezierPreview(group, curve);
+  };
+
+  const selectNmiBezierControls = (selectedGroup = null) => {
+    svg.querySelectorAll('.fsm-transition[data-from-state="*"]')
+      .forEach((group) => {
+        const selected = group === selectedGroup;
+        group.classList.toggle('is-nmi-bezier-selected', selected);
+        const overlay = group.querySelector(
+          ':scope > .fsm-nmi-bezier-controls[data-transition-id]'
+        );
+        if (!(overlay instanceof SVGGElement)) return;
+        overlay.setAttribute('aria-hidden', selected ? 'false' : 'true');
+        overlay.querySelectorAll(
+          '[data-bezier-role="C1"], [data-bezier-role="C2"]'
+        ).forEach((handle) => {
+          if (!(handle instanceof SVGCircleElement)) return;
+          handle.setAttribute(
+            'data-layout-bezier-draggable',
+            selected ? '1' : '0'
+          );
+          handle.setAttribute('tabindex', selected ? '0' : '-1');
+        });
+      });
   };
 
   const boxFor = (id) => {
@@ -5404,6 +5428,18 @@ final class OPUS_FSM_Diagram implements OPUS_FSM_DiagramInterface
   });
 
   svg.addEventListener('pointerdown', (event) => {
+    if (event.button === 0) {
+      const eventElement = event.target instanceof Element
+        ? event.target
+        : null;
+      const nmiGroup = eventElement
+        ? eventElement.closest('.fsm-transition[data-from-state="*"]')
+        : null;
+      selectNmiBezierControls(
+        nmiGroup instanceof SVGGElement ? nmiGroup : null
+      );
+    }
+
     const target = draggableTarget(event.target);
     if (!target) return;
     if ((target.kind === 'bezier' && event.button !== 0)
@@ -5666,11 +5702,12 @@ HTML;
     .fsm-final-marker circle:last-child { fill:var(--opus-fsm-marker,#f6f8ff); stroke:none; }
     .fsm-global-source rect { fill:var(--opus-fsm-nmi-bg,#172033); stroke:var(--opus-fsm-nmi,#ef4444); stroke-width:1.5; stroke-dasharray:5 4; }
     .fsm-global-source text { fill:var(--opus-fsm-nmi,#ef4444); font-size:16px; font-weight:900; text-anchor:middle; }
-    .fsm-nmi-bezier-controls { pointer-events:none; }
+    .fsm-nmi-bezier-controls { display:none; pointer-events:none; }
+    .fsm-transition.nmi-transition.is-nmi-bezier-selected > .fsm-nmi-bezier-controls { display:inline; }
     .fsm-nmi-bezier-controls line { stroke:var(--opus-fsm-nmi,#ef4444); stroke-width:1; stroke-dasharray:4 3; opacity:.9; }
     .fsm-nmi-bezier-controls circle { fill:var(--opus-fsm-label-halo,#07111f); stroke:var(--opus-fsm-nmi,#ef4444); stroke-width:1.8; }
-    .fsm-nmi-bezier-controls circle[data-bezier-role="C1"],
-    .fsm-nmi-bezier-controls circle[data-bezier-role="C2"] { fill:var(--opus-fsm-nmi,#ef4444); cursor:move; pointer-events:all; touch-action:none; }
+    .fsm-transition.nmi-transition.is-nmi-bezier-selected > .fsm-nmi-bezier-controls circle[data-bezier-role="C1"],
+    .fsm-transition.nmi-transition.is-nmi-bezier-selected > .fsm-nmi-bezier-controls circle[data-bezier-role="C2"] { fill:var(--opus-fsm-nmi,#ef4444); cursor:move; pointer-events:all; touch-action:none; }
     .fsm-nmi-bezier-controls.is-layout-dragging circle[data-layout-bezier-draggable="1"] { stroke:var(--opus-fsm-focus,#fbbf24); stroke-width:3; }
     .fsm-transition.nmi-transition.has-native-nmi-bezier-controls > .fsm-designer-bezier-preview { display:none; }
     .fsm-finite-global-source rect { fill:var(--opus-fsm-label-halo,#07111f); stroke:var(--opus-fsm-transition-color,#38bdf8); stroke-width:1.5; }
