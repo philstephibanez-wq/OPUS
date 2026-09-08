@@ -45,11 +45,36 @@ final class OwasysApplicationFsmModel
         $registry = is_array($site['efsms'] ?? null)
             ? $site['efsms']
             : [];
-        $sourcePath = trim(str_replace(
-            '\\',
-            '/',
-            (string) ($registry[$efsmId] ?? '')
-        ), '/');
+        $sourcePath = '';
+
+        /*
+         * "application" is the root FSM of the selected application, not its
+         * optional navigation micro-EFSM. Generated applications declare the
+         * canonical pointer explicitly. Standard OPUS applications use the
+         * canonical config/fsm.json root.
+         */
+        if ($efsmId === 'application') {
+            $declaredApplicationFsm = trim(str_replace(
+                '\\',
+                '/',
+                (string) ($site['application_fsm'] ?? '')
+            ), '/');
+            if ($declaredApplicationFsm !== '') {
+                $sourcePath = $declaredApplicationFsm;
+            } elseif (($site['role'] ?? '') === 'generated-opus-application') {
+                throw new RuntimeException(
+                    'OWASYS_APPLICATION_FSM_POINTER_MISSING:' . $siteId
+                );
+            } else {
+                $sourcePath = 'config/fsm.json';
+            }
+        } else {
+            $sourcePath = trim(str_replace(
+                '\\',
+                '/',
+                (string) ($registry[$efsmId] ?? '')
+            ), '/');
+        }
 
         if ($sourcePath === '' && $efsmId === 'navigation') {
             $sourcePath = isset(self::SYSTEM_APPLICATIONS[$siteId])
@@ -84,7 +109,9 @@ final class OwasysApplicationFsmModel
         }
         (new FsmDefinitionValidator())->assertValid($definition);
         $declaredEfsm = trim((string) ($definition['efsm_id'] ?? ''));
-        if ($declaredEfsm !== '' && $declaredEfsm !== $efsmId) {
+        if ($efsmId !== 'application'
+            && $declaredEfsm !== ''
+            && $declaredEfsm !== $efsmId) {
             throw new RuntimeException('OWASYS_APPLICATION_EFSM_KIND_MISMATCH');
         }
 

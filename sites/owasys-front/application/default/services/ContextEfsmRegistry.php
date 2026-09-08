@@ -30,11 +30,12 @@ final class OwasysContextEfsmRegistry
 
         /*
          * Application is not an OWASYS-host EFSM. Its designer projection is
-         * the selected application's canonical navigation/application FSM.
-         * No substitution to owasys-front is permitted.
+         * the selected application's canonical application FSM. Navigation is
+         * a distinct named EFSM and must never replace the application FSM
+         * merely because the OWASYS page itself is the Application context.
          */
         if ($module === 'application') {
-            return 'navigation';
+            return 'application';
         }
 
         if (isset(self::HOST_EFSMS[$module])) {

@@ -125,6 +125,52 @@ final class FsmSiteLoader implements FsmSiteLoaderInterface
         $role = (string) ($siteConfig['role'] ?? '');
         self::assertApplicationTreeContract($siteRoot, $siteId, $siteConfig);
 
+        if ($efsmId === 'application') {
+            $relative = trim(str_replace(
+                '\\',
+                '/',
+                (string) ($siteConfig['application_fsm'] ?? '')
+            ), '/');
+            if ($relative === '') {
+                if ($role === 'generated-opus-application') {
+                    throw new RuntimeException(
+                        'OPUS_FSM_GENERATED_APPLICATION_POINTER_INVALID: ' . $siteId
+                    );
+                }
+                $relative = 'config/fsm.json';
+            }
+
+            self::assertSafeRelativePath(
+                $relative,
+                'OPUS_EFSM_SITE_PATH_INVALID:' . $siteId . ':application'
+            );
+            $absolute = $siteRoot . DIRECTORY_SEPARATOR
+                . str_replace('/', DIRECTORY_SEPARATOR, $relative);
+            if (!is_file($absolute)) {
+                throw new RuntimeException(
+                    'OPUS_EFSM_SITE_FILE_MISSING:' . $siteId . ':application'
+                );
+            }
+
+            $fsm = self::readStructured(
+                $absolute,
+                'OPUS_EFSM_SITE_JSON_INVALID:' . $siteId . ':application'
+            );
+            $modules = self::modulesFromFsm($fsm, $siteId);
+            self::assertFsmModuleDirectories($siteRoot, $siteId, $modules);
+
+            return [
+                'site_id' => $siteId,
+                'site_root' => $siteRoot,
+                'role' => $role,
+                'efsm_id' => 'application',
+                'fsm_path' => $absolute,
+                'fsm_relative_path' => $relative,
+                'modules' => $modules,
+                'site_config' => $siteConfig,
+            ];
+        }
+
         $registry = is_array($siteConfig['efsms'] ?? null)
             ? $siteConfig['efsms']
             : [];
@@ -176,6 +222,7 @@ final class FsmSiteLoader implements FsmSiteLoaderInterface
             'site_config' => $siteConfig,
         ];
     }
+
     /**
      * @return array{
      *   site_id:string,
