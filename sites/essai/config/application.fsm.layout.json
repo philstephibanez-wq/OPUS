@@ -1,7 +1,7 @@
 {
     "contract": "OPUS_FSM_DIAGRAM_LAYOUT_V4",
     "fsm_path": "config/application.fsm.json",
-    "definition_sha256": "2b11c8f9d7de4d56bbe845cc837e8cc9ad877f674e1e7dd20127cb675449b704",
+    "definition_sha256": "7cd5cad45706280250fc2e5a57bcdc6b2fd8cb31afe29bed54f2a86f95812c4b",
     "layout_direction": "horizontal",
     "canvas": {
         "width": 1806,
@@ -11,117 +11,26 @@
         "home": {
             "x": 504.74,
             "y": 193
-        },
-        "connexion": {
-            "x": 79.25,
-            "y": 249.25
-        },
-        "security_quarantine": {
-            "x": 1128.01,
-            "y": 331.5
-        },
-        "fault": {
-            "x": 1447.01,
-            "y": 335.25
         }
     },
     "transitions": {
-        "open.home.from.begin": {
-            "path": "M283.253173828125 287.245849609375 C353.68792724609375 314.0181579589844, 438.3746032714844 230.99569702148438, 504.7419738769531 230.99569702148438",
-            "label_x": 432.87,
-            "label_y": 409.88,
-            "leader_path": "M395.4033203125 269.2145690917969 L432.86600219726563 409.8791455078125",
-            "path_kind": "cubic_bezier",
-            "source_control": {
-                "dx": 70.43,
-                "dy": 26.77
-            },
-            "target_control": {
-                "dx": -66.37,
-                "dy": 0
-            }
-        },
         "open.home.from.home": {
-            "path": "M554.71 253 C598.71 209, 510.71 209, 546.71 253",
+            "path": "M643.46 193 C687.46 149, 599.46 149, 635.46 193",
             "label_x": 706.3,
             "label_y": 33.63,
-            "leader_path": "M553.9356079101562 220.0014190673828 L617.55 93.63",
-            "path_kind": "auto",
-            "source_control": {
-                "dx": 44,
-                "dy": -44
-            },
-            "target_control": {
-                "dx": -36,
-                "dy": -44
-            }
-        },
-        "new": {
-            "path": "M217.97 249.25 C261.97 205.25, 173.97 205.25, 209.97 249.25",
-            "label_x": 335.47,
-            "label_y": 108.63,
-            "leader_path": "M217.1956329345703 216.2514190673828 L335.47 108.63",
-            "path_kind": "auto",
-            "source_control": {
-                "dx": 44,
-                "dy": -44
-            },
-            "target_control": {
-                "dx": -36,
-                "dy": -44
-            }
-        },
-        "transac": {
-            "path": "M217.97 249.25 C291.97 175.25, 143.97 175.25, 209.97 249.25",
-            "label_x": 172.43,
-            "label_y": 109.88,
-            "leader_path": "M217.2759552001953 193.751708984375 L172.43 109.88",
-            "path_kind": "auto",
-            "source_control": {
-                "dx": 74,
-                "dy": -74
-            },
-            "target_control": {
-                "dx": -66,
-                "dy": -74
-            }
-        },
-        "nmi.security_violation": {
-            "path": "M968.29 118.75 C968.29 225.125, 1230.01 225.125, 1230.01 331.5",
-            "label_x": 889.67,
-            "label_y": 320.89,
-            "leader_path": "M1099.150146484375 225.1250457763672 L889.67 320.89",
+            "leader_path": "M643.46 135 L706.3 28.63",
             "path_kind": "auto",
             "source_control": {
                 "dx": 0,
-                "dy": 106.38
+                "dy": 0
             },
             "target_control": {
                 "dx": 0,
-                "dy": -106.38
-            }
-        },
-        "nmi.critical_error": {
-            "path": "M968.29 118.75 C968.29 227, 1549.01 227, 1549.01 335.25",
-            "label_x": 1371.29,
-            "label_y": 125.38,
-            "leader_path": "M1258.6500244140625 227 L1371.29 125.38",
-            "path_kind": "auto",
-            "source_control": {
-                "dx": 0,
-                "dy": 108.25
-            },
-            "target_control": {
-                "dx": 0,
-                "dy": -108.25
+                "dy": 0
             }
         }
     },
     "markers": {
-        "nmi": {
-            "x": 939.29,
-            "y": 118.75
-        },
         "initial": {
             "x": 17,
             "y": 282.25

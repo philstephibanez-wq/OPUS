@@ -40,9 +40,6 @@
             "from": "begin",
             "signal": "open_home",
             "next_state": "home",
-            "guards": [
-                "route_exists"
-            ],
             "actions": [
                 "render_route"
             ]
@@ -52,9 +49,6 @@
             "from": "home",
             "signal": "open_home",
             "next_state": "home",
-            "guards": [
-                "route_exists"
-            ],
             "actions": [
                 "render_route"
             ]
