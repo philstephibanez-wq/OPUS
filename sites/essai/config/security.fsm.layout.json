@@ -1,11 +1,11 @@
 {
     "contract": "OPUS_FSM_DIAGRAM_LAYOUT_V4",
     "fsm_path": "config/security.fsm.json",
-    "definition_sha256": "4cc64c61b614a121da6b5fced4a29344d8b0ec9b5cb0c4b7db1089e3b9703c1d",
+    "definition_sha256": "3701ed6d8727fd78b435113db59934222e4750bedef232d18b32c3af09427fc2",
     "layout_direction": "horizontal",
     "canvas": {
-        "width": 1736,
-        "height": 511.01
+        "width": 2042.84,
+        "height": 692
     },
     "states": {
         "anonymous": {
@@ -23,6 +23,10 @@
         "reauthenticating": {
             "x": 1360.75,
             "y": 333.01
+        },
+        "state": {
+            "x": 1790.84,
+            "y": 355.51
         }
     },
     "transitions": {
@@ -30,7 +34,7 @@
             "path": "M334 206 C455.87542724609375 206, 455.87542724609375 401.0070343017578, 577.7508544921875 401.0070343017578",
             "label_x": 650.26,
             "label_y": 263.75,
-            "leader_path": "M455.8753967285156 303.5035095214844 L650.2613427734375 263.75",
+            "leader_path": "M455.8753967285156 303.5035095214844 L650.26 263.75",
             "path_kind": "auto",
             "source_control": {
                 "dx": 121.88,
@@ -75,7 +79,7 @@
             "path": "M925.4981079101562 109.74653625488281 C629.7490539550781 109.74653625488281, 629.7490539550781 206, 334 206",
             "label_x": 404.6,
             "label_y": 117.5,
-            "leader_path": "M629.7490234375 157.87326049804688 L404.59710083007815 117.50135040283203",
+            "leader_path": "M629.7490234375 157.87326049804688 L404.6 117.5",
             "path_kind": "auto",
             "source_control": {
                 "dx": -295.75,
@@ -143,6 +147,21 @@
             },
             "target_control": {
                 "dx": 115.63,
+                "dy": 0
+            }
+        },
+        "tr1": {
+            "path": "M334 178 C410 190, 1274.75 399.01, 1360.75 399.01",
+            "label_x": 976.64,
+            "label_y": 620.81,
+            "leader_path": "M846.388916015625 293.6319580078125 L976.6370239257812 620.8101501464844",
+            "path_kind": "auto",
+            "source_control": {
+                "dx": 76,
+                "dy": 12
+            },
+            "target_control": {
+                "dx": -86,
                 "dy": 0
             }
         }

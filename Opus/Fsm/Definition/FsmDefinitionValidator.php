@@ -26,6 +26,7 @@ final class FsmDefinitionValidator implements FsmDefinitionValidatorInterface
         }
 
         $stateIds = [];
+        $stateTypes = [];
         foreach ($states as $index => $state) {
             $path = 'states[' . $index . ']';
             if (!is_array($state)) {
@@ -42,6 +43,7 @@ final class FsmDefinitionValidator implements FsmDefinitionValidatorInterface
                 continue;
             }
             $stateIds[$id] = true;
+            $stateTypes[$id] = trim((string) ($state['type'] ?? ''));
         }
 
         $initial = trim((string) ($definition['initial_state'] ?? ''));
@@ -51,6 +53,62 @@ final class FsmDefinitionValidator implements FsmDefinitionValidatorInterface
         $final = trim((string) ($definition['final_state'] ?? ''));
         if ($final !== '' && !isset($stateIds[$final])) {
             $this->diagnostic($diagnostics, 'OPUS_EFSM_FINAL_STATE_INVALID', 'final_state', 'Final state must reference an existing state.');
+        }
+
+        /*
+         * Keep the semantic-write validator aligned with FsmProcessor.
+         * Otherwise the designer can persist a definition rejected later by
+         * the application runtime.
+         */
+        $entryStates = [];
+        foreach ($stateTypes as $stateId => $type) {
+            if ($type === 'entry') {
+                $entryStates[$stateId] = true;
+            }
+        }
+        if (count($entryStates) > 1) {
+            $this->diagnostic(
+                $diagnostics,
+                'OPUS_FSM_ENTRY_STATE_AMBIGUOUS',
+                'states',
+                'At most one entry state is permitted.'
+            );
+        }
+        if ($entryStates !== []
+            && $initial !== ''
+            && !isset($entryStates[$initial])) {
+            $this->diagnostic(
+                $diagnostics,
+                'OPUS_FSM_ENTRY_STATE_MUST_BE_INITIAL',
+                'initial_state',
+                'The entry state must be the initial state.'
+            );
+        }
+        if (isset($stateIds['begin'])) {
+            if (($stateTypes['begin'] ?? '') !== 'entry') {
+                $this->diagnostic(
+                    $diagnostics,
+                    'OPUS_FSM_BEGIN_STATE_TYPE_INVALID',
+                    'states',
+                    'The canonical begin state must have type entry.'
+                );
+            }
+            if ($initial !== '' && $initial !== 'begin') {
+                $this->diagnostic(
+                    $diagnostics,
+                    'OPUS_FSM_BEGIN_STATE_MUST_BE_INITIAL',
+                    'initial_state',
+                    'The canonical begin state must be initial.'
+                );
+            }
+        }
+        if ($entryStates !== [] && !isset($entryStates['begin'])) {
+            $this->diagnostic(
+                $diagnostics,
+                'OPUS_FSM_ENTRY_STATE_ID_INVALID',
+                'states',
+                'The canonical entry state ID is begin.'
+            );
         }
 
         $signalIds = [];
@@ -75,6 +133,7 @@ final class FsmDefinitionValidator implements FsmDefinitionValidatorInterface
         }
 
         $transitionIds = [];
+        $localRelations = [];
         foreach ($transitions as $index => $transition) {
             $path = 'transitions[' . $index . ']';
             if (!is_array($transition)) {
@@ -123,6 +182,21 @@ final class FsmDefinitionValidator implements FsmDefinitionValidatorInterface
                 $validNmi = $from === '*' && $interrupt === 'nmi';
                 if (!$validNmi && ($from === '' || !isset($stateIds[$from]))) {
                     $this->diagnostic($diagnostics, 'OPUS_EFSM_TRANSITION_SOURCE_UNKNOWN', $path . '.from', 'Transition source must exist.');
+                } elseif (!$validNmi
+                    && $from !== ''
+                    && $signal !== ''
+                    && isset($stateIds[$from], $signalIds[$signal])) {
+                    $relation = $from . "\0" . $signal;
+                    if (isset($localRelations[$relation])) {
+                        $this->diagnostic(
+                            $diagnostics,
+                            'OPUS_FSM_DUPLICATE_TRANSITION',
+                            $path,
+                            'A local state/signal pair must resolve to one transition.'
+                        );
+                    } else {
+                        $localRelations[$relation] = true;
+                    }
                 }
             } else {
                 $this->diagnostic($diagnostics, 'OPUS_EFSM_TRANSITION_SCOPE_INVALID', $path . '.scope', 'Transition scope is invalid.');

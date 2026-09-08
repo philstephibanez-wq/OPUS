@@ -50,6 +50,9 @@
         },
         {
             "id": "reauthenticating"
+        },
+        {
+            "id": "state"
         }
     ],
     "transitions": [
@@ -100,6 +103,12 @@
             "from": "reauthenticating",
             "signal": "reauthentication_failed",
             "next_state": "authenticated"
+        },
+        {
+            "id": "tr1",
+            "from": "anonymous",
+            "signal": "login_requested",
+            "next_state": "reauthenticating"
         }
     ]
 }

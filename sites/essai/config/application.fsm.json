@@ -2,10 +2,10 @@
     "contract": "OPUS_APPLICATION_FSM_V1",
     "name": "essai.application",
     "site_id": "essai",
-    "initial_state": "connexion",
+    "initial_state": "begin",
     "states": [
         {
-            "id": "connexion",
+            "id": "begin",
             "type": "entry",
             "module": "home",
             "route": "/",
@@ -37,7 +37,7 @@
     "transitions": [
         {
             "id": "open.home.from.begin",
-            "from": "connexion",
+            "from": "begin",
             "signal": "open_home",
             "next_state": "home",
             "guards": [
@@ -61,15 +61,15 @@
         },
         {
             "id": "new",
-            "from": "connexion",
-            "signal": "open_home",
-            "next_state": "connexion"
+            "from": "begin",
+            "signal": "new",
+            "next_state": "begin"
         },
         {
             "id": "transac",
-            "from": "connexion",
-            "signal": "open_home",
-            "next_state": "connexion"
+            "from": "begin",
+            "signal": "transac1",
+            "next_state": "begin"
         },
         {
             "id": "nmi.security_violation",
